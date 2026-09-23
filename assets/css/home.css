@@ -7,19 +7,22 @@
 .hero__content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px; width: 100%; max-width: var(--container); }
 .hero__text { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 800px; background: var(--c-white); }
 .hero__title { max-width: 780px; white-space: pre-wrap; }
-.hero__photo { position: absolute; z-index: 1; top: -40px; left: 361px; width: 102px; height: 115px; border-radius: 14px; border: 2.5px solid rgb(240, 240, 240); box-shadow: var(--sh-photo); overflow: hidden; transform: rotate(4deg); background: var(--c-white); }
+.hero__slot { position: relative; display: inline-block; width: 118px; height: 1em; vertical-align: middle; }
+.hero__photo { position: absolute; z-index: 1; top: 50%; left: 8px; margin-top: -84px; width: 102px; height: 115px; border-radius: 14px; border: 2.5px solid rgb(240, 240, 240); box-shadow: var(--sh-photo); overflow: hidden; transform: rotate(4deg); background: var(--c-white); }
 .js .hero__photo[data-appear] { transform: rotate(4deg) perspective(1200px) scale(0.5); }
 .js .hero__photo[data-appear].is-visible { transform: rotate(4deg); }
 .hero__photo img { width: 100%; height: 100%; object-fit: cover; }
 .hero__pixels { height: 170px; }
 @media (max-width: 1199.98px) {
   .hero__title { max-width: 680px; }
-  .hero__photo { top: -10px; left: auto; right: 328px; width: 50px; height: 53px; }
+  .hero__slot { width: 64px; }
+  .hero__photo { left: 7px; margin-top: -27px; width: 50px; height: 53px; }
 }
 @media (max-width: 809.98px) {
   .hero { padding: 160px var(--pad-x) 120px; }
   .hero__content { gap: 28px; }
-  .hero__photo { top: -62px; right: auto; left: calc(50% - 21px); width: 42px; height: 53px; }
+  .hero__slot { width: 54px; }
+  .hero__photo { left: 6px; margin-top: -27px; width: 42px; height: 53px; }
   .hero__pixels { height: 120px; border-bottom-left-radius: var(--r-card); border-bottom-right-radius: var(--r-card); }
 }
 
