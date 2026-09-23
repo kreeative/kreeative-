@@ -46,24 +46,28 @@ python3 -m http.server 8000
 
 ## Hosting
 
-The site is deployed automatically by Vercel from this repository
-(project **kreeative-site**; every push to the default branch goes live within
-a minute). Preview: https://kreeative-site.vercel.app
+The site is deployed to Vercel from this repository (project
+**kreeative-site**, connected to the GitHub repo). Live preview:
+https://kreeative-site.vercel.app
 
 Two free ways to serve it on **kreeative.xyz** — pick one:
 
-### Option A — Vercel (already set up, recommended)
+### Option A — Vercel (recommended)
 
-In GoDaddy → **My Products → kreeative.xyz → DNS**, remove any existing `A`
-record for `@` and any `CNAME` for `www`, then add:
+1. In Vercel open the **kreeative-site** project → **Settings → Domains** →
+   **Add** `kreeative.xyz` (Vercel will also suggest `www.kreeative.xyz`;
+   accept it so both work).
+2. In GoDaddy → **My Products → kreeative.xyz → DNS**, remove any existing
+   `A` record for `@` and any `CNAME` for `www`, then add:
 
 | Type  | Name | Value                  | TTL     |
 | ----- | ---- | ---------------------- | ------- |
 | A     | @    | 76.76.21.21            | default |
 | CNAME | www  | cname.vercel-dns.com   | default |
 
-The domain is already attached to the Vercel project; once DNS propagates
-(minutes to a few hours) Vercel issues the HTTPS certificate automatically.
+Once DNS propagates (minutes to a few hours) Vercel issues the HTTPS
+certificate automatically. Also check **Settings → Git → Production Branch**
+matches the branch you push to, so every push goes live.
 
 ### Option B — GitHub Pages
 
