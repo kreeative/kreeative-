@@ -44,7 +44,28 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-## Publish on GitHub Pages (free)
+## Hosting
+
+The site is deployed automatically by Vercel from this repository
+(project **kreeative-site**; every push to the default branch goes live within
+a minute). Preview: https://kreeative-site.vercel.app
+
+Two free ways to serve it on **kreeative.xyz** — pick one:
+
+### Option A — Vercel (already set up, recommended)
+
+In GoDaddy → **My Products → kreeative.xyz → DNS**, remove any existing `A`
+record for `@` and any `CNAME` for `www`, then add:
+
+| Type  | Name | Value                  | TTL     |
+| ----- | ---- | ---------------------- | ------- |
+| A     | @    | 76.76.21.21            | default |
+| CNAME | www  | cname.vercel-dns.com   | default |
+
+The domain is already attached to the Vercel project; once DNS propagates
+(minutes to a few hours) Vercel issues the HTTPS certificate automatically.
+
+### Option B — GitHub Pages
 
 1. On GitHub open the repository → **Settings → Pages**.
 2. Under **Build and deployment** choose **Deploy from a branch**, pick the
@@ -55,7 +76,7 @@ python3 -m http.server 8000
    domain and provision HTTPS automatically. Tick **Enforce HTTPS** when it
    becomes available.
 
-## Point kreeative.xyz at the site (GoDaddy DNS)
+#### Point kreeative.xyz at GitHub Pages (GoDaddy DNS)
 
 In GoDaddy → **My Products → kreeative.xyz → DNS**, remove any existing `A`
 record for `@` and any `CNAME` for `www`, then add:
