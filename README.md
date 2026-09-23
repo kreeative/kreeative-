@@ -34,6 +34,8 @@ assets/js/site.js          scroll-in animations, hero headline, pixel canvases, 
 assets/fonts/              self-hosted woff2 fonts
 assets/img/                optimised WebP images (+ favicons, social image)
 assets/icons/              Phosphor icon SVGs used inline in the pages
+tools/site-screenshots.mjs screenshots the sites shown on the home page
+.github/workflows/         the workflow that runs that script
 docs/DESIGN.md             design tokens and breakpoints, for reference
 ```
 
@@ -107,6 +109,11 @@ repository. DNS changes take from a few minutes to a few hours to propagate.
   `index.html`, and add the URL to `sitemap.xml`.
 * Images: put optimised WebP files in `assets/img/` (a few sizes each, e.g.
   660 / 1000 / 2000 px wide) and reference them with `srcset`.
+* **Websites I built** (home page): the screenshots in `assets/img/sites/` are
+  taken automatically by the **Site screenshots** workflow (GitHub → Actions →
+  *Site screenshots* → *Run workflow*). Run it again whenever one of the sites
+  changes; it commits the fresh images. To add a site, add it to the list at
+  the top of `tools/site-screenshots.mjs` and copy a card in `index.html`.
 
 ## Credits
 
