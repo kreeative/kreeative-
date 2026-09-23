@@ -53,3 +53,14 @@ for (const [name, url] of SITES) {
   }
 }
 await browser.close();
+
+// Stamp a version on every reference to these images so browsers and CDNs
+// fetch the new capture instead of a cached copy with the same file name.
+const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
+const pages = ['index.html', ...fs.readdirSync('websites').map(d => `websites/${d}/index.html`)];
+for (const p of pages) {
+  if (!fs.existsSync(p)) continue;
+  const before = fs.readFileSync(p, 'utf8');
+  const after = before.replace(/(assets\/img\/sites\/site-[a-z0-9-]+\.webp)(\?v=\d+)?/g, `$1?v=${stamp}`);
+  if (after !== before) { fs.writeFileSync(p, after); console.log('stamped', p); }
+}
