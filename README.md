@@ -14,6 +14,7 @@ works.
 | `/portfolio/streamlining-e-commerce-for-zenithcart/`        | `portfolio/streamlining-e-commerce-for-zenithcart/index.html` (Gogiya) |
 | `/portfolio/designing-a-seamless-user-experience-for-taskflow/` | `portfolio/designing-a-seamless-user-experience-for-taskflow/index.html` (GloryWalk) |
 | `/portfolio/nexatech/`                                      | `portfolio/nexatech/index.html` (Lyzma Industries)               |
+| `/pricing/`                                                 | `pricing/index.html`                                             |
 | `/the-kreeative-designer-newsletter/`                       | `the-kreeative-designer-newsletter/index.html`                   |
 | any unknown URL                                             | `404.html`                                                       |
 
@@ -27,6 +28,7 @@ assets/css/base.css        fonts, colour/type tokens, reset, typography, page fr
 assets/css/components.css  nav, buttons, footer, pills, animations, decorations
 assets/css/home.css        home-page sections
 assets/css/case-study.css  case-study template
+assets/css/pricing.css     pricing page
 assets/css/misc.css        newsletter + 404 pages
 assets/js/site.js          scroll-in animations, hero headline, pixel canvases, menu
 assets/fonts/              self-hosted woff2 fonts

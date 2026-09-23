@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Kreeative — pricing page
+   ========================================================================== */
+.pr-hero { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 120px var(--pad-x) 96px; overflow: clip; text-align: center; }
+.pr-hero__kicker { color: var(--c-text-60); }
+.pr-hero__title { max-width: 720px; }
+.pr-hero__lead { max-width: 560px; text-align: center; }
+.pr-hero__pixels { height: 120px; }
+
+.pr-plans { display: flex; flex-direction: column; align-items: center; gap: 48px; padding: 76px var(--pad-x) 100px; }
+.pr-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; width: 100%; max-width: var(--container); }
+.plan { position: relative; display: flex; flex-direction: column; gap: 24px; padding: 32px 28px; background: var(--c-surface-2); border: 1px solid var(--c-line); border-radius: var(--r-lg); box-shadow: var(--sh-card); transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease; }
+.plan:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.25); }
+.plan--featured { background: var(--c-black); color: var(--c-white); border-color: var(--c-black); }
+.plan--featured .t-h3, .plan--featured .t-body-m, .plan--featured .t-caption, .plan--featured .plan__price { color: var(--c-white); }
+.plan--featured .plan__list li { color: var(--c-white-60); }
+.plan__badge { position: absolute; top: -13px; right: 24px; padding: 5px 12px; background: var(--c-pink); color: var(--c-white); border-radius: 999px; font-family: var(--f-sans); font-size: 13px; font-weight: 500; letter-spacing: -0.02em; white-space: pre; }
+.plan__head { display: flex; flex-direction: column; gap: 6px; }
+.plan__for { color: var(--c-muted); }
+.plan__price { display: flex; align-items: baseline; gap: 6px; font-family: var(--f-serif); font-weight: 300; font-size: 44px; line-height: 1.1; letter-spacing: -0.06em; color: var(--c-black); }
+.plan__price small { font-family: var(--f-sans); font-size: 14px; letter-spacing: -0.03em; color: var(--c-muted); }
+.plan--featured .plan__price small { color: var(--c-white-60); }
+.plan__list { display: flex; flex-direction: column; gap: 10px; }
+.plan__list li { position: relative; padding-left: 26px; color: var(--c-text); }
+.plan__list li svg { position: absolute; left: 0; top: 3px; width: 18px; height: 18px; color: var(--c-pink); }
+.plan__note { color: var(--c-muted); }
+.plan .btn { margin-top: auto; align-self: flex-start; }
+
+.pr-addons { display: flex; flex-direction: column; align-items: flex-start; gap: 32px; width: 100%; max-width: var(--container); }
+.pr-addons__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; width: 100%; }
+.addon { display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: var(--c-white); border: 1px dashed var(--c-dashed); border-radius: var(--r-md); }
+.addon__icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: none; border-radius: 10px; background: var(--c-line); color: var(--c-black); }
+.addon__icon svg { width: 20px; height: 20px; }
+.addon__text { display: flex; flex-direction: column; gap: 4px; flex: 1 0 0; }
+.addon__price { flex: none; white-space: pre; color: var(--c-black); }
+
+.pr-faq { display: flex; flex-direction: column; align-items: flex-start; gap: 32px; padding: 88px var(--pad-x); }
+.pr-faq__list { display: flex; flex-direction: column; width: 100%; max-width: 800px; border-top: 1px solid var(--c-hairline); }
+.pr-faq__list details { border-bottom: 1px solid var(--c-hairline); }
+.pr-faq__list summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; cursor: pointer; list-style: none; color: var(--c-black); }
+.pr-faq__list summary::-webkit-details-marker { display: none; }
+.pr-faq__list summary svg { width: 18px; height: 18px; flex: none; transition: transform 0.25s ease; }
+.pr-faq__list details[open] summary svg { transform: rotate(45deg); }
+.pr-faq__list details p { padding: 0 0 20px; max-width: 640px; }
+
+@media (max-width: 1199.98px) {
+  .pr-grid { grid-template-columns: 1fr; max-width: 640px; }
+  .pr-addons__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 809.98px) {
+  .pr-hero { padding: 96px var(--pad-x) 80px; }
+  .pr-plans { padding: 64px var(--pad-x) 80px; }
+  .pr-faq { padding: 64px var(--pad-x); }
+  .plan { padding: 28px 20px; }
+  .addon { flex-wrap: wrap; }
+}
