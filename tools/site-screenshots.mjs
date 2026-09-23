@@ -39,6 +39,16 @@ for (const [name, url] of SITES) {
       await sharp(png).resize({ width: w }).webp({ quality: 80 }).toFile(file);
       console.log(file, fs.statSync(file).size, 'bytes');
     }
+    if (tag === 'desktop') {
+      // A long, scrolled view of the page for the detail page (capped height).
+      const h = Math.min(await page.evaluate(() => document.documentElement.scrollHeight), 3200);
+      const full = await page.screenshot({ fullPage: true, clip: { x: 0, y: 0, width: 1440, height: h } });
+      for (const w of [1000, 1440]) {
+        const file = `${OUT}/site-${name}-full-${w}.webp`;
+        await sharp(full).resize({ width: w }).webp({ quality: 80 }).toFile(file);
+        console.log(file, fs.statSync(file).size, 'bytes');
+      }
+    }
     await ctx.close();
   }
 }
