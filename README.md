@@ -14,6 +14,9 @@ works.
 | `/portfolio/streamlining-e-commerce-for-zenithcart/`        | `portfolio/streamlining-e-commerce-for-zenithcart/index.html` (Gogiya) |
 | `/portfolio/designing-a-seamless-user-experience-for-taskflow/` | `portfolio/designing-a-seamless-user-experience-for-taskflow/index.html` (GloryWalk) |
 | `/portfolio/nexatech/`                                      | `portfolio/nexatech/index.html` (Lyzma Industries)               |
+| `/websites/rich-and-friends/`                               | `websites/rich-and-friends/index.html`                           |
+| `/websites/the-ivory-sukundu/`                              | `websites/the-ivory-sukundu/index.html`                          |
+| `/websites/keewal-meere/`                                   | `websites/keewal-meere/index.html`                               |
 | `/pricing/`                                                 | `pricing/index.html`                                             |
 | `/the-kreeative-designer-newsletter/`                       | `the-kreeative-designer-newsletter/index.html`                   |
 | any unknown URL                                             | `404.html`                                                       |
@@ -113,7 +116,8 @@ repository. DNS changes take from a few minutes to a few hours to propagate.
   taken automatically by the **Site screenshots** workflow (GitHub → Actions →
   *Site screenshots* → *Run workflow*). Run it again whenever one of the sites
   changes; it commits the fresh images. To add a site, add it to the list at
-  the top of `tools/site-screenshots.mjs` and copy a card in `index.html`.
+  the top of `tools/site-screenshots.mjs`, copy a card in `index.html` and copy
+  one of the `websites/*/index.html` pages for its story.
 
 ## Credits
 

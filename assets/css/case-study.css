@@ -22,6 +22,12 @@
 
 /* Images (hero + content) */
 .cs-image { position: relative; width: 100%; max-width: 1000px; aspect-ratio: 1.53846; margin: 0; border-radius: var(--r-card); overflow: hidden; background: var(--c-surface-2); }
+.cs-image--tall { aspect-ratio: auto; }
+.cs-image--tall img { height: auto; object-fit: contain; }
+.cs-image--phone { max-width: 360px; aspect-ratio: 390 / 844; }
+.cs-key__link--text { gap: 6px; height: auto; padding-right: 0; }
+.cs-key__link--text:hover { color: var(--c-black); }
+.cs-results .btn { margin-top: 8px; }
 .cs-image img { width: 100%; height: 100%; object-fit: cover; object-position: center; border-radius: inherit; }
 
 /* H3 + text blocks (Background / Core problem / Results) */
