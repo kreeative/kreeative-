@@ -1,0 +1,69 @@
+/* ==========================================================================
+   Kreeative — case-study template (portfolio/<slug>/)
+   Values from the original Framer build: tokens.md §4.2 + rendered trees.
+   Desktop / tablet (810–1199.98) / phone (≤809.98)
+   ========================================================================== */
+
+/* ---- Hero card ------------------------------------------------------------ */
+.cs-hero { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 48px; padding: 106px 100px 88px; overflow: hidden; }
+.cs-top { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 80px; width: 100%; max-width: 1000px; }
+.cs-header { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 16px; width: 100%; }
+
+/* Key data row: date · author · contact link */
+.cs-key { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 20px; width: 100%; }
+.cs-key__group { display: flex; align-items: center; gap: 20px; }
+.cs-key__item { display: inline-flex; align-items: center; gap: 6px; white-space: pre; color: var(--c-text); }
+.cs-key__item svg, .cs-key__link svg { width: 18px; height: 18px; flex: none; display: block; }
+.cs-key__item--icon { padding-right: 6px; }
+.cs-key__link { display: inline-flex; align-items: center; height: 18px; padding-right: 6px; color: var(--c-text); transition: color 0.2s ease; }
+.cs-key__link:hover { color: var(--c-black); }
+
+.cs-title { width: 100%; max-width: 560px; margin: 0 auto; }
+
+/* Images (hero + content) */
+.cs-image { position: relative; width: 100%; max-width: 1000px; aspect-ratio: 1.53846; margin: 0; border-radius: var(--r-card); overflow: hidden; background: var(--c-surface-2); }
+.cs-image img { width: 100%; height: 100%; object-fit: cover; object-position: center; border-radius: inherit; }
+
+/* H3 + text blocks (Background / Core problem / Results) */
+.cs-block { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 24px; width: 100%; max-width: 1000px; }
+.cs-block--bg { padding-top: 32px; }
+.cs-text { width: 100%; max-width: 640px; }
+.cs-block .t-h3, .cs-results .t-h3 { width: 100%; }
+
+/* ---- Content card --------------------------------------------------------- */
+.cs-content { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 80px 100px; overflow: hidden; }
+.cs-container { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 40px; width: 100%; max-width: 1000px; padding: 0 0 36px; }
+.cs-rich { width: 100%; max-width: 640px; }
+.cs-rich > * + .t-h3, .cs-rich > * + .t-h4 { margin-top: 40px; }
+.cs-rich > * + ul, .cs-rich > * + .cs-label { margin-top: 24px; }
+.cs-rich strong { font-weight: 700; }
+.cs-rich ul { padding-inline-start: 0; }
+.cs-rich ul > li { padding-inline-start: 1.262em; }
+.cs-rich ul > li::before { inset-inline-start: 0; }
+.cs-rich a, .cs-text a { color: var(--c-link-case); text-decoration: none; transition: color 0.2s ease; }
+.cs-rich a:hover, .cs-text a:hover { color: var(--c-link-case-hover); }
+
+/* Small unstyled sub-heading exactly as the original renders it (Inter 16px, no preset) */
+.cs-label { font-family: var(--f-sans); font-weight: 400; font-size: 16px; line-height: 1.2; letter-spacing: 0; color: #000; }
+
+.cs-results { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 26px; width: 100%; max-width: 1000px; padding-top: 48px; }
+
+/* ---- Tablet --------------------------------------------------------------- */
+@media (max-width: 1199.98px) {
+  .cs-hero { padding: 106px 48px 88px; }
+  .cs-content { padding: 80px 48px; }
+}
+
+/* ---- Phone ---------------------------------------------------------------- */
+@media (max-width: 809.98px) {
+  .cs-hero { padding: 116px 15px 72px; gap: 40px; }
+  .cs-top { gap: 32px; }
+  .cs-header { gap: 24px; }
+  .cs-key { order: 1; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 10px; }
+  .cs-key__group { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .cs-title { max-width: none; text-align: left; }
+  .cs-image { border-radius: var(--r-lg); }
+  .cs-block--bg { padding-top: 20px; }
+  .cs-content { padding: 72px 15px; }
+  .cs-results { padding-top: 40px; }
+}
