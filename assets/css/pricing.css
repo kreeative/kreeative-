@@ -9,6 +9,7 @@
 
 .pr-plans { display: flex; flex-direction: column; align-items: center; gap: 48px; padding: 76px var(--pad-x) 100px; }
 .pr-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; width: 100%; max-width: var(--container); }
+.pr-grid .plan:nth-child(n+4) { grid-column: span 1; }
 .plan { position: relative; display: flex; flex-direction: column; gap: 24px; padding: 32px 28px; background: var(--c-surface-2); border: 1px solid var(--c-line); border-radius: var(--r-lg); box-shadow: var(--sh-card); transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease; }
 .plan:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.25); }
 .plan--featured { background: var(--c-black); color: var(--c-white); border-color: var(--c-black); }
