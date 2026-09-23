@@ -26,6 +26,13 @@ for (const [name, url] of SITES) {
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: 'networkidle', timeout: 90000 });
     await page.waitForTimeout(3000);
+    // Dismiss newsletter / cookie popups so the screenshot shows the page.
+    await page.keyboard.press('Escape').catch(() => {});
+    for (const sel of ['text=/decline offer/i', 'text=/no thanks/i', '[aria-label*="close" i]', 'button:has-text("×")']) {
+      const el = page.locator(sel).first();
+      if (await el.isVisible().catch(() => false)) { await el.click({ timeout: 2000 }).catch(() => {}); break; }
+    }
+    await page.waitForTimeout(1200);
     const png = await page.screenshot();
     for (const w of widths) {
       const file = `${OUT}/site-${name}-${tag}-${w}.webp`;
