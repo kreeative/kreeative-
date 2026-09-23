@@ -1,0 +1,38 @@
+/* ==========================================================================
+   Kreeative — small pages: newsletter (light) + 404 (dark)
+   ========================================================================== */
+
+/* ---- Newsletter ----------------------------------------------------------- */
+.page--nl { justify-content: flex-start; }
+.nl { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; min-height: 600px; padding: 20px; overflow: hidden; }
+.nl-text { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+.nl-title { font-family: var(--f-inter-var); font-weight: 700; font-variation-settings: "wght" 700, "opsz" 32; font-feature-settings: "cv01" on, "cv09" on, "cv11" on, "cv05" on, "ss03" on; font-size: 32px; line-height: 1em; letter-spacing: -0.03em; text-align: center; color: #000; white-space: pre-wrap; }
+.nl-title--muted { color: rgb(153, 153, 153); }
+
+/* ---- 404 ------------------------------------------------------------------ */
+.nf { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: calc(100vh - 16px); padding: 180px 36px; overflow: hidden; }
+
+/* small pill navigation, top-left (original: fixed 28px 44px in the viewport → 20px 36px inside the card) */
+.nf-nav { position: absolute; top: 20px; left: 36px; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.nf-tabs { display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 10px; background: var(--c-white); border-radius: 10px; box-shadow: 0 0 0 1px rgba(227, 227, 227, 0.6), 0 0.602187px 1.32481px -1.5px rgba(0, 0, 0, 0.19), 0 2.28853px 5.03477px -3px rgba(0, 0, 0, 0.16), 0 10px 22px -4.5px rgba(0, 0, 0, 0.02); }
+.nf-tab { display: inline-flex; align-items: center; justify-content: center; height: 25px; padding: 0 8px; border-radius: 6px; font-family: var(--f-sans); font-weight: 400; font-size: 14px; line-height: 1.25; letter-spacing: -0.05em; color: var(--c-text-60); white-space: pre; transition: color 0.2s ease, background-color 0.2s ease; }
+.nf-tab:hover { color: var(--c-black); background: var(--c-surface-2); }
+.nf-cta { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 12px 16px; background: var(--c-black); color: var(--c-white); border-radius: 10px; white-space: pre; transition: background-color 0.2s ease; }
+.nf-cta:hover { background: #000; }
+
+.nf-content { position: relative; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width: 100%; }
+.nf-title { width: 100%; max-width: 480px; color: var(--c-muted); white-space: pre-wrap; }
+.nf-title__code { color: var(--c-black); }
+
+/* dark pill button (static twin of .btn-back) */
+.btn-pill { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px 12px 12px; background: var(--c-black); color: var(--c-white); border-radius: 32px; box-shadow: var(--sh-back); white-space: pre; transition: transform 0.25s ease, background-color 0.25s ease; }
+.btn-pill svg { width: 21px; height: 21px; flex: none; }
+.btn-pill:hover { transform: translateY(-1px); background: #000; }
+
+.nf-pixels { height: 230px; }
+
+@media (max-width: 809.98px) {
+  .nf { padding: 180px 36px; }
+  .nf-nav { top: 16px; left: 16px; right: 16px; }
+  .nf-title { max-width: none; }
+}
