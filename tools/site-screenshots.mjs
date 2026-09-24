@@ -8,15 +8,17 @@ import sharp from 'sharp';
 import fs from 'node:fs';
 
 const SITES = [
-  ['rich',   'https://richandfriends.xyz/'],
-  ['ivory',  'https://www.theivorysukundu.com/'],
-  ['keewal', 'https://keewaomeere.vercel.app/'],
+  ['rich',     'https://richandfriends.xyz/'],
+  ['ivory',    'https://www.theivorysukundu.com/'],
+  ['keewal',   'https://keewaomeere.vercel.app/'],
+  // Reveals its sections as you scroll, so it is scrolled through before the long capture.
+  ['cameleon', 'https://cameleon-concept.vercel.app/', { scrollFirst: true }],
 ];
 const OUT = 'assets/img/sites';
 fs.mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch();
-for (const [name, url] of SITES) {
+for (const [name, url, opts = {}] of SITES) {
   const shots = [
     ['desktop', { width: 1440, height: 900 }, 1, [1440, 960]],
     ['phone',   { width: 390,  height: 844 }, 2, [780, 390]],
@@ -40,6 +42,16 @@ for (const [name, url] of SITES) {
       console.log(file, fs.statSync(file).size, 'bytes');
     }
     if (tag === 'desktop') {
+      if (opts.scrollFirst) {
+        await page.evaluate(async () => {
+          for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight / 2) {
+            scrollTo({ top: y, behavior: 'instant' });
+            await new Promise(r => setTimeout(r, 150));
+          }
+          scrollTo({ top: 0, behavior: 'instant' });
+        });
+        await page.waitForTimeout(1200);
+      }
       // A long, scrolled view of the page for the detail page (capped height).
       const h = Math.min(await page.evaluate(() => document.documentElement.scrollHeight), 3200);
       const full = await page.screenshot({ fullPage: true, clip: { x: 0, y: 0, width: 1440, height: h } });
