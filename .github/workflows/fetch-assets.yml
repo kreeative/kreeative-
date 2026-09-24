@@ -1,0 +1,36 @@
+# Downloads image files from public URLs into the repo. Used when an image
+# was generated elsewhere (for example in Higgsfield) and needs to land in
+# assets/img/. Run from the Actions tab with a JSON list of {url, path}.
+name: Fetch assets
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'JSON array of {"url": "...", "path": "assets/img/..."}'
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download
+        env:
+          FILES: ${{ inputs.files }}
+        run: |
+          echo "$FILES" | jq -c '.[]' | while read -r item; do
+            url=$(echo "$item" | jq -r .url); path=$(echo "$item" | jq -r .path)
+            case "$path" in assets/img/*) ;; *) echo "refusing path $path"; exit 1;; esac
+            mkdir -p "$(dirname "$path")"
+            curl -fsSL "$url" -o "$path" && echo "saved $path ($(stat -c %s "$path") bytes)"
+          done
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/img
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Add fetched assets"
+          git push
