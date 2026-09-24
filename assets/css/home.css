@@ -181,3 +181,15 @@
   .site-card__phone img { border-radius: 10px; }
   .site-card__body { padding: 0 15px; }
 }
+
+/* ---- Free audit strip ------------------------------------------------------ */
+.audit-strip { display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 64px var(--pad-x); }
+.audit-strip__text { display: flex; flex-direction: column; gap: 12px; max-width: 760px; }
+.audit-strip__kicker { color: var(--c-pink); }
+.audit-strip .btn { flex: none; }
+@media (max-width: 1199.98px) {
+  .audit-strip { flex-direction: column; align-items: flex-start; gap: 28px; }
+}
+@media (max-width: 809.98px) {
+  .audit-strip { padding: 56px var(--pad-x); }
+}
