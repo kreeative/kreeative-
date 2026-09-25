@@ -18,6 +18,7 @@ works.
 | `/websites/the-ivory-sukundu/`                              | `websites/the-ivory-sukundu/index.html`                          |
 | `/websites/keewal-meere/`                                   | `websites/keewal-meere/index.html`                               |
 | `/websites/cameleon/`                                       | `websites/cameleon/index.html`                                   |
+| `/websites/tabouret/`                                       | `websites/tabouret/index.html`                                   |
 | `/pricing/`                                                 | `pricing/index.html`                                             |
 | `/the-kreeative-designer-newsletter/`                       | `the-kreeative-designer-newsletter/index.html`                   |
 | any unknown URL                                             | `404.html`                                                       |
