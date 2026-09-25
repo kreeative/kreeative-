@@ -159,9 +159,6 @@
 .site-card__desktop { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 12px; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
 .site-card__desktop--left { object-position: left top; } /* keeps a left-aligned headline whole when phones crop to 4:3 */
 .site-card:hover .site-card__desktop { transform: scale(1.02); }
-.site-card__phone { position: absolute; right: 28px; bottom: 24px; z-index: 2; width: 21%; aspect-ratio: 390 / 844; padding: 4px; background: #111; border-radius: 22px; box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.55); overflow: hidden; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
-.site-card:hover .site-card__phone { transform: translateY(-8px); }
-.site-card__phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 18px; }
 .site-card__body { display: flex; flex-direction: column; gap: 10px; padding: 0 23px; }
 .site-card__head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .site-card__head h4 { color: var(--c-black); }
@@ -178,8 +175,6 @@
   .sites__grid { gap: 24px; }
   .site-card { padding: 3px 3px 22px; gap: 16px; }
   .site-card__media { aspect-ratio: 4 / 3; }
-  .site-card__phone { right: 12px; bottom: 12px; width: 26%; padding: 2px; border-radius: 12px; }
-  .site-card__phone img { border-radius: 10px; }
   .site-card__body { padding: 0 15px; }
 }
 
