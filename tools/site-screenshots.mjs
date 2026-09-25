@@ -3,6 +3,7 @@
 // (.github/workflows/site-screenshots.yml); run it by hand with:
 //   npm i playwright sharp && npx playwright install --with-deps chromium
 //   node tools/site-screenshots.mjs
+// To capture only some sites, list their names: ONLY="tabouret" node tools/site-screenshots.mjs
 import { chromium } from 'playwright';
 import sharp from 'sharp';
 import fs from 'node:fs';
@@ -13,12 +14,18 @@ const SITES = [
   ['keewal',   'https://keewaomeere.vercel.app/'],
   // Reveals its sections as you scroll, so it is scrolled through before the long capture.
   ['cameleon', 'https://cameleon-concept.vercel.app/', { scrollFirst: true }],
+  // An app that fits the window, so instead of a long capture it gets a second
+  // screen (a dish page). The clock is set to lunchtime in New York so the
+  // restaurant shows as open.
+  ['tabouret', 'https://tabouret.vercel.app/', { detail: '#/dish/tonkotsu-ramen', time: '2026-09-24T16:30:00Z' }],
 ];
+const ONLY = (process.env.ONLY || '').split(/[\s,]+/).filter(Boolean);
+const RUN = SITES.filter(([name]) => !ONLY.length || ONLY.includes(name));
 const OUT = 'assets/img/sites';
 fs.mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch();
-for (const [name, url, opts = {}] of SITES) {
+for (const [name, url, opts = {}] of RUN) {
   const shots = [
     ['desktop', { width: 1440, height: 900 }, 1, [1440, 960]],
     ['phone',   { width: 390,  height: 844 }, 2, [780, 390]],
@@ -26,6 +33,7 @@ for (const [name, url, opts = {}] of SITES) {
   for (const [tag, viewport, deviceScaleFactor, widths] of shots) {
     const ctx = await browser.newContext({ viewport, deviceScaleFactor, locale: 'fr-CA' });
     const page = await ctx.newPage();
+    if (opts.time) await page.clock.setFixedTime(new Date(opts.time));
     await page.goto(url, { waitUntil: 'networkidle', timeout: 90000 });
     await page.waitForTimeout(3000);
     // Dismiss newsletter / cookie popups so the screenshot shows the page.
@@ -41,7 +49,17 @@ for (const [name, url, opts = {}] of SITES) {
       await sharp(png).resize({ width: w }).webp({ quality: 80 }).toFile(file);
       console.log(file, fs.statSync(file).size, 'bytes');
     }
-    if (tag === 'desktop') {
+    if (tag === 'desktop' && opts.detail) {
+      // A second screen of the app, at the same size as the first one.
+      await page.goto(url + opts.detail, { waitUntil: 'networkidle', timeout: 90000 });
+      await page.waitForTimeout(2500);
+      const detail = await page.screenshot();
+      for (const w of [1000, 1440]) {
+        const file = `${OUT}/site-${name}-detail-${w}.webp`;
+        await sharp(detail).resize({ width: w }).webp({ quality: 80 }).toFile(file);
+        console.log(file, fs.statSync(file).size, 'bytes');
+      }
+    } else if (tag === 'desktop') {
       if (opts.scrollFirst) {
         await page.evaluate(async () => {
           for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight / 2) {
@@ -69,10 +87,12 @@ await browser.close();
 // Stamp a version on every reference to these images so browsers and CDNs
 // fetch the new capture instead of a cached copy with the same file name.
 const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
+// Only the sites captured in this run are stamped.
+const shot = new RegExp(`(assets/img/sites/site-(?:${RUN.map(([name]) => name).join('|')})-[a-z0-9-]+\\.webp)(\\?v=\\d+)?`, 'g');
 const pages = ['index.html', ...fs.readdirSync('websites').map(d => `websites/${d}/index.html`)];
 for (const p of pages) {
   if (!fs.existsSync(p)) continue;
   const before = fs.readFileSync(p, 'utf8');
-  const after = before.replace(/(assets\/img\/sites\/site-[a-z0-9-]+\.webp)(\?v=\d+)?/g, `$1?v=${stamp}`);
+  const after = before.replace(shot, `$1?v=${stamp}`);
   if (after !== before) { fs.writeFileSync(p, after); console.log('stamped', p); }
 }

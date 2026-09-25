@@ -4,6 +4,11 @@
 name: Site screenshots
 on:
   workflow_dispatch:
+    inputs:
+      only:
+        description: 'Only these sites, e.g. "tabouret" (leave empty for all)'
+        required: false
+        type: string
 permissions:
   contents: write
 jobs:
@@ -17,6 +22,8 @@ jobs:
       - run: npm i --no-save playwright@1.47.2 sharp
       - run: npx playwright install --with-deps chromium
       - run: node tools/site-screenshots.mjs
+        env:
+          ONLY: ${{ inputs.only }}
       - name: Commit screenshots
         run: |
           git config user.name "github-actions[bot]"
