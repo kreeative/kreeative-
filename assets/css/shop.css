@@ -47,3 +47,7 @@
 .access__cover { width: 100%; max-width: 720px; overflow: hidden; border-radius: var(--r-md); box-shadow: var(--sh-photo); }
 .access__steps { display: flex; flex-direction: column; gap: 10px; max-width: 560px; padding-left: 1.3em; list-style: decimal; text-align: left; }
 .access__note { max-width: 520px; }
+.btn--soon { margin-top: auto; background: var(--c-line); cursor: default; }
+.btn--soon::after { border-color: var(--c-line-3); }
+.btn--soon .btn__label { color: var(--c-text-60) !important; }
+.btn--soon:hover .btn__label { transform: none; opacity: 1; }
