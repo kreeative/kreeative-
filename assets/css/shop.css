@@ -86,3 +86,29 @@
 .btn--soon::after { border-color: var(--c-line-3); }
 .btn--soon .btn__label { color: var(--c-text-60) !important; }
 .btn--soon:hover .btn__label { transform: none; opacity: 1; }
+
+/* ---- search + category filter ------------------------------------------ */
+.sh-grid { gap: 32px; }
+.sh-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; width: 100%; max-width: var(--container); }
+.sh-search { position: relative; display: flex; align-items: center; flex: 1 1 320px; max-width: 480px; }
+.sh-search svg { position: absolute; left: 16px; width: 18px; height: 18px; color: var(--c-text-40); pointer-events: none; }
+.sh-search input { width: 100%; height: 48px; padding: 0 16px 0 44px; border: 1px solid var(--c-line-2); border-radius: 999px; background: var(--c-surface-2); font: 400 16px/1 var(--f-sans); letter-spacing: -0.02em; color: var(--c-black); outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.sh-search input::placeholder { color: var(--c-text-40); }
+.sh-search input:focus { border-color: var(--c-pink); box-shadow: 0 0 0 3px var(--c-pink-border); }
+.sh-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.sh-chip { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border: 1px solid var(--c-line-2); border-radius: 999px; background: var(--c-white); font: 500 14px/1 var(--f-sans); letter-spacing: -0.02em; color: var(--c-text); transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+.sh-chip span { font-family: var(--f-mono); font-size: 12px; color: var(--c-text-40); }
+.sh-chip:hover { border-color: var(--c-black); }
+.sh-chip[aria-pressed="true"] { background: var(--c-black); border-color: var(--c-black); color: var(--c-white); }
+.sh-chip[aria-pressed="true"] span { color: var(--c-white-60); }
+.sh-group { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: var(--container); }
+.sh-group[hidden], .tile[hidden] { display: none; }
+.sh-group__title { font-size: 28px; }
+.sh-empty { width: 100%; max-width: var(--container); color: var(--c-muted); }
+@media (max-width: 809.98px) {
+  .sh-tools { flex-direction: column; align-items: stretch; }
+  .sh-search { max-width: none; flex-basis: auto; }
+  .sh-group__title { font-size: 24px; }
+}
+.tile__img { overflow: hidden; min-height: 0; }
+.tile--free .tile__img img { height: 100%; width: auto; }

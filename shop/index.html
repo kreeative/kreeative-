@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="../assets/css/shop.css">
   <script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
   <script defer src="../assets/js/site.js"></script>
+  <script defer src="../assets/js/shop.js"></script>
 </head>
 <body>
 <div class="page" id="top">
@@ -59,16 +60,22 @@
   </section>
 
   <section class="card sh-grid" data-appear="section" aria-label="All digital products">
-    <div class="sh-grid__inner">
-      <a class="tile tile--free" href="#free-guide" data-appear="card" style="--tint: #f6d3e0">
-        <div class="tile__img"><img src="../assets/img/shop/guide-cover.webp" alt="" loading="lazy" decoding="async"></div>
-        <div class="tile__body">
-          <p class="tile__kicker t-mono">FREE GUIDE</p>
-          <p class="tile__name">How I Get PR Packages &amp; Paid Brand Deals</p>
-          <p class="tile__price">Free</p>
-        </div>
-      </a>
-      <a class="tile" href="#pink" data-appear="card" style="--tint: #f6d3e0">
+    <div class="sh-tools">
+      <label class="sh-search">
+        <svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>
+        <span class="visually-hidden">Search products</span>
+        <input type="search" id="sh-search" placeholder="Search media kits and guides" autocomplete="off">
+      </label>
+      <div class="sh-chips" role="group" aria-label="Filter by category">
+        <button type="button" class="sh-chip" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="sh-chip" data-filter="kit" aria-pressed="false">Media kits <span>6</span></button>
+        <button type="button" class="sh-chip" data-filter="guide" aria-pressed="false">Guides <span>1</span></button>
+      </div>
+    </div>
+    <div class="sh-group" data-group="kit">
+      <h2 class="sh-group__title t-h3">Media kits</h2>
+      <div class="sh-grid__inner">
+      <a data-cat="kit" data-search="pink scrapbook media kit template canva" class="tile" href="#pink" data-appear="card" style="--tint: #f6d3e0">
         <div class="tile__img"><img src="../assets/img/shop/pink-1-800.webp" alt="" loading="lazy" decoding="async"></div>
         <div class="tile__body">
           <p class="tile__kicker t-mono">MEDIA KIT · CANVA</p>
@@ -76,7 +83,7 @@
           <p class="tile__price">$19</p>
         </div>
       </a>
-      <a class="tile" href="#burgundy" data-appear="card" style="--tint: #ecd9d9">
+      <a data-cat="kit" data-search="burgundy editorial media kit template canva" class="tile" href="#burgundy" data-appear="card" style="--tint: #ecd9d9">
         <div class="tile__img"><img src="../assets/img/shop/burgundy-1-800.webp" alt="" loading="lazy" decoding="async"></div>
         <div class="tile__body">
           <p class="tile__kicker t-mono">MEDIA KIT · CANVA</p>
@@ -84,7 +91,7 @@
           <p class="tile__price">$20</p>
         </div>
       </a>
-      <a class="tile" href="#cocoa" data-appear="card" style="--tint: #dfe8f1">
+      <a data-cat="kit" data-search="soft blue & cocoa media kit template canva" class="tile" href="#cocoa" data-appear="card" style="--tint: #dfe8f1">
         <div class="tile__img"><img src="../assets/img/shop/cocoa-1-800.webp" alt="" loading="lazy" decoding="async"></div>
         <div class="tile__body">
           <p class="tile__kicker t-mono">MEDIA KIT · CANVA</p>
@@ -92,7 +99,7 @@
           <p class="tile__price">$20</p>
         </div>
       </a>
-      <a class="tile" href="#stationery" data-appear="card" style="--tint: #dde2f4">
+      <a data-cat="kit" data-search="blue stationery media kit template canva" class="tile" href="#stationery" data-appear="card" style="--tint: #dde2f4">
         <div class="tile__img"><img src="../assets/img/shop/stationery-1-800.webp" alt="" loading="lazy" decoding="async"></div>
         <div class="tile__body">
           <p class="tile__kicker t-mono">MEDIA KIT · CANVA</p>
@@ -100,7 +107,7 @@
           <p class="tile__price">$16</p>
         </div>
       </a>
-      <a class="tile" href="#brown" data-appear="card" style="--tint: #ede3dc">
+      <a data-cat="kit" data-search="minimal brown media kit template canva" class="tile" href="#brown" data-appear="card" style="--tint: #ede3dc">
         <div class="tile__img"><img src="../assets/img/shop/brown-1-800.webp" alt="" loading="lazy" decoding="async"></div>
         <div class="tile__body">
           <p class="tile__kicker t-mono">MEDIA KIT · CANVA</p>
@@ -108,7 +115,7 @@
           <p class="tile__price">$18</p>
         </div>
       </a>
-      <a class="tile" href="#retro" data-appear="card" style="--tint: #d9e8e5">
+      <a data-cat="kit" data-search="retro 70s media kit template canva" class="tile" href="#retro" data-appear="card" style="--tint: #d9e8e5">
         <div class="tile__img"><img src="../assets/img/shop/retro-1-800.webp" alt="" loading="lazy" decoding="async"></div>
         <div class="tile__body">
           <p class="tile__kicker t-mono">MEDIA KIT · CANVA</p>
@@ -116,7 +123,22 @@
           <p class="tile__price">$18</p>
         </div>
       </a>
+      </div>
     </div>
+    <div class="sh-group" data-group="guide">
+      <h2 class="sh-group__title t-h3">Guides</h2>
+      <div class="sh-grid__inner">
+      <a data-cat="guide" data-search="how i get pr packages & paid brand deals free guide pr packages brand deals pitch email collab" class="tile tile--free" href="#free-guide" data-appear="card" style="--tint: #f6d3e0">
+        <div class="tile__img"><img src="../assets/img/shop/guide-cover.webp" alt="" loading="lazy" decoding="async"></div>
+        <div class="tile__body">
+          <p class="tile__kicker t-mono">FREE GUIDE</p>
+          <p class="tile__name">How I Get PR Packages &amp; Paid Brand Deals</p>
+          <p class="tile__price">Free</p>
+        </div>
+      </a>
+      </div>
+    </div>
+    <p class="sh-empty t-body-m" hidden>No products match your search.</p>
   </section>
 
   <section class="card sh-list" data-appear="section" aria-label="Templates">
