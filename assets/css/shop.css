@@ -23,19 +23,54 @@
 .product__secure { display: flex; align-items: center; gap: 6px; color: var(--c-muted); }
 .product__secure svg { width: 14px; height: 14px; }
 
-.sh-free { position: relative; display: flex; flex-direction: column; align-items: center; padding: 88px var(--pad-x); overflow: hidden; background: var(--c-black); color: var(--c-white); }
-.sh-free__inner { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; width: 100%; max-width: var(--container); }
+.sh-free { position: relative; display: flex; flex-direction: column; align-items: center; padding: 88px var(--pad-x); overflow: hidden; background: var(--c-black); color: var(--c-white); scroll-margin-top: 16px; }
+.sh-free__inner { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; gap: 48px; width: 100%; max-width: var(--container); }
+.sh-free__text { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; }
 .sh-free__kicker { color: var(--c-pink); }
 .sh-free .t-h3 { color: var(--c-white); max-width: 720px; }
 .sh-free .t-body-l { color: var(--c-white-60); max-width: 640px; }
+.sh-free__list { display: flex; flex-direction: column; gap: 10px; color: var(--c-white); }
+.sh-free__list li { position: relative; padding-left: 26px; color: var(--c-white); }
+.sh-free__list li svg { position: absolute; left: 0; top: 3px; width: 18px; height: 18px; color: var(--c-pink); }
+.sh-free__media { position: relative; height: 460px; }
+.sh-free__media img { position: absolute; width: 58%; border-radius: var(--r-md); box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6); }
+.sh-free__media img:first-child { right: 4%; top: 0; transform: rotate(5deg); }
+.sh-free__media img:last-child { left: 6%; top: 40px; transform: rotate(-4deg); }
+
+/* ---- product grid (top of shop) ---------------------------------------- */
+.sh-grid { display: flex; flex-direction: column; align-items: center; padding: 48px var(--pad-x); }
+.sh-grid__inner { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; width: 100%; max-width: var(--container); }
+.tile { display: flex; flex-direction: column; overflow: hidden; background: var(--c-surface-2); border: 1px solid var(--c-line); border-radius: var(--r-lg); box-shadow: var(--sh-card); transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease; }
+.tile:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.25); }
+.tile__img { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; padding: 18px; background: var(--tint); }
+.tile__img img { max-width: 100%; max-height: 100%; border-radius: 6px; box-shadow: var(--sh-photo); }
+.tile__body { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 16px; }
+.tile__kicker { font-size: 12px; }
+.tile__name { font-family: var(--f-serif); font-weight: 300; font-size: 22px; line-height: 1.2; letter-spacing: -0.05em; color: var(--c-black); }
+.tile__price { margin-top: 6px; font-family: var(--f-sans); font-weight: 600; font-size: 15px; letter-spacing: -0.02em; color: var(--c-black); }
+.tile--free { background: var(--c-black); border-color: var(--c-black); }
+.tile--free .tile__name { color: var(--c-white); }
+.tile--free .tile__kicker { color: var(--c-pink); }
+.tile--free .tile__price { color: var(--c-white); }
+.tile--free .tile__price::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--c-pink); vertical-align: 1px; }
+.product { scroll-margin-top: 16px; }
 
 @media (max-width: 1199.98px) {
+  .sh-grid__inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sh-free__inner { grid-template-columns: 1fr; }
+  .sh-free__media { height: 380px; max-width: 480px; width: 100%; }
   .product { grid-template-columns: 1fr; gap: 24px; }
   .product__info { padding: 0 4px 8px; }
 }
 @media (max-width: 809.98px) {
   .sh-list { padding: 64px var(--pad-x) 80px; }
   .sh-free { padding: 64px var(--pad-x); }
+  .sh-grid { padding: 24px 12px; }
+  .sh-grid__inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .tile__img { padding: 10px; }
+  .tile__body { padding: 10px 12px 12px; }
+  .tile__name { font-size: 17px; }
+  .sh-free__media { height: 300px; }
   .product { padding: 12px; }
   .product__pages { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .product__pages img:nth-child(n+5) { display: none; }
