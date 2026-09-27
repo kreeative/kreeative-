@@ -41,3 +41,9 @@
   .product__pages img:nth-child(n+5) { display: none; }
   .product__price { font-size: 48px; }
 }
+
+/* ---- after-payment access pages (unlisted) ------------------------------ */
+.access { gap: 28px; padding-bottom: 72px; }
+.access__cover { width: 100%; max-width: 720px; overflow: hidden; border-radius: var(--r-md); box-shadow: var(--sh-photo); }
+.access__steps { display: flex; flex-direction: column; gap: 10px; max-width: 560px; padding-left: 1.3em; list-style: decimal; text-align: left; }
+.access__note { max-width: 520px; }
