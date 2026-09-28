@@ -18,6 +18,8 @@ const SITES = [
   // screen (a dish page). The clock is set to lunchtime in New York so the
   // restaurant shows as open.
   ['tabouret', 'https://tabouret.vercel.app/', { detail: '#/dish/tonkotsu-ramen', time: '2026-09-24T16:30:00Z' }],
+  // Its sections rise into place as you scroll, so it is scrolled through before the long capture.
+  ['guillemot', 'https://guillemot.vercel.app/', { scrollFirst: true }],
 ];
 const ONLY = (process.env.ONLY || '').split(/[\s,]+/).filter(Boolean);
 const RUN = SITES.filter(([name]) => !ONLY.length || ONLY.includes(name));
