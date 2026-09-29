@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder (kreeative.xyz/concepts/jessicas-secrets/). Without the final slash the relative
+       links below would point one folder up, so add it before anything loads. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Jessica’s Secrets</title>
+  <meta name="description" content="Concept par Kreeative. Jessica’s Secrets&nbsp;: lingerie, maillots et vêtements de détente pour tous les corps. Français et anglais.">
+  <meta name="robots" content="noindex">
+  <meta property="og:title" content="Jessica’s Secrets — concept par Kreeative">
+  <meta property="og:description" content="Nouvelle collection automne-hiver 2026&nbsp;: lingerie, maillots et détente pour tous les corps. Proposition de design, en français et en anglais.">
+  <meta property="og:locale" content="fr_CA">
+  <meta property="og:locale:alternate" content="en_CA">
+  <meta property="og:url" content="https://kreeative.xyz/concepts/jessicas-secrets/">
+  <meta property="og:image" content="https://kreeative.xyz/concepts/jessicas-secrets/img/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f7509a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <!-- Hide animated elements until Motion takes over; always reveal after 3 s in case the script never loads -->
+  <script>document.documentElement.classList.add('js', 'motion-pending'); setTimeout(function () { document.documentElement.classList.remove('motion-pending'); }, 3000);</script>
+  <script src="https://cdn.jsdelivr.net/npm/motion@13.4.3/dist/motion.js" defer></script>
+  <script src="i18n.js" defer></script>
+  <script src="site.js" defer></script>
+</head>
+<body>
+
+<div class="concept-bar" role="note">
+  <span data-i18n-html="concept.text"><strong>Concept</strong> préparé par <a href="https://kreeative.xyz">Kreeative</a>. Jessica’s Secrets est une proposition de design, pas encore une boutique officielle.</span>
+  <a class="concept-bar__cta" href="https://cal.com/kreeative/quick-chat" data-i18n="concept.cta">Réserver 15 min avec Kee</a>
+</div>
+
+<header class="head" data-head>
+  <a class="brand" href="#top" aria-label="Jessica’s Secrets, accueil" data-i18n-attr="aria-label:nav.home">Jessica’s Secrets</a>
+  <nav class="head__nav" id="menu">
+    <a href="#nouveautes" data-i18n="nav.new">Nouveautés</a>
+    <a href="#categories" data-i18n="nav.cats">Catégories</a>
+    <a href="#histoire" data-i18n="nav.about">À propos</a>
+    <a href="#chouchous" data-i18n="nav.best">Chouchous</a>
+    <a href="#journal" data-i18n="nav.journal">Journal</a>
+    <div class="lang lang--menu" role="group" aria-label="Langue" data-i18n-attr="aria-label:lang.label">
+      <button type="button" data-lang="fr" lang="fr" aria-pressed="true">Français</button>
+      <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </nav>
+  <div class="head__actions">
+    <div class="lang lang--bar" role="group" aria-label="Langue" data-i18n-attr="aria-label:lang.label">
+      <button type="button" data-lang="fr" lang="fr" aria-label="Français" aria-pressed="true">FR</button>
+      <button type="button" data-lang="en" lang="en" aria-label="English" aria-pressed="false">EN</button>
+    </div>
+    <span class="icon-btn icon-btn--wish" aria-hidden="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg>
+      <b class="count" data-wish-count hidden>0</b>
+    </span>
+    <button class="icon-btn icon-btn--bag" type="button" aria-haspopup="dialog" aria-controls="bag" data-bag-open>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8.5h13l-1 12h-11l-1-12Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></svg>
+      <span class="sr" data-i18n="head.bag">Ouvrir le sac</span>
+      <b class="count" data-bag-count hidden>0</b>
+    </button>
+    <button class="head__toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu" data-i18n-attr="aria-label:nav.menu"><span></span><span></span></button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <picture>
+      <source media="(max-width: 700px)" srcset="img/photos/hero-tall-600.webp 600w, img/photos/hero-tall-900.webp 900w, img/photos/hero-tall-1200.webp 1200w" sizes="100vw" width="1200" height="2133">
+      <img class="hero__photo" src="img/photos/hero-wide-1200.webp" srcset="img/photos/hero-wide-1200.webp 1200w, img/photos/hero-wide-1800.webp 1800w, img/photos/hero-wide-2400.webp 2400w" sizes="100vw" width="2400" height="1500" alt="Soutien-gorge balconnet et culotte en dentelle noire, portés devant un fond pêche" data-i18n-attr="alt:alt.hero" fetchpriority="high">
+    </picture>
+    <div class="hero__content">
+      <div class="hero__titlewrap">
+        <h1 class="hero__title" id="hero-title" data-hero data-i18n="hero.title">Nouvelle collection</h1>
+        <div class="ribbon ribbon--hero" aria-hidden="true">
+          <div class="ribbon__track"><span data-i18n="hero.season">Automne-hiver 2026</span><i>♥</i></div>
+        </div>
+      </div>
+      <p class="hero__labels" data-hero><span data-i18n="hero.left">Lingerie</span><span class="hero__line" aria-hidden="true"></span><span data-i18n="hero.right">Détente</span></p>
+      <p class="hero__lead" data-hero data-i18n="hero.lead">Des pièces soignées et des détails audacieux. Notre lingerie allie la belle facture au confort, pour vous sentir bien partout, à la maison comme sous les projecteurs.</p>
+      <a class="pill pill--white" href="#nouveautes" data-hero><span data-i18n="hero.cta">Magasiner</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
+    </div>
+  </section>
+
+  <!-- NEW ARRIVALS -->
+  <section class="section" id="nouveautes">
+    <h2 class="title title--serif" data-reveal data-i18n-html="new.title">Les nouveautés</h2>
+    <div class="arrivals" data-stagger>
+      <article class="card" data-product data-id="rosalie" data-price="58" data-compare="72" data-cw="noir" data-photo="img/photos/rosalie-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/rosalie-480.webp" srcset="img/photos/rosalie-480.webp 480w, img/photos/rosalie-960.webp 960w" sizes="(max-width: 700px) 72vw, (max-width: 1100px) 30vw, 300px" width="960" height="1200" alt="Soutien-gorge balconnet et culotte en dentelle noire, portés" data-i18n-attr="alt:alt.rosalie" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <span class="card__tag" data-i18n="card.tag">style &amp; confort</span>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><h3 class="card__name" data-i18n="n.rosalie">Balconnet Rosalie</h3><p class="price"><s data-money="72">72 $</s> <span data-money="58">58 $</span></p></div>
+          <p class="card__meta" data-i18n="season">automne-hiver 2026</p>
+        </div>
+      </article>
+      <article class="card" data-product data-id="margaux" data-price="84" data-cw="noir" data-photo="img/photos/margaux-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/margaux-480.webp" srcset="img/photos/margaux-480.webp 480w, img/photos/margaux-960.webp 960w" sizes="(max-width: 700px) 72vw, (max-width: 1100px) 30vw, 300px" width="960" height="1200" alt="Body bustier noir à découpe, porté" data-i18n-attr="alt:alt.margaux" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <span class="card__tag" data-i18n="card.tag">style &amp; confort</span>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><h3 class="card__name" data-i18n="n.margaux">Body Margaux</h3><p class="price"><span data-money="84">84 $</span></p></div>
+          <p class="card__meta" data-i18n="season">automne-hiver 2026</p>
+        </div>
+      </article>
+      <article class="card" data-product data-id="colette" data-price="44" data-compare="55" data-cw="ivoire" data-photo="img/photos/colette-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/colette-480.webp" srcset="img/photos/colette-480.webp 480w, img/photos/colette-960.webp 960w" sizes="(max-width: 700px) 72vw, (max-width: 1100px) 30vw, 300px" width="960" height="1200" alt="Bralette en dentelle blanche à col, portée" data-i18n-attr="alt:alt.colette" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <span class="card__tag" data-i18n="card.tag">style &amp; confort</span>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><h3 class="card__name" data-i18n="n.colette">Bralette Colette</h3><p class="price"><s data-money="55">55 $</s> <span data-money="44">44 $</span></p></div>
+          <p class="card__meta" data-i18n="season">automne-hiver 2026</p>
+        </div>
+      </article>
+    </div>
+    <div class="section__cta" data-reveal><a class="pill" href="#chouchous"><span data-i18n="new.cta">Voir les nouveautés</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a></div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="section" id="categories">
+    <h2 class="title" data-reveal data-i18n-html="cats.title">Catégor<em>ies</em></h2>
+    <div class="cats" data-stagger>
+      <a class="cat cat--a" href="#nouveautes">
+        <img src="img/photos/cat-bodys-wide-720.webp" srcset="img/photos/cat-bodys-wide-720.webp 720w, img/photos/cat-bodys-wide-1040.webp 1040w" sizes="(max-width: 700px) 92vw, 48vw" width="1040" height="520" alt="" loading="lazy" decoding="async">
+        <span class="cat__tag" data-i18n="cat.bodys">Bodys</span>
+      </a>
+      <a class="cat cat--d" href="#nouveautes">
+        <img src="img/photos/cat-bras-tall-400.webp" srcset="img/photos/cat-bras-tall-400.webp 400w, img/photos/cat-bras-tall-624.webp 624w" sizes="(max-width: 700px) 46vw, 24vw" width="624" height="1040" alt="" loading="lazy" decoding="async">
+        <span class="cat__tag" data-i18n="cat.bras">Soutiens-gorge</span>
+      </a>
+      <a class="cat cat--e" href="#chouchous">
+        <img src="img/photos/cat-lounge-knit-420.webp" srcset="img/photos/cat-lounge-knit-420.webp 420w, img/photos/cat-lounge-knit-840.webp 840w" sizes="(max-width: 700px) 46vw, 24vw" width="840" height="1400" alt="" loading="lazy" decoding="async">
+        <span class="cat__tag" data-i18n="cat.lounge">Détente</span>
+      </a>
+      <a class="cat cat--b" href="#chouchous">
+        <img src="img/photos/cat-swim-480.webp" srcset="img/photos/cat-swim-480.webp 480w, img/photos/cat-swim-960.webp 960w" sizes="(max-width: 700px) 46vw, 24vw" width="960" height="720" alt="" loading="lazy" decoding="async">
+        <span class="cat__tag" data-i18n="cat.swim">Maillots</span>
+      </a>
+      <a class="cat cat--c" href="#chouchous">
+        <img src="img/photos/cat-briefs-satin-480.webp" srcset="img/photos/cat-briefs-satin-480.webp 480w, img/photos/cat-briefs-satin-600.webp 600w" sizes="(max-width: 700px) 46vw, 24vw" width="600" height="500" alt="" loading="lazy" decoding="async">
+        <span class="cat__tag" data-i18n="cat.briefs">Culottes</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="histoire">
+    <div class="about">
+      <span class="corner corner--tl" aria-hidden="true"></span><span class="corner corner--tr" aria-hidden="true"></span>
+      <span class="corner corner--bl" aria-hidden="true"></span><span class="corner corner--br" aria-hidden="true"></span>
+      <h2 class="about__title" data-reveal data-i18n="about.title">À propos</h2>
+      <p class="about__text" data-reveal data-i18n-html="about.text">Notre marque est <span class="outline">née</span> d’une idée simple&nbsp;: la lingerie ne se porte pas pour être vue, mais pour ce qu’elle <span class="outline">vous</span> fait ressentir&nbsp;— <span class="outline">puissante</span>, confiante et pleinement vous-même.</p>
+      <div class="about__body">
+        <figure class="about__art">
+          <img src="img/photos/about-set-480.webp" srcset="img/photos/about-set-480.webp 480w, img/photos/about-set-960.webp 960w" sizes="(max-width: 900px) 280px, 340px" width="960" height="1309" alt="Ensemble en tulle rose brodé de cœurs : soutien-gorge à armatures avec rubans et nœuds, et string à nouer" data-i18n-attr="alt:about.alt" loading="lazy" decoding="async">
+        </figure>
+        <ul class="about__points" data-stagger>
+          <li data-i18n="about.p1">Chez Jessica’s Secrets, on croit que la beauté vient de l’intérieur, et qu’une jolie pièce peut aider à se sentir invincible.</li>
+          <li data-i18n="about.p2">Nos coupes vont du 30A au 44G, pensées pour toutes les silhouettes et essayées sur de vraies femmes.</li>
+          <li data-i18n="about.p3">Dentelle souple, tulle léger et satin qui glisse sur la peau, cousus pour durer et faciles à entretenir.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEST SELLERS -->
+  <section class="section" id="chouchous">
+    <div class="besties" data-reveal>
+      <div class="besties__head">
+        <h2 class="title title--light" data-i18n-html="best.title"><em>Nos</em> chouchous</h2>
+        <div class="besties__nav">
+          <button class="arrow" type="button" data-scroll="-1" aria-label="Précédent" data-i18n-attr="aria-label:best.prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6"/></svg></button>
+          <button class="arrow" type="button" data-scroll="1" aria-label="Suivant" data-i18n-attr="aria-label:best.next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="carousel" data-carousel tabindex="0" aria-label="Nos chouchous" data-i18n-attr="aria-label:best.aria">
+      <article class="card card--bestie" data-product data-id="odette" data-price="68" data-compare="85" data-cw="ivoire" data-photo="img/photos/odette-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/odette-480.webp" srcset="img/photos/odette-480.webp 480w, img/photos/odette-555.webp 555w" sizes="(max-width: 700px) 70vw, (max-width: 1100px) 30vw, 320px" width="555" height="694" alt="Cardigan court en maille torsadée crème à nœuds roses, porté avec des collants roses, des jambières et des pointes" data-i18n-attr="alt:alt.odette" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><p class="card__cat" data-i18n="k.lounge">Détente</p><p class="price"><s data-money="85">85 $</s> <span data-money="68">68 $</span></p></div>
+          <h3 class="card__name" data-i18n="n.odette">Cardigan Odette</h3>
+        </div>
+      </article>
+      <article class="card card--bestie" data-product data-id="clara" data-price="74" data-compare="92" data-cw="poudre" data-photo="img/photos/clara-498.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/clara-498.webp" srcset="img/photos/clara-498.webp 498w" sizes="(max-width: 700px) 70vw, (max-width: 1100px) 30vw, 320px" width="498" height="622" alt="Caraco rose côtelé à nœuds et short assorti, porté avec un boléro blanc" data-i18n-attr="alt:alt.clara" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><p class="card__cat" data-i18n="k.sets">Ensembles</p><p class="price"><s data-money="92">92 $</s> <span data-money="74">74 $</span></p></div>
+          <h3 class="card__name" data-i18n="n.clara">Ensemble Clara</h3>
+        </div>
+      </article>
+      <article class="card card--bestie" data-product data-id="gisele" data-price="38" data-compare="48" data-cw="ivoire" data-photo="img/photos/gisele-300.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/gisele-300.webp" srcset="img/photos/gisele-300.webp 300w" sizes="(max-width: 700px) 70vw, (max-width: 1100px) 30vw, 320px" width="300" height="375" alt="Bandeau en satin ivoire à volants, porté" data-i18n-attr="alt:alt.gisele" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><p class="card__cat" data-i18n="k.bras">Soutiens-gorge</p><p class="price"><s data-money="48">48 $</s> <span data-money="38">38 $</span></p></div>
+          <h3 class="card__name" data-i18n="n.gisele">Bandeau Gisèle</h3>
+        </div>
+      </article>
+      <article class="card card--bestie" data-product data-id="nina" data-price="56" data-compare="70" data-cw="noir" data-photo="img/photos/nina-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/nina-480.webp" srcset="img/photos/nina-480.webp 480w, img/photos/nina-712.webp 712w" sizes="(max-width: 700px) 70vw, (max-width: 1100px) 30vw, 320px" width="712" height="890" alt="Body noir à dos nageur, porté à genoux" data-i18n-attr="alt:alt.nina" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><p class="card__cat" data-i18n="k.bodys">Bodys</p><p class="price"><s data-money="70">70 $</s> <span data-money="56">56 $</span></p></div>
+          <h3 class="card__name" data-i18n="n.nina">Body Nina</h3>
+        </div>
+      </article>
+      <article class="card card--bestie" data-product data-id="camille" data-price="92" data-compare="115" data-cw="poudre" data-photo="img/photos/camille-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/camille-480.webp" srcset="img/photos/camille-480.webp 480w, img/photos/camille-960.webp 960w" sizes="(max-width: 700px) 70vw, (max-width: 1100px) 30vw, 320px" width="960" height="1200" alt="Kimono court en satin rose poudré, porté avec des pantoufles" data-i18n-attr="alt:alt.camille" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><p class="card__cat" data-i18n="k.lounge">Détente</p><p class="price"><s data-money="115">115 $</s> <span data-money="92">92 $</span></p></div>
+          <h3 class="card__name" data-i18n="n.camille">Kimono Camille</h3>
+        </div>
+      </article>
+      <article class="card card--bestie" data-product data-id="ines" data-price="26" data-compare="32" data-cw="poudre" data-photo="img/photos/ines-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/ines-480.webp" srcset="img/photos/ines-480.webp 480w, img/photos/ines-960.webp 960w" sizes="(max-width: 700px) 70vw, (max-width: 1100px) 30vw, 320px" width="960" height="1200" alt="Culotte taille haute rose poudré, vue de dos" data-i18n-attr="alt:alt.ines" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><p class="card__cat" data-i18n="k.briefs">Culottes</p><p class="price"><s data-money="32">32 $</s> <span data-money="26">26 $</span></p></div>
+          <h3 class="card__name" data-i18n="n.ines">Culotte Inès</h3>
+        </div>
+      </article>
+      <article class="card card--bestie" data-product data-id="lea" data-price="96" data-compare="120" data-cw="poudre" data-photo="img/photos/lea-480.webp">
+        <div class="card__media">
+          <div class="card__frame">
+            <img src="img/photos/lea-480.webp" srcset="img/photos/lea-480.webp 480w, img/photos/lea-960.webp 960w" sizes="(max-width: 700px) 70vw, (max-width: 1100px) 30vw, 320px" width="960" height="1200" alt="Ensemble sans coutures rose poudré, porté avec une tulipe" data-i18n-attr="alt:alt.lea" loading="lazy" decoding="async">
+            <button class="heart" type="button" aria-pressed="false" data-wish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5C6.4 16.6 3 13.3 3 9.4 3 6.6 5.1 4.5 7.8 4.5c1.8 0 3.3.9 4.2 2.4.9-1.5 2.4-2.4 4.2-2.4C18.9 4.5 21 6.6 21 9.4c0 3.9-3.4 7.2-9 11.1Z"/></svg></button>
+            <button class="card__add" type="button" data-add><span data-i18n="bag.add">Ajouter au sac</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="card__info">
+          <div class="card__row"><p class="card__cat" data-i18n="k.sets">Ensembles</p><p class="price"><s data-money="120">120 $</s> <span data-money="96">96 $</span></p></div>
+          <h3 class="card__name" data-i18n="n.lea">Ensemble Léa</h3>
+        </div>
+      </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section class="reviews" id="avis" aria-labelledby="reviews-title">
+    <div class="ribbon ribbon--tilt ribbon--a" aria-hidden="true">
+      <div class="ribbon__track"><span data-i18n="rev.ribbon">Avis ✸♥✿ « Le meilleur soutien-gorge de ma vie » ✸♥✿ Avis ✸♥✿ « Incroyable » ✸♥✿</span></div>
+    </div>
+    <div class="ribbon ribbon--tilt ribbon--b" aria-hidden="true">
+      <div class="ribbon__track"><span data-i18n="rev.ribbon">Avis ✸♥✿ « Le meilleur soutien-gorge de ma vie » ✸♥✿ Avis ✸♥✿ « Incroyable » ✸♥✿</span></div>
+    </div>
+    <div class="review" data-reveal>
+      <h2 class="sr" id="reviews-title" data-i18n="rev.title">Ce qu’elles en disent</h2>
+      <svg class="review__heart" viewBox="0 0 120 110" aria-hidden="true">
+        <defs><clipPath id="heart-clip"><path d="M60 104C26 80 6 60 6 36 6 18 20 6 36 6c10 0 19 5 24 14 5-9 14-14 24-14 16 0 30 12 30 30 0 24-20 44-54 68Z"/></clipPath></defs>
+        <image href="img/photos/review-lace-600.webp" x="0" y="0" width="120" height="110" preserveAspectRatio="xMidYMid slice" clip-path="url(#heart-clip)"/>
+        <path class="review__heart-line" d="M60 104C26 80 6 60 6 36 6 18 20 6 36 6c10 0 19 5 24 14 5-9 14-14 24-14 16 0 30 12 30 30 0 24-20 44-54 68Z"/>
+        <path class="review__heart-dots" d="M60 104C26 80 6 60 6 36 6 18 20 6 36 6c10 0 19 5 24 14 5-9 14-14 24-14 16 0 30 12 30 30 0 24-20 44-54 68Z"/>
+      </svg>
+      <div class="review__body" aria-live="polite">
+        <p class="review__who"><b data-review-name>Maude L.</b><span data-review-city>Québec</span></p>
+        <p class="review__stars" aria-label="5 étoiles sur 5" data-i18n-attr="aria-label:rev.stars">★★★★★</p>
+        <blockquote class="review__quote" data-review-quote>«&nbsp;Le soutien-gorge Rosalie est le plus confortable que j’ai porté. Je l’oublie toute la journée, et la dentelle ne pique pas.&nbsp;»</blockquote>
+        <div class="review__nav">
+          <button class="arrow arrow--pink" type="button" data-review="-1" aria-label="Avis précédent" data-i18n-attr="aria-label:rev.prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6"/></svg></button>
+          <button class="arrow arrow--pink" type="button" data-review="1" aria-label="Avis suivant" data-i18n-attr="aria-label:rev.next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <p class="reviews__note" data-i18n="rev.note">Exemples d’avis rédigés pour la maquette.</p>
+  </section>
+
+  <!-- JOURNAL -->
+  <section class="section" id="journal">
+    <h2 class="title title--pink" data-reveal data-i18n-html="journal.title">Le <em>journal</em></h2>
+    <div class="blog">
+      <figure class="blog__img" data-reveal>
+        <img src="img/photos/blog-mannequin-480.webp" srcset="img/photos/blog-mannequin-480.webp 480w, img/photos/blog-mannequin-960.webp 960w" sizes="(max-width: 700px) 92vw, 24vw" width="960" height="960" alt="Buste de couture posé sur un pied, en noir et blanc" data-i18n-attr="alt:journal.alt" loading="lazy" decoding="async">
+      </figure>
+      <ol class="posts" data-stagger>
+        <li class="post"><time data-date="2026-09-18">18 septembre 2026</time><h3 class="post__title" data-i18n="j.1.t">Trouver sa vraie taille de soutien‑gorge</h3><p class="post__text" data-i18n="j.1.x">Un ruban à mesurer, deux mesures et trois signes qui ne trompent pas&nbsp;: notre méthode simple pour trouver sa taille à la maison.</p></li>
+        <li class="post"><time data-date="2026-09-04">4 septembre 2026</time><h3 class="post__title" data-i18n="j.2.t">Dentelle ou microfibre&nbsp;: que choisir&nbsp;?</h3><p class="post__text" data-i18n="j.2.x">La dentelle habille, la microfibre disparaît sous les vêtements. Voici quand porter l’une ou l’autre.</p></li>
+        <li class="post"><time data-date="2026-08-21">21 août 2026</time><h3 class="post__title" data-i18n="j.3.t">Prendre soin de sa lingerie</h3><p class="post__text" data-i18n="j.3.x">Lavage à la main, sac en filet et séchage à plat&nbsp;: trois gestes pour garder la dentelle belle plus longtemps.</p></li>
+        <li class="post"><time data-date="2026-08-07">7 août 2026</time><h3 class="post__title" data-i18n="j.4.t">L’art d’offrir de la lingerie</h3><p class="post__text" data-i18n="j.4.x">Taille, style, emballage&nbsp;: nos conseils pour un cadeau qui fait plaisir à coup sûr, sans deviner.</p></li>
+      </ol>
+    </div>
+    <div class="section__cta" data-reveal><a class="pill" href="#journal"><span data-i18n="journal.cta">Lire la suite</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a></div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot__box">
+    <div class="foot__cols">
+      <nav class="foot__col" aria-label="À propos" data-i18n-attr="aria-label:foot.about">
+        <h3 data-i18n="foot.about">À propos</h3>
+        <a href="#histoire" data-i18n="foot.story">Notre histoire</a>
+        <span data-i18n="foot.contact">Nous joindre</span>
+        <span data-i18n="foot.stores">Boutiques</span>
+      </nav>
+      <div class="foot__col">
+        <h3 data-i18n="foot.info">Informations</h3>
+        <span data-i18n="foot.size">Guide des tailles</span>
+        <span data-i18n="foot.ship">Livraison et retours</span>
+        <span data-i18n="foot.terms">Conditions d’utilisation</span>
+        <span data-i18n="foot.privacy">Politique de confidentialité</span>
+      </div>
+      <div class="foot__col">
+        <h3 data-i18n="foot.social">Réseaux</h3>
+        <span>TikTok</span>
+        <span>Instagram</span>
+        <span>Pinterest</span>
+        <span>Facebook</span>
+      </div>
+      <form class="news" id="newsForm" novalidate>
+        <h3 data-i18n="news.title">Abonnez-vous aux courriels et textos.</h3>
+        <div class="news__row">
+          <label class="sr" for="newsEmail" data-i18n="news.label">Votre courriel</label>
+          <input id="newsEmail" name="email" type="email" placeholder="Courriel" autocomplete="email" data-i18n-attr="placeholder:news.placeholder">
+          <button type="submit" aria-label="S’inscrire" data-i18n-attr="aria-label:news.btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button>
+        </div>
+        <label class="news__agree"><input type="checkbox" name="agree" data-news-agree> <span data-i18n="news.agree">J’accepte les conditions d’utilisation et la politique de confidentialité.</span></label>
+        <p class="news__msg" role="status" data-news-msg></p>
+      </form>
+    </div>
+    <p class="foot__word" aria-hidden="true">Jessica’s Secrets</p>
+    <div class="foot__bottom">
+      <span data-i18n-html="foot.note">Concept de design par <a href="https://kreeative.xyz">Kreeative</a>. Aucune commande ni aucun paiement n’est traité sur ce site.</span>
+      <span>© 2026 Jessica’s Secrets</span>
+    </div>
+  </div>
+</footer>
+
+<p class="sr" role="status" data-live></p>
+
+<!-- BAG -->
+<div class="scrim" data-bag-close hidden></div>
+<aside class="bag" id="bag" role="dialog" aria-modal="true" aria-labelledby="bag-title" hidden>
+  <div class="bag__head">
+    <h2 id="bag-title"><span data-i18n="bag.title">Votre sac</span> <span class="bag__n" data-bag-n></span></h2>
+    <button class="arrow arrow--line" type="button" data-bag-close aria-label="Fermer le sac" data-i18n-attr="aria-label:bag.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="bag__ship">
+    <p data-bag-ship></p>
+    <div class="bag__meter"><i data-bag-meter></i></div>
+  </div>
+  <ul class="bag__items" data-bag-items></ul>
+  <p class="bag__empty" data-bag-empty data-i18n="bag.empty">Votre sac est vide pour le moment.</p>
+  <div class="bag__foot">
+    <p class="bag__total"><span data-i18n="bag.subtotal">Sous-total</span> <b data-bag-total>0 $</b></p>
+    <button class="pill pill--solid pill--block" type="button" disabled data-i18n="bag.checkout">Passer à la caisse</button>
+    <p class="bag__note" data-i18n="bag.note">Concept&nbsp;: le paiement n’est pas activé et rien n’est enregistré.</p>
+  </div>
+</aside>
+
+</body>
+</html>

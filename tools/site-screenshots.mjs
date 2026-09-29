@@ -20,6 +20,8 @@ const SITES = [
   ['tabouret', 'https://tabouret.vercel.app/', { detail: '#/dish/tonkotsu-ramen', time: '2026-09-24T16:30:00Z' }],
   // Its sections rise into place as you scroll, so it is scrolled through before the long capture.
   ['guillemot', 'https://guillemot.vercel.app/', { scrollFirst: true }],
+  // Served from this site. Its sections rise into place as you scroll, so it is scrolled through first too.
+  ['jessicas', 'https://kreeative.xyz/concepts/jessicas-secrets/', { scrollFirst: true }],
 ];
 const ONLY = (process.env.ONLY || '').split(/[\s,]+/).filter(Boolean);
 const RUN = SITES.filter(([name]) => !ONLY.length || ONLY.includes(name));
