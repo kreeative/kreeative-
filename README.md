@@ -15,7 +15,6 @@ works.
 | `/portfolio/designing-a-seamless-user-experience-for-taskflow/` | `portfolio/designing-a-seamless-user-experience-for-taskflow/index.html` (GloryWalk) |
 | `/portfolio/nexatech/`                                      | `portfolio/nexatech/index.html` (Lyzma Industries)               |
 | `/websites/rich-and-friends/`                               | `websites/rich-and-friends/index.html`                           |
-| `/websites/the-ivory-sukundu/`                              | `websites/the-ivory-sukundu/index.html`                          |
 | `/websites/keewal-meere/`                                   | `websites/keewal-meere/index.html`                               |
 | `/websites/cameleon/`                                       | `websites/cameleon/index.html`                                   |
 | `/websites/tabouret/`                                       | `websites/tabouret/index.html`                                   |
