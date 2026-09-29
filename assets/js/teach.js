@@ -203,8 +203,15 @@
       var idx = st.steps.indexOf(step), prev = st.steps[idx - 1], nxt = st.steps[idx + 1];
       var target = step.kind === 'lesson' ? view : quizEl;
       show(target, true); target.classList.remove('is-entering'); void target.offsetWidth; target.classList.add('is-entering');
-      target.querySelectorAll('[data-prev]').forEach(function (a) { a.hidden = !prev; if (prev) a.onclick = function (e) { e.preventDefault(); go(o, st, hrefOf(prev)); }; });
-      target.querySelectorAll('[data-next]').forEach(function (a) { a.hidden = !nxt; if (nxt) a.onclick = function (e) { e.preventDefault(); go(o, st, hrefOf(nxt)); }; });
+      var stepName = function (s) { return s.kind === 'quiz' ? 'Module ' + s.mod.position + ' quiz' : s.lesson.title; };
+      [['[data-prev]', prev], ['[data-next]', nxt]].forEach(function (pair) {
+        target.querySelectorAll(pair[0]).forEach(function (a) {
+          var s = pair[1]; a.hidden = !s; if (!s) return;
+          a.href = hrefOf(s); a.querySelector('[data-step-title]').textContent = stepName(s);
+          a.setAttribute('aria-label', (pair[0] === '[data-prev]' ? 'Previous: ' : 'Next: ') + stepName(s));
+          a.onclick = function (e) { e.preventDefault(); go(o, st, hrefOf(s)); };
+        });
+      });
       var kicker = 'Module ' + String(step.mod.position).padStart(2, '0') + ' · ' + step.mod.title;
       if (step.kind === 'lesson') return renderLesson(o, st, step, kicker, nxt);
       renderQuiz(o, st, step, kicker, nxt);
