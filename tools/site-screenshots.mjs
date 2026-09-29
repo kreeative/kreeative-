@@ -10,7 +10,6 @@ import fs from 'node:fs';
 
 const SITES = [
   ['rich',     'https://richandfriends.xyz/'],
-  ['ivory',    'https://www.theivorysukundu.com/'],
   ['keewal',   'https://keewaomeere.vercel.app/'],
   // Reveals its sections as you scroll, so it is scrolled through before the long capture.
   ['cameleon', 'https://cameleon-concept.vercel.app/', { scrollFirst: true }],
