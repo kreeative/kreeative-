@@ -20,6 +20,8 @@ works.
 | `/websites/cameleon/`                                       | `websites/cameleon/index.html`                                   |
 | `/websites/tabouret/`                                       | `websites/tabouret/index.html`                                   |
 | `/websites/guillemot/`                                      | `websites/guillemot/index.html`                                  |
+| `/websites/jessicas-secrets/`                               | `websites/jessicas-secrets/index.html`                           |
+| `/concepts/jessicas-secrets/`                               | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/pricing/`                                                 | `pricing/index.html`                                             |
 | `/the-kreeative-designer-newsletter/`                       | `the-kreeative-designer-newsletter/index.html`                   |
 | any unknown URL                                             | `404.html`                                                       |
@@ -40,6 +42,7 @@ assets/js/site.js          scroll-in animations, hero headline, pixel canvases, 
 assets/fonts/              self-hosted woff2 fonts
 assets/img/                optimised WebP images (+ favicons, social image)
 assets/icons/              Phosphor icon SVGs used inline in the pages
+concepts/                  concept sites hosted here, each a self-contained static site with its own README
 tools/site-screenshots.mjs screenshots the sites shown on the home page
 .github/workflows/         the workflow that runs that script
 docs/DESIGN.md             design tokens and breakpoints, for reference
