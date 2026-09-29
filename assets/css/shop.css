@@ -112,3 +112,6 @@
 }
 .tile__img { overflow: hidden; min-height: 0; }
 .tile--free .tile__img img { height: 100%; width: auto; }
+.sh-free__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 4px; }
+.sh-free__dl { color: var(--c-white-60); text-decoration: underline; text-underline-offset: 3px; }
+.sh-free__dl:hover { color: var(--c-white); }
