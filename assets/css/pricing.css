@@ -6,6 +6,13 @@
 .pr-hero__title { max-width: 720px; }
 .pr-hero__lead { max-width: 560px; text-align: center; }
 .pr-hero__pixels { height: 120px; }
+.pr-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.pr-tab { padding: 9px 18px; border: 1px solid var(--c-line); border-radius: 999px; background: var(--c-white); color: var(--c-text); transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+.pr-tab:hover { border-color: var(--c-black); color: var(--c-black); }
+.pr-tab[aria-current="page"] { background: var(--c-black); border-color: var(--c-black); color: var(--c-white); }
+.pr-cat { color: inherit; text-decoration: none; }
+.pr-cat__more { margin-top: auto; color: var(--c-pink); }
+.pr-cat__more svg { width: 16px; height: 16px; }
 
 .pr-plans { display: flex; flex-direction: column; align-items: center; gap: 48px; padding: 76px var(--pad-x) 100px; }
 .pr-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; width: 100%; max-width: var(--container); }
