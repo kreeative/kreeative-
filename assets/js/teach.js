@@ -144,9 +144,33 @@
         });
         show(app, true);
         render(o, st);
+        loadBonus();
         window.addEventListener('popstate', function () { render(o, st); });
       });
     });
+
+    /* free media kit bonus: pick once, then keep the Canva link here */
+    function loadBonus() {
+      var box = $('[data-bonus]');
+      Promise.all([sb.rpc('my_bonus', { p_course: COURSE }), sb.from('bonus_kits').select('id,name,image').eq('course_id', COURSE).order('position')]).then(function (r) {
+        var mine = r[0].data, kits = r[1].data || [];
+        if (!kits.length) return;
+        show(box, true);
+        if (mine && mine.url) {
+          box.innerHTML = '<p class="t-mono">🎁 YOUR FREE MEDIA KIT</p><div class="tl-bonus__mine"><img src="' + esc(mine.image) + '" alt=""><div><b>' + esc(mine.name) + '</b><p class="t-body-m">Open it, click “Use template”, and a copy is saved to your Canva.</p><a class="btn btn--accent" href="' + esc(mine.url) + '" target="_blank" rel="noopener noreferrer"><span class="btn__label t-body-l">Open in Canva</span></a></div></div>';
+          return;
+        }
+        box.innerHTML = '<p class="t-mono">🎁 YOUR FREE BONUS</p><h2 class="t-h3">Choose your media kit</h2><p class="t-body-m">Pick one of my 6 Canva media kits. You can only choose once, so pick your favorite.</p><div class="tl-bonus__grid">' +
+          kits.map(function (k, i) { return '<button type="button" class="tl-kit" style="--d:' + (i * 60) + 'ms" data-kit="' + esc(k.id) + '"><img src="' + esc(k.image) + '" alt=""><span>' + esc(k.name) + '</span></button>'; }).join('') + '</div>';
+        box.querySelectorAll('[data-kit]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (!confirm('Choose ' + b.textContent + ' as your free media kit? You can only pick once.')) return;
+            b.disabled = true;
+            sb.rpc('claim_bonus', { p_kit: b.getAttribute('data-kit') }).then(function (res) { if (!res.error) { confetti(); loadBonus(); } else b.disabled = false; });
+          });
+        });
+      });
+    }
 
     function isDone(st, step) { return step.kind === 'lesson' ? st.done.has(step.id) : st.passed.has(step.id); }
     function go(o, st, href) { history.pushState(null, '', href); render(o, st); window.scrollTo({ top: 0, behavior: 'smooth' }); }
