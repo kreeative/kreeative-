@@ -175,5 +175,35 @@
     }
   }
 
-  ({ landing: landing, welcome: welcome, login: login, learn: learn })[page]();
+  /* ---- reset: request a link, then set a new password ------------------- */
+  function reset() {
+    var q = new URLSearchParams(location.search), err = $('[data-error]');
+    var th = q.get('token_hash');
+    if (th) {
+      show($('[data-request]'), false);
+      sb.auth.verifyOtp({ token_hash: th, type: 'recovery' }).then(function (r) {
+        if (r.error) { msg(err, 'This link has expired or was already used. Ask for a new one below.', true); show($('[data-request]'), true); history.replaceState(null, '', location.pathname); return; }
+        var f = $('[data-reset-form]'); show(f, true);
+        f.addEventListener('submit', function (e) {
+          e.preventDefault();
+          if (f.password.value.length < 8) return msg(err, 'Use at least 8 characters.', true);
+          if (f.password.value !== f.password2.value) return msg(err, 'The two passwords don’t match.', true);
+          f.querySelector('button').disabled = true;
+          sb.auth.updateUser({ password: f.password.value }).then(function (u) {
+            if (u.error) { f.querySelector('button').disabled = false; return msg(err, u.error.message, true); }
+            location.href = base + 'learn/';
+          });
+        });
+      });
+      return;
+    }
+    var rf = $('[data-reset-request]');
+    rf.addEventListener('submit', function (e) {
+      e.preventDefault(); rf.querySelector('button').disabled = true;
+      fetch(SB_URL + '/functions/v1/teach-reset', { method: 'POST', headers: { 'content-type': 'application/json', apikey: SB_KEY }, body: JSON.stringify({ email: rf.email.value }) })
+        .finally(function () { show(rf, false); msg(err, 'If an account exists for this email, a reset link is on its way. Check your inbox (and spam).'); err.classList.remove('is-error'); });
+    });
+  }
+
+  ({ landing: landing, welcome: welcome, login: login, learn: learn, reset: reset })[page]();
 })();
