@@ -14,6 +14,7 @@
     tiles.forEach(function (t) {
       var ok = (filter === 'all' || t.dataset.cat === filter) && (!q || t.dataset.search.indexOf(q) !== -1);
       t.hidden = !ok;
+      if (ok) { t.classList.remove('is-filtering'); void t.offsetWidth; t.classList.add('is-filtering'); t.style.animationDelay = (shown * 40) + 'ms'; }
       if (ok) shown++;
     });
     groups.forEach(function (g) {

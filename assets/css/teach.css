@@ -123,3 +123,58 @@
   .tl-lesson h1 { font-size: 34px; }
   .tl-body { font-size: 17px; }
 }
+
+/* ---- quizzes ------------------------------------------------------------- */
+.tl-mod a.is-quiz span { font-weight: 600; color: var(--c-black); }
+.tl-mod a.is-quiz i { border-radius: 4px; }
+.tl-mod a.is-quiz.is-done i { border-radius: 4px; }
+.tq-intro { margin: -12px 0 24px; color: var(--c-text-60); }
+.tq-form { display: flex; flex-direction: column; gap: 18px; }
+.tq { border: 1px solid var(--c-line); border-radius: var(--r-lg); padding: 20px; margin: 0; background: var(--c-white); display: flex; flex-direction: column; gap: 8px; animation: tq-in .5s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+.tq legend { display: flex; gap: 10px; padding: 0 0 10px; font-family: var(--f-serif); font-weight: 400; font-size: 22px; line-height: 1.25; letter-spacing: -0.03em; color: var(--c-black); float: left; width: 100%; }
+.tq legend .t-mono { color: var(--c-pink); font-size: 13px; padding-top: 6px; }
+.tq__opt { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--c-line-2); border-radius: var(--r-md); cursor: pointer; font-size: 16px; letter-spacing: -0.02em; transition: border-color .2s, background .2s, transform .2s; }
+.tq__opt:hover { border-color: var(--c-pink); transform: translateX(3px); }
+.tq__opt input { accent-color: var(--c-pink); width: 18px; height: 18px; }
+.tq__opt:has(input:checked) { border-color: var(--c-pink); background: #fff4fa; }
+.tq.is-right { border-color: #9bd8b4; }
+.tq.is-wrong { border-color: #f3a3c8; animation: tq-shake .4s; }
+.tq__opt.is-answer { border-color: #2e9e5e; background: #eefaf2; }
+.tq__why { font-size: 15px; color: var(--c-text-60); padding-top: 4px; }
+.tq-form .btn { align-self: flex-start; }
+.tq-result { margin-top: 22px; padding: 18px 20px; border-radius: var(--r-md); font-size: 17px; letter-spacing: -0.02em; animation: tq-in .5s cubic-bezier(.34, 1.3, .64, 1) both; }
+.tq-result b { font-family: var(--f-serif); font-weight: 400; font-size: 30px; margin-right: 8px; }
+.tq-result.is-pass { background: var(--c-black); color: var(--c-white); }
+.tq-result.is-pass b { color: #ff66be; }
+.tq-result.is-fail { background: #fff4fa; color: var(--c-black); }
+@keyframes tq-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes tq-shake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+/* ---- motion: teach ------------------------------------------------------- */
+.tl-lesson.is-entering, .tl-home { animation: tl-enter .55s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes tl-enter { from { opacity: 0; transform: translateY(18px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+.tl-bar i { position: relative; overflow: hidden; }
+.tl-bar i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .6), transparent); transform: translateX(-100%); animation: tl-shine 2.4s ease-in-out infinite; }
+@keyframes tl-shine { 60%, 100% { transform: translateX(100%); } }
+.tl-mod a { transition: background .2s, transform .2s, box-shadow .2s; }
+.tl-mod a:hover { transform: translateX(3px); }
+.tl-mod a.is-done i { animation: tl-pop .35s cubic-bezier(.34, 1.6, .64, 1); }
+.btn.is-pop { animation: tl-pop .42s cubic-bezier(.34, 1.6, .64, 1); }
+@keyframes tl-pop { 0% { transform: scale(1); } 45% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.tc-hero__card::before { animation: tc-glow 9s ease-in-out infinite alternate; }
+@keyframes tc-glow { from { transform: translate(0, 0) scale(1); } to { transform: translate(-6%, 8%) scale(1.15); } }
+.tc-hero__card { transition: transform .5s cubic-bezier(.22, 1, .36, 1); transform-style: preserve-3d; will-change: transform; }
+.tc-hero__card li { animation: tq-in .6s cubic-bezier(.22, 1, .36, 1) both; }
+.tc-hero__card li:nth-child(2) { animation-delay: .08s; } .tc-hero__card li:nth-child(3) { animation-delay: .16s; } .tc-hero__card li:nth-child(4) { animation-delay: .24s; } .tc-hero__card li:nth-child(5) { animation-delay: .32s; }
+.tc-hero__card h2 { animation: tl-enter .8s .1s cubic-bezier(.22, 1, .36, 1) both; }
+.tc-point { transition: transform .35s cubic-bezier(.22, 1, .36, 1), box-shadow .35s; }
+.tc-point:hover { transform: translateY(-6px); box-shadow: 0 16px 30px -18px rgba(0, 0, 0, .35); }
+.tc-mod summary { transition: padding-left .25s; }
+.tc-mod summary:hover { padding-left: 6px; }
+.tc-mod[open] ul { animation: tq-in .45s cubic-bezier(.22, 1, .36, 1) both; }
+.tc-mod li { transition: transform .2s; }
+.tc-mod li:hover { transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+  .tq, .tq-result, .tl-lesson.is-entering, .tl-home, .tc-hero__card li, .tc-hero__card h2, .tc-mod[open] ul { animation: none !important; }
+  .tl-bar i::after, .tc-hero__card::before { animation: none; }
+}
