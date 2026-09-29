@@ -229,3 +229,10 @@
   .tl-step b { font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { .tl-step, .tl-step i, .tl-step i svg { transition: none; } }
+
+/* previous / next: rectangle cards */
+.tl-step { border-radius: 14px; padding: 12px 20px 12px 12px; min-width: 220px; }
+.tl-step--next { padding: 12px 12px 12px 20px; }
+.tl-step i { width: 44px; height: 44px; border-radius: 10px; }
+.tl-step span { flex: 1; }
+@media (max-width: 809.98px) { .tl-step { min-width: 0; } }
