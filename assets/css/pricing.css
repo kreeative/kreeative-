@@ -35,6 +35,20 @@
 .addon__text { display: flex; flex-direction: column; gap: 4px; flex: 1 0 0; }
 .addon__price { flex: none; white-space: pre; color: var(--c-black); }
 
+.pr-video { display: flex; flex-direction: column; align-items: center; gap: 48px; padding: 88px var(--pad-x) 100px; }
+.pr-video__head { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 680px; text-align: center; }
+.pr-video__tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 20px; width: 100%; max-width: var(--container); }
+.vt { display: flex; flex-direction: column; gap: 14px; padding: 28px; background: var(--c-white); border: 1px solid var(--c-line); border-radius: var(--r-lg); }
+.vt__title { color: var(--c-black); }
+.vt table { width: 100%; border-collapse: collapse; color: var(--c-text); }
+.vt th { padding: 0 0 10px; font-family: var(--f-mono, monospace); font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; text-align: left; color: var(--c-muted); border-bottom: 1px solid var(--c-black); }
+.vt td { padding: 10px 0; border-bottom: 1px solid var(--c-hairline); vertical-align: top; }
+.vt th:not(:first-child), .vt td:not(:first-child) { text-align: right; white-space: nowrap; padding-left: 12px; font-variant-numeric: tabular-nums; }
+.vt td:not(:first-child) { color: var(--c-black); }
+.vt th:last-child, .vt tbody td:last-child { color: var(--c-pink); }
+.vt__note { color: var(--c-muted); }
+.pr-video__packs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
 .pr-audit { position: relative; display: flex; flex-direction: column; align-items: center; padding: 88px var(--pad-x); overflow: hidden; background: var(--c-black); color: var(--c-white); }
 .pr-audit__inner { position: relative; z-index: 1; width: 100%; max-width: var(--container); }
 .pr-audit__text { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; max-width: 720px; }
@@ -60,6 +74,8 @@
 @media (max-width: 1199.98px) {
   .pr-grid { grid-template-columns: 1fr; max-width: 640px; }
   .pr-addons__grid { grid-template-columns: 1fr; }
+  .pr-video__tables { grid-template-columns: 1fr; max-width: 640px; }
+  .pr-video .pr-addons { max-width: 640px; }
 }
 @media (max-width: 809.98px) {
   .pr-audit { padding: 64px var(--pad-x); }
@@ -67,6 +83,10 @@
   .pr-hero { padding: 96px var(--pad-x) 80px; }
   .pr-plans { padding: 64px var(--pad-x) 80px; }
   .pr-faq { padding: 64px var(--pad-x); }
+  .pr-video { padding: 64px var(--pad-x) 80px; }
+  .vt { padding: 20px 16px; }
+  .vt tbody td:not(:first-child) { white-space: normal; }
+  .vt:last-child td:first-child { width: 62%; }
   .plan { padding: 28px 20px; }
   .addon { flex-wrap: wrap; }
 }
