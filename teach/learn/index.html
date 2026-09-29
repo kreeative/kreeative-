@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>My course — Teach by Kreeative</title>
+  <meta name="description" content="Your Teach by Kreeative course.">
+  <link rel="canonical" href="https://kreeative.xyz/teach/learn/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Kreeative">
+  <meta property="og:title" content="My course — Teach by Kreeative">
+  <meta property="og:description" content="Your Teach by Kreeative course.">
+  <meta property="og:image" content="https://kreeative.xyz/assets/img/og/teach.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://kreeative.xyz/teach/learn/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="My course — Teach by Kreeative">
+  <meta name="twitter:description" content="Your Teach by Kreeative course.">
+  <meta name="twitter:image" content="https://kreeative.xyz/assets/img/og/teach.jpg">
+  <meta name="theme-color" content="#fcfcfc">
+  <link rel="icon" href="../../assets/img/favicon-32.png" type="image/png" media="(prefers-color-scheme: light)">
+  <link rel="icon" href="../../assets/img/favicon-dark-32.png" type="image/png" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../assets/fonts/fraunces-300-400-latin.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../assets/fonts/inter-400-latin.woff2">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/pricing.css">
+  <link rel="stylesheet" href="../../assets/css/teach.css">
+  <script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
+  <script defer src="../../assets/js/site.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+  <script defer src="../../assets/js/teach.js"></script>
+</head>
+<body data-teach="learn" data-teach-base="../">
+<div class="page" id="top">
+
+  <nav class="nav" aria-label="Main">
+    <a class="nav__logo" href="../../" aria-label="Kreeative — home">
+      <img src="../../assets/img/logo-148.webp" srcset="../../assets/img/logo-74.webp 74w, ../../assets/img/logo-148.webp 148w, ../../assets/img/logo-256.webp 256w" sizes="74px" width="74" height="63" alt="Kreeative">
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu">
+      <svg class="icon-open" fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></svg>
+      <svg class="icon-close" fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link t-nav" href="../../#projects">Work With Us</a>
+      <a class="nav__link t-nav" href="../../#projects">Gallery</a>
+      <a class="nav__link t-nav" href="../../pricing/">Pricing</a>
+      <a class="nav__link t-nav" href="../../shop/">Shop</a>
+      <a class="nav__link t-nav" href="../" aria-current="page">Teach</a>
+      <a class="nav__link nav__link--small t-nav" href="../../the-kreeative-designer-newsletter/">The Graphic Designer Newsletter</a>
+    </div>
+  </nav>
+
+  <section class="card tc-auth" data-not-enrolled hidden>
+    <div class="tc-auth__box">
+      <p class="t-mono">NO COURSE YET</p>
+      <h1 class="t-h2">This account doesn’t have the formation yet.</h1>
+      <p class="t-body-m">If you already paid, log in with the email you used at checkout.</p>
+      <a class="btn btn--accent" href="../" data-buy><span class="btn__label t-body-l">Join the formation</span><span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span></a>
+    </div>
+  </section>
+  <section class="card tl" data-learn hidden>
+    <aside class="tl-side">
+      <div class="tl-side__head"><p class="t-mono">UGC CREATOR FORMATION</p><b>Your progress</b><div class="tl-bar"><i data-progress-bar></i></div><p class="t-caption" data-progress-label></p></div>
+      <nav data-outline aria-label="Lessons"></nav>
+    </aside>
+    <div class="tl-main">
+      <div class="tl-top"><span data-user></span><button type="button" data-logout>Log out</button></div>
+      <div class="tl-home" data-home>
+        <p class="t-mono" style="color:var(--c-pink)">WELCOME BACK</p>
+        <h1 class="t-h2">Let’s get you booked.</h1>
+        <p class="t-body-l">Go one lesson at a time and do every action step. Your progress is saved automatically.</p>
+        <a class="btn btn--accent" href="#" data-continue><span class="btn__label t-body-l">Start the course</span><span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span></a>
+      </div>
+      <article class="tl-lesson" data-lesson hidden>
+        <p class="tl-lesson__k t-mono" data-lesson-kicker></p>
+        <h1 data-lesson-title></h1>
+        <div class="tl-body" data-lesson-body></div>
+        <div class="tl-actions">
+          <button class="btn btn--accent" type="button" data-complete><span class="btn__label t-body-l">Mark as complete</span><span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span></button>
+          <div class="tl-nav"><a href="#" data-prev>← Previous</a><a href="#" data-next>Next →</a></div>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+</body>
+</html>
