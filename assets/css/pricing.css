@@ -37,7 +37,7 @@
 
 .pr-video { display: flex; flex-direction: column; align-items: center; gap: 48px; padding: 88px var(--pad-x) 100px; }
 .pr-video__head { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 680px; text-align: center; }
-.pr-video__tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 20px; width: 100%; max-width: var(--container); }
+.pr-video__table { width: 100%; max-width: 860px; }
 .vt { display: flex; flex-direction: column; gap: 14px; padding: 28px; background: var(--c-white); border: 1px solid var(--c-line); border-radius: var(--r-lg); }
 .vt__title { color: var(--c-black); }
 .vt table { width: 100%; border-collapse: collapse; color: var(--c-text); }
@@ -47,7 +47,8 @@
 .vt td:not(:first-child) { color: var(--c-black); }
 .vt th:last-child, .vt tbody td:last-child { color: var(--c-pink); }
 .vt__note { color: var(--c-muted); }
-.pr-video__packs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.vt__info { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; color: var(--c-text); }
+.vt__info b { font-weight: 600; color: var(--c-black); }
 
 .pr-audit { position: relative; display: flex; flex-direction: column; align-items: center; padding: 88px var(--pad-x); overflow: hidden; background: var(--c-black); color: var(--c-white); }
 .pr-audit__inner { position: relative; z-index: 1; width: 100%; max-width: var(--container); }
@@ -74,8 +75,7 @@
 @media (max-width: 1199.98px) {
   .pr-grid { grid-template-columns: 1fr; max-width: 640px; }
   .pr-addons__grid { grid-template-columns: 1fr; }
-  .pr-video__tables { grid-template-columns: 1fr; max-width: 640px; }
-  .pr-video .pr-addons { max-width: 640px; }
+  .pr-video__table { max-width: 640px; }
 }
 @media (max-width: 809.98px) {
   .pr-audit { padding: 64px var(--pad-x); }
@@ -86,7 +86,6 @@
   .pr-video { padding: 64px var(--pad-x) 80px; }
   .vt { padding: 20px 16px; }
   .vt tbody td:not(:first-child) { white-space: normal; }
-  .vt:last-child td:first-child { width: 62%; }
   .plan { padding: 28px 20px; }
   .addon { flex-wrap: wrap; }
 }
