@@ -186,3 +186,23 @@
   .sh-cat__media { height: 230px; }
   .sh-cat__price { font-size: 32px; }
 }
+
+/* shop: free template promo banner + terms */
+.sh-promo { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px var(--pad-x) 0; }
+.sh-promo__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; width: 100%; max-width: var(--container); padding: 20px 28px; border-radius: var(--r-lg); background: var(--c-pink); color: var(--c-white); text-decoration: none; transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease; }
+.sh-promo__inner:hover { transform: translateY(-3px); box-shadow: 0 14px 28px -14px rgba(255, 0, 144, 0.6); }
+.sh-promo__tag { padding: 6px 12px; border-radius: 999px; background: var(--c-white); color: var(--c-pink); font-size: 12px; }
+.sh-promo__text { flex: 1 1 320px; font-size: 18px; line-height: 1.4; letter-spacing: -0.02em; }
+.sh-promo__text b { font-weight: 600; }
+.sh-promo__cta { color: var(--c-white); white-space: nowrap; }
+.sh-promo__terms { width: 100%; max-width: var(--container); text-align: right; color: var(--c-muted); text-decoration: underline; text-underline-offset: 3px; }
+.sh-terms { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; padding: 64px var(--pad-x); scroll-margin-top: 16px; }
+.sh-terms__list { display: flex; flex-direction: column; gap: 10px; max-width: 800px; padding-left: 20px; list-style: disc; color: var(--c-text); }
+.sh-terms__list a { color: var(--c-pink); text-decoration: underline; }
+@media (max-width: 809.98px) {
+  .sh-promo { padding: 12px 12px 0; }
+  .sh-promo__inner { padding: 18px 20px; }
+  .sh-promo__text { font-size: 16px; }
+  .sh-promo__terms { text-align: left; }
+  .sh-terms { padding: 48px var(--pad-x); }
+}
