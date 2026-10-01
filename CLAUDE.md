@@ -11,9 +11,18 @@ source of truth and update it there when facts change.
 
 ## Non-negotiables for every deliverable
 
-- English only for now: French is paused as of 1 October 2026 while Kee
-  decides. When it comes back, French gets its own set of hashtags, not a
-  translation of the English ones.
+- Language is per platform. Instagram and YouTube: English only for now
+  (French paused there as of 1 October 2026 while Kee decides). TikTok:
+  bilingual, with a French hook on screen and spoken, an English body with
+  burned-in French captions, and a French punchline at the end. The French
+  catches her Francophone audience, the English keeps them. TikTok hashtags
+  mix French, English and Ivorian tags. Whenever French comes back on
+  Instagram, it gets its own hashtags, not a translation.
+- TikTok never gets an Instagram repost. A TikTok video is Kee talking to
+  camera about a strong topic (companies behaving badly, petitions, society,
+  relationships, faith) or something that helps (creator money, red flags,
+  how-tos). The Instagram business content reaches TikTok only through the
+  creator-money videos, which carry the funnel to @aissakee.
 - Each post gets its own layout. A different font is not a different design.
 - Reels and vertical video: keep text inside the Instagram safe zone
   (sides ≥ 90 px, top ≥ 250 px, bottom ≈ 400 px clear, on a 1080 × 1920 frame).
