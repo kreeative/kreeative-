@@ -10,7 +10,8 @@ studio posts that point to Kreeative. The brief that governs all of it is
 ```
 content/
   2026-10/                     one folder per month
-    sprint-oct-1-5.md          a plan: strategy, schedule and scripts for a sprint
+    sprint-oct-1-5.md          a plan: strategy, schedule and scripts for a sprint (Instagram)
+    tiktok-oct-1-5.md          the TikTok track for the same days (bilingual, strong topics)
     calendar.md                what goes out when, per platform
     08-reel-founding-spots.md  one file per piece, named DD-format-slug.md
     09-carousel-media-kit.md
@@ -33,6 +34,8 @@ Every piece uses the same sections, in this order:
    and the safe-zone reminder for anything vertical.
 3. **EN caption**, then **EN hashtags**.
 4. **FR caption**, then **FR hashtags** (its own set, not a translation).
-   Paused as of 1 October 2026: English only until Kee says otherwise.
+   Paused on Instagram and YouTube as of 1 October 2026: English only there
+   until Kee says otherwise. TikTok pieces are bilingual (French hook, English
+   body with French captions, French punchline) and carry mixed hashtags.
 5. **CTA**: the ManyChat keyword (SPOT, SITE, FLYER, KIT) or a direct link
    when one was asked for.

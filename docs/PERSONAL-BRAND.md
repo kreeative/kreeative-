@@ -59,7 +59,13 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 - New personal account (Instagram @aissakee, created around 26 September 2026): 31 followers and 5 posts on 1 October.
 - Goal set on 1 October: 10K followers by Sunday 5 October. Plan: `content/2026-10/sprint-oct-1-5.md`.
 - Content angle: motivation, and teaching people how to make money online with creative skills, with my Kreeative earnings and work as the proof (real numbers only).
-- Every video goes to Instagram, TikTok and YouTube Shorts; @keekyt and @bykreeative funnel to the new account.
+- Instagram videos also go to YouTube Shorts. TikTok gets its own content (below); @keekyt and @bykreeative funnel to the new account.
+
+## TikTok: what works on @keekyt
+
+- The audience is Francophone (Côte d'Ivoire and the diaspora) and comes for two things: me talking to camera about a **strong topic**, or something that **helps them**. Instagram content cannot be reposted there; TikTok content has to be very different.
+- My most viral videos: petitions against companies behaving badly (Shein, Apple: we keep using the product but we can sign if we disagree with how they operate); how people want to normalize witchcraft to make a man fall in love in my country; the economy and the ugly design of the new currency; how to be a content creator and make money; believing in your dream and my testimony; red flags; a restaurant in Côte d'Ivoire that used a Japanese restaurant's video (false advertising).
+- Plan and scripts: `content/2026-10/tiktok-oct-1-5.md`.
 
 ## Brand look
 
@@ -69,7 +75,8 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 
 ## My preferences (important)
 
-- **English only for now** (French paused as of 1 October 2026, still deciding). When French comes back: **different hashtags** for French, not a translation.
+- **Instagram and YouTube: English only for now** (French paused there as of 1 October 2026, still deciding). When French comes back: **different hashtags** for French, not a translation.
+- **TikTok: bilingual.** French hook first to catch my Francophone audience, then English with French captions so they stick with my English content. French punchline at the end.
 - Each post should have a **different layout/design**, not just a different font.
 - Reels: keep text inside Instagram safe zones (sides ≥ 90 px, top ≥ 250 px, bottom ≈ 400 px clear).
 - Export in high quality (4K when possible) and **double-check text before handing over** (no cut-off letters).

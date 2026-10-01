@@ -1,9 +1,10 @@
 # Road to 10K: 5-day launch sprint (Wed Oct 1 to Sun Oct 5, 2026)
 
-English only for now (French is paused). Assumption: the 5-day-old account with
-31 followers and 5 posts is Instagram **@aissakee**. Every video below also goes
-to TikTok and YouTube Shorts, so the plan holds if the new account is one of
-those instead.
+English only on Instagram and YouTube for now (French is paused there).
+Assumption: the 5-day-old account with 31 followers and 5 posts is Instagram
+**@aissakee**. Every video below also goes to YouTube Shorts. TikTok gets its
+own bilingual content in `tiktok-oct-1-5.md`, because that audience wants
+strong-topic talking videos, not Instagram reposts.
 
 Positioning in one line: *self-taught designer and student who built a studio
 from her laptop, showing you how to earn online with creative skills, with real
@@ -30,8 +31,8 @@ flyer, concepts labelled as concepts.
 - You have three levers, and the plan uses all three at once:
   1. Breakout Reels on the new account (sections 4 to 6).
   2. The audience you already have: **@keekyt** does about 15K TikTok views a
-     day (433K in 28 days). A daily funnel video there is your biggest lever
-     (section 7).
+     day (433K in 28 days). The creator-money videos in the TikTok track are
+     your biggest lever (section 7).
   3. Collab posts with **@bykreeative**, which put each business video on both
      grids.
 - If everything in this file gets executed, 1K to 3K by Sunday is a strong
@@ -92,7 +93,7 @@ number, say so on camera. That is its own hook, and it stays honest.
 | next 90 min    | Film Batch A: videos 1, 2, 3, 5, 6 and the verse (14). Two setups.      |
 | as soon as cut | Post **video 1**. Share to Stories with a poll. Reply to every comment. |
 | 5 pm ET        | Post **video 2** as a collab with @bykreeative.                         |
-| 6 pm ET        | Funnel video on @keekyt (section 7).                                    |
+| 6 pm ET        | TikTok T2 on @keekyt (the creator-money video, `tiktok-oct-1-5.md`).   |
 | 8:30 pm ET     | Post **video 3**. Stories: "DM me SITE / FLYER" reminder.               |
 | 10 pm          | Scoreboard (section 8). Note tomorrow's best hook.                      |
 
@@ -101,11 +102,11 @@ number, say so on camera. That is its own hook, and it stays honest.
 ## 4. Daily rhythm (Oct 1 to 5)
 
 - **3 Reels a day** at 8 am, 12 pm and 7 pm ET. One is the challenge update,
-  two are value videos. Same video to TikTok and YouTube Shorts, exported
-  clean (no watermark; Instagram buries TikTok-watermarked video).
+  two are value videos. Same video to YouTube Shorts, exported clean. TikTok
+  gets its own two videos a day from `tiktok-oct-1-5.md`.
 - **Every Reel to Stories** with a question or poll sticker.
-- **1 funnel video a day on @keekyt**, and a collab invite to @bykreeative on
-  every business-topic Reel.
+- **The TikTok track runs alongside** (two bilingual videos a day on
+  @keekyt), and a collab invite to @bykreeative on every business-topic Reel.
 - **Stories, 3 to 5 a day:** a poll ("web design or UGC: which should I teach
   first?"), behind the scenes, the verse of the day, the "DM me SPOT" reminder,
   a reshare of the day's best Reel.
@@ -373,13 +374,12 @@ slower, one setup)
 
 ## 7. Funnel from the accounts you already have
 
-- **@keekyt (TikTok):** one video a day, 10 to 15 seconds, same you, new
-  chapter: "I started a new account for the business side of my life. If
-  you've ever asked how I make money with design, it's all on @aissakee,
-  day [X] is up." Pin one of them. Alternate with the day's best Reel reposted
-  there with the Instagram handle in the first line of the caption.
-- Your TikTok audience came for beauty, faith and life, so lead with *you*
-  ("same me, business chapter"), not with "make money online".
+- **@keekyt (TikTok):** no reposts. The funnel rides inside the TikTok
+  track's creator-money videos (T2 on Wednesday, T6 on Friday, T10 on
+  Sunday), which end with "day by day on my Insta @aissakee". Strong-topic
+  videos stay pure; the handle lives in the bio.
+- Your TikTok audience came for strong topics, faith and real talk, so the
+  bridge is *you* ("same me, the business side"), not "make money online".
 - **@bykreeative:** collab invite on videos 2, 3, 6, 8, 9 and 12, and one
   Story a day pointing to @aissakee.
 - **DMs:** everyone who replies to a Story gets a personal answer and one
@@ -415,7 +415,7 @@ Decision rules:
 - The course is described by outcomes only. The guide is free and can be
   described fully.
 - Concepts labelled as concepts. Never the Christocentrique flyer.
-- 3 to 5 hashtags, a different set each post. No TikTok watermark on
-  Instagram.
+- 3 to 5 hashtags, a different set each post. Nothing from this file is
+  reposted to TikTok.
 - Text never on your face. Hair in frame. 4K export where possible.
   Proofread before posting.
