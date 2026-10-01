@@ -19,7 +19,7 @@ the campaign change.
 | **@keekyt**      | TikTok            | Personal brand                         |
 | Aïssa Kee        | YouTube           | Personal brand (handle to add)         |
 | **@bykreeative** | Instagram, TikTok | Studio                                 |
-| **@kreeative**   | Beacons           | Studio link in bio                     |
+| kreeative.xyz    | Website           | The link in bio for every account. Beacons is no longer used (1 October 2026). |
 
 ## My numbers (TikTok)
 
@@ -80,7 +80,7 @@ Everything here is true and can be said on camera. Names stay private.
 | Second payroll deposit | "Wealthsimple-OS", 17 September | $1,580.84 | Verified deposit, nature unknown. Not public. |
 | The Ivory Sukundu (Shopify, hair extensions) | #1002 on 9 August $419.00, #1003 on 21 September $268.86; #1001 was a $0 test | $687.86 | Verified (Shopify). Totals as paid by the customer. |
 | Kreeative (Stripe) | $20.00 USD on 30 June and $55.80 USD on 22 September, two card payments | $107.00 gross, $100.30 after Stripe fees | Verified (Stripe). What was sold: to confirm. |
-| Kreeative shop on Beacons | 3 free downloads, 27 and 28 September | $0 | Verified. No payout method attached, so it cannot take paid orders. |
+| Beacons (no longer used) | 3 free downloads, 27 and 28 September | $0 | Historical only; Kee stopped relying on Beacons. |
 | Brand gigs (the gig app wallet) | $830 shown; CapCut $810 is the biggest line | $830 | Not verified: screenshot only, currency unknown, lines add to more than the total. |
 | Client work paid outside Stripe (e-transfer, PayPal, cash) | Websites, flyers, video, UGC deals | unknown | Not visible from here. Kee to list. |
 
