@@ -76,6 +76,7 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 
 ## My preferences (important)
 
+- For every piece of content, ask: if I were the viewer, would I care? If not, rewrite it or cut it.
 - **Instagram and YouTube: English only for now** (French paused there as of 1 October 2026, still deciding). When French comes back: **different hashtags** for French, not a translation.
 - **TikTok: bilingual.** French hook first to catch my Francophone audience, then English with French captions so they stick with my English content. French punchline at the end.
 - Each post should have a **different layout/design**, not just a different font.
