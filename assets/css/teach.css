@@ -337,3 +337,12 @@
   body[data-teach=certificate] .card { box-shadow: none; border: 0; background: #fff; padding: 0; margin: 0; }
   body[data-teach=certificate] .cert { width: 11in; height: 8.5in; aspect-ratio: auto; box-shadow: none; border-radius: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* ---- signup (account required before checkout) ---- */
+.tc-auth__box [data-step] { display: flex; flex-direction: column; gap: 18px; }
+.tc-auth__box [data-step][hidden] { display: none; }
+.tc-auth__lead { color: var(--c-text-60); }
+.tc-form label small { font-weight: 400; color: var(--c-text-40); }
+.tc-form .tc-check { flex-direction: row; align-items: center; gap: 10px; font-weight: 400; }
+.tc-form .tc-check input { width: 18px; height: 18px; accent-color: var(--c-pink); }
+.tc-linkbtn { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
