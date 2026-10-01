@@ -45,6 +45,9 @@ concepts/                  concept sites hosted here, each a self-contained stat
 tools/site-screenshots.mjs screenshots the sites shown on the home page
 .github/workflows/         the workflow that runs that script
 docs/DESIGN.md             design tokens and breakpoints, for reference
+docs/PERSONAL-BRAND.md     Kee's personal-brand brief (Aïssa Kee on Instagram, TikTok, YouTube)
+content/                   captions, scripts and calendars for the personal brand (see content/README.md)
+CLAUDE.md                  working rules for Claude sessions on the personal-brand branch
 ```
 
 ## Preview locally
