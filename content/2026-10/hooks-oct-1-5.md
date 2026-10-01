@@ -89,11 +89,11 @@ and hashtags are in `sprint-oct-1-5.md`.
 
 **2. How I make money online as a student** (talking head + screen inserts)
 - Move: Hormozi "how I"
-- Say: "How I make money online as a student. Not dropshipping. Not crypto. Design, self-taught."
-- Screen: `Money online. No dropshipping.`
-- A: "4 million views this year. The money didn't come from the views."
-- B: "3 ways I make money online with one skill I taught myself."
-- First 3 seconds: start mid-sentence, the site scrolling in a corner inset, your face clear.
+- Say: "My part-time job paid me $560 for two weeks. One order from my shop paid $419. Here's where my money actually comes from."
+- Screen: `$560 job vs $419 one order`
+- A: "How I make money online as a student. Not dropshipping. Not crypto. Design, self-taught."
+- B: "Three income streams, one laptop. Real numbers, nothing rounded up."
+- First 3 seconds: the paycheque and the order side by side, employer and client names blurred, balances cropped, then you.
 - End on: "Follow, each one gets its own video this week."
 
 **3. What $95 gets you** (talking head + price cards; for the business owner)
@@ -120,7 +120,7 @@ and hashtags are in `sprint-oct-1-5.md`.
 - Move: Hormozi "if you have no money"
 - Say: "Zero dollars, no followers, and you need money this month. As a designer, here's what I'd do."
 - Screen: `From $0 this week`
-- A: "If I lost everything tomorrow, I'd make my first $95 back like this."
+- A: "The first order in my shop was $0.00. It was me, testing. The second was $419 from a stranger."
 - B: "You don't need followers to make money online. You need five DMs a day."
 - First 3 seconds: fingers up for five, straight into step one.
 - End on: "Save this. The exact DM is next."
@@ -242,14 +242,14 @@ and hashtags are in `sprint-oct-1-5.md`.
 9. "I'm taking 10 clients this month. Here's who I'm looking for."
 10. "If your flyer looks like a Word document, this is why nobody calls."
 11. "Design clients don't care about your degree. They care about this."
-12. "Before you learn Photoshop, learn this."
-13. "The cheapest way to look expensive online."
+12. "My part-time job paid me $560 for two weeks. One order paid $419."
+13. "The first order in my shop was $0.00. It was me, testing. The second was $419 from a stranger."
 14. "Say this when a client says it's too expensive."
 15. "Three red flags in a client before you say yes."
-16. "The first thing I'd sell if I had to make money by Friday."
+16. "Three tiny gigs paid $20 in total. One real gig paid $810. The media kit got me the real one."
 17. "Your bio is losing you clients. Fix these three lines."
 18. "Free concept, paid final. That's how the DM works."
-19. "Monday reminder for whoever is building something scary."
+19. "One brand gig paid more than my paycheque. Here's what was in the pitch." (only if the app's terms allow the amount)
 20. "If you wait until you're ready, you'll never post the first one. I posted at 31 followers."
 21. "What does $95 get you from a designer?" (Hoyos)
 22. "I charge $1,500 for a website and I'm a student. Here's why clients pay it." (Hormozi)

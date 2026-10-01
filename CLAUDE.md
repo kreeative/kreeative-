@@ -44,6 +44,9 @@ source of truth and update it there when facts change.
 - Links go directly in captions only when asked; otherwise use the ManyChat
   keyword (SPOT, SITE, FLYER, KIT).
 - No fake testimonials, numbers or results. Concepts are labelled as concepts.
+  Real receipts come from the proof bank in `docs/PERSONAL-BRAND.md`: client
+  names and the employer's name blurred, account balances cropped, brand
+  rates shown only if the gig platform's terms allow it.
 - Prices come from `docs/PERSONAL-BRAND.md` (same as the live pricing pages),
   in CAD plus HST unless stated in USD.
 
