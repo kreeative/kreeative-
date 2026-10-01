@@ -11,6 +11,11 @@ source of truth and update it there when facts change.
 
 ## Non-negotiables for every deliverable
 
+- The viewer test comes first. Before any hook, caption, slide or post
+  ships, ask: if I were the viewer, a stranger scrolling, would I care? The
+  first line has to give them something (a lesson, a number, a payoff, a
+  feeling), not report on Kee. A diary entry is not a hook; a lesson is. If
+  the answer is no, rewrite it or cut it.
 - Language is per platform. Instagram and YouTube: English only for now
   (French paused there as of 1 October 2026 while Kee decides). TikTok:
   bilingual, with a French hook on screen and spoken, an English body with
