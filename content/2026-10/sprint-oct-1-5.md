@@ -211,21 +211,23 @@ Hormozi number confession + Leatherstein reveal)
   paid $419. Here's where my money actually comes from.`
 - Beats, each with the real receipt on screen (names blurred, balances
   cropped): (1) the job: $450 to $670 every two weeks since March, real work,
-  nothing to be ashamed of. (2) the shop: the first "order" was me testing at $0.00; the
-  first real sale came on 9 August, $419 from a stranger; then $268.86 on
-  21 September. (3) brand gigs: $830 in the wallet, one big gig at $810 and
-  three micro-gigs at $5 to $10, so the lesson is "pitch for the real ones
-  with a media kit, skip the $5 ones" (check the gig app's terms before
-  showing brand rates). (4) "None of this needed a degree or a big following.
-  It needed one skill and sending DMs every day."
+  nothing to be ashamed of. (2) the shop (The Ivory Sukundu, hair extensions, if you want
+  to name it): the first "order" was me testing at $0.00; the first real sale
+  came on 9 August, $419 from a stranger; then $268.86 on 21 September.
+  (3) Kreeative: two card payments this year, $107 in total, and the clients
+  paid another way [list them]. (4) brand gigs: $830 in the wallet, one big
+  gig at $810 and three micro-gigs at $5 to $10, so the lesson is "pitch for
+  the real ones with a media kit, skip the $5 ones" (check the gig app's
+  terms before showing brand rates). (5) "None of this needed a degree or a
+  big following. It needed one skill and sending DMs every day."
 - CTA: "Follow. Each stream gets its own video this week."
 - Caption: "Real numbers from this summer: my retail job paid me $450 to
   $670 every two weeks. One shop order paid $419. Brand gigs paid $830. No
   course, no crypto: one skill and DMs. Follow, each stream gets its own
   video this week."
 - Honest version of the point, if you want the stronger video: six months
-  of the job came to about $5,400; the same months of orders and gigs came
-  to about $1,500. The job paid more in total. The skill pays more per hour
+  of the job came to about $5,400; the laptop came to about $1,600 with the
+  gigs, $800 without. The job paid more in total. The skill pays more per hour
   (one $419 order took [X] hours; $419 at the job is [Y] shifts) and it is
   the one that grows. Fill the hours yourself; never invent them.
 - Hashtags: #makemoneyasastudent #sidehustleideas #graphicdesigner
