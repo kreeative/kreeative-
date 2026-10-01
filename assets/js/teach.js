@@ -15,6 +15,21 @@
   function show(el, on) { if (el) el.hidden = !on; }
   function msg(el, text, bad) { if (!el) return; el.textContent = text; el.classList.toggle('is-error', !!bad); el.hidden = !text; }
 
+  /* checkout needs an account: the Stripe link carries the user's id and email so the payment lands on that account */
+  function checkoutUrl(link, user) {
+    var u = new URL(link);
+    u.searchParams.set('client_reference_id', user.id);
+    if (user.email) u.searchParams.set('prefilled_email', user.email);
+    return u.toString();
+  }
+  function goCheckout(user, errEl) {
+    return Promise.all([sb.from('courses').select('payment_link').eq('id', COURSE).single(), sb.from('enrollments').select('course_id').eq('course_id', COURSE)]).then(function (r) {
+      if ((r[1].data || []).length) { location.href = base + 'learn/'; return; }
+      if (!r[0].data || !r[0].data.payment_link) { msg(errEl, 'Checkout is unavailable right now. Please try again in a few minutes.', true); return; }
+      location.href = checkoutUrl(r[0].data.payment_link, user);
+    });
+  }
+
   function loadOutline() {
     return Promise.all([
       sb.from('courses').select('id,title,subtitle,price_cents,payment_link').eq('id', COURSE).single(),
@@ -45,10 +60,12 @@
         }).join('');
         var n = $('[data-lesson-count]'); if (n) n.textContent = o.lessons.length;
       }
-      if (o.course && o.course.payment_link) document.querySelectorAll('[data-buy]').forEach(function (a) { a.href = o.course.payment_link; });
     });
+    document.querySelectorAll('[data-buy]').forEach(function (a) { a.href = base + 'signup/'; });
     sb.auth.getSession().then(function (r) {
-      if (r.data.session) document.querySelectorAll('[data-if-student]').forEach(function (el) { el.hidden = false; });
+      if (!r.data.session) return;
+      document.querySelectorAll('[data-if-student]').forEach(function (el) { el.hidden = false; });
+      document.querySelectorAll('[data-buy]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); goCheckout(r.data.session.user); }; });
     });
   }
 
@@ -56,6 +73,19 @@
   function welcome() {
     var sid = new URLSearchParams(location.search).get('session_id');
     var status = $('[data-status]'), form = $('[data-claim-form]'), err = $('[data-error]');
+    sb.auth.getSession().then(function (r) {
+      if (!r.data.session) return legacy();
+      msg(status, 'Confirming your payment…');
+      var n = 0;
+      (function wait() {
+        sb.rpc('claim_my_purchases').then(function () { return sb.from('enrollments').select('course_id').eq('course_id', COURSE); }).then(function (e) {
+          if ((e.data || []).length) { msg(status, 'Payment confirmed 🎉 Opening your course…'); return setTimeout(function () { location.href = base + 'learn/'; }, 900); }
+          if (n++ < 30) return setTimeout(wait, 2000);
+          msg(status, 'We couldn’t confirm this payment yet. Refresh in a minute, or email partnerships@kreeative.xyz with your receipt.', true);
+        });
+      })();
+    });
+    function legacy() {
     if (!sid) { msg(status, 'This page opens right after checkout. Already bought the course? Log in instead.'); show($('[data-login-link]'), true); return; }
     function call(body) {
       return fetch(SB_URL + '/functions/v1/teach-claim', { method: 'POST', headers: { 'content-type': 'application/json', apikey: SB_KEY }, body: JSON.stringify(body) })
@@ -85,18 +115,63 @@
         });
       }).catch(function (e2) { form.querySelector('button').disabled = false; msg(err, e2.message || 'Something went wrong. Try again.', true); });
     });
+    }
+  }
+
+
+  /* ---- signup: account first, then checkout --------------------------- */
+  function signup() {
+    var q = new URLSearchParams(location.search), err = $('[data-error]');
+    var steps = { form: $('[data-step=form]'), sent: $('[data-step=sent]'), ready: $('[data-step=ready]') };
+    function step(k) { Object.keys(steps).forEach(function (x) { show(steps[x], x === k); }); }
+    function ready(session) {
+      step('ready');
+      $('[data-ready-email]').textContent = session.user.email;
+      $('[data-checkout]').onclick = function (e) { e.preventDefault(); goCheckout(session.user, $('[data-ready-error]')); };
+      $('[data-logout]').onclick = function () { sb.auth.signOut().then(function () { location.href = base + 'signup/'; }); };
+      // already a student? straight to the course
+      sb.rpc('claim_my_purchases').then(function () { return sb.from('enrollments').select('course_id').eq('course_id', COURSE); }).then(function (r) { if ((r.data || []).length) location.href = base + 'learn/'; });
+    }
+    var th = q.get('token_hash'), type = q.get('type');
+    if (th) {
+      history.replaceState(null, '', location.pathname);
+      sb.auth.verifyOtp({ token_hash: th, type: type === 'magiclink' ? 'magiclink' : 'signup' }).then(function (r) {
+        if (r.error || !r.data.session) { step('form'); msg(err, 'This confirmation link has expired or was already used. Sign up again to get a new one, or log in.', true); return; }
+        ready(r.data.session);
+      });
+      return;
+    }
+    sb.auth.getSession().then(function (r) { if (r.data.session) ready(r.data.session); else step('form'); });
+    var form = $('[data-signup-form]');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); msg(err, '');
+      if (form.password.value !== form.password2.value) return msg(err, 'The two passwords don’t match.', true);
+      var btn = form.querySelector('button'); btn.disabled = true;
+      var email = form.email.value.trim();
+      fetch(SB_URL + '/functions/v1/teach-signup', { method: 'POST', headers: { 'content-type': 'application/json', apikey: SB_KEY },
+        body: JSON.stringify({ name: form.name.value, email: email, password: form.password.value, lang: (navigator.language || '').slice(0, 2) }) })
+        .then(function (r) { return r.json(); }).then(function (d) {
+          btn.disabled = false;
+          if (d.status === 'sent') { $('[data-sent-email]').textContent = email; return step('sent'); }
+          if (d.status === 'exists') { err.innerHTML = 'You already have an account with this email. <a class="tc-link" href="../login/?next=checkout">Log in to continue</a>.'; err.classList.add('is-error'); err.hidden = false; return; }
+          var m = { invalid_email: 'Enter a valid email address.', weak_password: 'Use at least 8 characters.', name_required: 'Enter your first and last name.', too_many: 'Too many attempts. Wait an hour, or check your inbox for the last link.' };
+          msg(err, m[d.error] || 'Something went wrong. Try again in a minute.', true);
+        }).catch(function () { btn.disabled = false; msg(err, 'Connection problem. Try again.', true); });
+    });
   }
 
   /* ---- login ----------------------------------------------------------- */
   function login() {
     var form = $('[data-login-form]'), err = $('[data-error]');
-    sb.auth.getSession().then(function (r) { if (r.data.session) location.href = base + 'learn/'; });
+    var next = new URLSearchParams(location.search).get('next');
+    function after(session) { if (next === 'checkout') return goCheckout(session.user, err); location.href = base + 'learn/'; }
+    sb.auth.getSession().then(function (r) { if (r.data.session) after(r.data.session); });
     form.addEventListener('submit', function (e) {
       e.preventDefault(); msg(err, '');
       form.querySelector('button').disabled = true;
       sb.auth.signInWithPassword({ email: form.email.value.trim(), password: form.password.value }).then(function (r) {
         if (r.error) throw r.error;
-        location.href = base + 'learn/';
+        return after(r.data.session);
       }).catch(function () { form.querySelector('button').disabled = false; msg(err, 'Wrong email or password.', true); });
     });
   }
@@ -136,7 +211,7 @@
           sb.from('certificates').select('id,full_name,score,total,issued_at').eq('course_id', COURSE)]);
       }).then(function (res) {
         var o = res[0], enrolled = (res[1].data || []).length > 0;
-        if (!enrolled) { show($('[data-not-enrolled]'), true); show(app, false); var b = $('[data-buy]'); if (b && o.course) b.href = o.course.payment_link; return; }
+        if (!enrolled) { show($('[data-not-enrolled]'), true); show(app, false); var b = $('[data-buy]'); if (b && o.course && o.course.payment_link) b.href = checkoutUrl(o.course.payment_link, session.user); return; }
         var st = { done: new Set((res[2].data || []).map(function (x) { return x.lesson_id; })), passed: new Set(), best: {}, qs: {}, cards: {}, seen: new Set(), final: res[6].data || [], finalBest: null, cert: (res[8].data || [])[0] || null };
         (res[3].data || []).forEach(function (q) { (st.qs[q.module_id] = st.qs[q.module_id] || []).push(q); });
         (res[4].data || []).forEach(function (t) { if (t.passed) st.passed.add(t.module_id); var b0 = st.best[t.module_id]; if (!b0 || t.score > b0.score) st.best[t.module_id] = t; });
@@ -514,5 +589,5 @@
     });
   }
 
-  ({ landing: landing, welcome: welcome, login: login, learn: learn, reset: reset, certificate: certificate })[page]();
+  ({ landing: landing, welcome: welcome, login: login, signup: signup, learn: learn, reset: reset, certificate: certificate })[page]();
 })();
