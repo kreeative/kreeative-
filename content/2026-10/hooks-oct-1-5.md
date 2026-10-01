@@ -247,7 +247,7 @@ and hashtags are in `sprint-oct-1-5.md`.
 14. "Say this when a client says it's too expensive."
 15. "Three red flags in a client before you say yes."
 16. "Three tiny gigs paid $20 in total. One real gig paid $810. The media kit got me the real one."
-17. "Your bio is losing you clients. Fix these three lines."
+17. "My retail job paid $4,800 in six months. Design and gigs paid $1,500. I'm still choosing design. Here's why."
 18. "Free concept, paid final. That's how the DM works."
 19. "One brand gig paid more than my paycheque. Here's what was in the pitch." (only if the app's terms allow the amount)
 20. "If you wait until you're ready, you'll never post the first one. I posted at 31 followers."
