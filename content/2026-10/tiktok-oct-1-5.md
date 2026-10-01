@@ -134,8 +134,9 @@ captions. "FR punchline" is spoken.
 
 **T2, helpful + funnel: where a creator's money actually comes from**
 
-- FR hook: « Vous pensez que je gagne de l'argent avec les vues ? Non.
-  4 millions de vues cette année, et l'argent ne vient pas des vues. »
+- FR hook: « Mon job étudiant m'a payé 560 $ pour deux semaines. Une seule
+  commande sur ma boutique m'a payé 419 $. Je vous montre d'où vient
+  l'argent. »
 - Switch: « Je vous explique en anglais. »
 - EN body: (1) views pay almost nothing; brands and clients pay. (2) my three
   real sources: brand deals and UGC with a one-page media kit (show the

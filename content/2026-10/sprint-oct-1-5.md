@@ -203,20 +203,26 @@ from it.
   #creatortips #torontocreator
 - Cover: `31 → 10K by Sunday?`
 
-**Video 2: how I make money online as a student** (talking head + screen
-inserts, collab with @bykreeative)
+**Video 2: where my money actually comes from** (talking head + the real
+receipts on screen, collab with @bykreeative; for the student creative;
+Hormozi number confession + Leatherstein reveal)
 
-- Hook: `How I make money online as a student. Not dropshipping. Not crypto.`
-- Beats: (1) client work through my studio: websites, flyers, Reel editing
-  (show kreeative.xyz). (2) digital products: my Canva media kit templates
-  (show the shop). (3) UGC for brands (show the Profusion Cosmetics × Walmart
-  carousel). (4) "None of this needed a degree or a big following. It needed
-  one skill and sending DMs every day."
-- CTA: "Follow. I'm breaking each one down this week."
-- Caption: "3 ways I make money online as a self-taught designer and student:
-  client work (websites, flyers, Reels), templates, and UGC for brands. No
-  degree, no big following when I started. Follow, each one gets its own video
-  this week."
+- Hook: `My part-time job paid me $560 for two weeks. One order from my shop
+  paid $419. Here's where my money actually comes from.`
+- Beats, each with the real receipt on screen (names blurred, balances
+  cropped): (1) the job: about $560 every two weeks, real work, nothing to be
+  ashamed of. (2) the shop: the first "order" was me testing at $0.00; the
+  first real sale came on 9 August, $419 from a stranger; then $268.86 on
+  21 September. (3) brand gigs: $830 in the wallet, one big gig at $810 and
+  three micro-gigs at $5 to $10, so the lesson is "pitch for the real ones
+  with a media kit, skip the $5 ones" (check the gig app's terms before
+  showing brand rates). (4) "None of this needed a degree or a big following.
+  It needed one skill and sending DMs every day."
+- CTA: "Follow. Each stream gets its own video this week."
+- Caption: "Real numbers from this summer: my part-time job pays about $560
+  every two weeks. One shop order paid $419. Brand gigs paid $830. No
+  course, no crypto: one skill and DMs. Follow, each stream gets its own
+  video this week."
 - Hashtags: #makemoneyasastudent #sidehustleideas #graphicdesigner
   #ugccreator #onlinebusiness
 - Cover: `3 ways I earn online`
@@ -258,7 +264,9 @@ inserts, collab with @bykreeative)
 - Beats: (1) pick one thing businesses need every week: flyers. Learn Canva in
   three days. (2) make three samples for real local businesses and label them
   concepts. (3) DM five businesses a day with the sample attached. (4) price
-  at $95, then raise it after the first five.
+  at $95, then raise it after the first five. (5) the proof: "my first shop
+  order was me testing at $0.00; the second was $419 from a stranger, one
+  month later."
 - CTA: "Save this. The exact DM is in the next video."
 - Caption: "If I had to start from zero this week, as a designer: one skill
   (flyers), three concept samples for real businesses, five DMs a day, $95 to

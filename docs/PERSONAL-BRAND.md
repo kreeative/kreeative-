@@ -68,6 +68,21 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 - My most viral videos: petitions against companies behaving badly (Shein, Apple: we keep using the product but we can sign if we disagree with how they operate); how people want to normalize witchcraft to make a man fall in love in my country; the economy and the ugly design of the new currency; how to be a content creator and make money; believing in your dream and my testimony; red flags; a restaurant in Côte d'Ivoire that used a Japanese restaurant's video (false advertising).
 - Plan and scripts: `content/2026-10/tiktok-oct-1-5.md`.
 
+## Proof bank (real numbers, from Kee's screenshots on 1 October 2026)
+
+Everything here is true and can be said on camera. Names stay private.
+
+- **Kreeative shop (Shopify):** order #1001, $0.00, 29 July: Kee's own test order. Order #1002, $419.00, 9 August, 1 item: the first real sale, from a stranger. Order #1003, $268.86, 21 September, 3 items, paid, in progress. Two real orders, $687.86 in total.
+- **Brand gigs (the gig app wallet):** $830 shown as earnings. Biggest line: CapCut $810. Also on the list: a Monday.com gig at $500, and three micro-gigs at $5 to $10 (Uber, SoFi, one more). The lines add to more than $830, so confirm which are paid and which are pending, and the currency, before saying a total.
+- **The part-time retail job (payroll deposits):** $666.26 on 4 June, $496.80 on 18 June, $560.76 on 2 July 2026. About $560 every two weeks.
+- **The contrast that makes the point:** one shop order ($419) paid close to two weeks of the job ($560). One brand gig ($810) paid more than a paycheque.
+
+Rules for showing any of it:
+
+- Blur client names on orders. Blur the employer's name on payroll. Crop out account balances on bank screenshots. Never show card or account numbers.
+- Check the gig app's terms before showing brand rates on screen; if unsure, say "a brand gig" and the amount, not the brand.
+- Say the date and the number as they are. No rounding up, no "per month" if it was one order.
+
 ## Brand look
 
 - Colours: hot pink **#ff0090**, black **#0f0f0f**, off-white **#fcfcfc**, blush **#ffe0f7**.
