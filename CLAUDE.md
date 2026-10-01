@@ -11,8 +11,9 @@ source of truth and update it there when facts change.
 
 ## Non-negotiables for every deliverable
 
-- English **and** French versions, every time. French gets its own set of
-  hashtags, not a translation of the English ones.
+- English only for now: French is paused as of 1 October 2026 while Kee
+  decides. When it comes back, French gets its own set of hashtags, not a
+  translation of the English ones.
 - Each post gets its own layout. A different font is not a different design.
 - Reels and vertical video: keep text inside the Instagram safe zone
   (sides ≥ 90 px, top ≥ 250 px, bottom ≈ 400 px clear, on a 1080 × 1920 frame).
