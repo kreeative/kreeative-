@@ -21,9 +21,9 @@ If you were the viewer, a stranger scrolling, would you care? Three checks:
    carries the lesson, and the update is the proof.
 
 Applied on 1 October, twice: first the viewer test, then the creator moves
-below. Videos 1, 3, 4, 6, 7, 9, 10, 12, 13 and 15 changed. The Figma deck
-still shows the earlier lines for those ten until it is rebuilt; this file is
-the source.
+below. Videos 1, 3, 4, 6, 7, 9, 10, 11, 12, 13 and 15 changed, and video 11
+is now the "exposure" sketch instead of a day in the life. The decks are
+rebuilt from this file.
 
 ## How a hook works here
 
@@ -65,6 +65,10 @@ a schedule, which is why every hook above is built to earn one.
 
 ## The 15 videos
 
+Each video is for one viewer: the student creative (1, 2, 5, 6, 10, 12, 13,
+15), the small creator under 10K (4, 7, 9) or the small business owner (3, 8,
+11). The verse (14) is for the people who already follow you.
+
 Each: **Move** (the creator move it borrows) · **Say** (the spoken hook, word
 for word) · **Screen** (the text on frame 1) · **A / B** (alternate first lines
 for the second take) · **First 3 seconds** · **End on**. Full beats, captions
@@ -90,11 +94,11 @@ and hashtags are in `sprint-oct-1-5.md`.
 - First 3 seconds: start mid-sentence, the site scrolling in a corner inset, your face clear.
 - End on: "Follow, each one gets its own video this week."
 
-**3. What I charge** (talking head + price cards)
-- Move: Leatherstein reveal + Hoyos number
-- Say: "Here's what $95, $160 and $1,500 get you from a self-taught designer."
-- Screen: `$95 · $160 · $1,500: what you get`
-- A: "My prices are public. Here they are out loud, with what you get for each."
+**3. What $95 gets you** (talking head + price cards; for the business owner)
+- Move: Hoyos number + Leatherstein reveal
+- Say: "What does $95 get you from a designer?"
+- Screen: `What does $95 get you?`
+- A: "Here's what $95, $160 and $1,500 get you from a self-taught designer."
 - B: "If you've ever wondered what a website actually costs, number by number."
 - First 3 seconds: the $95 card slides in beside you, not over you.
 - End on: "Comment SITE or FLYER."
@@ -168,14 +172,14 @@ and hashtags are in `sprint-oct-1-5.md`.
 - First 3 seconds: the scoreboard on screen, then you.
 - End on: "Follow for tomorrow's result."
 
-**11. Student by day, studio by night** (day-in-the-life montage)
-- Move: Abdaal "here's how X manages to"
-- Say: "Full-time student. Design studio owner. One day."
-- Screen: `Student + studio owner`
-- A: "POV: a 9 am lecture and a client call at 11."
-- B: "What making money online actually looks like as a student."
-- First 3 seconds: alarm, coffee, laptop, three cuts in one second.
-- End on: "Follow for the real version."
+**11. "Can you do it for exposure?"** (two characters, one lightbulb; for the business owner and the student creative)
+- Move: Hook Point "two characters, one lightbulb"
+- Say, as the client: "Can you do the flyer for exposure? We have 2,000 followers." Cut. As the designer: "No. Here's what I'll do instead."
+- Screen: `"Can you do it for exposure?"`
+- A: (client) "Can you make it cheaper? It's just a flyer." (designer) "It's $95. Here's what's in it."
+- B: (client) "My cousin can do it on Canva." (designer) "Great. Here's what happens when he does."
+- First 3 seconds: the client line in one outfit, hard cut, your face as the designer in another.
+- End on: "Comment FLYER if you want the real version."
 
 **12. Three skills that pay** (talking head + screen)
 - Move: Instagram qualifier + odd number

@@ -10,12 +10,37 @@ Positioning in one line: *self-taught designer and student who built a studio
 from her laptop, showing you how to earn online with creative skills, with real
 work, real prices and real numbers.*
 
-Three pillars, in this order of weight this week:
+## 0. The viewer test and the three viewers
 
-1. **Proof.** Kreeative work, public prices, your TikTok numbers, real receipts
-   (only ones you are willing to show, names blurred).
-2. **Teach.** How to start: one skill, pricing, the DM, PR packages, media kits.
-3. **Motivation.** Faith, the student grind, and the build-in-public challenge.
+Nothing ships before this question: **if I were the viewer, a stranger
+scrolling, would I care?** A diary entry fails it; a lesson, a number, a payoff
+or a feeling passes it. Every video below is made for exactly one of three
+viewers, and the hook is written to that person:
+
+| Viewer                                                        | What they want from you                                         | Videos this week            |
+| ------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------- |
+| **The student creative**, has a skill or wants one, no money, no clients | A way to get paid this month without a part-time job   | 1, 2, 5, 6, 10, 12, 13, 15  |
+| **The small creator**, under 10K, wants brand deals and PR    | What actually gets a brand to say yes                           | 4, 7, 9                     |
+| **The small business owner**, needs a flyer, a site or a Reel  | What they get for the money, and why it is worth it            | 3, 8, 11                    |
+
+The verse (14) is for the people who already follow you.
+
+The three pillars still carry the week (proof, teach, motivation), but they
+are *your* topics. The table above is *their* reasons to watch. When the two
+disagree, the viewer wins.
+
+## 0b. Formats borrowed from creators who are going viral
+
+The hooks and formats come from creators with the views, not from hook
+articles: Jenny Hoyos (a stake, a number, an open loop in the first second),
+Alex Hormozi ("how I", a bold claim with a number), Dan Koe (an aphorism
+stated as fact), Ali Abdaal (a "you" question from frame 1), Tanner
+Leatherstein (cut the product open, show what it costs), the Hook Point
+"two characters, one lightbulb" sketch, Charity Ekezie (the reply to a comment
+is the hook), Jade Beason (named series as the growth engine), and the
+Ivorian creators your TikTok audience already watches. The full table, with
+their quoted lines and your versions, is in `hooks-oct-1-5.md`. Every video
+below names the move it borrows.
 
 What this is not: no income promises, no "guaranteed", "passive" or "easy", no
 fake screenshots, no course module reveals (outcomes only), no Christocentrique
@@ -101,9 +126,18 @@ number, say so on camera. That is its own hook, and it stays honest.
 
 ## 4. Daily rhythm (Oct 1 to 5)
 
-- **3 Reels a day** at 8 am, 12 pm and 7 pm ET. One is the challenge update,
-  two are value videos. Same video to YouTube Shorts, exported clean. TikTok
-  gets its own two videos a day from `tiktok-oct-1-5.md`.
+- **3 Reels a day** at 8 am, 12 pm and 7 pm ET: one series episode
+  ("31 → 10K", lesson first, the number as proof), one value video for one of
+  the three viewers, and one format video (a reveal, a two-characters sketch,
+  a "you" question). Same video to YouTube Shorts, exported clean. TikTok gets
+  its own two videos a day from `tiktok-oct-1-5.md`.
+- **The reply video is the engine.** Any comment that asks "how?", disagrees,
+  or tells a story gets a reply video within 24 hours, filmed with the
+  reply-with-video feature so the comment is the hook. It can replace that
+  day's format video. No comments yet on day 1, so day 1 uses the sketch.
+- **The diary lives in Stories, not in the feed.** The raw numbers, the
+  "posting now", the "it flopped" go to Stories every day. The feed only gets
+  the episode with the lesson in the first line.
 - **Every Reel to Stories** with a question or poll sticker.
 - **The TikTok track runs alongside** (two bilingual videos a day on
   @keekyt), and a collab invite to @bykreeative on every business-topic Reel.
@@ -185,10 +219,10 @@ inserts, collab with @bykreeative)
   #ugccreator #onlinebusiness
 - Cover: `3 ways I earn online`
 
-**Video 3: what I charge** (talking head + price cards, collab with
-@bykreeative)
+**Video 3: what $95 gets you** (talking head + price cards, collab with
+@bykreeative; for the business owner; Hoyos number + Leatherstein reveal)
 
-- Hook: `What I actually charge as a self-taught designer.`
+- Hook: `What does $95 get you from a designer?`
 - Beats: (1) flyers from $95, Reel editing from $160, websites from $1,500
   (CAD, plus tax). (2) "The first time I said those numbers out loud I was
   scared. Here's what the client gets for it: [hours, revisions, files,
@@ -279,7 +313,7 @@ with @bykreeative)
 **Video 9: how I get PR packages as a small creator** (talking head + unboxing
 or package b-roll if you have any, pin it)
 
-- Hook: `How I got PR packages with a small account.`
+- Hook: `You don't need 10K followers to get PR packages. You need one page.`
 - Beats: (1) a one-page media kit, even with small numbers (show a template).
   (2) the email: short, specific, one idea for them. (3) consistency: post
   about the category before you pitch. (4) "The full thing is in my free
@@ -303,25 +337,33 @@ or package b-roll if you have any, pin it)
   #studententrepreneur
 - Cover: `Day 4: [number]`
 
-**Video 11: student by day, studio by night** (day-in-the-life montage, voice
-over, text on screen, music)
+**Video 11: "Can you do it for exposure?"** (two characters, one lightbulb:
+you as the client in one outfit and position, you as the designer in another,
+hard cuts between the two; for the business owner and the student creative)
 
-- Hook: `Full-time student. Design studio owner. One day.`
-- Beats: morning verse and coffee, class at UTM, a client call, a flyer, a
-  Reel edit, posting, five DMs, night. One line of voice-over per clip.
-- CTA: "Follow for the real version of *make money online*."
-- Caption: "Student by day, studio by night. This is what making money online
-  actually looks like: classes, clients, five DMs a day, and a lot of
-  coffee. Follow for the real version."
-- Hashtags: #dayinmylife #studentlife #torontocreator #womeninbusiness
-  #creativeentrepreneur
-- Cover: `Student + studio owner`
-- Note: your face stays clear of text, hair in frame, no tight zoom.
+- Hook, as the client: `Can you do the flyer for exposure? We have 2,000
+  followers.` Cut. As the designer: `No. Here's what I'll do instead.`
+- Beats: (1) the client tries three times: exposure, "it's just a flyer",
+  "my cousin can do it on Canva". (2) the designer answers each in one line:
+  exposure does not pay for the software or the hours; a $95 flyer is 20
+  minutes of design and two years of learning to do it in 20 minutes; the
+  cousin version is why nobody calls. (3) the lightbulb: "You're not paying
+  for the 20 minutes." (4) what I do instead: a free concept first, then $95,
+  and 10% off for the 10 founding clients this month.
+- CTA: "Comment FLYER if you want the real version."
+- Caption: "Can you do it for exposure? No. Here's what I do instead: a free
+  concept first, then $95, and 10% off for my 10 founding clients this month.
+  Comment FLYER."
+- Hashtags: #designclients #smallbusinessowner #flyerdesign #freelancedesigner
+  #studententrepreneur
+- Cover: `"Can you do it for exposure?"`
+- Note: keep it warm, not bitter. The client is not the villain; the
+  misunderstanding is. The day in the life moves to Stories.
 
 **Video 12: three skills people pay for that you can learn free this month**
 (talking head + screen)
 
-- Hook: `3 skills people pay for. All free to learn this month.`
+- Hook: `If you have a laptop and 30 days, learn one of these three. People pay for all of them.`
 - Beats: (1) Canva flyers: learn free, first sale $95. (2) Reel editing in
   Edits or CapCut: learn free, first job from $160. (3) UGC with your phone
   and a media kit: brands pay for content, not followers. For each: where
