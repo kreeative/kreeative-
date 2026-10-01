@@ -47,5 +47,8 @@ source of truth and update it there when facts change.
 - `docs/PERSONAL-BRAND.md`: the brief.
 - `content/`: captions, scripts, carousels, story sequences and calendars,
   one folder per month. See `content/README.md` for the file layout.
+- Decks Kee keeps open while recording are built in her Figma (Figma Slides,
+  in her team's drafts) in the brand colours and fonts; the text source for
+  each deck stays in `content/` so the repo remains the record.
 - Everything else in the repo is the Kreeative studio website. Change it only
   when asked.

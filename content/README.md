@@ -12,6 +12,7 @@ content/
   2026-10/                     one folder per month
     sprint-oct-1-5.md          a plan: strategy, schedule and scripts for a sprint (Instagram)
     tiktok-oct-1-5.md          the TikTok track for the same days (bilingual, strong topics)
+    hooks-oct-1-5.md           the hook per video, text source of the Figma hook deck
     calendar.md                what goes out when, per platform
     08-reel-founding-spots.md  one file per piece, named DD-format-slug.md
     09-carousel-media-kit.md

@@ -58,6 +58,7 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 
 - New personal account (Instagram @aissakee, created around 26 September 2026): 31 followers and 5 posts on 1 October.
 - Goal set on 1 October: 10K followers by Sunday 5 October. Plan: `content/2026-10/sprint-oct-1-5.md`.
+- Hook deck to keep open while recording (Figma Slides, one slide per video, scripts in the notes): https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj. Text source: `content/2026-10/hooks-oct-1-5.md`.
 - Content angle: motivation, and teaching people how to make money online with creative skills, with my Kreeative earnings and work as the proof (real numbers only).
 - Instagram videos also go to YouTube Shorts. TikTok gets its own content (below); @keekyt and @bykreeative funnel to the new account.
 
