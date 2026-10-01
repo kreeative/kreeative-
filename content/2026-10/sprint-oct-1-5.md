@@ -224,7 +224,7 @@ Hormozi number confession + Leatherstein reveal)
   course, no crypto: one skill and DMs. Follow, each stream gets its own
   video this week."
 - Honest version of the point, if you want the stronger video: six months
-  of the job came to about $4,800; the same months of orders and gigs came
+  of the job came to about $5,400; the same months of orders and gigs came
   to about $1,500. The job paid more in total. The skill pays more per hour
   (one $419 order took [X] hours; $419 at the job is [Y] shifts) and it is
   the one that grows. Fill the hours yourself; never invent them.
