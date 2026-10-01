@@ -10,11 +10,15 @@ studio posts that point to Kreeative. The brief that governs all of it is
 ```
 content/
   2026-10/                     one folder per month
+    sprint-oct-1-5.md          a plan: strategy, schedule and scripts for a sprint
     calendar.md                what goes out when, per platform
     08-reel-founding-spots.md  one file per piece, named DD-format-slug.md
     09-carousel-media-kit.md
     ...
 ```
+
+Plans (`sprint-*.md`, `calendar.md`) hold several pieces at once; a piece that
+outgrows its plan gets its own `DD-format-slug.md` file.
 
 Week 1 of October (Oct 1–7) was produced before this folder existed, so the
 first files here start at Oct 8.
@@ -29,5 +33,6 @@ Every piece uses the same sections, in this order:
    and the safe-zone reminder for anything vertical.
 3. **EN caption**, then **EN hashtags**.
 4. **FR caption**, then **FR hashtags** (its own set, not a translation).
+   Paused as of 1 October 2026: English only until Kee says otherwise.
 5. **CTA**: the ManyChat keyword (SPOT, SITE, FLYER, KIT) or a direct link
    when one was asked for.

@@ -54,6 +54,13 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 - Week 1 content (Oct 1–7) is done in English and French.
 - A 30-day quote post series is also scheduled (plain backgrounds, signed @aissakee).
 
+## Growth sprint (October 2026)
+
+- New personal account (Instagram @aissakee, created around 26 September 2026): 31 followers and 5 posts on 1 October.
+- Goal set on 1 October: 10K followers by Sunday 5 October. Plan: `content/2026-10/sprint-oct-1-5.md`.
+- Content angle: motivation, and teaching people how to make money online with creative skills, with my Kreeative earnings and work as the proof (real numbers only).
+- Every video goes to Instagram, TikTok and YouTube Shorts; @keekyt and @bykreeative funnel to the new account.
+
 ## Brand look
 
 - Colours: hot pink **#ff0090**, black **#0f0f0f**, off-white **#fcfcfc**, blush **#ffe0f7**.
@@ -62,7 +69,7 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 
 ## My preferences (important)
 
-- Always give me **English and French** versions, with **different hashtags** for French.
+- **English only for now** (French paused as of 1 October 2026, still deciding). When French comes back: **different hashtags** for French, not a translation.
 - Each post should have a **different layout/design**, not just a different font.
 - Reels: keep text inside Instagram safe zones (sides ≥ 90 px, top ≥ 250 px, bottom ≈ 400 px clear).
 - Export in high quality (4K when possible) and **double-check text before handing over** (no cut-off letters).
