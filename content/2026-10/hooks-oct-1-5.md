@@ -230,7 +230,9 @@ Say the number exactly as the receipt shows it, in CAD.
 
 1. "I made $419 from one order in my shop. Here's how, step by step."
    Screen: `$419, one order. Here's how.` Receipt: order #1002, 9 August, name
-   blurred. Fill in: what the item was, where the buyer came from.
+   blurred. The shop is The Ivory Sukundu (hair extensions), so the "how" is
+   the product page and where the buyer came from, not design. Say it as a
+   product business or skip this one.
 2. "I made $0.00 on my first order. It was me, testing. Here's how I got the
    second one: $419." Screen: `$0 → $419`. The Hoyos open loop on top of the
    confession. Receipts: #1001 and #1002.
@@ -246,10 +248,10 @@ Say the number exactly as the receipt shows it, in CAD.
 6. "I made $830 from brands without being an influencer. Here's how."
    Screen: `$830 from brands. Not an influencer.` Same condition as 5, and
    confirm the $830 is paid, not pending.
-7. "I made $1,500 from design and brand gigs in six months while working
-   retail. Here's how, honestly." Screen: `$1,500 in 6 months. The honest
-   version.` Beats: the three streams, what worked, what flopped, and the
-   job paid $5,400 in the same months.
+7. "I made $1,600 from my laptop in six months while working retail. Here's
+   how, honestly." Screen: `$1,600 in 6 months. The honest version.` Beats:
+   the three streams (the hair-extensions shop, Kreeative, brand gigs), what
+   worked, what flopped, and the job paid $5,400 in the same months.
 8. "I made $95 from a flyer that took me 20 minutes. Here's how, and why it
    took two years." Screen: `$95 in 20 minutes.` Only once a $95 flyer has
    actually been paid; the receipt then goes on screen.
@@ -365,7 +367,7 @@ comment, et le système est gratuit : commentez GUIDE. »
 14. "Say this when a client says it's too expensive."
 15. "Three red flags in a client before you say yes."
 16. "Three tiny gigs paid $20 in total. One real gig paid $810. The media kit got me the real one."
-17. "My retail job paid $5,400 in six months. Design and gigs paid $1,500. I'm still choosing design. Here's why."
+17. "My retail job paid $5,400 in six months. My laptop paid $1,600. I'm still choosing the laptop. Here's why."
 18. "Free concept, paid final. That's how the DM works."
 19. "One brand gig paid more than my paycheque. Here's what was in the pitch." (only if the app's terms allow the amount)
 20. "If you wait until you're ready, you'll never post the first one. I posted at 31 followers."

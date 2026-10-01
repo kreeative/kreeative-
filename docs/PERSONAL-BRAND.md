@@ -72,11 +72,21 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 
 Everything here is true and can be said on camera. Names stay private.
 
-- **Kreeative shop (Shopify):** order #1001, $0.00, 29 July: Kee's own test order. Order #1002, $419.00, 9 August, 1 item: the first real sale, from a stranger. Order #1003, $268.86, 21 September, 3 items, paid, in progress. Two real orders, $687.86 in total.
-- **Brand gigs (the gig app wallet):** $830 shown as earnings. Biggest line: CapCut $810. Also on the list: a Monday.com gig at $500, and three micro-gigs at $5 to $10 (Uber, SoFi, one more). The lines add to more than $830, so confirm which are paid and which are pending, and the currency, before saying a total.
-- **The part-time retail job (payroll deposits, March to August 2026):** first pay 27 March ($86.57), then every two weeks: 10 April $451.50, 24 April $503.82, 8 May $511.96, 4 June $666.26, 18 June $496.80, 2 July $560.76, 16 July $648.18, 30 July $529.91, 13 August $520.09, 27 August $452.84. Eleven deposits seen, $5,428.69 in total; cheques between $450 and $670, about $535 on average. Two dates show a duplicate line in the bank search and are counted once; only 22 May is missing from the screenshots.
-- **A second payroll deposit, 17 September 2026: $1,580.84 from "Wealthsimple-OS".** Not for public use until Kee says what it is and whether it can be mentioned.
-- **The contrasts that make the point, all true:** one shop order ($419) paid close to a two-week retail cheque ($450 to $560). One brand gig ($810) paid more than any retail cheque. Six months of the retail job came to about $5,400; the same months of shop orders and gigs came to about $1,500 ($688 in orders plus $830 in gigs). Said honestly on camera: the job paid more in total, the skill pays more per hour and keeps growing. Hours per order are Kee's to fill in; never invent them.
+- **Income 2026 so far, pulled from the sources on 1 October 2026 (CAD unless stated):**
+
+| Source | What | Amount | Status |
+| --- | --- | --- | --- |
+| Retail job (payroll) | 11 cheques, 27 March to 27 August | $5,428.69 | Verified (screenshots). 22 May not seen. |
+| Second payroll deposit | "Wealthsimple-OS", 17 September | $1,580.84 | Verified deposit, nature unknown. Not public. |
+| The Ivory Sukundu (Shopify, hair extensions) | #1002 on 9 August $419.00, #1003 on 21 September $268.86; #1001 was a $0 test | $687.86 | Verified (Shopify). Totals as paid by the customer. |
+| Kreeative (Stripe) | $20.00 USD on 30 June and $55.80 USD on 22 September, two card payments | $107.00 gross, $100.30 after Stripe fees | Verified (Stripe). What was sold: to confirm. |
+| Kreeative shop on Beacons | 3 free downloads, 27 and 28 September | $0 | Verified. No payout method attached, so it cannot take paid orders. |
+| Brand gigs (the gig app wallet) | $830 shown; CapCut $810 is the biggest line | $830 | Not verified: screenshot only, currency unknown, lines add to more than the total. |
+| Client work paid outside Stripe (e-transfer, PayPal, cash) | Websites, flyers, video, UGC deals | unknown | Not visible from here. Kee to list. |
+
+- **Totals:** employment $7,009.53. Laptop, verified: $794.86 (shop $687.86 + Kreeative $107.00). Laptop with the gig wallet: $1,624.86. Everything verified: $7,804.39. With the gig wallet: $8,634.39. Nothing visible supports a $19K figure; if it is real, it is in the e-transfer or PayPal clients and gig payouts Kee still has to list.
+- **The contrasts that make the point, all true:** one hair-extensions order ($419) paid close to a two-week retail cheque ($450 to $560). One brand gig ($810, to confirm) paid more than any retail cheque. Six months of the retail job came to about $5,400; the laptop came to about $1,600 with the gigs, $800 without. Said honestly on camera: the job paid more in total, the skill pays more per hour and keeps growing. Hours per order are Kee's to fill in; never invent them.
+- **Correction, 1 October:** the $419 and $268.86 orders are hair-extension sales (The Ivory Sukundu), not design work. "One order from my shop" stays true; "a design order" would not be. Whether The Ivory Sukundu is named on camera is Kee's call.
 
 Rules for showing any of it:
 
