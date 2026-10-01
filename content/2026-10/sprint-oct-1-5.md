@@ -81,8 +81,8 @@ flyer, concepts labelled as concepts.
   Built @bykreeative from my laptop. Showing you how to earn with creative skills.
   Free guide: how I get PR packages + paid deals ⬇️
   ```
-- **Link:** your Beacons page, with the free guide (kreeative.xyz/teach) as the
-  first button and "Work with me" (kreeative.xyz) second.
+- **Link:** kreeative.xyz/teach (the free guide) this week, kreeative.xyz once
+  the founding-client push starts. No Beacons.
 - **Highlights:** `Start here` · `Proof` · `Free guide`, pink or black covers.
 - **Pinned posts** (after they are up): video 1 (the challenge), video 2 (how I
   earn), video 9 (free guide).
