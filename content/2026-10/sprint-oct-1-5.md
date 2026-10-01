@@ -263,6 +263,12 @@ Hormozi number confession + Leatherstein reveal)
   #creatorjourney #selftaughtdesigner
 - Cover: `Day 2: [number] followers`
 
+**Video 5, lead-magnet version if the PDF and the GUIDE keyword are live by
+Thursday noon:** "I made $[X] this year as a student. Here's how, and the
+system is free: comment GUIDE." Script, caption and ManyChat flow are in
+`hooks-oct-1-5.md` under the lead-magnet hook. If they are not live, run the
+version below and move the lead-magnet video to Friday at 12 pm.
+
 **Video 5: if I had to start from $0 this week** (talking head, fast cuts)
 
 - Hook: `$0, no followers, need money this month. As a designer, I'd do this.`

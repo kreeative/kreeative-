@@ -260,6 +260,84 @@ TikTok, same pattern, French hook first: « J'ai gagné 419 $ avec une seule
 commande sur ma boutique. Je vous montre comment. » and « 810 $ pour un
 seul contrat de marque avec un petit compte. Voilà comment j'ai fait. »
 
+## The lead-magnet hook: "I made $X as a student. Here's how." + a free PDF
+
+The move: Hormozi's number confession, then the payoff is a free PDF that
+viewers get by commenting a keyword. Comments and follows feed the 10K goal,
+the DM feeds the funnel. Three rules first:
+
+1. **The number has to be true and documented.** Add up 2026 so far, gross,
+   in CAD: shop orders ($687.86 so far), paid gig payouts (confirm which of
+   the $830 is paid), every Kreeative client invoice (websites, flyers, video,
+   media kits), and UGC deals. That is the "from my laptop" number. The job is
+   a separate number. Say on screen which one you mean. If the true laptop
+   total is smaller than you hoped, say the smaller number: the honesty is the
+   hook.
+2. **The PDF has to exist before the video goes up**, and the keyword has to
+   be live in ManyChat. Keyword: GUIDE (SPOT, SITE, FLYER and KIT stay).
+3. **Follow gate on.** ManyChat can ask people to follow before it sends the
+   PDF. That is where the followers come from.
+
+The hooks, pick one (fill the brackets with the documented numbers):
+
+- A, laptop only: "I made $[laptop total] this year as a full-time student,
+  from my laptop. Here's how, and the exact system is free: comment GUIDE."
+- B, both numbers, the honest split: "I made $[total] this year as a
+  student: $[job] from my job, $[laptop] from my laptop. Here's how I'm
+  flipping that, and the system is free: comment GUIDE."
+- C, the qualifier: "If you're a student with a laptop and no money: I made
+  $[laptop] with mine this year. Comment GUIDE and I'll send you exactly how,
+  free."
+- D, the open loop: "$[laptop] from a laptop, as a student. The whole system
+  fits on ten pages. Comment GUIDE, it's free."
+- On screen, frame 1: `$[X] as a student. Free PDF: comment GUIDE`
+
+The script (35 to 45 seconds, talking head, receipts on screen, names
+blurred, balances cropped):
+
+1. The hook, frame 1.
+2. "Here's the split": the cheques, the orders, the gig wallet, the invoices,
+   five seconds of receipts.
+3. "Three streams, one skill": design for small businesses (flyers, Reels,
+   websites), brand gigs with a one-page media kit, and the shop (templates).
+4. "The system": one skill, three concept samples, five DMs a day, one pitch
+   a day, a one-page media kit.
+5. CTA: "It's all in a ten-page PDF: the DM I send, the media kit layout, the
+   first thing to sell. Comment GUIDE, follow so the DM goes through, and it's
+   yours. Free."
+6. End on the series tag: "Day [X] of 31 to 10K."
+
+Caption: "I made $[X] this year as a student, [the split]. The exact system
+(the DM, the media kit, the first product) is a free PDF. Comment GUIDE and
+it's in your DMs." Hashtags: #makemoneyasastudent #studententrepreneur
+#sidehustle #freelancedesigner #ugccreator
+
+ManyChat flow for GUIDE:
+
+- Trigger: a comment containing "guide" on the post (and on any post), a
+  Story reply "GUIDE", and a DM "GUIDE".
+- Public reply, rotating: "Sent 💌 check your DMs" / "On its way, check your
+  requests folder" / "Done, it's in your DMs".
+- Follow gate: on. "Follow me first and I'll send it right away."
+- DM 1: "Hey! Here's the student money guide: [link]. It's the exact system:
+  the DM I send, the one-page media kit layout, and the first thing to sell.
+  Reply with what you're starting with (flyers, Reels or UGC) and I'll tell
+  you which page to read first."
+- DM 2, 24 hours later, only to people who replied: "If you want the full
+  version with the scripts and the pricing, the UGC Creator Formation is
+  $59 USD at kreeative.xyz/teach. And if you'd rather hire me, I'm taking 10
+  founding clients this month at 10% off: reply SPOT."
+- The PDF link: the draft is `content/2026-10/student-money-guide-draft.pdf`
+  in the repo. Once the numbers are confirmed it goes next to the brand-deal
+  guide at `assets/guides/` on kreeative.xyz, which is where the existing free
+  guide lives.
+
+Where it runs: it replaces video 5 (From $0 this week) on Thursday at 12 pm
+if the PDF and the keyword are live by then; otherwise video 5 runs as
+written and this moves to Friday at 12 pm. TikTok gets its own bilingual
+version: « J'ai gagné [X] $ cette année en étant étudiante. Je vous explique
+comment, et le système est gratuit : commentez GUIDE. »
+
 ## Delivery checklist (read before every take)
 
 - Eyes on the lens. Energy 20% above normal.
