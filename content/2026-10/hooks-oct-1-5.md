@@ -20,9 +20,10 @@ If you were the viewer, a stranger scrolling, would you care? Three checks:
 3. **Is it a diary entry or a lesson?** Updates are allowed, but the hook
    carries the lesson, and the update is the proof.
 
-Applied on 1 October: videos 1, 3, 4, 6, 7, 10, 13 and 15 were rewritten
-below. The Figma deck still shows the earlier lines for those eight until it
-is rebuilt; this file is the source.
+Applied on 1 October, twice: first the viewer test, then the creator moves
+below. Videos 1, 3, 4, 6, 7, 9, 10, 12, 13 and 15 changed. The Figma deck
+still shows the earlier lines for those ten until it is rebuilt; this file is
+the source.
 
 ## How a hook works here
 
@@ -37,27 +38,42 @@ is rebuilt; this file is the source.
 5. **Film the hook twice with different first lines.** Post the second as a
    Trial Reel and let the audience pick.
 
-## Patterns that fit you
+## Moves from creators who are going viral
 
-| Pattern           | In your voice                                                    |
-| ----------------- | ---------------------------------------------------------------- |
-| The challenge     | "31 followers to 10K by Sunday?"                                 |
-| Proof first       | "4 million views this year. The money didn't come from views."   |
-| The contrarian    | "You don't need followers to make money online."                 |
-| The specific pain | "If you have a skill and no clients, this is the DM."            |
-| The confession    | "The first time I said my prices out loud, I was scared." (only if true) |
-| The odd list      | "3 skills people pay for. All free to learn."                    |
+Not hook listicles: the moves below come from creators with the views, taken
+from published breakdowns of their videos and their own quoted lines. The
+platforms cannot be browsed from here, so study each one's last ten videos
+yourself before filming; the move is what to copy, never the words.
+
+| Creator (proof)                                                   | The move                                                                                                           | Their line                                                                                      | Your version                                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Jenny Hoyos**, YouTube Shorts, 600M+ views in a year           | Hook in the first second: a stake, a number, someone to prove wrong. Shock, intrigue, satisfy. Open loop, then pay it off. | "What does $1 get you at Starbucks?" (23M views)                                                | "What does $95 get you from a designer?"                                                       |
+| **Alex Hormozi**, business short-form                             | "How I", never "how to". A bold claim or a confession with a number in the first half-second.                      | "I paid Grant Cardone $120,000 for four hours." / "If you have no money, you should have no shame." | "I charge $1,500 for a website and I'm a student. Here's why clients pay it."              |
+| **Dan Koe**, 2.6M across platforms                                | Aphorism first: a belief stated as fact, then stop. Or the "you" diagnosis.                                        | "Nobody is coming to save you."                                                                 | "Nobody is going to DM you first."                                                             |
+| **Ali Abdaal**, 1M+ YouTube                                       | A second-person pain question from frame 1, the promise at 3 seconds, the concept named at 5.                      | "Have you ever heard of the region beta paradox? You might be suffering from it right now."     | "Ever wonder why brands send PR packages to tiny accounts? It's one page."                     |
+| **Tanner Leatherstein**, 1.7M (a Hook Point case)                 | Reveal what you're really paying for: cut the product open, show the cost.                                         | Cuts luxury bags apart on camera to show what they cost to make.                                | "This flyer is $95. Here's what it actually takes." (video 8)                                  |
+| **Hook Point formats** (Brendan Kane)                             | "Two characters, one lightbulb": play the client and the designer. "Drama kid": stakes and a story.                | Expert and novice in one video, the expert correcting a misconception.                          | You as the client: "Can you do it for exposure?" You as the designer: "No. Here's why."        |
+| **Charity Ekezie**, Nigeria, a 17M-view video                     | Reply to a real comment as the hook; the viewer becomes the protagonist. Sarcasm when the comment deserves it.     | Her videos open on the ignorant comment, then she answers it.                                   | Every "how?" comment this week becomes a reply video.                                          |
+| **Jade Beason**, UK creator-business                              | Series are the growth engine of a creator business. Name the series on screen every time.                          | Her 2026 framework puts series content first.                                                   | "31 → 10K, day 2" on every update, same place, same style.                                     |
+| **Codie Sanchez**, 400M short-form views                          | Text-heavy hook on screen in bold, contrarian money take.                                                          | Bold white captions, the claim readable with the sound off.                                     | Your frame-1 text is the hook for the 60% watching muted.                                      |
+| **Instagram, under-10K accounts in 2026**                         | Qualify the viewer by their number.                                                                                | "If you have under 1,000 followers, watch this."                                                | "If you have under 100 followers and a skill, watch this."                                     |
+| **Kone Mia, Gaelle Taglao, Rach Makosso** (Côte d'Ivoire TikTok)   | Franc-parler, humour and social commentary; in 2026 Ivorian creators have pushed public bodies to respond.         | Straight talk to camera about what everyone is living.                                          | Your petition and call-out videos on @keekyt already use this. Keep the humour in.             |
+
+One honest benchmark from the same research: a creator who posted daily for
+30 days went from 910 to 2,372 followers. Fast growth is a breakout video, not
+a schedule, which is why every hook above is built to earn one.
 
 ## The 15 videos
 
-Each: **Say** (the spoken hook, word for word) · **Screen** (the text on
-frame 1) · **A / B** (alternate first lines for the second take) · **First 3
-seconds** · **End on**. Full beats, captions and hashtags are in
-`sprint-oct-1-5.md`.
+Each: **Move** (the creator move it borrows) · **Say** (the spoken hook, word
+for word) · **Screen** (the text on frame 1) · **A / B** (alternate first lines
+for the second take) · **First 3 seconds** · **End on**. Full beats, captions
+and hashtags are in `sprint-oct-1-5.md`.
 
 ### Day 1, Wed Oct 1
 
 **1. The challenge** (talking head, pin it)
+- Move: Hoyos open loop + Beason series
 - Say: "31 followers. I'm trying to hit 10K by Sunday, and every hook that works, I'm giving you."
 - Screen: `31 → 10K by Sunday. Steal what works.`
 - A: "Day 1 of taking this account from 31 followers to 10K. Copy what works, skip what flops."
@@ -66,6 +82,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "If you think I can't, comment *no way*."
 
 **2. How I make money online as a student** (talking head + screen inserts)
+- Move: Hormozi "how I"
 - Say: "How I make money online as a student. Not dropshipping. Not crypto. Design, self-taught."
 - Screen: `Money online. No dropshipping.`
 - A: "4 million views this year. The money didn't come from the views."
@@ -74,6 +91,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Follow, each one gets its own video this week."
 
 **3. What I charge** (talking head + price cards)
+- Move: Leatherstein reveal + Hoyos number
 - Say: "Here's what $95, $160 and $1,500 get you from a self-taught designer."
 - Screen: `$95 · $160 · $1,500: what you get`
 - A: "My prices are public. Here they are out loud, with what you get for each."
@@ -84,6 +102,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 ### Day 2, Thu Oct 2
 
 **4. Day 2 update** (talking head, insights screen)
+- Move: Hoyos satisfy: the lesson, then the proof
 - Say: "I posted three videos yesterday. One worked, two died. Here's the difference."
 - Screen: `3 videos. 1 worked. Why.`
 - A: "Day 2 of 31 to 10K: [number] followers, and the hook that did it."
@@ -92,6 +111,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Tell me which video to make next."
 
 **5. From $0** (talking head, fast cuts)
+- Move: Hormozi "if you have no money"
 - Say: "Zero dollars, no followers, and you need money this month. As a designer, here's what I'd do."
 - Screen: `From $0 this week`
 - A: "If I lost everything tomorrow, I'd make my first $95 back like this."
@@ -100,6 +120,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Save this. The exact DM is next."
 
 **6. The DM** (screen record + voice)
+- Move: Hormozi "how I" + copy it
 - Say: "The exact DM that gets me clients. Four lines. Copy it."
 - Screen: `The DM that gets clients. Copy it.`
 - A: "The DM I send to businesses, five a day."
@@ -110,6 +131,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 ### Day 3, Fri Oct 3
 
 **7. Day 3 update** (talking head)
+- Move: Koe aphorism, contrarian
 - Say: "Everyone says post three times a day. I did, for three days. Here's what actually happened."
 - Screen: `3 posts a day for 3 days: the truth`
 - A: "[number] followers in three days. The part nobody shows you."
@@ -118,6 +140,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Follow for day 4."
 
 **8. The $95 flyer** (screen-record timelapse + voice)
+- Move: Leatherstein reveal
 - Say: "This flyer is $95. Here's what it actually takes."
 - Screen: `$95 flyer, start to finish`
 - A: "20 minutes of design. Two years of learning. Watch."
@@ -126,16 +149,18 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Comment FLYER for the October spots."
 
 **9. PR packages with a small account** (talking head + package or media kit)
-- Say: "How I got PR packages with a small account."
-- Screen: `PR packages, small account`
-- A: "You don't need 10K followers for PR packages. You need one page."
-- B: "The email that gets brands to send you products."
+- Move: Abdaal "you" question + Instagram qualifier
+- Say: "You don't need 10K followers to get PR packages. You need one page."
+- Screen: `PR packages: one page, not 10K followers`
+- A: "How I got PR packages with a small account."
+- B: "Ever wonder why brands send PR packages to tiny accounts? It's one page."
 - First 3 seconds: a package or the media kit page in hand, then you.
 - End on: "Comment KIT, or first link in bio."
 
 ### Day 4, Sat Oct 4
 
 **10. Day 4 update** (talking head)
+- Move: Hoyos satisfy
 - Say: "Three things I'd do differently if I started this account again."
 - Screen: `If I restarted this account`
 - A: "Day 4 of 31 to 10K: [number] followers. Here's what I got wrong."
@@ -144,6 +169,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Follow for tomorrow's result."
 
 **11. Student by day, studio by night** (day-in-the-life montage)
+- Move: Abdaal "here's how X manages to"
 - Say: "Full-time student. Design studio owner. One day."
 - Screen: `Student + studio owner`
 - A: "POV: a 9 am lecture and a client call at 11."
@@ -152,9 +178,10 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Follow for the real version."
 
 **12. Three skills that pay** (talking head + screen)
-- Say: "Three skills people pay for. All free to learn this month."
+- Move: Instagram qualifier + odd number
+- Say: "If you have a laptop and 30 days, learn one of these three. People pay for all of them."
 - Screen: `3 skills that pay`
-- A: "If you have a laptop and 30 days, learn one of these."
+- A: "Three skills people pay for. All free to learn this month."
 - B: "Nobody tells you these three skills pay from day one."
 - First 3 seconds: three fingers, then the first skill on screen.
 - End on: "Comment SPOT if you'd rather hire me."
@@ -162,6 +189,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 ### Day 5, Sun Oct 5
 
 **13. Did I make it?** (talking head, honest either way)
+- Move: Hoyos payoff of the open loop
 - Say: "I tried to get 10K followers in five days. Here's the real number, and what actually moved it."
 - Screen: `5 days. Real number. What moved it.`
 - A: "Day 5. Did I hit 10K?"
@@ -170,6 +198,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: "Follow for the next 25 days."
 
 **14. The verse** (text only, plain background, 7 seconds)
+- Move: none: this one is for the people who already care
 - Say: nothing.
 - Screen: `I can do all things through Christ who strengthens me.` Philippians 4:13 (NKJV)
 - Caption: "Sunday reminder for whoever is building something that scares them."
@@ -177,6 +206,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - End on: hold.
 
 **15. Before I started** (talking head, slower)
+- Move: Koe "you" diagnosis
 - Say: "If you're scared to start the thing, here are three things I wish someone had told me."
 - Screen: `Scared to start? Read this.`
 - A: "What I'd tell myself the day before I started my studio."
@@ -193,7 +223,7 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 - Two takes of the hook, A and B. Post B as a Trial Reel.
 - Proofread every text layer before posting.
 
-## Hook bank (20 spares, all sayable as true)
+## Hook bank (25 spares, all sayable as true)
 
 1. "You don't need followers to make money online. You need one skill and five DMs a day."
 2. "If you're a student with a skill and no clients, this is for you."
@@ -215,3 +245,8 @@ seconds** · **End on**. Full beats, captions and hashtags are in
 18. "Free concept, paid final. That's how the DM works."
 19. "Monday reminder for whoever is building something scary."
 20. "If you wait until you're ready, you'll never post the first one. I posted at 31 followers."
+21. "What does $95 get you from a designer?" (Hoyos)
+22. "I charge $1,500 for a website and I'm a student. Here's why clients pay it." (Hormozi)
+23. "Nobody is going to DM you first." (Koe)
+24. "If you have under 100 followers and a skill, watch this." (Instagram qualifier)
+25. "Can you do it for exposure?" / "No. Here's why." (two characters, one lightbulb)

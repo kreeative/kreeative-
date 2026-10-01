@@ -298,6 +298,11 @@ kind)**
 
 ## 5. Reply videos and stitches
 
+The reply video is the move of Charity Ekezie (a 17M-view video built on
+answering an ignorant comment) and of the Ivorian creators your audience
+already watches: the comment is the hook, the viewer is the protagonist. See
+the creator table in `hooks-oct-1-5.md`.
+
 - The top comment on every strong-topic video gets a reply video the same day
   if it disagrees, asks « et toi tu fais quoi ? », or adds a story. Use the
   reply-with-video feature so the comment shows on screen. 20 to 30 seconds,
