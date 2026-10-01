@@ -220,6 +220,46 @@ and hashtags are in `sprint-oct-1-5.md`.
 - First 3 seconds: slower, quieter, closer to the lens.
 - End on: "Follow. Monday we go again."
 
+## The "I made X. Here's how." hooks (all true, from the proof bank)
+
+The pattern is Hormozi's "how I" with a number: an exact amount, the source,
+then the promise. Three beats always follow: where the money came from (the
+channel), what you had ready (the asset: the shop page, the media kit, the
+DM), what you did (the action). Then the one thing to copy, then the CTA.
+Say the number exactly as the receipt shows it, in CAD.
+
+1. "I made $419 from one order in my shop. Here's how, step by step."
+   Screen: `$419, one order. Here's how.` Receipt: order #1002, 9 August, name
+   blurred. Fill in: what the item was, where the buyer came from.
+2. "I made $0.00 on my first order. It was me, testing. Here's how I got the
+   second one: $419." Screen: `$0 → $419`. The Hoyos open loop on top of the
+   confession. Receipts: #1001 and #1002.
+3. "I made $268 from one order of three items. Here's how I bundle." Screen:
+   `$268, three items, one order.` Receipt: #1003, 21 September.
+4. "I made $687 from my shop in two months, and none of it came from
+   Instagram. Here's how." Screen: `$687, zero from Instagram.` Confirm first
+   that neither buyer came from Instagram.
+5. "I made $810 from one brand gig with a small account. Here's how I got
+   it." Screen: `$810, one gig, small account.` Beats: the media kit, the
+   pitch, the delivery. Only if the gig app's terms allow the amount;
+   otherwise "I made more than a paycheque from one brand gig."
+6. "I made $830 from brands without being an influencer. Here's how."
+   Screen: `$830 from brands. Not an influencer.` Same condition as 5, and
+   confirm the $830 is paid, not pending.
+7. "I made $1,500 from design and brand gigs in six months while working
+   retail. Here's how, honestly." Screen: `$1,500 in 6 months. The honest
+   version.` Beats: the three streams, what worked, what flopped, and the
+   job paid $5,400 in the same months.
+8. "I made $95 from a flyer that took me 20 minutes. Here's how, and why it
+   took two years." Screen: `$95 in 20 minutes.` Only once a $95 flyer has
+   actually been paid; the receipt then goes on screen.
+9. Not yet true, keep for later: "I made $1,500 from one website. Here's
+   how." The first paid founding client makes it true.
+
+TikTok, same pattern, French hook first: « J'ai gagné 419 $ avec une seule
+commande sur ma boutique. Je vous montre comment. » and « 810 $ pour un
+seul contrat de marque avec un petit compte. Voilà comment j'ai fait. »
+
 ## Delivery checklist (read before every take)
 
 - Eyes on the lens. Energy 20% above normal.
