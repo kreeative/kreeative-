@@ -1,10 +1,12 @@
 # Hook deck: the 15 Instagram videos, Oct 1 to 5
 
-The deck to keep open while recording:
-**https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj** (Figma Slides, one
-slide per video, scripts and captions in the speaker notes). This file is the
-text source for that deck. English only, Instagram first; TikTok has its own
-track in `tiktok-oct-1-5.md`.
+The deck to keep open while recording (rebuilt 1 October through the viewer
+test and the creator moves, 26 slides, scripts and captions in the speaker
+notes): **https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ**. The earlier
+Figma Slides version (https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj)
+still shows the first hooks and is stale until Figma's plan limit allows a
+rebuild. This file is the text source for both. English only, Instagram first;
+TikTok has its own track in `tiktok-oct-1-5.md`.
 
 Anything in `[brackets]` is yours to fill with the true version.
 

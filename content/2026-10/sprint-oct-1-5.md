@@ -176,9 +176,11 @@ number, say so on camera. That is its own hook, and it stays honest.
 Format for each: hook (on screen + spoken) · beats · CTA · caption · hashtags ·
 cover. Anything in `[brackets]` is yours to fill with the true version.
 The hooks to say, the frame-1 text, the alternate first lines and the first
-3 seconds of each video live in `hooks-oct-1-5.md` and in the Figma hook deck
-(https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj); when the two differ,
-the text file wins and the deck gets rebuilt from it.
+3 seconds of each video live in `hooks-oct-1-5.md` and in the hook deck
+(https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ, rebuilt 1 October; the
+Figma version at https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj is
+stale); when the two differ, the text file wins and the deck gets rebuilt
+from it.
 
 ### Day 1, Wed Oct 1
 
