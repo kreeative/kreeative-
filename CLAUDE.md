@@ -57,8 +57,16 @@ source of truth and update it there when facts change.
   one folder per month. See `content/README.md` for the file layout.
 - Decks Kee keeps open while recording are built in her Figma (Figma Slides,
   in her team's drafts) in the brand colours and fonts; the text source for
-  each deck stays in `content/` so the repo remains the record. Figma's
-  Starter plan allows six MCP calls a month, so a deck is built as a .pptx in
-  `content/` (same colours, fonts and layouts) and imported into Figma Slides.
+  each deck stays in `content/` so the repo remains the record. Kee wants the
+  Figma link, not files. Figma's MCP allows a Starter-plan View or Collab seat
+  up to 20 tool calls a month (a Full or Dev seat, 200 a day), so build a whole
+  deck in one `use_figma` call from a generated script, and never spend calls
+  on inspection. While the limit blocks, the same deck is published as the web
+  deck (claude.ai artifact) from the same text source.
+- Deck format, since 2 October: one idea per slide, concise. Each slide: day
+  and time, the title, what the viewer sees (on-screen text), the hook to say
+  first, where to film and what to do while recording, the end line. Ideas Kee
+  does not film (carousels, quote posts, text Reels) are made for her as
+  files in `content/<month>/posts/` and get a slide too.
 - Everything else in the repo is the Kreeative studio website. Change it only
   when asked.

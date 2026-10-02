@@ -1,5 +1,9 @@
 # Road to 10K: 5-day launch sprint (Wed Oct 1 to Sun Oct 5, 2026)
 
+From 2 October the day-by-day deck is `plan-oct-2-11.md` (one idea per
+slide, Oct 2 to 11, with the ready-made posts). This file keeps the strategy,
+the funnel, the filming rules and the scoreboard.
+
 English only on Instagram and YouTube for now (French is paused there).
 Assumption: the 5-day-old account with 31 followers and 5 posts is Instagram
 **@aissakee**. Every video below also goes to YouTube Shorts. TikTok gets its
