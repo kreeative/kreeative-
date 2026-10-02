@@ -64,6 +64,7 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 - The $10K story: "$10K this year as a student, $8K already in" ($7,804 verified plus the $830 of gig payouts if they are paid; otherwise say $7.8K). The $10K is the year's target, said as "I'm making", never "I made".
 - Course price: this brief and kreeative.xyz/teach say $59 USD; Kee said $50 on 2 October. Confirm and update both before any public mention; on camera the course is described by outcomes only ("the method to land paid brand deals"), and "$2K brand deals" only with a $2K receipt.
 - Content angle: motivation, and teaching people how to make money online with creative skills, with my Kreeative earnings and work as the proof (real numbers only).
+- Five viewers, since 2 October (not everyone wants a side hustle): the creator who wants to be seen in any niche (how to start, what to film, how to grow), the student who lives what I live (my week, my money, my faith), the student creative with a skill (a way to get paid), the small creator who wants PR and brand deals, and the small business owner. Every idea in `content/2026-10/plan-oct-2-11.md` names its viewer; the mix is about half creator-growth and student life, half money and clients.
 - Instagram videos also go to YouTube Shorts. TikTok gets its own content (below); @keekyt and @bykreeative funnel to the new account.
 
 ## TikTok: what works on @keekyt
