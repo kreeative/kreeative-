@@ -1,12 +1,16 @@
 # Hook deck: the 15 Instagram videos, Oct 1 to 5
 
 The deck to keep open while recording (rebuilt 1 October through the viewer
-test and the creator moves, 26 slides, scripts and captions in the speaker
-notes): **https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ**. The earlier
-Figma Slides version (https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj)
-still shows the first hooks and is stale until Figma's plan limit allows a
-rebuild. This file is the text source for both. English only, Instagram first;
-TikTok has its own track in `tiktok-oct-1-5.md`.
+test and the creator moves, 37 slides since 2 October, scripts and captions in
+the speaker notes): **https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ**.
+The same deck as a PowerPoint file for Figma: `hook-deck.pptx` in this folder.
+Import it into Figma Slides (file browser → Import → from computer); its fonts
+are Google Fonts Figma already has (Fraunces, Inter, DM Mono), so re-select
+Fraunces Light on a title only if a layer shows Inter. The earlier Figma Slides
+file (https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj) still shows the
+first hooks and is stale: Figma's Starter plan allows six MCP calls a month, so
+it will not be rebuilt in place. This file is the text source for all of them.
+English only, Instagram first; TikTok has its own track in `tiktok-oct-1-5.md`.
 
 Anything in `[brackets]` is yours to fill with the true version.
 
@@ -64,6 +68,27 @@ yourself before filming; the move is what to copy, never the words.
 One honest benchmark from the same research: a creator who posted daily for
 30 days went from 910 to 2,372 followers. Fast growth is a breakout video, not
 a schedule, which is why every hook above is built to earn one.
+
+### The videos Kee sent on 2 October (their own words, the move, your version)
+
+Transcripts of videos Kee is watching, pasted on 2 October. Names are used
+where the creator said one on camera; the others are named by their series or
+their line. Each "your version" passed the viewer test (something for the
+stranger in the first line).
+
+| Video (as sent)                                                        | The move                                                                                                                                                   | Their line                                                                                                                   | Your version                                                                                                                         |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **"Pull, build, act"** (Abigail, six figures on mid-tier engagement)   | Each video does one job: pull strangers in, build trust with the people already here, or make buyers act. Never all three in one video. Plan by job, not by look. | "Each video doesn't have to go viral. It just has to pull someone in, build trust, or make someone act."                     | Episode = pull. Value video = build. Collab price videos with SPOT, SITE or FLYER = act. The first line says which job it does.        |
+| **"Stop creating, start documenting"**                                 | Document the pursuit, not the routine: a goal strangers can root for. Progress is the storyline, so you never run out of content.                        | "Documenting isn't about your daily routine. It's about your pursuit. Your daily progress is the storyline."                 | 31 → 10K is the pursuit. The lesson opens every episode, the number proves it, the raw diary stays in Stories.                       |
+| **"Everything But the Edit"** (a Canadian editing series)              | Four types that work for beginners: curiosity (a window into a life that isn't theirs), a series, bold contrast, and a remake of what already worked. You don't need new ideas. | "My Money video got over 70,000 views because people love a window into a life that isn't theirs."                           | Curiosity = the receipts videos. Series = 31 → 10K. Contrast = $560 job vs $419 order. Remake = your TikTok outliers, filmed again.   |
+| The same creator's **"you don't need the new camera"**                 | The contrarian challenge question: if X is not happening now, why would buying Y start it?                                                                | "If you're not already posting with your phone, what makes you think spending $3,000 on a camera is going to make you start?" | "If you can't sell with 31 followers, 10K won't fix it. Here's what does."                                                           |
+| **"There is a slow epidemic"** (the urgency rant)                      | Name the condition, then the contrast: everyone wants the money, the body, the PR, nobody moves. A run of short questions, no softening, one repeatable line. | "Why is it taking you nine months to think about a name? You have nothing to lose."                                          | "You've had the idea for nine months. I started this account at 31 followers last week." TikTok first (T11), French hook on screen.  |
+| **"Where should I start?"**                                            | Open on the question everyone asks, then the uncomfortable stat behind it. The answer is consistency, imperfection and the cringe, never gear.             | "Everyone who asked me that has never posted more than five videos."                                                         | "'How do I get clients?' Everyone who asks me that has sent zero DMs. Here are the five I send a day." Reply-video format.            |
+| **"My entire content strategy in 60 seconds"**                         | Describe what the viewer feels better than they can; say what others won't; don't gatekeep; invite the follow; open loops across videos; repost outliers every 90 days. | "I make six figures with mid-tier engagement. A lot of you have more engagement than me. What's the difference?"             | "4 million views paid me $0. One order paid $419. Here's the difference." (only if TikTok has paid nothing for those views)           |
+| **Laura's per-niche list** ("the girlies are running out of ideas")    | Ideas by niche, nosy by design: "things I almost bought", "what I spend in a week", "products that betrayed you", "behind the scenes of a brand deal".     | "People on this app are very nosy, so these types of videos always work."                                                    | Stories and spares: "what a $419 order actually cost me", the behind-the-scenes of a brand gig, "what I spend in a week as a student". |
+
+The hot takes (the rant, the 60-second strategy) go to @keekyt first as
+strong topics; on @aissakee they are the day's motivation Reel at most.
 
 ## The 15 videos
 
@@ -349,7 +374,7 @@ comment, et le système est gratuit : commentez GUIDE. »
 - Two takes of the hook, A and B. Post B as a Trial Reel.
 - Proofread every text layer before posting.
 
-## Hook bank (25 spares, all sayable as true)
+## Hook bank (35 spares, all sayable as true)
 
 1. "You don't need followers to make money online. You need one skill and five DMs a day."
 2. "If you're a student with a skill and no clients, this is for you."
@@ -376,3 +401,16 @@ comment, et le système est gratuit : commentez GUIDE. »
 23. "Nobody is going to DM you first." (Koe)
 24. "If you have under 100 followers and a skill, watch this." (Instagram qualifier)
 25. "Can you do it for exposure?" / "No. Here's why." (two characters, one lightbulb)
+
+From the videos Kee sent on 2 October, rewritten in her voice:
+
+26. "If you can't sell with 31 followers, 10K won't fix it. Here's what does." (the "new camera" move, turned on followers)
+27. "You've had the idea for nine months. I posted at 31 followers. That's the whole difference." (the urgency rant)
+28. "Everyone wants the money. Nobody wants to send the first DM. Here it is, word for word." (urgency, then no gatekeeping)
+29. "Every video has one job: pull, build or act. Here's how to tell which one you just posted." (pull, build, act)
+30. "Stop creating, start documenting. Day [X] of 31 → 10K, and here's what moved." (document the pursuit)
+31. "You don't need new ideas. You need to notice which video worked and make it again." (remake what worked)
+32. "4 million views paid me $0. One order paid $419." (bold contrast; only if TikTok has paid nothing for those views)
+33. "'Where do I start?' Everyone who asks me that has sent zero DMs." (the question everyone asks)
+34. "People don't buy because you know something. They buy because of how you package it. Here's my packaging." (outcare, don't gatekeep)
+35. "My whole strategy in 60 seconds: one skill, three samples, five DMs a day, one pitch, one page." (the 60-second strategy)
