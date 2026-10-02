@@ -58,7 +58,7 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 
 - New personal account (Instagram @aissakee, created around 26 September 2026): 31 followers and 5 posts on 1 October.
 - Goal set on 1 October: 10K followers by Sunday 5 October. Plan: `content/2026-10/sprint-oct-1-5.md`.
-- Hook deck to keep open while recording (26 slides, one per video, scripts in the notes, rebuilt 1 October through the viewer test and the creator moves): https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ. The Figma Slides version (https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj) is stale until Figma's plan limit allows a rebuild. Text source: `content/2026-10/hooks-oct-1-5.md`.
+- Hook deck to keep open while recording (37 slides: the viewer test, the daily routine, the creator moves including the videos Kee sent on 2 October, one slide per video with the script in the notes, 35 spare hooks): https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ. The same deck as a PowerPoint file for Figma Slides: `content/2026-10/hook-deck.pptx` (Figma file browser → Import). The earlier Figma file (https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj) is stale; Figma's Starter plan allows six MCP calls a month, so decks are built as .pptx and imported. Text source: `content/2026-10/hooks-oct-1-5.md`.
 - Content angle: motivation, and teaching people how to make money online with creative skills, with my Kreeative earnings and work as the proof (real numbers only).
 - Instagram videos also go to YouTube Shorts. TikTok gets its own content (below); @keekyt and @bykreeative funnel to the new account.
 

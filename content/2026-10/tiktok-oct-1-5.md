@@ -295,6 +295,30 @@ kind)**
 - Hashtags: #buildinpublic #instagram #createurdecontenu #contentcreator
   #defi #cotedivoire #diaspora #pourtoi
 
+### Spare strong topic, any day
+
+**T11, strong: l'épidémie de lenteur (the urgency rant, from a video Kee sent
+on 2 October)**
+
+- FR hook: « Il y a une épidémie de lenteur. Tout le monde veut l'argent,
+  personne ne bouge. »
+- Switch: « Je vous explique. »
+- EN body: (1) everyone wants the money, the body, the PR, and takes nine
+  months to pick a name. (2) you have nothing to lose: you already have the
+  job you don't want. (3) the people you watch started the day they said it,
+  two or three years ago. (4) what I did at 31 followers last week: posted the
+  first one, sent the first five DMs.
+- FR punchline: « En gros : soit tu le fais, soit tu ne le fais pas. Il n'y a
+  pas de troisième option. »
+- CTA: « Dites-moi en commentaire ce que vous repoussez depuis des mois. »
+- Caption: « L'épidémie de lenteur 🐌 / Everyone wants it, nobody moves. Tu
+  repousses quoi depuis des mois ? »
+- Hashtags: #motivation #mindset #entrepreneuriat #cotedivoire #tiktokfrance
+  #diaspora #pourtoi
+- Notes: your franc-parler vein, keep the humour; no named person is shamed.
+  It passes the viewer test because the first line names their condition, not
+  your day. The top comment gets the reply video.
+
 ---
 
 ## 5. Reply videos and stitches

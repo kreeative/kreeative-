@@ -57,6 +57,8 @@ source of truth and update it there when facts change.
   one folder per month. See `content/README.md` for the file layout.
 - Decks Kee keeps open while recording are built in her Figma (Figma Slides,
   in her team's drafts) in the brand colours and fonts; the text source for
-  each deck stays in `content/` so the repo remains the record.
+  each deck stays in `content/` so the repo remains the record. Figma's
+  Starter plan allows six MCP calls a month, so a deck is built as a .pptx in
+  `content/` (same colours, fonts and layouts) and imported into Figma Slides.
 - Everything else in the repo is the Kreeative studio website. Change it only
   when asked.

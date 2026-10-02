@@ -131,6 +131,11 @@ number, say so on camera. That is its own hook, and it stays honest.
   the three viewers, and one format video (a reveal, a two-characters sketch,
   a "you" question). Same video to YouTube Shorts, exported clean. TikTok gets
   its own two videos a day from `tiktok-oct-1-5.md`.
+- **One job per video: pull, build or act** (from a video Kee sent on
+  2 October). The episode pulls strangers in, the value video builds trust
+  with the people already here, the collab price videos with a keyword make
+  buyers act. Never all three in one video; the first line says which job it
+  does.
 - **The reply video is the engine.** Any comment that asks "how?", disagrees,
   or tells a story gets a reply video within 24 hours, filmed with the
   reply-with-video feature so the comment is the hook. It can replace that
