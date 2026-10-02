@@ -1,16 +1,13 @@
 # Hook deck: the 15 Instagram videos, Oct 1 to 5
 
-The deck to keep open while recording (rebuilt 1 October through the viewer
-test and the creator moves, 37 slides since 2 October, scripts and captions in
-the speaker notes): **https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ**.
-The same deck as a PowerPoint file for Figma: `hook-deck.pptx` in this folder.
-Import it into Figma Slides (file browser → Import → from computer); its fonts
-are Google Fonts Figma already has (Fraunces, Inter, DM Mono), so re-select
-Fraunces Light on a title only if a layer shows Inter. The earlier Figma Slides
-file (https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj) still shows the
-first hooks and is stale: Figma's Starter plan allows six MCP calls a month, so
-it will not be rebuilt in place. This file is the text source for all of them.
-English only, Instagram first; TikTok has its own track in `tiktok-oct-1-5.md`.
+This is the research file: the viewer test, the creator moves, the 15 videos
+of the first sprint, the "I made X" hooks, the lead-magnet flow and the hook
+bank. The deck Kee keeps open while recording is now the concise one-idea-per-
+slide plan in `plan-oct-2-11.md` (web deck:
+**https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ**; the Figma file
+https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj still holds the 1 October
+draft until Figma's MCP limit lifts). English only, Instagram first; TikTok has
+its own track in `tiktok-oct-1-5.md`.
 
 Anything in `[brackets]` is yours to fill with the true version.
 
@@ -288,6 +285,20 @@ commande sur ma boutique. Je vous montre comment. » and « 810 $ pour un
 seul contrat de marque avec un petit compte. Voilà comment j'ai fait. »
 
 ## The lead-magnet hook: "I made $X as a student. Here's how." + a free PDF
+
+**Kee's version, 2 October: "How I'm making $10K this year as a student."**
+The beats she gave, in order: (1) "I'm making $10K this year as a student.
+$8K is already in, and it didn't come from one place. Here's how." (2) "I work
+20 hours a week at a job", never where. (3) "Then I manifested a new job that
+pays more", only once that job is real and current. (4) "My laptop brings the
+rest: my shop, design clients, brand gigs", receipts on screen. (5) How you can
+do it: put an email in your bio, choose a niche, start creating and build a
+portfolio (the template is in the free PDF), set your price and say it.
+(6) Comment GUIDE for the PDF. (7) The course, outcomes only: "the full method
+to land paid brand deals is my course, link in bio". No price on camera (the
+brief says $59 USD, Kee said $50: confirm first), and "$2K brand deals" only
+with a $2K receipt. $8K = $7,804 verified plus the $830 of gigs if paid. The
+slide for it is idea 2 in `plan-oct-2-11.md`. The rules below still apply.
 
 The move: Hormozi's number confession, then the payoff is a free PDF that
 viewers get by commenting a keyword. Comments and follows feed the 10K goal,
