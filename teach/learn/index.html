@@ -65,11 +65,13 @@
   </section>
   <section class="card tl" data-learn hidden>
     <aside class="tl-side">
+      <button type="button" class="tl-side__close" data-outline-close aria-label="Close the course outline">✕</button>
       <div class="tl-side__head"><p class="t-mono">UGC CREATOR FORMATION</p><b>Your progress</b><div class="tl-bar"><i data-progress-bar></i></div><p class="t-caption" data-progress-label></p></div>
       <nav data-outline aria-label="Lessons"></nav>
     </aside>
+    <div class="tl-scrim" data-outline-close></div>
     <div class="tl-main">
-      <div class="tl-top"><span data-user></span><button type="button" data-logout>Log out</button></div>
+      <div class="tl-top"><button type="button" class="tl-outline-btn" data-outline-toggle aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Course outline</span><small data-outline-pct></small></button><span data-user></span><button type="button" data-logout>Log out</button></div>
       <div class="tl-home" data-home>
         <p class="t-mono" style="color:var(--c-pink)">WELCOME BACK</p>
         <h1 class="t-h2">Let’s get you booked.</h1>
