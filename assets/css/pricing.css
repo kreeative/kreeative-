@@ -96,3 +96,13 @@
   .plan { padding: 28px 20px; }
   .addon { flex-wrap: wrap; }
 }
+
+/* ---- young entrepreneur packs ---- */
+.pr-young { padding-top: 64px; }
+.pr-young__head { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 720px; text-align: center; }
+.pr-young__head .t-h3 { text-align: center; }
+.pr-young__kicker { color: var(--c-pink); font-size: 13px; }
+.pr-young__lead { color: var(--c-text-60); }
+.pr-young__lead span { display: block; margin-top: 6px; font-style: italic; }
+.pr-young__notes { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: var(--container); padding: 20px 24px; border: 1px dashed var(--c-dashed); border-radius: var(--r-lg); list-style: none; }
+.pr-young__notes b { color: var(--c-black); font-weight: 500; }
