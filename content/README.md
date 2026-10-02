@@ -12,8 +12,9 @@ content/
   2026-10/                     one folder per month
     sprint-oct-1-5.md          a plan: strategy, schedule and scripts for a sprint (Instagram)
     tiktok-oct-1-5.md          the TikTok track for the same days (bilingual, strong topics)
-    hooks-oct-1-5.md           the hook per video, text source of the hook deck
-    hook-deck.pptx             the hook deck as a PowerPoint file, to import into Figma Slides
+    hooks-oct-1-5.md           the research: creator moves, hook bank, lead-magnet flow
+    plan-oct-2-11.md           the deck to record from: one idea per slide, captions for the posts
+    posts/                     the ready-made posts (PNG per carousel slide, MP4 for text Reels)
     calendar.md                what goes out when, per platform
     08-reel-founding-spots.md  one file per piece, named DD-format-slug.md
     09-carousel-media-kit.md
