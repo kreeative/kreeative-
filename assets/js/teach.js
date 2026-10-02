@@ -227,6 +227,7 @@
         });
         if (st.final.length) st.steps.push({ kind: 'final', id: 'exam', mod: { id: 'final', position: o.modules.length + 1, title: 'Final exam & certificate' } });
         show(app, true);
+        outlineDrawer(app);
         render(o, st);
         loadBonus();
         window.addEventListener('popstate', function () { render(o, st); });
@@ -262,7 +263,7 @@
       if (step.kind === 'final') return !!st.cert;
       return st.passed.has(step.id);
     }
-    function go(o, st, href) { history.pushState(null, '', href); render(o, st); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function go(o, st, href) { history.pushState(null, '', href); app.classList.remove('is-outline-open'); render(o, st); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     function hrefOf(step) { return { lesson: '?lesson=', quiz: '?quiz=', cards: '?cards=', final: '?final=' }[step.kind] + step.id; }
     function stepName(s) { return s.kind === 'quiz' ? 'Module ' + s.mod.position + ' quiz' : s.kind === 'cards' ? 'Module ' + s.mod.position + ' flashcards' : s.kind === 'final' ? 'Final exam' : s.lesson.title; }
     function counted(st) { return st.steps.filter(function (s) { return s.kind !== 'cards'; }); } // flashcards are optional practice
@@ -271,6 +272,7 @@
       var all = counted(st), n = all.filter(function (s) { return isDone(st, s); }).length, pct = all.length ? Math.round(n / all.length * 100) : 0;
       var quizzes = st.steps.filter(function (s) { return s.kind === 'quiz'; });
       $('[data-progress-bar]').style.width = pct + '%';
+      var op = $('[data-outline-pct]'); if (op) op.textContent = pct + '%';
       $('[data-progress-label]').textContent = pct + '% · ' + st.done.size + '/' + o.lessons.length + ' lessons · ' + st.passed.size + '/' + quizzes.length + ' quizzes' + (st.cert ? ' · certified 🎓' : '');
       return n;
     }
@@ -500,6 +502,17 @@
       return '<div class="fx-cert"><p class="t-mono">🎓 CERTIFICATE EARNED</p><b>' + esc(c.full_name) + '</b><p>UGC Creator Formation · ' + c.score + '/' + c.total + ' · ID ' + esc(c.id) + '</p>' +
         '<a class="btn btn--accent" href="' + url + '" target="_blank" rel="noopener"><span class="btn__label t-body-l">View & download my certificate</span></a></div>';
     }
+  }
+
+  /* ---- phones: course outline as a side panel ---------------------------- */
+  function outlineDrawer(app) {
+    var btn = $('[data-outline-toggle]');
+    if (!btn) return;
+    function set(on) { app.classList.toggle('is-outline-open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false'); document.documentElement.style.overflow = on ? 'hidden' : ''; }
+    btn.addEventListener('click', function () { set(!app.classList.contains('is-outline-open')); });
+    app.querySelectorAll('[data-outline-close]').forEach(function (el) { el.addEventListener('click', function () { set(false); }); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+    window.matchMedia('(min-width: 900px)').addEventListener('change', function (m) { if (m.matches) set(false); });
   }
 
   /* ---- lesson extras: copy buttons on templates, rate calculator ------- */
