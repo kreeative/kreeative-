@@ -123,3 +123,19 @@
 .js .split-ready .split-char { animation: charIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: calc(var(--i) * 18ms + 120ms); }
 @keyframes charIn { to { opacity: 1; filter: blur(0); transform: none; } }
 @media (prefers-reduced-motion: reduce) { .js .split-char { opacity: 1; filter: none; transform: none; animation: none !important; } }
+
+/* ---------- "You'll enjoy working with me if…" (lets the right clients pick themselves) ---------- */
+.fit { display: flex; flex-direction: column; align-items: center; gap: 48px; padding: 96px var(--pad-x); }
+.fit__head { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 760px; text-align: center; }
+.fit__kicker { color: var(--c-pink); }
+.fit__head .t-h3 { text-align: center; }
+.fit__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: 100%; max-width: 1080px; margin: 0; padding: 0; list-style: none; }
+.fit__item { display: flex; gap: 16px; align-items: flex-start; padding: 24px 26px; border: 1px solid var(--c-line); border-radius: var(--r-lg); background: #fff; }
+.fit__item svg { flex: none; width: 26px; height: 26px; margin-top: 2px; color: var(--c-pink); }
+.fit__item p { margin: 0; }
+.fit__not { max-width: 760px; text-align: center; color: var(--c-text-60); }
+@media (max-width: 809.98px) {
+  .fit { padding: 72px var(--pad-x); gap: 36px; }
+  .fit__list { grid-template-columns: 1fr; }
+  .fit__item { padding: 20px; }
+}
