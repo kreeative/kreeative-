@@ -356,7 +356,10 @@ ManyChat flow for GUIDE:
   Story reply "GUIDE", and a DM "GUIDE".
 - Public reply, rotating: "Sent 💌 check your DMs" / "On its way, check your
   requests folder" / "Done, it's in your DMs".
-- Follow gate: on. "Follow me first and I'll send it right away."
+- Follow gate: ManyChat's built-in "Follows your account" condition. Not
+  following yet: "Follow me first, then tap the button and it's yours", with a
+  button that runs the check again (people follow from the profile; Instagram
+  does not allow following from inside a DM).
 - DM 1: "Hey! Here's the student money guide: [link]. It's the exact system:
   the DM I send, the one-page media kit layout, and the first thing to sell.
   Reply with what you're starting with (flyers, Reels or UGC) and I'll tell
@@ -374,7 +377,10 @@ Where it runs: it replaces video 5 (From $0 this week) on Thursday at 12 pm
 if the PDF and the keyword are live by then; otherwise video 5 runs as
 written and this moves to Friday at 12 pm. TikTok gets its own bilingual
 version: « J'ai gagné [X] $ cette année en étant étudiante. Je vous explique
-comment, et le système est gratuit : commentez GUIDE. »
+comment, et le système est gratuit : il est sur mon Instagram @aissakee,
+commentez GUIDE sous la vidéo épinglée. » ManyChat cannot answer TikTok
+comments in North America, and @keekyt stays a personal account so it keeps
+TikTok's Creator Rewards; see `manychat-pitch.md`.
 
 ## Delivery checklist (read before every take)
 

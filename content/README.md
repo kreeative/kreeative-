@@ -14,6 +14,7 @@ content/
     tiktok-oct-1-5.md          the TikTok track for the same days (bilingual, strong topics)
     hooks-oct-1-5.md           the research: creator moves, hook bank, lead-magnet flow
     plan-oct-2-11.md           the deck to record from: one idea per slide, captions for the posts
+    manychat-pitch.md          the ManyChat plan, the pitch deck's text source, tracking table, email
     posts/                     the ready-made posts (PNG per carousel slide, MP4 for text Reels)
     calendar.md                what goes out when, per platform
     08-reel-founding-spots.md  one file per piece, named DD-format-slug.md

@@ -51,6 +51,8 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 - Offer: "10 founding client spots · 10% off in October".
 - Plan: 1 main post a day, 3–5 stories, 5 personal DMs to businesses.
 - Comment keywords set up in ManyChat: **SPOT** (all services), **SITE** (websites), **FLYER**, **KIT** (media kits).
+- ManyChat partnership (3 October): join the Manychat Partner Program this week (affiliate.manychat.com; 30% recurring for 12 months to start, 40% after 30 paid signups, 50% after 200), launch the GUIDE Reel with the "Follows your account" check, track it nightly, and pitch a paid collab around 17 to 24 October with the real numbers. Pitch deck: https://claude.ai/artifact/LuSAVrR3XFSVHXx4eohxhz. Plan, tracking table and email: `content/2026-10/manychat-pitch.md`. Affiliate links and paid posts are always disclosed (Ad Standards Canada).
+- ManyChat stays on Instagram: its TikTok integration needs a TikTok Business account, which would take @keekyt out of TikTok's Creator Rewards (personal accounts only), and TikTok comment-to-DM is not available in North America. On TikTok, keyword CTAs point to Instagram.
 - Week 1 content (Oct 1–7) is done in English and French.
 - A 30-day quote post series is also scheduled (plain backgrounds, signed @aissakee).
 
