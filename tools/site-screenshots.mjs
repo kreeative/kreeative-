@@ -21,6 +21,11 @@ const SITES = [
   ['guillemot', 'https://guillemot.vercel.app/', { scrollFirst: true }],
   // Served from this site. Its sections rise into place as you scroll, so it is scrolled through first too.
   ['jessicas', 'https://kreeative.xyz/concepts/jessicas-secrets/', { scrollFirst: true }],
+  // The brand page, scrolled through first so its lazy photos load for the long
+  // capture. The clock is set to a weekday morning in Toronto so the bakery is open.
+  ['bakery', 'https://the-bakery-concept.vercel.app/', { scrollFirst: true, time: '2026-10-06T14:30:00Z' }],
+  // Its ordering app, with the chocolate chunk cookies as the second screen.
+  ['bakery-app', 'https://the-bakery-concept.vercel.app/order/', { detail: '#/dish/chunk-cookie', time: '2026-10-06T14:30:00Z' }],
 ];
 const ONLY = (process.env.ONLY || '').split(/[\s,]+/).filter(Boolean);
 const RUN = SITES.filter(([name]) => !ONLY.length || ONLY.includes(name));
