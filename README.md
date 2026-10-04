@@ -19,6 +19,7 @@ works.
 | `/websites/cameleon/`                                       | `websites/cameleon/index.html`                                   |
 | `/websites/tabouret/`                                       | `websites/tabouret/index.html`                                   |
 | `/websites/guillemot/`                                      | `websites/guillemot/index.html`                                  |
+| `/websites/the-bakery/`                                     | `websites/the-bakery/index.html`                                 |
 | `/websites/jessicas-secrets/`                               | `websites/jessicas-secrets/index.html`                           |
 | `/concepts/jessicas-secrets/`                               | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/pricing/`                                                 | `pricing/index.html`                                             |

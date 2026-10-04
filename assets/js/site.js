@@ -5,6 +5,8 @@
    - phone navigation toggle                 .nav__toggle
    - projects grid column toggle             [data-columns]
    - meteors randomisation                   .meteor
+   - looping case-study films hold still      video[autoplay]
+     when motion is reduced
 */
 (function () {
   'use strict';
@@ -152,6 +154,18 @@
     });
   }
 
+  /* ---- films ------------------------------------------------------------ */
+  // A case-study film loops on its own; with reduced motion it waits on its
+  // poster with controls instead.
+  function initFilms() {
+    if (!reduceMotion) return;
+    document.querySelectorAll('video[autoplay]').forEach(function (v) {
+      v.removeAttribute('autoplay');
+      v.pause();
+      v.controls = true;
+    });
+  }
+
   /* ---- boot ------------------------------------------------------------- */
   function ready(fn) { if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
   ready(function () {
@@ -160,6 +174,7 @@
     initMeteors();
     initNav();
     initColumns();
+    initFilms();
     if (document.fonts && document.fonts.ready) { document.fonts.ready.then(initPixels); } else { initPixels(); }
   });
 })();
