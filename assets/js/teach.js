@@ -59,8 +59,10 @@
             m.lessons.map(function (l) { return '<li><span>' + esc(l.title) + '</span>' + (l.is_preview ? '<em>Free preview</em>' : '') + '</li>'; }).join('') + '</ul></details>';
         }).join('');
         var n = $('[data-lesson-count]'); if (n) n.textContent = o.lessons.length;
-      }
-    });
+      } else if (box) fallback(box);
+    }, function () { var box = $('[data-curriculum]'); if (box) fallback(box); });
+    setTimeout(function () { var box = $('[data-curriculum]'); if (box && !box.querySelector('.tc-mod')) fallback(box); }, 8000);
+    function fallback(box) { box.innerHTML = '<p class="t-body-m">11 modules and 42 written lessons, from your niche and first videos to pitching brands, pricing, contracts and your certificate.</p>'; }
     document.querySelectorAll('[data-buy]').forEach(function (a) { a.href = base + 'signup/'; });
     sb.auth.getSession().then(function (r) {
       if (!r.data.session) return;

@@ -391,3 +391,18 @@
   .tl-top .tl-outline-btn { grid-column: 1 / -1; }
   .tl-top [data-user] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* ---- UI polish: price wrap, bonus pill, aligned sections ---------------- */
+.tc-hero__price { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; line-height: 1; }
+.tc-hero__price small { margin-left: 0; line-height: 1.5; }
+.tc-bonus-pill { border-radius: 18px; padding: 8px 16px 8px 8px; line-height: 1.4; max-width: 100%; }
+.tc-bonus-pill span { flex: none; }
+.tc-section__head, .tc-curriculum, .tc-note { max-width: var(--container); }
+.tc-section__head > .t-body-m { max-width: 640px; }
+.tc-section > .btn { align-self: center; }
+.tc-hero .t-h2, .tc-section .t-h3, .footer__title { text-wrap: balance; }
+@media (max-width: 809.98px) {
+  .tc-hero__price { font-size: 40px; }
+  .tc-bonus-pill { font-size: 14px; }
+  .tc-hero__actions { flex-direction: column; align-items: flex-start; gap: 14px; }
+}
