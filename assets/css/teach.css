@@ -406,3 +406,16 @@
   .tc-bonus-pill { font-size: 14px; }
   .tc-hero__actions { flex-direction: column; align-items: flex-start; gap: 14px; }
 }
+
+/* ---- curriculum list: badges never break, bullets sit on the first line -- */
+.tc-mod summary { align-items: baseline; }
+.tc-mod__c { white-space: nowrap; }
+.tc-mod li { display: block; position: relative; padding-left: 16px; line-height: 1.45; }
+.tc-mod li::before { position: absolute; left: 0; top: .6em; }
+.tc-mod li em { display: inline-block; white-space: nowrap; margin-left: 8px; line-height: 1.5; vertical-align: 1px; }
+@media (max-width: 809.98px) {
+  .tc-mod summary { grid-template-columns: 34px 1fr auto; gap: 10px; }
+  .tc-mod__t { font-size: 21px; line-height: 1.15; }
+  .tc-mod__c { font-size: 13px; }
+  .tc-mod ul { padding-left: 44px; }
+}
