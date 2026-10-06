@@ -1,7 +1,8 @@
 # Road to 10K: 5-day launch sprint (Wed Oct 1 to Sun Oct 5, 2026)
 
-From 2 October the day-by-day deck is `plan-oct-2-11.md` (one idea per
-slide, Oct 2 to 11, with the ready-made posts). This file keeps the strategy,
+From 6 October the day-by-day deck is `plan-oct-6-16.md` (one idea per
+slide, Oct 6 to 16, with the ready-made posts) and the list to schedule from
+is `calendar.md`. This file keeps the strategy,
 the funnel, the filming rules and the scoreboard.
 
 English only on Instagram and YouTube for now (French is paused there).

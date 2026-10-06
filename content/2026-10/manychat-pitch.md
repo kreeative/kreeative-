@@ -27,8 +27,8 @@ commission tier and TikTok).
 
 ## 2. Launch the GUIDE Reel
 
-It is idea 2 in `plan-oct-2-11.md` ("How I'm making $10K this year as a
-student"). It goes live only when all of this is true:
+It is idea 27 in `plan-oct-6-16.md` ("How I'm making $10K this year as a
+student"), scheduled for Thursday 15 October at 12 pm in `calendar.md`. It goes live only when all of this is true:
 
 - The free PDF is approved and hosted next to the brand-deal guide in
   `assets/guides/` (draft: `student-money-guide-draft.pdf`).
@@ -55,7 +55,7 @@ student"). It goes live only when all of this is true:
 Comments: the Reel's comments. DMs sent and clicks: the GUIDE automation's
 stats in ManyChat. Followers: Instagram insights for the same dates.
 
-## 4. Pitch in 2 to 3 weeks (around 17 to 24 October)
+## 4. Pitch in 2 to 3 weeks (around 24 October, a week after the Reel)
 
 - Fill every pink placeholder in the deck with the real numbers. Small
   numbers stay: a new account's real numbers are the story.

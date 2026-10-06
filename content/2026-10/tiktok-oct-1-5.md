@@ -284,13 +284,14 @@ kind)**
 
 **T10, helpful + funnel: did I hit 10K on Instagram?**
 
-- FR hook: « J'ai testé 15 accroches en 5 jours sur Instagram. Voilà les 3
-  qui ont marché. »
+- FR hook: « J'ai testé [X] accroches sur Instagram en une semaine. Voilà
+  les 3 qui ont marché. » ([X] = the real number of videos you posted.)
 - EN body: the three hooks that worked, said word for word, why each one
   worked, the real follower number as the proof, the next goal and its date.
 - FR punchline: « En gros : [la leçon de la semaine]. Volez-les. »
-- CTA: « Les 15 accroches sont sur @aissakee. / All 15 are on @aissakee. »
-- Caption: « 15 accroches testées, 3 qui marchent 📊 / 15 hooks tested, 3
+- CTA: « Toutes les accroches sont sur @aissakee. / Every hook is on
+  @aissakee. »
+- Caption: « [X] accroches testées, 3 qui marchent 📊 / [X] hooks tested, 3
   that work. Volez-les. La suite sur @aissakee. »
 - Hashtags: #buildinpublic #instagram #createurdecontenu #contentcreator
   #defi #cotedivoire #diaspora #pourtoi

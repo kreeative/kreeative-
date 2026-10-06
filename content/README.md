@@ -13,7 +13,8 @@ content/
     sprint-oct-1-5.md          a plan: strategy, schedule and scripts for a sprint (Instagram)
     tiktok-oct-1-5.md          the TikTok track for the same days (bilingual, strong topics)
     hooks-oct-1-5.md           the research: creator moves, hook bank, lead-magnet flow
-    plan-oct-2-11.md           the deck to record from: one idea per slide, captions for the posts
+    calendar.md                what goes out when, per platform: the list to schedule from
+    plan-oct-6-16.md           the deck to record from: one idea per slide, captions for the posts
     manychat-pitch.md          the ManyChat plan, the pitch deck's text source, tracking table, email
     posts/                     the ready-made posts (PNG per carousel slide, MP4 for text Reels)
     calendar.md                what goes out when, per platform

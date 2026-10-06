@@ -3,7 +3,7 @@
 This is the research file: the viewer test, the creator moves, the 15 videos
 of the first sprint, the "I made X" hooks, the lead-magnet flow and the hook
 bank. The deck Kee keeps open while recording is now the concise one-idea-per-
-slide plan in `plan-oct-2-11.md` (web deck:
+slide plan in `plan-oct-6-16.md` (web deck:
 **https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ**; the Figma file
 https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj still holds the 1 October
 draft until Figma's MCP limit lifts). English only, Instagram first; TikTok has
@@ -298,7 +298,7 @@ portfolio (the template is in the free PDF), set your price and say it.
 to land paid brand deals is my course, link in bio". No price on camera (the
 brief says $59 USD, Kee said $50: confirm first), and "$2K brand deals" only
 with a $2K receipt. $8K = $7,804 verified plus the $830 of gigs if paid. The
-slide for it is idea 2 in `plan-oct-2-11.md`. The rules below still apply.
+slide for it is idea 27 in `plan-oct-6-16.md` (Thursday 15 October, 12 pm). The rules below still apply.
 
 The move: Hormozi's number confession, then the payoff is a free PDF that
 viewers get by commenting a keyword. Comments and follows feed the 10K goal,
