@@ -419,3 +419,9 @@
   .tc-mod__c { font-size: 13px; }
   .tc-mod ul { padding-left: 44px; }
 }
+
+/* ---- forms: hint stays next to its label, checkbox sits beside its text -- */
+.tc-form label > span { display: block; }
+.tc-form .tc-check { align-items: flex-start; gap: 10px; line-height: 1.4; }
+.tc-form .tc-check input { flex: none; width: 20px; height: 20px; padding: 0; margin: 0; border-radius: 6px; background: none; box-shadow: none; }
+.tc-form .tc-check span { padding-top: 0; }
