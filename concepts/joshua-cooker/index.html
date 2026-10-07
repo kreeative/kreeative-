@@ -1,0 +1,288 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<title>Joshua Cooker · Concept de site par Kreeative</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="img/leaf-green.webp"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--bg:#fbfaf6;--ink:#0b0b0a;--gr:#0e3b2c;--gr2:#1d6b4c;--gr3:#e4efe8;--mut:rgba(11,11,10,.6);--line:rgba(11,11,10,.1);--cream:#fbfaf6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.5 Outfit;-webkit-font-smoothing:antialiased}
+img{display:block}
+.wrap{max-width:1280px;margin:0 auto;padding:0 48px}
+.disp{font-family:Anton;text-transform:uppercase;letter-spacing:.01em;line-height:.9}
+.script{font-family:'Mrs Saint Delafield';font-weight:400}
+.k{font:600 12px Outfit;letter-spacing:.22em;text-transform:uppercase;color:var(--gr2)}
+.btn{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:14px 26px;font:600 15px Outfit;border:0}
+.btn.or{background:var(--gr);color:#fff}.btn.gh{border:1.5px solid rgba(11,11,10,.25);color:var(--ink)}
+nav{position:absolute;top:0;left:0;right:0;z-index:20}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:100px}
+nav ul{display:flex;gap:30px;list-style:none;font-size:14.5px;color:var(--mut)}
+.cnt{background:#fff;color:var(--gr);border-radius:999px;font:700 11px Outfit;padding:2px 7px;margin-left:4px}
+.logoimg{height:86px;margin-top:10px}
+.leafbg{position:absolute;right:120px;top:90px;width:520px;opacity:.07;z-index:1;transform:rotate(-12deg)}
+.hero{position:relative;height:860px;background:radial-gradient(800px 600px at 74% 40%,rgba(29,107,76,.16),transparent 70%),var(--bg)}
+.hero:before{content:"";position:absolute;inset:0;background:url(img/pagne-light.webp) center/cover;opacity:.11}
+.hero .wrap{position:relative;height:100%}
+.hero .txt{position:absolute;left:48px;top:200px;width:760px;z-index:3}
+.hero h1{font-size:108px;color:var(--ink);margin:18px 0 0;white-space:nowrap}
+.hero h1 span{color:var(--gr2)}
+.hero p.lead{font-size:19px;color:var(--mut);max-width:470px;margin:26px 0 34px}
+.hero .ctas{display:flex;gap:14px}
+.hero .stats{display:flex;gap:40px;margin-top:46px}
+.hero .stats b{font:400 40px Anton;color:var(--ink);display:block;line-height:1}
+.hero .stats small{font-size:13px;color:var(--mut)}
+.hero .josh{position:absolute;right:-30px;bottom:0;height:640px;z-index:2;filter:drop-shadow(0 30px 50px rgba(0,0,0,.25))}
+.hero .plate{position:absolute;left:auto;right:150px;top:170px;bottom:auto;width:500px;transform:rotate(-18deg);z-index:4;filter:drop-shadow(0 30px 30px rgba(0,0,0,.3))}
+.tag{position:absolute;z-index:5;background:#fff;color:#111;border-radius:16px;padding:12px 16px;font-size:13px;box-shadow:0 20px 40px rgba(0,0,0,.14)}
+.tag b{display:block;font:400 22px Anton;letter-spacing:.02em;text-transform:uppercase;color:var(--gr)}
+.hero .tag{left:auto;right:520px;bottom:110px}
+.mq{background:var(--gr);color:#fff;overflow:hidden;white-space:nowrap;padding:18px 0;position:relative;z-index:1}
+.mq span{font:400 30px Anton;text-transform:uppercase;margin:0 26px}
+.mq i{font-style:normal;opacity:.5}
+section{padding:120px 0}
+.sh{display:flex;justify-content:space-between;align-items:end;margin-bottom:46px}
+.sh h2{font-size:78px;white-space:nowrap;margin-top:12px}
+.sh h2 em{font-style:normal;color:var(--gr2)}
+.sh p{max-width:380px;color:var(--mut)}
+.menu{display:grid;grid-template-columns:1fr 1fr 1fr 380px;gap:22px;align-items:start}
+.dish{background:#fff;border:1px solid var(--line);border-radius:26px;position:relative;padding:0 0 22px}
+.dish .ph{height:300px;border-radius:26px 26px 0 0;overflow:hidden;position:relative}
+.dish .ph img{width:100%;height:100%;object-fit:cover}
+.dish .bd{padding:20px 22px 0}
+.dish h3{font:400 30px Anton;text-transform:uppercase;line-height:1}
+.dish p{font-size:14px;color:var(--mut);margin:8px 0 16px;min-height:42px}
+.dish .row{display:flex;justify-content:space-between;align-items:center}
+.dish .pr{font:600 19px Outfit}
+.add{width:44px;height:44px;border-radius:50%;background:var(--gr);color:#fff;font:600 24px/44px Outfit;text-align:center}
+.badge{position:absolute;top:16px;left:16px;background:#fff;color:var(--gr);font:700 11px Outfit;letter-spacing:.14em;text-transform:uppercase;border-radius:999px;padding:7px 12px;z-index:2}
+.dish.star{background:var(--gr);color:#fff;border:0}
+.dish.star p{color:rgba(255,255,255,.7)}.dish.star .add{background:#fff;color:var(--gr)}
+.dish.star .ph{overflow:visible;background:radial-gradient(circle at 50% 60%,#1d6b4c,#0e3b2c 70%)}
+.dish.star .ph img.pop{position:absolute;width:118%;height:auto;left:-9%;top:-70px;object-fit:contain;filter:drop-shadow(0 26px 26px rgba(0,0,0,.5))}
+.order{background:var(--ink);color:#fff;border-radius:26px;padding:26px}
+.order h4{font:400 30px Anton;text-transform:uppercase}
+.line{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:14.5px}
+.qty{display:flex;gap:10px;align-items:center;font-weight:600}
+.qty span{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:14px}
+.seg{display:flex;background:#222220;border-radius:999px;padding:4px;margin:16px 0 12px}
+.seg span{flex:1;text-align:center;font-size:13px;padding:8px 0;border-radius:999px;color:rgba(255,255,255,.7)}
+.seg .on{background:#fff;color:#111}
+.lbl{font:600 11px Outfit;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);margin:14px 0 8px}
+.slots{display:flex;gap:8px;flex-wrap:wrap}
+.slots span{border:1.5px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 12px;font-size:13px}
+.slots .on{border-color:#fff;background:#fff;color:#111}
+.pay{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pay span{border:1.5px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.pay .on{border-color:#3fbf86;background:rgba(63,191,134,.12)}
+.dot{width:14px;height:14px;border-radius:4px}
+.tot{display:flex;justify-content:space-between;font:600 17px Outfit;margin:18px 0 14px}
+.order .btn{width:100%;justify-content:center;font-size:16px;padding:16px;background:#2f9e6c;color:#fff}
+.order small{display:block;text-align:center;color:rgba(255,255,255,.5);font-size:12px;margin-top:10px}
+.lieux{background:var(--gr);color:#fff;position:relative;overflow:hidden}
+.lieux .sh p{color:rgba(255,255,255,.7)}.lieux .sh h2 em{color:#7fd3a8}.lieux .k{color:#7fd3a8}
+.lieux:before{content:"";position:absolute;left:0;right:0;top:0;height:120px;background:url(img/pagne.webp) center/cover;opacity:.55}
+.lieux .wrap{position:relative}
+.lgrid{display:grid;grid-template-columns:1.35fr 1fr;gap:22px}
+.lbig{height:620px;border-radius:28px;overflow:hidden;position:relative}
+.lbig img,.lsm img{width:100%;height:100%;object-fit:cover}
+.lcol{display:grid;grid-template-rows:1fr 1fr;gap:22px;height:620px}
+.lsm{min-height:0;border-radius:28px;overflow:hidden;position:relative}
+.cap{position:absolute;left:18px;bottom:18px;right:18px;background:rgba(255,255,255,.92);color:#111;backdrop-filter:blur(8px);border-radius:18px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center}
+.cap b{font:400 24px Anton;text-transform:uppercase;display:block;line-height:1}
+.cap small{color:var(--mut);font-size:13px}
+.cap .btn{padding:10px 16px;font-size:13px}
+.tour .rowt{display:grid;grid-template-columns:200px 320px minmax(0,1fr) 120px 190px;align-items:center;gap:20px;padding:30px 0;border-top:1px solid var(--line)}
+.tour .rowt:last-child{border-bottom:1px solid var(--line)}
+.tour .d{font:400 40px Anton;color:var(--gr2);line-height:1}
+.tour .c{font:400 54px Anton;text-transform:uppercase;line-height:1}
+.tour .v{color:var(--mut);font-size:15px}
+.tour .p{font:600 18px Outfit;white-space:nowrap;padding-left:30px}
+.tour .soon .d,.tour .soon .c{color:rgba(11,11,10,.22)}
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.cc{height:470px;border-radius:24px;overflow:hidden;position:relative}
+.cc img{width:100%;height:100%;object-fit:cover}
+.cc .play{position:absolute;left:16px;top:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center}
+.cc .play:after{content:"";border-left:13px solid #111;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px}
+.cc .nm{position:absolute;left:16px;bottom:16px;background:#fff;color:#111;border-radius:999px;padding:7px 14px;font:600 13px Outfit}
+.book{margin-top:60px;background:var(--gr);color:#fff;border-radius:30px;padding:46px 54px;display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:center;position:relative;overflow:hidden}
+.book h3{font:400 64px Anton;text-transform:uppercase;line-height:.95}
+.book p{margin-top:12px;font-size:16px;color:rgba(255,255,255,.75)}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:15px 16px;font-size:14px;color:rgba(255,255,255,.75)}
+.form .w{grid-column:1/3}
+.form .btn{grid-column:1/3;justify-content:center;background:#fff;color:var(--gr)}
+footer{padding:60px 0 40px;color:rgba(255,255,255,.6);font-size:14px;background:var(--ink)}
+footer .wrap{display:flex;justify-content:space-between;align-items:end}
+@media (max-width:600px){
+ .wrap{padding:0 20px}
+ nav .wrap{height:76px}nav ul{display:none}
+ .logoimg{height:60px;margin-top:6px}.leafbg{width:300px;right:-40px;top:400px}
+ nav .cart .btn{padding:10px 16px;font-size:13px}
+ .hero{height:820px}
+ .hero .txt{left:20px;right:20px;top:110px;width:auto}
+ .hero h1{font-size:66px}
+ .hero p.lead{font-size:15px;margin:14px 0 20px;max-width:300px}
+ .hero .ctas .btn{padding:12px 18px;font-size:14px;white-space:nowrap}.hero .ctas .btn.gh{display:none}
+ .hero .stats{display:none}
+ .hero .josh{height:390px;right:-60px}
+ .hero .plate{right:auto;left:50%;margin-left:-150px;top:auto;bottom:-40px;width:300px}
+ .hero .tag{left:auto;right:16px;bottom:22px;padding:9px 12px}.hero .tag b{font-size:17px}
+ .mq span{font-size:22px}
+ section{padding:70px 0}
+ .sh{display:block}.sh h2{font-size:52px;white-space:normal}.sh p{margin-top:10px;font-size:14px}
+ .menu{grid-template-columns:1fr}.menu .dish:not(.star){display:none}
+ .dish.star .ph{height:250px}.dish.star .ph img.pop{width:80%;left:10%;top:-30px}
+ .lgrid{grid-template-columns:1fr}.lbig{height:420px}.lcol{display:none}
+ .tour .rowt{grid-template-columns:1fr auto;gap:6px 12px;padding:20px 0}
+ .tour .d{font-size:26px;grid-column:1}.tour .c{font-size:36px;grid-column:1}.tour .v{grid-column:1}.tour .p{grid-column:2;grid-row:1}.tour .rowt .btn{grid-column:2;grid-row:2/4;padding:10px 14px;font-size:13px}
+ .cgrid{grid-template-columns:1fr 1fr}.cc{height:260px}
+ .book{grid-template-columns:1fr;padding:28px 22px}.book h3{font-size:40px}
+ footer .wrap{display:block}
+}
+
+.about{padding:130px 0}
+.agrid{display:grid;grid-template-columns:520px 1fr;gap:80px;align-items:center}
+.aph{position:relative;height:640px;border-radius:32px;background:var(--gr);overflow:hidden}
+.aph:before{content:"";position:absolute;inset:0;background:url(img/pagne.webp) center/cover;opacity:.25;mix-blend-mode:screen}
+.aph .lf{position:absolute;right:-40px;top:-30px;width:300px;opacity:.16}
+.aph .jp{position:absolute;left:50%;bottom:0;transform:translateX(-50%);height:560px;filter:drop-shadow(0 30px 40px rgba(0,0,0,.4))}
+.aph .chip{position:absolute;left:22px;top:22px;background:#fff;color:var(--gr);border-radius:999px;padding:8px 14px;font:700 11px Outfit;letter-spacing:.16em;text-transform:uppercase}
+.atx h2{font-size:96px;margin:14px 0 26px}
+.atx h2 span{color:var(--gr2)}
+.atx p{font-size:18px;color:#3d3a35;margin-bottom:16px;max-width:560px}
+.atx p b{color:var(--ink)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:34px 0 34px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts div{padding:20px 0}
+.facts div+div{padding-left:24px;border-left:1px solid var(--line)}
+.facts b{font:400 40px Anton;display:block;line-height:1;color:var(--gr)}
+.facts small{font-size:13px;color:var(--mut)}
+.asig{display:flex;align-items:center;gap:26px}
+.asig img{height:90px}
+@media (max-width:600px){
+ .about{padding:70px 0}.agrid{grid-template-columns:1fr;gap:34px}.aph{height:440px}.aph .jp{height:400px}
+ .atx h2{font-size:58px}.atx p{font-size:15.5px}.facts b{font-size:28px}.facts div+div{padding-left:12px}.asig img{height:64px}
+}
+
+footer{padding:90px 0 36px;background:var(--ink);color:#fff}
+footer .wrap{display:block}
+.ftop{display:grid;grid-template-columns:1fr 1.4fr;gap:60px;align-items:start;padding-bottom:50px;border-bottom:1px solid rgba(255,255,255,.12)}
+.ftop h3{font:400 64px/0.95 Anton;text-transform:uppercase;margin:18px 0 14px}
+.ftop h3 span{color:#7fd3a8}
+.ftop p{color:rgba(255,255,255,.6);max-width:380px}
+.socs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.soc{display:flex;align-items:center;gap:14px;background:#161614;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:16px 18px}
+.soc i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;flex:none}
+.soc i svg{width:24px;height:24px}
+.soc b{display:block;font:600 16px Outfit}
+.soc small{color:rgba(255,255,255,.55);font-size:13px}
+.soc .ar{margin-left:auto;color:rgba(255,255,255,.4);font-size:20px}
+.soc.wa{grid-column:1/3;background:#0e3b2c;border-color:#1d6b4c}
+.fbot{display:flex;justify-content:space-between;align-items:center;padding-top:30px;color:rgba(255,255,255,.5);font-size:13.5px}
+.fbot .links{display:flex;gap:26px}
+@media (max-width:600px){.ftop{grid-template-columns:1fr;gap:30px}.ftop h3{font-size:44px}.socs{grid-template-columns:1fr}.soc.wa{grid-column:auto}.fbot{display:block}.fbot .links{flex-wrap:wrap;gap:14px;margin-bottom:16px}}
+html,body{overflow-x:hidden}
+</style></head><body>
+<nav><div class="wrap">
+ <img class="logoimg" src="img/logo-green.webp">
+ <ul><li>À propos</li><li>La carte</li><li>Nos lieux</li><li>La tournée</li><li>Collabs</li><li>Booker le chef</li></ul>
+ <div class="cart"><span class="btn or">Commander <span class="cnt">2</span></span></div>
+</div></nav>
+
+<header class="hero" id="hero"><div class="wrap">
+ <div class="txt">
+  <div class="k">Chef culinaire professionnel · Abidjan</div>
+  <h1 class="disp">Poulet <span>persil</span></h1>
+  <p class="lead">Le plat signature de Joshua Cooker. Commandez-le à Abidjan, ou venez le manger sur place dans ses lieux.</p>
+  <div class="ctas"><span class="btn or">Commander maintenant →</span><span class="btn gh">Voir la tournée</span></div>
+  <div class="stats"><div><b>366K</b><small>abonnés Instagram</small></div><div><b>Abidjan</b><small>ses lieux</small></div></div>
+ </div>
+ <img loading="lazy" decoding="async" class="leafbg" src="img/leaf-green.webp">
+  <img class="plate" src="img/plateA.webp">
+ <div class="tag"><b>Le signature</b>Poulet, sauce crémeuse au persil</div>
+</div></header>
+
+<div class="mq"><span>Abidjan</span><i>✦</i><span>Lille</span><i>✦</i><span>Ouagadougou</span><i>✦</i><span>Douala</span><i>✦</i><span>Poulet persil</span><i>✦</i><span>Attiéké</span><i>✦</i><span>Alloco</span><i>✦</i><span>Abidjan</span><i>✦</i><span>Lille</span></div>
+
+<section id="carte"><div class="wrap">
+ <div class="sh"><div><div class="k">La carte</div><h2 class="disp">Commande <em>en 2 minutes</em></h2></div><p>Choisis ton plat, ton créneau, et paie avec Wave ou Orange Money. Plus besoin d'écrire sur WhatsApp.</p></div>
+ <div class="menu">
+  <div class="dish star"><span class="badge">Signature</span><img loading="lazy" decoding="async" src="img/leaf-cream.webp" style="position:absolute;right:18px;top:16px;width:46px;opacity:.5;z-index:2"><div class="ph"><img loading="lazy" decoding="async" class="pop" src="img/plate6b.webp"></div><div class="bd"><h3>Poulet persil</h3><p>Poulet doré, sauce crémeuse au persil, salade d'oignons, piment.</p><div class="row"><span class="pr">7 000 FCFA</span><span class="add">+</span></div></div></div>
+  <div class="dish"><div class="ph"><img loading="lazy" decoding="async" src="img/plat4-crop.webp" style="object-position:50% 62%"></div><div class="bd"><h3>La formule complète</h3><p>Poulet persil, attiéké, salade d'oignons et piment maison.</p><div class="row"><span class="pr">9 000 FCFA</span><span class="add">+</span></div></div></div>
+  <div class="dish"><div class="ph"><img loading="lazy" decoding="async" src="img/plat3-crop.webp" style="object-position:50% 55%"></div><div class="bd"><h3>Le plateau à partager</h3><p>Le grand plat pour la table, avec attiéké pour 4 personnes.</p><div class="row"><span class="pr">25 000 FCFA</span><span class="add">+</span></div></div></div>
+  <div class="order">
+   <h4>Ta commande</h4>
+   <div class="line"><span>Poulet persil</span><span class="qty"><span>−</span>1<span>+</span></span></div>
+   <div class="line"><span>La formule complète</span><span class="qty"><span>−</span>1<span>+</span></span></div>
+   <div class="seg"><span class="on">Livraison</span><span>À emporter</span><span>Sur place</span></div>
+   <div class="lbl">Créneau · aujourd'hui</div>
+   <div class="slots"><span>12h00</span><span class="on">12h30</span><span>13h00</span><span>19h30</span></div>
+   <div class="lbl">Paiement</div>
+   <div class="pay"><span class="on"><i class="dot" style="background:#1dc4ff"></i>Wave</span><span><i class="dot" style="background:#ff7900"></i>Orange Money</span><span><i class="dot" style="background:#ffcc00"></i>MTN MoMo</span><span><i class="dot" style="background:#111"></i>À la livraison</span></div>
+   <div class="tot"><span>Total</span><span>16 000 FCFA</span></div>
+   <span class="btn or">Payer avec Wave</span>
+   <small>Confirmation par SMS et WhatsApp</small>
+  </div>
+ </div>
+</div></section>
+
+<section class="about" id="about"><div class="wrap"><div class="agrid">
+ <div class="aph"><img loading="lazy" decoding="async" class="lf" src="img/leaf-cream.webp"><span class="chip">Le chef</span><img loading="lazy" decoding="async" class="jp" src="img/josh2.webp"></div>
+ <div class="atx">
+  <div class="k">À propos</div>
+  <h2 class="disp">Joshua <span>Cooker</span></h2>
+  <p><b>Cuisinier professionnel basé à Abidjan</b>, Joshua s'est fait connaître avec un plat devenu sa signature : le poulet persil, doré, nappé d'une sauce crémeuse au persil, servi avec attiéké, salade d'oignons et piment.</p>
+  <p>Sa cuisine se vit ensemble : dans ses lieux à Abidjan, où l'on vient manger entre amis et apparaître dans ses vidéos, et pendant sa tournée, en Afrique de l'Ouest, au Cameroun et en France.</p>
+  <p>Influenceurs, artistes et marques passent derrière ses fourneaux. Aujourd'hui, toute sa cuisine est à portée de clic.</p>
+  <div class="facts"><div><b>366K</b><small>abonnés Instagram</small></div><div><b>1 400+</b><small>vidéos et posts</small></div><div><b>4 pays</b><small>Côte d'Ivoire, Burkina, Cameroun, France</small></div></div>
+  <div class="asig"><img loading="lazy" decoding="async" src="img/logo-green.webp"><span class="btn or">Booker le chef →</span></div>
+ </div>
+</div></div></section>
+
+<section class="lieux" id="lieux"><div class="wrap">
+ <div class="sh" style="margin-top:40px"><div><div class="k">Nos lieux</div><h2 class="disp">Viens manger <em>sur place</em></h2></div><p>L'ambiance, la musique et le plat servi chaud. Réserve ta table pour venir avec ton groupe.</p></div>
+ <div class="lgrid">
+  <div class="lbig"><img loading="lazy" decoding="async" src="img/lieu5-crop.webp" style="object-position:50% 62%"><div class="cap"><div><b>Lieu 1 · Abidjan</b><small>Ouvert tous les jours · 12h à 23h</small></div><span class="btn or">Réserver une table</span></div></div>
+  <div class="lcol">
+   <div class="lsm"><img loading="lazy" decoding="async" src="img/lieu1-crop.webp" style="object-position:50% 52%"><div class="cap"><div><b>Les soirées</b><small>Tablées, musique, ambiance</small></div></div></div>
+   <div class="lsm"><img loading="lazy" decoding="async" src="img/lieu3-crop.webp" style="object-position:50% 45%"><div class="cap"><div><b>Lieu 2 · Terrasse</b><small>Vue sur le lac</small></div><span class="btn gh">Itinéraire</span></div></div>
+  </div>
+ </div>
+</div></section>
+
+<section class="tour" id="tour"><div class="wrap">
+ <div class="sh"><div><div class="k">La tournée</div><h2 class="disp">Le chef <em>vient chez toi</em></h2></div><p>Précommande ton plat avant le pop-up : pas de file d'attente, ton plat est prêt quand tu arrives.</p></div>
+ <div class="rowt"><span class="d">07–08 nov.</span><span class="c">Lille</span><span class="v">Smart Gorilla<br>137 rue d'Arras, 59000 Lille</span><span class="p">25 €</span><span class="btn or">Précommander</span></div>
+ <div class="rowt soon"><span class="d">Bientôt</span><span class="c">Ouagadougou</span><span class="v">Date à venir</span><span class="p">—</span><span class="btn gh">Me prévenir</span></div>
+ <div class="rowt soon"><span class="d">Bientôt</span><span class="c">Douala</span><span class="v">Date à venir</span><span class="p">—</span><span class="btn gh">Me prévenir</span></div>
+</div></section>
+
+<section id="collabs" style="padding-top:20px"><div class="wrap">
+ <div class="sh"><div><div class="k">Collabs</div><h2 class="disp">Ils sont <em>passés goûter</em></h2></div><p>Influenceurs, artistes et marques : les vidéos tournées avec le chef.</p></div>
+ <div class="cgrid">
+  <div class="cc"><img loading="lazy" decoding="async" src="img/collab1-crop.webp" style="object-position:50% 30%"><span class="play"></span><span class="nm">@nom_influenceuse</span></div>
+  <div class="cc"><img loading="lazy" decoding="async" src="img/collab2-crop.webp" style="object-position:50% 40%"><span class="play"></span><span class="nm">@nom_influenceur</span></div>
+  <div class="cc"><img loading="lazy" decoding="async" src="img/collab3-crop.webp" style="object-position:50% 45%"><span class="play"></span><span class="nm">Avec Aromate</span></div>
+  <div class="cc"><img loading="lazy" decoding="async" src="img/collab4-crop.webp" style="object-position:50% 35%"><span class="play"></span><span class="nm">@nom_cheffe</span></div>
+ </div>
+ <div class="book">
+  <div><h3>Booker Joshua Cooker</h3><p>Mariage, anniversaire, pop-up, collab de marque ou vidéo : dis-nous ce que tu prépares.</p></div>
+  <div class="form"><span>Nom</span><span>Téléphone / WhatsApp</span><span>Type d'événement</span><span>Ville et date</span><span class="w">Nombre d'invités, budget, détails…</span><span class="btn">Envoyer la demande</span></div>
+ </div>
+</div></section>
+
+<footer id="footer"><div class="wrap">
+ <div class="ftop">
+  <div><img loading="lazy" decoding="async" src="img/logo-cream.webp" style="height:110px"><h3>Suis Joshua <span>partout</span></h3><p>Les nouvelles vidéos, les dates de la tournée et les plats du jour, chaque jour sur ses réseaux.</p></div>
+  <div class="socs">
+   <div class="soc "><i style="background:linear-gradient(135deg,#f9ce34,#ee2a7b 55%,#6228d7);color:#fff"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></svg></i><div><b>Instagram</b><small>@joshua_cooker · 366K abonnés</small></div><span class="ar">↗</span></div>
+   <div class="soc "><i style="background:#000;color:#fff"><svg viewBox="0 0 24 24"><path d="M14 3v11.5a3.5 3.5 0 1 1-3-3.46V8.4a6.5 6.5 0 1 0 6 6.48V9.3a7 7 0 0 0 4 1.3V7.4A4 4 0 0 1 17 3h-3z" fill="currentColor"/></svg></i><div><b>TikTok</b><small>Joshua Cooker</small></div><span class="ar">↗</span></div>
+   <div class="soc "><i style="background:#1877f2;color:#fff"><svg viewBox="0 0 24 24"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8v3h2.5V21h3z" fill="currentColor"/></svg></i><div><b>Facebook</b><small>Joshua Cooker</small></div><span class="ar">↗</span></div>
+   <div class="soc "><i style="background:#fffc00;color:#111"><svg viewBox="0 0 24 24"><path d="M12 3c3 0 5 2.2 5 5v2.3l1.6-.5c.6-.1.9.6.4 1l-1.8 1.1c.6 1.7 2 3 3.6 3.4-.3.8-1.5 1.1-2.6 1.2l-.3 1.2-1.6-.2c-.9.3-1.6 1.5-4.3 1.5s-3.4-1.2-4.3-1.5l-1.6.2-.3-1.2c-1.1-.1-2.3-.4-2.6-1.2 1.6-.4 3-1.7 3.6-3.4L5 11.8c-.5-.4-.2-1.1.4-1l1.6.5V8c0-2.8 2-5 5-5z" fill="currentColor"/></svg></i><div><b>Snapchat</b><small>Joshua Cooker</small></div><span class="ar">↗</span></div>
+   <div class="soc "><i style="background:#fff;color:#111"><svg viewBox="0 0 24 24"><path d="M16.6 11.2c-.1 0-.2-.1-.3-.1-.2-3-1.8-4.7-4.6-4.7-1.7 0-3.1.7-4 2l1.5 1c.6-1 1.6-1.2 2.5-1.2 1 0 1.8.3 2.2.9.3.4.5 1 .6 1.7-.8-.1-1.6-.2-2.5-.1-2.5.1-4.1 1.6-4 3.6.1 1 .6 1.9 1.4 2.4.7.5 1.6.7 2.5.6 1.2-.1 2.2-.5 2.8-1.4.5-.7.8-1.5.9-2.6.6.4 1 .8 1.3 1.4.4 1 .5 2.6-.8 3.9-1.1 1.1-2.5 1.6-4.6 1.7-2.3 0-4.1-.8-5.2-2.2C7.2 17.1 6.6 15.2 6.6 12.9s.6-4.2 1.7-5.6C9.4 5.9 11.1 5.1 13.4 5.1c2.3 0 4.1.8 5.3 2.2.6.7 1 1.6 1.3 2.6l1.8-.5c-.3-1.3-.9-2.4-1.6-3.3C18.6 4.2 16.3 3.2 13.4 3.2c-2.9 0-5.1 1-6.6 2.8C5.5 7.7 4.8 10 4.8 12.9s.7 5.2 2 6.9c1.5 1.8 3.7 2.8 6.6 2.8 2.6 0 4.4-.7 5.9-2.2 2-1.9 1.9-4.4 1.3-5.9-.5-1.1-1.4-2-2.6-2.6l-1.4-.7zm-4.2 4.7c-1 .1-2-.4-2.1-1.3 0-.7.5-1.4 2.1-1.5h.6c.6 0 1.2.1 1.7.2-.2 2.3-1.3 2.6-2.3 2.6z" fill="currentColor"/></svg></i><div><b>Threads</b><small>@joshua_cooker</small></div><span class="ar">↗</span></div>
+   <div class="soc "><i style="background:#25d366;color:#fff"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3zm4.6 12.6c-.2.6-1.2 1.1-1.7 1.2-.5 0-1 .2-3.2-.7-2.7-1.1-4.4-3.9-4.5-4-.1-.2-1.1-1.4-1.1-2.7s.7-2 .9-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z" fill="currentColor"/></svg></i><div><b>WhatsApp</b><small>Une question ? Écris au chef</small></div><span class="ar">↗</span></div>
+  </div>
+ </div>
+ <div class="fbot"><div class="links"><span>La carte</span><span>Nos lieux</span><span>La tournée</span><span>Collabs</span><span>Booker le chef</span></div><span>© 2026 Joshua Cooker · Site par Kreeative</span></div>
+</div></footer>
+<div style="position:fixed;left:12px;bottom:12px;z-index:99;background:rgba(11,11,10,.82);color:#fff;font:500 12px Outfit,system-ui;padding:8px 12px;border-radius:999px;backdrop-filter:blur(6px)">Concept par <a href="https://kreeative.xyz" style="color:#7fd3a8">Kreeative</a> · plats, prix et noms de lieux d’exemple</div>
+</body></html>
