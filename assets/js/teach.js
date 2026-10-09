@@ -1,4 +1,4 @@
-/* Kreeative — Teach by Kreeative (course platform)
+/* Kreeative — Kreeator Academy (course platform)
    Needs supabase-js (UMD) loaded first. Pages opt in with <body data-teach="landing|welcome|login|learn">.
    Data lives in Supabase (project "Kreeative Teach"); access is enforced there by row level security. */
 (function () {
@@ -567,7 +567,7 @@
       $('[data-cert-score]').textContent = Math.round(c.score / c.total * 100) + '% on the final exam';
       $('[data-cert-date]').textContent = d;
       $('[data-cert-id]').textContent = c.id;
-      document.title = c.name + ' · ' + c.course + ' certificate — Teach by Kreeative';
+      document.title = c.name + ' · ' + c.course + ' certificate — Kreeator Academy';
       show(box, true);
       var pr = $('[data-print]'); if (pr) pr.onclick = function () { window.print(); };
       var cp = $('[data-copy-link]'); if (cp) cp.onclick = function () { navigator.clipboard && navigator.clipboard.writeText(location.href).then(function () { cp.textContent = 'Link copied ✓'; }); };
