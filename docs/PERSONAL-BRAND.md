@@ -1,6 +1,6 @@
 # Aïssa Kee — personal brand brief
 
-Last updated: 1 October 2026. This is the single source of truth for any
+Last updated: 15 October 2026. This is the single source of truth for any
 content, design or planning work on Kee's personal brand (Instagram, TikTok,
 YouTube) and on how it feeds Kreeative. Update it here when numbers, prices or
 the campaign change.
@@ -50,7 +50,8 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 - Goal: 10 first clients this month.
 - Offer: "10 founding client spots · 10% off in October".
 - Plan: 1 main post a day, 3–5 stories, 5 personal DMs to businesses.
-- Comment keywords set up in ManyChat: **SPOT** (all services), **SITE** (websites), **FLYER**, **KIT** (media kits).
+- Comment keywords set up in ManyChat: **SPOT** (all services), **SITE** (websites), **FLYER**, **KIT** (media kits). From the month plan (15 October): the KIT reply sends the free brand-deal guide (kreeative.xyz/teach) first, then the media kit templates, by 27 October; a new **LIVE** keyword, by 31 October, answers with the date of the free live and the Remind me link, after the "Follows your account" check (the reminder on the day comes from Instagram's Remind me: automated DMs only go out within 24 hours of the person's message).
+- Free live: **Sunday 8 November, 2 pm Toronto** (8 pm Paris, 7 pm Abidjan), Instagram Live on @aissakee, in English, 45 minutes: "How I'd land a first paid brand deal with a small account" (the media kit, the first email, where to find brands, questions), then the course by its outcomes only. Scheduled in Instagram on Saturday 31 October.
 - ManyChat partnership (3 October): join the Manychat Partner Program this week (affiliate.manychat.com; 30% recurring for 12 months to start, 40% after 30 paid signups, 50% after 200), launch the GUIDE Reel with the "Follows your account" check (scheduled for 15 October), track it nightly, and pitch a paid collab around 24 October with the real numbers. Pitch deck: https://claude.ai/artifact/LuSAVrR3XFSVHXx4eohxhz. Plan, tracking table and email: `content/2026-10/manychat-pitch.md`. Affiliate links and paid posts are always disclosed (Ad Standards Canada).
 - ManyChat stays on Instagram: its TikTok integration needs a TikTok Business account, which would take @keekyt out of TikTok's Creator Rewards (personal accounts only), and TikTok comment-to-DM is not available in North America. On TikTok, keyword CTAs point to Instagram.
 - Week 1 content (Oct 1–7) is done in English and French.
@@ -61,13 +62,15 @@ These match the live pricing pages (`pricing/`, `teach/`, `shop/`) as of
 - New personal account (Instagram @aissakee, created around 26 September 2026): 31 followers and 5 posts on 1 October. No posts from 3 to 6 October; the plan restarts on 6 October.
 - Goal set on 1 October: 10K followers by Sunday 5 October. Plan: `content/2026-10/sprint-oct-1-5.md`.
 - The deck to keep open while recording, in the concise format Kee asked for on 2 October (one idea per slide: what you see, the hook, where to film, what to do while recording), re-dated on 6 October after three days without posting: 30 ideas from Oct 6 to 16, numbered in posting order, 19 to film in three batches, 11 ready-made posts: https://claude.ai/artifact/HPtDX1WgWjvmw4oWkvCTGJ. Text source: `content/2026-10/plan-oct-6-16.md`; the list to schedule from: `content/2026-10/calendar.md`; the ready-made posts, one folder per post named by number and date: `content/2026-10/posts/`. The research behind the hooks (creator moves, hook bank, lead-magnet flow) stays in `content/2026-10/hooks-oct-1-5.md`.
-- Figma: the Slides file https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj still holds the 1 October draft (21 slides). The rebuild script for the 30-idea deck is ready but Figma's MCP limit blocks it: a Starter plan View or Collab seat gets up to 20 tool calls a month (Figma's table: https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/) and October's are used. A Full or Dev seat gets 200 a day; Figma's upgrade link from the error: https://www.figma.com/files/team/1686940504670007373/all-projects?upgrade=mcp_rate_limit_paywall.
+- Figma: the Slides file https://www.figma.com/slides/fvEAdMudLnlXHcO7nkWDvj still holds the 1 October draft (21 slides). The rebuild script for the 30-idea deck is ready but Figma's MCP limit blocks it (still on 15 October, so the month deck is on the web deck too): a Starter plan View or Collab seat gets up to 20 tool calls a month (Figma's table: https://developers.figma.com/docs/figma-mcp-server/rate-limits-access/) and October's are used. A Full or Dev seat gets 200 a day; Figma's upgrade link from the error: https://www.figma.com/files/team/1686940504670007373/all-projects?upgrade=mcp_rate_limit_paywall.
 - The job, on camera: "I work 20 hours a week at a job." Never name the employer (Kee, 2 October). The "new job that pays more" line is said only once that job is real and current.
 - The $10K story: "$10K this year as a student, $8K already in" ($7,804 verified plus the $830 of gig payouts if they are paid; otherwise say $7.8K). The $10K is the year's target, said as "I'm making", never "I made".
 - Course price: this brief and kreeative.xyz/teach say $59 USD; Kee said $50 on 2 October. Confirm and update both before any public mention; on camera the course is described by outcomes only ("the method to land paid brand deals"), and "$2K brand deals" only with a $2K receipt.
 - Content angle: motivation, and teaching people how to make money online with creative skills, with my Kreeative earnings and work as the proof (real numbers only).
 - Five viewers, since 2 October (not everyone wants a side hustle): the creator who wants to be seen in any niche (how to start, what to film, how to grow), the student who lives what I live (my week, my money, my faith), the student creative with a skill (a way to get paid), the small creator who wants PR and brand deals, and the small business owner. Every idea in `content/2026-10/plan-oct-6-16.md` names its viewer; the mix is about half creator-growth and student life, half money and clients.
 - Instagram videos also go to YouTube Shorts. TikTok gets its own content (below); @keekyt and @bykreeative funnel to the new account.
+- The month, Oct 17 to Nov 15 (planned 15 October), built from a study of what works for Jun Yuh (@jun_yuh) and Abigail Kwame (@muvasclass) right now: a Reel every evening at 7 pm (30), a ready-made post on Monday, Wednesday and Friday at 12 pm (13), a TikTok every weekday at 1:30 pm (20), and the free live on 8 November. The deck, with each week opening on its Saturday run sheet: https://claude.ai/artifact/L8Awe94sHWocoS1G2xGMt2. Text source: `content/2026-10/month-oct-17-nov-15.md`; the posts: `content/2026-10/posts-oct17-nov15/`; the study: `content/2026-10/creator-study-jun-yuh-muvasclass.md`. The next plan is due before Saturday 14 November, whose session films its first week.
+- Creator studies run through the vidIQ connector (Reel lists at 5 credits, a scene-by-scene watch at 10; 150 credits a month, renewing on the 7th). The `creator-study` skill in `.claude/skills/` holds the steps; 15 credits were left on 15 October.
 
 ## TikTok: what works on @keekyt
 
@@ -113,6 +116,7 @@ Rules for showing any of it:
 - **Instagram and YouTube: English only for now** (French paused there as of 1 October 2026, still deciding). When French comes back: **different hashtags** for French, not a translation.
 - **TikTok: bilingual.** French hook first to catch my Francophone audience, then English with French captions so they stick with my English content. French punchline at the end.
 - Each post should have a **different layout/design**, not just a different font.
+- **Filming: every Saturday, about four hours** (15 October). Each Saturday films the week ahead (Reels first, then TikToks, quiet shots, the wrap), from a run sheet at the start of each week of the plan. Only the TikTok topics of the day and answers after a live are filmed on other days. Anything said about my process on camera or in a post matches this.
 - Reels: keep text inside Instagram safe zones (sides ≥ 90 px, top ≥ 250 px, bottom ≈ 400 px clear).
 - Export in high quality (4K when possible) and **double-check text before handing over** (no cut-off letters).
 - Photos of me: **never cover my face with text**, don't crop my hair, don't zoom in too much. Light skin smoothing only if I ask, and **not** on the final/finished look.

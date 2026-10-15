@@ -68,5 +68,14 @@ source of truth and update it there when facts change.
   first, where to film and what to do while recording, the end line. Ideas Kee
   does not film (carousels, quote posts, text Reels) are made for her as
   files in `content/<month>/posts/` and get a slide too.
+- Kee films every Saturday, for about four hours (15 October). A plan puts
+  the week's Reels and TikToks into that Saturday, and each week of the deck
+  opens with its run sheet: when, where, what to film, in what order. Only
+  what can't be filmed ahead (a TikTok topic of the day, an answer after a
+  live) goes on another day. A line about her own process in a post has to
+  match this.
+- To analyse another creator's videos and turn what works into a plan, use
+  the `creator-study` skill (`.claude/skills/creator-study/`). It runs on the
+  vidIQ connector, which charges credits: check the balance first.
 - Everything else in the repo is the Kreeative studio website. Change it only
   when asked.

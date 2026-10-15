@@ -17,6 +17,9 @@ content/
     plan-oct-6-16.md           the deck to record from: one idea per slide, captions for the posts
     manychat-pitch.md          the ManyChat plan, the pitch deck's text source, tracking table, email
     posts/                     the ready-made posts (PNG per carousel slide, MP4 for text Reels)
+    creator-study-jun-yuh-muvasclass.md   a creator study: their Reels, what works, what Kee copies
+    month-oct-17-nov-15.md     the month: Saturday run sheets, the day-by-day list, every post and TikTok
+    posts-oct17-nov15/         that month's ready-made posts, one folder per post, named NN-monDD-slug
     calendar.md                what goes out when, per platform
     08-reel-founding-spots.md  one file per piece, named DD-format-slug.md
     09-carousel-media-kit.md
