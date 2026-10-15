@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="fr-CI">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder (kreeative.xyz/concepts/sonia-luxury-hair/). Without the final slash the relative
+       links below would point one folder up, so add it before anything loads. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Sonia Luxury Hair</title>
+  <meta name="description" content="Concept par Kreeative. Sonia Luxury Hair : mèches, perruques et cheveux humains vierges. Une proposition de nouvelle identité, en français et en anglais.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Sonia Luxury Hair — concept par Kreeative">
+  <meta property="og:description" content="Une proposition de nouvelle identité et de boutique en ligne pour Sonia Luxury Hair : mèches, perruques et cheveux humains vierges.">
+  <meta property="og:locale" content="fr_CI">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:url" content="https://kreeative.xyz/concepts/sonia-luxury-hair/">
+  <meta property="og:image" content="https://kreeative.xyz/concepts/sonia-luxury-hair/img/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f6d6e2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <!-- Hide animated elements until Motion takes over; always reveal after 3 s in case the script never loads -->
+  <script>document.documentElement.classList.add('js', 'motion-pending'); setTimeout(function () { document.documentElement.classList.remove('motion-pending'); }, 3000);</script>
+  <script src="https://cdn.jsdelivr.net/npm/motion@13.4.3/dist/motion.js" defer></script>
+  <script src="i18n.js" defer></script>
+  <script src="site.js" defer></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.4-9.4-9.1C1.3 8.1 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.7 3.6 4.4 6.9-1.9 4.7-9.4 9.1-9.4 9.1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="currentColor"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2c.6 4.9 2.6 8.3 10 10-7.4 1.7-9.4 5.1-10 10-.6-4.9-2.6-8.3-10-10 7.4-1.7 9.4-5.1 10-10z" fill="currentColor"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 32 32"><path d="M16 4c3 3.5 3 8.5 0 12-3-3.5-3-8.5 0-12zM8 15c4.5-.4 7 2.4 8 6.5-4.5.4-7-2.4-8-6.5zm16 0c-4.5-.4-7 2.4-8 6.5 4.5.4 7-2.4 8-6.5zM16 21v7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 32 32"><path d="M16 4c4.5 6 8 10.4 8 15a8 8 0 0 1-16 0c0-4.6 3.5-9 8-15z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M12 19.5a4 4 0 0 0 4 4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+    <symbol id="i-time" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M16 9v7.5l5 3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M15.5 3c.4 2.4 2 4 4.5 4.2v3c-1.7 0-3.2-.5-4.5-1.4v6.4a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v3.1a2.7 2.7 0 1 0 1.8 2.5V3z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="concept-bar" role="note">
+  <span data-i18n-html="concept.text"><strong>Concept</strong> préparé par <a href="https://kreeative.xyz">Kreeative</a> pour Sonia Luxury Hair&nbsp;: une proposition de nouvelle identité et de boutique en ligne, pas encore le site officiel.</span>
+  <a class="concept-bar__cta" href="https://cal.com/kreeative/quick-chat" data-i18n="concept.cta">Réserver 15 min avec Kee</a>
+</div>
+
+<header class="head" data-head>
+  <nav class="head__nav" id="menu" aria-label="Menu principal" data-i18n-attr="aria-label:nav.label">
+    <a href="#collection" data-i18n="nav.shop">La collection</a>
+    <a href="#textures" data-i18n="nav.textures">Textures</a>
+    <a href="#longueurs" data-i18n="nav.length">Longueurs</a>
+    <a href="#cercle" data-i18n="nav.circle">Le Cercle</a>
+  </nav>
+  <a class="logo" href="#top" aria-label="Sonia Luxury Hair, accueil" data-i18n-attr="aria-label:nav.home">
+    <span class="logo__name">Sonia</span>
+    <span class="logo__line">Luxury Hair</span>
+  </a>
+  <div class="head__tools">
+    <div class="lang" role="group" aria-label="Langue" data-i18n-attr="aria-label:lang.label">
+      <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <span class="icon-btn icon-btn--wish" role="img" aria-label="Favoris" data-i18n-attr="aria-label:wish.label">
+      <svg aria-hidden="true"><use href="#i-heart"/></svg>
+      <span class="count" data-wish-count hidden>0</span>
+    </span>
+    <button class="icon-btn" type="button" data-bag-open aria-label="Ouvrir le panier" data-i18n-attr="aria-label:bag.open">
+      <svg aria-hidden="true"><use href="#i-bag"/></svg>
+      <span class="count" data-bag-count hidden>0</span>
+    </button>
+    <button class="head__toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu" data-i18n-attr="aria-label:nav.toggle"><span></span><span></span></button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- Hero: the name set huge behind the model, as on a boutique window -->
+  <section class="hero" aria-labelledby="hero-title">
+    <p class="hero__eyebrow" data-hero data-i18n="hero.eyebrow">Bienvenue chez Sonia Luxury Hair</p>
+    <div class="hero__stage">
+      <h1 class="hero__word" id="hero-title"><span class="hero__name">Sonia</span><span class="sr-only"> Luxury Hair</span></h1>
+      <div class="hero__model" data-hero>
+        <img src="img/cut/hero-model-700.webp" srcset="img/cut/hero-model-480.webp 480w, img/cut/hero-model-700.webp 700w, img/cut/hero-model-960.webp 960w" sizes="(max-width: 700px) 92vw, 560px" width="960" height="1170" alt="Une femme aux longs cheveux noirs ondulés, barrettes roses et t-shirt rose" data-i18n-attr="alt:hero.alt" fetchpriority="high">
+      </div>
+    </div>
+    <div class="hero__foot">
+      <div class="hero__lead" data-hero>
+        <p data-i18n="hero.lead">Des cheveux humains vierges, choisis un à un, pour celles qui veulent le meilleur.</p>
+        <a class="btn btn--ink" href="#collection"><span data-i18n="hero.cta">Découvrir la collection</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+      <a class="hero__aside" href="#campagne" data-hero>
+        <span class="hero__aside-k" data-i18n="hero.asideK">Campagne 01</span>
+        <span data-i18n="hero.aside">L’édition Rose</span>
+        <svg aria-hidden="true"><use href="#i-arrow"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <span data-i18n="mq.1">Achetez la vôtre aujourd’hui</span><svg><use href="#i-spark"/></svg>
+      <span data-i18n="mq.2">Luxury hair</span><svg><use href="#i-spark"/></svg>
+      <span data-i18n="mq.3">100 % cheveux humains</span><svg><use href="#i-spark"/></svg>
+      <span data-i18n="mq.4">Livraison express</span><svg><use href="#i-spark"/></svg>
+      <span data-i18n="mq.5">Perruques prêtes à porter</span><svg><use href="#i-spark"/></svg>
+    </div>
+  </div>
+
+  <!-- Best sellers, product shots on white like a boutique counter -->
+  <section class="section collection" id="collection" aria-labelledby="col-title">
+    <div class="section__head" data-reveal>
+      <p class="eyebrow" data-i18n="col.eyebrow">La collection</p>
+      <h2 class="title" id="col-title" data-i18n="col.title">Nos best-sellers</h2>
+    </div>
+    <div class="products" data-stagger>
+      <article class="product" data-product data-id="wave" data-price="52000" data-photo="img/cut/prod-wave-400.webp">
+        <div class="product__media">
+          <span class="tag" data-i18n="tag.best">Best-seller</span>
+          <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
+          <img src="img/cut/prod-wave-600.webp" srcset="img/cut/prod-wave-400.webp 400w, img/cut/prod-wave-600.webp 600w, img/cut/prod-wave-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Trois mèches body wave noires sur fond blanc" data-i18n-attr="alt:alt.wave" loading="lazy">
+        </div>
+        <h3 class="product__name" data-i18n="n.wave">Mèches Body Wave</h3>
+        <p class="product__meta" data-i18n="m.wave">Ondulé · 12″ à 30″</p>
+        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="52000"></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+      </article>
+      <article class="product" data-product data-id="lisse" data-price="45000" data-photo="img/cut/prod-lisse-400.webp">
+        <div class="product__media">
+          <span class="tag" data-i18n="tag.new">Nouveau</span>
+          <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
+          <img src="img/cut/prod-lisse-600.webp" srcset="img/cut/prod-lisse-400.webp 400w, img/cut/prod-lisse-600.webp 600w, img/cut/prod-lisse-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Trois mèches lisses noires sur fond blanc" data-i18n-attr="alt:alt.lisse" loading="lazy">
+        </div>
+        <h3 class="product__name" data-i18n="n.lisse">Mèches Lisses</h3>
+        <p class="product__meta" data-i18n="m.lisse">Lisse · 12″ à 30″</p>
+        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="45000"></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+      </article>
+      <article class="product" data-product data-id="frontal" data-price="68000" data-photo="img/cut/prod-frontal-400.webp">
+        <div class="product__media">
+          <span class="tag" data-i18n="tag.hd">Lace HD</span>
+          <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
+          <img src="img/cut/prod-frontal-600.webp" srcset="img/cut/prod-frontal-400.webp 400w, img/cut/prod-frontal-600.webp 600w, img/cut/prod-frontal-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Un frontal lace 13×4 aux cheveux noirs body wave" data-i18n-attr="alt:alt.frontal" loading="lazy">
+        </div>
+        <h3 class="product__name" data-i18n="n.frontal">Frontal 13×4 Body Wave</h3>
+        <p class="product__meta" data-i18n="m.frontal">Lace HD transparente · 14″ à 22″</p>
+        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="68000"></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+      </article>
+      <article class="product" data-product data-id="perruque" data-price="185000" data-photo="img/cut/prod-perruque-400.webp">
+        <div class="product__media">
+          <span class="tag" data-i18n="tag.ready">Prête à porter</span>
+          <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
+          <img src="img/cut/prod-perruque-600.webp" srcset="img/cut/prod-perruque-400.webp 400w, img/cut/prod-perruque-600.webp 600w, img/cut/prod-perruque-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Une perruque noire body wave avec raie de côté, sur une tête de présentation" data-i18n-attr="alt:alt.perruque" loading="lazy">
+        </div>
+        <h3 class="product__name" data-i18n="n.perruque">Perruque Body Wave</h3>
+        <p class="product__meta" data-i18n="m.perruque">Lace frontale · 24″ · densité 200 %</p>
+        <p class="product__price"><span data-money="185000"></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+      </article>
+    </div>
+  </section>
+
+  <!-- Categories: pink circles, one per kind of piece -->
+  <section class="section cats" aria-labelledby="cat-title">
+    <h2 class="title title--italic" id="cat-title" data-reveal data-i18n-html="cat.title">Acheter par <em>catégorie</em></h2>
+    <ul class="cats__list" data-stagger>
+      <li><a href="#collection"><span class="cats__disc"><img src="img/cut/cat-meches-400.webp" srcset="img/cut/cat-meches-240.webp 240w, img/cut/cat-meches-400.webp 400w" sizes="(max-width: 700px) 28vw, 180px" width="400" height="400" alt="" loading="lazy"></span><span data-i18n="cat.1">Mèches</span></a></li>
+      <li><a href="#collection"><span class="cats__disc"><img src="img/cut/cat-perruques-400.webp" srcset="img/cut/cat-perruques-240.webp 240w, img/cut/cat-perruques-400.webp 400w" sizes="(max-width: 700px) 28vw, 180px" width="400" height="400" alt="" loading="lazy"></span><span data-i18n="cat.2">Perruques</span></a></li>
+      <li><a href="#collection"><span class="cats__disc"><img src="img/cut/cat-frontals-400.webp" srcset="img/cut/cat-frontals-240.webp 240w, img/cut/cat-frontals-400.webp 400w" sizes="(max-width: 700px) 28vw, 180px" width="400" height="400" alt="" loading="lazy"></span><span data-i18n="cat.3">Closures &amp; frontals</span></a></li>
+      <li><a href="#collection"><span class="cats__disc"><img src="img/cut/cat-bonnets-400.webp" srcset="img/cut/cat-bonnets-240.webp 240w, img/cut/cat-bonnets-400.webp 400w" sizes="(max-width: 700px) 28vw, 180px" width="400" height="400" alt="" loading="lazy"></span><span data-i18n="cat.4">Bonnets en satin</span></a></li>
+      <li><a href="#collection"><span class="cats__disc"><img src="img/cut/cat-accessoires-400.webp" srcset="img/cut/cat-accessoires-240.webp 240w, img/cut/cat-accessoires-400.webp 400w" sizes="(max-width: 700px) 28vw, 180px" width="400" height="400" alt="" loading="lazy"></span><span data-i18n="cat.5">Accessoires</span></a></li>
+    </ul>
+  </section>
+
+  <!-- Campaign: thin capitals beside the picture, like an editorial spread -->
+  <section class="campaign" id="campagne" aria-labelledby="camp-title">
+    <div class="campaign__text" data-reveal>
+      <p class="eyebrow" data-i18n="camp.eyebrow">Campagne 01 · L’édition Rose</p>
+      <h2 class="campaign__title" id="camp-title" data-i18n-html="camp.title">L’expérience <em>glam</em> ultime</h2>
+      <p class="campaign__copy" data-i18n="camp.copy">Nos perruques lace arrivent coupées, coiffées et prêtes à porter. Vous la posez en quelques minutes, sans colle, et vous sortez. Le reste, c’est votre style.</p>
+      <a class="btn btn--ink" href="#collection"><span data-i18n="camp.cta">Découvrir les perruques</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <p class="campaign__tag" data-i18n="camp.tag">Partagez votre look avec #SoniaLuxuryHair</p>
+    </div>
+    <figure class="campaign__photo" data-reveal>
+      <img src="img/photos/campaign-900.webp" srcset="img/photos/campaign-600.webp 600w, img/photos/campaign-900.webp 900w, img/photos/campaign-1200.webp 1200w" sizes="(max-width: 860px) 100vw, 46vw" width="1200" height="1500" alt="Trois femmes en t-shirt rose, longs cheveux noirs lisses, barrettes et bandeau roses" data-i18n-attr="alt:camp.alt" loading="lazy">
+    </figure>
+  </section>
+
+  <!-- Textures -->
+  <section class="section textures" id="textures" aria-labelledby="tex-title">
+    <div class="section__head" data-reveal>
+      <p class="eyebrow" data-i18n="tex.eyebrow">Nos textures</p>
+      <h2 class="title" id="tex-title" data-i18n="tex.title">Des textures qui font tourner les têtes</h2>
+      <p class="section__lead" data-i18n="tex.lead">Quatre finitions signature, en cheveux humains vierges. Avant de partir, chaque mèche passe entre les mains de l’équipe.</p>
+    </div>
+    <div class="textures__body">
+      <figure class="textures__photo" data-reveal>
+        <img src="img/cut/textures-700.webp" srcset="img/cut/textures-480.webp 480w, img/cut/textures-700.webp 700w" sizes="(max-width: 860px) 90vw, 44vw" width="700" height="833" alt="Quatre mèches noires accrochées à un anneau doré : lisse, body wave, deep wave et kinky curly" data-i18n-attr="alt:tex.alt" loading="lazy">
+      </figure>
+      <ol class="textures__list" data-stagger>
+        <li><h3 data-i18n="tex.1">Lisse soyeux</h3><p data-i18n="tex.1d">Net et brillant, du matin au soir.</p></li>
+        <li><h3>Body wave</h3><p data-i18n="tex.2d">Des ondulations souples qui bougent avec vous.</p></li>
+        <li><h3>Deep wave</h3><p data-i18n="tex.3d">Des vagues serrées, pleines de volume.</p></li>
+        <li><h3>Kinky curly</h3><p data-i18n="tex.4d">Des boucles serrées qui se fondent avec les cheveux naturels.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Length guide: tap a length, the line moves down the back -->
+  <section class="section length" id="longueurs" aria-labelledby="len-title">
+    <div class="length__head" data-reveal>
+      <p class="eyebrow" data-i18n="len.eyebrow">Le guide</p>
+      <h2 class="title" id="len-title" data-i18n="len.title">Trouvez votre longueur</h2>
+      <p class="section__lead" data-i18n="len.lead">Choisissez une longueur pour voir où elle tombe et combien de mèches il faut pour un rendu fourni.</p>
+      <div class="length__chips" role="radiogroup" aria-labelledby="len-title" data-len-chips></div>
+    </div>
+    <figure class="length__figure" data-reveal aria-hidden="true">
+      <svg viewBox="0 30 300 470" class="length__svg">
+        <defs>
+          <clipPath id="hairClip"><rect x="0" y="0" width="300" height="258" data-len-clip/></clipPath>
+          <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2cbda"/><stop offset="1" stop-color="#e7b0c5"/></linearGradient>
+          <linearGradient id="hairShine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0d0a0b"/><stop offset=".45" stop-color="#2c2226"/><stop offset=".55" stop-color="#2c2226"/><stop offset="1" stop-color="#0d0a0b"/></linearGradient>
+        </defs>
+        <g class="length__ticks" data-len-ticks></g>
+        <circle cx="150" cy="86" r="36" fill="url(#skin)"/>
+        <path class="length__body" fill="url(#skin)" d="M137 118C136.8 122.7 140.2 139.7 136 146C131.8 152.3 120.3 152.7 112 156C103.7 159.3 92.7 162.3 86 166C79.3 169.7 75.7 172.7 72 178C68.3 183.3 66.0 187.7 64 198C62.0 208.3 61.2 224.7 60 240C58.8 255.3 57.3 273.3 57 290C56.7 306.7 57.3 323.7 58 340C58.7 356.3 60.7 375.7 61 388C61.3 400.3 59.5 406.7 60 414C60.5 421.3 62.0 428.8 64 432C66.0 435.2 70.0 435.7 72 433C74.0 430.3 75.7 422.8 76 416C76.3 409.2 74.5 403.0 74 392C73.5 381.0 72.8 365.3 73 350C73.2 334.7 73.8 315.7 75 300C76.2 284.3 77.8 269.0 80 256C82.2 243.0 86.0 223.0 88 222C90.0 221.0 90.7 238.3 92 250C93.3 261.7 94.7 278.7 96 292C97.3 305.3 99.8 318.3 100 330C100.2 341.7 99.0 351.7 97 362C95.0 372.3 90.2 382.3 88 392C85.8 401.7 84.2 409.3 84 420C83.8 430.7 85.8 442.7 87 456C88.2 469.3 70.7 492.7 91 500C111.3 507.3 188.7 507.3 209 500C229.3 492.7 211.8 469.3 213 456C214.2 442.7 216.2 430.7 216 420C215.8 409.3 214.2 401.7 212 392C209.8 382.3 205.0 372.3 203 362C201.0 351.7 199.8 341.7 200 330C200.2 318.3 202.7 305.3 204 292C205.3 278.7 206.7 261.7 208 250C209.3 238.3 210.0 221.0 212 222C214.0 223.0 217.8 243.0 220 256C222.2 269.0 223.8 284.3 225 300C226.2 315.7 226.8 334.7 227 350C227.2 365.3 226.5 381.0 226 392C225.5 403.0 223.7 409.2 224 416C224.3 422.8 226.0 430.3 228 433C230.0 435.7 234.0 435.2 236 432C238.0 428.8 239.5 421.3 240 414C240.5 406.7 238.7 400.3 239 388C239.3 375.7 241.3 356.3 242 340C242.7 323.7 243.3 306.7 243 290C242.7 273.3 241.2 255.3 240 240C238.8 224.7 238.0 208.3 236 198C234.0 187.7 231.7 183.3 228 178C224.3 172.7 220.7 169.7 214 166C207.3 162.3 196.3 159.3 188 156C179.7 152.7 168.2 152.3 164 146C159.8 139.7 163.2 122.7 163 118Z"/>
+        <path class="length__hair" fill="url(#hairShine)" clip-path="url(#hairClip)" d="M150 44C174 44 190 60 192 88C194 118 196 150 202 182C205 200 205 214 205 236L205 600L95 600L95 236C95 214 95 200 98 182C104 150 106 118 108 88C110 60 126 44 150 44Z"/>
+        <line class="length__line" x1="44" x2="256" y1="258" y2="258" data-len-line/>
+      </svg>
+    </figure>
+    <div class="length__result" data-reveal>
+      <div class="length__out" aria-live="polite">
+        <p class="length__value"><span data-len-in>18″</span> <span class="length__cm" data-len-cm>46 cm</span></p>
+        <p class="length__copy" data-len-copy></p>
+        <p class="length__bundles" data-len-bundles></p>
+      </div>
+      <p class="length__tip" data-i18n="len.tip">Bon à savoir : la longueur se mesure mèche tendue. Ondulée, elle paraît environ 5 cm plus courte ; bouclée, environ 10 cm.</p>
+    </div>
+  </section>
+
+  <!-- Promise: the shop's own motto, then three promises -->
+  <section class="section promise" aria-labelledby="promise-title">
+    <figure class="promise__quote" data-reveal>
+      <blockquote><p id="promise-title" data-i18n="pro.quote">« Une belle chevelure n’est pas une dépense, c’est un investissement. »</p></blockquote>
+      <figcaption data-i18n="pro.by">La devise de Sonia Luxury Hair</figcaption>
+    </figure>
+    <ul class="promise__list" data-stagger>
+      <li><svg aria-hidden="true"><use href="#i-hand"/></svg><h3 data-i18n="pro.1">Choisis un à un</h3><p data-i18n="pro.1d">Des cheveux humains vierges, triés et vérifiés à la main avant d’entrer en boutique.</p></li>
+      <li><svg aria-hidden="true"><use href="#i-drop"/></svg><h3 data-i18n="pro.2">Doux et brillants</h3><p data-i18n="pro.2d">Des cuticules intactes, toutes dans le même sens : la douceur tient, lavage après lavage.</p></li>
+      <li><svg aria-hidden="true"><use href="#i-time"/></svg><h3 data-i18n="pro.3">Faits pour durer</h3><p data-i18n="pro.3d">Colorez, lissez, bouclez : bien entretenus, ils vous suivent pendant des années.</p></li>
+    </ul>
+  </section>
+
+  <!-- Packaging: bundles on a gold rail with their tags, and the signature bag -->
+  <section class="section pack" id="emballage" aria-labelledby="pack-title">
+    <div class="pack__text" data-reveal>
+      <p class="eyebrow" data-i18n="pack.eyebrow">L’emballage</p>
+      <h2 class="title" id="pack-title" data-i18n="pack.title">Livrée comme un cadeau</h2>
+      <p class="section__lead" data-i18n="pack.lead">Chaque commande part dans notre sac signature, avec son papier de soie rose et une étiquette qui indique votre texture, votre longueur et votre style.</p>
+      <ul class="pack__list">
+        <li data-i18n="pack.1">Sac blanc, anses en corde rose, logo doré</li>
+        <li data-i18n="pack.2">Étiquette texture, longueur et style sur chaque mèche</li>
+        <li data-i18n="pack.3">Carte d’entretien glissée dans le papier de soie</li>
+      </ul>
+    </div>
+    <div class="pack__scene" data-reveal aria-hidden="true">
+      <span class="rail"></span>
+      <div class="htag htag--front"><span class="htag__ring"></span><b>Sonia</b><i>Luxury Hair</i><span class="htag__line" data-i18n="tag.line">100 % cheveux humains</span></div>
+      <div class="htag htag--back"><span class="htag__ring"></span>
+        <span class="htag__k" data-i18n="tag.style">Style</span>
+        <span class="htag__opts"><i data-i18n="tag.o1">Lisse</i><i class="on">Body wave</i><i>Deep wave</i><i>Kinky curly</i></span>
+        <span class="htag__k" data-i18n="tag.length">Longueur</span><span class="htag__field">22″</span>
+        <span class="htag__k" data-i18n="tag.origin">Origine</span><span class="htag__field" data-i18n="tag.tex">Cheveux vierges</span>
+        <span class="htag__mono">S</span>
+      </div>
+      <div class="bag-art">
+        <svg viewBox="0 0 320 340" role="presentation">
+          <defs>
+            <linearGradient id="bagFront" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#f4eef0"/></linearGradient>
+            <linearGradient id="bagSide" x1="0" x2="1"><stop offset="0" stop-color="#e7dfe2"/><stop offset="1" stop-color="#d9cfd3"/></linearGradient>
+            <linearGradient id="tissue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6b9d2"/><stop offset="1" stop-color="#eaa2c1"/></linearGradient>
+          </defs>
+          <path d="M70 92 C62 30 128 18 130 92" fill="none" stroke="#e58fb5" stroke-width="7" stroke-linecap="round" stroke-dasharray="5 3"/>
+          <path d="M150 92 C150 18 226 30 212 92" fill="none" stroke="#e58fb5" stroke-width="7" stroke-linecap="round" stroke-dasharray="5 3"/>
+          <path d="M44 96 C70 52 92 78 104 60 C118 84 136 40 152 70 C168 44 182 82 198 58 C212 80 232 56 252 96 Z" fill="url(#tissue)"/>
+          <path d="M70 70 C88 86 100 64 112 88 L96 96 Z M170 66 C186 88 204 62 222 92 L196 96 Z" fill="#fbd3e3" opacity=".9"/>
+          <path d="M252 96 L292 112 L292 326 L252 336 Z" fill="url(#bagSide)"/>
+          <rect x="28" y="96" width="224" height="240" fill="url(#bagFront)"/>
+          <rect x="28" y="96" width="224" height="240" fill="none" stroke="#e3d8dc"/>
+          <ellipse cx="100" cy="112" rx="6" ry="3" fill="#d9cfd3"/><ellipse cx="180" cy="112" rx="6" ry="3" fill="#d9cfd3"/>
+          <text x="140" y="214" text-anchor="middle" font-family="'Bodoni Moda', Didot, Georgia, serif" font-size="40" font-weight="500" letter-spacing="7" fill="#c9a45c">SONIA</text>
+          <text x="141" y="236" text-anchor="middle" font-family="Jost, 'Futura', sans-serif" font-size="9.5" font-weight="500" letter-spacing="6" fill="#c9a45c">LUXURY HAIR</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loyalty circle -->
+  <section class="circle" id="cercle" aria-labelledby="circle-title">
+    <div class="circle__head" data-reveal>
+      <svg class="badge" viewBox="0 0 200 200" aria-hidden="true">
+        <defs><path id="ring" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>
+        <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width=".8"/>
+        <circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" stroke-width=".8"/>
+        <text font-family="Jost, sans-serif" font-size="11.5" font-weight="500" letter-spacing="5.1" fill="currentColor"><textPath href="#ring">SONIA · LUXURY HAIR · LE CERCLE · SONIA · LUXURY HAIR ·</textPath></text>
+        <text x="100" y="124" text-anchor="middle" font-family="'Bodoni Moda', Didot, Georgia, serif" font-size="70" fill="currentColor">S</text>
+      </svg>
+      <p class="eyebrow" data-i18n="circle.eyebrow">Fidélité</p>
+      <h2 class="title" id="circle-title" data-i18n="circle.title">Le Cercle Sonia</h2>
+      <p class="section__lead" data-i18n="circle.lead">Chaque commande vous rapporte des points. Plus vous revenez, plus le Cercle vous gâte : avant-premières, cadeaux et soins offerts.</p>
+    </div>
+    <ol class="tiers" data-stagger>
+      <li class="tier tier--rose">
+        <p class="tier__name">Rose</p>
+        <p class="tier__when" data-i18n="tier.1w">Dès l’inscription</p>
+        <ul>
+          <li data-i18n="tier.1a">1 point pour chaque 1 000 F CFA dépensés</li>
+          <li data-i18n="tier.1b">100 points = 10 000 F CFA offerts</li>
+          <li data-i18n="tier.1c">Les nouveautés avant tout le monde</li>
+          <li data-i18n="tier.1d">Une surprise pour votre anniversaire</li>
+        </ul>
+      </li>
+      <li class="tier tier--gold">
+        <p class="tier__name" data-i18n="tier.2n">Or</p>
+        <p class="tier__when" data-i18n="tier.2w">Dès 300 000 F CFA par an</p>
+        <ul>
+          <li data-i18n="tier.2a">Tous les avantages Rose</li>
+          <li data-i18n="tier.2b">Livraison offerte sur chaque commande</li>
+          <li data-i18n="tier.2c">Un bonnet en satin offert chaque année</li>
+        </ul>
+      </li>
+      <li class="tier tier--diamond">
+        <p class="tier__name" data-i18n="tier.3n">Diamant</p>
+        <p class="tier__when" data-i18n="tier.3w">Dès 750 000 F CFA par an</p>
+        <ul>
+          <li data-i18n="tier.3a">Tous les avantages Or</li>
+          <li data-i18n="tier.3b">Un rendez-vous conseil privé avec l’équipe</li>
+          <li data-i18n="tier.3c">La remise en forme de votre perruque, une fois par an</li>
+        </ul>
+      </li>
+    </ol>
+    <div class="circle__cta" data-reveal>
+      <button class="btn btn--rose" type="button" data-join data-i18n="circle.cta">Rejoindre le Cercle · gratuit</button>
+      <p class="circle__note" data-join-note role="status"></p>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="section reviews" id="avis" aria-labelledby="rev-title">
+    <div class="section__head" data-reveal>
+      <p class="eyebrow" data-i18n="rev.eyebrow">Avis</p>
+      <h2 class="title" id="rev-title" data-i18n="rev.title">Elles en parlent</h2>
+      <p class="reviews__score"><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span> <span data-i18n="rev.score">4,9 sur 5</span></p>
+    </div>
+    <ul class="reviews__list" data-stagger>
+      <li class="review">
+        <span class="stars" role="img" aria-label="5 étoiles sur 5" data-i18n-attr="aria-label:rev.stars"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></span>
+        <h3 data-i18n="rev.1t">Ma lace est invisible</h3>
+        <p data-i18n="rev.1">Je l’ai posée en vingt minutes et personne n’a vu la différence avec mes vrais cheveux. Trois mois plus tard, elle est toujours aussi douce.</p>
+        <p class="review__by">Aïcha K. · <span data-i18n="rev.p1">Perruque lisse 22″</span></p>
+      </li>
+      <li class="review">
+        <span class="stars" role="img" aria-label="5 étoiles sur 5" data-i18n-attr="aria-label:rev.stars"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></span>
+        <h3 data-i18n="rev.2t">Le colis le plus chic</h3>
+        <p data-i18n="rev.2">Le sac rose, le papier de soie, l’étiquette avec ma longueur… J’ai eu l’impression d’ouvrir un cadeau.</p>
+        <p class="review__by">Grâce T. · <span data-i18n="rev.p2">Mèches Natural Wave 20″</span></p>
+      </li>
+      <li class="review">
+        <span class="stars" role="img" aria-label="5 étoiles sur 5" data-i18n-attr="aria-label:rev.stars"><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg><svg aria-hidden="true"><use href="#i-star"/></svg></span>
+        <h3 data-i18n="rev.3t">Des mèches qui tiennent</h3>
+        <p data-i18n="rev.3">Lissées, bouclées, lavées chaque semaine : mes body wave n’ont pas bougé. Je recommande les yeux fermés.</p>
+        <p class="review__by">Mariam D. · <span data-i18n="rev.p3">Mèches Body Wave 24″</span></p>
+      </li>
+    </ul>
+    <p class="reviews__note" data-i18n="rev.note">Avis rédigés pour l’exemple : ce site est un concept.</p>
+  </section>
+
+  <!-- The brand world: posts set in the new identity -->
+  <section class="section world" aria-labelledby="world-title">
+    <div class="section__head" data-reveal>
+      <p class="eyebrow">#SoniaLuxuryHair</p>
+      <h2 class="title" id="world-title" data-i18n="world.title">L’univers Sonia</h2>
+      <p class="section__lead" data-i18n="world.lead">La nouvelle identité, déclinée comme sur votre fil : le nom, le monogramme, le rose et le noir.</p>
+      <a class="social-link" href="https://www.tiktok.com/@sonia110.camaraa" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-tiktok"/></svg><span data-i18n="world.follow">Suivre Sonia sur TikTok</span> <span class="social-link__h">@sonia110.camaraa</span></a>
+    </div>
+    <ul class="world__grid" data-stagger>
+      <li class="post post--photo">
+        <img src="img/photos/post-profile-600.webp" srcset="img/photos/post-profile-400.webp 400w, img/photos/post-profile-600.webp 600w, img/photos/post-profile-800.webp 800w" sizes="(max-width: 700px) 46vw, 31vw" width="800" height="1000" alt="" loading="lazy">
+        <span class="post__logo post__logo--rose"><b>Sonia</b><i>Luxury Hair</i></span>
+      </li>
+      <li class="post post--photo">
+        <img src="img/photos/post-bundle-600.webp" srcset="img/photos/post-bundle-400.webp 400w, img/photos/post-bundle-600.webp 600w" sizes="(max-width: 700px) 46vw, 31vw" width="600" height="750" alt="" loading="lazy">
+        <svg class="post__badge" viewBox="0 0 200 200" aria-hidden="true">
+          <defs><path id="ring2" d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"/></defs>
+          <circle cx="100" cy="100" r="98" fill="rgba(255,255,255,.9)"/><circle cx="100" cy="100" r="62" fill="none" stroke="#a8285f" stroke-width=".8"/>
+          <text font-family="Jost, sans-serif" font-size="12.5" font-weight="500" letter-spacing="5.6" fill="#a8285f"><textPath href="#ring2">SONIA · LUXURY HAIR · SONIA · LUXURY HAIR ·</textPath></text>
+          <text x="100" y="128" text-anchor="middle" font-family="'Bodoni Moda', Didot, Georgia, serif" font-size="84" fill="#a8285f">S</text>
+        </svg>
+      </li>
+      <li class="post post--ink">
+        <span class="post__logo post__logo--rose post__logo--big"><b>Sonia</b><i>Luxury Hair</i></span>
+      </li>
+      <li class="post post--rose">
+        <span class="post__stack"><b>Sonia</b><b>Luxury</b><i>Hair collection</i></span>
+      </li>
+      <li class="post post--photo">
+        <img src="img/photos/post-back-600.webp" srcset="img/photos/post-back-400.webp 400w, img/photos/post-back-600.webp 600w, img/photos/post-back-800.webp 800w" sizes="(max-width: 700px) 46vw, 31vw" width="800" height="1000" alt="" loading="lazy">
+        <span class="post__vert" aria-hidden="true"><b>S</b><b>O</b><b>N</b><b>I</b><b>A</b></span>
+      </li>
+      <li class="post post--photo">
+        <img src="img/photos/post-comb-600.webp" srcset="img/photos/post-comb-400.webp 400w, img/photos/post-comb-600.webp 600w, img/photos/post-comb-800.webp 800w" sizes="(max-width: 700px) 46vw, 31vw" width="800" height="1000" alt="" loading="lazy">
+        <span class="post__logo post__logo--white"><b>Sonia</b><i>Luxury Hair</i></span>
+      </li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot__news">
+    <div>
+      <h2 class="foot__news-title" data-i18n="news.title">–10 % sur votre première commande</h2>
+      <p data-i18n="news.text">Les nouveautés, les restocks et les conseils d’entretien, une fois par mois.</p>
+    </div>
+    <form class="news" id="newsForm" novalidate>
+      <label class="sr-only" for="news-email" data-i18n="news.label">Votre adresse e-mail</label>
+      <div class="news__row">
+        <input id="news-email" type="email" autocomplete="email" placeholder="Votre adresse e-mail" data-i18n-attr="placeholder:news.label">
+        <button class="btn btn--rose" type="submit" data-i18n="news.cta">Je m’inscris</button>
+      </div>
+      <label class="news__agree"><input type="checkbox" data-news-agree> <span data-i18n="news.agree">J’accepte de recevoir les e-mails de Sonia Luxury Hair.</span></label>
+      <p class="news__msg" data-news-msg role="status"></p>
+    </form>
+  </div>
+  <div class="foot__cols">
+    <div class="foot__brand">
+      <span class="logo logo--foot"><span class="logo__name">Sonia</span><span class="logo__line">Luxury Hair</span></span>
+      <p data-i18n="foot.about">Mèches, perruques et cheveux humains vierges, choisis avec exigence.</p>
+      <a class="foot__social" href="https://www.tiktok.com/@sonia110.camaraa" target="_blank" rel="noopener" aria-label="TikTok @sonia110.camaraa"><svg aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+    </div>
+    <nav aria-labelledby="f1"><h3 id="f1" data-i18n="foot.c1">La boutique</h3>
+      <a href="#collection" data-i18n="cat.1">Mèches</a><a href="#collection" data-i18n="cat.2">Perruques</a><a href="#collection" data-i18n="cat.3">Blond 613</a><a href="#textures" data-i18n="nav.textures">Textures</a></nav>
+    <nav aria-labelledby="f2"><h3 id="f2" data-i18n="foot.c2">Aide</h3>
+      <a href="#longueurs" data-i18n="foot.l1">Guide des longueurs</a><a href="#emballage" data-i18n="foot.l2">Livraison et emballage</a><a href="#avis" data-i18n="foot.l3">Avis</a></nav>
+    <nav aria-labelledby="f3"><h3 id="f3" data-i18n="foot.c3">Le Cercle</h3>
+      <a href="#cercle" data-i18n="foot.l4">Les avantages</a><a href="#cercle" data-i18n="foot.l5">Rejoindre le Cercle</a></nav>
+  </div>
+  <p class="foot__word" aria-hidden="true">Sonia</p>
+  <div class="foot__bottom">
+    <span data-i18n="foot.rights">© 2026 Sonia Luxury Hair · concept</span>
+    <span data-i18n-html="foot.kreeative">Concept de site par <a href="https://kreeative.xyz">Kreeative</a>. Proposition de design, pas une boutique officielle&nbsp;: rien n’est vendu, envoyé ni enregistré.</span>
+  </div>
+</footer>
+
+<div class="scrim" data-bag-close hidden></div>
+<aside class="bag" id="bag" role="dialog" aria-modal="true" aria-labelledby="bag-title" hidden>
+  <div class="bag__head">
+    <h2 id="bag-title"><span data-i18n="bag.title">Votre panier</span> <span data-bag-n></span></h2>
+    <button class="bag__close" type="button" data-bag-close aria-label="Fermer le panier" data-i18n-attr="aria-label:bag.close">×</button>
+  </div>
+  <div class="bag__ship"><p data-bag-ship></p><span class="bag__meter"><span data-bag-meter></span></span></div>
+  <p class="bag__empty" data-bag-empty data-i18n="bag.empty">Votre panier est vide pour l’instant.</p>
+  <ul class="bag__items" data-bag-items></ul>
+  <div class="bag__foot">
+    <p class="bag__total"><span data-i18n="bag.total">Sous-total</span> <span data-bag-total></span></p>
+    <button class="btn btn--ink" type="button" disabled data-i18n="bag.checkout">Paiement désactivé (concept)</button>
+    <p class="bag__note" data-i18n="bag.note">Ceci est un concept : le panier se calcule ici, rien n’est envoyé ni payé.</p>
+  </div>
+</aside>
+<p class="sr-only" data-live aria-live="polite"></p>
+
+</body>
+</html>
