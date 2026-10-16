@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr-CI">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder (kreeative.xyz/concepts/nanawax/). Without the final slash the relative
+       image paths would point one folder up, so add it before anything loads. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Nanawax · Proposition de site</title>
+  <meta name="description" content="Une maquette de boutique en ligne pour Nanawax, ouverte toute l'année, et un mini-audit du site actuel. Proposition préparée par Kee.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Nanawax · Proposition de site par Kee">
+  <meta property="og:description" content="Une boutique en ligne ouverte toute l'année, en FCFA, avec Wave et Orange Money.">
+  <meta property="og:url" content="https://kreeative.xyz/concepts/nanawax/">
+  <meta property="og:image" content="https://kreeative.xyz/concepts/nanawax/img/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#F6F0E8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --cream: #F6F0E8; --sand: #EADFD0; --clay: #B4532F; --ink: #16120F; --mute: #6E5E52; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--cream); color: var(--ink); font: 400 17px/1.55 Manrope, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    img { display: block; width: 100%; height: auto; }
+    a { color: inherit; }
+    .bar { background: var(--ink); color: #f3e9dc; font-size: 14px; padding: 12px 20px; text-align: center; }
+    .bar b { color: #E9B38F; font-weight: 600; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    header { padding: 72px 0 40px; text-align: center; }
+    .k { font: 600 12px Manrope; letter-spacing: .22em; text-transform: uppercase; color: var(--clay); }
+    h1, h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; letter-spacing: -.02em; line-height: 1; }
+    h1 { font-size: clamp(44px, 8vw, 88px); margin: 14px 0 20px; }
+    h1 em, h2 em { color: var(--clay); }
+    h2 { font-size: clamp(36px, 5.5vw, 60px); margin: 10px 0 14px; }
+    .lead { max-width: 640px; margin: 0 auto; color: var(--mute); font-size: 18px; }
+    .list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 26px auto 0; max-width: 760px; list-style: none; }
+    .list li { background: #fff; border: 1px solid rgba(22, 18, 15, .1); border-radius: 999px; padding: 8px 16px; font-size: 15px; font-weight: 500; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; height: 54px; padding: 0 28px; border-radius: 999px; background: var(--ink); color: #fff; font: 600 15px Manrope; text-decoration: none; }
+    .btn.line { background: transparent; color: var(--ink); border: 1.5px solid rgba(22, 18, 15, .25); }
+    .ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
+    section { padding: 56px 0; }
+    section > .wrap > .head { text-align: center; margin-bottom: 32px; }
+    section > .wrap > .head p { color: var(--mute); max-width: 600px; margin: 0 auto; }
+    .grid { display: grid; gap: 22px; }
+    .grid.two { grid-template-columns: repeat(2, 1fr); }
+    .grid.three { grid-template-columns: repeat(3, 1fr); }
+    .card { border-radius: 26px; overflow: hidden; background: var(--sand); box-shadow: 0 18px 40px rgba(22, 18, 15, .08); }
+    .card.wide { grid-column: 1 / -1; }
+    .audit { background: var(--sand); }
+    .end { text-align: center; padding: 72px 0 90px; }
+    footer { text-align: center; color: var(--mute); font-size: 13px; padding: 0 20px 40px; }
+    @media (max-width: 760px) {
+      header { padding: 48px 0 28px; }
+      .grid.two, .grid.three { grid-template-columns: 1fr; }
+      section { padding: 40px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bar"><b>Proposition</b> préparée par Kee pour Nanawax : une maquette, pas encore le site officiel.</div>
+
+  <header class="wrap">
+    <p class="k">Nanawax · Proposition de site</p>
+    <h1>Votre boutique, <em>ouverte toute l'année.</em></h1>
+    <p class="lead">Aujourd'hui, nanawax.net n'ouvre que pendant les ventes. Voici à quoi pourrait ressembler un site qui vend tous les jours, avec vos propres photos et produits.</p>
+    <ul class="list">
+      <li>Prix en FCFA</li>
+      <li>Wave, Orange Money et carte</li>
+      <li>Liste d'attente WhatsApp pour les ventes flash</li>
+      <li>Vos 6 boutiques en un clic</li>
+      <li>Une page pour La Maison</li>
+    </ul>
+    <div class="ctas">
+      <a class="btn" href="https://cal.com/kreeative/quick-chat">Réserver 15 min avec Kee →</a>
+      <a class="btn line" href="#audit">Voir le mini-audit</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="wrap">
+      <div class="head"><p class="k">La maquette</p><h2>Cinq écrans, <em>un seul univers.</em></h2></div>
+      <div class="grid two">
+        <figure class="card"><img src="img/maquette-1-1600.webp" srcset="img/maquette-1-800.webp 800w, img/maquette-1-1600.webp 1600w" sizes="(max-width: 760px) 100vw, 540px" width="1600" height="2000" alt="Maquette Nanawax, écran 1"></figure>
+        <figure class="card"><img src="img/maquette-2-1600.webp" srcset="img/maquette-2-800.webp 800w, img/maquette-2-1600.webp 1600w" sizes="(max-width: 760px) 100vw, 540px" width="1600" height="2000" alt="Maquette Nanawax, écran 2" loading="lazy"></figure>
+        <figure class="card"><img src="img/maquette-3-1600.webp" srcset="img/maquette-3-800.webp 800w, img/maquette-3-1600.webp 1600w" sizes="(max-width: 760px) 100vw, 540px" width="1600" height="2000" alt="Maquette Nanawax, écran 3" loading="lazy"></figure>
+        <figure class="card"><img src="img/maquette-4-1600.webp" srcset="img/maquette-4-800.webp 800w, img/maquette-4-1600.webp 1600w" sizes="(max-width: 760px) 100vw, 540px" width="1600" height="2000" alt="Maquette Nanawax, écran 4" loading="lazy"></figure>
+        <figure class="card wide" style="max-width:540px;justify-self:center;width:100%"><img src="img/maquette-5-1600.webp" srcset="img/maquette-5-800.webp 800w, img/maquette-5-1600.webp 1600w" sizes="(max-width: 760px) 100vw, 540px" width="1600" height="2000" alt="Maquette Nanawax, écran 5" loading="lazy"></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="audit" id="audit">
+    <div class="wrap">
+      <div class="head"><p class="k">Le mini-audit</p><h2>Ce qui freine <em>vos ventes en ligne.</em></h2><p>Six pages, vérifiées sur votre site et vos réseaux.</p></div>
+      <div class="grid three">
+        <figure class="card"><img src="img/audit-1-1080.webp" srcset="img/audit-1-540.webp 540w, img/audit-1-1080.webp 1080w" sizes="(max-width: 760px) 100vw, 360px" width="1080" height="1350" alt="Mini-audit, page 1" loading="lazy"></figure>
+        <figure class="card"><img src="img/audit-2-1080.webp" srcset="img/audit-2-540.webp 540w, img/audit-2-1080.webp 1080w" sizes="(max-width: 760px) 100vw, 360px" width="1080" height="1350" alt="Mini-audit, page 2" loading="lazy"></figure>
+        <figure class="card"><img src="img/audit-3-1080.webp" srcset="img/audit-3-540.webp 540w, img/audit-3-1080.webp 1080w" sizes="(max-width: 760px) 100vw, 360px" width="1080" height="1350" alt="Mini-audit, page 3" loading="lazy"></figure>
+        <figure class="card"><img src="img/audit-4-1080.webp" srcset="img/audit-4-540.webp 540w, img/audit-4-1080.webp 1080w" sizes="(max-width: 760px) 100vw, 360px" width="1080" height="1350" alt="Mini-audit, page 4" loading="lazy"></figure>
+        <figure class="card"><img src="img/audit-5-1080.webp" srcset="img/audit-5-540.webp 540w, img/audit-5-1080.webp 1080w" sizes="(max-width: 760px) 100vw, 360px" width="1080" height="1350" alt="Mini-audit, page 5" loading="lazy"></figure>
+        <figure class="card"><img src="img/audit-6-1080.webp" srcset="img/audit-6-540.webp 540w, img/audit-6-1080.webp 1080w" sizes="(max-width: 760px) 100vw, 360px" width="1080" height="1350" alt="Mini-audit, page 6" loading="lazy"></figure>
+      </div>
+    </div>
+  </section>
+
+  <div class="end wrap">
+    <p class="k">Et maintenant ?</p>
+    <h2>On en parle <em>15 minutes ?</em></h2>
+    <p class="lead">Je vous présente la maquette et on voit ensemble ce dont Nanawax a besoin.</p>
+    <div class="ctas">
+      <a class="btn" href="https://cal.com/kreeative/quick-chat">Réserver 15 min avec Kee →</a>
+      <a class="btn line" href="mailto:annklyy@gmail.com?subject=Nanawax%20%C2%B7%20proposition%20de%20site">Écrire à Kee</a>
+    </div>
+  </div>
+
+  <footer>Proposition confidentielle préparée par Kee · <a href="https://kreeative.xyz">kreeative.xyz</a>. Les photos et produits appartiennent à Nanawax.</footer>
+</body>
+</html>
