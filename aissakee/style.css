@@ -34,6 +34,7 @@
 @media (max-width: 700px) { :root { --leopard: url(img/leopard-pink-portrait-1000.webp); } }
 
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { margin: 0; background: var(--cocoa-deep); color: var(--cream); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
@@ -109,9 +110,13 @@ p { margin: 0; }
 .t-mono { font-family: var(--display); font-size: 17cqi; line-height: 1; color: var(--cream); letter-spacing: -0.12em; padding-right: .12em; text-shadow: 0 2px 18px rgba(59, 35, 31, 0.55); }
 .t-vert { font-family: var(--display); font-size: 9.5cqi; line-height: 1; color: var(--pink); white-space: nowrap; transform: rotate(-90deg); letter-spacing: 0.02em; }
 .t-polaroid { width: 74%; background: var(--paper); padding: 6% 6% 9%; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35); transform: rotate(-3deg); }
-.t-polaroid .swatch { aspect-ratio: 1; background: var(--leopard) 55% 60% / 600% auto; }
+.t-polaroid .swatch { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; object-position: 50% 45%; }
 .t-polaroid b { display: block; margin-top: 8%; text-align: center; font: 400 4.2cqi/1 var(--display); color: var(--ink); letter-spacing: 0.04em; }
 .t-polaroid i { display: block; text-align: center; font: 400 3.6cqi/1.1 var(--script); color: var(--rose); font-style: normal; }
+.t-ugg { object-position: 50% 42%; }
+.t-nyx { object-position: 38% 50%; }
+.t-overlay { position: absolute; left: 7%; bottom: 6%; padding: 4% 5% 3.5%; background: var(--paper); box-shadow: 0 4px 10px rgba(36, 19, 15, 0.35); transform: rotate(-2deg); font: 400 4.1cqi/1.05 var(--display); color: var(--ink); }
+.t-overlay em { color: var(--rose); }
 .t-quote { position: absolute; inset: 9% 9% auto; text-align: right; font: 400 4.5cqi/1.05 var(--display); }
 .t-quote em { color: var(--rose); }
 .t-quote small { display: block; margin-top: 6%; font: 400 4.6cqi/1 var(--script); color: var(--rose); }
@@ -180,6 +185,13 @@ p { margin: 0; }
 .subhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
 .subhead h3 { font: 400 clamp(1.8rem, 3.4vw, 2.4rem)/1 var(--display); }
 .subhead p { color: var(--fog); font-size: 14px; }
+.photos { display: grid; grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.44fr) minmax(0, 0.9fr); gap: clamp(12px, 2vw, 22px); align-items: center; }
+.ph { margin: 0; display: grid; gap: 10px; min-width: 0; }
+.ph img { width: 100%; height: auto; border-radius: 6px; box-shadow: 0 24px 40px -24px rgba(0, 0, 0, 0.8); }
+.ph figcaption { display: grid; gap: 2px; }
+.ph figcaption span { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); }
+.ph figcaption b { font: 400 1.5rem/1.1 var(--display); }
+@media (max-width: 700px) { .photos { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } .ph--wide { grid-column: 1 / -1; order: 3; } }
 .reels-block { max-width: 920px; }
 .reels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(10px, 2vw, 18px); }
 .reel { position: relative; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; text-decoration: none; background: linear-gradient(rgba(36, 19, 15, 0.74), rgba(36, 19, 15, 0.9)), var(--leopard) center / 420% auto; display: grid; align-content: end; gap: 6px; padding: clamp(12px, 2vw, 18px); }
