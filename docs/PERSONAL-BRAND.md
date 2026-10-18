@@ -32,7 +32,7 @@ the campaign change.
 
 - The personal accounts (@aissakee, @keekyt, YouTube) build trust and audience: my life, faith, beauty and UGC content, student life, creator tips.
 - Kreeative is the business they point to: websites, flyers, video editing, media kit templates, and the formation.
-- I also do UGC and brand collabs myself (e.g. a Profusion Cosmetics × Walmart makeup carousel).
+- I also do UGC and brand collabs myself: a Profusion Cosmetics × Walmart makeup carousel, and a MONDAY Haircare partnership (an Instagram Story tagged #MONDAYpartner: the Moisture Hydration shampoo and conditioner, the Original Dry Shampoo and the Vanilla Glaze hair and body mist). Also in the portfolio, as product shots with no partnership claimed until I confirm one: an UGG unboxing, NYX Butter Gloss, and a nail close-up.
 
 ## What Kreeative sells (CAD, HST added)
 
