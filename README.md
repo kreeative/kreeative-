@@ -23,6 +23,7 @@ works.
 | `/concepts/jessicas-secrets/`                               | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/pricing/`                                                 | `pricing/index.html`                                             |
 | `/the-kreeative-designer-newsletter/`                       | `the-kreeative-designer-newsletter/index.html`                   |
+| `/aissakee/`                                                | `aissakee/index.html` (Aïssa Kee's personal UGC portfolio; self-contained, `noindex` until her videos are in) |
 | any unknown URL                                             | `404.html`                                                       |
 
 The portfolio URLs are the ones the old Framer site used, so existing links

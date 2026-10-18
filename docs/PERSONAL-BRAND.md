@@ -20,6 +20,7 @@ the campaign change.
 | Aïssa Kee        | YouTube           | Personal brand (handle to add)         |
 | **@bykreeative** | Instagram, TikTok | Studio                                 |
 | kreeative.xyz    | Website           | The link in bio for every account. Beacons is no longer used (1 October 2026). |
+| kreeative.xyz/aissakee | Portfolio   | My personal UGC portfolio for brands (18 October 2026): pink leopard, cocoa and the soft pink of my Profusion × Walmart carousel, in the luxe editorial style Kee picked (Haus of Wild's feed, xojuliana.com's sections). Draft and `noindex` until the UGC videos and a portrait are in. Preview: https://claude.ai/artifact/1xt3cKVvAK5ss6qAciJTUX |
 
 ## My numbers (TikTok)
 
