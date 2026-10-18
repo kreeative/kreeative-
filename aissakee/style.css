@@ -134,7 +134,7 @@ p { margin: 0; }
 .tile--dark .t-big strong { color: var(--pink); }
 .t-card { width: 80%; background: var(--paper); color: var(--ink); padding: 8% 8% 7%; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); text-align: center; }
 .t-card b { display: block; font: 600 3.3cqi/1.2 var(--sans); }
-.t-card .ph { width: 42%; aspect-ratio: 4 / 5; margin: 7% auto; background: var(--leopard) 20% 80% / 700% auto; }
+.t-card .ph { display: block; width: 44%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; margin: 6% auto; background: #fff; }
 .t-card dl { margin: 0; display: grid; gap: 3%; text-align: left; }
 .t-card dt { font: 600 1.9cqi/1.2 var(--sans); }
 .t-card dd { margin: 0; font: 400 3.2cqi/1 var(--script); color: var(--rose); }
@@ -154,11 +154,10 @@ p { margin: 0; }
 /* about */
 .about__in { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
 .leo-panel { background: var(--leopard) 40% 30% / cover; aspect-ratio: 4 / 5; display: grid; place-items: center; padding: 8%; border-radius: 4px; max-width: 480px; width: 100%; justify-self: center; }
-.idcard { background: var(--paper); color: var(--ink); width: 100%; max-width: 330px; padding: 26px 26px 22px; transform: rotate(-2deg); box-shadow: 0 18px 40px -12px rgba(59, 35, 31, 0.5); }
+.idcard { background: var(--paper); color: var(--ink); width: 100%; max-width: 350px; padding: 26px 26px 22px; transform: rotate(-2deg); box-shadow: 0 18px 40px -12px rgba(59, 35, 31, 0.5); }
 .idcard__mono { text-align: center; font: 400 26px/1 var(--display); letter-spacing: -0.1em; color: var(--cocoa); }
 .idcard h3 { font: 600 1.15rem/1.3 var(--sans); text-align: center; margin-top: 8px; }
-.idcard__ph { width: 46%; aspect-ratio: 4 / 5; margin: 14px auto 16px; background: var(--leopard) 70% 40% / 520% auto; display: grid; place-items: center; }
-.idcard__ph span { font: 400 30px/1 var(--display); color: var(--cream); letter-spacing: -0.1em; text-shadow: 0 2px 12px rgba(59, 35, 31, 0.6); }
+.idcard__ph { display: block; width: 64%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; margin: 14px auto 16px; background: #fff; border: 1px solid var(--line-light); }
 .idcard dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; align-items: baseline; }
 .idcard dt { font: 600 11px/1.3 var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
 .idcard dd { margin: 0; font: 400 24px/1.05 var(--script); color: var(--rose); }
@@ -194,13 +193,14 @@ p { margin: 0; }
 .subhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
 .subhead h3 { font: 400 clamp(1.8rem, 3.4vw, 2.4rem)/1 var(--display); }
 .subhead p { color: var(--fog); font-size: 14px; }
-.photos { display: grid; grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.44fr) minmax(0, 0.9fr); gap: clamp(12px, 2vw, 22px); align-items: center; }
+/* column widths follow each photo's shape, so the row shares one height */
+.photos { display: grid; grid-template-columns: minmax(0, 0.5625fr) minmax(0, 1.5fr) minmax(0, 0.667fr) minmax(0, 0.75fr); gap: clamp(10px, 1.6vw, 18px); align-items: start; }
 .ph { margin: 0; display: grid; gap: 10px; min-width: 0; }
 .ph img { width: 100%; height: auto; border-radius: 6px; box-shadow: 0 24px 40px -24px rgba(0, 0, 0, 0.8); }
 .ph figcaption { display: grid; gap: 2px; }
 .ph figcaption span { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); }
 .ph figcaption b { font: 400 1.5rem/1.1 var(--display); }
-@media (max-width: 700px) { .photos { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } .ph--wide { grid-column: 1 / -1; order: 3; } }
+@media (max-width: 700px) { .photos { grid-template-columns: minmax(0, 0.5625fr) minmax(0, 0.667fr) minmax(0, 0.75fr); } .ph--wide { grid-column: 1 / -1; order: 4; } .ph figcaption b { font-size: 1.15rem; } }
 .reels-block { max-width: 920px; }
 .reels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(10px, 2vw, 18px); }
 .reel { position: relative; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; text-decoration: none; background: linear-gradient(rgba(36, 19, 15, 0.74), rgba(36, 19, 15, 0.9)), var(--leopard) center / 420% auto; display: grid; align-content: end; gap: 6px; padding: clamp(12px, 2vw, 18px); }
