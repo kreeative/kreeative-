@@ -20,7 +20,7 @@ the campaign change.
 | Aïssa Kee        | YouTube           | Personal brand (handle to add)         |
 | **@bykreeative** | Instagram, TikTok | Studio                                 |
 | kreeative.xyz    | Website           | The link in bio for every account. Beacons is no longer used (1 October 2026). |
-| kreeative.xyz/aissakee | Portfolio   | My personal UGC portfolio for brands (18 October 2026): pink leopard, cocoa and the soft pink of my Profusion × Walmart carousel, in the luxe editorial style Kee picked (Haus of Wild's feed, xojuliana.com's sections). Her portrait (sent 18 October) is in both "Who is she?" cards, uncropped apart from the empty white above her hair. Since 19 October: only her own photos, with nothing written or drawn over them, the "Who is she?" card as the one graphic, set in Fraunces and Poppins. Draft and `noindex` until the UGC videos are in. Preview: https://claude.ai/artifact/1xt3cKVvAK5ss6qAciJTUX · Figma, to adjust the design: https://www.figma.com/design/NK7btnHOFEr2Q8OgPoXL4t |
+| kreeative.xyz/aissakee | Portfolio   | My personal UGC portfolio for brands (18 October 2026): pink leopard, cocoa and the soft pink of my Profusion × Walmart carousel, in the luxe editorial style Kee picked (Haus of Wild's feed, xojuliana.com's sections). Her portrait (sent 18 October) is in both "Who is she?" cards, uncropped apart from the empty white above her hair. Since 19 October: only her own photos, with nothing written or drawn over them, the "Who is she?" card as the one graphic, set in Fraunces and Poppins. The "Who is she?" cards are on real paper; the preview also shows Brittany Signature, which waits for its commercial licence before going live. Draft and `noindex` until the UGC videos are in. Preview: https://claude.ai/artifact/1xt3cKVvAK5ss6qAciJTUX · Figma, to adjust the design: https://www.figma.com/design/NK7btnHOFEr2Q8OgPoXL4t |
 
 ## My numbers (TikTok)
 
@@ -109,6 +109,8 @@ Rules for showing any of it:
 
 - Colours: hot pink **#ff0090**, black **#0f0f0f**, off-white **#fcfcfc**, blush **#ffe0f7**.
 - Fonts: **Fraunces**, the font of my posts (serif titles, pink italic accents), with **Poppins** or **Montserrat** for the body (19 October; Poppins is the one in my carousels). DM Mono for small labels.
+- Script: **Brittany Signature** for the handwritten touches (19 October). Its licence is **personal use only** (Creatype Studio): buy the commercial licence (creatypestudio.co/brittany, with web use) before it goes on anything public or paid. Until then the live portfolio keeps Mrs Saint Delafield. The font drops accents: ï, é, è, ç come out bare, so "Aïssa" reads "Aissa" and French words lose their accents; the portfolio borrows those letters from Mrs Saint Delafield, and anything made in Canva or Figma needs a check.
+- Paper: a real watercolour-paper texture (Adobe Stock #364433776, free licence, licensed to my Adobe account on 19 October) on the "Who is she?" cards.
 - Clean, editorial, feminine, confident.
 
 ## My preferences (important)
