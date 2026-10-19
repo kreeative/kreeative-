@@ -16,6 +16,31 @@
 </head>
 <body>
 <!-- CONTENT -->
+<svg class="fx" aria-hidden="true" focusable="false">
+  <!-- Ink that sinks into the paper, as a displacement map does in Photoshop: the edges follow the
+       fibres and the density varies, like pen or toner on cotton paper. Used on the "Who is she?" card. -->
+  <filter id="ink" x="-4%" y="-25%" width="108%" height="150%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="fibres"/>
+    <feDisplacementMap in="SourceGraphic" in2="fibres" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+    <feGaussianBlur in="rough" stdDeviation="0.35" result="bleed"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="3" seed="13" result="blot"/>
+    <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.6 0 0 0 0.55" result="density"/>
+    <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="1" seed="5" result="speck"/>
+    <feColorMatrix in="speck" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.4 0 0 0 0.25" result="pores"/>
+    <feComposite in="bleed" in2="density" operator="in" result="inked"/>
+    <feComposite in="inked" in2="pores" operator="in"/>
+  </filter>
+  <filter id="print" x="-4%" y="-25%" width="108%" height="150%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3" result="fibres"/>
+    <feDisplacementMap in="SourceGraphic" in2="fibres" scale="1" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.3" numOctaves="2" seed="21" result="blot"/>
+    <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.5 0 0 0 0.66" result="density"/>
+    <feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="9" result="speck"/>
+    <feColorMatrix in="speck" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.6 0 0 0 0.2" result="pores"/>
+    <feComposite in="rough" in2="density" operator="in" result="inked"/>
+    <feComposite in="inked" in2="pores" operator="in"/>
+  </filter>
+</svg>
 <header class="top">
   <div class="wrap top__in">
     <a class="brand" href="#top" aria-label="Aïssa Kee, back to the top">
@@ -72,7 +97,7 @@
           <div class="tile"><img class="t-nyx" src="img/photo-nyx-900.webp" width="900" height="600" alt="NYX Butter Gloss between pink almond nails" loading="eager"></div>
           <div class="tile"><img src="img/photo-nails2-600.webp" width="600" height="800" alt="Square French tips with rhinestones on white faux fur" loading="eager"></div>
           <div class="tile tile--leopard t-center" aria-hidden="true">
-            <div class="t-card"><b>Who is she?</b><img class="ph" src="img/portrait-480.webp" width="480" height="640" alt="">
+            <div class="t-card"><b>Who is she?</b><span class="printed printed--sm"><img class="ph" src="img/portrait-480.webp" width="480" height="640" alt=""></span>
               <dl><div><dt>Name</dt><dd>Aïssa Kee</dd></div><div><dt>Job</dt><dd>Creator &amp; designer</dd></div><div><dt>Fav verse</dt><dd>Philippians 4:13</dd></div></dl>
             </div>
           </div>
@@ -94,7 +119,7 @@
         <div class="idcard">
           <p class="idcard__mono" aria-hidden="true">AK</p>
           <h3>Who is she?</h3>
-          <img class="idcard__ph" src="img/portrait-480.webp" srcset="img/portrait-480.webp 480w, img/portrait-960.webp 960w" sizes="230px" width="480" height="640" alt="Portrait of Kee: long brown hair, a cream top and a small cross necklace" loading="lazy">
+          <span class="printed"><img class="idcard__ph" src="img/portrait-480.webp" srcset="img/portrait-480.webp 480w, img/portrait-960.webp 960w" sizes="230px" width="480" height="640" alt="Portrait of Kee: long brown hair, a cream top and a small cross necklace" loading="lazy"></span>
           <dl>
             <dt>Name</dt><dd>Aïssa Kee</dd>
             <dt>Based in</dt><dd>Toronto</dd>

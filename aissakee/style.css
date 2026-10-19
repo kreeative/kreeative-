@@ -18,6 +18,7 @@
   --cream: #fbf3ef;        /* light bands, paper */
   --paper: #f6f1e9;        /* the ID card: the mean colour of its paper */
   --paper-tex: url(img/paper-cream-1200.webp);   /* real watercolour paper, Adobe Stock (free licence) */
+  --paper-grain: url(img/paper-grain-900.webp);  /* the same paper's fibres alone, centred on mid-grey, at half strength */
   --ink: #2a1814;          /* text on light */
   --ink-soft: #6b4f49;     /* secondary text on light */
   --fog: #cfb2ab;          /* secondary text on cocoa */
@@ -122,12 +123,30 @@ p { margin: 0; }
 .t-nyx { object-position: 38% 50%; }
 .t-monday { object-position: 50% 45%; }
 /* the card is sized in units of its own tile, so it keeps its proportions from phone to desktop */
-.t-card { width: 76cqi; padding: 5.5cqi 6.5cqi 6cqi; background: var(--paper-tex) 0 0 / 400px auto var(--paper); color: var(--ink); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); text-align: center; text-rendering: geometricPrecision; }
+.t-card { position: relative; isolation: isolate; width: 76cqi; padding: 5.5cqi 6.5cqi 6cqi; background: radial-gradient(120% 80% at 18% 0%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 60%), var(--paper-tex) 0 0 / 400px auto, var(--paper); color: var(--ink); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.14), 0 3px 8px -3px rgba(0, 0, 0, 0.2); text-align: center; text-rendering: geometricPrecision; }
 .t-card b { display: block; font: 600 8.6cqi/1.1 var(--sans); white-space: nowrap; }
-.t-card .ph { display: block; width: 32cqi; height: auto; aspect-ratio: 3 / 4; object-fit: cover; margin: 3cqi auto 3.5cqi; background: #fff; }
+.t-card .printed { width: 32cqi; margin: 3cqi auto 3.5cqi; }
+.t-card .ph { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; }
 .t-card dl { margin: 0; display: grid; gap: 1.4cqi; text-align: left; }
 .t-card dt { font: 600 4.8cqi/1.15 var(--sans); }
 .t-card dd { margin: 1cqi 0 0; font: 400 8.2cqi/1 var(--script); color: var(--rose); white-space: nowrap; }
+
+/* The "Who is she?" cards as real paper: ink and photo printed into the sheet (multiply), the edges
+   of the ink following the fibres (the #ink and #print filters in the page), and the paper's own
+   fibres laid over everything, as a texture overlay does in Photoshop. */
+.fx { position: absolute; width: 0; height: 0; overflow: hidden; }
+.idcard::after, .t-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--paper-grain) 0 0 / 600px auto; mix-blend-mode: overlay; opacity: 1; }
+.t-card::after { background-size: 300px auto; opacity: 0.8; }
+/* her photo, printed into the paper: multiplied onto the sheet, with its own lighter layer of fibres */
+.printed { display: block; position: relative; z-index: 1; mix-blend-mode: multiply;
+  /* a 3px fade on every edge: no seam where the tilted print meets the paper */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 3px, #000 calc(100% - 3px), transparent), linear-gradient(to bottom, transparent, #000 3px, #000 calc(100% - 3px), transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent, #000 3px, #000 calc(100% - 3px), transparent), linear-gradient(to bottom, transparent, #000 3px, #000 calc(100% - 3px), transparent); mask-composite: intersect; }
+.printed::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: var(--paper-grain) 0 0 / 600px auto; mix-blend-mode: overlay; opacity: 0.6; }
+.printed--sm::after { background-size: 300px auto; opacity: 0.45; }
+.t-card b, .t-card dt, .t-card dd { mix-blend-mode: multiply; }
+.idcard__mono, .idcard h3, .idcard dt, .idcard dd.verse { mix-blend-mode: multiply; filter: url(#print); }
+.idcard dd:not(.verse) { mix-blend-mode: multiply; filter: url(#ink); }
 
 /* marquee */
 .marquee { background: var(--pink); color: var(--cocoa); overflow: hidden; border-block: 1px solid var(--cocoa); }
@@ -144,10 +163,11 @@ p { margin: 0; }
 /* about */
 .about__in { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 88px); align-items: center; }
 .leo-panel { background: var(--leopard) 40% 30% / cover; aspect-ratio: 4 / 5; display: grid; place-items: center; padding: 8%; border-radius: 4px; max-width: 480px; width: 100%; justify-self: center; }
-.idcard { background: var(--paper-tex) 0 0 / 600px auto var(--paper); color: var(--ink); width: 100%; max-width: 350px; padding: 26px 26px 22px; transform: rotate(-2deg); box-shadow: 0 18px 40px -12px rgba(59, 35, 31, 0.5); }
+.idcard { position: relative; isolation: isolate; background: radial-gradient(120% 80% at 18% 0%, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0) 60%), radial-gradient(130% 110% at 100% 100%, rgba(59, 35, 31, 0.1), rgba(59, 35, 31, 0) 55%), var(--paper-tex) 0 0 / 600px auto, var(--paper); color: var(--ink); width: 100%; max-width: 350px; padding: 26px 26px 22px; transform: rotate(-2deg); box-shadow: 0 1px 1px rgba(36, 19, 15, 0.12), 0 3px 8px -3px rgba(36, 19, 15, 0.16), 0 10px 22px -14px rgba(36, 19, 15, 0.22), inset 0 0 22px rgba(59, 35, 31, 0.06); }
 .idcard__mono { text-align: center; font: 400 26px/1 var(--display); letter-spacing: -0.1em; color: var(--cocoa); }
 .idcard h3 { font: 600 1.15rem/1.3 var(--sans); text-align: center; margin-top: 8px; }
-.idcard__ph { display: block; width: 64%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; margin: 14px auto 16px; background: #fff; border: 1px solid var(--line-light); }
+.idcard .printed { width: 64%; margin: 14px auto 16px; }
+.idcard__ph { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; }
 .idcard dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; align-items: baseline; }
 .idcard dt { font: 600 11px/1.3 var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
 .idcard dd { margin: 0; font: 400 24px/1.05 var(--script); color: var(--rose); }

@@ -115,7 +115,7 @@ Rules for showing any of it:
 - Colours: hot pink **#ff0090**, black **#0f0f0f**, off-white **#fcfcfc**, blush **#ffe0f7**.
 - Fonts: **Fraunces**, the font of my posts (serif titles, pink italic accents), with **Poppins** or **Montserrat** for the body (19 October; Poppins is the one in my carousels). DM Mono for small labels.
 - Script: **Brittany Signature** for the handwritten touches (19 October). Its licence is **personal use only** (Creatype Studio): buy the commercial licence (creatypestudio.co/brittany, with web use) before it goes on anything public or paid. Until then the live portfolio keeps Mrs Saint Delafield. The font drops accents: ï, é, è, ç come out bare, so "Aïssa" reads "Aissa" and French words lose their accents; the portfolio borrows those letters from Mrs Saint Delafield, and anything made in Canva or Figma needs a check.
-- Paper: a real watercolour-paper texture (Adobe Stock #364433776, free licence, licensed to my Adobe account on 19 October) on the "Who is she?" cards.
+- Paper: a real watercolour-paper texture (Adobe Stock #364433776, free licence, licensed to my Adobe account on 19 October) on the "Who is she?" cards. The text and my photo look printed into it, the way a displacement map and blend modes do it in Photoshop: the ink follows the fibres, the fibres show through the ink and lightly through the photo. **Light shadows only** behind paper (19 October: "too much shadow").
 - Clean, editorial, feminine, confident.
 
 ## My preferences (important)
