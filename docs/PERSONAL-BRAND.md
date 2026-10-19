@@ -1,6 +1,6 @@
 # Aïssa Kee — personal brand brief
 
-Last updated: 15 October 2026. This is the single source of truth for any
+Last updated: 19 October 2026. This is the single source of truth for any
 content, design or planning work on Kee's personal brand (Instagram, TikTok,
 YouTube) and on how it feeds Kreeative. Update it here when numbers, prices or
 the campaign change.
@@ -20,7 +20,7 @@ the campaign change.
 | Aïssa Kee        | YouTube           | Personal brand (handle to add)         |
 | **@bykreeative** | Instagram, TikTok | Studio                                 |
 | kreeative.xyz    | Website           | The link in bio for every account. Beacons is no longer used (1 October 2026). |
-| kreeative.xyz/aissakee | Portfolio   | My personal UGC portfolio for brands (18 October 2026): pink leopard, cocoa and the soft pink of my Profusion × Walmart carousel, in the luxe editorial style Kee picked (Haus of Wild's feed, xojuliana.com's sections). Her portrait (sent 18 October) is in both "Who is she?" cards, uncropped apart from the empty white above her hair. Draft and `noindex` until the UGC videos are in. Preview: https://claude.ai/artifact/1xt3cKVvAK5ss6qAciJTUX |
+| kreeative.xyz/aissakee | Portfolio   | My personal UGC portfolio for brands (18 October 2026): pink leopard, cocoa and the soft pink of my Profusion × Walmart carousel, in the luxe editorial style Kee picked (Haus of Wild's feed, xojuliana.com's sections). Her portrait (sent 18 October) is in both "Who is she?" cards, uncropped apart from the empty white above her hair. Since 19 October: only her own photos, with nothing written or drawn over them, the "Who is she?" card as the one graphic, set in Fraunces and Poppins. Draft and `noindex` until the UGC videos are in. Preview: https://claude.ai/artifact/1xt3cKVvAK5ss6qAciJTUX |
 
 ## My numbers (TikTok)
 
@@ -108,7 +108,7 @@ Rules for showing any of it:
 ## Brand look
 
 - Colours: hot pink **#ff0090**, black **#0f0f0f**, off-white **#fcfcfc**, blush **#ffe0f7**.
-- Fonts: **Fraunces** (serif titles, pink italic accents) + **Inter** (body), DM Mono for small labels.
+- Fonts: **Fraunces**, the font of my posts (serif titles, pink italic accents), with **Poppins** or **Montserrat** for the body (19 October; Poppins is the one in my carousels). DM Mono for small labels.
 - Clean, editorial, feminine, confident.
 
 ## My preferences (important)
@@ -121,6 +121,7 @@ Rules for showing any of it:
 - Reels: keep text inside Instagram safe zones (sides ≥ 90 px, top ≥ 250 px, bottom ≈ 400 px clear).
 - Export in high quality (4K when possible) and **double-check text before handing over** (no cut-off letters).
 - Photos of me: **never cover my face with text**, don't crop my hair, don't zoom in too much. Light skin smoothing only if I ask, and **not** on the final/finished look.
+- My photos stay as they are on pages like the portfolio: **no frames** (polaroids, phone mock-ups), **no text added over them**, and no made-up graphic tiles next to them (19 October). The "Who is she?" card is the one graphic I keep.
 - Quote posts: plain solid backgrounds (black, white, pink…), no generated images.
 - Bible verses: use modern wording (e.g. NKJV "who strengthens me").
 - Don't use the Christocentrique flyer in my promos.

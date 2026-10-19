@@ -130,5 +130,6 @@ repository. DNS changes take from a few minutes to a few hours to propagate.
 
 ## Credits
 
-Fonts: Fraunces, Inter, Inter Tight, DM Mono (SIL Open Font License).
+Fonts: Fraunces, Inter, Inter Tight, DM Mono, and on `/aissakee/` Poppins and
+Mrs Saint Delafield (SIL Open Font License).
 Icons: [Phosphor Icons](https://phosphoricons.com) (MIT).
