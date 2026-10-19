@@ -24,9 +24,14 @@ the campaign change.
 
 ## My numbers (TikTok)
 
-- 4.2M views in the past 12 months
-- 433K views in the last 28 days (up 46%)
-- 16.7% engagement rate, 91% of views from the For You page
+The last 365 days, 18 October 2025 to 17 October 2026 (TikTok analytics, read on 19 October):
+
+- 4.4M post views, seen by 3.4M viewers (1.3M of them new); 89.4K profile views
+- 675.9K likes, 12.2K comments, 33.5K shares: a 16.4% engagement rate, (likes + comments + shares) ÷ views. The 16.7% used before came from the 1 October brief, method not noted.
+- 91.3% of views from the For You page, 6.2% from my profile, 1.8% from search
+- Viewers by country: Côte d'Ivoire 26.8%, Canada 16.7%, France 10.7%, Senegal 8.7%, Burkina Faso 6.2%. On public pages the countries go **without percentages**: Canada, France, Côte d'Ivoire (19 October).
+- Most active time, the 7 days to 17 October: Saturday, 5 to 6 pm
+- From the 1 October brief, not refreshed since: 433K views in 28 days (up 46%)
 
 ## How the personal brand and Kreeative connect
 

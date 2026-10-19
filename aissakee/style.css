@@ -94,8 +94,14 @@ p { margin: 0; }
 .partners__label { flex-basis: 100%; font: 600 11px/1.6 var(--sans); font-style: normal; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fog); }
 .partners .nb { white-space: nowrap; }
 .partners .nb + .nb::before { content: "·"; padding-right: 12px; }
+/* the countries and the partners read as one block: one rule above them */
+.audience + .partners { border-top: 0; padding-top: 0; margin-top: -8px; }
+/* narrow desktops: the text card is the taller one, so it tightens to stay close to the feed's height */
+@media (min-width: 981px) and (max-width: 1160px) { .hero__copy { gap: 16px; } .hero__copy .lede { font-size: 1rem; } }
 /* the two names need about 450px on one line; narrower, they stack instead of wrapping after the dot */
-@container (max-width: 460px) { .partners { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 2px; } .partners__label { flex-basis: auto; } .partners .nb + .nb::before { content: none; } }
+@container (max-width: 460px) { .partners:not(.audience) { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 2px; } .partners:not(.audience) .partners__label { flex-basis: auto; } .partners:not(.audience) .nb + .nb::before { content: none; } }
+/* the three countries need about 290px */
+@container (max-width: 290px) { .audience { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 2px; } .audience .partners__label { flex-basis: auto; } .audience .nb + .nb::before { content: none; } }
 @media (max-width: 980px) { .hero__in { grid-template-columns: minmax(0, 1fr); } .hero__copy, .profile { width: 100%; max-width: 560px; justify-self: center; } }
 
 /* the profile card and its feed */

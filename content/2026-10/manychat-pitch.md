@@ -66,7 +66,7 @@ stats in ManyChat. Followers: Instagram insights for the same dates.
 
   > Subject: [X] DMs from one Reel, on a three-week-old account
   >
-  > Hi [name], I'm Kee (@aissakee on Instagram, @keekyt on TikTok, 4.2M views
+  > Hi [name], I'm Kee (@aissakee on Instagram, @keekyt on TikTok, 4.4M views
   > in the last 12 months). I started a new Instagram account on 1 October and
   > built my lead magnet on ManyChat: one Reel, the keyword GUIDE, a follow
   > check and a free PDF. In [X] days it sent [X] DMs and brought [X] new
@@ -112,8 +112,8 @@ stats in ManyChat. Followers: Instagram insights for the same dates.
 4. **Student, designer, creator.** Kee, Kreeative, the 31 → 10K series, UGC
    (Profusion Cosmetics × Walmart), English on Instagram and YouTube, French
    and English on TikTok.
-5. **4.2M views, and growing.** TikTok @keekyt: 4.2M views in 12 months,
-   433K in the last 28 days (up 46%), 16.7% engagement, 91% from For You.
+5. **4.4M views, and growing.** TikTok @keekyt: 4.4M views in 12 months,
+   433K in 28 days (up 46%, as of 1 October), 16.4% engagement, 91% from For You.
    Instagram: [X] followers from 31, [X] views in 28 days, top countries [ ].
    Refresh the TikTok numbers the day you send.
 6. **My viewers live in their DMs.** Every video ends on a keyword · I teach
