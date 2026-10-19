@@ -80,8 +80,9 @@ p { margin: 0; }
 
 /* hero */
 .hero { background: var(--leopard) center / cover; }
-.hero__in { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: clamp(20px, 4vw, 48px); align-items: center; padding-block: clamp(40px, 7vw, 88px); }
-.hero__copy { display: grid; gap: 22px; min-width: 0; background: var(--cocoa-card); border: 1px solid var(--line-dark); border-radius: 22px; padding: clamp(22px, 4vw, 44px); box-shadow: 0 30px 60px -30px rgba(36, 19, 15, 0.75); }
+/* the two cards share one size: equal columns, one row height; each centres its content in the extra space */
+.hero__in { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4vw, 48px); align-items: stretch; padding-block: clamp(40px, 7vw, 88px); }
+.hero__copy { container-type: inline-size; display: grid; align-content: center; gap: 22px; min-width: 0; background: var(--cocoa-card); border: 1px solid var(--line-dark); border-radius: 22px; padding: clamp(22px, 4vw, 44px); box-shadow: 0 30px 60px -30px rgba(36, 19, 15, 0.75); }
 .h1 { font-family: var(--display); font-weight: 300; font-size: clamp(3.4rem, 7.4vw, 6.4rem); line-height: 0.95; letter-spacing: -0.045em; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; margin: 6px 0 0; padding-top: 22px; border-top: 1px solid var(--line-dark); }
@@ -93,11 +94,12 @@ p { margin: 0; }
 .partners__label { flex-basis: 100%; font: 600 11px/1.6 var(--sans); font-style: normal; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fog); }
 .partners .nb { white-space: nowrap; }
 .partners .nb + .nb::before { content: "·"; padding-right: 12px; }
-@media (max-width: 560px) { .partners { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 2px; } .partners__label { flex-basis: auto; } .partners .nb + .nb::before { content: none; } }
-@media (max-width: 980px) { .hero__in { grid-template-columns: minmax(0, 1fr); } }
+/* the two names need about 450px on one line; narrower, they stack instead of wrapping after the dot */
+@container (max-width: 460px) { .partners { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 2px; } .partners__label { flex-basis: auto; } .partners .nb + .nb::before { content: none; } }
+@media (max-width: 980px) { .hero__in { grid-template-columns: minmax(0, 1fr); } .hero__copy, .profile { width: 100%; max-width: 560px; justify-self: center; } }
 
 /* the profile card and its feed */
-.profile { background: var(--cocoa-card); border: 1px solid var(--line-dark); border-radius: 22px; padding: clamp(14px, 2.4vw, 22px); box-shadow: 0 30px 60px -30px rgba(36, 19, 15, 0.75); max-width: 560px; width: 100%; justify-self: center; }
+.profile { background: var(--cocoa-card); border: 1px solid var(--line-dark); border-radius: 22px; padding: clamp(14px, 2.4vw, 22px); box-shadow: 0 30px 60px -30px rgba(36, 19, 15, 0.75); display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .profile__head { display: flex; align-items: center; gap: 14px; }
 .profile__head .mono { width: 58px; height: 58px; font-size: 25px; }
 .profile__name { font-weight: 600; font-size: 1.3rem; line-height: 1.2; }
