@@ -20,7 +20,7 @@ the campaign change.
 | Aïssa Kee        | YouTube           | Personal brand (handle to add)         |
 | **@bykreeative** | Instagram, TikTok | Studio                                 |
 | kreeative.xyz    | Website           | The link in bio for every account. Beacons is no longer used (1 October 2026). |
-| kreeative.xyz/aissakee | Portfolio   | My personal UGC portfolio for brands (18 October 2026): pink leopard, cocoa and the soft pink of my Profusion × Walmart carousel, in the luxe editorial style Kee picked (Haus of Wild's feed, xojuliana.com's sections). Her portrait (sent 18 October) is in both "Who is she?" cards, uncropped apart from the empty white above her hair. Since 19 October: only her own photos, with nothing written or drawn over them, the "Who is she?" card as the one graphic, set in Fraunces and Poppins. Draft and `noindex` until the UGC videos are in. Preview: https://claude.ai/artifact/1xt3cKVvAK5ss6qAciJTUX |
+| kreeative.xyz/aissakee | Portfolio   | My personal UGC portfolio for brands (18 October 2026): pink leopard, cocoa and the soft pink of my Profusion × Walmart carousel, in the luxe editorial style Kee picked (Haus of Wild's feed, xojuliana.com's sections). Her portrait (sent 18 October) is in both "Who is she?" cards, uncropped apart from the empty white above her hair. Since 19 October: only her own photos, with nothing written or drawn over them, the "Who is she?" card as the one graphic, set in Fraunces and Poppins. Draft and `noindex` until the UGC videos are in. Preview: https://claude.ai/artifact/1xt3cKVvAK5ss6qAciJTUX · Figma, to adjust the design: https://www.figma.com/design/NK7btnHOFEr2Q8OgPoXL4t |
 
 ## My numbers (TikTok)
 
