@@ -208,6 +208,14 @@ p { margin: 0; }
 .ph figcaption span { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); }
 .ph figcaption b { font: 300 1.35rem/1.15 var(--display); letter-spacing: -0.02em; }
 @media (max-width: 700px) { .photos { grid-template-columns: minmax(0, 0.5625fr) minmax(0, 0.667fr) minmax(0, 0.75fr); } .ph--wide { grid-column: 1 / -1; order: 4; } .ph figcaption b { font-size: 1.15rem; } }
+/* UGC videos: vertical players, never cropped (contain), captions under the video, not on it */
+.videos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(10px, 1.6vw, 18px); align-items: start; }
+.vid { margin: 0; display: grid; gap: 10px; min-width: 0; }
+.vid video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: contain; background: var(--cocoa); border-radius: 6px; }
+.vid figcaption { display: grid; gap: 2px; }
+.vid figcaption span { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); }
+.vid figcaption b { font: 300 1.35rem/1.15 var(--display); letter-spacing: -0.02em; }
+@media (max-width: 700px) { .videos { grid-template-columns: repeat(2, minmax(0, 1fr)); } .vid figcaption b { font-size: 1.15rem; } }
 .sites { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 2vw, 22px); }
 .site { text-decoration: none; display: grid; gap: 12px; min-width: 0; }
 .site__phone { aspect-ratio: 390 / 600; overflow: hidden; border-radius: 6px; }

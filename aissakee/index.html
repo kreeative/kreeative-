@@ -179,6 +179,17 @@
           </div>
         </article>
 
+        <!-- UGC videos: hidden until Kee's files are in. Each video is prepared with tools/aissakee-videos.sh
+             (720 px wide, no cropping, no metadata or location, a cover frame). To show the block, remove
+             "hidden" and give it data-cat="beauty lifestyle" so the filters reach it. One figure per video:
+             <figure class="vid" data-cat="beauty"><video src="video/NAME-720.mp4" poster="video/NAME-poster.webp"
+               width="720" height="1280" controls playsinline preload="none" aria-label="WHAT IT SHOWS"></video>
+               <figcaption><span>FORMAT</span><b>BRAND OR TOPIC</b></figcaption></figure> -->
+        <div class="videos-block" hidden>
+          <div class="subhead"><h3>UGC videos</h3><p>Written, filmed and edited by me.</p></div>
+          <div class="videos"></div>
+        </div>
+
         <div class="photos-block" data-cat="beauty lifestyle">
           <div class="subhead"><h3>UGC photos</h3><p>Unboxing, product and detail shots.</p></div>
           <div class="photos">
