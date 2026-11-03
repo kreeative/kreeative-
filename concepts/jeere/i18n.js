@@ -11,6 +11,7 @@ window.JEERE_EN = {
   'nav.templates': 'Templates',
   'nav.pricing': 'Pricing',
   'nav.faq': 'Questions',
+  'nav.try': 'Try the editor',
   'nav.cta': 'Join the waitlist',
   'nav.ctaShort': 'Join',
   'lang.label': 'Language',
@@ -19,7 +20,7 @@ window.JEERE_EN = {
   'hero.title': 'All your business, <em>in one place</em>.',
   'hero.lead': 'JEERE is the all-in-one platform to build, customise and run your online store and your in-person sales from a single dashboard, with no code. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, with prices in FCFA.',
   'hero.cta': 'Join the waitlist',
-  'hero.cta2': 'See how it works',
+  'hero.cta2': 'Try the editor',
   'hero.note': 'The first 50 stores are built with you and free for 3 months.',
   'hero.phoneAlt': 'Preview of a JEERE store on a phone: a jar of shea butter at 6,500 FCFA and the Order on WhatsApp button.',
 
@@ -139,6 +140,7 @@ window.JEERE_EN = {
   'tpl.r2': 'Photos cropped to the same shape, so the grid always lines up.',
   'tpl.r3': 'Light and background fixed. The product itself is never retouched.',
   'tpl.r4': 'Light pages that open even on 3G.',
+  'tpl.try': 'Try the editor',
 
   'mini.p.kicker': 'New collection',
   'mini.p.head': 'Lagune',

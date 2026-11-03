@@ -117,6 +117,7 @@ ul, ol { padding: 0; list-style: none; }
 .head__nav { display: none; gap: 26px; }
 .head__nav a { font-size: 15px; font-weight: 500; text-decoration: none; color: var(--muted); padding: 10px 0; }
 .head__nav a:hover { color: var(--ink); }
+.head__nav .head__try { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
 .head__end { display: flex; align-items: center; gap: 10px; }
 .only-wide { display: none; }
 @media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .logo__mark { height: 30px; } .logo__word { height: 20px; } }
@@ -319,6 +320,7 @@ html:not(.js) .msg { animation: none; opacity: 1; transform: none; }
 .tpl__desc b { color: var(--ink); font-weight: 600; }
 .rules { margin-top: 26px; display: grid; gap: 12px; }
 .rules li { display: flex; gap: 12px; }
+.tpl__try { margin-top: 28px; }
 .rules .ico { color: var(--accent); margin-top: 2px; }
 .tpl__preview { display: flex; justify-content: center; padding: 20px 0; border-radius: 28px; background:
   linear-gradient(var(--grey-2), var(--grey-2)) padding-box; }
