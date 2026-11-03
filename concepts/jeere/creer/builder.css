@@ -1,5 +1,5 @@
-/* JEERE Studio — builder chrome: start screen, editor, modals.
-   Black and white only: the stores in the preview bring the colour.
+/* Jeere Studio — builder chrome: start screen, editor, modals.
+   Black and white only (the only grey is the silver of the logo): the stores in the preview bring the colour.
    Every rule is scoped to a b- class so nothing leaks into the store preview (.jst) or the assistant (.jwz).
    Designed at 360 px first. */
 
@@ -11,7 +11,6 @@
   --muted: #5E5E5E;
   --line: rgba(17, 17, 17, .12);
   --line-2: rgba(17, 17, 17, .22);
-  --link-bar: #111111;
   --b-font: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --b-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   --b-top-h: 60px;
@@ -43,8 +42,13 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   display: block; width: 20px; height: 20px; flex: none;
   fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
 }
-.b-wordmark { display: block; width: 92px; height: auto; aspect-ratio: 346 / 100; }
-.b-wordmark--sm { width: 72px; }
+/* The Jeere logo (symbols #mark and #word in index.html): silver « j » mark + the word, like the landing page */
+.b-logo__lock { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); vertical-align: middle; }
+.b-logo__lock .logo__mark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 300 / 372; fill: url(#jeere-silver-dark) #8A9199; }
+.b-logo__lock .logo__word { display: block; flex: none; height: 19px; width: auto; aspect-ratio: 2497 / 713; fill: currentColor; }
+.b-logo__lock--sm { gap: 7px; }
+.b-logo__lock--sm .logo__mark { height: 23px; }
+.b-logo__lock--sm .logo__word { height: 15.5px; }
 .b-noscript { padding: 32px 16px; text-align: center; font-weight: 500; }
 
 /* ---------- Buttons ---------- */
@@ -112,7 +116,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   position: relative; margin: 0 0 14px; padding-left: 34px;
   font-size: 12.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
 }
-/* The short bar echoes the bar that links the two Es of the wordmark */
+/* A short rule before the eyebrow */
 .b-eyebrow::before { content: ''; position: absolute; left: 0; top: .5em; width: 22px; height: 4px; background: currentColor; }
 .b-h1 { margin: 0; font: 600 clamp(36px, 9vw, 64px)/1.03 var(--b-font); letter-spacing: -.035em; text-wrap: balance; }
 .b-h1:focus { outline: none; }
@@ -170,8 +174,11 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 }
 .b-chatdemo__msg--me { margin-left: auto; justify-content: flex-end; }
 .b-chatdemo__msg--me > span:last-child { background: var(--white); color: var(--ink); border-radius: 15px 15px 4px 15px; }
-.b-chatdemo__av { display: grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: 8px; background: var(--white); color: var(--ink); }
-.b-chatdemo__av svg { width: 15px; height: auto; fill: currentColor; }
+.b-chatdemo__av {
+  display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%;
+  background: #000000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .24);
+}
+.b-chatdemo__av svg { display: block; width: auto; height: 15px; aspect-ratio: 300 / 372; margin-left: 1px; fill: url(#jeere-silver) #C3C8CE; }
 
 /* Template cards with a live preview */
 .b-tpls { display: grid; gap: 10px; }
@@ -224,8 +231,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   position: relative; z-index: 5; display: flex; align-items: center; gap: 10px; min-width: 0;
   height: var(--b-top-h); padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); background: var(--white);
 }
-.b-top__logo { display: block; flex: none; padding: 8px 2px; color: var(--ink); }
-.b-top__logo .b-wordmark { width: 78px; }
+.b-top__logo { display: flex; align-items: center; flex: none; min-height: 44px; padding: 0 2px; color: var(--ink); border-radius: 8px; }
 .b-top__sep { width: 1px; height: 26px; flex: none; background: var(--line); }
 .b-top__store {
   display: grid; align-content: center; min-width: 0; max-width: 280px; min-height: 44px; padding: 3px 10px;
@@ -245,12 +251,31 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 }
 .b-seg__btn:hover { color: var(--ink); }
 .b-seg__btn[aria-pressed="true"] { background: var(--white); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(17, 17, 17, .12), 0 0 0 1px var(--line); }
-.b-top__device { margin: 0 auto; }
+.b-top__mid { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0 auto; }
+
+/* Page selector « Page : Accueil ▾ »: a native select (best on cheap phones) with its label drawn inside */
+.b-pagesel { position: relative; display: inline-flex; flex: none; border-radius: 13px; background: var(--grey-1); color: var(--ink); transition: background-color .15s; }
+.b-pagesel:hover { background: var(--grey-2); }
+.b-pagesel__k { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); font: 500 13.5px/1 var(--b-font); color: var(--muted); white-space: nowrap; pointer-events: none; }
+.b-pagesel__sel {
+  min-height: 50px; padding: 0 40px 0 61px; border: 0; border-radius: 13px; background: transparent; color: var(--ink);
+  font: 600 14px/1.2 var(--b-font); cursor: pointer; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent;
+}
+.b-pagesel__sel:focus { outline: none; }
+.b-pagesel__sel:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.b-pagesel__sel option { color: var(--ink); background: var(--white); font-weight: 500; }
+.b-pagesel__chev { position: absolute; top: 50%; right: 13px; width: 18px; height: 18px; transform: translateY(-50%); pointer-events: none; }
+/* Another page than the home page is shown: the selector stands out a little, so the seller knows where she is */
+.b-pagesel.is-other { background: var(--white); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.b-pagesel.is-other:hover { background: var(--grey-1); }
 .b-top__end { display: flex; align-items: center; gap: 4px; flex: none; margin-left: auto; }
 .b-top__fiche { margin: 0 4px 0 6px; }
 @media (max-width: 1199.98px) {
   .b-top__device .b-seg__btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .b-top__device .b-seg__btn { padding: 0 10px; }
+  /* Room for the page selector: « Fiche boutique » becomes an icon (its name stays in aria-label and title) */
+  .b-top__fiche { width: 44px; margin: 0 2px; padding: 0; }
+  .b-top__fiche .b-top__lbl { display: none; }
 }
 
 /* Panel */
@@ -453,7 +478,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-tplopt__shot svg { display: block; width: 100%; height: auto; border-radius: 8px; }
 .b-tplopt__name { padding: 2px 2px 0; font-size: 13.5px; font-weight: 600; line-height: 1.25; }
 .b-tplopt__style { padding: 0 2px; font-size: 11.5px; color: var(--muted); line-height: 1.3; }
-.b-tplopt[aria-pressed="true"]::after, .b-font[aria-pressed="true"]::after {
+.b-tplopt[aria-pressed="true"]::after, .b-font[aria-pressed="true"]::after, .b-intopt[aria-pressed="true"]::after {
   content: ''; position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 50%;
   background: var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 12.5 4 4L18 8' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 15px no-repeat;
   box-shadow: 0 0 0 2px var(--white);
@@ -491,6 +516,33 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-radprev { width: 15px; height: 15px; flex: none; border-top: 2px solid currentColor; border-left: 2px solid currentColor; }
 .b-btnprev { width: 22px; height: 13px; flex: none; border: 1.5px solid currentColor; border-radius: 4px; }
 .b-btnprev--solid { background: currentColor; }
+
+/* « Couleurs : Vives / Douces »: two cards, each with a tiny store drawn in the current palette */
+.b-intopts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.b-group > .b-intopts { margin-top: 12px; }
+.b-intopt {
+  position: relative; display: grid; gap: 7px; min-width: 0; padding: 6px 6px 9px; border: 1.5px solid var(--line); border-radius: 13px;
+  background: var(--white); color: var(--ink); text-align: left; font-family: var(--b-font); cursor: pointer;
+}
+.b-intopt:hover { border-color: rgba(17, 17, 17, .4); }
+.b-intopt[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.b-intopt__name { padding: 0 4px; font-size: 14px; font-weight: 600; line-height: 1.25; }
+.b-intprev {
+  display: grid; grid-template-rows: 7px minmax(0, 1fr) 15px; gap: 5px; height: 78px; padding-bottom: 6px; overflow: hidden;
+  border-radius: 8px; background: var(--bg); box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .1);
+}
+.b-intprev > i { display: block; min-height: 0; }
+.b-intprev__bar { background: var(--a); }
+.b-intprev > .b-intprev__hero { display: flex; flex-direction: column; justify-content: center; gap: 5px; margin: 0 6px; padding: 0 8px; border-radius: 5px; background: var(--a); }
+.b-intprev__hero::before { content: ''; width: 62%; height: 5px; border-radius: 3px; background: var(--oa); }
+.b-intprev__hero::after { content: ''; width: 34%; height: 8px; border-radius: 4px; background: var(--oa); opacity: .92; }
+.b-intprev > .b-intprev__tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0 6px; }
+.b-intprev__tiles b { display: block; border-radius: 3px; background: color-mix(in srgb, var(--a) 26%, var(--bg)); }
+.b-intprev--soft .b-intprev__bar { background: color-mix(in srgb, var(--a) 14%, var(--bg)); }
+.b-intprev--soft .b-intprev__hero { background: var(--sf); box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .07); }
+.b-intprev--soft .b-intprev__hero::before { background: var(--tx); opacity: .8; }
+.b-intprev--soft .b-intprev__hero::after { background: var(--a); opacity: 1; }
+.b-intprev--soft .b-intprev__tiles b { background: var(--sf); box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .07); }
 
 /* Boutique: payment switches */
 .b-switches { display: grid; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; }
@@ -546,7 +598,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 /* Stage and device frames */
 .b-stage { position: relative; min-width: 0; background: var(--grey-1); }
 .b-stage__bar { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 24px 0; }
-.b-stage__hint { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); text-align: center; }
+.b-stage__hint { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); text-align: center; text-wrap: balance; }
 .b-stage__inner { padding: 14px 32px 56px; }
 .b-dwrap { position: relative; margin: 0 auto; }
 .b-device { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
@@ -604,7 +656,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   .b-panel { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); }
   .b-panel__scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
   .b-stage { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-  .b-stage__device { display: none; }
+  .b-stage__device, .b-stage__page { display: none; }
   .b-pick { display: none !important; }
 }
 @media (min-width: 1280px) { :root { --b-panel-w: 384px; } }
@@ -615,8 +667,10 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   .b-ed[data-view="edit"] .b-stage { display: none; }
   .b-ed[data-view="preview"] .b-panel { display: none; }
   .b-top { position: sticky; top: 0; z-index: 30; height: 56px; gap: 2px; padding: 0 8px 0 14px; }
-  .b-top__sep, .b-top__device, .b-saved { display: none; }
-  .b-top__logo .b-wordmark { width: 64px; }
+  .b-top__sep, .b-top__mid, .b-saved { display: none; }
+  .b-top__logo { padding: 0; }
+  .b-top__logo .logo__mark { height: 26px; }
+  .b-top__logo .logo__word { height: 17px; }
   .b-top__store { flex: 1; max-width: none; padding: 3px 8px; }
   .b-top__name { font-size: 14px; }
   .b-top__fiche { width: 44px; margin: 0; padding: 0; border-color: transparent; }
@@ -627,10 +681,11 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   .b-tab { min-height: 58px; }
   .b-stage { min-height: calc(100vh - 124px); min-height: calc(100dvh - 124px); }
   .b-stage__bar {
-    position: sticky; top: 56px; z-index: 10; justify-content: space-between; padding: 6px 8px 6px 14px;
+    position: sticky; top: 56px; z-index: 10; justify-content: space-between; gap: 8px; padding: 6px 8px;
     border-bottom: 1px solid var(--line); background: rgba(245, 245, 243, .95); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   }
-  .b-stage__hint { text-align: left; font-size: 12px; }
+  .b-stage__hint { flex: 1 1 0; min-width: 0; text-align: left; font-size: 12px; text-wrap: pretty; }
+  .b-stage__page .b-pagesel__sel { min-height: 46px; }
   .b-stage__inner { padding: 16px 12px 28px; }
   .b-mnav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
@@ -652,9 +707,15 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   /* Dialogs open as bottom sheets here: show the toast at the top so it never covers their buttons */
   html.b-modal-open .b-toast[role="status"] { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 }
+@media (min-width: 420px) and (max-width: 899.98px) {
+  .b-top__sep { display: block; margin: 0 6px 0 8px; }
+}
 @media (max-width: 419.98px) {
   .b-top__store { display: none; }
   .b-top__end { margin-left: auto; }
+}
+@media (max-width: 599.98px) {
+  .b-stage__hint { display: none; }
 }
 @media (max-width: 479.98px) {
   .b-stage__device .b-seg__btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

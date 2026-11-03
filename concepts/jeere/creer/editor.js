@@ -1,14 +1,21 @@
 /*
- * JEERE Studio — editor.js
+ * Jeere Studio — editor.js
  * The start screen and the store editor. Exposes one global: window.JeereBuilder
- *   openEditor(config)  normalises the fiche boutique and shows the editor
- *   getConfig()         deep copy of the fiche being edited (null before the editor opens)
- *   showStart()         back to the start screen « Créez votre boutique »
+ *   openEditor(config)        normalises the fiche boutique and shows the editor
+ *   getConfig()               deep copy of the fiche being edited (null before the editor opens)
+ *   showStart()               back to the start screen « Créez votre boutique »
+ *   showPage(page, productId) shows one page of the store in the preview (see JEERE_DATA.PAGES)
+ *   getPage()                 { page, productId } shown in the preview
  *
  * The editor edits one "fiche boutique" (store config v1, see data.js). Every change re-renders the
  * live preview with JeereRender, goes into an undo history and is autosaved in localStorage.
  * Section forms are generated from JEERE_DATA.sectionTypes[type].fields (FieldDefs): nothing is
  * written per section here, so a new section type in data.js gets its form for free.
+ *
+ * The preview shows one of the store's 5 pages (Accueil, Fiche produit, Panier, Paiement,
+ * Confirmation), chosen with « Page : … ▾ ». The customer journey works inside it: render.js
+ * handles the store's own buttons and tells us with the 'jst:navigate' event, so the selector
+ * follows. Clicking anywhere else in a section or a product opens it in the panel.
  */
 (() => {
   'use strict';
@@ -33,6 +40,25 @@
   const inColl = (coll, id) => typeof id === 'string' && !!coll && Object.prototype.propertyIsEnumerable.call(coll, id);
 
   const TABS = ['sections', 'produits', 'theme', 'boutique', 'qualite'];
+  // JEERE_DATA.PAGES and INTENSITY_OPTIONS are the contract; these are their fallbacks (older data.js)
+  const PAGES_FALLBACK = [
+    { id: 'home', label: 'Accueil' }, { id: 'product', label: 'Fiche produit' }, { id: 'cart', label: 'Panier' },
+    { id: 'checkout', label: 'Paiement' }, { id: 'confirmation', label: 'Confirmation' }
+  ];
+  const INTENSITY_FALLBACK = [
+    { value: 'vivid', label: 'Vives', hint: 'Votre couleur habille toute la boutique.' },
+    { value: 'soft', label: 'Douces', hint: 'Des fonds clairs, la couleur en touches.' }
+  ];
+  // What the preview hint says on each page (desktop, then phones and tablets)
+  const PAGE_HINTS = {
+    home: ['Aperçu en direct. Cliquez sur une section pour la modifier, sur un produit pour ouvrir sa fiche.', 'Touchez une section pour la modifier.'],
+    product: [`La fiche produit. Cliquez sur la photo pour modifier le produit, sur ${guil('Ajouter au panier')} pour continuer.`, 'Touchez la photo pour modifier le produit.'],
+    cart: [`Le panier, avec un produit d’exemple. Changez les quantités, puis ${guil('Passer au paiement')}.`, 'Un panier d’exemple, comme le verront vos clients.'],
+    checkout: [`La page de paiement. Remplissez-la comme un client${NB}: rien n’est envoyé, personne n’est débité.`, `Remplissez-la comme un client${NB}: rien n’est envoyé.`],
+    confirmation: ['La confirmation de commande, telle que vos clients la verront.', 'Ce que voit le client après sa commande.']
+  };
+  // Sections whose settings also show on other pages (the delivery zones feed the checkout's communes)
+  const SECTION_PAGES = { delivery: ['product', 'checkout', 'confirmation'] };
   const SECTION_ICONS = {
     announcement: 'i-megaphone', hero: 'i-image', categories: 'i-grid', products: 'i-bag',
     about: 'i-info', reviews: 'i-star', delivery: 'i-truck', whatsapp: 'i-chat'
@@ -64,7 +90,7 @@
     config: null,
     history: [], index: 0, pending: false,
     open: false,
-    tab: 'sections', device: 'phone', view: 'edit',
+    tab: 'sections', device: 'phone', view: 'edit', page: 'home', productId: null,
     openSection: null, openProduct: null, openItem: {}, reorder: { sections: false, produits: false },
     scale: 1, previewDirty: true, pendingReveal: null, hoverNode: null, pick: null,
     scrollY: { edit: 0, preview: 0 },
@@ -168,6 +194,24 @@
   const typeDef = (type) => (inColl(D.sectionTypes, type) ? D.sectionTypes[type] : null);
   const templateOf = (id) => (inColl(D.templates, id) ? D.templates[id] : D.templates.plateau);
   const storeName = () => (S.config && String(S.config.store.name || '').trim()) || 'Ma boutique';
+  function pagesList() {
+    const list = D && Array.isArray(D.PAGES) && D.PAGES.length ? D.PAGES : PAGES_FALLBACK;
+    const out = list.filter((p) => p && typeof p.id === 'string').map((p) => ({ id: p.id, label: String(p.label || p.id) }));
+    return out.length ? out : PAGES_FALLBACK;
+  }
+  const isPage = (id) => pagesList().some((p) => p.id === id);
+  function intensityOptions() {
+    const list = D && Array.isArray(D.INTENSITY_OPTIONS) && D.INTENSITY_OPTIONS.length ? D.INTENSITY_OPTIONS : INTENSITY_FALLBACK;
+    return list.filter((o) => o && typeof o.value === 'string').map((o) => {
+      const fb = INTENSITY_FALLBACK.find((f) => f.value === o.value);
+      return { value: o.value, label: String(o.label || (fb && fb.label) || o.value), hint: String(o.hint || (fb && fb.hint) || '') };
+    });
+  }
+  // Pages need a renderer that knows them (render.js round 2): with an older one the selector is hidden
+  function rendererHasPages() {
+    const R = window.JeereRender;
+    return !!(R && (Array.isArray(R.PAGES) || typeof R.pages === 'function'));
+  }
 
   function artMarkup(kind, color) {
     const R = window.JeereRender;
@@ -324,7 +368,9 @@
     if (!S.config || !els.store) return;
     if (!previewVisible()) { S.previewDirty = true; return; }
     S.previewDirty = false;
-    renderStoreInto(els.store, S.config, S.device, els.screen);
+    if (S.page === 'product' && !findProduct(S.productId)) S.productId = S.config.products[0] ? S.config.products[0].id : null;
+    renderStoreInto(els.store, S.config, S.device, els.screen, S.page, S.productId);
+    readView();
     hideHover();
     fit();
     // The page was rebuilt: move a running outline onto the new element, or drop it
@@ -333,23 +379,113 @@
       if (node) placeHl(els.hlFlash, node, labelFor(S.flash)); else els.hlFlash.classList.remove('is-on');
     }
   }
-  function renderStoreInto(root, config, device, screen) {
+  function renderStoreInto(root, config, device, screen, page, productId) {
     const R = window.JeereRender;
     let ok = false;
     if (R && typeof R.render === 'function') {
-      try { R.render(config, root, { device }); ok = true; } catch (e) { ok = false; }
+      try { R.render(config, root, { device, page: page || 'home', productId: productId || null }); ok = true; } catch (e) { ok = false; }
     }
     if (!ok) {
       root.className = 'b-noprev';
       root.textContent = R ? 'L’aperçu n’a pas pu s’afficher.' : 'L’aperçu n’est pas encore disponible.';
     }
-    // The preview is a picture of the store: keep its links and buttons out of the keyboard order
-    root.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]').forEach((n) => n.setAttribute('tabindex', '-1'));
+    tameStore(root, screen);
+  }
+  // The preview is a picture of the store: keep its links and buttons out of the keyboard order (the page
+  // selector reaches every page), and paint the frame in the store's background colour
+  function tameStore(root, screen) {
+    root.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]').forEach((n) => { if (n.getAttribute('tabindex') !== '-1') n.setAttribute('tabindex', '-1'); });
     if (screen) {
       let bg = '';
       try { bg = root.style.getPropertyValue('--st-bg').trim(); } catch (e) { bg = ''; }
       screen.style.background = bg || '#FFFFFF';
     }
+  }
+
+  /* ---------- pages of the preview ---------- */
+
+  // The renderer may resolve the page (unknown product, older renderer): follow what it drew
+  function readView() {
+    const v = els.store && els.store.__jstView;
+    if (!rendererHasPages() || !v || typeof v !== 'object') { S.page = 'home'; syncPagePicks(); return; }
+    S.page = isPage(v.page) ? v.page : 'home';
+    if (S.page === 'product' && typeof v.productId === 'string' && findProduct(v.productId)) S.productId = v.productId;
+    syncPagePicks();
+  }
+  function syncPagePicks() {
+    const on = rendererHasPages();
+    (els.pageSels || []).forEach((wrap) => { wrap.hidden = !on; wrap.classList.toggle('is-other', S.page !== 'home'); });
+    (els.pagePicks || []).forEach((sel) => { if (sel.value !== S.page) sel.value = S.page; });
+    updateHint();
+  }
+  function buildPagePicks() {
+    const list = pagesList();
+    els.pagePicks.forEach((sel) => {
+      sel.textContent = '';
+      list.forEach((p) => sel.append(el('option', { value: p.id, text: p.label })));
+      sel.value = S.page;
+    });
+  }
+  function scrollPreviewTop() {
+    if (isMobile()) { if (S.view === 'preview' && window.scrollY > 0) window.scrollTo(0, 0); }
+    else if (els.stage) els.stage.scrollTop = 0;
+  }
+  // Show a page of the store (from the selector, the Produits tab, the Qualité tab…)
+  function showPage(page, productId, opts = {}) {
+    if (!S.config) return;
+    if (!isPage(page) || !rendererHasPages()) page = 'home';
+    S.page = page;
+    if (page === 'product') {
+      const want = [productId, S.openProduct, S.productId].find((id) => typeof id === 'string' && findProduct(id));
+      S.productId = want || (S.config.products[0] ? S.config.products[0].id : null);
+    }
+    hidePick();
+    dropFlash();
+    syncPagePicks();
+    S.previewDirty = true;
+    if (!previewVisible()) return;
+    renderPreviewNow();
+    if (opts.scroll !== false) scrollPreviewTop();
+  }
+  function dropFlash() {
+    S.flash = null;
+    clearTimeout(S.timers.flash);
+    if (els.hlFlash) els.hlFlash.classList.remove('is-on');
+  }
+  // render.js moved inside the preview (product card, « Ajouter au panier », « Payer »…)
+  function onStoreNavigate(e) {
+    const d = (e && e.detail) || {};
+    if (e && typeof e.preventDefault === 'function') e.preventDefault(); // we scroll our own stage
+    S.page = isPage(d.page) ? d.page : 'home';
+    if (S.page === 'product' && typeof d.productId === 'string' && findProduct(d.productId)) {
+      S.productId = d.productId;
+      // Keep the Produits tab on the product being looked at, if a product is open there
+      if (!isMobile() && S.tab === 'produits' && S.openProduct && S.openProduct !== d.productId) {
+        S.openProduct = d.productId;
+        renderTab();
+        scrollRowIntoView(`[data-pid="${CSS.escape(d.productId)}"]`);
+      }
+    }
+    hideHover();
+    hidePick();
+    dropFlash();
+    syncPagePicks();
+    tameStore(els.store, els.screen);
+    scrollPreviewTop();
+    fit();
+  }
+  // Which page shows a section or a product, when the current one does not
+  function pageFor(t) {
+    if (!rendererHasPages() || S.page === 'home') return null;
+    if (t.kind === 'product') {
+      const v = els.store && els.store.__jstView;
+      const shown = v && v.page === 'product' && !S.previewDirty ? v.productId : S.productId;
+      return S.page === 'product' && shown === t.id ? null : { page: 'product', productId: t.id };
+    }
+    const sec = findSection(t.id);
+    if (sec && (SECTION_PAGES[sec.type] || []).indexOf(S.page) !== -1) return null;
+    if (!S.previewDirty && findPreviewNode(t)) return null; // drawn here too (the announcement bar)
+    return { page: 'home' };
   }
   function fit() {
     if (!els.device || !previewVisible() || els.ed.hidden) return;
@@ -388,6 +524,11 @@
     const s = findSection(t.id);
     const def = s && typeDef(s.type);
     return def ? def.name : 'Section';
+  }
+  // A button, link or field of the store itself (render.js handles it): not a click to edit
+  function storeControl(n) {
+    if (!n || !els.store || !els.store.contains(n)) return false;
+    return !!n.closest('[data-jst-action], input, select, textarea, label, option');
   }
   function targetOf(node) {
     if (!node) return null;
@@ -429,6 +570,15 @@
   // Scroll the preview to a section or product and outline it briefly
   function revealInPreview(t, opts = {}) {
     if (!t || !(t.kind === 'product' ? findProduct(t.id) : findSection(t.id))) return;
+    const move = pageFor(t);
+    if (t.kind === 'product') S.productId = t.id;
+    if (move) {
+      S.page = move.page;
+      if (move.productId) S.productId = move.productId;
+      dropFlash();
+      syncPagePicks();
+      S.previewDirty = true;
+    }
     if (!previewVisible()) { S.pendingReveal = t; return; }
     if (S.previewDirty) renderPreviewNow();
     let node = findPreviewNode(t);
@@ -1131,7 +1281,7 @@
     renderTab({ focus: 'pm-' + id });
     if (S.openProduct) {
       scrollRowIntoView(`[data-pid="${CSS.escape(id)}"]`);
-      revealInPreview({ kind: 'product', id });
+      revealInPreview({ kind: 'product', id }); // on another page than the home page: its product page
     }
   }
   function moveProduct(id, dir, p = 'p') {
@@ -1257,7 +1407,28 @@
             el('i', { style: `background:${c.surface}` }))),
         el('span', { class: 'b-pal__name', text: p.name })));
     });
-    tp.append(group('b-g-theme-palette', 'Couleurs', null, pals));
+    tp.append(group('b-g-theme-palette', 'Palette', 'Une couleur de fond, une couleur forte pour les boutons et les blocs.', pals));
+
+    // « Couleurs : Vives / Douces » (theme.intensity), drawn with the current palette
+    const pal = (inColl(D.palettes, th.palette) ? D.palettes[th.palette] : D.palettes[0] || D.palettes.sable || { colors: {} }).colors || {};
+    const opts = intensityOptions();
+    const cur = opts.some((o) => o.value === th.intensity) ? th.intensity : (D.DEFAULT_INTENSITY || 'vivid');
+    const ints = el('div', { class: 'b-intopts', role: 'group', 'aria-label': 'Couleurs' });
+    opts.forEach((o) => {
+      ints.append(el('button', {
+        type: 'button', class: 'b-intopt', 'aria-pressed': String(o.value === cur), 'data-fk': 'int-' + o.value,
+        'aria-label': `Couleurs ${o.label.toLowerCase()}${o.hint ? `${NB}: ${o.hint}` : ''}`,
+        on: { click: () => setTheme('intensity', o.value, `Couleurs${NB}: ${o.label.toLowerCase()}`) }
+      },
+        el('span', {
+          class: 'b-intprev b-intprev--' + (o.value === 'soft' ? 'soft' : 'vivid'), 'aria-hidden': 'true',
+          style: `--a:${pal.accent || '#111111'};--oa:${pal.onAccent || '#FFFFFF'};--bg:${pal.bg || '#FFFFFF'};--sf:${pal.surface || '#FFFFFF'};--tx:${pal.text || '#111111'}`
+        },
+          el('i', { class: 'b-intprev__bar' }), el('i', { class: 'b-intprev__hero' }),
+          el('i', { class: 'b-intprev__tiles' }, el('b'), el('b'), el('b'))),
+        el('span', { class: 'b-intopt__name', text: o.label })));
+    });
+    tp.append(group('b-g-theme-intensity', 'Couleurs', `Vives${NB}: votre couleur habille toute la boutique. Douces${NB}: des fonds clairs, la couleur en touches.`, ints));
 
     const fonts = el('div', { class: 'b-fonts' });
     D.fontPairs.forEach((fp) => {
@@ -1335,7 +1506,7 @@
         el('span', { class: 'b-switch__txt' }, el('span', { class: 'b-switch__lbl', text: pm.label }), PAY_NOTES[pm.key] ? el('span', { class: 'b-switch__note', text: PAY_NOTES[pm.key] }) : null),
         el('span', { class: 'b-switch__ui', 'aria-hidden': 'true' })));
     });
-    tp.append(group('b-g-payments', 'Moyens de paiement', 'Affichés en texte en bas de votre boutique. Activez au moins un moyen.', pays));
+    tp.append(group('b-g-payments', 'Moyens de paiement', 'Proposés à vos clients sur la page Paiement, et écrits en bas de votre boutique. Activez au moins un moyen.', pays));
 
     tp.append(group('b-g-restart', 'Changer de point de départ', `Votre boutique reste enregistrée dans ce navigateur${NB}: vous pourrez la reprendre.`,
       el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--block', 'data-fk': 'restart', on: { click: () => showStart() } },
@@ -1347,7 +1518,7 @@
   function renderQuality(tp) {
     const v = D.validate(S.config);
     const ok = v.status === 'APPROUVÉ';
-    tp.append(tabHead('Qualité', 'Nous relisons votre fiche boutique avant publication, comme le fera JEERE.'));
+    tp.append(tabHead('Qualité', 'Nous relisons votre fiche boutique avant publication, comme le fera Jeere.'));
     tp.append(el('div', { class: 'b-score' + (ok ? ' is-ok' : '') },
       el('div', { class: 'b-score__top' },
         el('p', { class: 'b-score__num' }, el('strong', { text: String(v.score) }), el('span', { text: '/100' })),
@@ -1401,7 +1572,7 @@
         break;
       case 'theme':
         setTab('theme');
-        focusGroup('b-g-theme-' + (t.id === 'palette' || t.id === 'fonts' ? t.id : 'template'));
+        focusGroup(t.id && document.getElementById('b-g-theme-' + t.id) ? 'b-g-theme-' + t.id : 'b-g-theme-template');
         break;
       case 'section':
         if (t.id && findSection(t.id)) selectTarget({ kind: 'section', id: t.id }, { reveal: true });
@@ -1444,7 +1615,7 @@
     const name = storeName();
     els.topName.textContent = name;
     els.url.textContent = slug(name) + '.jeere.shop';
-    if (S.open) document.title = `${name} · JEERE Studio`;
+    if (S.open) document.title = `${name} · Jeere Studio`;
     const v = D.validate(S.config);
     els.tabScore.textContent = String(v.score);
     els.tabScore.classList.toggle('is-ok', v.status === 'APPROUVÉ');
@@ -1771,6 +1942,11 @@
     S.pendingReveal = null;
     S.scrollY = { edit: 0, preview: 0 };
     S.view = 'edit';
+    S.page = 'home';
+    S.productId = null;
+    // A new store starts with an empty demo cart (render.js keeps it on the preview element)
+    ['__jstCart', '__jstForm', '__jstQty', '__jstCartCleared'].forEach((k) => { try { delete els.store[k]; } catch (e) { /* ignore */ } });
+    syncPagePicks();
     S.previewDirty = true;
     els.ed.dataset.view = 'edit';
     updateViewButtons();
@@ -1797,7 +1973,7 @@
     els.ed.hidden = true;
     els.start.hidden = false;
     document.documentElement.classList.remove('b-editing');
-    document.title = 'Créez votre boutique · JEERE Studio';
+    document.title = 'Créez votre boutique · Jeere Studio';
     renderStart();
     window.scrollTo(0, 0);
     focusEl(els.startTitle);
@@ -1825,6 +2001,7 @@
       hlHover: $('b-hl-hover'), hlFlash: $('b-hl-flash'),
       pick: $('b-pick'), pickBtn: $('b-pick-btn'), pickLabel: $('b-pick-label'), pickClose: $('b-pick-close'),
       mnav: document.querySelector('.b-mnav'), viewBtns: Array.from(document.querySelectorAll('.b-mnav__btn')),
+      pageSels: Array.from(document.querySelectorAll('[data-page-select]')), pagePicks: Array.from(document.querySelectorAll('[data-page-pick]')),
       toast: $('b-toast'),
       ficheModal: $('m-fiche'), ficheCode: $('fiche-code'), ficheMeta: $('fiche-meta'), ficheImport: $('fiche-import'),
       fichePaste: $('fiche-paste'), ficheError: $('fiche-error'), ficheFile: $('fiche-file'), ficheApply: $('fiche-apply'),
@@ -1844,6 +2021,13 @@
     document.querySelectorAll('[data-device-toggle] [data-device]').forEach((b) => b.addEventListener('click', () => setDevice(b.dataset.device)));
     els.undo.addEventListener('click', undo);
     els.redo.addEventListener('click', redo);
+    buildPagePicks();
+    els.pagePicks.forEach((sel) => sel.addEventListener('change', () => showPage(sel.value)));
+    els.store.addEventListener('jst:navigate', onStoreNavigate);
+    // render.js redraws the preview by itself (quantities, payment choice, commune): keep it tamed
+    if (window.MutationObserver) {
+      new MutationObserver(() => { tameStore(els.store, els.screen); if (S.hoverNode && !S.hoverNode.isConnected) hideHover(); }).observe(els.store, { childList: true });
+    }
     els.ficheBtn.addEventListener('click', openFiche);
     els.publishBtn.addEventListener('click', openPublish);
 
@@ -1872,9 +2056,12 @@
     els.pickBtn.addEventListener('click', () => { const t = S.pick; hidePick(); setView('edit'); selectTarget(t); });
     els.pickClose.addEventListener('click', hidePick);
 
-    // The preview: clicking a section or a product opens it in the panel (never follows the store's links)
+    // The preview: the store's own buttons and fields work (render.js moves through the pages); a click
+    // anywhere else in a section or a product opens it in the panel. Links never leave the preview.
     els.screen.addEventListener('click', (e) => {
-      if (e.target.closest('a, button, form, label, summary, input, select, textarea')) e.preventDefault();
+      if (!(e.target instanceof Element)) return;
+      if (storeControl(e.target)) return;
+      if (e.target.closest('a, button, form, summary')) e.preventDefault();
       const node = e.target.closest('[data-product-id], [data-section-id]');
       const t = targetOf(node);
       if (!t) return;
@@ -1884,8 +2071,9 @@
     }, true);
     els.screen.addEventListener('submit', (e) => e.preventDefault(), true);
     els.screen.addEventListener('mousemove', (e) => {
-      if (!mqHover.matches || isMobile()) return;
-      const node = e.target.closest('[data-product-id], [data-section-id]');
+      if (!mqHover.matches || isMobile() || !(e.target instanceof Element)) return;
+      // The outline shows what a click edits: none over the store's own buttons and fields
+      const node = storeControl(e.target) ? null : e.target.closest('[data-product-id], [data-section-id]');
       if (node === S.hoverNode) return;
       S.hoverNode = node;
       if (!node) { els.hlHover.classList.remove('is-on'); return; }
@@ -1978,7 +2166,9 @@
   }
 
   function updateHint() {
-    if (els.stageHint) els.stageHint.textContent = isMobile() ? 'Touchez une section pour la modifier.' : 'Aperçu en direct. Cliquez sur une section pour la modifier.';
+    if (!els.stageHint) return;
+    const h = PAGE_HINTS[rendererHasPages() ? S.page : 'home'] || PAGE_HINTS.home;
+    els.stageHint.textContent = isMobile() ? h[1] : h[0];
   }
 
   function init() {
@@ -1996,7 +2186,9 @@
     renderStart();
   }
 
-  window.JeereBuilder = { openEditor, getConfig, showStart };
+  function getPage() { return { page: S.page, productId: S.page === 'product' ? S.productId : null }; }
+
+  window.JeereBuilder = { openEditor, getConfig, showStart, showPage: (page, productId) => { if (S.open) showPage(page, productId); }, getPage };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

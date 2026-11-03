@@ -4,9 +4,10 @@
  *
  * Everything a store is made of lives in one "fiche boutique" (store config JSON, version 1).
  * The AI never writes code: it fills this fiche, our tested templates render it, and the
- * editor edits the same fiche. This file holds the catalogue (templates, palettes, font
- * pairs, section types, niches, communes), the example content in French, and the pure
- * helpers (defaultConfig, normalizeConfig, validate, formatPrice...).
+ * editor edits the same fiche. This file holds the catalogue (templates, palettes, colour
+ * intensities, font pairs, section types, niches, communes, payment methods, store pages), the
+ * example content in French, and the pure helpers (defaultConfig, normalizeConfig, validate,
+ * formatPrice...).
  *
  * Pure data and functions: no DOM access. The only side effect is window.JEERE_DATA, so the
  * file also loads in Node with `global.window = {}`.
@@ -96,14 +97,53 @@
 
   var BADGES = { new: 'Nouveau', best: 'Best-seller', promo: 'Promo' };
 
+  // Payment methods, in the order of the checkout. Always plain text: never the operators' logos or
+  // brand colours. kind: 'mobile' (mobile money), 'cod' (paid to the courier) or 'card'.
+  // hint: the line under the method on the checkout page. status: the line on the confirmation page.
+  // On the checkout, 'cod' turns the main button into « Confirmer la commande », the others into « Payer 14 500 FCFA ».
   var PAYMENTS = [
-    { key: 'wave', label: 'Wave' },
-    { key: 'orange', label: 'Orange Money' },
-    { key: 'mtn', label: 'MTN MoMo' },
-    { key: 'moov', label: 'Moov Money' },
-    { key: 'cod', label: 'Paiement à la livraison' },
-    { key: 'card', label: 'Carte bancaire' }
+    { key: 'wave', label: 'Wave', kind: 'mobile', hint: 'Vous recevrez une demande de paiement sur votre numéro Wave.', status: 'Paiement Wave reçu' },
+    { key: 'orange', label: 'Orange Money', kind: 'mobile', hint: 'Validez le paiement sur votre téléphone.', status: 'Paiement Orange Money reçu' },
+    { key: 'mtn', label: 'MTN MoMo', kind: 'mobile', hint: 'Validez le paiement sur votre téléphone.', status: 'Paiement MTN MoMo reçu' },
+    { key: 'moov', label: 'Moov Money', kind: 'mobile', hint: 'Validez le paiement sur votre téléphone.', status: 'Paiement Moov Money reçu' },
+    { key: 'cod', label: 'Paiement à la livraison', kind: 'cod', hint: 'Vous payez le livreur en espèces ou par mobile money à la réception.', status: 'À payer à la livraison' },
+    { key: 'card', label: 'Carte bancaire', kind: 'card', hint: 'Visa ou Mastercard, idéal depuis l’étranger.', status: 'Paiement par carte reçu' }
   ];
+
+  // The pages of a store, in the order of the buying journey. JeereRender.render(config, root,
+  // { page, productId }) draws one of them; nothing in the fiche is specific to a page.
+  var PAGES = [
+    { id: 'home', label: 'Accueil' },
+    { id: 'product', label: 'Fiche produit' },
+    { id: 'cart', label: 'Panier' },
+    { id: 'checkout', label: 'Paiement' },
+    { id: 'confirmation', label: 'Confirmation' }
+  ];
+
+  // Colour intensity (theme.intensity). 'vivid': the palette's accent carries the page (announcement bar,
+  // hero, tinted section backgrounds, solid buttons). 'soft': light backgrounds, the colour in touches.
+  // The renderer does it with CSS variables and [data-intensity] on the store root: palettes never change.
+  // Vivid is the default everywhere; a fiche saved before intensity existed is read as vivid.
+  var INTENSITY_OPTIONS = [
+    { value: 'vivid', label: 'Vives', hint: 'Votre couleur habille toute la boutique.' },
+    { value: 'soft', label: 'Douces', hint: 'Des fonds clairs, la couleur en touches.' }
+  ];
+  var DEFAULT_INTENSITY = 'vivid';
+
+  function isIntensity(v) {
+    return INTENSITY_OPTIONS.some(function (o) { return o.value === v; });
+  }
+
+  // 'vivid', 'soft', or a French label ('Vives', 'douces'); anything else gives the default.
+  function normIntensity(v) {
+    if (typeof v !== 'string') return DEFAULT_INTENSITY;
+    var s = v.trim().toLowerCase();
+    for (var i = 0; i < INTENSITY_OPTIONS.length; i++) {
+      var o = INTENSITY_OPTIONS[i];
+      if (s === o.value || s === o.label.toLowerCase()) return o.value;
+    }
+    return DEFAULT_INTENSITY;
+  }
 
   var radii = { none: 0, soft: 10, round: 22 };
   var RADIUS_OPTIONS = [
@@ -721,7 +761,8 @@
         palette: nicheGiven ? ni.palette : tpl.defaults.palette,
         fonts: tpl.defaults.fonts,
         radius: tpl.defaults.radius,
-        buttons: tpl.defaults.buttons
+        buttons: tpl.defaults.buttons,
+        intensity: DEFAULT_INTENSITY
       },
       payments: { wave: true, orange: true, mtn: true, moov: false, cod: true, card: false },
       sections: tpl.defaults.sections.map(function (type, i) {
@@ -878,7 +919,9 @@
       palette: (typeof srcTheme.palette === 'string' && inColl(palettes, srcTheme.palette)) ? srcTheme.palette : base.theme.palette,
       fonts: (typeof srcTheme.fonts === 'string' && inColl(fontPairs, srcTheme.fonts)) ? srcTheme.fonts : base.theme.fonts,
       radius: (typeof srcTheme.radius === 'string' && has(radii, srcTheme.radius)) ? srcTheme.radius : base.theme.radius,
-      buttons: (srcTheme.buttons === 'solid' || srcTheme.buttons === 'outline') ? srcTheme.buttons : base.theme.buttons
+      buttons: (srcTheme.buttons === 'solid' || srcTheme.buttons === 'outline') ? srcTheme.buttons : base.theme.buttons,
+      // Missing (a fiche saved before intensity existed) or unknown: vivid.
+      intensity: normIntensity(srcTheme.intensity)
     };
 
     var srcPay = isObj(src.payments) ? src.payments : {};
@@ -986,6 +1029,10 @@
       if (!(typeof theme.fonts === 'string' && inColl(fontPairs, theme.fonts))) {
         add('error', 'Polices inconnues. Choisissez une paire de polices dans l’onglet Thème.', 'theme', 'fonts');
       }
+      // A missing intensity is read as vivid (normalizeConfig fills it); a value that is set must be known.
+      if (theme.intensity !== undefined && !isIntensity(theme.intensity)) {
+        add('error', 'Réglage des couleurs inconnu. Choisissez ' + q('Vives') + ' ou ' + q('Douces') + ' dans l’onglet Thème.', 'theme', 'intensity');
+      }
 
       /* warnings */
       var whatsapp = textOf(store.whatsapp).trim();
@@ -1086,9 +1133,12 @@
     ART_LABELS: ART_LABELS,
     BADGES: BADGES,
     PAYMENTS: PAYMENTS,
+    PAGES: PAGES,
     PRODUCT_COLORS: PRODUCT_COLORS,
     RADIUS_OPTIONS: RADIUS_OPTIONS,
     BUTTON_OPTIONS: BUTTON_OPTIONS,
+    INTENSITY_OPTIONS: INTENSITY_OPTIONS,
+    DEFAULT_INTENSITY: DEFAULT_INTENSITY,
     templates: templates,
     palettes: palettes,
     fontPairs: fontPairs,

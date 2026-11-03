@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
   <!-- The page lives in a folder (/concepts/jeere/creer/): add the final slash so relative links keep working -->
   <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
-  <title>Créez votre boutique · JEERE Studio</title>
-  <meta name="description" content="Prototype de l’éditeur de boutique JEERE : choisissez un modèle ou décrivez votre boutique à l’assistant, puis modifiez-la avec un aperçu en direct.">
+  <title>Créez votre boutique · Jeere Studio</title>
+  <meta name="description" content="Prototype de l’éditeur de boutique Jeere&nbsp;: choisissez un modèle ou décrivez votre boutique à l’assistant, puis modifiez-la avec un aperçu en direct.">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#FFFFFF">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
@@ -28,20 +28,30 @@
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <symbol id="wordmark" viewBox="0 0 346 100">
-      <path fill="currentColor" d="M44 0H64V68A32 32 0 0 1 0 68V56H20V68A12 12 0 0 0 44 68Z"/>
-      <path fill="currentColor" d="M78 0H132V20H98V80H132V100H78Z"/>
-      <path fill="currentColor" d="M146 0H200V20H166V80H200V100H146Z"/>
-      <rect x="98" y="40" width="96" height="20" fill="var(--link-bar, #111111)"/>
-      <path fill="currentColor" fill-rule="evenodd" d="M214 0H246A30 30 0 0 1 246 60H234V100H214ZM234 20H246A10 10 0 0 1 246 40H234Z"/>
-      <path fill="currentColor" d="M240 50H262L280 100H258Z"/>
-      <path fill="currentColor" d="M292 0H346V20H312V40H340V60H312V80H346V100H292Z"/>
+    <!-- The Jeere logo, copied from the landing page (../index.html): a geometric silver « j » mark and the word « Jeere ».
+         Bright silver on dark backgrounds (jeere-silver), a darker silver on light ones (jeere-silver-dark): set with CSS fill. -->
+    <linearGradient id="jeere-silver" x1="0" y1="0" x2="300" y2="372" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset=".5" stop-color="#C3C8CE"/>
+      <stop offset="1" stop-color="#8A9199"/>
+    </linearGradient>
+    <linearGradient id="jeere-silver-dark" x1="0" y1="0" x2="300" y2="372" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C9CED4"/>
+      <stop offset=".5" stop-color="#9AA1A9"/>
+      <stop offset="1" stop-color="#5F6670"/>
+    </linearGradient>
+    <linearGradient id="jeere-silver-word" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset=".55" stop-color="#C3C8CE"/>
+      <stop offset="1" stop-color="#8A9199"/>
+    </linearGradient>
+    <!-- "Jeere" set in Outfit SemiBold (SIL OFL), converted to a path so the logo needs no font -->
+    <symbol id="word" viewBox="19 297 2497 713">
+      <path d="M212 1010Q148 1010 99.5 985.5Q51 961 19 919L111 831Q129 857 154.5 870.5Q180 884 211 884Q242 884 265.5 871Q289 858 301.5 833Q314 808 314 772V297H451V764Q451 838 421.5 893.5Q392 949 338.5 979.5Q285 1010 212 1010ZM802 1010Q726 1010 667 977.5Q608 945 573.5 888Q539 831 539 758Q539 686 572.5 629.5Q606 573 664 539.5Q722 506 793 506Q863 506 916.5 537.5Q970 569 1000.5 623.5Q1031 678 1031 747Q1031 760 1029.5 773.5Q1028 787 1024 804L618 805V707L963 706L910 747Q908 704 894.5 675Q881 646 855.5 630.5Q830 615 793 615Q754 615 725 632.5Q696 650 680.5 681.5Q665 713 665 756Q665 800 681.5 832.5Q698 865 729 882.5Q760 900 801 900Q838 900 868 887.5Q898 875 920 850L997 927Q962 968 911.5 989Q861 1010 802 1010ZM1343 1010Q1267 1010 1208 977.5Q1149 945 1114.5 888Q1080 831 1080 758Q1080 686 1113.5 629.5Q1147 573 1205 539.5Q1263 506 1334 506Q1404 506 1457.5 537.5Q1511 569 1541.5 623.5Q1572 678 1572 747Q1572 760 1570.5 773.5Q1569 787 1565 804L1159 805V707L1504 706L1451 747Q1449 704 1435.5 675Q1422 646 1396.5 630.5Q1371 615 1334 615Q1295 615 1266 632.5Q1237 650 1221.5 681.5Q1206 713 1206 756Q1206 800 1222.5 832.5Q1239 865 1270 882.5Q1301 900 1342 900Q1379 900 1409 887.5Q1439 875 1461 850L1538 927Q1503 968 1452.5 989Q1402 1010 1343 1010ZM1653 1000V517H1784V1000ZM1784 733 1733 699Q1742 610 1785 558.5Q1828 507 1909 507Q1944 507 1972 518.5Q2000 530 2023 556L1941 650Q1930 638 1914.5 632Q1899 626 1879 626Q1837 626 1810.5 652.5Q1784 679 1784 733ZM2287 1010Q2211 1010 2152 977.5Q2093 945 2058.5 888Q2024 831 2024 758Q2024 686 2057.5 629.5Q2091 573 2149 539.5Q2207 506 2278 506Q2348 506 2401.5 537.5Q2455 569 2485.5 623.5Q2516 678 2516 747Q2516 760 2514.5 773.5Q2513 787 2509 804L2103 805V707L2448 706L2395 747Q2393 704 2379.5 675Q2366 646 2340.5 630.5Q2315 615 2278 615Q2239 615 2210 632.5Q2181 650 2165.5 681.5Q2150 713 2150 756Q2150 800 2166.5 832.5Q2183 865 2214 882.5Q2245 900 2286 900Q2323 900 2353 887.5Q2383 875 2405 850L2482 927Q2447 968 2396.5 989Q2346 1010 2287 1010Z"/>
     </symbol>
-    <!-- EE monogram: the two Es of the wordmark and the bar that links them -->
-    <symbol id="monogram" viewBox="0 0 122 100">
-      <path fill="currentColor" d="M0 0H54V20H20V80H54V100H0Z"/>
-      <path fill="currentColor" d="M68 0H122V20H88V80H122V100H68Z"/>
-      <rect x="20" y="40" width="96" height="20" fill="currentColor"/>
+    <symbol id="mark" viewBox="0 0 300 372">
+      <circle cx="237" cy="62" r="62"/>
+      <path d="M0 199H126V222A24 24 0 0 0 174 222V154H300V222A150 150 0 0 1 0 222Z"/>
     </symbol>
     <!-- Line icons, 24 px grid; stroke and fill come from .b-ico -->
     <symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z"/><path d="M8.6 9.2c.2 2.9 3 5.9 6.1 6.3l1-1.3-1.8-1-.8.8c-1-.4-2.3-1.7-2.7-2.7l.8-.8-1-1.8z" fill="currentColor" stroke="none"/></symbol>
@@ -100,12 +110,12 @@
   <div class="b-start" id="b-start">
     <header class="b-shead">
       <div class="b-wrap b-shead__in">
-        <a class="b-logo" href="../" aria-label="JEERE, retour à l’accueil">
-          <svg class="b-wordmark" viewBox="0 0 346 100" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg>
+        <a class="b-logo" href="../" aria-label="Jeere, retour à l’accueil">
+          <span class="b-logo__lock"><svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg><svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg></span>
         </a>
         <span class="b-shead__tag">Studio</span>
         <nav class="b-shead__nav" aria-label="Liens">
-          <a class="b-link b-only-wide" href="../">Retour à JEERE</a>
+          <a class="b-link b-only-wide" href="../">Retour à Jeere</a>
           <a class="b-btn b-btn--primary b-btn--sm" href="../#liste"><span class="b-only-wide">Rejoindre la liste d’attente</span><span class="b-only-narrow">Liste d’attente</span></a>
         </nav>
       </div>
@@ -113,7 +123,7 @@
 
     <main class="b-wrap b-smain" id="b-start-main">
       <div class="b-intro">
-        <p class="b-eyebrow">JEERE Studio · prototype</p>
+        <p class="b-eyebrow">Prototype de l’éditeur</p>
         <h1 class="b-h1" id="b-start-title" tabindex="-1">Créez votre boutique</h1>
         <p class="b-lead">Choisissez un point de départ. Textes, produits, couleurs&nbsp;: vous pourrez tout changer ensuite, avec l’aperçu sous les yeux.</p>
       </div>
@@ -146,13 +156,13 @@
               <span class="b-way__ico b-way__ico--inv" aria-hidden="true"><svg class="b-ico"><use href="#i-chat"/></svg></span>
               <div>
                 <h2 class="b-way__title" id="b-way2-t">Décrire ma boutique</h2>
-                <p class="b-way__sub">avec l’assistant JEERE</p>
+                <p class="b-way__sub">avec l’assistant Jeere</p>
               </div>
             </div>
             <div class="b-chatdemo" aria-hidden="true">
-              <p class="b-chatdemo__msg"><span class="b-chatdemo__av"><svg viewBox="0 0 122 100"><use href="#monogram"/></svg></span><span>Bonjour&nbsp;! Comment s’appelle votre boutique et que vendez-vous&nbsp;?</span></p>
+              <p class="b-chatdemo__msg"><span class="b-chatdemo__av"><svg class="logo__mark" viewBox="0 0 300 372"><use href="#mark"/></svg></span><span>Bonjour&nbsp;! Comment s’appelle votre boutique et que vendez-vous&nbsp;?</span></p>
               <p class="b-chatdemo__msg b-chatdemo__msg--me"><span>Awa Beauté, je vends du karité et des savons</span></p>
-              <p class="b-chatdemo__msg"><span class="b-chatdemo__av"><svg viewBox="0 0 122 100"><use href="#monogram"/></svg></span><span>Parfait&nbsp;: une boutique de soins. Quel style vous plaît&nbsp;?</span></p>
+              <p class="b-chatdemo__msg"><span class="b-chatdemo__av"><svg class="logo__mark" viewBox="0 0 300 372"><use href="#mark"/></svg></span><span>Parfait&nbsp;: une boutique de soins. Quel style vous plaît&nbsp;?</span></p>
             </div>
             <p class="b-way__text">Répondez à quelques questions, comme sur WhatsApp. L’assistant prépare votre boutique, vous la retouchez ensuite.</p>
             <button class="b-btn b-btn--inv b-btn--block" type="button" id="b-ai-btn">Commencer la conversation<svg class="b-ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
@@ -176,10 +186,10 @@
 
     <footer class="b-sfoot">
       <div class="b-wrap b-sfoot__in">
-        <svg class="b-wordmark b-wordmark--sm" viewBox="0 0 346 100" role="img" aria-label="JEERE"><use href="#wordmark"/></svg>
+        <span class="b-logo__lock b-logo__lock--sm" role="img" aria-label="Jeere"><svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg><svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg></span>
         <p>Tout votre commerce, au même endroit. Un concept Kreeative.</p>
         <nav class="b-sfoot__nav" aria-label="Pied de page">
-          <a class="b-link" href="../">Découvrir JEERE</a>
+          <a class="b-link" href="../">Découvrir Jeere</a>
           <a class="b-link" href="../#liste">Rejoindre la liste d’attente</a>
         </nav>
       </div>
@@ -189,22 +199,35 @@
   <!-- ============================================================ EDITOR -->
   <div class="b-ed" id="b-ed" data-view="edit" hidden>
     <header class="b-top">
-      <a class="b-top__logo" href="../" aria-label="JEERE, retour à l’accueil">
-        <svg class="b-wordmark" viewBox="0 0 346 100" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg>
+      <a class="b-top__logo" href="../" aria-label="Jeere, retour à l’accueil">
+        <span class="b-logo__lock"><svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg><svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg></span>
       </a>
       <span class="b-top__sep" aria-hidden="true"></span>
       <button class="b-top__store" type="button" id="b-top-store" aria-describedby="b-saved">
         <span class="b-top__name" id="b-top-name">Ma boutique</span>
         <span class="b-saved" id="b-saved">Enregistré dans ce navigateur</span>
       </button>
-      <div class="b-seg b-top__device" role="group" aria-label="Taille de l’aperçu" data-device-toggle>
-        <button class="b-seg__btn" type="button" data-device="phone" aria-pressed="true"><svg class="b-ico" aria-hidden="true"><use href="#i-phone"/></svg><span>Téléphone</span></button>
-        <button class="b-seg__btn" type="button" data-device="desktop" aria-pressed="false"><svg class="b-ico" aria-hidden="true"><use href="#i-desktop"/></svg><span>Ordinateur</span></button>
+      <div class="b-top__mid">
+        <div class="b-pagesel b-top__page" data-page-select>
+          <label class="b-pagesel__k" for="b-page-top">Page&nbsp;:</label>
+          <select class="b-pagesel__sel" id="b-page-top" data-page-pick>
+            <option value="home">Accueil</option>
+            <option value="product">Fiche produit</option>
+            <option value="cart">Panier</option>
+            <option value="checkout">Paiement</option>
+            <option value="confirmation">Confirmation</option>
+          </select>
+          <svg class="b-ico b-pagesel__chev" aria-hidden="true" focusable="false"><use href="#i-down"/></svg>
+        </div>
+        <div class="b-seg b-top__device" role="group" aria-label="Taille de l’aperçu" data-device-toggle>
+          <button class="b-seg__btn" type="button" data-device="phone" aria-pressed="true"><svg class="b-ico" aria-hidden="true"><use href="#i-phone"/></svg><span>Téléphone</span></button>
+          <button class="b-seg__btn" type="button" data-device="desktop" aria-pressed="false"><svg class="b-ico" aria-hidden="true"><use href="#i-desktop"/></svg><span>Ordinateur</span></button>
+        </div>
       </div>
       <div class="b-top__end">
         <button class="b-ibtn" type="button" id="b-undo" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled><svg class="b-ico" aria-hidden="true"><use href="#i-undo"/></svg></button>
         <button class="b-ibtn" type="button" id="b-redo" aria-label="Rétablir" title="Rétablir (Ctrl+Maj+Z)" disabled><svg class="b-ico" aria-hidden="true"><use href="#i-redo"/></svg></button>
-        <button class="b-btn b-btn--ghost b-btn--sm b-top__fiche" type="button" id="b-fiche-btn" aria-label="Fiche boutique"><svg class="b-ico" aria-hidden="true"><use href="#i-fiche"/></svg><span class="b-top__lbl">Fiche boutique</span></button>
+        <button class="b-btn b-btn--ghost b-btn--sm b-top__fiche" type="button" id="b-fiche-btn" aria-label="Fiche boutique" title="Fiche boutique"><svg class="b-ico" aria-hidden="true"><use href="#i-fiche"/></svg><span class="b-top__lbl">Fiche boutique</span></button>
         <button class="b-btn b-btn--primary b-btn--sm" type="button" id="b-publish-btn">Publier</button>
       </div>
     </header>
@@ -229,6 +252,17 @@
 
       <section class="b-stage" id="b-stage" aria-label="Aperçu de la boutique">
         <div class="b-stage__bar">
+          <div class="b-pagesel b-stage__page" data-page-select>
+            <label class="b-pagesel__k" for="b-page-stage">Page&nbsp;:</label>
+            <select class="b-pagesel__sel" id="b-page-stage" data-page-pick>
+              <option value="home">Accueil</option>
+              <option value="product">Fiche produit</option>
+              <option value="cart">Panier</option>
+              <option value="checkout">Paiement</option>
+              <option value="confirmation">Confirmation</option>
+            </select>
+            <svg class="b-ico b-pagesel__chev" aria-hidden="true" focusable="false"><use href="#i-down"/></svg>
+          </div>
           <p class="b-stage__hint" id="b-stage-hint">Aperçu en direct. Cliquez sur une section pour la modifier.</p>
           <div class="b-seg b-stage__device" role="group" aria-label="Taille de l’aperçu" data-device-toggle>
             <button class="b-seg__btn" type="button" data-device="phone" aria-pressed="true"><svg class="b-ico" aria-hidden="true"><use href="#i-phone"/></svg><span>Téléphone</span></button>
@@ -264,7 +298,7 @@
     </nav>
   </div>
 
-  <noscript><p class="b-noscript">Activez JavaScript pour utiliser JEERE Studio.</p></noscript>
+  <noscript><p class="b-noscript">Activez JavaScript pour utiliser Jeere Studio.</p></noscript>
 </div>
 
 <!-- ============================================================ MODALS (outside #b-root so the page behind can be made inert) -->
@@ -304,8 +338,8 @@
     </div>
     <div class="b-modal__body">
       <p class="b-pubscore" id="m-publish-score"></p>
-      <p class="b-modal__lead" id="m-publish-d">Ceci est un prototype&nbsp;: rien n’est publié, et votre boutique reste dans ce navigateur. Dans JEERE, ce bouton mettra votre boutique en ligne, avec les paiements Wave, Orange Money, MTN MoMo, Moov Money et à la livraison.</p>
-      <p class="b-modal__text">JEERE ouvre bientôt à Abidjan. Rejoignez la liste d’attente pour faire partie des 50 premières boutiques.</p>
+      <p class="b-modal__lead" id="m-publish-d">Ceci est un prototype&nbsp;: rien n’est publié, et votre boutique reste dans ce navigateur. Dans Jeere, ce bouton mettra votre boutique en ligne, avec les paiements Wave, Orange Money, MTN MoMo, Moov Money et à la livraison.</p>
+      <p class="b-modal__text">Jeere ouvre bientôt à Abidjan. Rejoignez la liste d’attente pour faire partie des 50 premières boutiques.</p>
     </div>
     <div class="b-modal__foot">
       <button class="b-btn b-btn--ghost" type="button" data-close>Continuer à modifier</button>

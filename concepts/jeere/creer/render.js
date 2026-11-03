@@ -3,12 +3,24 @@
  * Turns a fiche boutique (store config v1) into a store page, with one of three tested templates:
  * Plateau (editorial), Cocody (soft) and Treichville (bold).
  *
- * Global: window.JeereRender = { render, ensureFonts, artSVG }
+ * Global: window.JeereRender = { render, ensureFonts, artSVG, PAGES }
+ *
+ * render(config, rootEl, { device: 'phone' | 'desktop', page: 'home' | 'product' | 'cart' |
+ *   'checkout' | 'confirmation', productId })
+ *   Draws one page of the store. The whole customer journey works inside the preview: a product
+ *   card opens its page, « Ajouter au panier » opens the cart, then the checkout and the
+ *   confirmation. Each such move re-renders the same rootEl and dispatches a bubbling, cancelable
+ *   CustomEvent 'jst:navigate' on rootEl with detail { page, productId } (productId is null except
+ *   on the product page). Cancel it to stop the default scroll back to the top of the store.
+ *   The demo cart lives on the element: rootEl.__jstCart = { [productId]: qty } (1 to 20). The
+ *   checkout form lives in rootEl.__jstForm. Nothing is sent anywhere: no location, no history,
+ *   no network request.
  *
  * Rules kept here:
  * - pure and defensive: reads only JEERE_DATA and the config, never throws, falls back to defaults;
  * - every user string is escaped (esc) before it reaches the markup;
  * - layout depends only on data-device ('phone' | 'desktop'), never on the viewport;
+ * - colour intensity: data-intensity 'vivid' (default) or 'soft' on the root, from theme.intensity;
  * - styles live in store.css, scoped under .jst.
  */
 (function () {
@@ -43,6 +55,15 @@
     const d = DATA();
     if (d && typeof d.formatNumber === 'function') return d.formatNumber(n);
     return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  }
+
+  // « 14 500 FCFA » as plain text that never breaks (button labels, sentences).
+  function money(n) {
+    const d = DATA();
+    let s = '';
+    try { s = d && typeof d.formatPrice === 'function' ? String(d.formatPrice(n)) : ''; } catch (e) { s = ''; }
+    if (!s) s = fmtNum(n) + ' FCFA';
+    return s.replace(/\s/g, NBSP);
   }
 
   const plural = (n, one, many) => n + NBSP + (n > 1 ? many : one);
@@ -123,19 +144,48 @@
     return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
   }
 
-  // The tile behind a product illustration: a lighter tint of the product colour, or a slightly
-  // deeper one when the colour is already very light (a white sneaker on a pale grey card).
+  // Moves a colour's lightness (keeping its hue) until it reaches `min` contrast on every
+  // background given: an accent that is too pale on cream becomes a deeper, readable accent.
+  function readable(fg, bgs, min, lighten) {
+    const hsl = rgbToHsl(parseHex(fg) || [0, 0, 0]);
+    let out = validHex(fg) || '#000000';
+    for (let i = 0; i < 48; i++) {
+      if (bgs.every((b) => contrast(out, b) >= min)) return out;
+      hsl[2] = clamp(hsl[2] + (lighten ? 0.02 : -0.02), 0, 1);
+      out = toHex(hslToRgb(hsl[0], hsl[1], hsl[2]));
+    }
+    return out;
+  }
+
+  // Set while one page is being built (render is synchronous): vivid stores get richer tiles.
+  let VIVID = false;
+
+  // The tile behind a product illustration. Soft: a lighter tint of the product colour, or a
+  // slightly deeper one when the colour is already very light (a white sneaker on a pale grey
+  // card). Vivid: the same hue pushed towards saturation and a mid tone, never washed out.
   const tileCache = new Map();
   function tileColors(hex) {
-    const key = String(hex);
+    const key = (VIVID ? 'v' : 's') + String(hex);
     if (tileCache.has(key)) return tileCache.get(key);
     const hsl = rgbToHsl(parseHex(hex) || [233, 216, 189]);
     const L = hsl[2];
-    const tl = L > 0.8 ? L - 0.075 : L + (0.93 - L) * 0.62;
-    const out = {
-      tile: toHex(hslToRgb(hsl[0], hsl[1] * 0.72, tl)),
-      hi: toHex(hslToRgb(hsl[0], hsl[1] * 0.6, Math.min(0.975, tl + 0.055)))
-    };
+    const S = hsl[1];
+    let out;
+    if (VIVID) {
+      const s = S < 0.04 ? S : clamp(S * 1.3 + 0.14, 0, 0.82);
+      const tl = L > 0.78 ? L - 0.14 : clamp(L + (0.8 - L) * 0.42, 0.3, 0.8);
+      out = {
+        tile: toHex(hslToRgb(hsl[0], s, tl)),
+        hi: toHex(hslToRgb(hsl[0], s * 0.9, Math.min(0.94, tl + 0.08)))
+      };
+    } else {
+      const tl = L > 0.8 ? L - 0.075 : L + (0.93 - L) * 0.62;
+      out = {
+        tile: toHex(hslToRgb(hsl[0], S * 0.72, tl)),
+        hi: toHex(hslToRgb(hsl[0], S * 0.6, Math.min(0.975, tl + 0.055)))
+      };
+    }
+    if (tileCache.size > 600) tileCache.clear();
     tileCache.set(key, out);
     return out;
   }
@@ -152,7 +202,20 @@
     truck: '<path d="M2.8 6.5h11v9.5h-11z"/><path d="M13.8 9.5h3.7l3.7 3.6V16h-7.4"/><circle cx="6.8" cy="17.6" r="1.9"/><circle cx="17.2" cy="17.6" r="1.9"/>',
     heart: '<path d="M12 19.6s-7.4-4.5-7.4-9.9A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.4 2.4c0 5.4-7.4 9.9-7.4 9.9z"/>',
     check: '<path d="M5 12.5l4.3 4.3L19 7.2"/>',
-    spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/>'
+    spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/>',
+    lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><path d="M12 14.6v2"/>',
+    shield: '<path d="M12 3.2l7 2.6v5.6c0 4.5-3 8-7 9.4-4-1.4-7-4.9-7-9.4V5.8z"/><path d="M8.8 12.2l2.2 2.2 4.3-4.4"/>',
+    minus: '<path d="M6.5 12h11"/>',
+    plus: '<path d="M12 6.5v11M6.5 12h11"/>',
+    close: '<path d="M7 7l10 10M17 7L7 17"/>',
+    back: '<path d="M19.5 12h-15M10.5 6l-6 6 6 6"/>',
+    chevron: '<path d="M9.5 5.5l6.5 6.5-6.5 6.5"/>',
+    down: '<path d="M6.5 9.5l5.5 5.5 5.5-5.5"/>',
+    phone: '<rect x="7" y="2.8" width="10" height="18.4" rx="2.4"/><path d="M10.6 17.9h2.8"/>',
+    cash: '<rect x="2.8" y="6.5" width="18.4" height="11" rx="1.8"/><circle cx="12" cy="12" r="2.6"/><path d="M6.2 9.6v4.8M17.8 9.6v4.8"/>',
+    card: '<rect x="2.8" y="5.5" width="18.4" height="13" rx="2"/><path d="M2.8 9.8h18.4M6.5 15h4"/>',
+    clock: '<circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 2"/>',
+    user: '<circle cx="12" cy="8.4" r="3.8"/><path d="M4.8 20c.8-3.8 3.6-6 7.2-6s6.4 2.2 7.2 6"/>'
   };
   const icon = (name, cls) => '<svg class="jst-ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (ICONS[name] || '') + '</svg>';
 
@@ -432,6 +495,35 @@
 
   const FALLBACK_COLORS = { bg: '#F6F2EA', surface: '#FFFFFF', text: '#1B1814', muted: '#655C52', accent: '#1F1B16', onAccent: '#FFFFFF', line: 'rgba(27,24,20,0.14)' };
 
+  // The pages of the customer journey. JEERE_DATA.PAGES is the contract; this is its fallback.
+  const PAGES_FALLBACK = [
+    { id: 'home', label: 'Accueil' },
+    { id: 'product', label: 'Fiche produit' },
+    { id: 'cart', label: 'Panier' },
+    { id: 'checkout', label: 'Paiement' },
+    { id: 'confirmation', label: 'Confirmation' }
+  ];
+  function pagesList() {
+    const d = DATA();
+    const list = d && Array.isArray(d.PAGES) && d.PAGES.length ? d.PAGES : PAGES_FALLBACK;
+    return list.filter((p) => isObj(p) && typeof p.id === 'string').map((p) => ({ id: p.id, label: str(p.label, p.id) }));
+  }
+
+  const MOMO_HINT = 'Validez le paiement sur votre téléphone.';
+  const PAY_FALLBACK = {
+    wave: { label: 'Wave', hint: 'Vous recevrez une demande de paiement sur votre numéro Wave.' },
+    orange: { label: 'Orange Money', hint: MOMO_HINT },
+    mtn: { label: 'MTN MoMo', hint: MOMO_HINT },
+    moov: { label: 'Moov Money', hint: MOMO_HINT },
+    cod: { label: 'Paiement à la livraison', hint: 'Vous payez le livreur en espèces ou par mobile money à la réception.' },
+    card: { label: 'Carte bancaire', hint: 'Visa ou Mastercard, idéal depuis l’étranger.' }
+  };
+  const PAY_ORDER = ['wave', 'orange', 'mtn', 'moov', 'cod', 'card'];
+  const PAY_ICON = { wave: 'phone', orange: 'phone', mtn: 'phone', moov: 'phone', cod: 'cash', card: 'card' };
+
+  // The order number shown on the demo confirmation.
+  const ORDER_NO = '1042';
+
   function mergeSettings(defaults, settings) {
     const out = isObj(defaults) ? JSON.parse(JSON.stringify(defaults)) : {};
     if (isObj(settings)) {
@@ -458,6 +550,36 @@
       description: str(p.description),
       image: validImage(p.image)
     };
+  }
+
+  /* The vivid colour set, derived from the palette so every pair keeps its contrast:
+   *   tint / tintStrong   bg mixed with the accent (≈13 % / ≈30 %), or a deeper shade of the
+   *                       background when the accent is a neutral (black, white, grey);
+   *   accentText          the accent, deepened (or lightened on dark stores) until it reads at
+   *                       4.5:1 on bg, surface, tint and tintStrong: prices, badges, links;
+   *   mutedTint / mutedStrong   secondary text that still reads at 4.5:1 on each tint;
+   *   onAccentSoft        secondary text on an accent block (4.5:1 on the accent);
+   *   fieldLine           form borders, 3:1 on the surface (WCAG 1.4.11).
+   */
+  function vividColors(c, dark) {
+    const ahsl = rgbToHsl(parseHex(c.accent) || [0, 0, 0]);
+    const neutral = ahsl[1] < 0.25 || ahsl[2] < 0.13 || ahsl[2] > 0.92;
+    let tint, tintStrong;
+    if (neutral) {
+      tint = shade(c.bg, dark ? 0.07 : -0.055, 0.1);
+      tintStrong = shade(c.bg, dark ? 0.13 : -0.11, 0.16);
+    } else {
+      tint = mix(c.bg, c.accent, dark ? 0.15 : 0.13);
+      tintStrong = mix(c.bg, c.accent, dark ? 0.28 : 0.3);
+    }
+    const surfaces = [c.bg, c.surface, tint, tintStrong];
+    const accentText = readable(c.accent, surfaces, 4.5, dark);
+    const mutedTint = readable(c.muted, [tint, c.surface, c.bg], 4.5, dark);
+    const mutedStrong = readable(c.muted, [tintStrong], 4.5, dark);
+    const soft = mix(c.accent, c.onAccent, 0.84);
+    const onAccentSoft = contrast(soft, c.accent) >= 4.5 ? soft : c.onAccent;
+    const fieldLine = readable(mix(c.surface, c.muted, 0.7), [c.surface, c.bg], 3, dark);
+    return { tint: tint, tintStrong: tintStrong, accentText: accentText, mutedTint: mutedTint, mutedStrong: mutedStrong, onAccentSoft: onAccentSoft, fieldLine: fieldLine };
   }
 
   function buildModel(config, device) {
@@ -498,9 +620,46 @@
       sections.push({ id: id, type: s.type, settings: mergeSettings(d.sectionTypes[s.type].defaults, s.settings) });
     });
 
+    // Enabled payment methods, in the contract's order, each with its checkout hint.
     const payments = [];
     const pay = isObj(cfg.payments) ? cfg.payments : {};
-    (Array.isArray(d.PAYMENTS) ? d.PAYMENTS : []).forEach((p) => { if (pay[p.key] === true) payments.push(p); });
+    const payDefs = Array.isArray(d.PAYMENTS) && d.PAYMENTS.length
+      ? d.PAYMENTS.filter((p) => isObj(p) && typeof p.key === 'string')
+      : PAY_ORDER.map((k) => ({ key: k, label: PAY_FALLBACK[k].label }));
+    payDefs.forEach((p) => {
+      if (pay[p.key] !== true) return;
+      const fb = PAY_FALLBACK[p.key] || {};
+      payments.push({
+        key: p.key,
+        label: str(p.label).trim() || fb.label || p.key,
+        hint: str(p.hint).trim() || fb.hint || '',
+        status: str(p.status).trim(), // the confirmation line, e.g. « Paiement Wave reçu »
+        icon: PAY_ICON[p.key] || 'card'
+      });
+    });
+
+    // Delivery zones for the product page and the checkout: the delivery section's zones
+    // (an enabled one first), or Abidjan's communes when the store has no delivery section.
+    const zoneList = (s) => {
+      const st = mergeSettings(d.sectionTypes.delivery ? d.sectionTypes.delivery.defaults : {}, s.settings);
+      return (Array.isArray(st.zones) ? st.zones : []).filter(isObj).map((z) => {
+        const fee = num(z.fee);
+        return { name: str(z.name).replace(/\s+/g, ' ').trim(), fee: fee === null ? null : Math.max(0, Math.round(fee)) };
+      }).filter((z) => z.name);
+    };
+    const delSecs = (Array.isArray(cfg.sections) ? cfg.sections : []).filter((s) => isObj(s) && s.type === 'delivery');
+    let zones = [];
+    const withZones = delSecs.filter((s) => !isDisabled(s)).concat(delSecs.filter(isDisabled));
+    for (let i = 0; i < withZones.length && !zones.length; i++) zones = zoneList(withZones[i]);
+    if (!zones.length) {
+      zones = (Array.isArray(d.communes) ? d.communes : []).filter(isObj).map((z) => {
+        const fee = num(z.fee);
+        return { name: str(z.name).trim(), fee: fee === null ? null : Math.max(0, Math.round(fee)) };
+      }).filter((z) => z.name);
+    }
+    // Same name twice: keep the first, the select needs distinct values.
+    const seenZone = {};
+    zones = zones.filter((z) => { const k = z.name.toLowerCase(); if (seenZone[k]) return false; seenZone[k] = true; return true; });
 
     // Distinct categories, in order of first appearance; empty ones are skipped.
     const catMap = new Map();
@@ -525,9 +684,16 @@
     const prices = products.map((p) => p.price).filter((n) => typeof n === 'number' && n > 0);
 
     const dark = lum(colors.bg) < 0.18;
-    const accentInk = contrast(colors.accent, colors.bg) >= 4.5 ? colors.accent : colors.text;
+    const intensity = theme.intensity === 'soft' ? 'soft' : 'vivid';
+    const vivid = intensity === 'vivid';
+    const v = vividColors(colors, dark);
+    // Soft keeps the palette's accent for text only where it reads on the background; vivid uses
+    // the accent everywhere, deepened just enough to stay readable.
     // Tint for chips, avatars and icon discs. They sit on cards, so it is mixed from the surface.
     const accentSoft = mix(colors.surface, colors.accent, dark ? 0.2 : 0.14);
+    const accentInk = vivid
+      ? readable(v.accentText, [accentSoft], 4.5, dark)
+      : (contrast(colors.accent, colors.bg) >= 4.5 ? readable(colors.accent, [colors.bg, colors.surface, accentSoft], 4.5, dark) : colors.text);
 
     // Fallback visual when there is no product yet: the niche art, or a box in a soft accent tint.
     const leadFallback = {
@@ -538,6 +704,7 @@
 
     return {
       d: d, tpl: tpl, device: device, buttons: buttons, dark: dark,
+      intensity: intensity, vivid: vivid, v: v, zones: zones,
       colors: colors, accentInk: accentInk, accentSoft: accentSoft,
       radius: clamp(num(radii[radiusId]) || 0, 0, 40),
       fontDisplay: fontStack(pair.display, "Georgia, 'Times New Roman', serif"),
@@ -568,20 +735,29 @@
     return '<span class="jst-price' + (cls ? ' ' + cls : '') + '"><span class="jst-price-n">' + esc(fmtNum(n)) + '</span>' + NBSP + '<span class="jst-price-c">FCFA</span></span>';
   }
 
+  // A store action: data-jst-action plus its data (escaped). Read back by onClick.
+  function act(name, data) {
+    let out = ' data-jst-action="' + name + '"';
+    if (isObj(data)) Object.keys(data).forEach((k) => { if (data[k] != null && data[k] !== '') out += ' data-' + k + '="' + esc(data[k]) + '"'; });
+    return out;
+  }
+  const go = (page, productId) => act('go', { page: page, product: productId || null });
+
   function btn(label, opts) {
     const o = opts || {};
     const text = str(label).trim();
     const cls = 'jst-btn' + (o.size ? ' jst-btn--' + o.size : '') + (o.block ? ' jst-btn--block' : '') + (o.cls ? ' ' + o.cls : '');
     const before = o.icon ? icon(o.icon) : '';
     const after = o.arrow ? icon('arrow', 'jst-btn-arrow') : '';
-    return '<button type="button" class="' + cls + '" tabindex="-1">' + before + '<span class="jst-btn-label">' + (text ? esc(text) : 'Découvrir') + '</span>' + after + '</button>';
+    return '<button type="button" class="' + cls + '" tabindex="-1"' + (o.attrs || '') + '>' + before + '<span class="jst-btn-label">' + (text ? esc(text) : 'Découvrir') + '</span>' + after + '</button>';
   }
 
   function tileStyle(color) {
     const t = tileColors(color);
     return '--tile:' + t.tile + ';--tile-hi:' + t.hi + ';--ink:' + inkOn(t.tile);
   }
-  function inkOn(bg) { return lum(bg) > 0.4 ? '#15120E' : '#FFFFFF'; }
+  // Dark or white ink, whichever reads better on the tile.
+  function inkOn(bg) { return contrast('#15120E', bg) >= contrast('#FFFFFF', bg) ? '#15120E' : '#FFFFFF'; }
 
   // A product visual: the seller's photo if there is one, else the illustration on a tile of its colour.
   function media(p, cls, extra) {
@@ -597,7 +773,7 @@
   }
 
   function sectionOpen(s, extraCls) {
-    return '<section class="jst-sec jst-sec--' + s.type + (extraCls ? ' ' + extraCls : '') + '" data-section-id="' + esc(s.id) + '" data-section-type="' + s.type + '">';
+    return '<section class="jst-sec jst-sec--' + s.type + (s.tint ? ' jst-sec--tint' : '') + (extraCls ? ' ' + extraCls : '') + '" data-section-id="' + esc(s.id) + '" data-section-type="' + s.type + '">';
   }
 
   function head(title, aside, cls) {
@@ -632,7 +808,7 @@
 
   const NAV_LABELS = { products: 'Boutique', categories: 'Catégories', reviews: 'Avis', about: 'À propos', delivery: 'Livraison', whatsapp: 'Contact' };
 
-  function header(m) {
+  function header(m, j) {
     const seen = {};
     const nav = [];
     m.sections.forEach((s) => {
@@ -640,14 +816,26 @@
       if (label && !seen[label] && nav.length < 4) { seen[label] = true; nav.push(label); }
     });
     if (!nav.length) nav.push('Boutique');
+    const count = j ? j.count : 0;
+    const bagLabel = count ? 'Panier, ' + plural(count, 'article', 'articles') : 'Panier';
     return '<header class="jst-header"><div class="jst-wrap jst-header-in">' +
       '<button type="button" class="jst-icon-btn jst-menu" aria-label="Menu" tabindex="-1">' + icon('menu') + '</button>' +
-      '<span class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '">' + esc(m.name) + '</span>' +
-      '<nav class="jst-nav" aria-label="Menu de la boutique">' + nav.map((n) => '<a class="jst-nav-link">' + esc(n) + '</a>').join('') + '</nav>' +
+      '<a class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '"' + go('home') + '>' + esc(m.name) + '</a>' +
+      '<nav class="jst-nav" aria-label="Menu de la boutique">' + nav.map((n, i) => '<a class="jst-nav-link' + (i === 0 && j && j.page === 'home' ? ' is-current' : '') + '"' + go('home') + '>' + esc(n) + '</a>').join('') + '</nav>' +
       '<div class="jst-header-actions">' +
       '<button type="button" class="jst-icon-btn jst-search" aria-label="Rechercher" tabindex="-1">' + icon('search') + '</button>' +
-      '<button type="button" class="jst-icon-btn jst-bag" aria-label="Panier" tabindex="-1">' + icon('bag') + '</button>' +
+      '<button type="button" class="jst-icon-btn jst-bag' + (j && j.page === 'cart' ? ' is-current' : '') + '" aria-label="' + esc(bagLabel) + '" tabindex="-1"' + go('cart') + '>' + icon('bag') +
+      (count ? '<span class="jst-bag-n" aria-hidden="true">' + (count > 99 ? '99+' : count) + '</span>' : '') + '</button>' +
       '</div></div></header>';
+  }
+
+  // Checkout: logo, « Paiement sécurisé » and a way back to the cart, nothing to wander off to.
+  function headerCheckout(m) {
+    return '<header class="jst-header jst-header--co"><div class="jst-wrap jst-co-head">' +
+      '<a class="jst-co-back"' + go('cart') + ' aria-label="Retour au panier">' + icon('back') + '<span>Panier</span></a>' +
+      '<a class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '"' + go('home') + '>' + esc(m.name) + '</a>' +
+      '<span class="jst-secure">' + icon('lock') + '<span>Paiement sécurisé</span></span>' +
+      '</div></header>';
   }
 
   function footer(m) {
@@ -668,7 +856,7 @@
       '<div class="jst-footer-col"><h3 class="jst-footer-h">Moyens de paiement</h3>' + chips + '</div>' +
       '<div class="jst-footer-col"><h3 class="jst-footer-h">Nous trouver</h3>' + contact.join('') + '</div>' +
       '</div>' +
-      '<div class="jst-footer-bottom"><span>©' + NBSP + esc(m.name) + '</span><span class="jst-powered">Propulsé par <b>JEERE</b></span></div>' +
+      '<div class="jst-footer-bottom"><span>©' + NBSP + esc(m.name) + '</span><span class="jst-powered">Propulsé par <b>Jeere</b></span></div>' +
       '</div></footer>';
   }
 
@@ -710,7 +898,7 @@
         ? '<div class="jst-hero-photo">' + imgTag + '</div>'
         : '<div class="jst-hero-circle" style="' + tileStyle(p.color) + '">' + (p.image ? '<img src="' + esc(p.image) + '" alt="">' : artSVG(p.art, p.color)) + '</div>';
       const float = m.products[0]
-        ? '<div class="jst-float">' + media(m.products[0], 'jst-float-media') +
+        ? '<div class="jst-float"' + go('product', m.products[0].id) + '>' + media(m.products[0], 'jst-float-media') +
           '<div class="jst-float-body"><p class="jst-float-name">' + esc(m.products[0].name || 'Produit') + '</p>' + priceHTML(m.products[0].price) + '</div></div>'
         : '';
       return sectionOpen(s) + '<div class="jst-wrap"><div class="jst-hero-card' + (img ? ' has-img' : '') + '">' +
@@ -779,7 +967,7 @@
 
   function productCard(m, p) {
     const name = p.name ? esc(p.name) : '<span class="jst-muted-inline">Produit sans nom</span>';
-    return '<article class="jst-card" data-product-id="' + esc(p.id) + '">' +
+    return '<article class="jst-card" data-product-id="' + esc(p.id) + '"' + go('product', p.id) + '>' +
       media(p, 'jst-card-media', badge(p.badge, m.d) + (m.tpl === 'cocody' ? '<span class="jst-fav" aria-hidden="true">' + icon('heart') + '</span>' : '')) +
       '<div class="jst-card-body">' +
       (p.category ? '<p class="jst-card-cat">' + esc(p.category) + '</p>' : '') +
@@ -911,51 +1099,539 @@
     }
   }
 
-  function page(m) {
+  /* ------------------------------------------------------------------ journey helpers */
+
+  const QTY_MIN = 1;
+  const QTY_MAX = 20;
+  const FLOW = { cart: true, checkout: true, confirmation: true };
+  // Home sections that sit on the page background; in vivid stores every other one is tinted.
+  const PLAIN = { categories: true, products: true, about: true, reviews: true, delivery: true };
+  let UID = 0;
+
+  const pname = (p) => (p.name ? esc(p.name) : '<span class="jst-muted-inline">Produit sans nom</span>');
+  const feeText = (fee) => (fee === 0 ? 'offerte' : (fee === null ? 'à confirmer' : money(fee)));
+
+  function backLink(label, page, productId) {
+    return '<a class="jst-back"' + go(page, productId) + '>' + icon('back') + '<span>' + esc(label) + '</span></a>';
+  }
+
+  function crumbs(items) {
+    return '<nav class="jst-crumbs" aria-label="Fil d’Ariane"><ol>' + items.map((it) => '<li>' +
+      (it.page ? '<a' + go(it.page, it.product) + '>' + esc(it.label) + '</a>' : '<span aria-current="page">' + esc(it.label) + '</span>') +
+      '</li>').join('') + '</ol></nav>';
+  }
+
+  function stepper(n, action, productId, label, size) {
+    const a = (delta) => act(action, { product: productId, delta: delta });
+    return '<div class="jst-stepper' + (size ? ' jst-stepper--' + size : '') + '" role="group" aria-label="' + esc(label) + '">' +
+      '<button type="button" class="jst-step" tabindex="-1" aria-label="Diminuer la quantité"' + (n <= QTY_MIN ? ' disabled' : '') + a(-1) + '>' + icon('minus') + '</button>' +
+      '<span class="jst-step-n" aria-live="polite">' + n + '</span>' +
+      '<button type="button" class="jst-step" tabindex="-1" aria-label="Augmenter la quantité"' + (n >= QTY_MAX ? ' disabled' : '') + a(1) + '>' + icon('plus') + '</button></div>';
+  }
+
+  function payChips(m) {
+    return m.payments.length
+      ? '<ul class="jst-chips">' + m.payments.map((p) => '<li class="jst-chip">' + esc(p.label) + '</li>').join('') + '</ul>'
+      : '<p class="jst-footer-muted">Aucun moyen de paiement activé pour l’instant.</p>';
+  }
+
+  // « Livraison dès 1 500 FCFA · Cocody, Marcory… »: the cheapest zones first.
+  function deliveryLine(m) {
+    const z = m.zones;
+    if (!z.length) return m.city ? 'Livraison depuis ' + m.city : 'Livraison à convenir sur WhatsApp';
+    const priced = z.filter((x) => typeof x.fee === 'number');
+    const min = priced.length ? Math.min.apply(null, priced.map((x) => x.fee)) : null;
+    const key = (x) => (x.fee === null ? 1e12 : x.fee);
+    const names = z.map((x, i) => ({ x: x, i: i })).sort((a, b) => (key(a.x) - key(b.x)) || (a.i - b.i)).map((o) => o.x.name);
+    const lead = min === null ? 'Livraison' : (min === 0 ? 'Livraison offerte' : 'Livraison dès ' + money(min));
+    return lead + ' · ' + names.slice(0, 2).join(', ') + (names.length > 2 ? '…' : '');
+  }
+
+  function row(label, value, cls) {
+    return '<div class="jst-row' + (cls ? ' ' + cls : '') + '"><dt>' + label + '</dt><dd>' + value + '</dd></div>';
+  }
+
+  function totals(j) {
+    const z = j.zone;
+    const fee = !z ? '—' : (z.fee === 0 ? '<span class="jst-price jst-free">Offerte</span>' : (z.fee === null ? '<span class="jst-price is-empty">À confirmer</span>' : priceHTML(z.fee)));
+    return '<dl class="jst-rows">' +
+      row('Sous-total', priceHTML(j.subtotal)) +
+      row('Livraison' + (z ? '<span class="jst-row-sub">' + esc(z.name) + '</span>' : ''), fee) +
+      row('Total', priceHTML(j.total), 'jst-row--total') + '</dl>';
+  }
+
+  function miniLine(l, withStepper) {
+    const p = l.p;
+    return '<li class="jst-mini">' +
+      media(p, 'jst-mini-tile', withStepper ? '' : '<span class="jst-mini-q" aria-label="Quantité' + NBSP + ': ' + l.qty + '">' + l.qty + '</span>') +
+      '<div class="jst-mini-body"><p class="jst-mini-name">' + pname(p) + '</p>' +
+      (withStepper ? stepper(l.qty, 'qty', p.id, 'Quantité', 'sm') : '<p class="jst-mini-unit">' + (typeof p.price === 'number' ? l.qty + NBSP + '×' + NBSP + money(p.price) : 'Prix à venir') + '</p>') +
+      '</div><p class="jst-mini-total">' + priceHTML(typeof p.price === 'number' ? l.total : null) + '</p></li>';
+  }
+
+  function steps(active) {
+    const labels = ['Panier', 'Livraison et paiement', 'Confirmation'];
+    return '<nav class="jst-steps-nav" aria-label="Étapes de la commande"><ol class="jst-steps">' + labels.map((label, i) => {
+      const n = i + 1;
+      const done = n < active || active === 3;
+      const cls = 'jst-stp' + (done ? ' is-done' : '') + (n === active ? ' is-on' : '');
+      const inner = '<span class="jst-stp-dot" aria-hidden="true">' + (done ? icon('check') : n) + '</span><span class="jst-stp-label">' + label + '</span>';
+      return '<li class="' + cls + '"' + (n === active ? ' aria-current="step"' : '') + '>' +
+        (n === 1 && active === 2 ? '<a class="jst-stp-link"' + go('cart') + '>' + inner + '</a>' : inner) + '</li>';
+    }).join('') + '</ol></nav>';
+  }
+
+  /* ------------------------------------------------------------------ journey state
+   * Everything a page of the journey needs, read from the element's demo state:
+   * rootEl.__jstCart { id: qty }, rootEl.__jstForm (checkout fields), rootEl.__jstQty (product
+   * page quantity). Unknown products are dropped; an empty cart is seeded on cart, checkout and
+   * confirmation (with the product being looked at, else the first one), except right after the
+   * shopper emptied it on the cart page.
+   */
+  function journey(m, rootEl, page, productId) {
+    const byId = {};
+    m.products.forEach((p) => { if (!byId[p.id]) byId[p.id] = p; });
+    const pid = typeof productId === 'string' && own(byId, productId) ? productId : null;
+
+    const raw = isObj(rootEl.__jstCart) ? rootEl.__jstCart : {};
+    const cart = {};
+    Object.keys(raw).forEach((id) => {
+      if (!own(byId, id)) return;
+      const q = Math.round(num(raw[id]) || 0);
+      if (q >= QTY_MIN) cart[id] = clamp(q, QTY_MIN, QTY_MAX);
+    });
+    if (page !== 'cart') rootEl.__jstCartCleared = false;
+    if (FLOW[page] && !Object.keys(cart).length && m.products.length && !(page === 'cart' && rootEl.__jstCartCleared)) {
+      cart[pid || m.products[0].id] = 1;
+    }
+    rootEl.__jstCart = cart;
+
+    const lines = Object.keys(cart).map((id) => {
+      const p = byId[id];
+      return { p: p, qty: cart[id], total: (typeof p.price === 'number' ? p.price : 0) * cart[id] };
+    });
+    const count = lines.reduce((a, l) => a + l.qty, 0);
+    const subtotal = lines.reduce((a, l) => a + l.total, 0);
+
+    const rf = isObj(rootEl.__jstForm) ? rootEl.__jstForm : {};
+    const form = { first: str(rf.first).slice(0, 40), phone: str(rf.phone).slice(0, 20), commune: str(rf.commune), address: str(rf.address).slice(0, 240), pay: str(rf.pay) };
+    rootEl.__jstForm = form;
+    const zone = m.zones.find((z) => z.name === form.commune) || m.zones[0] || null;
+    const fee = zone && typeof zone.fee === 'number' ? zone.fee : 0;
+    const pay = m.payments.find((p) => p.key === form.pay) || m.payments[0] || null;
+
+    let product = null;
+    if (page === 'product') product = pid ? byId[pid] : (m.products[0] || null);
+    const pq = isObj(rootEl.__jstQty) ? rootEl.__jstQty : null;
+    const pdpQty = product && pq && pq.id === product.id ? clamp(Math.round(num(pq.n) || 1), QTY_MIN, QTY_MAX) : 1;
+
+    if (!rootEl.__jstUid) rootEl.__jstUid = ++UID;
+    return {
+      page: page, product: product, productId: product ? product.id : pid, uid: rootEl.__jstUid,
+      cart: cart, lines: lines, count: count, subtotal: subtotal,
+      form: form, zone: zone, fee: fee, total: subtotal + fee, pay: pay, pdpQty: pdpQty
+    };
+  }
+
+  /* ------------------------------------------------------------------ pages */
+
+  function leadingAnnouncements(m) {
     const out = [];
-    let i = 0;
+    for (let i = 0; i < m.sections.length && m.sections[i].type === 'announcement'; i++) out.push(renderSection(m, m.sections[i]));
+    return out;
+  }
+
+  function pageHome(m, j) {
+    const out = leadingAnnouncements(m);
     // Announcements placed first sit above the header, like on any real store.
-    while (i < m.sections.length && m.sections[i].type === 'announcement') { out.push(renderSection(m, m.sections[i])); i++; }
-    out.push(header(m));
+    let i = out.length;
+    out.push(header(m, j));
     const body = [];
-    for (; i < m.sections.length; i++) body.push(renderSection(m, m.sections[i]));
+    let plain = 0;
+    for (; i < m.sections.length; i++) {
+      const s = m.sections[i];
+      if (m.vivid && PLAIN[s.type]) { s.tint = plain % 2 === 0; plain++; }
+      body.push(renderSection(m, s));
+    }
     if (!body.length) {
       body.push('<div class="jst-wrap jst-page-empty">' + empty('Votre page est vide pour l’instant. Activez ou ajoutez une section pour la remplir.') + '</div>');
     }
-    out.push('<main class="jst-main">' + body.join('') + '</main>');
+    out.push('<main class="jst-main jst-main--home">' + body.join('') + '</main>');
     out.push(footer(m));
     return out.join('');
   }
 
-  /* ------------------------------------------------------------------ render */
+  function pageProduct(m, j) {
+    const p = j.product;
+    if (!p) {
+      return '<div class="jst-wrap jst-page-pad">' + backLink('Retour à la boutique', 'home') +
+        empty('Ajoutez votre premier produit' + NBSP + ': sa fiche apparaîtra ici, avec le bouton Ajouter au panier.') + '</div>';
+    }
+    const nav = m.device === 'desktop'
+      ? crumbs([{ label: 'Accueil', page: 'home' }].concat(p.category ? [{ label: p.category, page: 'home' }] : [], [{ label: p.name || 'Produit' }]))
+      : backLink('Retour à la boutique', 'home');
+    const rating = m.rating
+      ? '<p class="jst-pdp-rating">' + stars(Math.round(m.rating.avg)) + '<span>' + fmtRating(m.rating.avg) + '/5 · ' + plural(m.rating.count, 'avis client', 'avis clients') + '</span></p>'
+      : '';
+    const desc = paras(p.description);
+    const perks = ['<li>' + icon('truck') + '<span>' + esc(deliveryLine(m)) + '</span></li>'];
+    if (m.cod) perks.push('<li>' + icon('cash') + '<span>Paiement à la livraison possible</span></li>');
+    perks.push('<li>' + icon('chat') + '<span>Une question' + NBSP + '? Réponse rapide sur WhatsApp</span></li>');
+    const others = m.products.filter((x) => x.id !== p.id).slice(0, 4);
+    const related = others.length
+      ? '<section class="jst-sec jst-related"><div class="jst-wrap">' + head('Vous aimerez aussi') +
+        '<div class="jst-grid" data-cols="4">' + others.map((x) => productCard(m, x)).join('') + '</div></div></section>'
+      : '';
+    return '<div class="jst-wrap jst-pdp-nav">' + nav + '</div>' +
+      '<section class="jst-pdp" data-product-id="' + esc(p.id) + '"><div class="jst-wrap jst-pdp-in">' +
+      '<div class="jst-pdp-media">' + media(p, 'jst-pdp-tile', badge(p.badge, m.d)) + '</div>' +
+      '<div class="jst-pdp-info">' +
+      (p.category ? '<p class="jst-pdp-cat">' + esc(p.category) + '</p>' : '') +
+      '<h1 class="jst-h jst-pdp-name">' + pname(p) + '</h1>' + rating +
+      '<p class="jst-pdp-price">' + priceHTML(p.price) + '</p>' +
+      (desc ? '<div class="jst-pdp-desc">' + desc + '</div>' : '') +
+      '<div class="jst-pdp-buy">' +
+      '<div class="jst-pdp-qty"><span class="jst-label">Quantité</span>' + stepper(j.pdpQty, 'pdp-qty', p.id, 'Quantité', 'lg') + '</div>' +
+      btn('Ajouter au panier', { size: 'lg', block: true, icon: 'bag', cls: 'jst-add', attrs: act('add', { product: p.id }) }) +
+      btn('Commander sur WhatsApp', { size: 'lg', block: true, icon: 'chat', cls: 'jst-btn--ghost', attrs: act('wa') }) +
+      '</div>' +
+      '<ul class="jst-perks">' + perks.join('') + '</ul>' +
+      '<div class="jst-pdp-pay"><p class="jst-label">Moyens de paiement</p>' + payChips(m) + '</div>' +
+      '</div></div></section>' + related;
+  }
+
+  function pageCart(m, j) {
+    const top = '<div class="jst-page-head">' + backLink('Retour à la boutique', 'home') +
+      '<h1 class="jst-h jst-page-title">Votre panier</h1>' +
+      (j.lines.length ? '<p class="jst-page-sub">' + plural(j.count, 'article', 'articles') + '</p>' : '') + '</div>';
+    if (!j.lines.length) {
+      return '<div class="jst-wrap jst-cart">' + top + '<div class="jst-cart-empty">' +
+        '<span class="jst-empty-ico" aria-hidden="true">' + icon('bag') + '</span>' +
+        '<p class="jst-h jst-cart-empty-title">Votre panier est vide</p>' +
+        '<p class="jst-cart-empty-text">' + (m.products.length
+          ? 'Parcourez la boutique et ajoutez vos coups de cœur.'
+          : 'Ajoutez vos produits dans l’éditeur' + NBSP + ': vos clients pourront les mettre au panier.') + '</p>' +
+        btn('Continuer mes achats', { size: 'lg', arrow: true, attrs: go('home') }) + '</div></div>';
+    }
+    const lines = '<ul class="jst-lines">' + j.lines.map((l) => {
+      const p = l.p;
+      return '<li class="jst-line">' +
+        '<a class="jst-line-media" aria-hidden="true" tabindex="-1"' + go('product', p.id) + '>' + media(p, 'jst-line-tile') + '</a>' +
+        '<div class="jst-line-body">' +
+        '<div class="jst-line-top"><div class="jst-line-info">' +
+        (p.category ? '<p class="jst-line-cat">' + esc(p.category) + '</p>' : '') +
+        '<a class="jst-line-name"' + go('product', p.id) + '>' + pname(p) + '</a>' +
+        '<p class="jst-line-unit">' + (typeof p.price === 'number' ? money(p.price) + ' l’unité' : 'Prix à venir') + '</p></div>' +
+        '<p class="jst-line-total">' + priceHTML(typeof p.price === 'number' ? l.total : null) + '</p></div>' +
+        '<div class="jst-line-actions">' + stepper(l.qty, 'qty', p.id, 'Quantité', '') +
+        '<button type="button" class="jst-remove" tabindex="-1"' + act('remove', { product: p.id }) + '>' + icon('close') + '<span>Retirer</span></button></div>' +
+        '</div></li>';
+    }).join('') + '</ul>';
+    const summary = '<aside class="jst-summary jst-cart-summary">' +
+      '<h2 class="jst-h jst-summary-title">Récapitulatif</h2>' +
+      '<dl class="jst-rows">' + row('Sous-total<span class="jst-row-sub">' + plural(j.count, 'article', 'articles') + '</span>', priceHTML(j.subtotal), 'jst-row--total') + '</dl>' +
+      '<p class="jst-note">' + icon('truck') + '<span>Frais de livraison calculés à l’étape suivante.</span></p>' +
+      btn('Passer au paiement', { size: 'lg', block: true, icon: 'lock', cls: 'jst-next', attrs: go('checkout') }) +
+      '<a class="jst-link jst-continue"' + go('home') + '>Continuer mes achats</a>' +
+      '<div class="jst-summary-pay"><p class="jst-label">' + icon('shield') + '<span>Paiement sécurisé</span></p>' + payChips(m) + '</div>' +
+      '</aside>';
+    return '<div class="jst-wrap jst-cart">' + top + '<div class="jst-cart-grid">' + lines + summary + '</div></div>';
+  }
+
+  function pageCheckout(m, j) {
+    const uid = 'jst' + j.uid + '-';
+    const f = j.form;
+    const top = steps(2) + '<h1 class="jst-h jst-page-title">Finaliser ma commande</h1>';
+    if (!j.lines.length) {
+      return '<div class="jst-wrap jst-co">' + top + empty('Votre panier est vide. Ajoutez un produit pour passer commande.') +
+        '<div class="jst-co-alone">' + btn('Retour à la boutique', { size: 'lg', attrs: go('home') }) + '</div></div>';
+    }
+    const field = (id, label, control, help) => '<div class="jst-field jst-field--' + id + '"><label class="jst-label" for="' + uid + id + '">' + label + '</label>' + control +
+      (help ? '<p class="jst-help">' + help + '</p>' : '') + '</div>';
+    const block = (n, title, body) => '<section class="jst-co-block"><h2 class="jst-co-h"><span class="jst-co-n" aria-hidden="true"><span class="jst-co-n0">0</span>' + n + '</span><span>' + title + '</span></h2>' + body + '</section>';
+
+    const contact = block(1, 'Vos coordonnées', '<div class="jst-fields">' +
+      field('first', 'Prénom', '<input class="jst-input" id="' + uid + 'first" type="text" autocomplete="given-name" maxlength="40" placeholder="Ex.' + NBSP + ': Awa" tabindex="-1" data-jst-field="first" value="' + esc(f.first) + '">') +
+      field('phone', 'Numéro WhatsApp', '<div class="jst-input-group"><span class="jst-prefix" aria-hidden="true">+225</span>' +
+        '<input class="jst-input" id="' + uid + 'phone" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" placeholder="07 07 12 34 56" tabindex="-1" data-jst-field="phone" value="' + esc(f.phone) + '"></div>',
+      'Pour confirmer la commande et suivre la livraison.') +
+      '</div>');
+
+    const opts = m.zones.map((z) => '<option value="' + esc(z.name) + '"' + (j.zone && z.name === j.zone.name ? ' selected' : '') + '>' +
+      esc(z.name) + ' — ' + feeText(z.fee) + '</option>').join('');
+    const delivery = block(2, 'Livraison',
+      (m.zones.length ? field('commune', 'Commune', '<div class="jst-select"><select class="jst-input" id="' + uid + 'commune" tabindex="-1" data-jst-field="commune">' + opts + '</select>' + icon('down') + '</div>') : '') +
+      field('address', 'Adresse et repère', '<textarea class="jst-input jst-textarea" id="' + uid + 'address" rows="3" maxlength="240" placeholder="Quartier, repère' + NBSP + ': ex. près de la pharmacie" tabindex="-1" data-jst-field="address">' + esc(f.address) + '</textarea>') +
+      '<p class="jst-eta">' + icon('clock') + '<span>Livraison estimée' + NBSP + ': <b>sous 24' + NBSP + 'h' + (j.zone ? ' à ' + esc(j.zone.name) : '') + '</b>, du lundi au samedi.</span></p>');
+
+    const payBlock = block(3, 'Paiement', '<div class="jst-pay" role="radiogroup" aria-label="Moyen de paiement">' + m.payments.map((p) => {
+      const on = !!j.pay && j.pay.key === p.key;
+      return '<button type="button" class="jst-pay-opt' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on + '" tabindex="-1"' + act('pay', { pay: p.key }) + '>' +
+        '<span class="jst-radio" aria-hidden="true"></span>' +
+        '<span class="jst-pay-body"><span class="jst-pay-label">' + esc(p.label) + '</span>' + (p.hint ? '<span class="jst-pay-hint">' + esc(fr(p.hint)) + '</span>' : '') + '</span>' +
+        '<span class="jst-pay-ico" aria-hidden="true">' + icon(p.icon) + '</span></button>';
+    }).join('') + '</div>');
+
+    const noPay = !m.payments.length;
+    const main = noPay
+      ? '<div class="jst-co-main"><div class="jst-co-none">' + '<span class="jst-empty-ico" aria-hidden="true">' + icon('lock') + '</span>' +
+        '<p class="jst-h jst-co-none-title">Le paiement n’est pas encore activé</p>' +
+        '<p>Activez au moins un moyen de paiement (Wave, Orange Money, paiement à la livraison…) dans Boutique › Moyens de paiement. En attendant, vos clients peuvent commander sur WhatsApp.</p></div></div>'
+      : '<div class="jst-co-main">' + contact + delivery + payBlock + '</div>';
+
+    const summary = '<aside class="jst-summary jst-co-summary">' +
+      '<div class="jst-summary-head"><h2 class="jst-h jst-summary-title">Votre commande</h2><a class="jst-link"' + go('cart') + '>Modifier</a></div>' +
+      '<ul class="jst-mini-lines">' + j.lines.map((l) => miniLine(l, true)).join('') + '</ul>' + totals(j) + '</aside>';
+
+    const cod = !!j.pay && j.pay.key === 'cod';
+    const actions = '<div class="jst-co-actions">' +
+      (noPay ? '' :
+        btn(cod ? 'Confirmer la commande' : 'Payer ' + money(j.total), { size: 'lg', block: true, icon: cod ? 'check' : 'lock', cls: 'jst-pay-btn', attrs: act('order') }) +
+        '<p class="jst-pay-note">' + (cod
+          ? 'Vous paierez ' + money(j.total) + ' au livreur, à la réception.'
+          : (j.pay && j.pay.key === 'card'
+            ? 'Vous saisirez votre carte sur la page sécurisée de notre partenaire.'
+            : (j.pay ? 'Vous validerez ' + money(j.total) + ' avec ' + esc(j.pay.label) + ' sur votre téléphone.' : ''))) + '</p>' +
+        '<p class="jst-or"><span>ou</span></p>') +
+      btn('Commander sur WhatsApp', { size: 'lg', block: true, icon: 'chat', cls: 'jst-btn--ghost', attrs: act('wa') }) +
+      '<p class="jst-trust">' + icon('shield') + '<span>Paiement traité par un partenaire agréé par la BCEAO. Jeere ne garde jamais votre argent.</span></p>' +
+      '</div>';
+
+    return '<div class="jst-wrap jst-co">' + top + '<div class="jst-co-grid' + (noPay ? ' is-nopay' : '') + '">' + main + summary + actions + '</div></div>';
+  }
+
+  function pageConfirmation(m, j) {
+    const top = steps(3);
+    if (!j.lines.length) {
+      return '<div class="jst-wrap jst-ok">' + top + empty('Ajoutez un produit pour voir la page de confirmation.') + '</div>';
+    }
+    const first = j.form.first.trim();
+    const phone = j.form.phone.trim();
+    const address = j.form.address.trim();
+    const pay = j.pay;
+    let status;
+    if (!pay) status = '<p class="jst-ok-status">' + icon('chat') + '<span>Paiement à convenir sur WhatsApp</span></p>';
+    else if (pay.key === 'cod') status = '<p class="jst-ok-status is-cod">' + icon('cash') + '<span>' + esc(pay.status || 'À payer à la livraison') + ' · <b>' + money(j.total) + '</b></span></p>';
+    else status = '<p class="jst-ok-status is-paid">' + icon('check') + '<span>' + esc(pay.status || (pay.key === 'card' ? 'Paiement par carte reçu' : 'Paiement ' + pay.label + ' reçu')) + ' · <b>' + money(j.total) + '</b></span></p>';
+    const hero = '<div class="jst-ok-hero">' +
+      '<span class="jst-ok-check" aria-hidden="true">' + icon('check') + '</span>' +
+      '<h1 class="jst-h jst-ok-title">Merci' + (first ? ' ' + esc(first) : '') + NBSP + '!</h1>' +
+      '<p class="jst-ok-num">Commande n°' + NBSP + ORDER_NO + ' confirmée</p>' + status +
+      '<p class="jst-ok-eta">' + icon('truck') + '<span>Livraison prévue sous 24' + NBSP + 'h' + (j.zone ? ' à ' + esc(j.zone.name) : '') + '. Le livreur vous appelle avant de passer.</span></p>' +
+      '<div class="jst-ok-actions">' + btn('Suivre ma commande sur WhatsApp', { size: 'lg', block: true, icon: 'chat', cls: 'jst-ok-wa', attrs: act('wa') }) +
+      '<a class="jst-link jst-ok-back"' + act('done') + '>' + icon('back') + '<span>Retour à la boutique</span></a></div>' +
+      '</div>';
+    const details = [
+      ['Livraison', (j.zone ? esc(j.zone.name) : 'À confirmer') + (address ? '<br>' + esc(address).replace(/\n/g, '<br>') : '')],
+      ['Contact', (first ? esc(first) : 'Client') + (phone ? '<br>+225' + NBSP + esc(phone) : '')],
+      ['Paiement', pay ? esc(pay.label) : 'À convenir sur WhatsApp']
+    ];
+    const recap = '<section class="jst-summary jst-ok-recap"><h2 class="jst-h jst-summary-title">Récapitulatif</h2>' +
+      '<ul class="jst-mini-lines">' + j.lines.map((l) => miniLine(l, false)).join('') + '</ul>' + totals(j) + '</section>';
+    const info = '<section class="jst-summary jst-ok-info"><h2 class="jst-h jst-summary-title">Détails de la commande</h2><dl class="jst-ok-dl">' +
+      details.map((d) => '<div><dt>' + d[0] + '</dt><dd>' + d[1] + '</dd></div>').join('') + '</dl></section>';
+    return '<div class="jst-wrap jst-ok">' + top + hero + '<div class="jst-ok-grid">' + recap + info + '</div></div>';
+  }
+
+  const PAGE_RENDERERS = { product: pageProduct, cart: pageCart, checkout: pageCheckout, confirmation: pageConfirmation };
+
+  function renderPage(m, j) {
+    if (j.page === 'home') return pageHome(m, j);
+    let main;
+    try {
+      main = PAGE_RENDERERS[j.page](m, j);
+    } catch (e) {
+      main = '<div class="jst-wrap jst-page-empty">' + empty('Cette page n’a pas pu être affichée. Vérifiez la fiche boutique.') + '</div>';
+    }
+    const out = j.page === 'checkout' ? [headerCheckout(m)] : leadingAnnouncements(m).concat([header(m, j)]);
+    out.push('<main class="jst-main jst-main--' + j.page + '">' + main + '</main>');
+    out.push(footer(m));
+    return out.join('');
+  }
+
+  /* ------------------------------------------------------------------ interactions
+   * Delegated on the root, bound once per element. Store links never leave the preview.
+   */
 
   function setVars(el, vars) {
     Object.keys(vars).forEach((k) => { try { el.style.setProperty(k, vars[k]); } catch (e) { /* ignore */ } });
   }
 
+  function refresh(rootEl) {
+    const v = rootEl.__jstView;
+    if (!v) return;
+    render(v.config, rootEl, { device: v.device, page: v.page, productId: v.productId });
+  }
+
+  // Brings the top of the store back into view inside its nearest scrolling box.
+  function scrollToTop(rootEl) {
+    try {
+      const r = rootEl.getBoundingClientRect();
+      let p = rootEl.parentElement;
+      while (p && p !== document.body && p !== document.documentElement) {
+        const cs = getComputedStyle(p);
+        if (/(auto|scroll)/.test(cs.overflowY) && p.scrollHeight > p.clientHeight + 1) {
+          const pr = p.getBoundingClientRect();
+          if (r.top < pr.top) p.scrollTop -= pr.top - r.top;
+          return;
+        }
+        p = p.parentElement;
+      }
+      if (r.top < 0 && typeof window !== 'undefined') window.scrollBy(0, r.top);
+    } catch (e) { /* scrolling is a nicety */ }
+  }
+
+  function navigate(rootEl, page, productId) {
+    const v = rootEl.__jstView;
+    if (!v) return;
+    render(v.config, rootEl, { device: v.device, page: page, productId: productId || null });
+    const nv = rootEl.__jstView || {};
+    const detail = { page: nv.page || 'home', productId: nv.page === 'product' ? (nv.productId || null) : null };
+    let ok = true;
+    try {
+      let ev;
+      if (typeof CustomEvent === 'function') ev = new CustomEvent('jst:navigate', { bubbles: true, cancelable: true, detail: detail });
+      else { ev = document.createEvent('CustomEvent'); ev.initCustomEvent('jst:navigate', true, true, detail); }
+      ok = rootEl.dispatchEvent(ev);
+    } catch (e) { ok = true; }
+    if (ok) scrollToTop(rootEl);
+  }
+
+  // A short note next to a button that only works in the real store (WhatsApp).
+  function toast(rootEl, anchor, text) {
+    try {
+      let dock = null;
+      for (let i = 0; i < rootEl.children.length; i++) if (rootEl.children[i].classList.contains('jst-toast-dock')) dock = rootEl.children[i];
+      if (!dock) { dock = document.createElement('div'); dock.className = 'jst-toast-dock'; rootEl.appendChild(dock); }
+      const rr = rootEl.getBoundingClientRect();
+      const br = anchor && anchor.isConnected ? anchor.getBoundingClientRect() : null;
+      const scale = rootEl.offsetWidth ? rr.width / rootEl.offsetWidth || 1 : 1;
+      const top = br ? (br.bottom - rr.top) / scale + 10 : 16;
+      dock.innerHTML = '<p class="jst-toast" role="status" style="top:' + Math.max(8, Math.round(top)) + 'px">' + icon('chat') + '<span>' + esc(text) + '</span></p>';
+      clearTimeout(rootEl.__jstToastTimer);
+      rootEl.__jstToastTimer = setTimeout(() => { try { dock.innerHTML = ''; } catch (e) { /* gone */ } }, 3200);
+    } catch (e) { /* a note is a nicety */ }
+  }
+
+  function onClick(rootEl, e) {
+    const t = e.target && e.target.closest ? e.target : (e.target && e.target.parentElement) || null;
+    if (!t) return;
+    if (t.closest('a')) e.preventDefault();
+    const a = t.closest('[data-jst-action]');
+    if (!a || a.disabled) return;
+    const action = a.getAttribute('data-jst-action');
+    const id = a.getAttribute('data-product') || '';
+    const delta = Math.round(Number(a.getAttribute('data-delta')) || 0);
+    const cart = isObj(rootEl.__jstCart) ? rootEl.__jstCart : (rootEl.__jstCart = {});
+    switch (action) {
+      case 'go':
+        navigate(rootEl, a.getAttribute('data-page') || 'home', id || null);
+        break;
+      case 'add': {
+        const q = isObj(rootEl.__jstQty) && rootEl.__jstQty.id === id ? clamp(Math.round(num(rootEl.__jstQty.n) || 1), QTY_MIN, QTY_MAX) : 1;
+        if (id) cart[id] = clamp((Math.round(num(cart[id]) || 0)) + q, QTY_MIN, QTY_MAX);
+        rootEl.__jstQty = null;
+        navigate(rootEl, 'cart', null);
+        break;
+      }
+      case 'qty':
+        if (id && own(cart, id)) { cart[id] = clamp((Math.round(num(cart[id]) || 1)) + delta, QTY_MIN, QTY_MAX); refresh(rootEl); }
+        break;
+      case 'pdp-qty': {
+        const cur = isObj(rootEl.__jstQty) && rootEl.__jstQty.id === id ? Math.round(num(rootEl.__jstQty.n) || 1) : 1;
+        rootEl.__jstQty = { id: id, n: clamp(cur + delta, QTY_MIN, QTY_MAX) };
+        refresh(rootEl);
+        break;
+      }
+      case 'remove':
+        if (id) delete cart[id];
+        if (!Object.keys(cart).length) rootEl.__jstCartCleared = true;
+        refresh(rootEl);
+        break;
+      case 'pay': {
+        const form = isObj(rootEl.__jstForm) ? rootEl.__jstForm : (rootEl.__jstForm = {});
+        form.pay = a.getAttribute('data-pay') || '';
+        refresh(rootEl);
+        break;
+      }
+      case 'order':
+        navigate(rootEl, 'confirmation', null);
+        break;
+      case 'done':
+        rootEl.__jstCart = {};
+        navigate(rootEl, 'home', null);
+        break;
+      case 'wa':
+        toast(rootEl, a, 'Aperçu' + NBSP + ': dans votre boutique, ce bouton ouvre WhatsApp avec la commande prête à envoyer.');
+        break;
+      default:
+        break;
+    }
+  }
+
+  function onField(rootEl, e, committed) {
+    const f = e.target;
+    if (!f || !f.getAttribute) return;
+    const key = f.getAttribute('data-jst-field');
+    if (!key) return;
+    const form = isObj(rootEl.__jstForm) ? rootEl.__jstForm : (rootEl.__jstForm = {});
+    form[key] = String(f.value == null ? '' : f.value).slice(0, 240);
+    // The commune changes the delivery fee, the total and the pay button: redraw the page.
+    if (committed && key === 'commune') refresh(rootEl);
+  }
+
+  function bind(rootEl) {
+    if (rootEl.__jstBound || typeof rootEl.addEventListener !== 'function') return;
+    rootEl.__jstBound = true;
+    rootEl.addEventListener('click', (e) => { try { onClick(rootEl, e); } catch (err) { /* never break the host page */ } });
+    rootEl.addEventListener('input', (e) => { try { onField(rootEl, e, false); } catch (err) { /* ignore */ } });
+    rootEl.addEventListener('change', (e) => { try { onField(rootEl, e, true); } catch (err) { /* ignore */ } });
+    rootEl.addEventListener('submit', (e) => e.preventDefault());
+    // Typing in the store's fields must not trigger the editor's shortcuts (undo, delete…).
+    rootEl.addEventListener('keydown', (e) => {
+      const t = e.target;
+      if (t && t.closest && t.closest('input, textarea, select')) e.stopPropagation();
+    });
+  }
+
+  /* ------------------------------------------------------------------ render */
+
   function render(config, rootEl, options) {
     if (!rootEl || typeof rootEl !== 'object' || !('innerHTML' in rootEl)) return rootEl;
-    const device = options && options.device === 'desktop' ? 'desktop' : 'phone';
+    const o = isObj(options) ? options : {};
+    const device = o.device === 'desktop' ? 'desktop' : 'phone';
+    let page = typeof o.page === 'string' && (o.page === 'home' || own(PAGE_RENDERERS, o.page)) ? o.page : 'home';
+    const productId = typeof o.productId === 'string' && o.productId ? o.productId : null;
     let m = null;
+    let j = null;
     let html;
     try {
       m = buildModel(config, device);
-      html = page(m);
+      VIVID = m.vivid;
+      j = journey(m, rootEl, page, productId);
+      html = renderPage(m, j);
     } catch (e) {
       m = null;
+      page = 'home';
       const name = isObj(config) && isObj(config.store) ? str(config.store.name).trim() : '';
       html = '<header class="jst-header"><div class="jst-wrap jst-header-in"><span class="jst-logo">' + esc(name || 'Votre boutique') + '</span></div></header>' +
         '<main class="jst-main"><div class="jst-wrap jst-page-empty">' + empty('L’aperçu n’a pas pu être affiché. Vérifiez la fiche boutique.') + '</div></main>';
+    } finally {
+      VIVID = false;
     }
     try {
+      rootEl.__jstView = { config: config, device: device, page: page, productId: j ? j.productId : productId };
       rootEl.className = 'jst';
       if (rootEl.dataset) {
         rootEl.dataset.tpl = m ? m.tpl : 'plateau';
         rootEl.dataset.device = device;
         rootEl.dataset.buttons = m ? m.buttons : 'solid';
         rootEl.dataset.tone = m && m.dark ? 'dark' : 'light';
+        rootEl.dataset.intensity = m ? m.intensity : 'vivid';
+        rootEl.dataset.page = page;
       }
       const c = m ? m.colors : FALLBACK_COLORS;
+      const v = m ? m.v : vividColors(FALLBACK_COLORS, false);
       if (rootEl.style) {
         setVars(rootEl, {
           '--st-bg': c.bg,
@@ -975,16 +1651,25 @@
           '--st-text-soft': mix(c.bg, c.text, 0.82),
           // Buttons set over a photo: the accent when it stands out on a dark scrim, else white.
           '--st-photo-btn-bg': lum(c.accent) < 0.2 ? '#FFFFFF' : c.accent,
-          '--st-photo-btn-fg': lum(c.accent) < 0.2 ? '#15120E' : c.onAccent
+          '--st-photo-btn-fg': lum(c.accent) < 0.2 ? '#15120E' : c.onAccent,
+          // Vivid set (see vividColors); soft stores use them only in forms and summaries.
+          '--st-tint': v.tint,
+          '--st-tint-strong': v.tintStrong,
+          '--st-accent-text': v.accentText,
+          '--st-muted-tint': v.mutedTint,
+          '--st-muted-strong': v.mutedStrong,
+          '--st-on-accent-soft': v.onAccentSoft,
+          '--st-field-line': v.fieldLine
         });
       }
       rootEl.innerHTML = html;
     } catch (e) {
       try { rootEl.textContent = 'Aperçu indisponible.'; } catch (e2) { /* nothing more to do */ }
     }
+    bind(rootEl);
     ensureFonts(config);
     return rootEl;
   }
 
-  root.JeereRender = { render: render, ensureFonts: ensureFonts, artSVG: artSVG };
+  root.JeereRender = { render: render, ensureFonts: ensureFonts, artSVG: artSVG, pages: pagesList, PAGES: PAGES_FALLBACK };
 })();

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kreeative.xyz/concepts/jeere/creer/schema.json",
   "title": "JEERE fiche boutique, version 1",
-  "description": "The store config ('fiche boutique') that the JEERE assistant fills, the editor edits and the templates render. Source of truth for ids, labels and limits: data.js (window.JEERE_DATA). This schema checks structure, enums, ranges and the editor's character limits. Quality rules (empty store name, no payment method, fewer than 3 products, missing WhatsApp number...) are checked by JEERE_DATA.validate(), not here. Unique section and product ids cannot be expressed in JSON Schema: code checks them (normalizeConfig fixes them).",
+  "description": "The store config ('fiche boutique') that the JEERE assistant fills, the editor edits and the templates render. Source of truth for ids, labels and limits: data.js (window.JEERE_DATA). One fiche renders the whole store: the home page (the sections below), the product page, the cart, the checkout and the confirmation (JEERE_DATA.PAGES); nothing in it is specific to a page. This schema checks structure, enums, ranges and the editor's character limits. Quality rules (empty store name, no payment method, fewer than 3 products, missing WhatsApp number...) are checked by JEERE_DATA.validate(), not here. Unique section and product ids cannot be expressed in JSON Schema: code checks them (normalizeConfig fixes them).",
   "type": "object",
   "required": ["version", "template", "store", "theme", "payments", "sections", "products"],
   "additionalProperties": false,
@@ -35,6 +35,11 @@
     "paletteId": {
       "description": "Sable, Karité, Lagune, Hibiscus, Indigo, Mangue, Menthe, Nuit. The colours themselves live in data.js (contrast-checked); a fiche only names the palette.",
       "enum": ["sable", "karite", "lagune", "hibiscus", "indigo", "mangue", "menthe", "nuit"]
+    },
+    "intensity": {
+      "description": "Colour intensity (« Couleurs » in the editor's Thème tab): 'vivid' (Vives: the palette's accent carries the page: announcement bar, hero, tinted section backgrounds, solid buttons) or 'soft' (Douces: light backgrounds, the colour in touches). The palette stays the same; the renderer sets [data-intensity] on the store root. Default and recommended: 'vivid'. normalizeConfig reads a fiche saved without it (or with an unknown value) as 'vivid'; validate() reports an unknown value as an error.",
+      "enum": ["vivid", "soft"],
+      "default": "vivid"
     },
     "fontPairId": {
       "description": "Éditorial (Playfair + Inter), Moderne (Montserrat + Inter), Doux (Onest), Audacieux (Unbounded + Inter), Classique (EB Garamond + Fira Sans), Simple (Poppins).",
@@ -86,18 +91,19 @@
     },
     "theme": {
       "type": "object",
-      "required": ["palette", "fonts", "radius", "buttons"],
+      "required": ["palette", "fonts", "radius", "buttons", "intensity"],
       "additionalProperties": false,
       "properties": {
         "palette": { "$ref": "#/$defs/paletteId" },
         "fonts": { "$ref": "#/$defs/fontPairId" },
         "radius": { "enum": ["none", "soft", "round"], "description": "Droit (0 px), Doux (10 px), Rond (22 px)." },
-        "buttons": { "enum": ["solid", "outline"], "description": "Plein (accent background) or Contour (1.5 px accent border)." }
+        "buttons": { "enum": ["solid", "outline"], "description": "Plein (accent background) or Contour (1.5 px accent border)." },
+        "intensity": { "$ref": "#/$defs/intensity" }
       }
     },
     "payments": {
       "type": "object",
-      "description": "Payment methods shown in the footer as plain text (never the operators' logos or colours). validate() reports an error when none is true.",
+      "description": "Payment methods the store accepts, shown as plain text (never the operators' logos or colours): in the footer, on the product page and as the payment options of the checkout page, in this order. Labels and checkout hints in JEERE_DATA.PAYMENTS. validate() reports an error when none is true.",
       "required": ["wave", "orange", "mtn", "moov", "cod", "card"],
       "additionalProperties": false,
       "properties": {
@@ -227,7 +233,7 @@
     },
     "settings_delivery": {
       "type": "object",
-      "description": "Livraison: zones (communes) and their fees. validate() warns when the section is shown with no zone.",
+      "description": "Livraison: zones (communes) and their fees. The zones of the first enabled delivery section are also the commune list of the checkout page and the delivery line of the product page (JEERE_DATA.communes when there is none). validate() warns when the section is shown with no zone.",
       "required": ["title", "text", "zones"],
       "additionalProperties": false,
       "properties": {

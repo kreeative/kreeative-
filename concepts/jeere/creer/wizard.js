@@ -1,20 +1,21 @@
 /*
- * JEERE Studio — wizard.js
- * « l’assistant JEERE » : the « Décrire ma boutique » flow, as a chat.
+ * Jeere Studio — wizard.js
+ * « l’assistant Jeere » : the « Décrire ma boutique » flow, as a chat. Its avatar is the silver « j » mark
+ * of the Jeere logo on a black circle.
  *
  * Global: window.JeereWizard = {
  *   open()                  full-screen chat above the start screen (a conversation in progress is resumed)
  *   close()                 closes it; the conversation is kept until « Recommencer » or until the editor opens
  *   reset()                 forgets the conversation
  *   understand(text, step, ctx?) -> { step, intent, value, values, confidence, explicit, strong, info }   (pure)
- *   generate(answers)       -> a complete fiche boutique, config v1                                       (pure)
+ *   generate(answers)       -> a complete fiche boutique, config v1, always in vivid colours              (pure)
  *   STEPS                   ['name', 'niche', 'template', 'palette', 'needs', 'contact']
  * }
  *
  * There is no AI in this prototype. The assistant reads keywords (accents and case ignored), negations
  * (« pas d’avis »), corrections at any moment (« non, plutôt audacieux »), answers given ahead of time
  * (« Awa Beauté, je vends du karité ») and phone numbers, then fills the same fiche boutique that the
- * editor edits. In JEERE, one AI will answer in its place and fill the same fiche.
+ * editor edits. In Jeere, one AI will answer in its place and fill the same fiche.
  * Replies are chosen deterministically from the answers (no Math.random), so the demo is stable.
  *
  * Pure parts (understand, generate) never touch the DOM: the file loads in Node with global.window = {}.
@@ -357,14 +358,14 @@
 
   const FAQ = [
     { re: W('gratuit|gratuite|combien|prix|tarifs?|cout|coute|coutera|abonnement|payant|commission'),
-      a: 'Ce prototype est gratuit, et JEERE n’est pas encore lancé. Pour connaître les prix dès qu’ils sont fixés, rejoignez la liste d’attente sur la page d’accueil.' },
+      a: 'Ce prototype est gratuit, et Jeere n’est pas encore lancé. Pour connaître les prix dès qu’ils sont fixés, rejoignez la liste d’attente sur la page d’accueil.' },
     { re: /(?:modifier|changer|corriger|retoucher).*(?:apres|ensuite|plus tard)|(?:apres|ensuite|plus tard).*(?:modifier|changer|corriger)/,
       a: 'Oui : tout se change ensuite dans l’éditeur, les textes, les produits, les couleurs et les photos.' },
     { re: W('photos?|images?'), a: 'Vous ajouterez vos vraies photos dans l’éditeur. En attendant, je mets des illustrations de vos produits.' },
     { re: W('publier|publie|en ligne|lien|url|site|mettre en ligne|visible|clients? voir'),
       a: 'C’est un prototype : rien n’est publié, et vos réponses restent dans ce navigateur.' },
     { re: W('ia|intelligence artificielle|robot|bot|humain|chatgpt|vrai|une personne'),
-      a: 'Je suis une démo : je comprends des mots-clés, sans IA. Dans JEERE, une seule IA répondra à ma place et remplira la même fiche boutique.' },
+      a: 'Je suis une démo : je comprends des mots-clés, sans IA. Dans Jeere, une seule IA répondra à ma place et remplira la même fiche boutique.' },
     { re: W('paiement|payer|wave|orange money|mtn|moov|mobile money|momo'),
       a: 'Vos clients pourront payer par Wave, Orange Money, MTN MoMo ou Moov Money, ou à la livraison. Vous cocherez vos moyens de paiement dans l’éditeur.' }
   ];
@@ -956,6 +957,8 @@
     cfg.store.whatsapp = d.normalizeWhatsapp(typeof a.whatsapp === 'string' ? a.whatsapp : '');
     cfg.store.tagline = local(cfg.store.tagline, 80);
     cfg.theme.palette = known(d.palettes, a.palette) ? a.palette : niche.palette;
+    // Vivid colours: the seller's colour carries the whole store (the founder found the soft look pale)
+    cfg.theme.intensity = 'vivid';
     cfg.payments.cod = needs.cod;
     cfg.sections.forEach((s) => {
       const st = s.settings;
@@ -971,7 +974,9 @@
         case 'whatsapp': s.enabled = needs.whatsapp; break;
       }
     });
-    return d.normalizeConfig(cfg);
+    const out = d.normalizeConfig(cfg);
+    if (out.theme && out.theme.intensity === undefined) out.theme.intensity = 'vivid'; // an older data.js drops the key
+    return out;
   }
 
   /* ================================================================== conversation state */
@@ -1066,8 +1071,8 @@
   /* ================================================================== the steps */
 
   const Q = {
-    intro: ['Bonjour ! Je suis l’assistant JEERE. En six petites questions, je prépare votre boutique : textes, produits d’exemple et couleurs. Vous pourrez tout changer ensuite.',
-      'Bonjour ! Moi, c’est l’assistant JEERE. Répondez à six petites questions et je monte votre boutique, prête à être retouchée.'],
+    intro: ['Bonjour ! Je suis l’assistant Jeere. En six petites questions, je prépare votre boutique : textes, produits d’exemple et couleurs. Vous pourrez tout changer ensuite.',
+      'Bonjour ! Moi, c’est l’assistant Jeere. Répondez à six petites questions et je monte votre boutique, prête à être retouchée.'],
     name: ['Pour commencer, comment s’appelle votre boutique ?', 'D’abord, quel est le nom de votre boutique ?', 'On commence par le nom : comment s’appelle votre boutique ?'],
     niche: ['Que vendez-vous ? Touchez une catégorie, ou dites-le avec vos mots.',
       'Qu’est-ce que vous vendez ? Choisissez ci-dessous, ou écrivez-le simplement : « des perruques », « attiéké et garba »…',
@@ -1575,7 +1580,8 @@
   /* ================================================================== DOM: chips, cards, messages */
 
   const ICON = {
-    mono: '<svg viewBox="0 0 122 100" aria-hidden="true" focusable="false"><path d="M0 0H54V20H20V80H54V100H0Z"/><path d="M68 0H122V20H88V80H122V100H68Z"/><rect x="20" y="40" width="96" height="20"/></svg>',
+    // The silver « j » of the Jeere logo (same shapes as #mark in index.html, inlined so the chat needs no symbol)
+    mark: '<svg class="jwz-mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><circle cx="237" cy="62" r="62"/><path d="M0 199H126V222A24 24 0 0 0 174 222V154H300V222A150 150 0 0 1 0 222Z"/></svg>',
     x: '<svg class="jwz-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 7 10 10M17 7 7 17"/></svg>',
     restart: '<svg class="jwz-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg>',
     send: '<svg class="jwz-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5.5M6 11.5l6-6 6 6"/></svg>',
@@ -1764,7 +1770,7 @@
     const row = el('div', 'jwz-msg jwz-msg--bot');
     const av = el('span', 'jwz-msg__av');
     av.setAttribute('aria-hidden', 'true');
-    av.innerHTML = ICON.mono;
+    av.innerHTML = ICON.mark;
     const b = el('p', 'jwz-bubble', item.text);
     if (item.sr) b.appendChild(el('span', 'jwz-sr', ' ' + item.sr));
     row.appendChild(av);
@@ -1872,7 +1878,8 @@
       dl.appendChild(row);
     };
     fact('Modèle', tpl.name + ' · ' + (STYLE[tpl.id] ? STYLE[tpl.id].label : tpl.style));
-    fact('Couleurs', pal.name, swatch(pal.id));
+    const vivid = cfg.theme.intensity !== 'soft';
+    fact('Couleurs', pal.name + ' · ' + (vivid ? 'vives' : 'douces'), swatch(pal.id));
     fact('Polices', fp.name);
     fact('Sections', on === total ? on + ' sections' : on + ' sur ' + total);
     fact('Produits', cfg.products.length + ' exemples');
@@ -1918,7 +1925,7 @@
     body.appendChild(actions);
     card.appendChild(body);
     frag.appendChild(card);
-    frag.appendChild(el('p', 'jwz-note', fr('Démo : ici l’assistant comprend des mots-clés. Dans JEERE, une seule IA répondra à sa place et remplira la même fiche boutique.')));
+    frag.appendChild(el('p', 'jwz-note', fr('Démo : ici l’assistant comprend des mots-clés. Dans Jeere, une seule IA répondra à sa place et remplira la même fiche boutique.')));
     return frag;
   }
 
@@ -1997,9 +2004,9 @@
     box.setAttribute('aria-describedby', 'jwz-sub');
     box.innerHTML =
       '<header class="jwz-head">' +
-        '<span class="jwz-av" aria-hidden="true">' + ICON.mono + '</span>' +
+        '<span class="jwz-av" aria-hidden="true">' + ICON.mark + '</span>' +
         '<div class="jwz-head__txt">' +
-          '<h2 class="jwz-title" id="jwz-title" tabindex="-1">L’assistant JEERE</h2>' +
+          '<h2 class="jwz-title" id="jwz-title" tabindex="-1">L’assistant Jeere</h2>' +
           '<p class="jwz-sub" id="jwz-sub">' + fr('Démo · 6 petites questions') + '</p>' +
         '</div>' +
         '<button type="button" class="jwz-ibtn" data-jwz="restart" aria-label="Recommencer la conversation" title="Recommencer">' + ICON.restart + '</button>' +
@@ -2008,8 +2015,8 @@
       '<div class="jwz-progress" aria-hidden="true"><span></span></div>' +
       '<div class="jwz-scroll" tabindex="-1">' +
         '<div class="jwz-inner">' +
-          '<div class="jwz-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation avec l’assistant JEERE"></div>' +
-          '<div class="jwz-msg jwz-msg--bot jwz-typing" hidden aria-hidden="true"><span class="jwz-msg__av">' + ICON.mono + '</span>' +
+          '<div class="jwz-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation avec l’assistant Jeere"></div>' +
+          '<div class="jwz-msg jwz-msg--bot jwz-typing" hidden aria-hidden="true"><span class="jwz-msg__av">' + ICON.mark + '</span>' +
             '<span class="jwz-bubble jwz-dots"><i></i><i></i><i></i></span></div>' +
           '<div class="jwz-quick"></div>' +
         '</div>' +
