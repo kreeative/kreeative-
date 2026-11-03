@@ -323,7 +323,7 @@
   const W = (body) => new RegExp('(?:^|\\s)(?:' + body + ')(?=\\s|$)');
   const CORRECTION_RE = W('non|plutot|en fait|finalement|change[rz]?|changement|mets?|mettez|mettre|remplace[rz]?|je prefere|prefere|je voulais dire|pardon|oups|oops|' +
     'erreur|modifie[rz]?|corrige[rz]?|correction|enleve[rz]?|retire[rz]?|ajoute[rz]?|remets?|remettez|passe[rz]? en|a la place|au lieu');
-  const SALES_RE = W('je vends?|je vend|j\'vends|on vend|nous vendons|je fais|on fait|nous faisons|je propose|on propose|nous proposons|je suis dans|on est dans|' +
+  const SALES_RE = W('je vends?|je vend|j\'vends|jvds?|jvends?|je vds?|jfais|on vend|nous vendons|je fais|on fait|nous faisons|je propose|on propose|nous proposons|je suis dans|on est dans|' +
     'specialisee?s? (?:en|dans)|mon (?:business|commerce|activite|truc|domaine) c\'est|moi c\'est|c\'est des|c\'est du|c\'est de la|je travaille dans|je cuisine|' +
     'je couds|je fabrique|je cree|je coiffe|je revends|je commercialise|vente de|vendeuse de|vendeur de|en fait je|ma boutique vend|on vendra|je vendrai|' +
     'je vendais|je vais vendre|je veux vendre|nous faisons');
@@ -618,10 +618,10 @@
     /(?:^|\s)je (?:veux|voudrais|vais) (?:l'appeler|la nommer|appeler (?:ma|la) boutique)\s*/g,
     /(?:^|\s)change(?:r|z)? (?:le |son )?nom(?: de la boutique)? (?:en|pour|par|:)\s*/g
   ];
-  const NAME_GENERIC = [/^nom\s*[:=]?\s+/g, /^c'est\s+/g, /^(?:ca s'appelle|elle s'appelle)\s+/g];
+  const NAME_GENERIC = [/^nom\s*[:=]?\s+/g, /^(?:c'est|cest|c)\s+/g, /^(?:ca s'appelle|elle s'appelle)\s+/g];
   const PERSON_RE = /(?:^|\s)(?:je m'appelle|moi c'est|mon prenom (?:c'est|est)|mon petit nom c'est)\s+/g;
-  const NAME_CUT_A = /\s*(?:[,;.!?]|\s(?:et|mais|puis))\s*(?=(?:je|j'|on|nous|mets?|mettez|change[rz]?|passe[rz]?|plutot|avec|sans|style|couleurs?|en fait)(?:\s|'|$))/;
-  const NAME_CUT_B = /\s+(?=(?:je|j'|on|nous) ?(?:vends?|vend|fais|fait|propose|suis|cuisine|couds|fabrique|cree|livre|travaille|veux|voudrais|habite)(?:\s|$))/;
+  const NAME_CUT_A = /\s*(?:[,;.!?]|\s(?:et|mais|puis))\s*(?=(?:je|j'|on|nous|jvds?|jvends?|jfais|mets?|mettez|change[rz]?|passe[rz]?|plutot|avec|sans|style|couleurs?|en fait)(?:\s|'|$))/;
+  const NAME_CUT_B = /\s+(?=(?:(?:je|j'|on|nous) ?(?:vends?|vend|vds?|fais|fait|propose|suis|cuisine|couds|fabrique|cree|livre|travaille|veux|voudrais|habite)|jvds?|jvends?|jfais)(?:\s|$))/;
   const NAME_CUT_C = /[.!?](?:\s|$)/;
   const NAME_BAD = /^(?:oui|non|ok|okay|d'accord|rien|aucun|aucune|merci|bonjour|salut|test|nom|le nom|boutique|ma boutique|je|moi|quoi|hein|euh+|bof|ah|oh|hello|hi)$/;
   const NAME_STOP = new Set(['des', 'du', 'de', 'la', 'le', 'les', 'l\'', 'd\'', 'et', 'un', 'une', 'mes', 'nos', 'ma', 'mon', 'en', 'au', 'aux', 'a', 'beaucoup',
@@ -737,6 +737,12 @@
   }
   function fieldStep(f) { return f === 'city' || f === 'whatsapp' ? 'contact' : f; }
 
+  // The word as the seller typed it, accents included (« doré », not « dore »), to echo it back
+  function typedWord(raw, w) {
+    const i = fold(raw).indexOf(w);
+    return i >= 0 ? raw.substr(i, w.length) : w;
+  }
+
   function understandInner(text, stepIn, ctx) {
     const step = normStep(stepIn);
     const raw = String(text == null ? '' : text).replace(/\s+/g, ' ').trim().slice(0, 400);
@@ -810,7 +816,7 @@
       res.values.palette = pd.value;
       res.explicit.palette = correction || PALETTE_FIELD_RE.test(t) || summary || step === 'palette';
       res.strong.palette = true;
-      if (pd.word) res.info.colorWord = pd.word;
+      if (pd.word) res.info.colorWord = typedWord(raw, pd.word);
       if (pd.auto) res.info.auto = true;
     }
     if (pd.excluded.length) { res.info.excludedPalettes = pd.excluded; res.info.excludedWords = pd.excludedWords; }
@@ -833,6 +839,23 @@
       }
     }
     if (step === 'contact' && NOPHONE_RE.test(t) && !phone) res.info.noPhone = true;
+    // A number given ahead of time with a place next to it (« Yopougon 07 07 12 34 56 »): the place is the city
+    if (phone && step !== 'contact' && res.values.city === undefined && t && !sd.value) {
+      const words = t.split(' ').filter((x) => /[a-z]/.test(x)).length;
+      const cp = detectCity(rest, t, words <= 3);
+      if (cp && cp.city && (cp.gaz || words <= 3)) { res.values.city = cp.city; res.strong.city = true; res.explicit.city = true; }
+    }
+    // A colour alone while another question is asked (« vert » at the style question): note it for later
+    if (t && !summary && (step === 'template' || step === 'needs' || step === 'contact') && res.values.palette === undefined &&
+      !res.values.template && !res.values.niche && !res.values.needs && res.values.city === undefined && !phone && t.split(' ').length <= 3) {
+      const pb = detectPalette(t, true, false, ctx);
+      if (pb.value && !pb.auto) {
+        res.values.palette = pb.value;
+        res.strong.palette = true;
+        res.explicit.palette = false;
+        if (pb.word) res.info.colorWord = typedWord(raw, pb.word);
+      }
+    }
 
     // 8. the value for the step asked
     const helpFirst = HELP_RE.test(tAll) && isQuestion && (step === 'template' || step === 'palette');
@@ -1161,7 +1184,8 @@
       if (word && norm(word) !== norm(P)) return cap(word) + ', très bien : ce sera la palette ' + P + ', ' + desc + '.';
       return pick([P + ' : ' + desc + '. Bon choix.', 'Va pour ' + P + ' : ' + desc + '.', 'Noté : la palette ' + P + ', ' + desc + '.'], 'p' + id);
     }
-    return kind === 'correction' ? 'C’est noté : la palette ' + P + ', ' + desc + '.' : 'Pour les couleurs, je note ' + P + '.';
+    if (kind === 'correction') return 'C’est noté : la palette ' + P + ', ' + desc + '.';
+    return word && norm(word) !== norm(P) ? 'Pour les couleurs, je note le ' + word.toLowerCase() + ' : ce sera la palette ' + P + '.' : 'Pour les couleurs, je note ' + P + '.';
   }
   function needsNote(before, after, mode, atStep) {
     const off = NEED_KEYS.filter((k) => after[k] === false);
@@ -1449,8 +1473,9 @@
       o.push('Pas de souci, je garde ce que vous m’aviez dit.');
     } else if (step === 'name') applyCurrent('name', { intent: 'auto', info: {} }, o);
     else if (step === 'niche') {
-      S.answers.niche = 'fashion'; S.filled.niche = true;
-      o.push('Je pars sur la mode pour les exemples : vous les remplacerez par vos produits dans l’éditeur. Vous pouvez aussi me dire « en fait je vends … » à tout moment.');
+      const guess = S.nameHint && known(D().niches, S.nameHint) ? S.nameHint : 'fashion';
+      S.answers.niche = guess; S.filled.niche = true;
+      o.push('Je pars sur ' + (guess === 'fashion' ? 'la mode' : NICHE_COPY[guess].short) + ' pour les exemples : vous les remplacerez par vos produits dans l’éditeur. Vous pouvez aussi me dire « en fait je vends … » à tout moment.');
     } else if (step === 'template') applyCurrent('template', { intent: 'auto', info: {} }, o);
     else if (step === 'palette') applyCurrent('palette', { intent: 'auto', value: null, info: {} }, o);
     else if (step === 'needs') { S.filled.needs = true; o.push(needsNote(S.answers.needs, S.answers.needs, 'confirm', true)); }
