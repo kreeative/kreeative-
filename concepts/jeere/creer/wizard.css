@@ -1,6 +1,6 @@
 /* Jeere Studio — wizard.css
    « l’assistant Jeere » : the « Décrire ma boutique » chat. Black and white only (Jeere brand: the only grey is
-   the silver « j » of the avatar);
+   the blue J of the avatar);
    the store preview inside the summary card brings its own colours.
    Every rule is scoped under .jwz (the overlay), plus html.jwz-lock while it is open.
    Designed at 360 px first, with the on-screen keyboard open. */
@@ -57,15 +57,15 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
   height: calc(60px + env(safe-area-inset-top));
   background: var(--jwz-white); border-bottom: 1px solid var(--jwz-line);
 }
-/* The avatar: the silver « j » mark of the logo on a black circle (gradient #jeere-silver from index.html) */
+/* The avatar: the blue Jeere J mark (#mark in index.html) on a black circle */
 .jwz-av {
   display: grid; place-items: center; width: 40px; height: 40px; flex: none;
   border-radius: 50%; background: #000000;
 }
-.jwz-mark { display: block; width: auto; aspect-ratio: 300 / 372; fill: url(#jeere-silver) #C3C8CE; }
+.jwz-mark { display: block; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
 .jwz-av .jwz-mark { height: 21px; margin-left: 1px; }
 .jwz-head__txt { flex: 1 1 auto; min-width: 0; }
-.jwz-title { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.25; letter-spacing: -.005em; }
+.jwz-title { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.25; letter-spacing: -.005em; }
 .jwz-sub {
   margin: 1px 0 0; font-size: 12.5px; line-height: 1.3; color: var(--jwz-muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -129,7 +129,7 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
 .jwz-chip {
   display: inline-flex; align-items: center; gap: 8px; min-height: 44px; max-width: 100%;
   padding: 8px 16px; border: 1.5px solid var(--jwz-line2); border-radius: 999px;
-  background: var(--jwz-white); color: var(--jwz-ink); font: 500 14px/1.25 var(--jwz-font); text-align: left;
+  background: var(--jwz-white); color: var(--jwz-ink); font: 400 14px/1.25 var(--jwz-font); text-align: left;
   cursor: pointer; transition: border-color .12s, background-color .08s, transform .12s;
 }
 .jwz-chip:hover { border-color: var(--jwz-ink); }
@@ -156,11 +156,11 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
   border-radius: 12px; background: var(--jwz-g1); font-size: 21px; line-height: 1; letter-spacing: -.01em;
 }
 .jwz-chip__txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1 1 auto; }
-.jwz-chip--style .jwz-chip__label { font-size: 15px; font-weight: 600; }
+.jwz-chip--style .jwz-chip__label { font-size: 15px; font-weight: 500; }
 .jwz-chip__sub { font-size: 12.5px; font-weight: 400; color: var(--jwz-muted); }
 .jwz-chip__tag {
   flex: none; align-self: center; padding: 3px 8px; border-radius: 999px;
-  background: var(--jwz-ink); color: var(--jwz-white); font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  background: var(--jwz-ink); color: var(--jwz-white); font-size: 11px; font-weight: 500; letter-spacing: .02em;
 }
 
 /* palettes: a swatch with the background and the accent */
@@ -187,7 +187,7 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
 .jwz-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 48px; padding: 0 20px; border: 1.5px solid transparent; border-radius: 13px;
-  background: none; color: var(--jwz-ink); font: 600 15px/1.2 var(--jwz-font); text-align: center;
+  background: none; color: var(--jwz-ink); font: 500 15px/1.2 var(--jwz-font); text-align: center;
   cursor: pointer; transition: background-color .15s, border-color .15s, transform .12s;
 }
 .jwz-btn:active { transform: translateY(1px); }
@@ -214,22 +214,22 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, .9));
 }
 .jwz-card__body { padding: 16px 16px 18px; }
-.jwz-card__eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--jwz-muted); }
-.jwz-card__title { margin: 2px 0 12px; font-size: 21px; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.jwz-card__eyebrow { margin: 0; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--jwz-muted); }
+.jwz-card__title { margin: 2px 0 12px; font-size: 21px; font-weight: 600; line-height: 1.2; letter-spacing: -.01em; overflow-wrap: anywhere; }
 .jwz-card__hint { margin: -6px 0 12px; font-size: 13px; color: var(--jwz-muted); }
 .jwz-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; margin: 0; }
 .jwz-fact { min-width: 0; }
 .jwz-fact dt { font-size: 12px; color: var(--jwz-muted); line-height: 1.3; }
-.jwz-fact dd { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.jwz-fact dd { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; font-size: 14px; font-weight: 500; line-height: 1.3; }
 .jwz-fact .jwz-sw { width: 18px; height: 18px; }
 .jwz-score { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .jwz-badge {
   display: inline-block; padding: 3px 8px; border: 1.5px solid var(--jwz-ink); border-radius: 999px;
-  background: var(--jwz-ink); color: var(--jwz-white); font-size: 10.5px; font-weight: 700; letter-spacing: .05em; line-height: 1.2;
+  background: var(--jwz-ink); color: var(--jwz-white); font-size: 10.5px; font-weight: 600; letter-spacing: .05em; line-height: 1.2;
 }
 .jwz-badge--todo { background: var(--jwz-white); color: var(--jwz-ink); }
 .jwz-card__next { margin: 14px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--jwz-g1); font-size: 13.5px; line-height: 1.45; }
-.jwz-card__next strong { font-weight: 600; }
+.jwz-card__next strong { font-weight: 500; }
 .jwz-card__actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 .jwz-card__warn { margin: 0 0 4px; padding: 10px 12px; border: 1.5px solid var(--jwz-ink); border-radius: 12px; font-size: 13.5px; line-height: 1.45; }
 .jwz-note { margin: 10px 4px 0; font-size: 12.5px; line-height: 1.45; color: var(--jwz-muted); }

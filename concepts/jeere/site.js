@@ -1,4 +1,4 @@
-/* JEERE — landing page behaviour: language, header, hero card and editor canvas, delivery demo,
+/* Jeere — landing page behaviour: language, header, hero card and editor canvas, delivery demo,
    template preview, waitlist form.
    No library. French lives in the HTML; English comes from i18n.js (window.JEERE_EN). */
 (function () {
@@ -28,7 +28,7 @@
       doneText: 'Nous vous écrirons sur WhatsApp dès que votre place est prête.',
       dupTitle: 'Vous êtes déjà sur la liste !',
       dupText: 'Ce numéro est déjà inscrit. Nous vous écrirons sur WhatsApp très bientôt.',
-      share: 'Je viens de rejoindre la liste d’attente de JEERE, la plateforme tout-en-un pour vendre en ligne et en boutique : '
+      share: 'Je viens de rejoindre la liste d’attente de Jeere, la plateforme tout-en-un pour vendre en ligne et en boutique : '
     },
     en: {
       today: 'Delivered today', todayOrTomorrow: 'Delivered today or tomorrow', tomorrow: 'Delivered tomorrow',
@@ -41,7 +41,7 @@
       doneText: 'We’ll message you on WhatsApp as soon as your spot is ready.',
       dupTitle: 'You’re already on the list!',
       dupText: 'This number is already signed up. We’ll message you on WhatsApp very soon.',
-      share: 'I just joined the JEERE waitlist, the all-in-one platform to sell online and in person: '
+      share: 'I just joined the Jeere waitlist, the all-in-one platform to sell online and in person: '
     }
   };
 

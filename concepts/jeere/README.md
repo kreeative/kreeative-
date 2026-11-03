@@ -1,6 +1,6 @@
-# JEERE — landing page and waitlist
+# Jeere — landing page and waitlist
 
-The first public face of **JEERE**, the all-in-one commerce platform built for Africa: build and
+The first public face of **Jeere**, the all-in-one commerce platform built for Africa: build and
 run an online store and in-person sales from one dashboard, with mobile money (brainstorm of
 2 November 2026). It pitches the product to Abidjan sellers and collects a
 waitlist that doubles as the pool for the seller interviews and the 50-store concierge pilot.
@@ -39,13 +39,16 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 ## Identity used on the page
 
-- **Logo**: a geometric “j” drawn in SVG (`#mark` in `index.html`): a round dot above a thick
-  curved base with a small notch, next to “Jeere” set in Outfit SemiBold (SIL OFL), written like the inspiration (capital J, the rest lowercase) and converted to an SVG path (`#word`), so the logo needs no font. The “j” is silver: a bright metallic
-  gradient (`#F4F6F8` → `#C3C8CE` → `#8A9199`) on dark backgrounds and a darker one (`#C9CED4` →
-  `#9AA1A9` → `#5F6670`) on light backgrounds so it stays visible. The word is black on light
-  backgrounds and silver on dark ones. The rest of the site stays black and white.
-  The footer echoes the brand board: the word with four small icons (store, payment,
-  chat, delivery) beside the dot. The favicon is the silver “j” on a black rounded square.
+- **Logo**: « Jeere », in blue `#809EE6` (the blue of the founder's inspiration). The J is the
+  geometric mark drawn in SVG (`#mark` in `index.html`: a round dot above a thick curved base with
+  a small notch); « eere » is set in Poppins ExtraBold (800, SIL OFL), aligned on the J's stem and
+  base, and converted to a path (`#word`), so the logo needs no font. `#logo` is the whole « Jeere »
+  in one symbol. Three uses: the whole word, the J alone (favicon, avatars), or « Jeere » alone.
+  It stays blue on light and dark backgrounds; the rest of the site stays black and white.
+  The footer echoes the brand board: « Jeere » with four small icons (store, payment, chat,
+  delivery) beside a large J. The favicon is the white J on a blue rounded square.
+- **Name**: always written « Jeere » (only the J in capital), never « JEERE ».
+- **Text weights**: light on purpose: titles in Poppins 400, buttons and labels 500, body 400.
 - **Colours**: black and white only. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
   colour, so only the demo stores and product pictures on the page are in colour.
@@ -64,16 +67,16 @@ Numbers are personal data: keep the table private, and delete a row when someone
    hovers, focuses or pauses; with reduced motion they start paused. Then “Encaissez comme vos clients paient” with
    the payment methods.
 2. Tout-en-un: online store, payments, orders and stock, sell everywhere, everything included.
-3. Aujourd’hui / Avec JEERE.
-4. Pourquoi JEERE: nine common complaints about the big e-commerce platforms (six from sellers,
-   three from their customers), each with JEERE’s answer. Other platforms are not named on the page.
+3. Aujourd’hui / Avec Jeere.
+4. Pourquoi Jeere: nine common complaints about the big e-commerce platforms (six from sellers,
+   three from their customers), each with Jeere’s answer. Other platforms are not named on the page.
 5. How it works, in four steps.
 6. Delivery by commune: pick one of 13 communes and the receipt updates (fee, total, delay).
 7. Templates: Plateau, Cocody and Treichville tabs switch the phone preview.
 8. Diaspora mode (marked “coming soon”).
 9. Pricing by sales volume, not features: every plan (even Gratuit) has every feature, human
    support on WhatsApp, import/export and one-tap pause. Plans differ only by orders a month
-   (20, 150, 600, unlimited) and JEERE’s fee per online sale (3 %, 1 %, 0 %, 0 %).
+   (20, 150, 600, unlimited) and Jeere’s fee per online sale (3 %, 1 %, 0 %, 0 %).
 10. FAQ.
 11. Waitlist form (seller or diaspora buyer), with a WhatsApp share button after sign-up.
 

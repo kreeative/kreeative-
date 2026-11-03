@@ -1,7 +1,7 @@
 // English version of every string on the page. French is the default and lives in index.html.
 window.JEERE_EN = {
-  'meta.title': 'JEERE · All your business, in one place',
-  'meta.description': 'JEERE, the all-in-one platform to build and run your online store and your in-person sales, with no code. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, prices in FCFA. Waitlist open in Abidjan.',
+  'meta.title': 'Jeere · All your business, in one place',
+  'meta.description': 'Jeere, the all-in-one platform to build and run your online store and your in-person sales, with no code. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, prices in FCFA. Waitlist open in Abidjan.',
 
   'skip': 'Skip to content',
   'nav.home': 'Jeere, home',
@@ -61,7 +61,7 @@ window.JEERE_EN = {
   'all.p5': 'WhatsApp orders, discount codes, customer reviews and human support, in every plan: no paid apps to add.',
 
   'why.eyebrow': 'A day in the life of an online seller',
-  'why.title': 'You already sell. JEERE does the rest of the work.',
+  'why.title': 'You already sell. Jeere does the rest of the work.',
   'why.before': 'Today',
   'why.after': 'With',
   'why.b1': 'Answering “how much is it?” all day long.',
@@ -76,9 +76,9 @@ window.JEERE_EN = {
   'why.a5': 'WhatsApp confirmation before the courier leaves, deposit optional.',
 
 
-  'vs.eyebrow': 'Why JEERE',
+  'vs.eyebrow': 'Why Jeere',
   'vs.title': 'We read the complaints. We built the opposite.',
-  'vs.lead': 'What sellers and their customers hold against the big e-commerce platforms, and what JEERE does instead.',
+  'vs.lead': 'What sellers and their customers hold against the big e-commerce platforms, and what Jeere does instead.',
   'vs.sellers': 'For sellers',
   'vs.buyers': 'For their customers',
   'vs.else': 'Elsewhere',
@@ -108,7 +108,7 @@ window.JEERE_EN = {
   'vs.b2u': 'Customers follow their order on WhatsApp, from confirmation to the delivery photo.',
   'vs.b3t': 'When something goes wrong, the platform sends you back to the seller.',
   'vs.b3h': 'Someone to turn to',
-  'vs.b3u': 'Cash on delivery or a deposit, clear refund rules, and a button to report a seller to the JEERE team.',
+  'vs.b3u': 'Cash on delivery or a deposit, clear refund rules, and a button to report a seller to the Jeere team.',
 
   'how.eyebrow': 'How it works',
   'how.title': 'From a TikTok post to a paid order, without leaving your phone.',
@@ -117,7 +117,7 @@ window.JEERE_EN = {
   'how.t2': 'Share your link',
   'how.p2': 'In your TikTok and Instagram bio, on your WhatsApp Status, with product cards ready to share.',
   'how.t3': 'The customer orders on WhatsApp',
-  'how.p3': 'They tap “Order on WhatsApp” and the message is already written. JEERE creates the order and replies with a payment link.',
+  'how.p3': 'They tap “Order on WhatsApp” and the message is already written. Jeere creates the order and replies with a payment link.',
   'how.t4': 'You deliver, the money comes in',
   'how.p4': 'You follow each order until it says “delivered”. The payment goes straight to you through a licensed payment partner.',
 
@@ -178,7 +178,7 @@ window.JEERE_EN = {
 
   'price.eyebrow': 'Pricing',
   'price.title': 'Every feature in every plan. The price follows your sales.',
-  'price.lead': 'You move up a plan when you sell more, never to unlock a feature: JEERE wins when you win. In FCFA, by mobile money, weekly or monthly.',
+  'price.lead': 'You move up a plan when you sell more, never to unlock a feature: Jeere wins when you win. In FCFA, by mobile money, weekly or monthly.',
   'price.p1': 'Free',
   'price.fee3': '3% per online sale',
   'price.fee1': '1% per online sale',
@@ -207,26 +207,26 @@ window.JEERE_EN = {
 
   'faq.eyebrow': 'Questions',
   'faq.title': 'What people already ask us.',
-  'faq.q1': 'Does JEERE hold my money?',
-  'faq.a1': 'No. Payments go through a payment partner licensed by the BCEAO and are paid straight to you. JEERE is software: we never hold sellers’ money.',
+  'faq.q1': 'Does Jeere hold my money?',
+  'faq.a1': 'No. Payments go through a payment partner licensed by the BCEAO and are paid straight to you. Jeere is software: we never hold sellers’ money.',
   'faq.q2': 'Do I need a trade register number (RCCM)?',
   'faq.a2': 'Not to join the waitlist. To receive online payments, the payment partner will ask for at least an ID. We are preparing a path for informal sellers: ID first, RCCM later.',
   'faq.q3': 'My phone is basic and my connection is weak. Will it work?',
-  'faq.a3': 'JEERE is designed for you. The seller dashboard installs like an app on an entry-level Android, and stores are built to open fast on 3G without eating your data.',
-  'faq.q4': 'When does JEERE open?',
+  'faq.a3': 'Jeere is designed for you. The seller dashboard installs like an app on an entry-level Android, and stores are built to open fast on 3G without eating your data.',
+  'faq.q4': 'When does Jeere open?',
   'faq.a4': 'We start with a pilot with the first stores in Abidjan. Sign up: we’ll message you on WhatsApp as soon as a spot is ready for you.',
   'faq.q5': 'I’m not in Abidjan.',
   'faq.a5': 'Abidjan first, then the rest of the WAEMU zone, which shares the CFA franc. Sign up with your city: we’ll open where there are many of you.',
   'faq.q8': 'I already have a store (Shopify, WooCommerce, Instagram).',
-  'faq.a8': 'No need to start over: import your products, descriptions, photos and customers in minutes, then pick a JEERE template.',
+  'faq.a8': 'No need to start over: import your products, descriptions, photos and customers in minutes, then pick a Jeere template.',
   'faq.q6': 'I sell digital products (e-books, courses).',
   'faq.a6': 'Physical products come first. Automatic downloads and payment links for digital products will follow later.',
   'faq.q7': 'What do you do with my number?',
-  'faq.a7': 'We only use it to message you about JEERE. It is never sold or shared. To delete your sign-up, write to <a href="mailto:annklyy@gmail.com?subject=JEERE%20%C2%B7%20waitlist">annklyy@gmail.com</a>.',
+  'faq.a7': 'We only use it to message you about Jeere. It is never sold or shared. To delete your sign-up, write to <a href="mailto:annklyy@gmail.com?subject=Jeere%20%C2%B7%20waitlist">annklyy@gmail.com</a>.',
 
   'join.eyebrow': 'Waitlist',
   'join.title': 'Join the first 50 stores.',
-  'join.lead': 'We are opening JEERE in Abidjan with 50 pilot stores. We build yours with you, free for 3 months, in exchange for your feedback every week.',
+  'join.lead': 'We are opening Jeere in Abidjan with 50 pilot stores. We build yours with you, free for 3 months, in exchange for your feedback every week.',
   'join.k1': 'Your store built with you',
   'join.k2': '3 months free',
   'join.k3': 'A direct line to the team on WhatsApp',
@@ -257,18 +257,18 @@ window.JEERE_EN = {
   'form.handle': 'Your Instagram or TikTok account',
   'form.citySeller': 'City or commune',
   'form.cityBuyer': 'Where do you live?',
-  'form.budget': 'How much would you pay a month for a tool like JEERE?',
+  'form.budget': 'How much would you pay a month for a tool like Jeere?',
   'bud.none': 'Nothing for now',
   'bud.lt2000': 'Less than 2,000 FCFA',
   'bud.2to5': '2,000 to 5,000 FCFA',
   'bud.5to10': '5,000 to 10,000 FCFA',
   'bud.gt10': 'More than 10,000 FCFA',
   'form.pilot': 'I want to be part of the pilot: my store built with me, and I give feedback every week.',
-  'form.consent': 'I agree that JEERE may message me on WhatsApp about the launch. My details will never be sold or shared.',
+  'form.consent': 'I agree that Jeere may message me on WhatsApp about the launch. My details will never be sold or shared.',
   'form.submit': 'Join the waitlist',
-  'done.share': 'Share JEERE on WhatsApp',
+  'done.share': 'Share Jeere on WhatsApp',
 
   'foot.tag': 'The all-in-one platform to sell online and in person.',
   'foot.nav': 'Footer',
-  'foot.small': 'JEERE is in the works: features and prices may change before launch. Payments will be handled by a partner licensed by the BCEAO; JEERE will never hold sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:annklyy@gmail.com?subject=JEERE">annklyy@gmail.com</a>'
+  'foot.small': 'Jeere is in the works: features and prices may change before launch. Payments will be handled by a partner licensed by the BCEAO; Jeere will never hold sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:annklyy@gmail.com?subject=Jeere">annklyy@gmail.com</a>'
 };

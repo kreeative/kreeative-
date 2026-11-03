@@ -1,5 +1,5 @@
 /*
- * JEERE Studio — render.js
+ * Jeere Studio — render.js
  * Turns a fiche boutique (store config v1) into a store page, with one of three tested templates:
  * Plateau (editorial), Cocody (soft) and Treichville (bold).
  *

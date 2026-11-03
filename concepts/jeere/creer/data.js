@@ -1,5 +1,5 @@
 /*
- * JEERE Studio — data.js
+ * Jeere Studio — data.js
  * The contract shared by the editor, the renderer and the questionnaire.
  *
  * Everything a store is made of lives in one "fiche boutique" (store config JSON, version 1).

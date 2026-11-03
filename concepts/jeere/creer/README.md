@@ -72,7 +72,7 @@ The three apps share four `localStorage` keys, listed in
 [Shared browser storage](#shared-browser-storage).
 
 The builder chrome (start screen, editor, chat) is black and white only, in Poppins with a
-Montserrat fallback for ɛ ɔ ŋ, like the landing page; its only grey is the silver of the logo.
+Montserrat fallback for ɛ ɔ ŋ, like the landing page; its only colour is the blue of the logo.
 The stores in the preview are in colour: sellers bring the colour.
 
 ## The fiche boutique contract (version 1)
@@ -421,33 +421,31 @@ never for small text such as prices; Karité's accent text needs a tint of 12 % 
 
 ## The logo
 
-The builder (editor top bar, start screen header) and the chat use the landing page's logo: a
-geometric silver « j » mark and the word « Jeere » (capital J, Outfit SemiBold, SIL OFL, converted
-to a path so the logo needs no font). It replaces the old « JEERE » wordmark (the linked-EE
-symbol) and the EE monogram.
+The builder (editor top bar, start screen header), the dashboard, the account pages and the chat
+use the landing page's logo: « Jeere » in blue `#809EE6`, the geometric J mark followed by « eere »
+in Poppins ExtraBold (800, SIL OFL), converted to paths so no font is needed.
 
-- **Symbols**: `index.html`'s hidden `<svg><defs>` holds the gradients `jeere-silver` (for dark
-  backgrounds), `jeere-silver-dark` (for light backgrounds) and `jeere-silver-word`, and the
-  symbols `mark` (viewBox `0 0 300 372`) and `word` (viewBox `19 297 2497 713`), copied exactly
-  from the landing page (`../index.html`).
+- **Symbols** (hidden `<svg><defs>` of each `index.html`, copied from `../index.html`):
+  `mark` = the J alone (viewBox `0 0 300 372`), `word` = « eere » drawn to sit right after the mark
+  at the same height (viewBox `0 0 875.9 372`), `logo` = the whole « Jeere » (viewBox `0 0 1175.9 372`).
 - **Usage**:
 
   ```html
-  <a href="../" aria-label="Jeere, retour à l'accueil">
+  <span class="b-logo__lock">
     <svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg>
-    <svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg>
-  </a>
+    <svg class="logo__word" viewBox="0 0 875.9 372" aria-hidden="true" focusable="false"><use href="#word"/></svg>
+  </span>
   ```
 
   ```css
-  .logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; fill: url(#jeere-silver-dark); } /* on light */
-  .logo__word { height: 19px; width: auto; aspect-ratio: 2497 / 713; fill: currentColor; }        /* ink */
-  /* on dark backgrounds: mark fill url(#jeere-silver), word fill url(#jeere-silver-word) */
+  .b-logo__lock { display: inline-flex; align-items: center; gap: 0; }
+  .logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
+  .logo__word { height: 28px; width: auto; aspect-ratio: 875.9 / 372; fill: var(--jeere-blue, #809EE6); }
   ```
 
-  Header lockup: the mark about 28 px tall, the word about 19 px, 8 px apart, vertically centred.
-- **Chat avatar**: the silver « j » mark on a black circle.
-- **Favicon**: `../favicon.svg`, already the silver « j ».
+  Mark and word share the same height and no gap: together they read « Jeere ».
+- **Chat avatar**: the blue J on a black circle.
+- **Favicon**: `../favicon.svg`, the white J on a blue rounded square.
 - **The brand word** is written « Jeere » in the UI copy (« l'assistant Jeere », « Retour à
   Jeere »). Code identifiers keep their names: `JEERE_DATA`, `jeere-studio-config`, `.jst`, `.jwz`.
 
@@ -729,7 +727,7 @@ seller's devices and her team.
 
 In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on desktop:
 
-1. Start screen: the new logo (silver « j » + « Jeere ») in the header; the three template cards
+1. Start screen: the logo (blue J + « eere ») in the header; the three template cards
    show live previews of their home page; « Partir de zéro » is disabled.
 2. Pick a template: the editor opens with the matching default fiche, in vivid colours. Switch
    Téléphone / Ordinateur, edit a section, add a product with a photo, change the palette and the
@@ -752,7 +750,7 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
 6. « Fiche boutique »: the JSON (photos shown as `[photo]`, `theme.intensity` present), Copier,
    Télécharger, Importer (import an older fiche without `intensity`: it opens in vivid).
 7. Reload: « Reprendre ma boutique » brings the store back, on its saved intensity.
-8. « Décrire ma boutique »: the avatar is the silver « j » on black, the copy says « l'assistant
+8. « Décrire ma boutique »: the avatar is the blue J on black, the copy says « l'assistant
    Jeere ». Answer by chips and by free text (« slt c Mariam Hair, jvd des perruques »), try a
    correction (« non, plutôt audacieux »), then « Ouvrir l'éditeur »: the store is vivid.
 9. No horizontal scroll at 360 px, the input stays above the on-screen keyboard, Esc closes the

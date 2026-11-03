@@ -1,5 +1,5 @@
 /*
- * JEERE Studio — store.css
+ * Jeere Studio — store.css
  * Styles of the rendered stores (render.js). Everything is scoped under .jst: nothing leaks to
  * the page around the preview. The layout reads only data-device ("phone" ≈ 390 px,
  * "desktop" ≈ 1200 px), never the viewport, because the preview sits in a frame of fixed width.

@@ -1,6 +1,6 @@
 /*
  * Jeere Studio — wizard.js
- * « l’assistant Jeere » : the « Décrire ma boutique » flow, as a chat. Its avatar is the silver « j » mark
+ * « l’assistant Jeere » : the « Décrire ma boutique » flow, as a chat. Its avatar is the blue Jeere J mark
  * of the Jeere logo on a black circle.
  *
  * Global: window.JeereWizard = {
@@ -1581,7 +1581,7 @@
   /* ================================================================== DOM: chips, cards, messages */
 
   const ICON = {
-    // The silver « j » of the Jeere logo (same shapes as #mark in index.html, inlined so the chat needs no symbol)
+    // The blue J of the Jeere logo (same shapes as #mark in index.html, inlined so the chat needs no symbol)
     mark: '<svg class="jwz-mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><circle cx="237" cy="62" r="62"/><path d="M0 199H126V222A24 24 0 0 0 174 222V154H300V222A150 150 0 0 1 0 222Z"/></svg>',
     x: '<svg class="jwz-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 7 10 10M17 7 7 17"/></svg>',
     restart: '<svg class="jwz-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg>',
