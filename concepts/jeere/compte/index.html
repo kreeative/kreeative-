@@ -58,7 +58,7 @@
     <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6z"/><path d="m8.6 12 2.4 2.4 4.4-4.6"/></symbol>
     <symbol id="i-template" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 9.5h17M9.5 9.5v11"/></symbol>
-    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z"/><path d="M8.6 9.2c.2 2.9 3 5.9 6.1 6.3l1-1.3-1.8-1-.8.8c-1-.4-2.3-1.7-2.7-2.7l.8-.8-1-1.8z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5 13.8 9l5.7 1.9-5.7 1.9L12 18.5l-1.8-5.7L4.5 10.9 10.2 9z"/><path d="M18.5 16v4M16.5 18h4"/></symbol>
     <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="9" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.6"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.6"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.6"/></symbol>
     <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.5 4h13L20 9.5M4 9.5h16M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0M5.5 12v8h13v-8M10 20v-4.5h4V20"/></symbol>
     <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4.5 19.5h4l10-10a2.8 2.8 0 0 0-4-4l-10 10z"/><path d="m13.5 6.5 4 4"/></symbol>
@@ -138,7 +138,7 @@
           <button class="c-known" type="button" id="c-known" hidden>
             <span class="c-known__av" id="c-known-av" aria-hidden="true"></span>
             <span class="c-known__txt">
-              <span class="c-known__k">Compte enregistré sur cet appareil</span>
+              <span class="c-known__k">Sur cet appareil</span>
               <span class="c-known__name" id="c-known-name"></span>
               <span class="c-known__num" id="c-known-num"></span>
             </span>
@@ -160,7 +160,7 @@
               <p class="c-nomatch__t" id="c-nomatch-t" tabindex="-1">Aucun compte avec ce numéro</p>
               <p class="c-nomatch__d" id="c-nomatch-d"></p>
               <div class="c-nomatch__acts">
-                <button class="c-btn c-btn--primary c-btn--block" type="button" id="c-nomatch-create">Créer un compte avec ce numéro</button>
+                <button class="c-btn c-btn--primary c-btn--block" type="button" id="c-nomatch-create">Créer un compte</button>
                 <button class="c-btn c-btn--ghost c-btn--block" type="button" id="c-nomatch-retry">Essayer un autre numéro</button>
               </div>
               <p class="c-nomatch__demo">Démo&nbsp;: les comptes sont enregistrés dans ce navigateur seulement.</p>
@@ -176,7 +176,7 @@
         <section class="c-step" data-step="code" aria-labelledby="c-code-t" hidden>
           <button class="c-back" type="button" id="c-code-back"><svg class="c-ico" aria-hidden="true"><use href="#i-back"/></svg>Modifier le numéro</button>
           <h1 class="c-title" id="c-code-t" tabindex="-1">Entrez le code</h1>
-          <p class="c-lead">Dans le vrai produit, Jeere vous envoie un code à 6&nbsp;chiffres sur WhatsApp, au <strong class="c-nowrap" id="c-code-num"></strong>.</p>
+          <p class="c-lead" id="c-code-lead">Dans le vrai produit, Jeere vous envoie un code à 6&nbsp;chiffres <span id="c-code-ch">sur WhatsApp</span>, au <strong class="c-nowrap" id="c-code-num"></strong>.</p>
 
           <div class="c-demo" id="c-demo">
             <svg class="c-ico" aria-hidden="true"><use href="#i-info"/></svg>
@@ -188,7 +188,7 @@
               <label class="c-label" for="c-code">Code à 6&nbsp;chiffres</label>
               <div class="c-otp" id="c-otp">
                 <!-- One real input (paste, SMS autofill and screen readers see one field), drawn as 6 boxes -->
-                <input class="c-otp__input" id="c-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="done" aria-describedby="c-code-hint">
+                <input class="c-otp__input" id="c-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="done" aria-describedby="c-demo c-code-hint">
                 <div class="c-otp__cells" aria-hidden="true">
                   <span class="c-otp__cell"></span><span class="c-otp__cell"></span><span class="c-otp__cell"></span>
                   <span class="c-otp__sep"></span>
@@ -200,7 +200,7 @@
             </div>
             <button class="c-btn c-btn--primary c-btn--block" type="submit" id="c-code-btn"><span class="c-btn__txt">Valider</span></button>
             <div class="c-resend">
-              <p class="c-resend__wait" id="c-resend-wait">Pas reçu&nbsp;? Renvoyer le code dans <span class="c-resend__time" id="c-resend-time">0:30</span></p>
+              <p class="c-resend__wait" id="c-resend-wait"><span id="c-resend-pre">Pas reçu&nbsp;? Renvoyer le code dans</span> <span class="c-resend__time" id="c-resend-time">0:30</span></p>
               <div class="c-resend__acts" id="c-resend-acts" hidden>
                 <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-resend"><svg class="c-ico" aria-hidden="true"><use href="#i-refresh"/></svg>Renvoyer le code</button>
                 <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-resend-sms"><svg class="c-ico" aria-hidden="true"><use href="#i-sms"/></svg>Recevoir par SMS</button>
@@ -220,7 +220,7 @@
               <p class="c-hint" id="c-store-hint" hidden>Repris de la boutique enregistrée dans ce navigateur.</p>
               <p class="c-err" id="c-store-err" hidden></p>
             </div>
-            <div class="c-addr" id="c-addr" aria-live="polite">
+            <div class="c-addr" id="c-addr">
               <span class="c-addr__k">Votre adresse gratuite</span>
               <span class="c-addr__v"><svg class="c-ico" aria-hidden="true"><use href="#i-lock"/></svg><span id="c-addr-v">ma-boutique.jeere.shop</span></span>
             </div>
@@ -239,17 +239,17 @@
                 <span class="c-choice__ico" aria-hidden="true"><svg class="c-ico"><use href="#i-template"/></svg></span>
                 <span class="c-choice__txt">
                   <span class="c-choice__t">Choisir un modèle</span>
-                  <span class="c-choice__d">Trois modèles testés, déjà remplis avec un exemple. Vous changez les textes et les photos.</span>
+                  <span class="c-choice__d">Trois modèles testés, remplis avec un exemple. Changez les textes et les photos.</span>
                 </span>
                 <svg class="c-ico c-choice__arr" aria-hidden="true"><use href="#i-arrow"/></svg>
               </a>
             </li>
             <li>
               <a class="c-choice" href="../creer/#assistant" id="c-go-assistant">
-                <span class="c-choice__ico c-choice__ico--inv" aria-hidden="true"><svg class="c-ico"><use href="#i-chat"/></svg></span>
+                <span class="c-choice__ico" aria-hidden="true"><svg class="c-ico"><use href="#i-sparkle"/></svg></span>
                 <span class="c-choice__txt">
                   <span class="c-choice__t">Discuter avec l’assistant</span>
-                  <span class="c-choice__d">Décrivez votre boutique comme sur WhatsApp&nbsp;: l’assistant Jeere la prépare pour vous.</span>
+                  <span class="c-choice__d">Décrivez votre boutique en quelques messages, l’assistant Jeere la prépare.</span>
                 </span>
                 <svg class="c-ico c-choice__arr" aria-hidden="true"><use href="#i-arrow"/></svg>
               </a>
@@ -259,7 +259,7 @@
                 <span class="c-choice__ico" aria-hidden="true"><svg class="c-ico"><use href="#i-dash"/></svg></span>
                 <span class="c-choice__txt">
                   <span class="c-choice__t">Aller au tableau de bord</span>
-                  <span class="c-choice__d">Commandes, produits, paiements, livraison, connecteurs et réglages.</span>
+                  <span class="c-choice__d">Commandes, produits, paiements, livraison et réglages.</span>
                 </span>
                 <svg class="c-ico c-choice__arr" aria-hidden="true"><use href="#i-arrow"/></svg>
               </a>

@@ -342,10 +342,17 @@ JeereRender.render(config, rootEl, { device, page: 'page', pageId: 'pg3' });
   them navigates inside the preview and dispatches `jst:navigate` with `{ page: 'page', pageId }`.
   Every store page ends with a discreet « Propulsé par Jeere » (the mark is inline SVG in
   `currentColor`, so the store does not depend on the builder's symbols).
-- **In the editor**: the page selector lists the 5 pages, then the group « Vos pages », and a link
-  « Gérer les pages » to `../admin/#pages`. **In the dashboard**: `#pages` lists, adds, edits
+- **In the editor**: the page selector lists the 5 pages in « Parcours d'achat », then the group
+  « Vos pages » (option values `'page:pg1'`…), with a « Gérer les pages » link to
+  `../admin/#pages`; the Boutique tab has a « Vos pages » group (one row per page, « Voir »). Text
+  is edited in the dashboard, not in the editor. **In the dashboard**: `#pages` lists, adds, edits
   (title, slug auto-filled and editable, body with a counter, menu, footer), reorders and deletes
   them; `#boutique` › « Navigation » toggles `inMenu` / `inFooter`.
+- **Address**: a page is shown everywhere as `<store>.jeere.shop/pages/<slug>` (the dashboard's
+  address field, the editor's desktop frame and its « Vos pages » rows), like Shopify's
+  `/pages/…`. `<store>.jeere.shop` follows the store's name until the seller confirms an address
+  or adds her own domain in the dashboard (Paramètres › Domaine); the editor's frame then shows
+  that one (it reads `'jeere-admin'`, never writes it).
 
 ## Colour intensity
 
@@ -467,9 +474,23 @@ built for 360 px with the on-screen keyboard open.
   politique de confidentialité de Jeere. »
 - **Saved** as `'jeere-account'` = `{ version: 1, firstName, phone, storeName, createdAt, plan,
   loggedIn }` (`phone` normalised with `normalizeWhatsapp`, `+2250707123456`; `plan` `'gratuit'` at
-  sign-up; `loggedIn: true`). When a fiche exists, sign-up sets its `store.name` and
-  `store.whatsapp` only if they are empty. `JEERE_DATA.normalizeAccount(raw)` turns whatever was
-  saved into that shape (or `null` when there is no account).
+  sign-up; `loggedIn: true`). When a fiche exists, its name is prefilled on « Le nom de votre
+  boutique »: if she types another one, the saved store takes it (and the hero titles that carried
+  the old name follow, as in the dashboard's Préférences); `store.whatsapp` is set only if it is
+  empty. `JEERE_DATA.normalizeAccount(raw)` turns whatever was saved into that shape, or `null`
+  when there is no account; an account without a usable number (`+` and 8 to 15 digits) is no
+  account, for the account page, the dashboard and the editor alike.
+- **Routes**: `#inscription` and `#connexion` (the links of the editor and the dashboard). With no
+  hash the page picks sign-up when there is no account, login when the saved account is logged
+  out (with a one-tap « Continuer » card for it), and a « Bonjour {prénom} » screen (store, number,
+  plan; « Aller au tableau de bord », « Ouvrir l'éditeur », « Se déconnecter ») when it is logged
+  in. Each step is a history entry, so the phone's Back button goes back one step. An account
+  whose number is not a valid `+` number (8 to 15 digits) counts as no account. The page never
+  writes `'jeere-admin'` or `'jeere-studio-open'`; `window.JeereCompte = { parsePhone,
+  formatPhone, maskPhone }` holds its pure helpers for tests.
+- **After sign-up**: a template chosen in the editor carries her store name and number; « Discuter
+  avec l'assistant » offers the same name and number as the first quick answers of its name and
+  WhatsApp questions (`wizard.js` reads `'jeere-account'`, never writes it).
 - **In the real product**: the same screens on Supabase Auth's phone sign-in, with a one-time code
   sent over WhatsApp (an approved WhatsApp Business provider) or by SMS as a fallback; rate limits
   per number; the session in an HTTP-only cookie; the store row tied to the user id.
@@ -477,27 +498,42 @@ built for 360 px with the on-screen keyboard open.
 ## The seller dashboard (`../admin/`)
 
 A Shopify-class admin, mobile-first because the seller runs her shop from her phone: a left
-sidebar on desktop (logo, store name, « Voir la boutique », the sections), a bottom bar on the
-phone (Accueil, Commandes, Produits, Boutique, Plus). Hash routes, so the Back button works. A
-search box finds orders, products and customers; the account menu shows the plan and « Se
-déconnecter » (`loggedIn: false`, back to the gate).
+sidebar from 960 px (logo, store name, « Voir la boutique », the sections), a bottom bar below
+(Accueil, Commandes, Produits, Boutique, Plus, which opens a sheet with the other sections; a
+768 px tablet gets the phone shell). Hash routes, so the Back button works, and sub-routes such as
+`#commandes/1055`, `#produits/nouveau`, `#pages/pg3` or `#parametres/abonnement`. A search box
+(full screen on the phone, « / » on desktop) finds orders, products and customers; the account
+menu shows the plan, « Retour à Jeere » (`../`) and « Se déconnecter » (`loggedIn: false`, back to
+the gate). A form with unsaved changes shows a save bar (« Ignorer » / « Enregistrer », Ctrl+S)
+and is kept as a draft when she leaves it. `window.JeereAdmin = { go(hash), state(), reload() }`
+is there for tests.
 
 - **Gate**: without a logged-in account, « Connectez-vous pour gérer votre boutique », with « Créer
-  un compte » / « Se connecter » (`../compte/`) and « Voir la démo » (a demo account « Awa », plan
-  gratuit, and `defaultConfig('cocody', 'beauty')` when there is no fiche).
+  un compte » (`../compte/#inscription`) / « Se connecter » (`../compte/#connexion`) and « Voir la
+  démo » (a demo account « Awa », plan gratuit, and `defaultConfig('cocody', 'beauty')` when there
+  is no fiche). A seller who logged out is greeted « Bon retour, {prénom} » with « Se connecter »
+  first.
 
 | Route | What it does |
 | --- | --- |
-| `#accueil` | Greeting; KPI cards from the demo orders (Ventes, Commandes, Panier moyen, Commandes à préparer, labelled « Données d'exemple »); the « Lancez votre boutique » checklist computed from the real state (3 products with photos, mobile money connected, WhatsApp number, delivery zones, pages complete, quality score ≥ 80 from `validate`, domain chosen); a small live preview of the store (`JeereRender`) with « Personnaliser »; recent orders |
-| `#commandes` | Orders with status filters, counts and search; the detail (items, customer, commune, address, payment, channel, timeline); status changes (Payée → Expédiée → Livrée, Annuler); « Écrire au client sur WhatsApp » (a `wa.me` link with a pre-filled French message); « Imprimer le bon » (print stylesheet) |
+| `#accueil` | Greeting; an « Aujourd'hui » strip (orders to prepare, cash to collect, « Nouvelle commande »); the « Lancez votre boutique » checklist computed from the real state (3 products with photos, mobile money connected, WhatsApp number, delivery zones, pages complete, quality score ≥ 80 from `validate`, domain chosen), showing the next 3 steps (« Voir les 7 étapes »), a one-tap « Utiliser mon numéro » for the WhatsApp step, and « Publier ma boutique » (the editor's honest publish dialog) when all is done; KPI cards over the last 10 days (Ventes split into Encaissé / À encaisser, « dont … chez vos livreurs » / En attente; Commandes, Panier moyen, Commandes à préparer; « Données d'exemple » while example orders are there); a small live preview of the store (`JeereRender`) with « Personnaliser », « Voir », « Partager »; recent orders; the plan card warns from 80 % of the monthly order limit |
+| `#commandes` | Orders with status filters (À préparer, À encaisser…), counts and search (a table on desktop, cards on the phone, each with how it is paid: « À encaisser », « Payée · Wave », « Paiement en attente »); opens on « À préparer » when there is something to prepare. « Nouvelle commande » records an order received on WhatsApp or by phone (customer, number, commune and its fee, products with a quantity stepper, payment, channel, note; `manual: true`), then offers to send the customer a recap. The detail is its own page, `#commandes/1055`: items, a Livraison card (where, what the courier collects, the courier: her own couriers or Yango / Gozem, « Envoyer au livreur sur WhatsApp »), customer, payment, channel, timeline. Cash on delivery: « Demander la confirmation » (a `wa.me` message, « Répondez OUI ») → « Le client a confirmé » → « Confier au livreur » (the courier's WhatsApp message, status Expédiée) → « Livrée, argent reçu »; « Livraison échouée » (absent, injoignable, a refusé → Annulée with the reason; à relivrer → Nouvelle); a deposit by mobile money from 20 000 FCFA. « Écrire sur WhatsApp » and « Appeler » for the customer; « Plus d'actions »: « Imprimer le bon » (print stylesheet; the browser's own Print on an order page prints that slip), send the slip on WhatsApp, cancel. « Rétablir la commande » brings back the status it had. « Retirer les commandes d'exemple » once she has her own |
 | `#produits` | The fiche's products: add, edit, duplicate, delete, photo (downscaled like the editor: ≤ 800 px, JPEG 0.8); an optional stock kept outside the fiche in `'jeere-admin'.stock[productId]`; « Voir dans la boutique » opens the editor on that product page |
-| `#clients` | Customers aggregated from the orders (orders, total spent), WhatsApp contact |
-| `#boutique` | « Boutique en ligne »: theme (template, palette, intensity, « Personnaliser »), pages, navigation (`inMenu` / `inFooter`), preferences (name, tagline, city, WhatsApp: written to the fiche) |
-| `#pages` | The fiche's pages (see above) |
-| `#paiements` | The 6 methods on or off (`fiche.payments`), the mobile-money connector and payout number, the plan's Jeere fee per sale and the partner's fee (« par exemple 1,95 % pour le mobile money »), « Jeere ne garde jamais votre argent » |
-| `#livraison` | Delivery zones and fees (the delivery section's `settings.zones`, a delivery section is created if there is none), delays, couriers (connectors `yango`, `gozem`, `livreurs`) |
-| `#connecteurs` | The connectors catalogue (below), « Démo : aucune connexion réelle n'est faite. » |
-| `#parametres` | Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`<slug>.jeere.shop`, a custom domain with DNS instructions, « À vérifier »), Équipe (invite by name, phone and role), Abonnement (the 4 plans, change, mois/semaine, « Mettre en pause », « Payer par mobile money »: a demo dialog), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
+| `#clients` | Customers aggregated from the orders (orders, total spent), a WhatsApp button on each row |
+| `#boutique` | « Boutique en ligne »: theme (template, palette, intensity, « Personnaliser »), pages, navigation (`inMenu` / `inFooter`), a preferences summary (→ `#parametres/boutique`), « Voir » and « Partager » |
+| `#pages` | The fiche's pages (see above); on the phone, « Monter » / « Descendre » are in each page's « ⋯ » sheet |
+| `#promos` | « Codes promo »: a small list kept in `'jeere-admin'.promos` (`{ code, kind: 'pct' \| 'fcfa', value, active }`); demo: the store's checkout does not apply them yet |
+| `#paiements` | « Encaissement » first (a strong note and « Connecter le paiement mobile money » when Wave / Orange Money / MTN MoMo are on but cannot be collected; each « À connecter » chip opens it), the 6 methods on or off (`fiche.payments`), « Argent chez les livreurs » (cash-on-delivery orders on the road, « Reçu du livreur »), the plan's Jeere fee per sale and the partner's fee (« par exemple 1,95 % pour le mobile money »), how fees are taken (by the partner at payout; nothing on cash on delivery: to confirm with the founder), « Versements » (each online sale and what is paid out after the fees), « Jeere ne garde jamais votre argent » |
+| `#livraison` | Delivery zones and fees (the delivery section's `settings.zones`, a delivery section is created if there is none), delays, couriers (« Mes livreurs », Yango, Gozem) |
+| `#connecteurs` | The connectors catalogue (below): category chips that jump to each group, « Pour bien démarrer » (mobile money, WhatsApp, Mes livreurs) first, compact rows for the rest on the phone; « Démo : aucune connexion réelle n'est faite. » |
+| `#parametres` | A hub: Paiements, Livraison, Connecteurs (their own pages), then Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`<slug>.jeere.shop`, a custom domain with DNS instructions, « À vérifier »), Équipe (invite by name, phone and role; the signed-in seller cannot remove herself), Abonnement (the 4 plans, change, what happens at the order limit, mois/semaine for paid plans, « Mettre en pause », « Payer par mobile money »: a demo dialog), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
+
+Every phone number typed in the dashboard (WhatsApp, payout, team, couriers, a new order, payment) follows the
+account page's rule: `+` and 8 to 15 digits, and exactly 10 digits after +225. « Aide · une vraie personne sur
+WhatsApp » (account menu, « Plus », sidebar) opens a demo dialog. « Partager » (home, boutique, a product,
+empty states) shows the store's address with « Envoyer sur WhatsApp » (`wa.me/?text=`), « Copier le lien »
+and the phone's own share sheet. « Voir la boutique » opens the editor on the storefront alone on a computer
+(no panel; « Modifier la boutique » brings it back) and on the preview on a phone.
 
 The dashboard writes the fiche through `JEERE_DATA.normalizeConfig`, so the editor opens exactly
 what the dashboard saved. To open the editor on a given page it sets `'jeere-studio-open'`
@@ -549,7 +585,7 @@ JEERE_DATA.CONNECTORS = [{ id, category, name, description, icon, fields: [{ key
 | | `facebook` | Facebook | page, show products on the page |
 | Livraison | `yango` | Yango | account number, pick-up address |
 | | `gozem` | Gozem | account number, pick-up address |
-| | `livreurs` | Mes livreurs | two couriers: first name and number |
+| | `livreurs` | Mes livreurs | none of its own: the couriers are the team members with the « Livraison » role (any number); the dashboard counts it as connected when there is at least one. Older two-courier values are moved into the team |
 | Mesure d'audience | `google-analytics` | Google Analytics | measurement id |
 | | `meta-pixel` | Pixel Meta | pixel id |
 | | `tiktok-pixel` | Pixel TikTok | pixel id |
@@ -621,10 +657,36 @@ throws still works for the session.
 
 | Key | Holds | Written by | Read by |
 | --- | --- | --- | --- |
-| `jeere-studio-config` | The fiche boutique, always through `normalizeConfig` | editor, dashboard, account (name and WhatsApp when empty) | all three |
+| `jeere-studio-config` | The fiche boutique, always through `normalizeConfig` | editor, dashboard, account (the store name she types at sign-up; WhatsApp when empty) | all three |
 | `jeere-account` | `{ version: 1, firstName, phone, storeName, createdAt, plan, loggedIn }` | account page, dashboard (plan, log out, demo account) | all three (`normalizeAccount`) |
 | `jeere-admin` | `{ version: 1, orders, settings, connectors, stock? }`, created from `ADMIN_DEFAULTS` and `demoOrders(config)` | dashboard | dashboard (`normalizeAdmin`) |
-| `jeere-studio-open` | One-shot `{ page, pageId?, productId? }`: the editor opens directly on that page, then deletes the key | dashboard, account page | editor |
+| `jeere-studio-open` | One-shot `{ page, pageId?, productId?, view? }`: the editor opens directly on that page, then deletes the key. `page` is `'home'`, `'product'` (with `productId`) or `'page'` (with `pageId`); the optional `view` (`'preview'` or `'edit'`) says what to show first: the dashboard sends `'preview'` for « Voir la boutique » / « Voir dans la boutique » (a phone opens on the preview; a computer shows the storefront alone, without the panel, until « Modifier la boutique ») | dashboard | editor |
+
+What each app adds around these keys:
+
+- **`jeere-admin` extra keys** (kept by `normalizeAdmin`, which preserves unknown top-level keys):
+  `stock` (`{ [productId]: integer }`, never in the fiche), `demoSeeded` (the example orders were
+  made from a real fiche: none while there is no store, 14 from its own products as soon as one
+  exists), `subdomainChosen` (the seller confirmed her address; until then the address follows
+  the store's name, also when it is renamed in the editor), `prefs` (`{ productView: 'list' |
+  'grid' }`), `notify` (`{ [connectorId]: true }`, « Me prévenir » on a « Bientôt » connector),
+  `demoFor` (`template/niche` the example orders were made for: another template or niche in the
+  Studio makes them again, unless the seller touched them), `ownerPhone` (whose dashboard it is: a
+  new account on the same device takes the payout number over and the previous owner leaves the
+  team), `promos` (the codes promo) and `orders[].history` (`[{ status, date }]` or `{ event:
+  'confirmed', date }`). An order can also carry `manual` (recorded by the seller), `confirmedAt`,
+  `courier` (`{ name, phone }` or `{ service: 'yango' | 'gozem' }`), `deposit` (`{ amount, op, paid
+  }`), `cashIn`, `cancelledFrom`, `cancelReason` and `failNote`; `normalizeAdmin` keeps them.
+- **`jeere-account`**: the dashboard keeps `storeName` equal to the fiche's name (also after a
+  rename in the editor), writes `plan`, `loggedIn: false` on « Se déconnecter » and the demo
+  account « Awa ». The editor only reads it.
+- **`sessionStorage` `'jeere-compte-flow'`** (account page only, per tab): the sign-up or login step
+  in progress (mode, first name, number, when the code was asked), so a reload or Android
+  closing the tab while she reads her code does not lose it. No other app reads it.
+- **Sync between open pages**: the editor and the dashboard re-read the fiche and the account on
+  the `storage` event and on `pageshow` (back from the browser cache); the editor takes a fiche
+  changed elsewhere in as an undo step, the dashboard never overwrites a form with unsaved
+  changes.
 
 « Supprimer mon compte » (dashboard › Paramètres › Données) clears all four. In the real product
 they become Supabase rows (the store, the account, orders, settings, connectors), shared by the
@@ -711,6 +773,15 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
     fiche and the orders; « Supprimer mon compte ». Reload after each step: everything persists.
 13. Corrupt each key in the console (`localStorage.setItem('jeere-admin', '{oops')`…) and reload
     the three pages: they fall back to the defaults without an error.
+14. The whole journey in one browser, at 360 px and on desktop: sign up (`../compte/`) → « Choisir
+    un modèle » → edit the hero → « Tableau de bord » (same store, the edited hero in its preview)
+    → add a product with a photo → « Voir dans la boutique » (the editor shows it) → add a page
+    « Nos engagements » in the menu → « Voir dans la boutique » (it is in the page selector and in
+    the store's menu; clicking it in the preview opens it) → Paiements: turn Moov off (the editor's
+    checkout no longer offers it) → Livraison: add a commune (it is in the checkout's list) →
+    Connecteurs: WhatsApp Business and mobile money (the Accueil checklist ticks them) → change an
+    order's status → change plan, invite someone, export the fiche and the orders → log out →
+    log in again with the same number. The logo of each page leads back to the landing (`../`).
 
 From the command line (Node, from this folder):
 
@@ -781,6 +852,10 @@ value).
   stock, no promo code, no product variants (size, colour), one delivery fee per commune, and the
   order number is always 1042. The cart is lost when the page reloads.
 - Fonts come from Google Fonts: offline, the store falls back to system fonts.
+- The dashboard's language setting only records `fr` or `en` (a toast says so): every screen
+  stays in French for now. The custom domain and the connectors are never really checked.
+- The account's « store name » follows the fiche when the dashboard loads; a seller who renames her
+  store in the editor and then picks another template there gets the name the dashboard last saw.
 
 ## Next steps
 

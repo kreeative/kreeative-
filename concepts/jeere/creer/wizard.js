@@ -30,6 +30,7 @@
   const NEED_KEYS = ['whatsapp', 'delivery', 'cod', 'reviews', 'categories', 'announcement'];
   const PROVISIONAL_NAME = 'Ma boutique';
   const STORE_KEY = 'jeere-studio-config';
+  const ACCOUNT_KEY = 'jeere-account'; // read only: the store name she gave at sign-up (../compte/)
   const PHONE_W = 390; // the rendered store is a 390 px phone
 
   function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
@@ -1644,11 +1645,27 @@
     return g;
   }
 
+  // The signed-in seller ('jeere-account'): her store name and number are offered as quick answers
+  function account() {
+    let a = null;
+    try { a = JSON.parse(root.localStorage.getItem(ACCOUNT_KEY) || 'null'); } catch (e) { return null; }
+    return a && typeof a === 'object' && a.loggedIn === true ? a : null;
+  }
+  function accountStoreName() {
+    const a = account();
+    return a && typeof a.storeName === 'string' ? a.storeName.replace(/\s+/g, ' ').trim().slice(0, 40) : '';
+  }
+  function accountPhone() {
+    const a = account();
+    return a && typeof a.phone === 'string' && /^\+\d{8,15}$/.test(a.phone) ? a.phone : '';
+  }
   function chipsFor(step) {
     const d = D();
     if (step === 'name') {
       const list = [];
-      if (S.person) list.push({ label: 'Chez ' + S.person, onPick: () => pickName('Chez ' + S.person) });
+      const mine = accountStoreName();
+      if (mine) list.push({ label: mine, onPick: () => pickName(mine) });
+      if (S.person && 'Chez ' + S.person !== mine) list.push({ label: 'Chez ' + S.person, onPick: () => pickName('Chez ' + S.person) });
       list.push({ label: 'Je n’ai pas encore de nom', onPick: () => { const o = []; applyCurrent('name', { intent: 'auto', info: {} }, o); sayNotes(o); advance(); } });
       return chips(list, 'Réponses rapides');
     }
@@ -1714,7 +1731,11 @@
     return box;
   }
   function laterChips() {
-    return chips([{ label: 'Plus tard', onPick: () => { const o = []; finishContact(S.contactCity, '', o); sayNotes(o); advance(); } }], 'Réponses rapides');
+    const list = [];
+    const mine = accountPhone();
+    if (mine) list.push({ label: displayPhone(mine), onPick: () => { const o = []; finishContact(S.contactCity, mine, o); sayNotes(o); advance(); } });
+    list.push({ label: 'Plus tard', onPick: () => { const o = []; finishContact(S.contactCity, '', o); sayNotes(o); advance(); } });
+    return chips(list, 'Réponses rapides');
   }
   function phoneFixChips() {
     return chips([

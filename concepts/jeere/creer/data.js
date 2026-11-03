@@ -1689,15 +1689,19 @@
     return isFinite(t) ? new Date(t).toISOString() : def;
   }
 
-  // A complete 'jeere-account', or null when there is none. Phone normalised (+225...).
+  // A complete 'jeere-account', or null when there is none. Phone normalised (+225...). An account
+  // without a usable number (+ and 8 to 15 digits) is no account: sign-in is by number, so the same
+  // rule holds in the account page, the dashboard and the editor.
   function normalizeAccount(input) {
     var src = input;
     if (typeof src === 'string') { try { src = JSON.parse(src); } catch (e) { src = null; } }
     if (!isObj(src)) return null;
+    var phone = normalizeWhatsapp(str(src.phone, ''));
+    if (!/^\+\d{8,15}$/.test(phone)) return null;
     return {
       version: 1,
       firstName: clampStr(src.firstName, 40),
-      phone: normalizeWhatsapp(str(src.phone, '')),
+      phone: phone,
       storeName: clampStr(src.storeName, 40),
       createdAt: isoOr(src.createdAt, ''),
       plan: idIn(PLANS, src.plan) ? src.plan : 'gratuit',

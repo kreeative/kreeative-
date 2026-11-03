@@ -35,6 +35,7 @@
   const STORE_KEY = 'jeere-studio-config';
   const ACCOUNT_KEY = 'jeere-account'; // { version, firstName, phone, storeName, createdAt, plan, loggedIn } (compte/)
   const OPEN_KEY = 'jeere-studio-open'; // one-shot { page, pageId?, productId? } left by the dashboard
+  const ADMIN_KEY = 'jeere-admin'; // the dashboard's data: read only here, for the address the seller chose
   const ADMIN_URL = '../admin/';
   const PAGES_URL = '../admin/#pages';
   const HISTORY_MAX = 60;
@@ -108,6 +109,7 @@
     open: false,
     tab: 'sections', device: 'phone', view: 'edit', page: 'home', productId: null, pageId: null, pagesSig: null,
     lastSaved: null, // the exact JSON last read from or written to localStorage: anything else there was written elsewhere
+    site: null, // the address chosen in the dashboard ('jeere-admin'), or null: derived from the store's name
     openSection: null, openProduct: null, openItem: {}, reorder: { sections: false, produits: false },
     scale: 1, previewDirty: true, pendingReveal: null, hoverNode: null, pick: null,
     scrollY: { edit: 0, preview: 0 },
@@ -180,9 +182,12 @@
     const feminine = /^(zone|question|photo|image|étape|catégorie|adresse|commune|ligne)$/.test(w) || (/e$/.test(w) && !/(é|ée|age|isme|ème|ste)$/.test(w));
     return (feminine ? 'une ' : 'un ') + w;
   }
+  // The store's address part: the shared rule (data.js slugify, also ɛ ɔ ŋ œ), 40 characters, no trailing hyphen
   function slug(s) {
-    return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'ma-boutique';
+    let out = '';
+    try { out = typeof D.slugify === 'function' ? D.slugify(s) : ''; } catch (e) { out = ''; }
+    if (!out) out = String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return out.slice(0, 40).replace(/-+$/g, '') || 'ma-boutique';
   }
   function prettyPhone(w) {
     const m = /^\+225(\d{10})$/.exec(w || '');
@@ -537,15 +542,24 @@
       sel.value = pickValue();
     });
   }
+  // The address chosen in the dashboard (Paramètres › Domaine): her own domain, or the free address she
+  // confirmed. null until then: the address follows the store's name, as in the dashboard.
+  function readSite() {
+    let a = null;
+    try { a = JSON.parse(readRaw(ADMIN_KEY) || 'null'); } catch (e) { a = null; }
+    const st = a && typeof a === 'object' && a.settings && typeof a.settings === 'object' ? a.settings : null;
+    const host = (v) => (typeof v === 'string' && /^[a-z0-9.-]{3,120}$/i.test(v.trim()) ? v.trim().toLowerCase() : '');
+    S.site = st ? (host(st.customDomain) || (a.subdomainChosen === true ? host(st.subdomain) : '')) || null : null;
+  }
   // The store's address in the desktop frame, with the path of the seller's page shown
   function updateUrl() {
     if (!els.url || !S.config) return;
     let path = '';
     if (S.page === 'page') {
       const pg = findCustomPage(S.pageId);
-      if (pg && typeof pg.slug === 'string' && pg.slug) path = '/' + pg.slug;
+      if (pg && typeof pg.slug === 'string' && pg.slug) path = '/pages/' + pg.slug;
     }
-    els.url.textContent = slug(storeName()) + '.jeere.shop' + path;
+    els.url.textContent = (S.site || (typeof D.subdomainFor === 'function' ? D.subdomainFor(storeName()) : slug(storeName()) + '.jeere.shop')) + path;
   }
   // « Vos pages » in the Boutique tab: mark the page shown in the preview
   function updatePageRows() {
@@ -735,7 +749,20 @@
   function getPanelScroll() { return isMobile() ? window.scrollY : els.panelScroll.scrollTop; }
   function setPanelScroll(y) { if (isMobile()) window.scrollTo(0, y); else els.panelScroll.scrollTop = y; }
 
+  // « Voir la boutique » on a computer: the storefront alone (no panel, no click-to-edit), with « Modifier
+  // la boutique » to bring the panel back. A phone already shows the preview alone (setView).
+  function setStoreView(on) {
+    const v = !!on && !isMobile();
+    if (!!S.storeView === v) return;
+    S.storeView = v;
+    if (els.ed) els.ed.classList.toggle('is-store', v);
+    if (els.storeEdit) els.storeEdit.hidden = !v;
+    hideHover();
+    updateHint();
+    requestAnimationFrame(fit);
+  }
   function setTab(tab, opts = {}) {
+    if (S.storeView) setStoreView(false);
     if (TABS.indexOf(tab) === -1) tab = 'sections';
     const changed = tab !== S.tab;
     S.tab = tab;
@@ -1672,8 +1699,7 @@
             el('span', { class: 'b-pgrow__name' + (hasTitle ? '' : ' is-empty'), text: pageTitle(pg) }),
             el('span', { class: 'b-pgrow__meta' },
               el('span', { class: 'b-pgrow__where', text: where.length ? where.join(' et ') : 'Ni menu ni pied de page' }),
-              el('span', { 'aria-hidden': 'true', text: '·' }),
-              el('span', { class: 'b-pgrow__slug', text: '/' + (pg.slug || '') }))),
+              el('span', { class: 'b-pgrow__slug', text: '/pages/' + (pg.slug || '') }))),
           el('span', { class: 'b-pgrow__go' }, icon('i-eye'), el('span', { text: 'Voir' })))));
       });
     } else {
@@ -2199,14 +2225,18 @@
     renderPreviewNow();
     els.stage.scrollTop = 0;
     saveNow();
-    // On a phone, « Voir » means the preview (opts.view can say otherwise); on a computer the panel opens what is shown
-    if (isMobile() && (o.view === 'preview' || (o.view !== 'edit' && S.page !== 'home'))) { setView('preview'); window.scrollTo(0, 0); focusEl(els.viewBtns[1]); }
+    // On a phone, « Voir » means the preview (opts.view can say otherwise); on a computer the panel opens what is shown,
+    // except for « Voir la boutique » (view 'preview'): the storefront alone
+    setStoreView(!isMobile() && o.view === 'preview');
+    if (S.storeView) focusEl(els.storeEdit);
+    else if (isMobile() && (o.view === 'preview' || (o.view !== 'edit' && S.page !== 'home'))) { setView('preview'); window.scrollTo(0, 0); focusEl(els.viewBtns[1]); }
     else if (focus && document.querySelector(`[data-fk="${CSS.escape(focus)}"]`)) {
       const n = document.querySelector(`[data-fk="${CSS.escape(focus)}"]`);
       n.scrollIntoView({ block: 'center' });
     } else focusEl(els.tabBtns[TABS.indexOf(tab)] || els.tabBtns[0]);
   }
   function doShowStart() {
+    setStoreView(false);
     if (S.open) { commit(); saveNow(); }
     S.open = false;
     hidePick();
@@ -2235,7 +2265,7 @@
       resume: $('b-resume'), resumeName: $('b-resume-name'), resumeMeta: $('b-resume-meta'), resumeBtn: $('b-resume-btn'), aiBtn: $('b-ai-btn'),
       shead: $('b-shead'), acctIn: $('b-acct-in'), acctOut: $('b-acct-out'), acctName: $('b-acct-name'), acctAv: $('b-acct-av'),
       ed: $('b-ed'), top: document.querySelector('.b-top'), topStore: $('b-top-store'), topName: $('b-top-name'), saved: $('b-saved'),
-      undo: $('b-undo'), redo: $('b-redo'), ficheBtn: $('b-fiche-btn'), publishBtn: $('b-publish-btn'),
+      undo: $('b-undo'), redo: $('b-redo'), ficheBtn: $('b-fiche-btn'), publishBtn: $('b-publish-btn'), storeEdit: $('b-store-edit'),
       panelScroll: $('b-panel-scroll'), tablist: document.querySelector('.b-tabs'),
       tabBtns: Array.from(document.querySelectorAll('.b-tab')), tabScore: $('b-tab-score'),
       stage: $('b-stage'), stageBar: document.querySelector('.b-stage__bar'), stageHint: $('b-stage-hint'), stageInner: $('b-stage-inner'),
@@ -2272,6 +2302,7 @@
     }
     els.ficheBtn.addEventListener('click', openFiche);
     els.publishBtn.addEventListener('click', openPublish);
+    if (els.storeEdit) els.storeEdit.addEventListener('click', () => { setStoreView(false); focusEl(els.tabBtns[TABS.indexOf(S.tab)] || els.tabBtns[0]); });
 
     els.tabBtns.forEach((b) => b.addEventListener('click', () => { setTab(b.dataset.tab); if (isMobile() && S.view !== 'edit') setView('edit'); }));
     els.tablist.addEventListener('keydown', (e) => {
@@ -2304,6 +2335,7 @@
       if (!(e.target instanceof Element)) return;
       if (storeControl(e.target)) return;
       if (e.target.closest('a, button, form, summary')) e.preventDefault();
+      if (S.storeView && !isMobile()) return;
       const node = e.target.closest('[data-product-id], [data-section-id]');
       const t = targetOf(node);
       if (!t) return;
@@ -2313,7 +2345,7 @@
     }, true);
     els.screen.addEventListener('submit', (e) => e.preventDefault(), true);
     els.screen.addEventListener('mousemove', (e) => {
-      if (!mqHover.matches || isMobile() || !(e.target instanceof Element)) return;
+      if (!mqHover.matches || isMobile() || S.storeView || !(e.target instanceof Element)) return;
       // The outline shows what a click edits: none over the store's own buttons and fields
       const node = storeControl(e.target) ? null : e.target.closest('[data-product-id], [data-section-id]');
       if (node === S.hoverNode) return;
@@ -2392,12 +2424,15 @@
     window.addEventListener('storage', (e) => {
       const k = e.key;
       if (k === null || k === ACCOUNT_KEY) renderAccount();
+      if (k === null || k === ADMIN_KEY) { readSite(); updateUrl(); }
       if (k === null || k === STORE_KEY) syncStored(k === null ? readRaw(STORE_KEY) : e.newValue, 'dans un autre onglet');
     });
     // …or in this tab, before Back brought this page back from the browser's cache
     window.addEventListener('pageshow', (e) => {
       if (!e.persisted) return;
       renderAccount();
+      readSite();
+      updateUrl();
       const ins = takeOpen();
       syncStored(readRaw(STORE_KEY), 'dans le tableau de bord');
       if (ins) openAt(ins);
@@ -2487,7 +2522,7 @@
     const page = rendererHasPages() ? S.page : 'home';
     const noPay = page === 'checkout' && S.config && S.config.payments && !Object.keys(S.config.payments).some((k) => S.config.payments[k] === true);
     const h = noPay ? NOPAY_HINT : (PAGE_HINTS[page] || PAGE_HINTS.home);
-    const text = isMobile() ? h[1] : h[0];
+    const text = S.storeView && !isMobile() ? `Votre boutique telle que vos clients la voient. ${guil('Modifier la boutique')} ouvre les réglages.` : (isMobile() ? h[1] : h[0]);
     if (els.stageHint.__text === text) return;
     els.stageHint.__text = text;
     els.stageHint.textContent = text;
@@ -2504,6 +2539,7 @@
     }
     bind();
     updateHint();
+    readSite();
     // A reload while editing lands on the start screen, with « Reprendre ma boutique ». Coming back with the
     // Back button (from the dashboard…) to the editor's history entry reopens the editor instead.
     let wasEditing = false;

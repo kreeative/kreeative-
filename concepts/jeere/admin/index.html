@@ -87,6 +87,7 @@
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9.5 6.5h10.5M9.5 12h10.5M9.5 17.5h10.5M4.5 6.5h.5M4.5 12h.5M4.5 17.5h.5"/></symbol>
     <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5.5v13M15 5.5v13"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
@@ -112,6 +113,12 @@
     <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="m8.7 10.8 6.6-4M8.7 13.2l6.6 4"/></symbol>
+    <symbol id="i-percent" viewBox="0 0 24 24"><path d="M18.5 5.5 5.5 18.5"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.7M12 16.6v.2"/></symbol>
+    <symbol id="i-call" viewBox="0 0 24 24"><path d="M6.8 3.5h2.6l1.4 4.1-2 1.4a11.5 11.5 0 0 0 6.2 6.2l1.4-2 4.1 1.4v2.6a1.8 1.8 0 0 1-1.9 1.8A16 16 0 0 1 5 5.4a1.8 1.8 0 0 1 1.8-1.9z"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M14.5 4.5c2.8-1.1 5-.9 5 0 0 0 .2 2.2-1 5l-5.6 5.6-3.5-3.5z"/><path d="M9.4 11.6 6 11.2l-2.5 2.5 3.8 1M12.4 14.6l.4 3.4-2.5 2.5-1-3.8M15.5 8.5h.1"/><path d="M6.5 17.5 4 20"/></symbol>
     <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 20.5V4M5.5 4.5h11l-2 4 2 4h-11"/></symbol>
   </defs>
 </svg>
@@ -178,6 +185,7 @@
       <ul class="a-nav__list">
         <li><a class="a-nav__link" href="#boutique" data-nav="boutique"><svg class="a-ico" aria-hidden="true"><use href="#i-store"/></svg><span>Boutique en ligne</span></a></li>
         <li><a class="a-nav__link" href="#pages" data-nav="pages"><svg class="a-ico" aria-hidden="true"><use href="#i-pages"/></svg><span>Pages</span></a></li>
+        <li><a class="a-nav__link" href="#promos" data-nav="promos"><svg class="a-ico" aria-hidden="true"><use href="#i-percent"/></svg><span>Codes promo</span></a></li>
       </ul>
       <p class="a-nav__group">Réglages</p>
       <ul class="a-nav__list">
@@ -187,6 +195,7 @@
         <li><a class="a-nav__link" href="#parametres" data-nav="parametres"><svg class="a-ico" aria-hidden="true"><use href="#i-gear"/></svg><span>Paramètres</span></a></li>
       </ul>
     </nav>
+    <button class="a-nav__link a-side__help" type="button" data-act="help"><svg class="a-ico" aria-hidden="true"><use href="#i-help"/></svg><span>Aide<small>Une vraie personne sur WhatsApp</small></span></button>
     <p class="a-side__demo"><svg class="a-ico" aria-hidden="true"><use href="#i-info"/></svg><span>Prototype&nbsp;: tout reste dans ce navigateur.</span></p>
   </aside>
 
@@ -255,10 +264,12 @@
     <ul class="a-morelist">
       <li><a href="#clients" data-more="clients"><svg class="a-ico" aria-hidden="true"><use href="#i-users"/></svg><span>Clients</span></a></li>
       <li><a href="#pages" data-more="pages"><svg class="a-ico" aria-hidden="true"><use href="#i-pages"/></svg><span>Pages</span></a></li>
+      <li><a href="#promos" data-more="promos"><svg class="a-ico" aria-hidden="true"><use href="#i-percent"/></svg><span>Codes promo</span></a></li>
       <li><a href="#paiements" data-more="paiements"><svg class="a-ico" aria-hidden="true"><use href="#i-wallet"/></svg><span>Paiements</span></a></li>
       <li><a href="#livraison" data-more="livraison"><svg class="a-ico" aria-hidden="true"><use href="#i-truck"/></svg><span>Livraison</span></a></li>
       <li><a href="#connecteurs" data-more="connecteurs"><svg class="a-ico" aria-hidden="true"><use href="#i-plug"/></svg><span>Connecteurs</span></a></li>
       <li><a href="#parametres" data-more="parametres"><svg class="a-ico" aria-hidden="true"><use href="#i-gear"/></svg><span>Paramètres</span></a></li>
+      <li><button type="button" data-act="help"><svg class="a-ico" aria-hidden="true"><use href="#i-help"/></svg><span>Aide<small>Une vraie personne</small></span></button></li>
     </ul>
     <div class="a-morefoot">
       <button class="a-btn a-btn--ghost a-btn--block" type="button" data-act="view-store"><svg class="a-ico" aria-hidden="true"><use href="#i-eye"/></svg>Voir la boutique</button>
@@ -271,6 +282,7 @@
 <dialog class="a-dialog" id="a-dialog" aria-labelledby="a-dialog-t"></dialog>
 
 <div class="a-toasts" id="a-toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+<p class="a-sr" id="a-live" aria-live="polite"></p>
 
 <!-- The order slip, printed alone by « Imprimer le bon » (see @media print in admin.css) -->
 <div class="a-print" id="a-print" aria-hidden="true"></div>
