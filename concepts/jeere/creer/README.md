@@ -88,10 +88,10 @@ never a big coloured area. Never colour alone either: there is always the word (
 
 | Meaning | Where | Dot / icon / line | Tint (background) | Text on the tint |
 |---|---|---|---|---|
-| **OK, done** (`--ok`) | « Payée », « Livrée », « Encaissée », « Connecté », « Prête », « Enregistré dans ce navigateur », done checklist steps and timeline steps, « APPROUVÉ », code accepted, « Compte créé » | `#2E8B47` (4.3:1 on white) | `#E5F4E8` | `#1E6B34` (5.8:1 on the tint) |
-| **Attention** (`--warn`) | « Paiement en attente », « À encaisser », « En attente », « Stock faible » (fewer than 3), « À vérifier », « À relire », « À améliorer » in Qualité, « Enregistré, sans les photos », warning notes | `#C76A00` (3.8:1) | `#FFF0D9` | `#8A4600` (6.3:1) |
-| **Problem** (`--err`) | « Annulée », failed delivery, « Épuisé », « Ce navigateur bloque l’enregistrement », form errors (`aria-invalid`, `.a-error`, `.c-err`, `.b-error`), « À corriger » in Qualité, « Non enregistré », delete buttons | `#C62D23` (5.5:1) | `#FCE9E7` | `#A3221A` (6.4:1) |
-| **Info, in progress** (`--info`) | « Nouvelle », « Expédiée » (on its way), « Conseils » in Qualité, help notes (info icon), demo notices | `#3657FF` (5.3:1, the brand icon blue) | `#EAEEFF` | `#2440C9` (6.9:1) |
+| **OK, done** (`--ok`) | « Payée », « Livrée », « Encaissée », « Connecté », « Prête », « Enregistré dans ce navigateur », done checklist steps and timeline steps, « APPROUVÉ », code accepted, « Compte créé » | `#22C55E` (4.3:1 on white) | `#DCFCE7` | `#166534` (5.8:1 on the tint) |
+| **Attention** (`--warn`) | « Paiement en attente », « À encaisser », « En attente », « Stock faible » (fewer than 3), « À vérifier », « À relire », « À améliorer » in Qualité, « Enregistré, sans les photos », warning notes | `#F5B800` (3.8:1) | `#FEF6D3` | `#7A5A00` (6.3:1) |
+| **Problem** (`--err`) | « Annulée », failed delivery, « Épuisé », « Ce navigateur bloque l’enregistrement », form errors (`aria-invalid`, `.a-error`, `.c-err`, `.b-error`), « À corriger » in Qualité, « Non enregistré », delete buttons | `#EF4444` (5.5:1) | `#FDE8E8` | `#B91C1C` (6.4:1) |
+| **Info, in progress** (`--info`) | « Nouvelle », « Expédiée » (on its way), « Conseils » in Qualité, help notes (info icon), demo notices | `#3B82F6` (sky blue) | `#E6F0FF` | `#1D4ED8` |
 
 Each CSS file defines the tokens once on `:root` (`.jwz` for the assistant, which only needs `--warn…`): `--ok`, `--ok-bg`, `--ok-ink`,
 then `--warn…`, `--err…`, `--info…`, with the same values everywhere. The `-ink` colours also pass 4.5:1 on
@@ -106,8 +106,8 @@ tone, and without one it is guessed from the wording (« n’a pas pu » = probl
 
 **Charts** use five series colours. None of them is a status colour: green, orange and red keep their
 meaning, so a chart bar never reads as « attention » or « problem ». `--chart-1` `#3657FF` (brand blue, main
-series, 5.3:1 on white), `--chart-2` `#86198F` (deep violet-leaning magenta, 8.2:1), `--chart-3` `#0E9AA7`
-(turquoise, 3.4:1), `--chart-4` `#334155` (slate, 10.4:1), `--chart-5` `#9C80EB` (lilac, 3.1:1). Neighbours
+series, 5.3:1 on white), `--chart-2` `#B79CFF` (light purple), `--chart-3` `#22C55E`
+(green), `--chart-4` `#FACC15` (yellow), `--chart-5` `#7DD3FC` (light sky). Neighbours
 differ in lightness as well as hue (CIE L 45 / 33 / 58 / 27 / 60), so two stacked segments are at least 1.5:1
 apart even in greyscale. In a simulation (Machado 2009, full severity, CIE76 ΔE) series 1 and 2 stay apart
 for protanopia (ΔE 38), deuteranopia (ΔE 56) and tritanopia (ΔE 66); the closest pair of all five series, for

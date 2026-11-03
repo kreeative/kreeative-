@@ -24,13 +24,13 @@
   --a-shadow-2: 0 18px 50px -18px rgba(17, 17, 17, .35), 0 6px 18px -10px rgba(17, 17, 17, .2);
   /* Status colours. --x = dot / icon / line (>= 3:1 on white), --x-bg = soft tint, --x-ink = text (>= 4.5:1 on the tint,
      on white and on --grey-1). Always next to a word or an icon, never colour alone. */
-  --ok: #2E8B47;   --ok-bg: #E5F4E8;   --ok-ink: #1E6B34;
-  --warn: #C76A00; --warn-bg: #FFF0D9; --warn-ink: #8A4600;
-  --err: #C62D23;  --err-bg: #FCE9E7;  --err-ink: #A3221A;
-  --info: #3657FF; --info-bg: #EAEEFF; --info-ink: #2440C9;
+  --ok: #22C55E;   --ok-bg: #DCFCE7;   --ok-ink: #166534;
+  --warn: #F5B800; --warn-bg: #FEF6D3; --warn-ink: #7A5A00;
+  --err: #EF4444;  --err-bg: #FDE8E8;  --err-ink: #B91C1C;
+  --info: #3B82F6; --info-bg: #E6F0FF; --info-ink: #1D4ED8;
   /* Chart series: brand blue, deep magenta, turquoise, slate, lilac. Never status green / orange / red. Neighbours differ in
      lightness (adjacent contrast >= 1.5:1) so they stay apart for colour-blind eyes; see ../creer/README.md */
-  --chart-1: #3657FF; --chart-2: #86198F; --chart-3: #0E9AA7; --chart-4: #334155; --chart-5: #9C80EB;
+  --chart-1: #3B82F6; --chart-2: #B79CFF; --chart-3: #22C55E; --chart-4: #FACC15; --chart-5: #7DD3FC;
 }
 /* One class gives an element its meaning; the parts below read --t, --t-bg and --t-ink */
 .a-tone--ok { --t: var(--ok); --t-bg: var(--ok-bg); --t-ink: var(--ok-ink); }

@@ -15,10 +15,10 @@
   --c-font: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --c-shadow: 0 1px 2px rgba(17, 17, 17, .05), 0 24px 60px -32px rgba(17, 17, 17, .30);
   --c-ring: 0 0 0 4px rgba(17, 17, 17, .10);
-  --ok: #2E8B47;   --ok-bg: #E5F4E8;   --ok-ink: #1E6B34;
-  --warn: #C76A00; --warn-bg: #FFF0D9; --warn-ink: #8A4600;
-  --err: #C62D23;  --err-bg: #FCE9E7;  --err-ink: #A3221A;
-  --info: #3657FF; --info-bg: #EAEEFF; --info-ink: #2440C9;
+  --ok: #22C55E;   --ok-bg: #DCFCE7;   --ok-ink: #166534;
+  --warn: #F5B800; --warn-bg: #FEF6D3; --warn-ink: #7A5A00;
+  --err: #EF4444;  --err-bg: #FDE8E8;  --err-ink: #B91C1C;
+  --info: #3B82F6; --info-bg: #E6F0FF; --info-ink: #1D4ED8;
 }
 /* No underline under any text: links are shown by their weight and colour */
 a:not(.jst a) { text-decoration: none; }
@@ -189,7 +189,7 @@ a { color: inherit; }
 .c-notice .c-ico, .c-demo .c-ico { width: 20px; height: 20px; margin-top: 1px; }
 /* Information = blue icon; « attention » = orange icon */
 .c-notice > .c-ico:has(use[href="#i-info"]), .c-demo > .c-ico:has(use[href="#i-info"]) { color: var(--info); }
-.c-notice > .c-ico:has(use[href="#i-alert"]) { color: var(--warn); }
+.c-notice > .c-ico:has(use[href="#i-alert"]) { color: var(--warn-ink); }
 .c-notice:has(> .c-ico use[href="#i-alert"]) { background: var(--warn-bg); color: var(--warn-ink); }
 /* Storage blocked: changes will be lost, so red (as in the dashboard and the editor) */
 .c-notice--err, .c-notice--err:has(> .c-ico use[href="#i-alert"]) { background: var(--err-bg); color: var(--err-ink); }

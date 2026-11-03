@@ -16,7 +16,7 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
   --jwz-line: rgba(17, 17, 17, .12);
   --jwz-line2: rgba(17, 17, 17, .22);
   /* Status colours: the shared names and values of builder.css / admin.css (README « Couleurs d’état »). Only orange is used here */
-  --warn: #C76A00; --warn-bg: #FFF0D9; --warn-ink: #8A4600;
+  --warn: #F5B800; --warn-bg: #FEF6D3; --warn-ink: #7A5A00;
   --jwz-font: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --jwz-col: 720px;
   --jwz-av: 30px;

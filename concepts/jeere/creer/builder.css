@@ -20,11 +20,11 @@
   --b-shadow-1: 0 1px 2px rgba(17, 17, 17, .06), 0 6px 18px -8px rgba(17, 17, 17, .16);
   --b-shadow-2: 0 34px 70px -28px rgba(17, 17, 17, .38), 0 12px 28px -14px rgba(17, 17, 17, .22);
   /* Status colours (same values as ../admin/admin.css): --x dot / icon (>= 3:1 on white), --x-bg tint, --x-ink text (>= 4.5:1) */
-  --ok: #2E8B47;   --ok-bg: #E5F4E8;   --ok-ink: #1E6B34;
-  --warn: #C76A00; --warn-bg: #FFF0D9; --warn-ink: #8A4600;
-  --err: #C62D23;  --err-bg: #FCE9E7;  --err-ink: #A3221A;
-  --info: #3657FF; --info-bg: #EAEEFF; --info-ink: #2440C9;
-  --chart-1: #3657FF; --chart-2: #86198F; --chart-3: #0E9AA7; --chart-4: #334155; --chart-5: #9C80EB;
+  --ok: #22C55E;   --ok-bg: #DCFCE7;   --ok-ink: #166534;
+  --warn: #F5B800; --warn-bg: #FEF6D3; --warn-ink: #7A5A00;
+  --err: #EF4444;  --err-bg: #FDE8E8;  --err-ink: #B91C1C;
+  --info: #3B82F6; --info-bg: #E6F0FF; --info-ink: #1D4ED8;
+  --chart-1: #3B82F6; --chart-2: #B79CFF; --chart-3: #22C55E; --chart-4: #FACC15; --chart-5: #7DD3FC;
 }
 .b-tone--ok { --t: var(--ok); --t-bg: var(--ok-bg); --t-ink: var(--ok-ink); }
 .b-tone--warn { --t: var(--warn); --t-bg: var(--warn-bg); --t-ink: var(--warn-ink); }
@@ -716,7 +716,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-issue:hover { border-color: var(--ink); }
 .b-issue--error { border-width: 1.5px; border-color: var(--err); }
 .b-issue--error .b-issue__ico { stroke-width: 2.1; color: var(--err); }
-.b-issue--warning .b-issue__ico { color: var(--warn); }
+.b-issue--warning .b-issue__ico { color: var(--warn-ink); }
 .b-issue--tip .b-issue__ico { color: var(--info); }
 .b-issue--tip { background: var(--grey-1); border-color: transparent; }
 .b-issue--tip:hover { border-color: var(--ink); }
