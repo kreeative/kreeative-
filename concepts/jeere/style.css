@@ -226,10 +226,17 @@ html:not(.js) .msg { animation: none; opacity: 1; transform: none; }
 .section__head { max-width: 760px; margin-bottom: 40px; }
 @media (min-width: 1000px) { .section { padding: 112px 0; } .section__head { margin-bottom: 56px; } }
 
+/* All in one */
+.features { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.feature { background: var(--white); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px 22px; }
+.feature .ico { width: 28px; height: 28px; margin-bottom: 18px; }
+.feature__title { font: 600 19px/1.25 var(--f-display); letter-spacing: -.02em; margin-bottom: 6px; }
+.feature p { color: var(--muted); font-size: 15.5px; }
+
 /* Before / after */
 .compare { display: grid; gap: 14px; }
 .compare__col { border-radius: var(--r-lg); padding: 24px 22px; }
-.compare__col--before { background: var(--white); border: 1px solid var(--line); }
+.compare__col--before { background: var(--grey-1); }
 .compare__col--after { background: var(--ink); color: var(--white); --link-bar: var(--accent-light); }
 .compare__title { display: flex; align-items: center; gap: 10px; font: 600 13px/1 var(--f-text); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 18px; min-height: 22px; }
 .compare__col--before .compare__title { color: var(--muted); }

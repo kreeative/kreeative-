@@ -27,7 +27,7 @@
       doneText: 'Nous vous écrirons sur WhatsApp dès que votre place est prête.',
       dupTitle: 'Vous êtes déjà sur la liste !',
       dupText: 'Ce numéro est déjà inscrit. Nous vous écrirons sur WhatsApp très bientôt.',
-      share: 'Je viens de rejoindre la liste d’attente de JEERE, la boutique en ligne de ceux qui vendent sur WhatsApp : '
+      share: 'Je viens de rejoindre la liste d’attente de JEERE, la plateforme tout-en-un pour vendre en ligne et en boutique : '
     },
     en: {
       today: 'Delivered today', todayOrTomorrow: 'Delivered today or tomorrow', tomorrow: 'Delivered tomorrow',
@@ -40,7 +40,7 @@
       doneText: 'We’ll message you on WhatsApp as soon as your spot is ready.',
       dupTitle: 'You’re already on the list!',
       dupText: 'This number is already signed up. We’ll message you on WhatsApp very soon.',
-      share: 'I just joined the JEERE waitlist, the online store for people who sell on WhatsApp: '
+      share: 'I just joined the JEERE waitlist, the all-in-one platform to sell online and in person: '
     }
   };
 
@@ -248,7 +248,7 @@
 
   /* ---------- Gentle scroll-in for section headings and cards ---------- */
   if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    var items = $$('.section__head, .compare__col, .promises li, .step, .plan, .receipt, .dia__card, .join__card');
+    var items = $$('.section__head, .feature, .compare__col, .promises li, .step, .plan, .receipt, .dia__card, .join__card');
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
     }, { rootMargin: '0px 0px -8% 0px' });

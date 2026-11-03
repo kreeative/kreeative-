@@ -1,7 +1,7 @@
 // English version of every string on the page. French is the default and lives in index.html.
 window.JEERE_EN = {
-  'meta.title': 'JEERE · The online store for people who sell on WhatsApp',
-  'meta.description': 'Build your store from your phone. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, take orders on WhatsApp, prices in FCFA. Waitlist open in Abidjan.',
+  'meta.title': 'JEERE · All your business, in one place',
+  'meta.description': 'JEERE, the all-in-one platform to build and run your online store and your in-person sales, with no code. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, prices in FCFA. Waitlist open in Abidjan.',
 
   'skip': 'Skip to content',
   'nav.home': 'JEERE, home',
@@ -16,8 +16,8 @@ window.JEERE_EN = {
   'lang.label': 'Language',
 
   'hero.eyebrow': 'Coming soon to Abidjan · Waitlist open',
-  'hero.title': 'The online store for people who sell <em>on WhatsApp</em>.',
-  'hero.lead': 'Build your store from your phone in 5 minutes. Your customers order in one message and pay by Wave, Orange Money, MTN MoMo or cash on delivery. Your prices stay in FCFA.',
+  'hero.title': 'All your business, <em>in one place</em>.',
+  'hero.lead': 'JEERE is the all-in-one platform to build, customise and run your online store and your in-person sales from a single dashboard, with no code. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, with prices in FCFA.',
   'hero.cta': 'Join the waitlist',
   'hero.cta2': 'See how it works',
   'hero.note': 'The first 50 stores are built with you and free for 3 months.',
@@ -41,6 +41,19 @@ window.JEERE_EN = {
   'pay.label': 'Get paid the way your customers pay',
   'pay.cod': 'Cash on delivery',
   'pay.card': 'Bank card',
+
+  'all.eyebrow': 'All in one',
+  'all.title': 'Everything you need to sell, in a single dashboard.',
+  'all.t1': 'Online store',
+  'all.p1': 'Ready-made templates you customise from your phone. No code.',
+  'all.t2': 'Payments',
+  'all.p2': 'Wave, Orange Money, MTN MoMo, Moov, bank cards and cash on delivery.',
+  'all.t3': 'Orders and stock',
+  'all.p3': 'Follow every order, manage your stock and your deliveries by commune.',
+  'all.t4': 'Sell everywhere',
+  'all.p4': 'On your site, Instagram, TikTok, Facebook, WhatsApp and in your shop, from one stock.',
+  'all.t5': 'Everything included',
+  'all.p5': 'WhatsApp orders, discount codes, customer reviews: no paid apps to add.',
 
   'why.eyebrow': 'A day in the life of an online seller',
   'why.title': 'You already sell. JEERE does the rest of the work.',
@@ -226,7 +239,7 @@ window.JEERE_EN = {
   'form.submit': 'Join the waitlist',
   'done.share': 'Share JEERE on WhatsApp',
 
-  'foot.tag': 'The online store for people who sell on WhatsApp.',
+  'foot.tag': 'The all-in-one platform to sell online and in person.',
   'foot.nav': 'Footer',
   'foot.small': 'JEERE is in the works: features and prices may change before launch. Payments will be handled by a partner licensed by the BCEAO; JEERE will never hold sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:annklyy@gmail.com?subject=JEERE">annklyy@gmail.com</a>'
 };

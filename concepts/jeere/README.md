@@ -1,7 +1,8 @@
 # JEERE — landing page and waitlist
 
-The first public face of **JEERE**, the store builder for people who sell on WhatsApp
-(brainstorm of 2 November 2026). It pitches the product to Abidjan sellers and collects a
+The first public face of **JEERE**, the all-in-one commerce platform built for Africa: build and
+run an online store and in-person sales from one dashboard, with mobile money (brainstorm of
+2 November 2026). It pitches the product to Abidjan sellers and collects a
 waitlist that doubles as the pool for the seller interviews and the 50-store concierge pilot.
 French by default (Côte d’Ivoire, prices in FCFA), with an English version.
 
@@ -49,17 +50,18 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 ## Page
 
-1. Hero: headline, the store on a phone (Plateau template) and a WhatsApp order that plays out
+1. Hero: “Tout votre commerce, au même endroit”, the store on a phone (Plateau template) and a WhatsApp order that plays out
    in three bubbles, then the payment methods.
-2. Aujourd’hui / Avec JEERE.
-3. Three promises.
-4. How it works, in four steps.
-5. Delivery by commune: pick one of 13 communes and the receipt updates (fee, total, delay).
-6. Templates: Plateau, Cocody and Treichville tabs switch the phone preview.
-7. Diaspora mode (marked “coming soon”).
-8. Pricing: Gratuit, Essentiel, Pro, Business.
-9. FAQ.
-10. Waitlist form (seller or diaspora buyer), with a WhatsApp share button after sign-up.
+2. Tout-en-un: online store, payments, orders and stock, sell everywhere, everything included.
+3. Aujourd’hui / Avec JEERE.
+4. Three promises.
+5. How it works, in four steps.
+6. Delivery by commune: pick one of 13 communes and the receipt updates (fee, total, delay).
+7. Templates: Plateau, Cocody and Treichville tabs switch the phone preview.
+8. Diaspora mode (marked “coming soon”).
+9. Pricing: Gratuit, Essentiel, Pro, Business.
+10. FAQ.
+11. Waitlist form (seller or diaspora buyer), with a WhatsApp share button after sign-up.
 
 ## Files
 
