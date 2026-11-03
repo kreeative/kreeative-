@@ -51,7 +51,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
   `#111111` on the white UI, white on dark backgrounds (footer, the dark « Avec jeere » column).
   The footer echoes the brand board: the handwritten « jeere » with four small icons (store,
   payment, chat, delivery) beside a large cloud. Accessible names stay « Jeere ».
-- **App and tab icon**: the black cloud on a bright, lively pop blue `#3657FF` (`favicon.svg`, 64×64
+- **App and tab icon**: the white cloud on a bright, lively pop blue `#3657FF` (`favicon.svg`, 64×64
   rounded square, with a simplified trace of the cloud, slightly bolder eyes and a tight margin so it
   still reads at 16 px in a tab; `apple-touch-icon.png`, 180×180 full bleed: iOS rounds the corners). The pop blue
   is only for the icon: the site itself stays black and white.
@@ -108,7 +108,7 @@ i18n.js      English strings, the photos' alt texts included (French stays in th
 style.css    tokens, layout, responsive rules (360 px first)
 site.js      language, delivery demo, template tabs, waitlist form, hero canvas, hidden fallback
              for a photo that cannot load, scroll-in
-favicon.svg  the black cloud on pop blue #3657FF (tab icon)
+favicon.svg  the white cloud on pop blue #3657FF (tab icon)
 apple-touch-icon.png  the same, 180×180, for home screens
 img/og.jpg   share image: a 1200×630 screenshot of the top of the page, Hibiscus swatch, reduced
              motion, JPEG quality 86
