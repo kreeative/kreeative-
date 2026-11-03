@@ -38,11 +38,15 @@ Numbers are personal data: keep the table private, and delete a row when someone
 ## Identity used on the page
 
 - **Wordmark**: geometric capitals drawn in SVG (`#wordmark` in `index.html`). The bar that
-  runs through the double E links them, for the link between a chat and a sale; it is always
-  in the accent colour. The monogram (favicon) is the linked EE on bissap.
-- **Colours**: bissap `#8F1640` (signature; 7.7:1 on sable), bissap deep `#5E0E2A`,
-  bissap light `#E9A3B6` (accent on dark), sable `#F4EEE6` (warm neutral), lin `#FBF8F4`,
-  encre `#1A1512` (near-black), muted `#5C524B`. No telco blue, orange or yellow.
+  runs through the double E links them, for the link between a chat and a sale; it is the one
+  place the accent always appears. The monogram (favicon) is the linked EE on black.
+- **Colours**: JEERE itself is black and white, so the sellers’ photos and stores bring the
+  colour. White `#FFFFFF`, grey `#F5F5F3` / `#EBEBE8`, ink `#111111`, muted `#5E5E5E`, and one
+  accent used sparingly: deep green `#17594A` (8.2:1 on white), with `#8FCDB6` on black.
+  Navy is ready as the alternative: swap the four `--accent*` values at the top of `style.css`
+  for the ones in the comments (`#1E2E5A`, `#131E3D`, `#E3E8F3`, `#A7B6E0`).
+  Buttons are black; the accent marks labels, the italic in the headline, ticks, the
+  “payment received” bubble and focus rings. The demo stores keep their own colours.
 - **Type**: Playfair (display, SIL OFL) and Onest (text, SIL OFL). Both cover French accents
   and ɛ, ɔ and ŋ, checked glyph by glyph; most popular display faces do not (Fraunces,
   Bricolage Grotesque, Instrument Serif and DM Serif Display all lack ɛ and ɔ).
