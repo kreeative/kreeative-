@@ -1,4 +1,5 @@
-/* JEERE — landing page behaviour: language, header, delivery demo, template preview, waitlist form.
+/* JEERE — landing page behaviour: language, header, hero card and editor canvas, delivery demo,
+   template preview, waitlist form.
    No library. French lives in the HTML; English comes from i18n.js (window.JEERE_EN). */
 (function () {
   'use strict';
@@ -85,6 +86,9 @@
     $$('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false'); });
     if (save) { try { localStorage.setItem('jeere-lang', lang); } catch (e) {} }
     updateReceipt(false);
+    updateHero();
+    syncPause();
+    heroPlaceholder();
     setRole(currentRole());
     if (lastDone) showDone(lastDone.dup, lastDone.name, true);
   }
@@ -193,6 +197,7 @@
     e.preventDefault();
     if (busy) return;
     errBox.hidden = true;
+    nextNote.hidden = true;
     if (form.website.value) { showDone(false, form.first_name.value.trim()); return; } // bot
 
     var name = form.first_name.value.trim();
@@ -245,6 +250,94 @@
       label.textContent = before;
     });
   });
+
+  /* ---------- Hero card: the number goes into the waitlist form, nothing is sent from here ---------- */
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var heroForm = $('#hero-signup');
+  var heroTel = $('#hero-phone');
+  var heroErr = $('#hero-err');
+  var nextNote = $('[data-form-next]');
+
+  function heroBad(bad) {
+    heroErr.hidden = !bad;
+    heroForm.classList.toggle('is-bad', bad);
+    if (bad) heroTel.setAttribute('aria-invalid', 'true'); else heroTel.removeAttribute('aria-invalid');
+    heroTel.setAttribute('aria-describedby', bad ? 'hero-err hero-consent' : 'hero-consent');
+  }
+  heroForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var raw = heroTel.value.trim();
+    var intl = /^(\+|00)/.test(raw); // "+225 07…" typed in full: the waitlist reads it as is
+    var digits = raw.replace(/\D/g, '').replace(intl ? /^00/ : /^$/, '');
+    if (digits.length < 8) { heroBad(true); heroTel.focus(); return; }
+    heroBad(false);
+    form.cc.value = $('#hero-cc').value;
+    form.phone.value = intl ? '+' + digits : digits;
+    $('#liste').scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+    if (form.hidden) { done.focus({ preventScroll: true }); return; } // already signed up
+    nextNote.hidden = false;
+    form.first_name.focus({ preventScroll: true });
+  });
+  // Below 460 px the long placeholder does not fit next to the country code: use the short label
+  var narrow = window.matchMedia('(max-width: 459px)');
+  var phLong = heroTel.getAttribute('placeholder');
+  function heroPlaceholder() {
+    heroTel.placeholder = narrow.matches ? $('label[for="hero-phone"]').textContent : (lang === 'en' ? EN['hero.phonePh'] : phLong);
+  }
+  if (narrow.addEventListener) narrow.addEventListener('change', heroPlaceholder); else narrow.addListener(heroPlaceholder);
+  heroTel.addEventListener('input', function () { if (!heroErr.hidden && heroTel.value.replace(/\D/g, '').length >= 8) heroBad(false); });
+
+  /* ---------- Hero canvas: palette swatches, quantity, auto-demo ---------- */
+  var cv = $('[data-canvas]');
+  var swatches = $$('[data-swatch]', cv);
+  var pauseBtn = $('[data-pause]', cv);
+  var qtyOut = $('[data-qty]', cv);
+  var steps = $$('[data-step]', cv);
+  var qty = 1, cur = 0, demo = null;
+  var paused = reduceMotion.matches, hovering = false, focused = false, offscreen = false;
+
+  function pickSwatch(i, pulse) {
+    cur = (i + swatches.length) % swatches.length;
+    cv.setAttribute('data-tint', swatches[cur].getAttribute('data-swatch'));
+    swatches.forEach(function (b, j) { b.setAttribute('aria-pressed', j === cur ? 'true' : 'false'); b.classList.remove('is-pulse'); });
+    if (pulse) { void swatches[cur].offsetWidth; swatches[cur].classList.add('is-pulse'); }
+  }
+  // The demo moves to the next colour every 2.8 s, unless paused, hovered, focused, hidden or off screen
+  function runDemo() {
+    clearInterval(demo);
+    demo = (paused || hovering || focused || offscreen || document.hidden) ? null : setInterval(function () { pickSwatch(cur + 1, true); }, 2800);
+  }
+  function syncPause() {
+    pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    pauseBtn.setAttribute('aria-label', pauseBtn.getAttribute(paused ? 'data-label-play' : 'data-label-pause'));
+  }
+  function updateHero() {
+    qtyOut.textContent = qty;
+    steps[0].setAttribute('aria-disabled', qty <= 1 ? 'true' : 'false');
+    steps[1].setAttribute('aria-disabled', qty >= 9 ? 'true' : 'false');
+    $('[data-hero-price]').textContent = money(6500);
+    $('[data-hero-total]').textContent = money(6500 * qty);
+  }
+
+  swatches.forEach(function (b, i) { b.addEventListener('click', function () { pickSwatch(i); runDemo(); }); });
+  steps.forEach(function (b) {
+    b.addEventListener('click', function () { qty = Math.min(9, Math.max(1, qty + +b.getAttribute('data-step'))); updateHero(); });
+  });
+  $('[data-add]', cv).addEventListener('click', function () {
+    var chip = $('[data-chip]', cv);
+    chip.classList.remove('is-bump'); void chip.offsetWidth; chip.classList.add('is-bump');
+  });
+  pauseBtn.addEventListener('click', function () { paused = !paused; syncPause(); runDemo(); });
+  cv.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { hovering = true; runDemo(); } });
+  cv.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { hovering = false; runDemo(); } });
+  cv.addEventListener('focusin', function () { focused = true; runDemo(); });
+  cv.addEventListener('focusout', function (e) { if (!cv.contains(e.relatedTarget)) { focused = false; runDemo(); } });
+  document.addEventListener('visibilitychange', runDemo);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (en) { offscreen = !en[0].isIntersecting; runDemo(); }).observe(cv);
+  }
+  syncPause();
+  runDemo();
 
   /* ---------- Gentle scroll-in for section headings and cards ---------- */
   if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
