@@ -14,8 +14,9 @@ Live (unlisted): https://kreeative.xyz/concepts/jeere/ · English: add `?lang=en
   portfolio and not in the sitemap. Remove the `robots` meta and add it to `sitemap.xml` when
   you start sharing it (build in public, bio links).
 - Every store, product, price, fee and person on the page is a made-up example (Awa Beauté,
-  Maison Adjoa, Studio 225, delivery fees by commune). The plans are the brainstorm’s sample
-  prices, labelled as “planned, may still change”.
+  Maison Adjoa, Studio 225, delivery fees by commune). The plans use the brainstorm’s sample
+  prices; the order caps (20 / 150 / 600) are guesses to test in the seller interviews. All are
+  labelled as “planned, may still change”.
 - No logos of Wave, Orange, MTN or Moov are used: they appear as plain text.
 
 ## Waitlist
@@ -60,7 +61,9 @@ Numbers are personal data: keep the table private, and delete a row when someone
 6. Delivery by commune: pick one of 13 communes and the receipt updates (fee, total, delay).
 7. Templates: Plateau, Cocody and Treichville tabs switch the phone preview.
 8. Diaspora mode (marked “coming soon”).
-9. Pricing: Gratuit, Essentiel, Pro, Business.
+9. Pricing by sales volume, not features: every plan (even Gratuit) has every feature, human
+   support on WhatsApp, import/export and one-tap pause. Plans differ only by orders a month
+   (20, 150, 600, unlimited) and JEERE’s fee per online sale (3 %, 1 %, 0 %, 0 %).
 10. FAQ.
 11. Waitlist form (seller or diaspora buyer), with a WhatsApp share button after sign-up.
 

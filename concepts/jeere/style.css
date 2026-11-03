@@ -398,17 +398,23 @@ html:not(.js) .msg { animation: none; opacity: 1; transform: none; }
 .plan__price b { font: 600 38px/1 var(--f-text); letter-spacing: -.03em; color: var(--ink); margin-right: 2px; }
 .plan--pick .plan__price b { color: #fff; }
 .plan__alt { font-size: 14px; color: var(--muted); margin-top: 6px; }
-.plan__fee { margin-top: 14px; }
+.plan__orders { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 15px; }
+.plan__orders b { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+.plan--pick .plan__orders { border-top-color: var(--line-light); }
+.plan__fee { margin-top: 12px; }
 .plan__fee span { display: inline-block; padding: 5px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-deep); font-weight: 600; font-size: 14px; }
 .plan--pick .plan__fee span { background: color-mix(in srgb, var(--accent-light) 18%, transparent); color: var(--accent-light); }
 .plan__for { margin-top: 14px; color: var(--muted); font-size: 15px; }
-.plan ul { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 9px; font-size: 15px; }
-.plan--pick ul { border-top-color: var(--line-light); }
-.plan li { display: flex; gap: 10px; }
-.plan li::before { content: ''; flex: none; width: 6px; height: 6px; margin-top: .55em; background: var(--accent); }
-.plan--pick li::before { background: var(--accent-light); }
 @media (min-width: 700px) { .plans { grid-template-columns: 1fr 1fr; row-gap: 24px; } .plan--pick { margin-top: 0; } }
 @media (min-width: 1100px) { .plans { grid-template-columns: repeat(4, 1fr); } }
+
+/* Included in every plan */
+.included { margin-top: 18px; padding: 22px; border-radius: var(--r-lg); background: var(--grey-1); }
+.included__title { font: 600 13px/1.3 var(--f-text); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 14px; }
+.included ul { display: grid; gap: 10px; }
+.included li { display: flex; gap: 10px; font-size: 15px; }
+.included .ico { margin-top: 1px; }
+@media (min-width: 800px) { .included { padding: 26px 30px; } .included ul { grid-template-columns: 1fr 1fr; gap: 12px 32px; } }
 
 /* FAQ */
 .faq { display: grid; gap: 8px; }
