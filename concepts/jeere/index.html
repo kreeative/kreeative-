@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="fr-CI">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder (kreeative.xyz/concepts/jeere/). Without the final slash the relative
+       links below would point one folder up, so add it before anything loads. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>JEERE · La boutique en ligne de ceux qui vendent sur WhatsApp</title>
+  <meta name="description" content="Créez votre boutique depuis votre téléphone. Paiement par Wave, Orange Money, MTN MoMo ou à la livraison, commandes sur WhatsApp, prix en FCFA. Liste d’attente ouverte à Abidjan.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="JEERE · La boutique en ligne de ceux qui vendent sur WhatsApp">
+  <meta property="og:description" content="Paiement par Wave, Orange Money, MTN MoMo ou à la livraison. Commandes sur WhatsApp. Prix en FCFA. Rejoignez les 50 premières boutiques à Abidjan.">
+  <meta property="og:locale" content="fr_CI">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:url" content="https://kreeative.xyz/concepts/jeere/">
+  <meta property="og:image" content="https://kreeative.xyz/concepts/jeere/img/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#F4EEE6">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Playfair:ital,opsz,wght@0,5..1200,400..700;1,5..1200,400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <script>document.documentElement.classList.add('js');</script>
+  <script src="i18n.js" defer></script>
+  <script src="site.js" defer></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8.6 9.2c.2 2.9 3 5.9 6.1 6.3l1-1.3-1.8-1-.8.8c-1-.4-2.3-1.7-2.7-2.7l.8-.8-1-1.8z" fill="currentColor"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.8" fill="var(--paper, #fff)" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="17" r="1.8" fill="var(--paper, #fff)" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5h4l1.5-2.5h6l1.5 2.5h4v11h-17z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3.5v11M7.5 8 12 3.5 16.5 8M5 12.5v7h14v-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- The JEERE wordmark: geometric capitals; the bar that links the two Es is the brand's signature. -->
+    <symbol id="wordmark" viewBox="0 0 346 100">
+      <path fill="currentColor" d="M44 0H64V68A32 32 0 0 1 0 68V56H20V68A12 12 0 0 0 44 68Z"/>
+      <path fill="currentColor" d="M78 0H132V20H98V80H132V100H78Z"/>
+      <path fill="currentColor" d="M146 0H200V20H166V80H200V100H146Z"/>
+      <rect x="98" y="40" width="96" height="20" fill="var(--link-bar, #8F1640)"/>
+      <path fill="currentColor" fill-rule="evenodd" d="M214 0H246A30 30 0 0 1 246 60H234V100H214ZM234 20H246A10 10 0 0 1 246 40H234Z"/>
+      <path fill="currentColor" d="M240 50H262L280 100H258Z"/>
+      <path fill="currentColor" d="M292 0H346V20H312V40H340V60H312V80H346V100H292Z"/>
+    </symbol>
+    <!-- Whipped shea butter jar, drawn for the demo store -->
+    <symbol id="jar" viewBox="0 0 200 250">
+      <ellipse cx="100" cy="230" rx="74" ry="9" fill="rgba(60,35,20,.16)"/>
+      <rect x="40" y="78" width="120" height="150" rx="24" fill="#EBDDC4"/>
+      <rect x="46" y="84" width="108" height="138" rx="20" fill="#F7EEDD"/>
+      <rect x="40" y="120" width="120" height="64" fill="#FBF8F4"/>
+      <rect x="40" y="120" width="120" height="3" fill="#8F1640"/>
+      <rect x="40" y="181" width="120" height="3" fill="#8F1640"/>
+      <text x="100" y="152" text-anchor="middle" font-family="Playfair, Georgia, serif" font-size="20" letter-spacing="3" fill="#1A1512">KARITÉ</text>
+      <text x="100" y="170" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="9" letter-spacing="1.5" fill="#5C524B">FOUETTÉ · 200 G</text>
+      <rect x="52" y="92" width="9" height="124" rx="4.5" fill="#fff" opacity=".45"/>
+      <rect x="34" y="50" width="132" height="34" rx="9" fill="#2B1E17"/>
+      <rect x="34" y="74" width="132" height="10" rx="4" fill="#20160F"/>
+      <rect x="44" y="58" width="112" height="2" rx="1" fill="#4A372B"/>
+      <rect x="44" y="65" width="112" height="2" rx="1" fill="#4A372B"/>
+    </symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main" data-i18n="skip">Aller au contenu</a>
+
+<header class="head" data-head>
+  <div class="wrap head__in">
+    <a class="head__logo" href="#top" aria-label="JEERE, accueil" data-i18n-attr="aria-label:nav.home">
+      <svg class="wordmark" viewBox="0 0 346 100" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg>
+    </a>
+    <nav class="head__nav" aria-label="Menu principal" data-i18n-attr="aria-label:nav.label">
+      <a href="#comment" data-i18n="nav.how">Comment ça marche</a>
+      <a href="#livraison" data-i18n="nav.delivery">Livraison</a>
+      <a href="#modeles" data-i18n="nav.templates">Modèles</a>
+      <a href="#tarifs" data-i18n="nav.pricing">Tarifs</a>
+      <a href="#faq" data-i18n="nav.faq">Questions</a>
+    </nav>
+    <div class="head__end">
+      <div class="lang" role="group" aria-label="Langue" data-i18n-attr="aria-label:lang.label">
+        <button type="button" data-lang="fr" aria-pressed="true" lang="fr">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false" lang="en">EN</button>
+      </div>
+      <a class="btn btn--primary btn--sm" href="#liste"><span class="only-wide" data-i18n="nav.cta">Rejoindre la liste</span><span class="only-narrow" data-i18n="nav.ctaShort">Rejoindre</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- 1. Hero -->
+  <section class="hero" id="top">
+    <div class="wrap hero__grid">
+      <div class="hero__copy">
+        <p class="eyebrow" data-i18n="hero.eyebrow">Bientôt à Abidjan · Liste d’attente ouverte</p>
+        <h1 class="hero__title" data-i18n-html="hero.title">La boutique en ligne de ceux qui vendent <em>sur WhatsApp</em>.</h1>
+        <p class="hero__lead" data-i18n="hero.lead">Créez votre boutique depuis votre téléphone en 5 minutes. Vos clients commandent en un message et paient par Wave, Orange Money, MTN MoMo ou à la livraison. Vos prix restent en FCFA.</p>
+        <div class="hero__ctas">
+          <a class="btn btn--primary" href="#liste"><span data-i18n="hero.cta">Rejoindre la liste d’attente</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--ghost" href="#comment" data-i18n="hero.cta2">Voir comment ça marche</a>
+        </div>
+        <p class="hero__note"><span class="dot" aria-hidden="true"></span><span data-i18n="hero.note">Les 50 premières boutiques sont créées avec vous et offertes pendant 3 mois.</span></p>
+      </div>
+
+      <div class="hero__visual">
+        <div class="phone" role="img" aria-label="Aperçu d’une boutique JEERE sur un téléphone : un pot de beurre de karité à 6 500 FCFA et le bouton Commander sur WhatsApp." data-i18n-attr="aria-label:hero.phoneAlt">
+          <div class="phone__screen store store--plateau" aria-hidden="true">
+            <div class="store__status"><span>9:41</span><span class="store__signal"><i></i><i></i><i></i><i></i></span></div>
+            <div class="store__url"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg>awa-beaute.jeere.shop</div>
+            <div class="store__bar">
+              <svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg>
+              <span class="store__name">Awa Beauté</span>
+              <svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg>
+            </div>
+            <div class="store__photo">
+              <svg viewBox="0 0 200 250" aria-hidden="true"><use href="#jar"/></svg>
+              <span class="store__badge" data-i18n="phone.badge">Fait à Korhogo</span>
+            </div>
+            <div class="store__body">
+              <p class="store__title" data-i18n="phone.title">Beurre de karité fouetté</p>
+              <p class="store__sub" data-i18n="phone.sub">Non parfumé · pour le corps et les cheveux</p>
+              <p class="store__price" data-i18n="phone.price">6&nbsp;500&nbsp;FCFA</p>
+              <div class="store__variants"><span class="is-on">200 g</span><span>500 g</span></div>
+              <p class="store__ship"><svg class="ico" aria-hidden="true"><use href="#i-truck"/></svg><span data-i18n="phone.ship">Cocody · 1&nbsp;500&nbsp;FCFA · livré aujourd’hui</span></p>
+            </div>
+            <div class="store__cta">
+              <span class="store__wa"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg><span data-i18n="phone.order">Commander sur WhatsApp</span></span>
+              <span class="store__pay">Wave · Orange Money · MTN · <span data-i18n="phone.cod">À la livraison</span></span>
+            </div>
+          </div>
+        </div>
+
+        <ol class="chat" aria-label="Exemple : une commande sur WhatsApp" data-i18n-attr="aria-label:chat.label">
+          <li class="msg msg--in">
+            <span class="msg__who" data-i18n="chat.who1">Cliente · WhatsApp</span>
+            <span data-i18n="chat.m1">Bonjour&nbsp;! Je veux commander&nbsp;: Beurre de karité fouetté 200&nbsp;g × 2. Livraison à Cocody.</span>
+          </li>
+          <li class="msg msg--out">
+            <span class="msg__who" data-i18n="chat.who2">Réponse automatique JEERE</span>
+            <span data-i18n-html="chat.m2">Commande n°&nbsp;1042 créée. Total&nbsp;: <b>14&nbsp;500&nbsp;FCFA</b>, livraison comprise. Payer ici&nbsp;: <u>awa-beaute.jeere.shop/p/1042</u></span>
+          </li>
+          <li class="msg msg--sys">
+            <svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>
+            <span data-i18n="chat.m3">Paiement Wave reçu · 14&nbsp;500&nbsp;FCFA</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="paystrip">
+        <p class="paystrip__label" data-i18n="pay.label">Encaissez comme vos clients paient</p>
+        <ul class="paystrip__list">
+          <li>Wave</li>
+          <li>Orange Money</li>
+          <li>MTN MoMo</li>
+          <li>Moov Money</li>
+          <li data-i18n="pay.cod">Paiement à la livraison</li>
+          <li data-i18n="pay.card">Carte bancaire</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Before / after -->
+  <section class="section section--paper" id="pourquoi" aria-labelledby="why-title">
+    <div class="wrap">
+      <header class="section__head">
+        <p class="eyebrow" data-i18n="why.eyebrow">La journée d’une vendeuse en ligne</p>
+        <h2 class="h2" id="why-title" data-i18n="why.title">Vous vendez déjà. JEERE fait le reste du travail.</h2>
+      </header>
+      <div class="compare">
+        <div class="compare__col compare__col--before">
+          <h3 class="compare__title" data-i18n="why.before">Aujourd’hui</h3>
+          <ul>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg><span data-i18n="why.b1">Répondre «&nbsp;c’est combien&nbsp;?&nbsp;» toute la journée.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg><span data-i18n="why.b2">Vérifier les captures Wave une par une.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg><span data-i18n="why.b3">Recopier chaque commande dans un cahier.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg><span data-i18n="why.b4">Appeler le livreur, calculer les frais, relancer le client.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg><span data-i18n="why.b5">Perdre un colis quand le client ne décroche plus.</span></li>
+          </ul>
+        </div>
+        <div class="compare__col compare__col--after">
+          <h3 class="compare__title"><span data-i18n="why.after">Avec</span> <svg class="wordmark wordmark--inline" viewBox="0 0 346 100" role="img" aria-label="JEERE"><use href="#wordmark"/></svg></h3>
+          <ul>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="why.a1">Prix, tailles et stock visibles sur votre boutique.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="why.a2">Paiement confirmé automatiquement, sans capture d’écran.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="why.a3">Chaque commande arrive dans votre espace, avec son statut.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="why.a4">Frais de livraison calculés par commune, avant la commande.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="why.a5">Confirmation WhatsApp avant le départ du livreur, acompte possible.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Three promises -->
+  <section class="section section--ink" aria-labelledby="promises-title">
+    <div class="wrap">
+      <header class="section__head">
+        <p class="eyebrow eyebrow--light" data-i18n="prom.eyebrow">Trois promesses</p>
+        <h2 class="h2" id="promises-title" data-i18n="prom.title">Pensé pour Abidjan, pas adapté après coup.</h2>
+      </header>
+      <ol class="promises">
+        <li>
+          <span class="promises__n">01</span>
+          <h3 class="promises__title" data-i18n="prom.t1">Payé comme vos clients paient</h3>
+          <p data-i18n="prom.p1">Wave, Orange Money, MTN MoMo, Moov et le paiement à la livraison, dès le premier jour. Sans plugin, sans développeur, sans carte en dollars.</p>
+        </li>
+        <li>
+          <span class="promises__n">02</span>
+          <h3 class="promises__title" data-i18n="prom.t2">Simple comme un téléphone</h3>
+          <p data-i18n="prom.p2">Toute la boutique se crée et se gère depuis un Android, même d’entrée de gamme. Pas de code, pas d’applications payantes à empiler.</p>
+        </li>
+        <li>
+          <span class="promises__n">03</span>
+          <h3 class="promises__title" data-i18n="prom.t3">Fait pour la façon dont on vend ici</h3>
+          <p data-i18n="prom.p3">Commandes sur WhatsApp, livraison par commune, prix et factures en FCFA. En français d’abord, en anglais si vous le voulez.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 4. How it works -->
+  <section class="section" id="comment" aria-labelledby="how-title">
+    <div class="wrap">
+      <header class="section__head">
+        <p class="eyebrow" data-i18n="how.eyebrow">Comment ça marche</p>
+        <h2 class="h2" id="how-title" data-i18n="how.title">De la publication TikTok à la commande payée, sans quitter votre téléphone.</h2>
+      </header>
+      <ol class="steps">
+        <li class="step">
+          <span class="step__n">1</span>
+          <h3 class="step__title" data-i18n="how.t1">Créez votre boutique</h3>
+          <p data-i18n="how.p1">Un nom, un logo, un modèle. Inscription avec votre numéro, sans e-mail. Votre boutique est en ligne en 5 minutes.</p>
+        </li>
+        <li class="step">
+          <span class="step__n">2</span>
+          <h3 class="step__title" data-i18n="how.t2">Partagez votre lien</h3>
+          <p data-i18n="how.p2">Dans votre bio TikTok et Instagram, sur votre Statut WhatsApp, avec des fiches produit prêtes à partager.</p>
+        </li>
+        <li class="step">
+          <span class="step__n">3</span>
+          <h3 class="step__title" data-i18n="how.t3">Le client commande sur WhatsApp</h3>
+          <p data-i18n="how.p3">Il touche «&nbsp;Commander sur WhatsApp&nbsp;» et le message est déjà écrit. JEERE crée la commande et lui répond avec un lien de paiement.</p>
+        </li>
+        <li class="step">
+          <span class="step__n">4</span>
+          <h3 class="step__title" data-i18n="how.t4">Vous livrez, l’argent arrive</h3>
+          <p data-i18n="how.p4">Vous suivez chaque commande jusqu’à «&nbsp;livrée&nbsp;». Le paiement vous est versé directement par un partenaire de paiement agréé.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 5. Delivery by commune -->
+  <section class="section section--paper" id="livraison" aria-labelledby="ship-title">
+    <div class="wrap ship">
+      <div class="ship__copy">
+        <p class="eyebrow" data-i18n="ship.eyebrow">Livraison par commune</p>
+        <h2 class="h2" id="ship-title" data-i18n="ship.title">Le client voit le total avant de commander.</h2>
+        <p class="lead" data-i18n="ship.lead">Fixez vos frais une fois pour chaque commune. Fini les «&nbsp;c’est combien la livraison à Yopougon&nbsp;?&nbsp;».</p>
+        <div class="cod">
+          <h3 class="cod__title" data-i18n="ship.codTitle">Le paiement à la livraison, sans perte</h3>
+          <p data-i18n="ship.codText">Le client confirme sur WhatsApp avant le départ du livreur. Pour les grosses commandes, demandez un acompte par Wave ou Orange Money.</p>
+        </div>
+      </div>
+
+      <div class="ship__demo">
+        <fieldset class="communes">
+          <legend data-i18n="ship.legend">Livrer à&nbsp;:</legend>
+          <div class="communes__list">
+            <label><input type="radio" name="commune" value="Abobo" data-fee="2000"><span>Abobo</span></label>
+            <label><input type="radio" name="commune" value="Adjamé" data-fee="1500"><span>Adjamé</span></label>
+            <label><input type="radio" name="commune" value="Attécoubé" data-fee="2000"><span>Attécoubé</span></label>
+            <label><input type="radio" name="commune" value="Cocody" data-fee="1500" checked><span>Cocody</span></label>
+            <label><input type="radio" name="commune" value="Koumassi" data-fee="2000"><span>Koumassi</span></label>
+            <label><input type="radio" name="commune" value="Marcory" data-fee="1500"><span>Marcory</span></label>
+            <label><input type="radio" name="commune" value="Plateau" data-fee="1500"><span>Plateau</span></label>
+            <label><input type="radio" name="commune" value="Port-Bouët" data-fee="2000"><span>Port-Bouët</span></label>
+            <label><input type="radio" name="commune" value="Treichville" data-fee="1500"><span>Treichville</span></label>
+            <label><input type="radio" name="commune" value="Yopougon" data-fee="2000"><span>Yopougon</span></label>
+            <label><input type="radio" name="commune" value="Bingerville" data-fee="2500"><span>Bingerville</span></label>
+            <label><input type="radio" name="commune" value="Anyama" data-fee="3000"><span>Anyama</span></label>
+            <label><input type="radio" name="commune" value="Songon" data-fee="3000"><span>Songon</span></label>
+          </div>
+        </fieldset>
+
+        <div class="receipt" aria-live="polite">
+          <p class="receipt__head" data-i18n="ship.order">Commande n°&nbsp;1042 · Awa Beauté</p>
+          <dl>
+            <div><dt data-i18n="ship.item">Beurre de karité fouetté&nbsp;×&nbsp;2</dt><dd data-money="13000">13&nbsp;000&nbsp;FCFA</dd></div>
+            <div><dt><span data-i18n="ship.to">Livraison</span> <span data-commune>Cocody</span></dt><dd data-fee-out>1&nbsp;500&nbsp;FCFA</dd></div>
+            <div class="receipt__total"><dt data-i18n="ship.total">Total</dt><dd data-total-out>14&nbsp;500&nbsp;FCFA</dd></div>
+          </dl>
+          <p class="receipt__eta"><svg class="ico" aria-hidden="true"><use href="#i-truck"/></svg><span data-eta-out>Livré aujourd’hui</span></p>
+        </div>
+        <p class="caption" data-i18n="ship.caption">Exemple&nbsp;: frais choisis par la boutique Awa Beauté. Chaque vendeur fixe les siens.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Templates -->
+  <section class="section" id="modeles" aria-labelledby="tpl-title">
+    <div class="wrap tpl">
+      <div class="tpl__copy">
+        <p class="eyebrow" data-i18n="tpl.eyebrow">Modèles de boutique</p>
+        <h2 class="h2" id="tpl-title" data-i18n="tpl.title">Belle par défaut. Difficile à rendre moche.</h2>
+        <p class="lead" data-i18n="tpl.lead">Chaque modèle porte le nom d’un quartier d’Abidjan et passe un test avant sa sortie&nbsp;: vraies photos de vendeurs, longs textes en français, écran de 360&nbsp;px, 3G, plein soleil.</p>
+
+        <div class="tabs" role="tablist" aria-label="Modèles" data-i18n-attr="aria-label:tpl.tabs">
+          <button type="button" role="tab" id="tab-plateau" aria-controls="tpl-plateau" aria-selected="true">Plateau</button>
+          <button type="button" role="tab" id="tab-cocody" aria-controls="tpl-cocody" aria-selected="false" tabindex="-1">Cocody</button>
+          <button type="button" role="tab" id="tab-treichville" aria-controls="tpl-treichville" aria-selected="false" tabindex="-1">Treichville</button>
+        </div>
+        <div class="tpl__desc">
+          <p data-tpl-desc="plateau" data-i18n-html="tpl.plateau"><b>Éditorial</b>, grandes photos et beaucoup d’espace. Pour la mode, le luxe et les perruques.</p>
+          <p data-tpl-desc="cocody" hidden data-i18n-html="tpl.cocody"><b>Doux et minimal</b>, avec une grille produit nette. Pour la beauté, les soins et les cosmétiques.</p>
+          <p data-tpl-desc="treichville" hidden data-i18n-html="tpl.treichville"><b>Blocs de couleur</b>, grande typo, plein d’énergie. Pour le streetwear, les sneakers et les accessoires.</p>
+        </div>
+
+        <ul class="rules">
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="tpl.r1">Des palettes et des polices choisies pour vous, jamais des codes couleur.</span></li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="tpl.r2">Photos recadrées au même format&nbsp;: la grille reste alignée.</span></li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="tpl.r3">Lumière et fond corrigés. Le produit, lui, n’est jamais retouché.</span></li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="tpl.r4">Des pages légères qui s’ouvrent même en 3G.</span></li>
+        </ul>
+      </div>
+
+      <div class="tpl__preview">
+        <div class="phone phone--sm">
+          <!-- Plateau -->
+          <div class="phone__screen mini mini--plateau" role="tabpanel" id="tpl-plateau" aria-labelledby="tab-plateau">
+            <div class="mini__bar"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg><span class="mini__name">MAISON ADJOA</span><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
+            <div class="mini__hero">
+              <div class="art art--arch"></div>
+              <p class="mini__kicker" data-i18n="mini.p.kicker">Nouvelle collection</p>
+              <p class="mini__headline" data-i18n="mini.p.head">Lagune</p>
+            </div>
+            <div class="mini__grid mini__grid--2">
+              <div class="mini__item"><div class="art art--p1"></div><p data-i18n="mini.p.i1">Robe portefeuille</p><b>38&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--p2"></div><p data-i18n="mini.p.i2">Ensemble en lin</p><b>45&nbsp;000&nbsp;FCFA</b></div>
+            </div>
+          </div>
+          <!-- Cocody -->
+          <div class="phone__screen mini mini--cocody" role="tabpanel" id="tpl-cocody" aria-labelledby="tab-cocody" hidden>
+            <div class="mini__bar"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg><span class="mini__name">awa beauté</span><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
+            <div class="mini__banner"><p data-i18n-html="mini.c.head">Soins naturels,<br>faits ici.</p><div class="art art--c0"></div></div>
+            <div class="mini__chips"><span class="is-on" data-i18n="mini.c.all">Tout</span><span data-i18n="mini.c.body">Corps</span><span data-i18n="mini.c.hair">Cheveux</span></div>
+            <div class="mini__grid mini__grid--2">
+              <div class="mini__item"><div class="art art--c1"></div><p data-i18n="mini.c.i1">Beurre de karité</p><b>6&nbsp;500&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--c2"></div><p data-i18n="mini.c.i2">Savon noir</p><b>3&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--c3"></div><p data-i18n="mini.c.i3">Huile de coco</p><b>4&nbsp;500&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--c4"></div><p data-i18n="mini.c.i4">Baume à lèvres</p><b>2&nbsp;000&nbsp;FCFA</b></div>
+            </div>
+          </div>
+          <!-- Treichville -->
+          <div class="phone__screen mini mini--treichville" role="tabpanel" id="tpl-treichville" aria-labelledby="tab-treichville" hidden>
+            <div class="mini__bar"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg><span class="mini__name">STUDIO 225</span><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
+            <p class="mini__drop">DROP<br>07</p>
+            <p class="mini__tag" data-i18n="mini.t.tag">Sortie vendredi · 18&nbsp;h</p>
+            <div class="mini__grid mini__grid--2">
+              <div class="mini__item"><div class="art art--t1"></div><p data-i18n="mini.t.i1">Sneakers Bassam</p><b>35&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--t2"></div><p data-i18n="mini.t.i2">Casquette 225</p><b>8&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--t3"></div><p data-i18n="mini.t.i3">T-shirt oversize</p><b>10&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--t4"></div><p data-i18n="mini.t.i4">Sac banane</p><b>12&nbsp;000&nbsp;FCFA</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Diaspora -->
+  <section class="section section--bissap" id="diaspora" aria-labelledby="dia-title">
+    <div class="wrap dia">
+      <div class="dia__copy">
+        <p class="eyebrow eyebrow--light"><span data-i18n="dia.eyebrow">Mode diaspora</span> <span class="pill" data-i18n="dia.soon">Bientôt</span></p>
+        <h2 class="h2" id="dia-title" data-i18n="dia.title">Achetez pour la famille, depuis Montréal ou Paris.</h2>
+        <p class="lead" data-i18n="dia.lead">Vos clients de la diaspora paient par carte, en euros ou en dollars. La commande est livrée à leurs proches à Abidjan, avec une photo à la livraison comme preuve. Vous, vous recevez des FCFA.</p>
+      </div>
+      <div class="dia__card" aria-hidden="true">
+        <p class="dia__row"><span data-i18n="dia.r1k">Payé depuis</span><b data-i18n="dia.r1v">Paris · 22,87&nbsp;€ par carte</b></p>
+        <p class="dia__row"><span data-i18n="dia.r2k">Livré à</span><b data-i18n="dia.r2v">Maman · Yopougon</b></p>
+        <p class="dia__row"><span data-i18n="dia.r3k">Reçu par la boutique</span><b>15&nbsp;000&nbsp;FCFA</b></p>
+        <div class="dia__proof">
+          <div class="dia__photo"><svg class="ico" aria-hidden="true"><use href="#i-camera"/></svg></div>
+          <p><b data-i18n="dia.proofT">Photo à la livraison</b><span data-i18n="dia.proofS">Envoyée sur WhatsApp à 16&nbsp;h&nbsp;42</span></p>
+          <svg class="ico dia__ok" aria-hidden="true"><use href="#i-check"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Pricing -->
+  <section class="section" id="tarifs" aria-labelledby="price-title">
+    <div class="wrap">
+      <header class="section__head">
+        <p class="eyebrow" data-i18n="price.eyebrow">Tarifs</p>
+        <h2 class="h2" id="price-title" data-i18n="price.title">Payez JEERE en FCFA, par mobile money.</h2>
+        <p class="lead" data-i18n="price.lead">À la semaine ou au mois, avec une pause possible pendant les mois calmes. Pas de dollars, pas de double commission.</p>
+      </header>
+      <div class="plans">
+        <article class="plan">
+          <h3 class="plan__name" data-i18n="price.p1">Gratuit</h3>
+          <p class="plan__price"><b>0</b> FCFA</p>
+          <p class="plan__fee"><span data-i18n-html="price.fee3">3&nbsp;% par vente en ligne</span></p>
+          <p class="plan__for" data-i18n="price.p1for">Pour tester l’idée</p>
+          <ul>
+            <li data-i18n="price.p1a">Jusqu’à 15 produits</li>
+            <li data-i18n="price.p1b">Adresse en jeere.shop</li>
+            <li data-i18n="price.p1c">Mention JEERE sur la boutique</li>
+          </ul>
+        </article>
+        <article class="plan plan--pick">
+          <p class="plan__flag" data-i18n="price.pick">Pour la plupart des vendeurs</p>
+          <h3 class="plan__name" data-i18n="price.p2">Essentiel</h3>
+          <p class="plan__price"><b data-i18n="price.p2price">3&nbsp;000</b> <span data-i18n="price.month">FCFA / mois</span></p>
+          <p class="plan__alt" data-i18n="price.p2alt">ou 1&nbsp;000&nbsp;FCFA par semaine</p>
+          <p class="plan__fee"><span data-i18n-html="price.fee1">1&nbsp;% par vente en ligne</span></p>
+          <p class="plan__for" data-i18n="price.p2for">Pour les vendeurs actifs sur les réseaux</p>
+          <ul>
+            <li data-i18n="price.p2a">Produits illimités</li>
+            <li data-i18n="price.p2b">Commandes sur WhatsApp</li>
+            <li data-i18n="price.p2c">Outils pour le paiement à la livraison</li>
+          </ul>
+        </article>
+        <article class="plan">
+          <h3 class="plan__name">Pro</h3>
+          <p class="plan__price"><b data-i18n="price.p3price">10&nbsp;000</b> <span data-i18n="price.month">FCFA / mois</span></p>
+          <p class="plan__fee"><span data-i18n-html="price.fee0">0&nbsp;% par vente en ligne</span></p>
+          <p class="plan__for" data-i18n="price.p3for">Pour les marques qui grandissent</p>
+          <ul>
+            <li data-i18n="price.p3a">Votre propre nom de domaine</li>
+            <li data-i18n="price.p3b">Réservation de livreurs</li>
+            <li data-i18n="price.p3c">Relances WhatsApp automatiques</li>
+            <li data-i18n="price.p3d">3 comptes pour l’équipe</li>
+          </ul>
+        </article>
+        <article class="plan">
+          <h3 class="plan__name">Business</h3>
+          <p class="plan__price"><b data-i18n="price.p4price">25&nbsp;000</b> <span data-i18n="price.month">FCFA / mois</span></p>
+          <p class="plan__fee"><span data-i18n-html="price.fee0">0&nbsp;% par vente en ligne</span></p>
+          <p class="plan__for" data-i18n="price.p4for">Pour les boutiques installées</p>
+          <ul>
+            <li data-i18n="price.p4a">Plusieurs boutiques</li>
+            <li data-i18n="price.p4b">Paiement diaspora par carte</li>
+            <li data-i18n="price.p4c">Assistance prioritaire</li>
+            <li data-i18n="price.p4d">Accès API</li>
+          </ul>
+        </article>
+      </div>
+      <p class="caption caption--center" data-i18n="price.note">Tarifs prévus pour le lancement&nbsp;: ils peuvent encore changer. Les frais du partenaire de paiement s’ajoutent (par exemple 1,95&nbsp;% pour le mobile money).</p>
+    </div>
+  </section>
+
+  <!-- 9. FAQ -->
+  <section class="section section--paper" id="faq" aria-labelledby="faq-title">
+    <div class="wrap faq">
+      <header class="section__head">
+        <p class="eyebrow" data-i18n="faq.eyebrow">Questions</p>
+        <h2 class="h2" id="faq-title" data-i18n="faq.title">Ce qu’on nous demande déjà.</h2>
+      </header>
+      <div class="faq__list">
+        <details>
+          <summary data-i18n="faq.q1">JEERE garde-t-il mon argent&nbsp;?</summary>
+          <p data-i18n="faq.a1">Non. Les paiements passent par un partenaire de paiement agréé par la BCEAO et vous sont versés directement. JEERE est un logiciel&nbsp;: nous ne détenons jamais l’argent des vendeurs.</p>
+        </details>
+        <details>
+          <summary data-i18n="faq.q2">Faut-il un registre de commerce (RCCM)&nbsp;?</summary>
+          <p data-i18n="faq.a2">Pas pour vous inscrire sur la liste. Pour recevoir des paiements en ligne, le partenaire de paiement demandera au moins une pièce d’identité. Nous préparons un chemin pour les vendeurs informels&nbsp;: la pièce d’identité d’abord, le RCCM plus tard.</p>
+        </details>
+        <details>
+          <summary data-i18n="faq.q3">Mon téléphone est simple et ma connexion faible. Ça marche&nbsp;?</summary>
+          <p data-i18n="faq.a3">C’est pour vous que JEERE est conçu. L’espace vendeur s’installe comme une application sur un Android d’entrée de gamme, et les boutiques sont pensées pour s’ouvrir vite en 3G sans consommer vos données.</p>
+        </details>
+        <details>
+          <summary data-i18n="faq.q4">Quand JEERE ouvre-t-il&nbsp;?</summary>
+          <p data-i18n="faq.a4">Nous commençons par un pilote avec les premières boutiques à Abidjan. Inscrivez-vous&nbsp;: nous vous écrirons sur WhatsApp dès qu’une place est prête pour vous.</p>
+        </details>
+        <details>
+          <summary data-i18n="faq.q5">Je ne suis pas à Abidjan.</summary>
+          <p data-i18n="faq.a5">Abidjan d’abord, puis le reste de la zone UEMOA, qui partage le franc CFA. Inscrivez-vous en indiquant votre ville&nbsp;: nous ouvrirons là où vous êtes nombreux.</p>
+        </details>
+        <details>
+          <summary data-i18n="faq.q6">Je vends des produits numériques (e-books, formations).</summary>
+          <p data-i18n="faq.a6">Les produits physiques passent en premier. Les téléchargements automatiques et les liens de paiement pour le numérique arriveront dans un second temps.</p>
+        </details>
+        <details>
+          <summary data-i18n="faq.q7">Que faites-vous de mon numéro&nbsp;?</summary>
+          <p data-i18n-html="faq.a7">Nous l’utilisons seulement pour vous écrire au sujet de JEERE. Il n’est ni vendu ni partagé. Pour supprimer votre inscription, écrivez à <a href="mailto:annklyy@gmail.com?subject=JEERE%20%C2%B7%20liste%20d%E2%80%99attente">annklyy@gmail.com</a>.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Waitlist -->
+  <section class="section section--deep" id="liste" aria-labelledby="list-title">
+    <div class="wrap join">
+      <div class="join__copy">
+        <p class="eyebrow eyebrow--light" data-i18n="join.eyebrow">Liste d’attente</p>
+        <h2 class="h2" id="list-title" data-i18n="join.title">Rejoignez les 50 premières boutiques.</h2>
+        <p class="lead" data-i18n="join.lead">Nous ouvrons JEERE à Abidjan avec 50 boutiques pilotes. Nous créons la vôtre avec vous, offerte pendant 3 mois, en échange de vos retours chaque semaine.</p>
+        <ul class="join__perks">
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="join.k1">Votre boutique créée avec vous</span></li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="join.k2">3 mois offerts</span></li>
+          <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="join.k3">Un contact direct avec l’équipe sur WhatsApp</span></li>
+        </ul>
+      </div>
+
+      <div class="join__card">
+        <form class="form" id="waitlist" novalidate>
+          <fieldset class="form__role">
+            <legend class="form__label" data-i18n="form.role">Vous êtes&nbsp;:</legend>
+            <div class="seg">
+              <label><input type="radio" name="role" value="seller" checked><span data-i18n="form.seller">Je vends</span></label>
+              <label><input type="radio" name="role" value="buyer"><span data-i18n="form.buyer">J’achète depuis l’étranger</span></label>
+            </div>
+          </fieldset>
+
+          <div class="form__row">
+            <label class="form__label" for="f-name" data-i18n="form.name">Prénom</label>
+            <input class="input" id="f-name" name="first_name" type="text" autocomplete="given-name" maxlength="80" required>
+          </div>
+
+          <div class="form__row">
+            <label class="form__label" for="f-phone" data-i18n="form.phone">Numéro WhatsApp</label>
+            <div class="phonein">
+              <select class="input phonein__cc" name="cc" aria-label="Indicatif du pays" data-i18n-attr="aria-label:form.cc">
+                <option value="225" selected>🇨🇮 +225</option>
+                <option value="221">🇸🇳 +221</option>
+                <option value="223">🇲🇱 +223</option>
+                <option value="226">🇧🇫 +226</option>
+                <option value="228">🇹🇬 +228</option>
+                <option value="229">🇧🇯 +229</option>
+                <option value="227">🇳🇪 +227</option>
+                <option value="224">🇬🇳 +224</option>
+                <option value="237">🇨🇲 +237</option>
+                <option value="1">🇨🇦 +1</option>
+                <option value="33">🇫🇷 +33</option>
+                <option value="32">🇧🇪 +32</option>
+                <option value="41">🇨🇭 +41</option>
+                <option value="44">🇬🇧 +44</option>
+              </select>
+              <input class="input" id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="07 07 12 34 56" maxlength="20" required aria-describedby="f-phone-hint">
+            </div>
+            <p class="form__hint" id="f-phone-hint" data-i18n="form.phoneHint">Nous vous écrirons seulement sur WhatsApp, jamais d’appel commercial.</p>
+          </div>
+
+          <div class="form__row" data-for="seller">
+            <label class="form__label" for="f-shop"><span data-i18n="form.shop">Nom de votre boutique</span> <span class="opt" data-i18n="form.opt">facultatif</span></label>
+            <input class="input" id="f-shop" name="shop_name" type="text" maxlength="120" autocomplete="organization">
+          </div>
+
+          <div class="form__row" data-for="seller">
+            <label class="form__label" for="f-cat" data-i18n="form.cat">Ce que vous vendez</label>
+            <select class="input" id="f-cat" name="category">
+              <option value="" data-i18n="form.choose">Choisir…</option>
+              <option value="fashion" data-i18n="cat.fashion">Mode et vêtements</option>
+              <option value="hair" data-i18n="cat.hair">Perruques et mèches</option>
+              <option value="beauty" data-i18n="cat.beauty">Beauté et cosmétiques</option>
+              <option value="jewellery" data-i18n="cat.jewellery">Bijoux et accessoires</option>
+              <option value="shoes" data-i18n="cat.shoes">Chaussures et sneakers</option>
+              <option value="food" data-i18n="cat.food">Alimentation et restauration</option>
+              <option value="home" data-i18n="cat.home">Maison et déco</option>
+              <option value="crafts" data-i18n="cat.crafts">Artisanat</option>
+              <option value="digital" data-i18n="cat.digital">Produits numériques</option>
+              <option value="other" data-i18n="cat.other">Autre</option>
+            </select>
+          </div>
+
+          <fieldset class="form__row" data-for="seller">
+            <legend class="form__label" data-i18n="form.channels">Où vendez-vous aujourd’hui&nbsp;?</legend>
+            <div class="checks">
+              <label><input type="checkbox" name="channels" value="whatsapp"><span>WhatsApp</span></label>
+              <label><input type="checkbox" name="channels" value="instagram"><span>Instagram</span></label>
+              <label><input type="checkbox" name="channels" value="tiktok"><span>TikTok</span></label>
+              <label><input type="checkbox" name="channels" value="facebook"><span>Facebook</span></label>
+              <label><input type="checkbox" name="channels" value="shop"><span data-i18n="form.chShop">Boutique ou marché</span></label>
+            </div>
+          </fieldset>
+
+          <div class="form__row" data-for="seller">
+            <label class="form__label" for="f-handle"><span data-i18n="form.handle">Votre compte Instagram ou TikTok</span> <span class="opt" data-i18n="form.opt">facultatif</span></label>
+            <input class="input" id="f-handle" name="handle" type="text" maxlength="80" placeholder="@" autocapitalize="off" spellcheck="false">
+          </div>
+
+          <div class="form__row">
+            <label class="form__label" for="f-city"><span data-for="seller" data-i18n="form.citySeller">Ville ou commune</span><span data-for="buyer" hidden data-i18n="form.cityBuyer">Où vivez-vous&nbsp;?</span></label>
+            <input class="input" id="f-city" name="city" type="text" maxlength="80" list="cities" placeholder="Cocody, Abidjan" data-ph-seller="Cocody, Abidjan" data-ph-buyer="Montréal, Paris…">
+            <datalist id="cities">
+              <option value="Abobo, Abidjan"></option><option value="Adjamé, Abidjan"></option><option value="Attécoubé, Abidjan"></option>
+              <option value="Cocody, Abidjan"></option><option value="Koumassi, Abidjan"></option><option value="Marcory, Abidjan"></option>
+              <option value="Plateau, Abidjan"></option><option value="Port-Bouët, Abidjan"></option><option value="Treichville, Abidjan"></option>
+              <option value="Yopougon, Abidjan"></option><option value="Bingerville"></option><option value="Grand-Bassam"></option>
+              <option value="Bouaké"></option><option value="Yamoussoukro"></option><option value="San-Pédro"></option><option value="Dakar"></option>
+              <option value="Montréal"></option><option value="Paris"></option><option value="Bruxelles"></option>
+            </datalist>
+          </div>
+
+          <div class="form__row" data-for="seller">
+            <label class="form__label" for="f-budget"><span data-i18n="form.budget">Combien paieriez-vous par mois pour un outil comme JEERE&nbsp;?</span> <span class="opt" data-i18n="form.opt">facultatif</span></label>
+            <select class="input" id="f-budget" name="budget">
+              <option value="" data-i18n="form.choose">Choisir…</option>
+              <option value="none" data-i18n="bud.none">Rien pour l’instant</option>
+              <option value="lt2000" data-i18n="bud.lt2000">Moins de 2&nbsp;000&nbsp;FCFA</option>
+              <option value="2000-5000" data-i18n="bud.2to5">De 2&nbsp;000 à 5&nbsp;000&nbsp;FCFA</option>
+              <option value="5000-10000" data-i18n="bud.5to10">De 5&nbsp;000 à 10&nbsp;000&nbsp;FCFA</option>
+              <option value="gt10000" data-i18n="bud.gt10">Plus de 10&nbsp;000&nbsp;FCFA</option>
+            </select>
+          </div>
+
+          <label class="tick" data-for="seller">
+            <input type="checkbox" name="pilot" value="yes">
+            <span data-i18n="form.pilot">Je veux faire partie du pilote&nbsp;: boutique créée avec moi, et je donne mon avis chaque semaine.</span>
+          </label>
+
+          <label class="tick">
+            <input type="checkbox" name="consent" value="yes" required>
+            <span data-i18n="form.consent">J’accepte que JEERE m’écrive sur WhatsApp au sujet du lancement. Mes informations ne seront ni vendues ni partagées.</span>
+          </label>
+
+          <!-- Honeypot: people never see this field; bots fill it in -->
+          <div class="hp" aria-hidden="true"><label>Site web <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+          <p class="form__error" role="alert" data-form-error hidden></p>
+
+          <button class="btn btn--primary btn--block" type="submit" data-submit>
+            <span data-i18n="form.submit">Rejoindre la liste d’attente</span>
+            <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </button>
+        </form>
+
+        <div class="done" data-done hidden tabindex="-1">
+          <div class="done__mark" aria-hidden="true"><svg class="ico"><use href="#i-check"/></svg></div>
+          <h3 class="done__title" data-done-title>C’est noté&nbsp;!</h3>
+          <p data-done-text>Nous vous écrirons sur WhatsApp dès que votre place est prête.</p>
+          <a class="btn btn--primary btn--block" data-share href="https://wa.me/?text=" target="_blank" rel="noopener">
+            <svg class="ico" aria-hidden="true"><use href="#i-share"/></svg>
+            <span data-i18n="done.share">Partager JEERE sur WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <svg class="foot__mark" viewBox="0 0 346 100" role="img" aria-label="JEERE"><use href="#wordmark"/></svg>
+    <div class="foot__grid">
+      <p class="foot__tag" data-i18n="foot.tag">La boutique en ligne de ceux qui vendent sur WhatsApp.</p>
+      <nav class="foot__links" aria-label="Pied de page" data-i18n-attr="aria-label:foot.nav">
+        <a href="#comment" data-i18n="nav.how">Comment ça marche</a>
+        <a href="#tarifs" data-i18n="nav.pricing">Tarifs</a>
+        <a href="#faq" data-i18n="nav.faq">Questions</a>
+        <a href="#liste" data-i18n="nav.cta">Rejoindre la liste</a>
+      </nav>
+    </div>
+    <p class="foot__small" data-i18n-html="foot.small">JEERE est en préparation&nbsp;: les fonctions et les tarifs peuvent changer avant le lancement. Les paiements seront traités par un partenaire agréé par la BCEAO&nbsp;; JEERE ne détiendra jamais l’argent des vendeurs. Une idée née chez <a href="https://kreeative.xyz">Kreeative</a>. Contact&nbsp;: <a href="mailto:annklyy@gmail.com?subject=JEERE">annklyy@gmail.com</a></p>
+    <p class="foot__small">© 2026 JEERE</p>
+  </div>
+</footer>
+
+</body>
+</html>
