@@ -248,7 +248,7 @@
 
   /* ---------- Gentle scroll-in for section headings and cards ---------- */
   if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    var items = $$('.section__head, .feature, .compare__col, .promises li, .step, .plan, .receipt, .dia__card, .join__card');
+    var items = $$('.section__head, .feature, .compare__col, .vs, .step, .plan, .receipt, .dia__card, .join__card');
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
     }, { rootMargin: '0px 0px -8% 0px' });

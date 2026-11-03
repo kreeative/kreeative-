@@ -54,7 +54,8 @@ Numbers are personal data: keep the table private, and delete a row when someone
    in three bubbles, then the payment methods.
 2. Tout-en-un: online store, payments, orders and stock, sell everywhere, everything included.
 3. Aujourd’hui / Avec JEERE.
-4. Three promises.
+4. Pourquoi JEERE: nine common complaints about the big e-commerce platforms (six from sellers,
+   three from their customers), each with JEERE’s answer. Other platforms are not named on the page.
 5. How it works, in four steps.
 6. Delivery by commune: pick one of 13 communes and the receipt updates (fee, total, delay).
 7. Templates: Plateau, Cocody and Treichville tabs switch the phone preview.
