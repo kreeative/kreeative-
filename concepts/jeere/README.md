@@ -39,9 +39,10 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 ## Identity used on the page
 
-- **Wordmark**: geometric capitals drawn in SVG (`#wordmark` in `index.html`). The bar that
-  runs through the double E links them, for the link between a chat and a sale; in black on
-  white and white on black. The monogram (favicon) is the linked EE, white on black.
+- **Logo**: a geometric “j” drawn in SVG (`#mark` in `index.html`): a round dot above a thick
+  curved base with a small notch, next to “JEERE” set in Poppins SemiBold. Black on white, white
+  on black. The footer echoes the brand board: the word with four small icons (store, payment,
+  chat, delivery) beside the dot. The favicon is the white “j” on a black rounded square.
 - **Colours**: black and white only. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
   colour, so only the demo stores and product pictures on the page are in colour.

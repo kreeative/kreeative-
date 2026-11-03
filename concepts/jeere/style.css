@@ -31,7 +31,6 @@
   --gutter: 16px;
   --max: 1160px;
   --head-h: 64px;
-  --link-bar: var(--accent);
 }
 
 @media (min-width: 600px) { :root { --gutter: 24px; } }
@@ -70,7 +69,7 @@ ul, ol { padding: 0; list-style: none; }
   font: 600 12.5px/1.45 var(--f-text); letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
   margin-bottom: 18px;
 }
-/* The short bar before every label echoes the bar that links the two Es of the wordmark */
+/* A short bar before every label */
 .eyebrow::before { content: ''; position: absolute; left: 0; top: .5em; width: 22px; height: 4px; background: currentColor; }
 .eyebrow--light { color: var(--accent-light); }
 
@@ -109,14 +108,17 @@ ul, ol { padding: 0; list-style: none; }
 }
 .head.is-stuck { border-bottom-color: var(--line); }
 .head__in { height: var(--head-h); display: flex; align-items: center; gap: 24px; }
-.head__logo { display: block; padding: 8px 0; margin-right: auto; color: var(--ink); }
-.wordmark { width: 96px; height: auto; aspect-ratio: 346 / 100; }
+.head__logo { display: flex; align-items: center; min-height: 44px; margin-right: auto; color: var(--ink); text-decoration: none; }
+/* Logo: the geometric "j" mark + JEERE in Poppins */
+.logo { display: inline-flex; align-items: center; gap: 8px; color: inherit; }
+.logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; flex: none; }
+.logo__word { font: 600 19px/1 var(--f-display); letter-spacing: .03em; }
 .head__nav { display: none; gap: 26px; }
 .head__nav a { font-size: 15px; font-weight: 500; text-decoration: none; color: var(--muted); padding: 10px 0; }
 .head__nav a:hover { color: var(--ink); }
 .head__end { display: flex; align-items: center; gap: 10px; }
 .only-wide { display: none; }
-@media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .wordmark { width: 108px; } }
+@media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .logo__mark { height: 30px; } .logo__word { font-size: 20px; } }
 @media (min-width: 1000px) { .head__nav { display: flex; } .head__logo { margin-right: 12px; } .head__nav { margin-right: auto; } }
 
 .lang { display: flex; border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
@@ -221,7 +223,7 @@ html:not(.js) .msg { animation: none; opacity: 1; transform: none; }
 /* ---------- Sections ---------- */
 .section { padding: 72px 0; }
 .section--paper { background: var(--grey-1); }
-.section--ink { background: var(--ink); color: var(--white); --link-bar: var(--accent-light); --focus: #fff; }
+.section--ink { background: var(--ink); color: var(--white); --focus: #fff; }
 .section--ink .lead { color: var(--muted-light); }
 .section__head { max-width: 760px; margin-bottom: 40px; }
 @media (min-width: 1000px) { .section { padding: 112px 0; } .section__head { margin-bottom: 56px; } }
@@ -237,10 +239,12 @@ html:not(.js) .msg { animation: none; opacity: 1; transform: none; }
 .compare { display: grid; gap: 14px; }
 .compare__col { border-radius: var(--r-lg); padding: 24px 22px; }
 .compare__col--before { background: var(--grey-1); }
-.compare__col--after { background: var(--ink); color: var(--white); --link-bar: var(--accent-light); }
+.compare__col--after { background: var(--ink); color: var(--white); }
 .compare__title { display: flex; align-items: center; gap: 10px; font: 600 13px/1 var(--f-text); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 18px; min-height: 22px; }
 .compare__col--before .compare__title { color: var(--muted); }
-.wordmark--inline { width: 70px; color: var(--white); }
+.logo--inline { gap: 6px; color: var(--white); }
+.logo--inline .logo__mark { height: 17px; }
+.logo--inline .logo__word { font-size: 14px; letter-spacing: .06em; }
 .compare li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 16.5px; line-height: 1.45; }
 .compare__col--after li { border-top-color: var(--line-light); }
 .compare li:first-child { border-top: 0; padding-top: 0; }
@@ -479,8 +483,13 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .done p { color: var(--muted); margin-bottom: 24px; }
 
 /* ---------- Footer ---------- */
-.foot { background: var(--ink); color: var(--white); padding: 56px 0 40px; border-top: 1px solid var(--line-light); --link-bar: var(--accent-light); --focus: #fff; }
-.foot__mark { width: 100%; height: auto; aspect-ratio: 346 / 100; color: var(--white); }
+.foot { background: var(--ink); color: var(--white); padding: 56px 0 40px; border-top: 1px solid var(--line-light); --focus: #fff; }
+.foot__brand { display: flex; align-items: flex-start; gap: clamp(16px, 3vw, 28px); color: var(--white); }
+.foot__txt { display: grid; gap: 10px; justify-items: end; margin-top: clamp(14px, 2.6vw, 30px); }
+.foot__word { font: 600 clamp(22px, 3.4vw, 34px)/1 var(--f-display); letter-spacing: .04em; }
+.foot__icons { display: flex; gap: 10px; color: var(--muted-light); }
+.foot__icons .ico { width: 16px; height: 16px; --paper: var(--ink); }
+.foot__j { height: clamp(150px, 26vw, 260px); width: auto; aspect-ratio: 300 / 372; flex: none; }
 .foot__grid { display: grid; gap: 22px; margin-top: 36px; padding-top: 26px; border-top: 1px solid var(--line-light); }
 .foot__tag { font: 600 20px/1.3 var(--f-display); letter-spacing: -.02em; max-width: 18em; }
 .foot__links { display: flex; flex-wrap: wrap; gap: 6px 22px; }
