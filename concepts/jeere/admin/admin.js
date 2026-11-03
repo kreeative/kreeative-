@@ -787,10 +787,29 @@
   // 185 500 FCFA for a big figure: the number never breaks, « FCFA » smaller
   const money = (n) => '<span class="a-nowrap">' + esc(number(n)) + '</span><small>' + NB + 'FCFA</small>';
   const sampleChip = () => H`<span class="a-chip a-chip--sample">Données d’exemple</span>`;
-  // A product's picture: its photo, else its illustration (drawn by the renderer, on its colour)
+  // The demo photo of a product without a photo of its own ({ src, alt, focus, credit }), or null.
+  // The renderer resolves it; without one, the file is found from this page (../creer/img/demo/).
+  function demoPhoto(p) {
+    if (!p || !p.photo || (typeof p.image === 'string' && /^data:image\//.test(p.image))) return null;
+    try {
+      const R = window.JeereRender;
+      if (R && typeof R.photoInfo === 'function') return R.photoInfo(p.photo);
+      const e = D && typeof D.demoPhoto === 'function' ? D.demoPhoto(p.photo) : null;
+      return e ? { src: '../creer/' + (D.PHOTO_DIR || 'img/demo/') + e.file, alt: str(e.alt), focus: '', credit: {} } : null;
+    } catch (e) { return null; }
+  }
+  // A product's picture: its photo, else its demo photo, else its illustration (drawn by the renderer, on its colour)
   function visual(p) {
     if (p && typeof p.image === 'string' && /^data:image\//.test(p.image)) return '<img src="' + esc(p.image) + '" alt="">';
+    const ph = demoPhoto(p);
+    // data-art / data-color: the illustration that replaces a demo photo whose file does not load (onImgError)
+    if (ph) return '<img src="' + esc(ph.src) + '" alt="" data-art="' + esc(str(p.art)) + '" data-color="' + esc(str(p.color)) + '"' + (ph.focus ? ' style="object-position:' + esc(ph.focus) + '"' : '') + '>';
     try { const R = window.JeereRender; return R && R.artSVG ? R.artSVG(p && p.art, p && p.color) : ''; } catch (e) { return ''; }
+  }
+  function onImgError(e) {
+    const t = e.target;
+    if (!t || t.tagName !== 'IMG' || !t.hasAttribute('data-art') || !t.parentNode) return;
+    try { const R = window.JeereRender; t.outerHTML = R && R.artSVG ? R.artSVG(t.getAttribute('data-art'), t.getAttribute('data-color')) : ''; } catch (err) { /* ignore */ }
   }
   function thumb(p, cls) {
     return '<span class="a-thumb' + (cls ? ' ' + cls : '') + '" style="background:' + safeColor(p && p.color) + '">' + visual(p) + '</span>';
@@ -1833,7 +1852,10 @@
     return bits.join(' · ');
   }
   const hasPhoto = (p) => typeof p.image === 'string' && /^data:image\//.test(p.image);
-  const noPhotoChip = () => H`<span class="a-chip a-chip--line a-chip--nophoto">${ico('camera')}Sans photo</span>`;
+  // A demo photo is not the seller's photo yet: those products stay « sans vraie photo »
+  const noPhotoChip = (p) => (demoPhoto(p)
+    ? H`<span class="a-chip a-chip--line a-chip--nophoto">${ico('camera')}Photo d’exemple</span>`
+    : H`<span class="a-chip a-chip--line a-chip--nophoto">${ico('camera')}Sans photo</span>`);
   // A thumbnail, with a small camera badge while the product has no real photo
   function pthumb(p) { return '<span class="a-pthumb">' + thumb(p) + (hasPhoto(p) ? '' : '<span class="a-pthumb__badge" aria-hidden="true">' + ico('camera') + '</span>') + '</span>'; }
   function productsListHTML() {
@@ -1850,12 +1872,12 @@
     const grid = S.admin.prefs.productView === 'grid';
     if (grid) {
       return H`<ul class="a-pgrid">${list.map((p) => H`<li><article class="a-pcard">
-        <a class="a-pcard__link" href="#produits/${esc(p.id)}"><span class="a-pcard__img" style="background:${safeColor(p.color)}">${visual(p)}${p.badge && BADGES()[p.badge] ? H`<span class="a-chip a-chip--ink a-pcard__badge">${esc(BADGES()[p.badge])}</span>` : ''}${hasPhoto(p) ? '' : H`<span class="a-pcard__nophoto">${noPhotoChip()}</span>`}</span>
+        <a class="a-pcard__link" href="#produits/${esc(p.id)}"><span class="a-pcard__img" style="background:${safeColor(p.color)}">${visual(p)}${p.badge && BADGES()[p.badge] ? H`<span class="a-chip a-chip--ink a-pcard__badge">${esc(BADGES()[p.badge])}</span>` : ''}${hasPhoto(p) ? '' : H`<span class="a-pcard__nophoto">${noPhotoChip(p)}</span>`}</span>
           <span class="a-pcard__body"><span class="a-pcard__name">${esc(p.name || 'Sans nom')}</span><span class="a-pcard__price">${esc(price(p.price))}</span><span class="a-pcard__meta">${productMeta(p) || '&nbsp;'}</span></span></a>
         <button class="a-ibtn a-pcard__more" type="button" data-act="product-more" data-id="${esc(p.id)}" aria-label="${esc('Actions pour ' + (p.name || 'ce produit'))}">${ico('more')}</button></article></li>`)}</ul>`;
     }
     return H`<div class="a-card a-card--flush"><ul class="a-rows">${list.map((p) => H`<li class="a-prow">
-      <a class="a-row" href="#produits/${esc(p.id)}">${pthumb(p)}<span class="a-row__main"><span class="a-row__title"><span>${esc(p.name || 'Sans nom')}</span></span><span class="a-prow__price">${esc(price(p.price))}</span>${productMeta(p) ? H`<span class="a-row__meta">${productMeta(p)}</span>` : ''}${hasPhoto(p) ? '' : H`<span class="a-row__tags">${noPhotoChip()}</span>`}</span>
+      <a class="a-row" href="#produits/${esc(p.id)}">${pthumb(p)}<span class="a-row__main"><span class="a-row__title"><span>${esc(p.name || 'Sans nom')}</span></span><span class="a-prow__price">${esc(price(p.price))}</span>${productMeta(p) ? H`<span class="a-row__meta">${productMeta(p)}</span>` : ''}${hasPhoto(p) ? '' : H`<span class="a-row__tags">${noPhotoChip(p)}</span>`}</span>
         <span class="a-row__end"><span class="a-row__amount">${esc(price(p.price))}</span></span></a>
       <button class="a-ibtn" type="button" data-act="product-more" data-id="${esc(p.id)}" aria-label="${esc('Actions pour ' + (p.name || 'ce produit'))}">${ico('more')}</button></li>`)}</ul></div>`;
   }
@@ -1870,7 +1892,7 @@
       ${pageHead('Produits', esc(plural(n, 'produit', 'produits') + (n ? ' · ' + plural(photos, 'avec photo', 'avec photo') : '')), H`<a class="a-btn a-btn--primary" href="#produits/nouveau">${ico('plus')}Ajouter un produit</a>`)}
       ${n ? H`<div class="a-toolbar"><div class="a-toolbar__search">${ico('search')}<label class="a-sr" for="a-pq">Rechercher un produit</label>
           <input class="a-input" id="a-pq" type="search" data-search="products" placeholder="Nom, catégorie" value="${esc(S.productQuery)}" autocomplete="off" enterkeyhint="search"></div>
-        <div class="a-toolbar__end">${without || S.productNoPhoto ? H`<button class="a-filter" type="button" data-act="product-nophoto" aria-pressed="${S.productNoPhoto ? 'true' : 'false'}">${ico('camera')}Sans photo<span class="a-filter__n">${without}</span></button>` : ''}
+        <div class="a-toolbar__end">${without || S.productNoPhoto ? H`<button class="a-filter" type="button" data-act="product-nophoto" aria-pressed="${S.productNoPhoto ? 'true' : 'false'}">${ico('camera')}${S.config.products.some((p) => demoPhoto(p)) ? 'Sans vraie photo' : 'Sans photo'}<span class="a-filter__n">${without}</span></button>` : ''}
         <div class="a-seg" role="group" aria-label="Affichage"><button class="a-seg__btn" type="button" data-act="product-view" data-mode="list" aria-pressed="${grid ? 'false' : 'true'}">${ico('list')}<span>Liste</span></button><button class="a-seg__btn" type="button" data-act="product-view" data-mode="grid" aria-pressed="${grid ? 'true' : 'false'}">${ico('grid')}<span>Grille</span></button></div></div></div>` : ''}
       <div id="a-plist">${productsListHTML()}</div>
       ${n ? H`<p class="a-small" style="margin-top:12px">Ces produits sont ceux de votre fiche boutique : le Studio et votre boutique montrent les mêmes.</p>` : ''}
@@ -1940,18 +1962,25 @@
       <span class="a-art__pic" style="background:${safeColor(color)}">${R && R.artSVG ? R.artSVG(k, color) : ''}</span><span class="a-art__lbl">${esc(L[k] || k)}</span></label>`).join('');
   }
   // « Prendre une photo » opens the phone's camera (capture); « Choisir dans la galerie » the pictures already taken
+  // A demo photo (p.photo) shows while there is no photo of her own, with its credit; her photo
+  // replaces it. « Retirer » on her photo brings back a demo photo still set; « Retirer la photo »
+  // on the demo photo leaves the illustration.
   function photoHTML(p) {
     const has = typeof p.image === 'string' && /^data:image\//.test(p.image);
-    return H`<div class="a-photo__pic" style="background:${safeColor(p.color)}">${visual(p)}${has ? '' : H`<span class="a-chip a-chip--line a-photo__tag">Illustration</span>`}</div>
+    const ph = has ? null : demoPhoto(p);
+    const c = ph && ph.credit ? ph.credit : {};
+    const link = (url, text) => (url ? H`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
+    const credit = ph ? H`<p class="a-photo__credit">Photo d’exemple · ${c.name ? link(c.profileUrl, c.name) + ' / ' : ''}${link(c.photoUrl, 'Unsplash')}</p>` : '';
+    return H`<div class="a-photo__pic" style="background:${safeColor(p.color)}">${visual(p)}${has ? '' : H`<span class="a-chip a-chip--line a-photo__tag">${ph ? 'Photo d’exemple' : 'Illustration'}</span>`}</div>${credit}
       <div class="a-photo__btns"><label class="a-btn a-btn--primary a-btn--lg a-filebtn a-filebtn--cam">${ico('camera')}<span>${has ? 'Reprendre une photo' : 'Prendre une photo'}</span><input type="file" accept="image/*" capture="environment" data-photo aria-label="${has ? 'Reprendre une photo avec l’appareil photo' : 'Prendre une photo avec l’appareil photo'}"></label>
       <label class="a-btn a-btn--ghost a-filebtn a-filebtn--pick">${ico('image')}<span class="a-filebtn__touch">Choisir dans la galerie</span><span class="a-filebtn__mouse">${has ? 'Changer la photo' : 'Choisir une photo'}</span><input type="file" accept="image/*" data-photo aria-label="${has ? 'Changer la photo' : 'Choisir une photo'}"></label>
-      ${has ? H`<button class="a-btn a-btn--quiet" type="button" data-act="photo-remove">${ico('trash')}Retirer</button>` : ''}</div>`;
+      ${has || ph ? H`<button class="a-btn a-btn--quiet" type="button" data-act="photo-remove">${ico('trash')}${ph ? 'Retirer la photo' : 'Retirer'}</button>` : ''}</div>`;
   }
   function viewProduct(pid) {
     const isNew = pid === 'nouveau';
     const niche = D.niches && S.config.store.niche && D.niches[S.config.store.niche];
     const p0 = isNew
-      ? { id: '', name: '', price: '', category: '', badge: null, art: (niche && niche.art) || 'box', color: (niche && niche.color) || COLORS()[0], description: '', image: null }
+      ? { id: '', name: '', price: '', category: '', badge: null, art: (niche && niche.art) || 'box', color: (niche && niche.color) || COLORS()[0], description: '', image: null, photo: null }
       : findProduct(pid);
     if (!p0) return notFound('Produit introuvable', '#produits', 'Retour aux produits');
     const dr = takeDraft('product');
@@ -1959,7 +1988,8 @@
       id: p0.id,
       name: pick(dr, 'name', p0.name), price: pick(dr, 'price', p0.price === '' ? '' : number(p0.price)), category: pick(dr, 'category', p0.category),
       badge: pick(dr, 'badge', p0.badge || ''), art: pick(dr, 'art', p0.art), color: pick(dr, 'color', p0.color), description: pick(dr, 'description', p0.description),
-      image: pick(dr, 'image', p0.image || '') || null, stock: pick(dr, 'stock', isNew ? '' : (stockOf(p0.id) === null ? '' : String(stockOf(p0.id))))
+      image: pick(dr, 'image', p0.image || '') || null, photo: pick(dr, 'photo', p0.photo || '') || null,
+      stock: pick(dr, 'stock', isNew ? '' : (stockOf(p0.id) === null ? '' : String(stockOf(p0.id))))
     };
     const cats = Array.from(new Set(S.config.products.map((x) => x.category).filter(Boolean)));
     const B = BADGES();
@@ -1967,7 +1997,7 @@
     return H`<div class="a-page">
       ${pageHead(title, isNew ? 'Il apparaît dans votre boutique dès que vous l’enregistrez.' : 'Modifiez-le ici ou dans le Studio : c’est le même produit.', '', { href: '#produits', label: 'Produits' })}
       <form class="a-form" data-form="product" data-id="${esc(p0.id)}" data-dirty-label="${isNew ? 'Nouveau produit non enregistré' : 'Modifications non enregistrées'}" novalidate>
-        <input type="hidden" name="image" value="${esc(p.image || '')}">
+        <input type="hidden" name="image" value="${esc(p.image || '')}"><input type="hidden" name="photo" value="${esc(p.photo || '')}">
         <div class="a-cols">
           <div class="a-stack">
             <section class="a-card" aria-labelledby="h-pphoto"><div class="a-card__head"><div><h2 class="a-card__title" id="h-pphoto">Photo</h2><p class="a-card__sub">Une photo nette, à la lumière du jour. Nous la réduisons à 800 px de large pour qu’elle charge vite.</p></div></div>
@@ -2008,7 +2038,7 @@
   // Live bits of the product form: the photo preview and the illustrations follow the colour
   function productFormLive(form) {
     const v = serialize(form);
-    const p = { image: v.image || null, art: v.art, color: v.color };
+    const p = { image: v.image || null, photo: v.photo || null, art: v.art, color: v.color };
     const ph = $('#p-photo', form);
     if (ph) ph.innerHTML = photoHTML(p);
     const arts = $('#p-arts', form);
@@ -2053,6 +2083,7 @@
     if (btn) btn.classList.add('is-busy');
     readImage(file).then((data) => {
       form.elements.image.value = data;
+      if (form.elements.photo) form.elements.photo.value = ''; // her photo replaces the demo photo
       productFormLive(form);
       setDirty(form);
       toast('Photo ajoutée. Pensez à enregistrer.');
@@ -2084,7 +2115,8 @@
     const prod = {
       name, price: pr, category: clip(v.category, 40), badge: BADGES()[v.badge] ? v.badge : null,
       art: ART_KINDS().indexOf(v.art) >= 0 ? v.art : 'box', color: safeColor(v.color),
-      description: str(v.description).trim().slice(0, 600), image: /^data:image\//.test(str(v.image)) ? v.image : null
+      description: str(v.description).trim().slice(0, 600), image: /^data:image\//.test(str(v.image)) ? v.image : null,
+      photo: D && typeof D.photoId === 'function' ? D.photoId(str(v.photo)) : null
     };
     let savedId = id;
     const saved = editConfig((cfg) => {
@@ -3432,7 +3464,8 @@
     'product-dup': (el) => { if (S.dirty) { nudgeSave(); return; } duplicateProduct(el.getAttribute('data-id')); },
     'product-del': (el) => deleteProduct(el.getAttribute('data-id')),
     'product-view-store': (el) => openEditor({ page: 'product', productId: el.getAttribute('data-id'), view: 'preview' }),
-    'photo-remove': (el) => { const f = el.closest('form'); if (!f) return; f.elements.image.value = ''; productFormLive(f); setDirty(f); const b = $$('.a-filebtn input', f).find((x) => visible(x.closest('.a-filebtn'))); if (b) b.focus(); },
+    // her photo first (a demo photo still set shows again), else the demo photo
+    'photo-remove': (el) => { const f = el.closest('form'); if (!f) return; if (f.elements.image.value) f.elements.image.value = ''; else if (f.elements.photo) f.elements.photo.value = ''; productFormLive(f); setDirty(f); const b = $$('.a-filebtn input', f).find((x) => visible(x.closest('.a-filebtn'))); if (b) b.focus(); },
     'intensity': (el) => setIntensity(el.getAttribute('data-v')),
     'page-move': (el) => movePage(el.getAttribute('data-id'), parseInt(el.getAttribute('data-dir'), 10) || 1),
     'page-more': (el) => pageActions(el.getAttribute('data-id')),
@@ -3648,6 +3681,7 @@
     document.addEventListener('input', onInput);
     document.addEventListener('change', onChange);
     document.addEventListener('keydown', onKeydown);
+    document.addEventListener('error', onImgError, true); // load errors do not bubble
     window.addEventListener('hashchange', () => { if (S.inApp) render(parseHash(), true); });
     window.addEventListener('storage', (e) => { if (!e.key || e.key === KEYS.config || e.key === KEYS.account || e.key === KEYS.admin) syncFromStorage(); });
     window.addEventListener('pageshow', (e) => { if (e.persisted) syncFromStorage(); });

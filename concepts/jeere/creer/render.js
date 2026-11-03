@@ -3,7 +3,14 @@
  * Turns a fiche boutique (store config v1) into a store page, with one of three tested templates:
  * Plateau (editorial), Cocody (soft) and Treichville (bold).
  *
- * Global: window.JeereRender = { render, ensureFonts, artSVG, pages, PAGES }
+ * Global: window.JeereRender = { render, ensureFonts, artSVG, pages, PAGES, photoSrc, photoInfo, PHOTO_BASE }
+ *
+ * photoSrc(id) / photoInfo(id): the URL (or the catalogue entry with its src) of a demo photo of
+ *   JEERE_DATA.DEMO_PHOTOS, null for an unknown id. Demo photos live in img/demo/ next to this
+ *   file (PHOTO_BASE, read from this script's address). Every picture follows the same order: the
+ *   seller's own image, else the demo photo (products[].photo, settings.photo of hero and about),
+ *   else the illustration. A demo photo whose file does not load is dropped for the rest of the
+ *   page's life (photoInfo then answers null) and the store is drawn again without it.
  *
  * render(config, rootEl, { device: 'phone' | 'desktop', page: 'home' | 'product' | 'cart' |
  *   'checkout' | 'confirmation' | 'page', productId, pageId })
@@ -136,6 +143,55 @@
 
   const IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
   const validImage = (v) => (typeof v === 'string' && v.length < 16000000 && IMAGE_RE.test(v) ? v.replace(/\s+/g, '') : null);
+
+  /* Demo photos (JEERE_DATA.DEMO_PHOTOS): real photos hosted in img/demo/ next to this file. The
+   * folder comes from this script's own address, read once while it loads, so the same id gives
+   * the same file from creer/, admin/ and compte/. The fiche only holds ids (products[].photo,
+   * settings.photo of hero and about); the seller's own image always wins. */
+  const PHOTO_BASE = (() => {
+    try {
+      const src = typeof document !== 'undefined' && document.currentScript ? str(document.currentScript.src) : '';
+      if (src) return src.replace(/[?#].*$/, '').replace(/[^/]*$/, '') + 'img/demo/';
+    } catch (e) { /* not in a browser */ }
+    return 'img/demo/';
+  })();
+  const PHOTO_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const PHOTO_FILE_RE = /^[a-z0-9][a-z0-9_-]*(?:\/[a-z0-9][a-z0-9_-]*)*\.(?:webp|jpe?g|png|avif)$/i;
+  const FOCUS_PART = '(?:-?\\d{1,3}(?:\\.\\d+)?%|left|center|right|top|bottom)';
+  const FOCUS_RE = new RegExp('^' + FOCUS_PART + '(?:\\s+' + FOCUS_PART + ')?$', 'i');
+  const httpsUrl = (v) => (typeof v === 'string' && /^https:\/\/[^\s"'<>\\]+$/i.test(v) ? v : '');
+  // Demo photos whose file did not load on this page (missing, misspelt, offline): from then on they
+  // count as unknown, so the store draws what it drew before (the illustration, the composition).
+  const MISSING = Object.create(null);
+
+  // A demo photo: { id, file, src, alt, focus, credit: { name, username, photoUrl, profileUrl } },
+  // or null (unknown id, entry without a valid file, file that did not load, older data.js without a catalogue).
+  function photoInfo(id) {
+    try {
+      const d = DATA();
+      const cat = d && isObj(d.DEMO_PHOTOS) ? d.DEMO_PHOTOS : null;
+      if (!cat || typeof id !== 'string' || !PHOTO_ID_RE.test(id) || MISSING[id] === true || !own(cat, id)) return null;
+      const e = cat[id];
+      if (!isObj(e) || typeof e.file !== 'string' || !PHOTO_FILE_RE.test(e.file)) return null;
+      const c = isObj(e.credit) ? e.credit : {};
+      const focus = str(e.focus).trim().replace(/\s+/g, ' ');
+      return {
+        id: id, file: e.file, src: PHOTO_BASE + e.file, alt: str(e.alt).trim(), focus: FOCUS_RE.test(focus) ? focus : '',
+        credit: { name: str(c.name).trim(), username: str(c.username).trim(), photoUrl: httpsUrl(c.photoUrl), profileUrl: httpsUrl(c.profileUrl) }
+      };
+    } catch (e) { return null; }
+  }
+  function photoSrc(id) { const p = photoInfo(id); return p ? p.src : null; }
+
+  // A hero or about image: the seller's (settings.image), else the section's demo photo (settings.photo).
+  function sectionImage(st) {
+    const mine = validImage(st.image);
+    if (mine) return { src: mine, id: '', focus: '' };
+    return photoInfo(st.photo);
+  }
+  // The marks of a demo photo's <img> (ph: photoInfo): its id, so a file that does not load is dropped
+  // (onPhotoError), and its crop. Nothing for the seller's photos (centred, as before).
+  const photoAttrs = (ph) => (ph && ph.id ? ' data-demo-photo="' + esc(ph.id) + '"' + (ph.focus ? ' style="object-position:' + esc(ph.focus) + '"' : '') : '');
 
   /* ------------------------------------------------------------------ colours */
 
@@ -605,9 +661,13 @@
     return s.enabled === false || s.enabled === 0 || s.enabled === 'false' || s.enabled === 'non' || s.enabled === 'off';
   }
 
+  // image is what the store shows: the seller's photo, else the demo photo's URL (photo, focus), else
+  // null (the illustration). ownImage tells the seller's photo apart.
   function normProduct(p, i, d) {
     const kinds = Array.isArray(d.ART_KINDS) ? d.ART_KINDS : Object.keys(ART);
     const price = num(p.price);
+    const mine = validImage(p.image);
+    const photo = mine ? null : photoInfo(p.photo);
     return {
       id: str(p.id) || 'p' + (i + 1),
       name: str(p.name).trim(),
@@ -617,7 +677,10 @@
       art: kinds.indexOf(p.art) !== -1 && own(ART, p.art) ? p.art : 'box',
       color: validHex(p.color) || '#E9D8BD',
       description: str(p.description),
-      image: validImage(p.image)
+      image: mine || (photo ? photo.src : null),
+      ownImage: !!mine,
+      photo: photo,
+      focus: photo ? photo.focus : ''
     };
   }
 
@@ -849,13 +912,17 @@
   // Dark or white ink, whichever reads better on the tile.
   function inkOn(bg) { return contrast('#15120E', bg) >= contrast('#FFFFFF', bg) ? '#15120E' : '#FFFFFF'; }
 
-  // A product visual: the seller's photo if there is one, else the illustration on a tile of its colour.
+  // A product visual: the seller's photo if there is one, else its demo photo, else the illustration
+  // on a tile of its colour.
   function media(p, cls, extra) {
     const inner = p.image
-      ? '<img src="' + esc(p.image) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async">'
+      ? '<img src="' + esc(p.image) + '" alt="' + esc(p.name || (p.photo ? p.photo.alt : '')) + '"' + photoAttrs(p.photo) + ' loading="lazy" decoding="async">'
       : artSVG(p.art, p.color);
     return '<div class="jst-tile' + (p.image ? ' has-photo' : '') + (cls ? ' ' + cls : '') + '" style="' + tileStyle(p.color) + '">' + inner + (extra || '') + '</div>';
   }
+
+  // The first products inside a hero or about composition: decorative (the name is next to it).
+  const leadPic = (p) => (p.image ? '<img src="' + esc(p.image) + '" alt=""' + photoAttrs(p.photo) + '>' : artSVG(p.art, p.color));
 
   function badge(b, d) {
     if (!b || !own(d.BADGES, b)) return '';
@@ -1036,14 +1103,15 @@
 
   function secHero(m, s) {
     const st = s.settings;
-    const img = validImage(st.image);
+    const pic = sectionImage(st);
+    const img = pic ? pic.src : null;
     const p = m.lead;
-    const imgTag = img ? '<img class="jst-hero-img" src="' + esc(img) + '" alt="" decoding="async">' : '';
+    const imgTag = img ? '<img class="jst-hero-img" src="' + esc(img) + '" alt=""' + photoAttrs(pic) + ' decoding="async">' : '';
 
     if (m.tpl === 'cocody') {
       const visual = img
         ? '<div class="jst-hero-photo">' + imgTag + '</div>'
-        : '<div class="jst-hero-circle" style="' + tileStyle(p.color) + '">' + (p.image ? '<img src="' + esc(p.image) + '" alt="">' : artSVG(p.art, p.color)) + '</div>';
+        : '<div class="jst-hero-circle" style="' + tileStyle(p.color) + '">' + leadPic(p) + '</div>';
       const float = m.products[0]
         ? '<div class="jst-float"' + go('product', m.products[0].id) + '>' + media(m.products[0], 'jst-float-media') +
           '<div class="jst-float-body"><p class="jst-float-name">' + esc(m.products[0].name || 'Produit') + '</p>' + priceHTML(m.products[0].price) + '</div></div>'
@@ -1058,7 +1126,7 @@
     if (m.tpl === 'treichville') {
       const block = img
         ? '<div class="jst-hero-block has-img">' + imgTag + '</div>'
-        : '<div class="jst-hero-block" style="' + tileStyle(p.color) + '">' + (p.image ? '<img src="' + esc(p.image) + '" alt="">' : artSVG(p.art, p.color)) + '</div>';
+        : '<div class="jst-hero-block" style="' + tileStyle(p.color) + '">' + leadPic(p) + '</div>';
       const sticker = m.minPrice !== null
         ? '<div class="jst-sticker" aria-hidden="true"><span>Dès</span><b>' + esc(fmtNum(m.minPrice)) + '</b><span>FCFA</span></div>'
         : '';
@@ -1089,7 +1157,7 @@
       const btnVars = ';--hero-btn-bg:' + (solidOk ? c.accent : ink) + ';--hero-btn-fg:' + (solidOk ? c.onAccent : t.tile) + ';--hero-btn-line:' + (lineOk ? c.accent : ink);
       stage = '<div class="jst-hero-stage" style="--tile:' + t.tile + ';--tile-hi:' + t.hi + ';--ink:' + ink + btnVars + '">' +
         heroCopy(m, st, 'jst-kicker') +
-        '<div class="jst-hero-art"><div class="jst-arch">' + (p.image ? '<img src="' + esc(p.image) + '" alt="">' : artSVG(p.art, p.color)) + '</div>' + cap + '</div>' +
+        '<div class="jst-hero-art"><div class="jst-arch">' + leadPic(p) + '</div>' + cap + '</div>' +
         '</div>';
     }
     return sectionOpen(s) + stage + '</section>';
@@ -1147,11 +1215,12 @@
       '<div class="jst-grid" data-cols="' + cols + '">' + list.map((p) => productCard(m, p)).join('') + '</div></div></section>';
   }
 
-  function aboutVisual(m, img) {
-    if (img) return '<div class="jst-about-media has-img"><img src="' + esc(img) + '" alt="" loading="lazy" decoding="async"></div>';
+  // pic: the section's image or demo photo ({ src, focus }), else a composition of the first products.
+  function aboutVisual(m, pic) {
+    if (pic) return '<div class="jst-about-media has-img"><img src="' + esc(pic.src) + '" alt=""' + photoAttrs(pic) + ' loading="lazy" decoding="async"></div>';
     const a = m.lead, b = m.second;
     const t = tileColors(a.color);
-    const art = (p, cls) => '<div class="jst-about-art ' + cls + '">' + (p.image ? '<img src="' + esc(p.image) + '" alt="">' : artSVG(p.art, p.color)) + '</div>';
+    const art = (p, cls) => '<div class="jst-about-art ' + cls + '">' + leadPic(p) + '</div>';
     return '<div class="jst-about-media" style="--tile:' + t.tile + ';--tile-hi:' + t.hi + ';--ink:' + inkOn(t.tile) + (b ? ';--tile-2:' + tileColors(b.color).tile : '') + '">' +
       '<span class="jst-about-deco" aria-hidden="true"></span>' +
       (b ? art(b, 'jst-about-art--b') : '') + art(a, 'jst-about-art--a') +
@@ -1163,7 +1232,7 @@
     const st = s.settings;
     const title = str(st.title).trim();
     const text = paras(st.text);
-    return sectionOpen(s) + '<div class="jst-wrap jst-about">' + aboutVisual(m, validImage(st.image)) +
+    return sectionOpen(s) + '<div class="jst-wrap jst-about">' + aboutVisual(m, sectionImage(st)) +
       '<div class="jst-about-copy">' +
       (m.tpl === 'plateau' ? '<p class="jst-kicker">À propos</p>' : '') +
       (title ? '<h2 class="jst-h jst-about-title">' + line(title) + '</h2>' : '') +
@@ -1934,10 +2003,22 @@
     if (committed && key === 'commune') { rootEl.__jstErr = null; refresh(rootEl); }
   }
 
+  // A demo photo whose file does not load: forget it on this page and draw the store again, as if the
+  // fiche had no photo there (once per photo: the new markup no longer asks for that file).
+  function onPhotoError(rootEl, t) {
+    const id = t && t.tagName === 'IMG' && typeof t.getAttribute === 'function' ? t.getAttribute('data-demo-photo') : null;
+    if (!id) return;
+    MISSING[id] = true;
+    clearTimeout(rootEl.__jstPhotoTimer);
+    rootEl.__jstPhotoTimer = setTimeout(() => { try { refresh(rootEl); } catch (e) { /* ignore */ } }, 0);
+  }
+
   function bind(rootEl) {
     if (rootEl.__jstBound || typeof rootEl.addEventListener !== 'function') return;
     rootEl.__jstBound = true;
     rootEl.addEventListener('click', (e) => { try { onClick(rootEl, e); } catch (err) { /* never break the host page */ } });
+    // load errors do not bubble: listen while they go down to the <img>
+    rootEl.addEventListener('error', (e) => { try { onPhotoError(rootEl, e.target); } catch (err) { /* ignore */ } }, true);
     rootEl.addEventListener('input', (e) => { try { onField(rootEl, e, false); } catch (err) { /* ignore */ } });
     rootEl.addEventListener('change', (e) => { try { onField(rootEl, e, true); } catch (err) { /* ignore */ } });
     rootEl.addEventListener('submit', (e) => e.preventDefault());
@@ -2045,5 +2126,8 @@
     return rootEl;
   }
 
-  root.JeereRender = { render: render, ensureFonts: ensureFonts, artSVG: artSVG, pages: pagesList, PAGES: PAGES_FALLBACK };
+  root.JeereRender = {
+    render: render, ensureFonts: ensureFonts, artSVG: artSVG, pages: pagesList, PAGES: PAGES_FALLBACK,
+    photoSrc: photoSrc, photoInfo: photoInfo, PHOTO_BASE: PHOTO_BASE
+  };
 })();

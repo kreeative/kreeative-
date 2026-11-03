@@ -365,7 +365,11 @@
 .jst[data-tpl="plateau"] .jst-hero-cap span:nth-child(2) { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .jst .jst-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .jst[data-tpl="plateau"] .jst-hero-stage.has-img { justify-content: flex-end; min-height: 600px; background: #2B2723; }
-.jst[data-tpl="plateau"] .jst-hero-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(0, 0, 0, .68) 0%, rgba(0, 0, 0, .36) 42%, rgba(0, 0, 0, 0) 72%); }
+.jst[data-tpl="plateau"] .jst-hero-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(0, 0, 0, .4) 0%, rgba(0, 0, 0, 0) 60%); }
+/* phone: the copy sits on the photo; a scrim as tall as the copy, however long it is, keeps the white
+   text (kicker, title, body) at 4.5:1 even over a white wall, then fades out above it */
+.jst[data-tpl="plateau"] .jst-hero-stage.has-img .jst-hero-copy::after { content: ''; position: absolute; z-index: -1; inset: -88px 0 0; background: linear-gradient(to top, rgba(0, 0, 0, .55), rgba(0, 0, 0, .55) calc(100% - 88px), rgba(0, 0, 0, 0)); pointer-events: none; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img .jst-hero-copy::after { display: none; }
 .jst .jst-hero-stage.has-img .jst-btn,
 .jst .jst-hero-block.has-img ~ .jst-btn { background: var(--st-photo-btn-bg); color: var(--st-photo-btn-fg); border-color: var(--st-photo-btn-bg); }
 .jst[data-buttons="outline"] .jst-hero-stage.has-img .jst-btn { background: transparent; color: #FFFFFF; border-color: #FFFFFF; }
@@ -386,7 +390,7 @@
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-cap { top: 40px; left: auto; right: var(--st-gutter); width: 82%; max-width: 420px; font-size: 11.5px; justify-content: space-between; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img { min-height: 680px; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img .jst-hero-copy { grid-column: 1; }
-.jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-scrim { background: linear-gradient(90deg, rgba(0, 0, 0, .64) 0%, rgba(0, 0, 0, .38) 44%, rgba(0, 0, 0, 0) 76%); }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-scrim { background: linear-gradient(90deg, rgba(0, 0, 0, .7) 0%, rgba(0, 0, 0, .62) 48%, rgba(0, 0, 0, 0) 84%); }
 
 /* section heads */
 .jst[data-tpl="plateau"] .jst-head { align-items: baseline; padding-bottom: 16px; margin-bottom: 28px; border-bottom: 1px solid var(--st-line); }

@@ -878,6 +878,11 @@ a.a-orow:focus-visible { outline-offset: -3px; }
 .a-photo__pic { position: relative; aspect-ratio: 1 / 1; max-width: 280px; width: 100%; border-radius: 14px; overflow: hidden; background: var(--grey-2); box-shadow: inset 0 0 0 1px var(--line); }
 .a-photo__pic img, .a-photo__pic svg { display: block; width: 100%; height: 100%; object-fit: cover; }
 .a-photo__tag { position: absolute; left: 8px; bottom: 8px; }
+/* « Photo d’exemple · Prénom Nom / Unsplash » under a demo photo: muted, links without underline */
+/* the two links are 44 px tall to tap: the caption's line grows, -12px takes back the gaps around it */
+.a-photo__credit { margin: -12px 0; max-width: 280px; font-size: 12.5px; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
+.a-photo__credit a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; font-weight: 500; text-decoration: none; }
+.a-photo__credit a:hover { color: var(--ink); }
 .a-filebtn { position: relative; overflow: hidden; }
 .a-filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
 .a-filebtn:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }

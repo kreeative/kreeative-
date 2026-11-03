@@ -122,6 +122,7 @@ Si tu ne comprends pas une réponse, dis-le simplement et propose des réponses 
 - Quand tu changes de modèle, ne donne pas les polices : le code applique celles du modèle et garde la palette et l’intensité des couleurs choisies.
 - products[].color : une des couleurs de tuile du catalogue, celle qui va le mieux avec le produit.
 - N’écris jamais de champ image : seules les photos de la vendeuse vont dans la fiche, et c’est l’éditeur qui les ajoute.
+- Les champs photo (products[].photo, et settings.photo des sections hero et about) sont les photos d’exemple de Jeere : c’est Jeere qui les remplit. Garde telles quelles les valeurs photo que tu trouves dans la fiche. N’invente jamais d’identifiant de photo : si tu dois écrire un champ photo (un nouveau produit), mets null.
 
 # Les textes que tu écris
 - En français, pour des clients d’Abidjan : concrets, chaleureux, sans exagération. Respecte les limites de caractères du catalogue.
@@ -206,7 +207,7 @@ Une seule définition, à garder identique d’un appel à l’autre (elle fait 
 | `template` | Change le modèle et applique ses polices, angles et boutons par défaut. La palette et l’intensité des couleurs (`vivid` ou `soft`) restent. |
 | `store`, `theme`, `payments` | Seules les clés données changent. Le numéro WhatsApp n’est jamais pris dans le patch. |
 | `sections` | `{ id }` : met à jour cette section. `{ type }` sans id : met à jour la première section de ce type, ou l’ajoute à la fin avec les textes par défaut de la niche (`sectionSettings`). Dans `settings`, une liste (`items`, `zones`) remplace l’ancienne. |
-| `products` | `{ id }` existant : met à jour ce produit. Sans id : nouveau produit, avec le premier id libre (`newId`). Toute image venant de l’IA est ignorée. |
+| `products` | `{ id }` existant : met à jour ce produit. Sans id : nouveau produit, avec le premier id libre (`newId`) et sans photo d’exemple (`photo: null`). Toute image et toute photo venant de l’IA sont ignorées : un produit existant garde sa photo d’exemple. |
 | `pages` | `{ id }` existant : met à jour cette page (title, body, inMenu, inFooter). Sans id : nouvelle page, avec le premier id libre (`newId(f, 'pg')`) et une adresse libre tirée du titre (`uniqueSlug`). L’adresse (`slug`) ne vient jamais de l’IA. Avant, les pages encore d’origine suivent le nom et la ville de la boutique (`normalizeConfig`) ; celles que la vendeuse a modifiées ne bougent pas. |
 | `remplacer_produits`, `supprimer_*`, `ordre_sections` | Appliqués dans cet ordre : remplacer, ajouter, supprimer, réordonner. |
 | Après | `{name}` est remplacé par le nom de la boutique dans le titre, la typographie est corrigée (espaces insécables, 12 500 FCFA), puis toute la fiche est vérifiée. |
@@ -876,21 +877,21 @@ function appliquerPatch(base: Fiche, patch: any): Fiche {
     if (!cible) continue;
     if (typeof s.enabled === "boolean") cible.enabled = s.enabled;
     if (s.settings) {
-      const { image: _image, ...reglages } = s.settings; // jamais d'image venant de l'IA
+      const { image: _image, photo: _photo, ...reglages } = s.settings; // jamais d'image ni de photo d'exemple venant de l'IA
       Object.assign(cible.settings, reglages);
     }
   }
 
   if (patch.remplacer_produits === true) f.products = [];
   for (const p of patch.products ?? []) {
-    const { id, image: _image, ...champs } = p;
+    const { id, image: _image, photo: _photo, ...champs } = p; // la photo d'exemple reste celle de Jeere
     // deno-lint-ignore no-explicit-any
     const cible = id ? f.products.find((x: any) => x.id === id) : undefined;
     if (cible) Object.assign(cible, champs);
     else {
       f.products.push({
         name: "", price: 0, category: "", badge: null, art: "box", color: D.PRODUCT_COLORS[0], description: "",
-        ...champs, id: D.newId(f, "p"), image: null,
+        ...champs, id: D.newId(f, "p"), image: null, photo: null,
       });
     }
   }
@@ -930,7 +931,7 @@ function typographieFiche(f: Fiche) {
   f.store.tagline = typographie(f.store.tagline);
   for (const s of f.sections) {
     for (const [cle, valeur] of Object.entries(s.settings)) {
-      if (typeof valeur === "string" && cle !== "image") s.settings[cle] = typographie(valeur);
+      if (typeof valeur === "string" && cle !== "image" && cle !== "photo") s.settings[cle] = typographie(valeur);
       if (Array.isArray(valeur)) {
         // deno-lint-ignore no-explicit-any
         for (const item of valeur as any[]) {
@@ -988,7 +989,7 @@ export function catalogueForPrompt(): string {
       .map((x: any) => {
         // deno-lint-ignore no-explicit-any
         if (x.type === "items") return `${x.key} [liste, ${x.maxItems} max : ` + x.itemFields.map((i: any) => i.key + (i.max ? " ≤" + i.max : "")).join(", ") + "]";
-        if (x.type === "image") return null;
+        if (x.type === "image" || x.type === "photo") return null; // images et photos d'exemple : jamais l'IA
         // deno-lint-ignore no-explicit-any
         if (x.type === "select") return `${x.key} (${x.options.map((o: any) => o.value).join("|")})`;
         if (x.type === "number") return `${x.key} (${x.min}-${x.max})`;

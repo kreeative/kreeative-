@@ -59,7 +59,8 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | File | Role | Global |
 | --- | --- | --- |
 | `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, 6 font pairs, the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
-| `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, draws product illustrations in SVG when there is no photo, never makes a network request. Store CSS is scoped under `.jst`. | `window.JeereRender` |
+| `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, shows the seller's photo, else the demo photo, else draws the product illustration in SVG, never makes a network request to another site. Store CSS is scoped under `.jst`. | `window.JeereRender` |
+| `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). Not there yet: the catalogue is empty. | — |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
 | `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jeere assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
 | `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1, `pages` included. | — |
@@ -90,10 +91,10 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
   "payments": { "wave": true, "orange": true, "mtn": true, "moov": false, "cod": true, "card": false },
   "sections": [
     { "id": "s1", "type": "announcement", "enabled": true, "settings": { "text": "Livraison offerte dès 20 000 FCFA à Cocody" } },
-    { "id": "s2", "type": "hero", "enabled": true, "settings": { "kicker": "Nouvelle collection", "title": "Awa Beauté : des soins simples et naturels", "text": "…", "button": "Découvrir", "image": null } }
+    { "id": "s2", "type": "hero", "enabled": true, "settings": { "kicker": "Nouvelle collection", "title": "Awa Beauté : des soins simples et naturels", "text": "…", "button": "Découvrir", "image": null, "photo": null } }
   ],
   "products": [
-    { "id": "p1", "name": "Beurre de karité fouetté", "price": 6500, "category": "Corps", "badge": "best", "art": "jar", "color": "#E9D8BD", "description": "…", "image": null }
+    { "id": "p1", "name": "Beurre de karité fouetté", "price": 6500, "category": "Corps", "badge": "best", "art": "jar", "color": "#E9D8BD", "description": "…", "image": null, "photo": null }
   ],
   "pages": [
     { "id": "pg1", "title": "À propos", "slug": "a-propos", "body": "Awa Beauté, ce sont des soins simples…\n\nTout a commencé dans notre cuisine à Cocody…", "inMenu": true, "inFooter": true },
@@ -112,8 +113,8 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
 | `theme.fonts` | `editorial`, `moderne`, `doux`, `audacieux`, `classique`, `simple` |
 | `theme.radius` / `theme.buttons` | `none`, `soft`, `round` / `solid`, `outline` |
 | `payments` | exactly `wave`, `orange`, `mtn`, `moov`, `cod`, `card` (booleans), shown as plain text, never with the operators' logos or colours: in the footer, on the product page and as the checkout's payment options |
-| `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`). The zones of the first enabled `delivery` section (else of a hidden one) are also the checkout's commune list |
-| `products[]` | ids `p1`, `p2`…; `price` is a whole number of FCFA (`6500`, formatted `6 500 FCFA` for display); `badge` `null`, `new`, `best` or `promo`; `art` one of 12 illustrations; `color` `#RRGGBB`; `image` `null` or a JPEG data URL (≤ 800 px wide) |
+| `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`); `hero` and `about` have `image` and the optional demo `photo`. The zones of the first enabled `delivery` section (else of a hidden one) are also the checkout's commune list |
+| `products[]` | ids `p1`, `p2`…; `price` is a whole number of FCFA (`6500`, formatted `6 500 FCFA` for display); `badge` `null`, `new`, `best` or `promo`; `art` one of 12 illustrations; `color` `#RRGGBB`; `image` `null` or a JPEG data URL (≤ 800 px wide); `photo` `null` or a demo photo id (optional, see [Demo photos](#demo-photos)) |
 | `pages[]` | the store's own pages, 20 at most: ids `pg1`, `pg2`…; `title` ≤ 60; `slug` unique, `[a-z0-9]` words joined by hyphens; `body` plain text ≤ 4 000 characters, paragraphs separated by a blank line; `inMenu`, `inFooter` booleans — see [The store's own pages](#the-stores-own-pages-configpages) |
 
 The header and the footer are always rendered and are not sections. Character limits (hero
@@ -124,7 +125,7 @@ Three layers check a fiche:
 
 1. **`schema.json`** — structure, enums, integers, ranges and character limits. This is the
    contract the real AI assistant's output is checked against. Every key is required, including
-   `theme.intensity`.
+   `theme.intensity`, except the optional demo photo ids (`photo`).
 2. **`JEERE_DATA.validate(config)`** — quality rules with a score out of 100 and a status
    (`APPROUVÉ` or `À CORRIGER`): empty store name, no payment method, products section with no
    product, unknown template, palette, fonts or colour intensity, missing WhatsApp number, fewer
@@ -137,6 +138,81 @@ Three layers check a fiche:
    `theme.intensity` as `vivid`, gives a fiche saved without `pages` the 4 default pages of its
    niche. The editor runs it on import and on load, the dashboard on every write. Unique ids and
    page slugs are guaranteed here (JSON Schema cannot express them).
+
+## Demo photos
+
+The example stores can show real photos instead of the illustrations: « demo photos », hosted
+with the app in `img/demo/<niche>/<file>.webp` (never loaded from another site). **The catalogue
+ships empty**: until it is filled, every fiche has `photo: null` everywhere and every store
+renders exactly as before (byte for byte).
+
+- **The catalogue**, `JEERE_DATA.DEMO_PHOTOS` in `data.js`, keyed by photo id (lower case words
+  joined by hyphens, `^[a-z0-9]+(?:-[a-z0-9]+)*$`):
+
+  ```js
+  'beauty-karite': {
+    file: 'beauty/karite.webp',                 // path under creer/img/demo/
+    alt: 'Pot de beurre de karité fouetté',     // French description of the photo
+    credit: {
+      name: 'Photographer Name', username: 'unsplash_username',
+      photoUrl: 'https://unsplash.com/photos/<id>', profileUrl: 'https://unsplash.com/@username'
+    },
+    focus: '50% 30%'                            // optional: CSS object-position of the crop
+  }
+  ```
+
+- **Which store uses which photo**, `NICHE_PHOTOS` in `data.js`: `niche -> { hero, about,
+  products: [ids in the order of the niche's products] }` (`null`, or a short list, leaves a product
+  on its illustration). It is applied to the niches when `data.js` loads (`niche.hero.photo`,
+  `niche.about.photo`, `niche.products[i].photo`); `defaultConfig` and `sectionSettings` copy them
+  into new fiches, so the editor's templates, the assistant (`generate`) and a niche change all get
+  them. Every id must be in `DEMO_PHOTOS`: an unknown id becomes `null`.
+- **In the fiche**: `products[].photo` and `settings.photo` of the `hero` and `about` sections, a
+  `DEMO_PHOTOS` id or `null`. Optional in `schema.json` (an older fiche without them is valid);
+  `normalizeConfig` keeps a known id and turns anything else into `null`, never throws; `validate`
+  never reports a missing photo. Its photo tip counts a demo photo as « not your photo yet »
+  (« 2 produits utilisent encore une photo d’exemple… »). The assistant never writes a photo
+  (`prompts.md`).
+- **What shows, everywhere**: the seller's own image (`image`, a data URL) first, then the demo
+  photo, then the illustration. An upload in the editor or the dashboard sets `image` and clears
+  `photo`. « Retirer » on the seller's image clears `image` only, so a demo photo still set (an
+  imported fiche can hold both) shows again; « Retirer la photo » on a demo photo clears `photo`,
+  so the illustration shows.
+- **A file that does not load** (missing, misspelt, offline): the store, the editor and the
+  dashboard fall back to what they show without a photo (the illustration, the hero or about
+  composition), never a broken image. The renderer forgets that id for the rest of the page's life
+  (`photoInfo` answers `null`) and draws the store again; it finds out from the `<img>`'s load
+  error (`data-demo-photo`), so this is a safety net: the check below must still pass.
+- **The renderer**: `JeereRender.photoSrc(id)` gives the URL, `JeereRender.photoInfo(id)` the
+  entry with its `src` (null for an unknown id). The folder is `img/demo/` next to `render.js`,
+  read from the script's own address when it loads (`JeereRender.PHOTO_BASE`), so the same id works
+  from `creer/`, `../admin/` and `../compte/`. Every product picture (cards, category tiles, the
+  hero's circle, arch or block, the about collage, the product page and « Vous aimerez aussi »,
+  cart lines, checkout and confirmation summaries) and the hero and about images use it, with
+  `object-fit: cover` and the entry's `focus`. Product photos keep the product name as `alt`;
+  hero and about images stay decorative (`alt=""`), like the seller's.
+- **The editor** shows a demo photo in the product form, the product rows and the hero and about
+  image fields, with « Photo d’exemple · photographer / Unsplash » under it (the name links to the
+  photographer's profile, « Unsplash » to the photo, in a new tab), « Mettre ma photo » and
+  « Retirer la photo ». Undo and redo cover both fields. **The dashboard** shows it in its
+  thumbnails and its product page (« Photo d’exemple » chip, same credit, same actions); the
+  « Sans vraie photo » filter and the checklist still count it as not the seller's photo.
+- **Credits**: the photos come from Unsplash. The Unsplash License lets anyone use them for free,
+  commercial use included, without asking. We credit the photographers anyway: in the editor
+  under each photo, and in `img/demo/CREDITS.md` (one line per photo: file, photographer, link),
+  written when the photos are added.
+- **Adding the photos** (a later step): put the WebP files (about 1 200 px on the long side) in
+  `img/demo/<niche>/`, fill `DEMO_PHOTOS` and `NICHE_PHOTOS`, write `img/demo/CREDITS.md`. Nothing
+  else changes. Hero photos: Plateau sets the white text on the photo, over a scrim that keeps it
+  at 4.5:1 or better even on a white wall (as tall as the text on a phone, the left half on a
+  desktop); on a phone the text covers the lower two thirds of the photo, so use `focus` to keep
+  the subject in its top part. Then run, from this folder (prints `ok · N photos`, else one line
+  per problem):
+
+  ```sh
+  # every demo photo is on disk and in CREDITS.md, every NICHE_PHOTOS id is in DEMO_PHOTOS
+  node -e "global.window={};require('./data.js');const D=window.JEERE_DATA,fs=require('fs'),P=D.DEMO_PHOTOS,bad=[];const cr=fs.existsSync('img/demo/CREDITS.md')?fs.readFileSync('img/demo/CREDITS.md','utf8'):'';Object.keys(P).forEach(id=>{const f=P[id].file;if(!fs.existsSync('img/demo/'+f))bad.push(id+': no file img/demo/'+f);else if(!cr.includes(f))bad.push(id+': '+f+' not in CREDITS.md')});Object.keys(D.NICHE_PHOTOS).forEach(n=>{const x=D.NICHE_PHOTOS[n];[x.hero,x.about].concat(x.products||[]).forEach(id=>{if(id&&!P[id])bad.push(n+': unknown id '+id)})});console.log(bad.length?bad.join('\n'):'ok · '+Object.keys(P).length+' photos');process.exitCode=bad.length?1:0"
+  ```
 
 ## The store pages and the checkout journey
 
@@ -789,6 +865,11 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
     Connecteurs: WhatsApp Business and mobile money (the Accueil checklist ticks them) → change an
     order's status → change plan, invite someone, export the fiche and the orders → log out →
     log in again with the same number. The logo of each page leads back to the landing (`../`).
+15. Demo photos, before the real ones exist: in the editor's console, add an entry
+    (`JEERE_DATA.DEMO_PHOTOS['test-p1'] = { file: 'test/p1.webp', alt: '…', credit: { name: 'Test', photoUrl: 'https://unsplash.com/photos/x', profileUrl: 'https://unsplash.com/@x' } }`,
+    with a file at `img/demo/test/p1.webp` that you delete afterwards), set `photo: 'test-p1'` on a
+    product of an imported fiche: the store, the product form (with its credit), the dashboard's
+    thumbnails show it; upload a photo (it wins), « Retirer la photo », undo, redo.
 
 From the command line (Node, from this folder):
 
@@ -853,8 +934,8 @@ value).
 - The example reviews in the default fiches are made up. A real store must never publish invented
   reviews as genuine; the real assistant disables the section until the seller adds real ones
   (see `prompts.md`).
-- Product illustrations are generic SVG drawings; a real store needs real photos (the Qualité tab
-  says so).
+- Product illustrations are generic SVG drawings, and demo photos (once there are some) are not the
+  seller's products; a real store needs real photos (the Qualité tab says so).
 - The checkout is a front-end demo: no order is created, no payment request leaves the page, no
   stock, no promo code, no product variants (size, colour), one delivery fee per commune, and the
   order number is always 1042. The cart is lost when the page reloads.

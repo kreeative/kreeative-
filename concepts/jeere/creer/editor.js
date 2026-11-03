@@ -23,6 +23,12 @@
  * Section forms are generated from JEERE_DATA.sectionTypes[type].fields (FieldDefs): nothing is
  * written per section here, so a new section type in data.js gets its form for free.
  *
+ * Demo photos (JEERE_DATA.DEMO_PHOTOS, products[].photo, settings.photo of hero and about): while the
+ * seller has no image of her own, the image fields and the thumbnails show the demo photo, with
+ * « Photo d’exemple · photographer / Unsplash » under it. Her upload replaces it (photo set to
+ * null); « Retirer la photo » clears it, so the illustration shows. A demo photo whose file does
+ * not load gives way to the illustration too.
+ *
  * The preview shows one of the store's 5 pages (Accueil, Fiche produit, Panier, Paiement,
  * Confirmation), chosen with « Page : … ▾ ». The customer journey works inside it: render.js
  * handles the store's own buttons and tells us with the 'jst:navigate' event, so the selector
@@ -255,11 +261,28 @@
     if (!R || typeof R.artSVG !== 'function') return '';
     try { return String(R.artSVG(safeArt(kind), safeColor(color)) || ''); } catch (e) { return ''; }
   }
+  // A demo photo of JEERE_DATA.DEMO_PHOTOS ({ src, alt, focus, credit }), or null (unknown id, older renderer)
+  function demoPhoto(id) {
+    const R = window.JeereRender;
+    if (!id || !R || typeof R.photoInfo !== 'function') return null;
+    try { return R.photoInfo(id) || null; } catch (e) { return null; }
+  }
+  // The picture of a product: the seller's photo, else its demo photo, else its illustration
+  // (also when the demo photo's file does not load)
   function thumb(p, cls) {
     const t = el('span', { class: 'b-thumb' + (cls ? ' ' + cls : ''), 'data-thumb': p.id, style: `background:${safeColor(p.color)}` });
+    const ph = p.image ? null : demoPhoto(p.photo);
     if (p.image) t.append(el('img', { src: p.image, alt: '', loading: 'lazy', decoding: 'async' }));
+    else if (ph) t.append(el('img', { src: ph.src, alt: '', loading: 'lazy', decoding: 'async', style: ph.focus ? `object-position:${ph.focus}` : null, on: { error: () => { t.innerHTML = artMarkup(p.art, p.color); } } }));
     else t.innerHTML = artMarkup(p.art, p.color); // renderer markup, built from a fixed art kind and a hex colour
     return t;
+  }
+  // « Photo d’exemple · Prénom Nom / Unsplash »: the photographer links to their profile
+  function photoCredit(ph) {
+    const c = ph.credit || {};
+    const link = (url, text) => (url ? el('a', { href: url, target: '_blank', rel: 'noopener', text }) : text);
+    return el('p', { class: 'b-img__credit' }, 'Photo d’exemple · ',
+      c.name ? [link(c.profileUrl, c.name), ' / '] : null, link(c.photoUrl, 'Unsplash'));
   }
 
   /* ------------------------------------------------------------------ storage */
@@ -850,6 +873,7 @@
       case 'select': return selectField(f, acc, id, opts);
       case 'image': return imageField(f, acc, id, opts);
       case 'items': return itemsField(f, acc, id, opts);
+      case 'photo': return null; // the demo photo has no field of its own: the image field shows it
       default: return null;
     }
   }
@@ -954,36 +978,51 @@
       el('div', { class: 'b-select-wrap' }, sel, icon('i-down', 'b-select-chev')));
   }
 
+  // opts.photo: accessor of the demo photo id (products[].photo, settings.photo), shown with its credit
+  // while the seller has no image of her own. Her upload replaces it (photo cleared). « Retirer » on
+  // her image brings the demo photo back if the fiche still has one; « Retirer la photo » on the demo
+  // photo clears it, so the illustration shows. Each is one undo step.
   function imageField(f, acc, id, opts = {}) {
     const v = acc.get();
-    const pic = el('div', { class: 'b-img__pic' + (v ? '' : ' is-empty') });
+    const ph = !v && opts.photo ? demoPhoto(opts.photo.get()) : null;
+    const pic = el('div', { class: 'b-img__pic' + (v || ph ? '' : ' is-empty') });
+    const credit = ph ? photoCredit(ph) : null;
+    // A demo photo whose file does not load: the empty frame, without its credit
+    const lost = () => { pic.classList.add('is-empty'); pic.replaceChildren(icon('i-image')); if (credit) credit.remove(); };
     if (v) pic.append(el('img', { src: v, alt: opts.alt || 'Image choisie' }));
+    else if (ph) pic.append(el('img', { src: ph.src, alt: ph.alt || 'Photo d’exemple', style: ph.focus ? `object-position:${ph.focus}` : null, on: { error: lost } }));
     else pic.append(icon('i-image'));
+    const idle = v ? (opts.replaceLabel || 'Changer l’image') : (ph ? (opts.ownLabel || 'Mettre mon image') : (opts.addLabel || 'Ajouter une image'));
     const file = el('input', { class: 'b-sr', type: 'file', accept: 'image/*', id, 'data-fk': id });
-    const pickLabel = el('span', { text: v ? (opts.replaceLabel || 'Changer l’image') : (opts.addLabel || 'Ajouter une image') });
+    const pickLabel = el('span', { text: idle });
     const pickBtn = el('label', { class: 'b-btn b-btn--ghost b-btn--sm b-filebtn' }, icon('i-upload'), pickLabel, file);
+    // The demo photo goes in the same undo step: pending first, committed with the image
+    const dropPhoto = () => { if (opts.photo && opts.photo.get()) opts.photo.set(null); };
     file.addEventListener('change', () => {
       const fl = file.files && file.files[0];
       if (!fl) return;
       pickBtn.classList.add('is-busy');
       pickLabel.textContent = 'Préparation…';
       readImage(fl).then((url) => {
+        dropPhoto();
         acc.set(url, { now: true });
         renderTab({ focus: id });
         toast(opts.addedMsg || 'Image ajoutée');
       }).catch(() => {
         pickBtn.classList.remove('is-busy');
-        pickLabel.textContent = v ? (opts.replaceLabel || 'Changer l’image') : (opts.addLabel || 'Ajouter une image');
+        pickLabel.textContent = idle;
         toast('Cette image n’a pas pu être lue. Essayez une photo JPEG ou PNG.');
       }).then(() => { file.value = ''; });
     });
-    const remove = v ? el('button', {
+    const remove = v || ph ? el('button', {
       type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': id + '-rm',
-      on: { click: () => { acc.set(null, { now: true }); renderTab({ focus: id }); toast(opts.removedMsg || 'Image retirée'); } }
-    }, icon('i-trash'), 'Retirer') : null;
+      // her image only (a demo photo still set shows again), else the demo photo
+      on: { click: () => { if (!v) dropPhoto(); acc.set(null, { now: true }); renderTab({ focus: id }); toast(opts.removedMsg || 'Image retirée'); } }
+    }, icon('i-trash'), ph ? 'Retirer la photo' : 'Retirer') : null;
     return el('div', { class: 'b-field', role: 'group', 'aria-labelledby': id + '-l' },
       el('div', { class: 'b-label-row' }, el('span', { class: 'b-label', id: id + '-l', text: f.label })),
       el('div', { class: 'b-img' }, pic, el('div', { class: 'b-img__actions' }, pickBtn, remove)),
+      credit,
       el('p', { class: 'b-hint', text: opts.hint || 'Sans image, le modèle compose un visuel avec vos produits et vos couleurs.' }));
   }
 
@@ -1187,8 +1226,10 @@
       body.append(el('p', { class: 'b-note-box' }, icon('i-info'),
         el('span', { text: cats.length ? `Tuiles affichées${NB}: ${cats.join(', ')}. Changez les catégories dans l’onglet Produits.` : `Aucune catégorie pour l’instant${NB}: ajoutez-en dans l’onglet Produits.` })));
     }
+    const photoDef = def.fields.find((f) => f.type === 'photo');
     def.fields.forEach((f) => {
-      const node = buildField(f, sectionAcc(sec.id, f.key), `b-f-${sec.id}-${f.key}`);
+      const opts = f.type === 'image' && photoDef ? { photo: sectionAcc(sec.id, photoDef.key) } : undefined;
+      const node = buildField(f, sectionAcc(sec.id, f.key), `b-f-${sec.id}-${f.key}`, opts);
       if (node) body.append(node);
     });
     body.append(el('div', { class: 'b-item__foot' },
@@ -1310,7 +1351,7 @@
     if (meta) meta.textContent = productMeta(p);
     const badge = li.querySelector('.b-tag--badge');
     if (badge) { badge.textContent = p.badge ? D.BADGES[p.badge] : ''; badge.hidden = !p.badge; }
-    if (key === 'color' || key === 'art' || key === 'image') {
+    if (key === 'color' || key === 'art' || key === 'image' || key === 'photo') {
       li.querySelectorAll('[data-thumb]').forEach((t) => t.replaceWith(thumb(p, t.className.replace(/\bb-thumb\b/, '').trim())));
     }
   }
@@ -1388,7 +1429,8 @@
 
     body.append(imageField({ key: 'image', label: 'Photo' }, A('image'), fid('image'), {
       hint: 'Une photo nette, à la lumière du jour. Nous la réduisons à 800 px de large pour qu’elle charge vite.',
-      alt: 'Photo du produit', addLabel: 'Ajouter une photo', replaceLabel: 'Changer la photo', addedMsg: 'Photo ajoutée', removedMsg: 'Photo retirée'
+      alt: 'Photo du produit', addLabel: 'Ajouter une photo', replaceLabel: 'Changer la photo', ownLabel: 'Mettre ma photo',
+      addedMsg: 'Photo ajoutée', removedMsg: 'Photo retirée', photo: A('photo')
     }));
 
     const cats = distinctCategories();
@@ -1406,7 +1448,7 @@
         selectField({ key: 'art', label: 'Dessin', type: 'select', options: artOpts }, A('art'), fid('art')),
         colorField(pid, fid('color'))));
     body.append(el('fieldset', { class: 'b-fieldset' },
-      el('legend', { class: 'b-label', text: p.image ? 'Illustration (remplacée par la photo)' : 'Illustration (sans photo)' }),
+      el('legend', { class: 'b-label', text: p.image ? 'Illustration (remplacée par la photo)' : (demoPhoto(p.photo) ? 'Illustration (remplacée par la photo d’exemple)' : 'Illustration (sans photo)') }),
       visual));
 
     const nm = guil(shorten(String(p.name || '').trim() || 'Sans nom', 30));
@@ -1476,7 +1518,8 @@
       art: ref ? safeArt(ref.art) : (niche ? safeArt(niche.art) : 'box'),
       color: safeColor(D.PRODUCT_COLORS[ps.length % D.PRODUCT_COLORS.length]),
       description: '',
-      image: null
+      image: null,
+      photo: null
     };
     ps.unshift(p);
     S.openProduct = p.id;

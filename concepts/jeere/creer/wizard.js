@@ -36,6 +36,8 @@
   function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
   function idsOf(coll) { try { return Object.keys(coll || {}); } catch (e) { return []; } }
   function known(coll, id) { return typeof id === 'string' && idsOf(coll).indexOf(id) !== -1; }
+  // The example stores have demo photos (JEERE_DATA.DEMO_PHOTOS): defaultConfig puts them in the fiche
+  function hasDemoPhotos() { const d = D(); return !!(d && isObj(d.DEMO_PHOTOS) && idsOf(d.DEMO_PHOTOS).length); }
   function allNeeds(v) { const o = {}; NEED_KEYS.forEach((k) => { o[k] = v; }); return o; }
 
   /* ================================================================== copy */
@@ -362,7 +364,10 @@
       a: 'Ce prototype est gratuit, et Jeere n’est pas encore lancé. Pour connaître les prix dès qu’ils sont fixés, rejoignez la liste d’attente sur la page d’accueil.' },
     { re: /(?:modifier|changer|corriger|retoucher).*(?:apres|ensuite|plus tard)|(?:apres|ensuite|plus tard).*(?:modifier|changer|corriger)/,
       a: 'Oui : tout se change ensuite dans l’éditeur, les textes, les produits, les couleurs et les photos.' },
-    { re: W('photos?|images?'), a: 'Vous ajouterez vos vraies photos dans l’éditeur. En attendant, je mets des illustrations de vos produits.' },
+    // A function: the answer follows the demo photo catalogue (empty for now: illustrations)
+    { re: W('photos?|images?'), a: () => (hasDemoPhotos()
+      ? 'Vous ajouterez vos vraies photos dans l’éditeur. En attendant, je mets des photos d’exemple, et des illustrations pour les produits qui n’en ont pas.'
+      : 'Vous ajouterez vos vraies photos dans l’éditeur. En attendant, je mets des illustrations de vos produits.') },
     { re: W('publier|publie|en ligne|lien|url|site|mettre en ligne|visible|clients? voir'),
       a: 'C’est un prototype : rien n’est publié, et vos réponses restent dans ce navigateur.' },
     { re: W('ia|intelligence artificielle|robot|bot|humain|chatgpt|vrai|une personne'),
@@ -905,7 +910,7 @@
     if (summary && OPEN_RE.test(tAll)) { res.intent = 'open'; res.confidence = 0.8; return res; }
     if (isQuestion) {
       const faq = FAQ.filter((x) => x.re.test(tAll))[0];
-      if (faq) { res.intent = 'faq'; res.info.faq = faq.a; res.confidence = 0.6; return res; }
+      if (faq) { res.intent = 'faq'; res.info.faq = typeof faq.a === 'function' ? faq.a() : faq.a; res.confidence = 0.6; return res; }
     }
     if (BACK_RE.test(tAll)) { res.intent = 'back'; res.confidence = 0.7; return res; }
     if (GREET_RE.test(tAll) || (nameRead && nameRead.greeting)) { res.intent = 'greeting'; res.confidence = 0.9; return res; }
@@ -975,6 +980,8 @@
         case 'whatsapp': s.enabled = needs.whatsapp; break;
       }
     });
+    // The niche's demo photos (products[].photo, settings.photo of hero and about) come from
+    // defaultConfig and normalizeConfig keeps them; with an empty catalogue they are all null.
     const out = d.normalizeConfig(cfg);
     if (out.theme && out.theme.intensity === undefined) out.theme.intensity = 'vivid'; // an older data.js drops the key
     return out;

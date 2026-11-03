@@ -476,6 +476,12 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-img__pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .b-img__pic.is-empty { border-style: dashed; color: var(--muted); }
 .b-img__actions { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+/* « Photo d’exemple · Prénom Nom / Unsplash » under a demo photo: muted, links without underline */
+/* the two links are 44 px tall to tap (the caption's line grows; -6px only takes back the field's gap) */
+.b-img__credit { margin: -6px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
+.b-img__credit a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; font-weight: 500; text-decoration: none; }
+.b-img__credit a:hover { color: var(--ink); }
+.b-img__credit a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
 .b-filebtn { position: relative; cursor: pointer; }
 .b-filebtn:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
 .b-filebtn.is-busy { opacity: .6; pointer-events: none; }

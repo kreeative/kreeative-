@@ -52,7 +52,7 @@
       "enum": ["editorial", "moderne", "doux", "audacieux", "classique", "simple"]
     },
     "artKind": {
-      "description": "Built-in product illustration used when there is no photo. French labels in JEERE_DATA.ART_LABELS.",
+      "description": "Built-in product illustration used when there is neither a photo (image) nor a demo photo (photo). French labels in JEERE_DATA.ART_LABELS.",
       "enum": ["jar", "bottle", "bag", "dress", "tshirt", "shoe", "cap", "jewel", "hair", "plate", "basket", "box"]
     },
     "badge": {
@@ -65,11 +65,16 @@
       "pattern": "^#[0-9A-Fa-f]{6}$"
     },
     "image": {
-      "description": "null, or a photo uploaded by the seller as a base64 data URL (the editor downsizes it to a JPEG at most 800 px wide). The assistant never sets images.",
+      "description": "null, or a photo uploaded by the seller as a base64 data URL (the editor downsizes it to a JPEG at most 800 px wide). The assistant never sets images. The seller's image always wins over the demo photo (photo).",
       "oneOf": [
         { "type": "null" },
         { "type": "string", "pattern": "^data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=\\s]+$" }
       ]
+    },
+    "photo": {
+      "description": "Optional. null, or the id of a Jeere demo photo (JEERE_DATA.DEMO_PHOTOS: a real photo hosted with the app in creer/img/demo/). Set by Jeere from the niche (defaultConfig), never by the assistant, which keeps the value it finds. Shown while there is no image; without either, the illustration shows. normalizeConfig turns an id the catalogue does not know into null; validate() never reports a missing photo.",
+      "type": ["string", "null"],
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "fcfa": {
       "type": "integer",
@@ -134,7 +139,8 @@
         "art": { "$ref": "#/$defs/artKind" },
         "color": { "$ref": "#/$defs/hexColor", "description": "Tile colour behind the illustration." },
         "description": { "type": "string", "description": "One or two sentences: material, size, use." },
-        "image": { "$ref": "#/$defs/image" }
+        "image": { "$ref": "#/$defs/image" },
+        "photo": { "$ref": "#/$defs/photo" }
       }
     },
     "page": {
@@ -192,7 +198,7 @@
     },
     "settings_hero": {
       "type": "object",
-      "description": "Grande bannière. Without an image, the template draws a composition from the first product's illustration.",
+      "description": "Grande bannière. Without an image or a demo photo, the template draws a composition from the first product's photo or illustration.",
       "required": ["kicker", "title", "text", "button", "image"],
       "additionalProperties": false,
       "properties": {
@@ -200,7 +206,8 @@
         "title": { "type": "string", "maxLength": 70 },
         "text": { "type": "string", "maxLength": 220 },
         "button": { "type": "string", "maxLength": 24 },
-        "image": { "$ref": "#/$defs/image" }
+        "image": { "$ref": "#/$defs/image" },
+        "photo": { "$ref": "#/$defs/photo" }
       }
     },
     "settings_categories": {
@@ -225,13 +232,14 @@
     },
     "settings_about": {
       "type": "object",
-      "description": "À propos: the seller's story.",
+      "description": "À propos: the seller's story. Without an image or a demo photo, the template draws the first products.",
       "required": ["title", "text", "image"],
       "additionalProperties": false,
       "properties": {
         "title": { "type": "string", "maxLength": 50 },
         "text": { "type": "string", "maxLength": 600 },
-        "image": { "$ref": "#/$defs/image" }
+        "image": { "$ref": "#/$defs/image" },
+        "photo": { "$ref": "#/$defs/photo" }
       }
     },
     "settings_reviews": {

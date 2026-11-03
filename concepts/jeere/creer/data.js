@@ -5,8 +5,8 @@
  * Everything a store is made of lives in one "fiche boutique" (store config JSON, version 1).
  * The AI never writes code: it fills this fiche, our tested templates render it, and the
  * editor edits the same fiche. This file holds the catalogue (templates, palettes, colour
- * intensities, font pairs, section types, niches, communes, payment methods, store pages), the
- * example content in French (including the 4 default custom pages of each niche: À propos,
+ * intensities, font pairs, section types, niches, communes, payment methods, store pages, demo
+ * photos), the example content in French (including the 4 default custom pages of each niche: À propos,
  * Livraison et retours, Contact, Conditions de vente), and the pure helpers (defaultConfig,
  * normalizeConfig, validate, formatPrice, slugify...).
  *
@@ -308,11 +308,68 @@
     { name: 'Bingerville', fee: 3000 }
   ];
 
+  /* ------------------------------------------------------------------ demo photos
+   * Real photos for the example stores, hosted with the app in creer/img/demo/ (never loaded from
+   * another site). The catalogue ships empty: until it is filled, every store shows its
+   * illustrations, exactly as before.
+   *
+   * DEMO_PHOTOS = { '<id>': entry }, the id in lower case words joined by hyphens
+   * (^[a-z0-9]+(?:-[a-z0-9]+)*$, 'beauty-karite'), the entry:
+   *   {
+   *     file: 'beauty/karite.webp',               // path under creer/img/demo/
+   *     alt: 'Pot de beurre de karité fouetté',   // French description of the photo
+   *     credit: {
+   *       name: 'Photographer Name', username: 'unsplash_username',
+   *       photoUrl: 'https://unsplash.com/photos/<id>', profileUrl: 'https://unsplash.com/@username'
+   *     },
+   *     focus: '50% 50%'                          // optional: CSS object-position of the crop
+   *   }
+   * The photos come from Unsplash (Unsplash License: free to use, commercial use included, no
+   * permission needed). We credit each photographer anyway: in the editor under the photo, and in
+   * creer/img/demo/CREDITS.md.
+   *
+   * A fiche names a photo by its id only: products[].photo, and settings.photo of the hero and
+   * about sections (null when there is none). What shows: the seller's own image (image) first,
+   * then the demo photo, then the illustration. normalizeConfig turns an id the catalogue does not
+   * know into null. JeereRender.photoSrc(id) gives the URL.
+   */
+  var DEMO_PHOTOS = {};
+
+  /* Which demo photos the example store of each niche uses: settings.photo of its hero and about
+   * sections, and products[].photo in the order of the niche's products (null, or a short list,
+   * leaves a product on its illustration). Applied to the niches below (niche.hero.photo,
+   * niche.about.photo, niche.products[i].photo), which defaultConfig and sectionSettings copy into
+   * new fiches. Every id must be in DEMO_PHOTOS. Empty for now, for example:
+   *   beauty: { hero: 'beauty-hero', about: 'beauty-atelier', products: ['beauty-karite', null, 'beauty-savon'] }
+   */
+  var NICHE_PHOTOS = {};
+
+  var PHOTO_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  var PHOTO_FILE_RE = /^[a-z0-9][a-z0-9_-]*(?:\/[a-z0-9][a-z0-9_-]*)*\.(?:webp|jpe?g|png|avif)$/i;
+
+  // The live catalogue: JEERE_DATA.DEMO_PHOTOS (it can be filled or replaced at runtime).
+  function photoCatalogue() {
+    var d = root.JEERE_DATA;
+    return d && isObj(d.DEMO_PHOTOS) ? d.DEMO_PHOTOS : DEMO_PHOTOS;
+  }
+  // The catalogue entry of a photo id, or null (unknown id, entry without a valid file).
+  function demoPhoto(id) {
+    if (typeof id !== 'string' || !PHOTO_ID_RE.test(id)) return null;
+    var cat = photoCatalogue();
+    if (!Object.prototype.hasOwnProperty.call(cat, id)) return null;
+    var e = cat[id];
+    return isObj(e) && typeof e.file === 'string' && PHOTO_FILE_RE.test(e.file) ? e : null;
+  }
+  // A known photo id, else null: what the fiche keeps.
+  function photoId(v) { return demoPhoto(v) ? v : null; }
+
   /* ------------------------------------------------------------------ section types
-   * FieldDef: { key, label, type: 'text'|'textarea'|'number'|'select'|'image'|'items',
+   * FieldDef: { key, label, type: 'text'|'textarea'|'number'|'select'|'image'|'photo'|'items',
    *   placeholder?, max? (characters for text/textarea, value for number), min?,
    *   options? [{ value, label }] (select: value has the type stored in the fiche),
    *   itemFields? [FieldDef], itemLabel?, itemDefaults? (new sub-item), maxItems? }
+   * 'photo' is a demo photo id (DEMO_PHOTOS) or null, set by Jeere from the niche: it is not a form
+   * field of its own, the section's 'image' field shows it while the seller has no image.
    */
 
   var GENERIC_REVIEWS = [
@@ -342,14 +399,16 @@
         { key: 'title', label: 'Titre', type: 'text', max: 70, placeholder: 'Des pièces qui tombent juste' },
         { key: 'text', label: 'Texte', type: 'textarea', max: 220, placeholder: 'Dites en une ou deux phrases ce que vous vendez et ce qui vous rend unique.' },
         { key: 'button', label: 'Texte du bouton', type: 'text', max: 24, placeholder: 'Découvrir' },
-        { key: 'image', label: 'Image', type: 'image' }
+        { key: 'image', label: 'Image', type: 'image' },
+        { key: 'photo', label: 'Photo d’exemple', type: 'photo' }
       ],
       defaults: {
         kicker: 'Nouveautés',
         title: 'Bienvenue dans notre boutique',
         text: 'Découvrez nos produits et commandez en quelques secondes. Paiement par mobile money ou à la livraison.',
         button: 'Découvrir',
-        image: null
+        image: null,
+        photo: null
       }
     },
     {
@@ -382,12 +441,14 @@
       fields: [
         { key: 'title', label: 'Titre', type: 'text', max: 50, placeholder: 'Notre histoire' },
         { key: 'text', label: 'Texte', type: 'textarea', max: 600, placeholder: 'Qui êtes-vous, que vendez-vous, et pourquoi vos clients peuvent-ils vous faire confiance ?' },
-        { key: 'image', label: 'Image', type: 'image' }
+        { key: 'image', label: 'Image', type: 'image' },
+        { key: 'photo', label: 'Photo d’exemple', type: 'photo' }
       ],
       defaults: {
         title: 'Notre histoire',
         text: 'Racontez ici qui vous êtes, ce que vous vendez et pourquoi vos clients peuvent vous faire confiance. Deux ou trois phrases suffisent.',
-        image: null
+        image: null,
+        photo: null
       }
     },
     {
@@ -745,6 +806,15 @@
     }
   ]);
 
+  // The demo photos of each niche (NICHE_PHOTOS above) on its hero, about and products.
+  niches.forEach(function (n) {
+    var np = has(NICHE_PHOTOS, n.id) && isObj(NICHE_PHOTOS[n.id]) ? NICHE_PHOTOS[n.id] : null;
+    if (!np) return;
+    if (has(np, 'hero')) n.hero.photo = np.hero;
+    if (has(np, 'about')) n.about.photo = np.about;
+    if (Array.isArray(np.products)) n.products.forEach(function (p, i) { p.photo = np.products[i] === undefined ? null : np.products[i]; });
+  });
+
   /* ------------------------------------------------------------------ custom store pages
    * config.pages = [{ id: 'pg1', title, slug, body, inMenu, inFooter }]: the store's own pages
    * (À propos, Livraison et retours, Contact, Conditions de vente...), rendered by
@@ -980,11 +1050,11 @@
       case 'announcement': s.text = n.announcement; break;
       case 'hero':
         s.kicker = n.hero.kicker; s.title = applyName(n.hero.title, name);
-        s.text = n.hero.text; s.button = n.hero.button; s.image = null;
+        s.text = n.hero.text; s.button = n.hero.button; s.image = null; s.photo = photoId(n.hero.photo);
         break;
       case 'categories': if (n.categoriesTitle) s.title = n.categoriesTitle; break;
       case 'products': if (n.productsTitle) s.title = n.productsTitle; break;
-      case 'about': s.title = n.about.title; s.text = n.about.text; s.image = null; break;
+      case 'about': s.title = n.about.title; s.text = n.about.text; s.image = null; s.photo = photoId(n.about.photo); break;
       case 'reviews': s.items = clone(n.reviews); break;
       case 'delivery': s.zones = clone(communes.slice(0, 6)); break;
       case 'whatsapp': s.title = n.whatsapp.title; s.text = n.whatsapp.text; s.button = n.whatsapp.button; break;
@@ -1018,7 +1088,7 @@
       products: ni.products.map(function (p, i) {
         return {
           id: 'p' + (i + 1), name: p.name, price: p.price, category: p.category, badge: p.badge,
-          art: p.art, color: p.color, description: p.description, image: null
+          art: p.art, color: p.color, description: p.description, image: null, photo: photoId(p.photo)
         };
       }),
       pages: defaultPages(n, store)
@@ -1101,6 +1171,8 @@
       }
       case 'image':
         return isImage(v) ? v : null;
+      case 'photo':
+        return photoId(v);
       case 'items': {
         var list = Array.isArray(v) ? v : (Array.isArray(d) ? d : []);
         var out = [];
@@ -1202,7 +1274,8 @@
         art: (typeof p.art === 'string' && ART_KINDS.indexOf(p.art) !== -1) ? p.art : 'box',
         color: normColor(p.color, '#E9D8BD'),
         description: str(p.description, ''),
-        image: isImage(p.image) ? p.image : null
+        image: isImage(p.image) ? p.image : null,
+        photo: photoId(p.photo)
       });
     });
     assignIds(products, 'p');
@@ -1364,9 +1437,17 @@
       });
 
       /* tips */
+      // A demo photo is not the seller's photo yet: those products count too.
       var noPhoto = products.filter(function (p) { return !isImage(p.image); });
       if (noPhoto.length) {
-        add('tip', (noPhoto.length === 1 ? '1 produit n’a' : noPhoto.length + ' produits n’ont') + ' pas encore de vraie photo. Une photo prise à la lumière du jour fait souvent la différence.', 'product', noPhoto[0].id);
+        var demo = noPhoto.filter(function (p) { return demoPhoto(p.photo); }).length;
+        var nb = noPhoto.length;
+        var msg;
+        if (!demo) msg = (nb === 1 ? '1 produit n’a' : nb + ' produits n’ont') + ' pas encore de vraie photo. Une photo prise à la lumière du jour fait souvent la différence.';
+        else if (demo === nb && nb === 1) msg = '1 produit utilise encore une photo d’exemple. Remplacez-la par votre propre photo, prise à la lumière du jour.';
+        else if (demo === nb) msg = nb + ' produits utilisent encore une photo d’exemple. Remplacez-les par vos propres photos, prises à la lumière du jour.';
+        else msg = nb + ' produits n’ont pas encore de vraie photo, dont ' + demo + ' avec une photo d’exemple. Une photo prise à la lumière du jour fait souvent la différence.';
+        add('tip', msg, 'product', noPhoto[0].id);
       }
       var noDesc = products.filter(function (p) { return !textOf(p.description).trim(); });
       if (noDesc.length) {
@@ -1981,6 +2062,12 @@
     sectionTypes: sectionTypes,
     niches: niches,
     communes: communes,
+    // demo photos (empty until the photos are added): see the comment above DEMO_PHOTOS
+    DEMO_PHOTOS: DEMO_PHOTOS,
+    NICHE_PHOTOS: NICHE_PHOTOS,
+    PHOTO_DIR: 'img/demo/',
+    demoPhoto: demoPhoto,
+    photoId: photoId,
     defaultConfig: defaultConfig,
     sectionSettings: sectionSettings,
     validate: validate,
