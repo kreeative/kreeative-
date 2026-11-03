@@ -118,7 +118,9 @@ ul, ol { padding: 0; list-style: none; }
 }
 .head.is-stuck { background: rgba(255, 255, 255, .9); border-bottom-color: var(--line); }
 .head__in { height: var(--head-h); display: flex; align-items: center; gap: 24px; }
-.head__logo { display: flex; align-items: center; min-height: 44px; margin-right: auto; color: var(--ink); text-decoration: none; }
+.head__logo { display: flex; align-items: center; min-height: 44px; padding: 6px 12px 6px 8px; margin-right: auto; color: var(--ink); text-decoration: none; border-radius: 10px; }
+/* The header shows the J alone, with room around it */
+.head__logo .logo__mark { height: 32px; }
 /* Logo: the geometric "j" mark + Jeere in Poppins */
 .logo { display: inline-flex; align-items: center; gap: 0; color: inherit; }
 .logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; flex: none; fill: var(--jeere-blue, #809EE6); }
@@ -131,7 +133,7 @@ ul, ol { padding: 0; list-style: none; }
 .head__nav a, .head__end .btn { white-space: nowrap; }
 .head__end { display: flex; align-items: center; gap: 10px; }
 .only-wide { display: none; }
-@media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .logo__mark { height: 30px; } .logo__word { height: 30px; } }
+@media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .logo__mark { height: 30px; } .logo__word { height: 30px; } .head__logo .logo__mark { height: 34px; } }
 @media (min-width: 1000px) { .head__nav { display: flex; } .head__logo { margin-right: 20px; flex: none; } .head__nav { margin-right: auto; } }
 /* Small laptops: keep the menu on one line. « Questions » stays in the footer and the FAQ. */
 @media (min-width: 1000px) and (max-width: 1199px) {

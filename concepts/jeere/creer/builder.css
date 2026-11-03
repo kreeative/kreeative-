@@ -47,7 +47,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 }
 /* The Jeere logo (symbols #mark and #word in index.html): the blue J mark + « eere », like the landing page */
 .b-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
-.b-logo__lock .logo__mark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
+.b-logo__lock .logo__mark { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
 .b-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
 .b-logo__lock--sm { gap: 0; }
 .b-logo__lock--sm .logo__mark { height: 23px; }
@@ -105,7 +105,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   border-bottom: 1px solid var(--line);
 }
 .b-shead__in { height: 64px; display: flex; align-items: center; gap: 12px; }
-.b-logo { display: block; padding: 8px 0; color: var(--ink); }
+.b-logo { display: block; padding: 8px 12px 8px 8px; color: var(--ink); border-radius: 10px; }
 .b-shead__tag {
   font-size: 11.5px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; line-height: 1;
   padding: 5px 8px; border: 1.5px solid var(--ink); border-radius: 7px;
@@ -265,7 +265,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   position: relative; z-index: 5; display: flex; align-items: center; gap: 10px; min-width: 0;
   height: var(--b-top-h); padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); background: var(--white);
 }
-.b-top__logo { display: flex; align-items: center; flex: none; min-height: 44px; padding: 0 2px; color: var(--ink); border-radius: 8px; }
+.b-top__logo { display: flex; align-items: center; flex: none; min-height: 44px; padding: 0 12px 0 8px; color: var(--ink); border-radius: 10px; }
 .b-top__sep { width: 1px; height: 26px; flex: none; background: var(--line); }
 /* « Tableau de bord »: back to the seller's dashboard (../admin/), like the exit button of Shopify's theme editor */
 .b-top__dash {
@@ -769,8 +769,8 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   .b-ed[data-view="preview"] .b-panel { display: none; }
   .b-top { position: sticky; top: 0; z-index: 30; height: 56px; gap: 2px; padding: 0 8px 0 14px; }
   .b-top__sep, .b-top__mid, .b-saved { display: none; }
-  .b-top__logo { padding: 0; }
-  .b-top__logo .logo__mark { height: 26px; }
+  .b-top__logo { padding: 0 8px 0 6px; }
+  .b-top__logo .logo__mark { height: 30px; }
   .b-top__logo .logo__word { height: 26px; }
   .b-top__store { flex: 1; max-width: none; padding: 3px 8px; }
   .b-top__name { font-size: 14px; }

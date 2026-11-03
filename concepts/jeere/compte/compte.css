@@ -47,9 +47,9 @@ a { color: inherit; }
 .c-nowrap { white-space: nowrap; }
 
 /* ---------- The Jeere logo (symbols #mark and #word): the blue J mark + « eere », as in the editor ---------- */
-.c-logo { display: block; padding: 8px 0; color: var(--ink); text-decoration: none; border-radius: 8px; }
+.c-logo { display: block; padding: 8px 12px 8px 8px; color: var(--ink); text-decoration: none; border-radius: 10px; }
 .c-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
-.c-logo__lock .logo__mark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
+.c-logo__lock .logo__mark { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
 .c-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
 
 /* ---------- Layout ---------- */

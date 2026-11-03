@@ -57,9 +57,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .a-muted { color: var(--muted); }
 
 /* ---------- The Jeere logo: the blue J mark + « eere » (symbols #mark and #word) ---------- */
-.a-logo { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: none; border-radius: 8px; }
+.a-logo { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 12px 6px 8px; color: var(--ink); text-decoration: none; border-radius: 10px; }
 .a-lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); }
-.a-lock .logo__mark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
+.a-lock .logo__mark { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
 .a-lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
 
 /* ---------- Boot ---------- */
