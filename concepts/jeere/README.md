@@ -43,9 +43,9 @@ Numbers are personal data: keep the table private, and delete a row when someone
 - **Colours**: black and white only. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
   colour, so only the demo stores and product pictures on the page are in colour.
-- **Type**: Playfair (display, SIL OFL) and Onest (text, SIL OFL). Both cover French accents
-  and ɛ, ɔ and ŋ, checked glyph by glyph; most popular display faces do not (Fraunces,
-  Bricolage Grotesque, Instrument Serif and DM Serif Display all lack ɛ and ɔ).
+- **Type**: Poppins (SIL OFL) for everything. Poppins has no ɛ, ɔ or ŋ (needed for Dioula and
+  Bambara names), so the page also loads those six letters alone from Montserrat (SIL OFL), a
+  few KB, and the browser uses them in place of the missing ones.
 
 ## Page
 
@@ -72,7 +72,7 @@ favicon.svg  the EE monogram
 img/og.jpg   share image (a screenshot of the hero)
 ```
 
-Plain static files, no build step, no library. Fonts from Google Fonts. Animations are CSS
+Plain static files, no build step, no library. Fonts from Google Fonts (Poppins, plus Montserrat for ɛ, ɔ and ŋ). Animations are CSS
 only and respect reduced motion. Check 390 px and 1440 px before publishing; there should be
 no horizontal scroll on a phone.
 
