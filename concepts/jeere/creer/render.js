@@ -945,7 +945,10 @@
           '--st-accent-ink': m ? m.accentInk : c.text,
           '--st-accent-soft': m ? m.accentSoft : mix(c.bg, c.accent, 0.1),
           '--st-surface-2': mix(c.surface, c.accent, m && m.dark ? 0.08 : 0.05),
-          '--st-text-soft': mix(c.bg, c.text, 0.82)
+          '--st-text-soft': mix(c.bg, c.text, 0.82),
+          // Buttons set over a photo: the accent when it stands out on a dark scrim, else white.
+          '--st-photo-btn-bg': lum(c.accent) < 0.2 ? '#FFFFFF' : c.accent,
+          '--st-photo-btn-fg': lum(c.accent) < 0.2 ? '#15120E' : c.onAccent
         });
       }
       rootEl.innerHTML = html;
