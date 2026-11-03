@@ -65,7 +65,7 @@
     history: [], index: 0, pending: false,
     open: false,
     tab: 'sections', device: 'phone', view: 'edit',
-    openSection: null, openProduct: null, openItem: {},
+    openSection: null, openProduct: null, openItem: {}, reorder: { sections: false, produits: false },
     scale: 1, previewDirty: true, pendingReveal: null, hoverNode: null, pick: null,
     scrollY: { edit: 0, preview: 0 },
     saveState: 'ok', warned: {},
@@ -253,6 +253,8 @@
     clearTimeout(S.timers.commit);
     if (!S.pending || !S.config) return;
     S.pending = false;
+    // A change that ends where it started (retyped the same text, toggled twice) is not an undo step
+    try { if (JSON.stringify(S.config) === JSON.stringify(S.history[S.index])) { updateUndo(); return; } } catch (e) { /* keep the step */ }
     S.history.length = S.index + 1;
     S.history.push(copy(S.config));
     if (S.history.length > HISTORY_MAX) S.history.shift();
@@ -312,17 +314,24 @@
 
   function previewVisible() { return !isMobile() || S.view === 'preview'; }
   function schedulePreview() {
-    if (!previewVisible()) { S.previewDirty = true; return; }
+    S.previewDirty = true;
+    if (!previewVisible()) return;
     later('preview', renderPreviewNow, PREVIEW_DELAY);
   }
   function renderPreviewNow() {
     clearTimeout(S.timers.preview);
+    S.timers.preview = 0;
     if (!S.config || !els.store) return;
     if (!previewVisible()) { S.previewDirty = true; return; }
     S.previewDirty = false;
     renderStoreInto(els.store, S.config, S.device, els.screen);
     hideHover();
     fit();
+    // The page was rebuilt: move a running outline onto the new element, or drop it
+    if (S.flash && els.hlFlash.classList.contains('is-on')) {
+      const node = findPreviewNode(S.flash);
+      if (node) placeHl(els.hlFlash, node, labelFor(S.flash)); else els.hlFlash.classList.remove('is-on');
+    }
   }
   function renderStoreInto(root, config, device, screen) {
     const R = window.JeereRender;
@@ -399,6 +408,7 @@
   function hideHover() { S.hoverNode = null; if (els.hlHover) els.hlHover.classList.remove('is-on'); }
   function flashNode(node, label) {
     if (!node) return;
+    S.flash = targetOf(node);
     const hl = els.hlFlash;
     placeHl(hl, node, label);
     hl.classList.remove('is-on');
@@ -418,11 +428,15 @@
   }
   // Scroll the preview to a section or product and outline it briefly
   function revealInPreview(t, opts = {}) {
-    if (!t) return;
+    if (!t || !(t.kind === 'product' ? findProduct(t.id) : findSection(t.id))) return;
     if (!previewVisible()) { S.pendingReveal = t; return; }
-    if (S.timers.preview) renderPreviewNow();
+    if (S.previewDirty) renderPreviewNow();
     let node = findPreviewNode(t);
-    if (!node && t.kind === 'product') node = els.store.querySelector('[data-section-id] [data-product-id]') ? null : null;
+    if (!node && t.kind === 'product') {
+      // A product beyond the section's limit is not drawn: show the products section instead
+      const sec = S.config.sections.find((s) => s.type === 'products' && s.enabled);
+      node = sec ? findPreviewNode({ kind: 'section', id: sec.id }) : null;
+    }
     if (!node) return;
     if (opts.scroll !== false) scrollPreviewTo(node);
     flashNode(node, labelFor(t));
@@ -465,15 +479,40 @@
       if (n && n.disabled) n = null;
       if (n) {
         focusEl(n);
+        if (opts.reveal) n.scrollIntoView({ block: 'nearest' });
         if (sel && typeof n.setSelectionRange === 'function') { try { n.setSelectionRange(sel[0], sel[1]); } catch (e) { /* not a text input */ } }
       }
     }
   }
 
-  function tabHead(title, text) {
+  function tabHead(title, text, action) {
     return el('div', { class: 'b-tp__head' },
-      el('h2', { class: 'b-tp__title', text: title }),
+      el('div', { class: 'b-tp__headrow' }, el('h2', { class: 'b-tp__title', text: title }), action || null),
       text ? el('p', { class: 'b-tp__text', text }) : null);
+  }
+  // « Réorganiser »: rows show up/down arrows instead of opening their settings
+  function reorderToggle(tab, count) {
+    const on = !!S.reorder[tab];
+    if (count < 2 && !on) return null;
+    return el('button', {
+      type: 'button', class: 'b-btn b-btn--sm ' + (on ? 'b-btn--primary' : 'b-btn--ghost'), 'aria-pressed': String(on), 'data-fk': 'reorder-' + tab,
+      on: {
+        click: () => {
+          S.reorder[tab] = !on;
+          if (!on) { if (tab === 'sections') S.openSection = null; else S.openProduct = null; }
+          renderTab({ focus: 'reorder-' + tab });
+        }
+      }
+    }, icon(on ? 'i-check' : 'i-sort'), on ? 'Terminé' : 'Réorganiser');
+  }
+  function moveBtns(i, n, labelUp, labelDown, onMove, fkUp, fkDown, withText) {
+    const mk = (ic, txt, label, dir, disabled, fk) => withText
+      ? el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'aria-label': label, disabled, 'data-fk': fk, on: { click: () => onMove(dir) } }, icon(ic), txt)
+      : iconBtn(ic, label, () => onMove(dir), { disabled, fk, title: txt });
+    return [
+      mk('i-up', 'Monter', labelUp, -1, i === 0, fkUp),
+      mk('i-down', 'Descendre', labelDown, 1, i === n - 1, fkDown)
+    ];
   }
   function group(id, title, hint, ...content) {
     return el('section', { class: 'b-group', id, 'aria-labelledby': id + '-t', tabindex: '-1' },
@@ -575,7 +614,7 @@
         showFmt();
       };
       control = el('div', { class: 'b-stepper' },
-        iconBtn('i-plus', 'Moins', () => step(-1), { cls: 'b-stepper__btn b-stepper__btn--minus', fk: id + '-minus' }),
+        iconBtn('i-minus', 'Moins', () => step(-1), { cls: 'b-stepper__btn b-stepper__btn--minus', fk: id + '-minus' }),
         input,
         iconBtn('i-plus', 'Plus', () => step(1), { cls: 'b-stepper__btn', fk: id + '-plus' }));
     }
@@ -662,8 +701,6 @@
         on: { click: () => { S.openItem[id] = open ? null : i; renderTab({ focus: `${id}-m${i}` }); } }
       }, el('span', { class: 'b-sub__n', text: name }), sum, icon('i-down', 'b-chev'));
       const row = el('div', { class: 'b-sub__row' }, main,
-        iconBtn('i-up', `Monter${NB}: ${name}`, () => moveItem(acc, id, i, -1), { disabled: i === 0, fk: `${id}-u${i}` }),
-        iconBtn('i-down', `Descendre${NB}: ${name}`, () => moveItem(acc, id, i, 1), { disabled: i === list.length - 1, fk: `${id}-d${i}` }),
         iconBtn('i-trash', `Supprimer${NB}: ${name}`, () => removeItem(acc, id, i, name), { fk: `${id}-x${i}` }));
       const li = el('li', { class: 'b-sub' + (open ? ' is-open' : '') }, row);
       if (open) {
@@ -671,6 +708,10 @@
         (f.itemFields || []).forEach((sf) => {
           body.append(buildField(sf, subAcc(acc, i, sf.key, () => { sum.textContent = itemSummary(f, (acc.get() || [])[i]); }), `${id}-${i}-${sf.key}`));
         });
+        if (list.length > 1) {
+          body.append(el('div', { class: 'b-sub__foot' }, moveBtns(i, list.length, `Monter${NB}: ${name}`, `Descendre${NB}: ${name}`,
+            (d) => moveItem(acc, id, i, d), `${id}-u${i}`, `${id}-d${i}`, true)));
+        }
         li.append(body);
       }
       ol.append(li);
@@ -704,7 +745,7 @@
     if (S.openItem[id] === i) S.openItem[id] = j; else if (S.openItem[id] === j) S.openItem[id] = i;
     acc.touch({ now: true });
     const edge = (dir < 0 && j === 0) || (dir > 0 && j === a.length - 1);
-    renderTab({ focus: edge ? `${id}-m${j}` : `${id}-${dir < 0 ? 'u' : 'd'}${j}` });
+    renderTab({ focus: `${id}-${edge ? (dir < 0 ? 'd' : 'u') : (dir < 0 ? 'u' : 'd')}${j}`, reveal: true });
   }
   function removeItem(acc, id, i, name) {
     const a = acc.get();
@@ -773,7 +814,11 @@
 
   function renderSections(tp) {
     const list = S.config.sections;
-    tp.append(tabHead('Sections', 'L’ordre de votre page d’accueil. Touchez une section pour la modifier, l’œil pour la masquer.'));
+    const sorting = S.reorder.sections && list.length > 1;
+    if (!sorting) S.reorder.sections = false;
+    tp.append(tabHead('Sections', sorting
+      ? 'Changez l’ordre avec les flèches, puis touchez Terminé.'
+      : 'L’ordre de votre page d’accueil. Touchez une section pour la modifier, l’œil pour la masquer.', reorderToggle('sections', list.length)));
     tp.append(fixedRow('i-header', 'En-tête', 'Nom de la boutique, menu et panier'));
     if (list.length) {
       const ol = el('ol', { class: 'b-list', 'aria-label': 'Sections de la page' });
@@ -782,8 +827,10 @@
     } else {
       tp.append(el('p', { class: 'b-empty b-empty--box', text: 'Votre page n’a plus aucune section. Ajoutez-en une pour commencer.' }));
     }
-    tp.append(el('button', { type: 'button', class: 'b-btn b-btn--dashed b-btn--block', 'data-fk': 'sec-add', id: 'b-sec-add', on: { click: openAddSection } },
-      icon('i-plus'), 'Ajouter une section'));
+    if (!sorting) {
+      tp.append(el('button', { type: 'button', class: 'b-btn b-btn--dashed b-btn--block', 'data-fk': 'sec-add', id: 'b-sec-add', on: { click: openAddSection } },
+        icon('i-plus'), 'Ajouter une section'));
+    }
     tp.append(fixedRow('i-footer', 'Pied de page', 'Paiements acceptés, ville, WhatsApp'));
   }
 
@@ -791,27 +838,33 @@
     const def = typeDef(sec.type) || { name: sec.type, fields: [] };
     const open = S.openSection === sec.id;
     const bodyId = 'b-sf-' + sec.id;
-    const li = el('li', { class: 'b-item' + (open ? ' is-open' : '') + (sec.enabled ? '' : ' is-off'), 'data-sid': sec.id });
+    const sorting = S.reorder.sections;
+    const li = el('li', { class: 'b-item' + (open && !sorting ? ' is-open' : '') + (sec.enabled ? '' : ' is-off') + (sorting ? ' is-sorting' : ''), 'data-sid': sec.id });
+    const inner = [
+      el('span', { class: 'b-item__ico' }, icon(SECTION_ICONS[sec.type] || 'i-layers')),
+      el('span', { class: 'b-item__txt' },
+        el('span', { class: 'b-item__name' }, el('span', { class: 'b-item__name-t', text: def.name }), sec.enabled ? null : el('span', { class: 'b-tag', text: 'Masquée' })),
+        el('span', { class: 'b-item__sum', text: sectionSummary(sec) }))
+    ];
+    const up = `Monter la section ${guil(def.name)}`;
+    const down = `Descendre la section ${guil(def.name)}`;
+    if (sorting) {
+      li.append(el('div', { class: 'b-item__row' }, el('div', { class: 'b-item__main b-item__main--static' }, inner),
+        moveBtns(i, n, up, down, (d) => moveSection(sec.id, d, 's'), 'su-' + sec.id, 'sd-' + sec.id)));
+      return li;
+    }
     const main = el('button', {
       type: 'button', class: 'b-item__main', 'aria-expanded': String(open), 'aria-controls': open ? bodyId : null, 'data-fk': 'sm-' + sec.id,
       on: { click: () => toggleSection(sec.id) }
-    },
-      el('span', { class: 'b-item__ico' }, icon(SECTION_ICONS[sec.type] || 'i-layers')),
-      el('span', { class: 'b-item__txt' },
-        el('span', { class: 'b-item__name' }, def.name, sec.enabled ? null : el('span', { class: 'b-tag', text: 'Masquée' })),
-        el('span', { class: 'b-item__sum', text: sectionSummary(sec) })),
-      icon('i-down', 'b-chev'));
-    const row = el('div', { class: 'b-item__row' }, main,
-      iconBtn('i-up', `Monter la section ${guil(def.name)}`, () => moveSection(sec.id, -1), { disabled: i === 0, fk: 'su-' + sec.id, title: 'Monter' }),
-      iconBtn('i-down', `Descendre la section ${guil(def.name)}`, () => moveSection(sec.id, 1), { disabled: i === n - 1, fk: 'sd-' + sec.id, title: 'Descendre' }),
+    }, inner, icon('i-down', 'b-chev'));
+    li.append(el('div', { class: 'b-item__row' }, main,
       iconBtn(sec.enabled ? 'i-eye' : 'i-eye-off', `Afficher la section ${guil(def.name)}`, () => toggleEnabled(sec.id),
-        { pressed: sec.enabled, fk: 'se-' + sec.id, cls: 'b-eye', title: sec.enabled ? 'Masquer la section' : 'Afficher la section' }));
-    li.append(row);
-    if (open) li.append(sectionForm(sec, bodyId, def));
+        { pressed: sec.enabled, fk: 'se-' + sec.id, cls: 'b-eye', title: sec.enabled ? 'Masquer la section' : 'Afficher la section' })));
+    if (open) li.append(sectionForm(sec, bodyId, def, i, n));
     return li;
   }
 
-  function sectionForm(sec, bodyId, def) {
+  function sectionForm(sec, bodyId, def, i, n) {
     const body = el('div', { class: 'b-item__body', id: bodyId });
     if (def.description) body.append(el('p', { class: 'b-item__desc', text: def.description }));
     if (sec.type === 'categories') {
@@ -824,8 +877,10 @@
       if (node) body.append(node);
     });
     body.append(el('div', { class: 'b-item__foot' },
+      el('div', { class: 'b-item__moves' }, moveBtns(i, n, `Monter la section ${guil(def.name)}`, `Descendre la section ${guil(def.name)}`,
+        (d) => moveSection(sec.id, d, 'sf'), 'sfu-' + sec.id, 'sfd-' + sec.id, true)),
       el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'sx-' + sec.id, on: { click: () => deleteSection(sec.id) } },
-        icon('i-trash'), 'Supprimer la section')));
+        icon('i-trash'), 'Supprimer')));
     return body;
   }
 
@@ -834,10 +889,12 @@
     renderTab({ focus: 'sm-' + id });
     if (S.openSection) {
       scrollRowIntoView(`[data-sid="${CSS.escape(id)}"]`);
-      revealInPreview({ kind: 'section', id });
+      const sec = findSection(id);
+      if (sec && !sec.enabled) toast(`Cette section est masquée${NB}: touchez l’œil pour l’afficher dans la boutique.`);
+      else revealInPreview({ kind: 'section', id });
     }
   }
-  function moveSection(id, dir) {
+  function moveSection(id, dir, p = 's') {
     const list = S.config.sections;
     const i = list.findIndex((s) => s.id === id);
     const j = i + dir;
@@ -845,7 +902,9 @@
     const t = list[i]; list[i] = list[j]; list[j] = t;
     change({ now: true });
     const edge = (dir < 0 && j === 0) || (dir > 0 && j === list.length - 1);
-    renderTab({ focus: edge ? (dir < 0 ? 'sd-' : 'su-') + id : (dir < 0 ? 'su-' : 'sd-') + id });
+    const same = dir < 0 ? 'u-' : 'd-';
+    const other = dir < 0 ? 'd-' : 'u-';
+    renderTab({ focus: p + (edge ? other : same) + id, reveal: true });
     revealInPreview({ kind: 'section', id });
   }
   function toggleEnabled(id) {
@@ -897,6 +956,7 @@
   function addSection(type) {
     const def = typeDef(type);
     if (!def) return;
+    S.reorder.sections = false;
     const list = S.config.sections;
     const id = D.newId(S.config, 's');
     const sec = { id, type, enabled: true, settings: D.sectionSettings(type, S.config.store.niche, S.config.store.name) };
@@ -943,11 +1003,17 @@
   function renderProducts(tp) {
     const ps = S.config.products;
     const lim = productLimit();
-    tp.append(tabHead('Produits', `${count(ps.length, 'produit')}. L’ordre de cette liste est celui de votre boutique.`));
-    tp.append(el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', id: 'b-p-add', 'data-fk': 'p-add', on: { click: addProduct } },
-      icon('i-plus'), 'Ajouter un produit'));
+    const sorting = S.reorder.produits && ps.length > 1;
+    if (!sorting) S.reorder.produits = false;
+    tp.append(tabHead('Produits', sorting
+      ? 'Changez l’ordre avec les flèches, puis touchez Terminé.'
+      : `${count(ps.length, 'produit')}. L’ordre de cette liste est celui de votre boutique.`, reorderToggle('produits', ps.length)));
+    if (!sorting) {
+      tp.append(el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', id: 'b-p-add', 'data-fk': 'p-add', on: { click: addProduct } },
+        icon('i-plus'), 'Ajouter un produit'));
+    }
     if (!lim && ps.length) {
-      tp.append(el('p', { class: 'b-note-box' }, icon('i-eye-off'), el('span', { text: 'La section Produits est masquée ou absente : vos produits ne sont pas visibles sur la page d’accueil.' })));
+      tp.append(el('p', { class: 'b-note-box' }, icon('i-eye-off'), el('span', { text: `La section Produits est masquée ou absente${NB}: vos produits ne sont pas visibles sur la page d’accueil.` })));
     } else if (lim && ps.length > lim) {
       tp.append(el('p', { class: 'b-note-box' }, icon('i-info'), el('span', { text: `La section Produits affiche les ${lim} premiers. Changez ce nombre dans l’onglet Sections.` })));
     }
@@ -964,26 +1030,33 @@
     const open = S.openProduct === p.id;
     const bodyId = 'b-pf-' + p.id;
     const name = String(p.name || '').trim() || 'Sans nom';
-    const li = el('li', { class: 'b-item b-item--product' + (open ? ' is-open' : '') + (lim && i >= lim ? ' is-off' : ''), 'data-pid': p.id });
-    const main = el('button', {
-      type: 'button', class: 'b-item__main', 'aria-expanded': String(open), 'aria-controls': open ? bodyId : null, 'data-fk': 'pm-' + p.id,
-      on: { click: () => toggleProduct(p.id) }
-    },
+    const sorting = S.reorder.produits;
+    const hiddenHere = lim && i >= lim;
+    const li = el('li', { class: 'b-item b-item--product' + (open && !sorting ? ' is-open' : '') + (hiddenHere ? ' is-off' : '') + (sorting ? ' is-sorting' : ''), 'data-pid': p.id });
+    const inner = [
       thumb(p, 'b-item__thumb'),
       el('span', { class: 'b-item__txt' },
         el('span', { class: 'b-item__name' }, el('span', { class: 'b-item__name-t', text: name }),
           el('span', { class: 'b-tag b-tag--badge', text: p.badge ? D.BADGES[p.badge] : '', hidden: !p.badge })),
-        el('span', { class: 'b-item__sum', text: productMeta(p) })),
-      lim && i >= lim ? el('span', { class: 'b-tag', title: 'Au-delà du nombre de produits affichés', text: 'Non affiché' }) : null,
-      icon('i-down', 'b-chev'));
-    li.append(el('div', { class: 'b-item__row' }, main,
-      iconBtn('i-up', `Monter ${guil(shorten(name, 30))}`, () => moveProduct(p.id, -1), { disabled: i === 0, fk: 'pu-' + p.id, title: 'Monter' }),
-      iconBtn('i-down', `Descendre ${guil(shorten(name, 30))}`, () => moveProduct(p.id, 1), { disabled: i === n - 1, fk: 'pd-' + p.id, title: 'Descendre' })));
-    if (open) li.append(productForm(p, bodyId));
+        el('span', { class: 'b-item__sum', text: productMeta(p) + (hiddenHere ? ' · non affiché' : '') }))
+    ];
+    const up = `Monter ${guil(shorten(name, 30))}`;
+    const down = `Descendre ${guil(shorten(name, 30))}`;
+    if (sorting) {
+      li.append(el('div', { class: 'b-item__row' }, el('div', { class: 'b-item__main b-item__main--static' }, inner),
+        moveBtns(i, n, up, down, (d) => moveProduct(p.id, d, 'p'), 'pu-' + p.id, 'pd-' + p.id)));
+      return li;
+    }
+    const main = el('button', {
+      type: 'button', class: 'b-item__main', 'aria-expanded': String(open), 'aria-controls': open ? bodyId : null, 'data-fk': 'pm-' + p.id,
+      on: { click: () => toggleProduct(p.id) }
+    }, inner, icon('i-down', 'b-chev'));
+    li.append(el('div', { class: 'b-item__row' }, main));
+    if (open) li.append(productForm(p, bodyId, i, n));
     return li;
   }
 
-  function productForm(p, bodyId) {
+  function productForm(p, bodyId, i, n) {
     const pid = p.id;
     const A = (key, after) => productAcc(pid, key, after);
     const fid = (k) => `b-p-${pid}-${k}`;
@@ -1008,7 +1081,7 @@
     body.append(textField({ key: 'category', label: 'Catégorie', type: 'text', max: 40, placeholder: cats[0] || 'Robes' }, A('category'), fid('category'),
       { list: fid('cats'), hint: cats.length ? `Déjà utilisées${NB}: ${cats.join(', ')}.` : 'Elle crée une tuile dans la section Catégories.', extra: dl }));
 
-    body.append(textField({ key: 'description', label: 'Description', type: 'textarea', placeholder: 'Matière, taille, usage : une ou deux phrases suffisent.' }, A('description'), fid('desc')));
+    body.append(textField({ key: 'description', label: 'Description', type: 'textarea', placeholder: `Matière, taille, usage${NB}: une ou deux phrases suffisent.` }, A('description'), fid('desc')));
 
     // Illustration used when there is no photo
     const artOpts = D.ART_KINDS.map((k) => ({ value: k, label: (D.ART_LABELS && D.ART_LABELS[k]) || k }));
@@ -1021,9 +1094,11 @@
       el('legend', { class: 'b-label', text: p.image ? 'Illustration (remplacée par la photo)' : 'Illustration (sans photo)' }),
       visual));
 
+    const nm = guil(shorten(String(p.name || '').trim() || 'Sans nom', 30));
     body.append(el('div', { class: 'b-item__foot' },
-      el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'px-' + pid, on: { click: () => deleteProduct(pid) } },
-        icon('i-trash'), 'Supprimer le produit')));
+      el('div', { class: 'b-item__moves' }, moveBtns(i, n, `Monter ${nm}`, `Descendre ${nm}`, (d) => moveProduct(pid, d, 'pf'), 'pfu-' + pid, 'pfd-' + pid, true)),
+      el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'px-' + pid, 'aria-label': `Supprimer ${nm}`, on: { click: () => deleteProduct(pid) } },
+        icon('i-trash'), 'Supprimer')));
     return body;
   }
 
@@ -1040,7 +1115,7 @@
         on: { click: () => { setColor(hex, { now: true }); renderTab({ focus: `${id}-${hex.slice(1)}` }); } }
       }));
     });
-    const custom = el('input', { type: 'color', class: 'b-swatch b-swatch--custom', id: id + '-custom', value: cur.toLowerCase(), 'aria-label': 'Autre couleur', title: 'Autre couleur', 'data-fk': id + '-custom' });
+    const custom = el('input', { type: 'color', class: 'b-swatch-input', id: id + '-custom', value: cur.toLowerCase(), 'aria-label': 'Autre couleur', title: 'Autre couleur', 'data-fk': id + '-custom' });
     custom.addEventListener('input', () => {
       setColor(custom.value);
       sw.querySelectorAll('.b-swatch[aria-pressed]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
@@ -1059,18 +1134,21 @@
       revealInPreview({ kind: 'product', id });
     }
   }
-  function moveProduct(id, dir) {
+  function moveProduct(id, dir, p = 'p') {
     const list = S.config.products;
-    const i = list.findIndex((p) => p.id === id);
+    const i = list.findIndex((x) => x.id === id);
     const j = i + dir;
     if (i < 0 || j < 0 || j >= list.length) return;
     const t = list[i]; list[i] = list[j]; list[j] = t;
     change({ now: true });
     const edge = (dir < 0 && j === 0) || (dir > 0 && j === list.length - 1);
-    renderTab({ focus: edge ? (dir < 0 ? 'pd-' : 'pu-') + id : (dir < 0 ? 'pu-' : 'pd-') + id });
+    const same = dir < 0 ? 'u-' : 'd-';
+    const other = dir < 0 ? 'd-' : 'u-';
+    renderTab({ focus: p + (edge ? other : same) + id, reveal: true });
     revealInPreview({ kind: 'product', id });
   }
   function addProduct() {
+    S.reorder.produits = false;
     const ps = S.config.products;
     const niche = inColl(D.niches, S.config.store.niche) ? D.niches[S.config.store.niche] : null;
     const ref = ps[0];
@@ -1259,7 +1337,7 @@
     });
     tp.append(group('b-g-payments', 'Moyens de paiement', 'Affichés en texte en bas de votre boutique. Activez au moins un moyen.', pays));
 
-    tp.append(group('b-g-restart', 'Repartir de zéro ?', 'Votre boutique reste enregistrée dans ce navigateur : vous pourrez la reprendre.',
+    tp.append(group('b-g-restart', 'Changer de point de départ', `Votre boutique reste enregistrée dans ce navigateur${NB}: vous pourrez la reprendre.`,
       el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--block', 'data-fk': 'restart', on: { click: () => showStart() } },
         icon('i-back'), 'Revenir à l’écran de départ')));
   }
@@ -1275,7 +1353,7 @@
         el('p', { class: 'b-score__num' }, el('strong', { text: String(v.score) }), el('span', { text: '/100' })),
         el('span', { class: 'b-status' + (ok ? ' b-status--ok' : ''), text: v.status })),
       el('div', { class: 'b-meter', role: 'img', 'aria-label': `Score${NB}: ${v.score} sur 100` }, el('i', { style: `width:${v.score}%` })),
-      el('p', { class: 'b-score__text', text: ok ? 'Votre fiche est prête : elle pourrait être publiée telle quelle.' : 'Corrigez les points ci-dessous avant de publier.' })));
+      el('p', { class: 'b-score__text', text: ok ? `Votre fiche est prête${NB}: elle pourrait être publiée telle quelle.` : 'Corrigez les points ci-dessous avant de publier.' })));
 
     if (!v.issues.length) {
       tp.append(el('p', { class: 'b-empty b-empty--box', text: 'Rien à signaler. Votre boutique est prête.' }));
@@ -1293,7 +1371,7 @@
       tp.append(el('section', { class: 'b-issgroup', 'aria-label': g.title },
         el('h3', { class: 'b-group__title' }, g.title, el('span', { class: 'b-issgroup__n', text: String(items.length) })), ul));
     });
-    tp.append(el('p', { class: 'b-foot-note' }, icon('i-info'), el('span', { text: 'Cette relecture est faite par du code simple, sans IA : elle est instantanée et ne coûte rien.' })));
+    tp.append(el('p', { class: 'b-foot-note' }, icon('i-info'), el('span', { text: `Cette relecture est faite par du code simple, sans IA${NB}: elle est instantanée et ne coûte rien.` })));
   }
 
   function focusField(id) {
@@ -1341,6 +1419,8 @@
   // Open a section or a product in the panel (from the preview, the quality tab or the mobile chip)
   function selectTarget(t, opts = {}) {
     if (!t) return;
+    S.reorder.sections = false;
+    S.reorder.produits = false;
     if (t.kind === 'product') {
       if (!findProduct(t.id)) return;
       S.openProduct = t.id;
@@ -1412,9 +1492,10 @@
     }
     els.pickLabel.textContent = label;
     els.pick.hidden = false;
+    document.documentElement.classList.add('b-has-pick');
     flashNode(findPreviewNode(t), labelFor(t));
   }
-  function hidePick() { S.pick = null; if (els.pick) els.pick.hidden = true; }
+  function hidePick() { S.pick = null; if (els.pick) els.pick.hidden = true; document.documentElement.classList.remove('b-has-pick'); }
 
   /* ------------------------------------------------------------------ images */
 
@@ -1453,7 +1534,7 @@
 
   function focusables(root) {
     return Array.from(root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
-      .filter((n) => !n.hidden && n.getClientRects().length > 0 || (n.classList && n.classList.contains('b-sr') && n.closest('label') && n.closest('label').getClientRects().length));
+      .filter((n) => !n.closest('[hidden]') && n.getClientRects().length > 0);
   }
   function openModal(id, opts = {}) {
     const m = document.getElementById(id);
@@ -1522,6 +1603,7 @@
       const ta = el('textarea', { class: 'b-sr', 'aria-hidden': 'true' });
       ta.value = text;
       els.ficheModal.querySelector('.b-modal__card').append(ta);
+      ta.focus();
       ta.select();
       let ok = false;
       try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
@@ -1623,6 +1705,7 @@
     const box = els.tpls;
     box.textContent = '';
     const jobs = [];
+    const shots = [];
     D.templates.forEach((t) => {
       const root = el('div');
       const screen = el('div', { class: 'b-mini__screen' }, root);
@@ -1636,8 +1719,9 @@
           el('p', { class: 'b-tcard__desc', text: t.description }),
           el('p', { class: 'b-tcard__best' }, el('span', { text: `Idéal pour${NB}: ` }), t.bestFor),
           el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', 'aria-label': `Choisir le modèle ${t.name}`, on: { click: () => chooseTemplate(t.id) } },
-            'Choisir ce modèle', icon('i-arrow'))));
+            el('span', { class: 'b-lbl-long', text: 'Choisir ce modèle' }), el('span', { class: 'b-lbl-short', text: 'Choisir' }), icon('i-arrow'))));
       box.append(card);
+      shots.push(shot);
       jobs.push(() => {
         if (window.JeereRender && typeof window.JeereRender.render === 'function') {
           renderStoreInto(root, D.defaultConfig(t.id), 'phone', screen);
@@ -1645,6 +1729,14 @@
         } else { shot.textContent = ''; shot.append(fallback); shot.classList.add('is-schem'); }
       });
     });
+    // The mini phone (406 px wide) is scaled to the width of its card
+    const scaleShots = () => shots.forEach((shot) => {
+      const w = shot.clientWidth;
+      if (w) shot.style.setProperty('--mini-s', String(Math.min(0.62, Math.max(0.2, (w - 20) / 406))));
+    });
+    scaleShots();
+    if (window.ResizeObserver) { const ro = new ResizeObserver(scaleShots); shots.forEach((s) => ro.observe(s)); }
+    else window.addEventListener('resize', scaleShots);
     // Render the previews one per frame so the start screen paints at once on slow phones
     const next = () => { const job = jobs.shift(); if (job) { job(); requestAnimationFrame(next); } };
     requestAnimationFrame(next);
@@ -1825,11 +1917,22 @@
 
     document.addEventListener('keydown', onKey);
 
-    // Hide the bottom tab bar while typing on a phone: more room above the keyboard
-    document.addEventListener('focusin', (e) => {
-      if (S.open && isMobile() && isTextField(e.target) && els.ed.contains(e.target)) { clearTimeout(S.timers.typing); els.ed.classList.add('is-typing'); }
+    // Hide the bottom tab bar while the on-screen keyboard is open (more room to type). Detected from the
+    // viewport height, not from focus alone: on Android the back key closes the keyboard but keeps the focus.
+    const vv = window.visualViewport;
+    const viewH = () => (vv ? vv.height : window.innerHeight);
+    let baseH = viewH();
+    const updateTyping = () => {
+      const a = document.activeElement;
+      const typing = S.open && isMobile() && isTextField(a) && els.ed.contains(a) && viewH() < baseH - 120;
+      els.ed.classList.toggle('is-typing', typing);
+    };
+    (vv || window).addEventListener('resize', () => {
+      if (!isTextField(document.activeElement)) baseH = viewH();
+      updateTyping();
     });
-    document.addEventListener('focusout', () => { later('typing', () => els.ed.classList.remove('is-typing'), 120); });
+    document.addEventListener('focusin', () => later('typing', updateTyping, 60));
+    document.addEventListener('focusout', () => later('typing', updateTyping, 120));
 
     const relayout = () => { if (S.open) { updateHint(); if (!isMobile() && S.previewDirty) renderPreviewNow(); else fit(); } };
     window.addEventListener('resize', () => later('resize', relayout, 60));

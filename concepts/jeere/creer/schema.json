@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kreeative.xyz/concepts/jeere/creer/schema.json",
+  "title": "JEERE fiche boutique, version 1",
+  "description": "The store config ('fiche boutique') that the JEERE assistant fills, the editor edits and the templates render. Source of truth for ids, labels and limits: data.js (window.JEERE_DATA). This schema checks structure, enums, ranges and the editor's character limits. Quality rules (empty store name, no payment method, fewer than 3 products, missing WhatsApp number...) are checked by JEERE_DATA.validate(), not here. Unique section and product ids cannot be expressed in JSON Schema: code checks them (normalizeConfig fixes them).",
+  "type": "object",
+  "required": ["version", "template", "store", "theme", "payments", "sections", "products"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1, "description": "Fiche format version." },
+    "template": { "$ref": "#/$defs/templateId" },
+    "store": { "$ref": "#/$defs/store" },
+    "theme": { "$ref": "#/$defs/theme" },
+    "payments": { "$ref": "#/$defs/payments" },
+    "sections": {
+      "type": "array",
+      "description": "Ordered list of page sections. The header and the footer are always rendered and are not sections. Ids 's1', 's2'... must be unique (checked by code).",
+      "items": { "$ref": "#/$defs/section" }
+    },
+    "products": {
+      "type": "array",
+      "description": "The catalogue, in display order. Ids 'p1', 'p2'... must be unique (checked by code).",
+      "items": { "$ref": "#/$defs/product" }
+    }
+  },
+  "$defs": {
+    "templateId": {
+      "description": "Plateau (Éditorial), Cocody (Doux), Treichville (Audacieux).",
+      "enum": ["plateau", "cocody", "treichville"]
+    },
+    "nicheId": {
+      "description": "fashion: Mode et vêtements · hair: Perruques et mèches · beauty: Beauté et soins · jewellery: Bijoux et accessoires · shoes: Chaussures et sneakers · food: Alimentation et traiteur · home: Maison et déco · crafts: Artisanat.",
+      "enum": ["fashion", "hair", "beauty", "jewellery", "shoes", "food", "home", "crafts"]
+    },
+    "paletteId": {
+      "description": "Sable, Karité, Lagune, Hibiscus, Indigo, Mangue, Menthe, Nuit. The colours themselves live in data.js (contrast-checked); a fiche only names the palette.",
+      "enum": ["sable", "karite", "lagune", "hibiscus", "indigo", "mangue", "menthe", "nuit"]
+    },
+    "fontPairId": {
+      "description": "Éditorial (Playfair + Inter), Moderne (Montserrat + Inter), Doux (Onest), Audacieux (Unbounded + Inter), Classique (EB Garamond + Fira Sans), Simple (Poppins).",
+      "enum": ["editorial", "moderne", "doux", "audacieux", "classique", "simple"]
+    },
+    "artKind": {
+      "description": "Built-in product illustration used when there is no photo. French labels in JEERE_DATA.ART_LABELS.",
+      "enum": ["jar", "bottle", "bag", "dress", "tshirt", "shoe", "cap", "jewel", "hair", "plate", "basket", "box"]
+    },
+    "badge": {
+      "description": "null (none), 'new' (Nouveau), 'best' (Best-seller) or 'promo' (Promo).",
+      "enum": [null, "new", "best", "promo"]
+    },
+    "hexColor": {
+      "type": "string",
+      "description": "#RRGGBB (normalizeConfig writes it in upper case).",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "image": {
+      "description": "null, or a photo uploaded by the seller as a base64 data URL (the editor downsizes it to a JPEG at most 800 px wide). The assistant never sets images.",
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=\\s]+$" }
+      ]
+    },
+    "fcfa": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Whole amount in FCFA, no separator and no currency (6500, not '6 500 FCFA'). Code formats it for display: 6 500 FCFA."
+    },
+    "store": {
+      "type": "object",
+      "required": ["name", "tagline", "whatsapp", "city", "niche"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "maxLength": 40, "description": "Store name, shown as the text logo. validate() reports an error when it is empty." },
+        "tagline": { "type": "string", "maxLength": 80, "description": "Slogan, shown in the footer." },
+        "whatsapp": {
+          "type": "string",
+          "pattern": "^(\\+[0-9]+)?$",
+          "description": "'' or an international number such as +2250707123456 (code normalises it: digits only, +225 added when there is no prefix, leading 0 kept). validate() warns unless it matches ^\\+\\d{8,15}$."
+        },
+        "city": { "type": "string", "maxLength": 40 },
+        "niche": {
+          "description": "What the store sells, or null.",
+          "anyOf": [{ "$ref": "#/$defs/nicheId" }, { "type": "null" }]
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "required": ["palette", "fonts", "radius", "buttons"],
+      "additionalProperties": false,
+      "properties": {
+        "palette": { "$ref": "#/$defs/paletteId" },
+        "fonts": { "$ref": "#/$defs/fontPairId" },
+        "radius": { "enum": ["none", "soft", "round"], "description": "Droit (0 px), Doux (10 px), Rond (22 px)." },
+        "buttons": { "enum": ["solid", "outline"], "description": "Plein (accent background) or Contour (1.5 px accent border)." }
+      }
+    },
+    "payments": {
+      "type": "object",
+      "description": "Payment methods shown in the footer as plain text (never the operators' logos or colours). validate() reports an error when none is true.",
+      "required": ["wave", "orange", "mtn", "moov", "cod", "card"],
+      "additionalProperties": false,
+      "properties": {
+        "wave": { "type": "boolean", "description": "Wave" },
+        "orange": { "type": "boolean", "description": "Orange Money" },
+        "mtn": { "type": "boolean", "description": "MTN MoMo" },
+        "moov": { "type": "boolean", "description": "Moov Money" },
+        "cod": { "type": "boolean", "description": "Paiement à la livraison" },
+        "card": { "type": "boolean", "description": "Carte bancaire" }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": ["id", "name", "price", "category", "badge", "art", "color", "description", "image"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^p[1-9][0-9]*$" },
+        "name": { "type": "string", "maxLength": 60, "description": "validate() reports an error when it is empty." },
+        "price": { "$ref": "#/$defs/fcfa" },
+        "category": { "type": "string", "maxLength": 40, "description": "Free text. The Catégories section builds its tiles from the distinct non-empty categories, in order of first appearance." },
+        "badge": { "$ref": "#/$defs/badge" },
+        "art": { "$ref": "#/$defs/artKind" },
+        "color": { "$ref": "#/$defs/hexColor", "description": "Tile colour behind the illustration." },
+        "description": { "type": "string", "description": "One or two sentences: material, size, use." },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": ["id", "type", "enabled", "settings"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^s[1-9][0-9]*$" },
+        "type": {
+          "description": "announcement (Bandeau d’annonce), hero (Grande bannière), categories (Catégories), products (Produits), about (À propos), reviews (Avis clients), delivery (Livraison), whatsapp (Commander sur WhatsApp).",
+          "enum": ["announcement", "hero", "categories", "products", "about", "reviews", "delivery", "whatsapp"]
+        },
+        "enabled": { "type": "boolean", "description": "false hides the section without losing its settings." },
+        "settings": { "type": "object" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "announcement" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_announcement" } } } },
+        { "if": { "properties": { "type": { "const": "hero" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_hero" } } } },
+        { "if": { "properties": { "type": { "const": "categories" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_categories" } } } },
+        { "if": { "properties": { "type": { "const": "products" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_products" } } } },
+        { "if": { "properties": { "type": { "const": "about" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_about" } } } },
+        { "if": { "properties": { "type": { "const": "reviews" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_reviews" } } } },
+        { "if": { "properties": { "type": { "const": "delivery" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_delivery" } } } },
+        { "if": { "properties": { "type": { "const": "whatsapp" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_whatsapp" } } } }
+      ]
+    },
+    "settings_announcement": {
+      "type": "object",
+      "description": "Bandeau d’annonce: one short sentence at the very top.",
+      "required": ["text"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "type": "string", "maxLength": 90 }
+      }
+    },
+    "settings_hero": {
+      "type": "object",
+      "description": "Grande bannière. Without an image, the template draws a composition from the first product's illustration.",
+      "required": ["kicker", "title", "text", "button", "image"],
+      "additionalProperties": false,
+      "properties": {
+        "kicker": { "type": "string", "maxLength": 40 },
+        "title": { "type": "string", "maxLength": 70 },
+        "text": { "type": "string", "maxLength": 220 },
+        "button": { "type": "string", "maxLength": 24 },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "settings_categories": {
+      "type": "object",
+      "description": "Catégories: the tiles come from the products' categories; only the title is set here.",
+      "required": ["title"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 50 }
+      }
+    },
+    "settings_products": {
+      "type": "object",
+      "description": "Produits: the grid. Phone always shows 2 columns.",
+      "required": ["title", "limit", "columns"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 50 },
+        "limit": { "type": "integer", "minimum": 2, "maximum": 24, "default": 8, "description": "Maximum number of products shown." },
+        "columns": { "enum": [2, 3, 4], "default": 3, "description": "Columns on desktop (a number, not a string)." }
+      }
+    },
+    "settings_about": {
+      "type": "object",
+      "description": "À propos: the seller's story.",
+      "required": ["title", "text", "image"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 50 },
+        "text": { "type": "string", "maxLength": 600 },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "settings_reviews": {
+      "type": "object",
+      "description": "Avis clients. validate() warns when the section is shown with fewer than 2 reviews.",
+      "required": ["title", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 50 },
+        "items": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "required": ["name", "text", "rating"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "maxLength": 40, "description": "First name and commune, e.g. 'Mariam, Cocody'." },
+              "text": { "type": "string", "maxLength": 240 },
+              "rating": { "enum": [1, 2, 3, 4, 5], "description": "Stars out of 5 (a number)." }
+            }
+          }
+        }
+      }
+    },
+    "settings_delivery": {
+      "type": "object",
+      "description": "Livraison: zones (communes) and their fees. validate() warns when the section is shown with no zone.",
+      "required": ["title", "text", "zones"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 50 },
+        "text": { "type": "string", "maxLength": 240 },
+        "zones": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "required": ["name", "fee"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "maxLength": 40, "description": "Commune or zone, e.g. 'Cocody'." },
+              "fee": { "type": "integer", "minimum": 0, "maximum": 100000, "description": "Delivery fee in whole FCFA (1500, not '1 500 FCFA')." }
+            }
+          }
+        }
+      }
+    },
+    "settings_whatsapp": {
+      "type": "object",
+      "description": "Commander sur WhatsApp: the call to action. The button opens the store's WhatsApp number.",
+      "required": ["title", "text", "button"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 60 },
+        "text": { "type": "string", "maxLength": 200 },
+        "button": { "type": "string", "maxLength": 30 }
+      }
+    }
+  }
+}

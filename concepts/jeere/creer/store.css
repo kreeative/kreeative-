@@ -22,6 +22,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  overflow: clip; /* clips decoration without turning the root into a scroll container */
   width: 100%;
   min-width: 0;
   margin: 0;
@@ -48,13 +49,16 @@
 .jst[data-device="desktop"] { --st-gutter: 40px; --st-sec: 104px; font-size: 16px; }
 
 .jst *, .jst *::before, .jst *::after { box-sizing: border-box; }
+.jst * { letter-spacing: inherit; word-spacing: inherit; text-shadow: inherit; }
 .jst :where(h1, h2, h3, h4, p, ul, ol, li, figure, blockquote, figcaption, nav, header, footer, main, section, article) { margin: 0; padding: 0; border: 0; }
-.jst :where(h1, h2, h3, h4) { font-size: inherit; font-weight: inherit; color: inherit; }
+/* Text elements take everything from the store, whatever global rules the host page has. */
+.jst :where(h1, h2, h3, h4, p, li, blockquote, figcaption, span, a, b, strong, small, i) { font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; text-align: inherit; background: none; box-shadow: none; }
 .jst :where(ul, ol) { list-style: none; }
 .jst :where(img, svg) { display: block; max-width: 100%; }
 .jst :where(img) { height: auto; border: 0; }
 .jst :where(a) { color: inherit; text-decoration: none; background: none; }
 .jst :where(b, strong) { font-weight: 700; }
+.jst :where(i) { font-style: normal; }
 .jst :where(button) {
   font: inherit; color: inherit; background: none; border: 0; border-radius: 0; padding: 0; margin: 0;
   width: auto; height: auto; min-width: 0; min-height: 0; box-shadow: none; text-align: inherit;
@@ -64,7 +68,10 @@
 .jst ::selection { background: var(--st-accent); color: var(--st-on-accent); }
 
 .jst .jst-wrap { width: 100%; max-width: calc(var(--st-max) + 2 * var(--st-gutter)); margin: 0 auto; padding: 0 var(--st-gutter); }
-.jst .jst-main { display: block; padding-bottom: calc(var(--st-sec) / 2); }
+.jst .jst-main { display: block; padding-bottom: calc(var(--st-sec) / 4); }
+/* A full-bleed band that ends the page meets the footer. */
+.jst[data-tpl="plateau"] .jst-main > .jst-sec--whatsapp:last-child,
+.jst[data-tpl="treichville"] .jst-main > .jst-sec--whatsapp:last-child { padding-bottom: 0; margin-bottom: calc(var(--st-sec) / -4); }
 .jst .jst-sec { display: block; padding: calc(var(--st-sec) / 2) 0; }
 
 /* ===================================================================== primitives */
@@ -121,6 +128,7 @@
 /* Product tiles: the seller's photo, or the illustration on a tile of the product colour. */
 .jst .jst-tile { position: relative; overflow: hidden; background: var(--tile, var(--st-surface)); }
 .jst .jst-tile > svg.jst-art { position: absolute; left: 7%; top: 6%; width: 86%; height: 88%; transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+.jst[data-tpl="cocody"] .jst-card-media > svg.jst-art, .jst[data-tpl="treichville"] .jst-card-media > svg.jst-art { left: 3%; top: 3%; width: 94%; height: 94%; }
 .jst .jst-tile > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
 
 .jst .jst-empty {
@@ -157,6 +165,9 @@
 }
 .jst .jst-logo.is-placeholder { opacity: .5; }
 .jst .jst-nav { grid-area: nav; display: none; align-items: center; gap: 28px; min-width: 0; }
+/* Plateau and Treichville: links that do not fit drop to a hidden second row instead of overlapping the logo. */
+.jst[data-tpl="plateau"] .jst-nav, .jst[data-tpl="treichville"] .jst-nav { flex-wrap: wrap; height: 44px; overflow: hidden; row-gap: 0; }
+.jst[data-tpl="plateau"] .jst-nav-link, .jst[data-tpl="treichville"] .jst-nav-link { display: inline-flex; align-items: center; height: 44px; }
 .jst .jst-nav-link { font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: opacity .15s ease; }
 .jst[data-device="desktop"] .jst-nav-link:hover { opacity: .6; }
 .jst .jst-header-actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
@@ -165,8 +176,9 @@
 .jst[data-device="desktop"] .jst-nav { display: flex; }
 
 /* Section heads */
-.jst .jst-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; margin-bottom: 24px; }
-.jst .jst-head-title { min-width: 0; font-size: 28px; }
+.jst .jst-head { display: flex; flex-wrap: nowrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; margin-bottom: 24px; }
+.jst .jst-head--reviews { flex-wrap: wrap; }
+.jst .jst-head-title { flex: 0 1 auto; min-width: 0; font-size: 28px; }
 .jst .jst-head-aside { flex: none; max-width: 100%; }
 .jst .jst-head-count { font-size: 13px; color: var(--st-muted); white-space: nowrap; }
 
@@ -319,7 +331,7 @@
 .jst[data-tpl="plateau"] .jst-header-actions { margin-right: -11px; }
 .jst[data-tpl="plateau"] .jst-logo { text-align: center; font-size: 21px; letter-spacing: -0.01em; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-header-in { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "nav logo actions"; min-height: 88px; gap: 32px; }
-.jst[data-tpl="plateau"][data-device="desktop"] .jst-logo { max-width: 460px; font-size: 30px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-logo { max-width: 400px; font-size: 30px; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-header-actions { margin-right: -11px; }
 .jst[data-tpl="plateau"] .jst-nav { gap: 30px; }
 .jst[data-tpl="plateau"] .jst-nav-link { font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
@@ -352,8 +364,8 @@
 .jst .jst-hero-stage.has-img .jst-btn,
 .jst .jst-hero-block.has-img ~ .jst-btn { background: var(--st-photo-btn-bg); color: var(--st-photo-btn-fg); border-color: var(--st-photo-btn-bg); }
 .jst[data-buttons="outline"] .jst-hero-stage.has-img .jst-btn { background: transparent; color: #FFFFFF; border-color: #FFFFFF; }
-.jst[data-tpl="plateau"]:not([data-buttons="outline"]) .jst-hero-stage:not(.has-img) .jst-btn { background: var(--ink); color: var(--tile); border-color: var(--ink); }
-.jst[data-tpl="plateau"][data-buttons="outline"] .jst-hero-stage:not(.has-img) .jst-btn { color: var(--ink); border-color: var(--ink); }
+.jst[data-tpl="plateau"]:not([data-buttons="outline"]) .jst-hero-stage:not(.has-img) .jst-btn { background: var(--hero-btn-bg); color: var(--hero-btn-fg); border-color: var(--hero-btn-bg); }
+.jst[data-tpl="plateau"][data-buttons="outline"] .jst-hero-stage:not(.has-img) .jst-btn { color: var(--hero-btn-line); border-color: var(--hero-btn-line); }
 
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); min-height: 680px; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-copy { align-self: center; padding: 96px 56px 96px var(--st-gutter); }
@@ -410,6 +422,7 @@
 .jst[data-tpl="plateau"] .jst-badge--best { background: var(--st-text); color: var(--st-bg); }
 .jst[data-tpl="plateau"] .jst-badge--promo { background: var(--st-accent); color: var(--st-on-accent); }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-badge { top: 14px; left: 14px; height: 24px; font-size: 9.5px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-card-btn { width: auto; align-self: flex-start; padding: 0 18px; }
 
 /* about */
 .jst[data-tpl="plateau"] .jst-about-media { border-radius: var(--pl-r); }
@@ -508,7 +521,7 @@
 .jst[data-tpl="cocody"] .jst-blob { position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; }
 .jst[data-tpl="cocody"] .jst-blob--a { width: 300px; height: 300px; right: -120px; top: -110px; background: var(--st-accent); opacity: .08; }
 .jst[data-tpl="cocody"] .jst-blob--b { width: 180px; height: 180px; left: -80px; bottom: -70px; background: var(--st-accent); opacity: .06; }
-.jst[data-tpl="cocody"] .jst-blob--c { width: 16px; height: 16px; left: 26px; top: 30px; background: var(--st-accent); opacity: .35; }
+.jst[data-tpl="cocody"] .jst-blob--c { display: none; }
 .jst[data-tpl="cocody"] .jst-hero-visual { position: relative; order: -1; display: flex; justify-content: center; padding-bottom: 14px; }
 .jst[data-tpl="cocody"] .jst-hero-circle { position: relative; width: 236px; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 50%; background: radial-gradient(circle at 50% 38%, var(--tile-hi) 0%, var(--tile) 72%); box-shadow: 0 0 0 10px rgba(255, 255, 255, .35); }
 .jst[data-tpl="cocody"][data-tone="dark"] .jst-hero-circle { box-shadow: 0 0 0 10px rgba(255, 255, 255, .06); }
@@ -547,7 +560,6 @@
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-float-name, .jst[data-tpl="cocody"][data-device="desktop"] .jst-float .jst-price { font-size: 13.5px; }
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-blob--a { width: 520px; height: 520px; right: -140px; top: -200px; }
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-blob--b { width: 260px; height: 260px; left: -90px; bottom: -120px; }
-.jst[data-tpl="cocody"][data-device="desktop"] .jst-blob--c { left: 52%; top: 64px; width: 22px; height: 22px; }
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-hero-title { font-size: 48px; }
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-hero-title[data-len="s"] { font-size: 56px; }
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-hero-title[data-len="l"] { font-size: 40px; }
@@ -690,7 +702,7 @@
 /* announcement: a ticker on desktop */
 .jst[data-tpl="treichville"] .jst-sec--announcement { padding: 0; }
 .jst[data-tpl="treichville"] .jst-ann-in { min-height: 40px; font-size: 11.5px; font-weight: 700; letter-spacing: .07em; line-height: 1.4; text-transform: uppercase; }
-.jst[data-tpl="treichville"][data-device="desktop"] .jst-ann-in { white-space: nowrap; gap: 28px; min-height: 44px; font-size: 12.5px; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-ann-in { justify-content: flex-start; white-space: nowrap; gap: 28px; min-height: 44px; font-size: 12.5px; }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-ann-item { flex: none; }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-ann-sep,
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-ann-rep { display: inline; flex: none; }
@@ -706,7 +718,7 @@
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-logo { font-size: 22px; max-width: 420px; }
 .jst[data-tpl="treichville"] .jst-nav { justify-content: flex-end; gap: 30px; }
 .jst[data-tpl="treichville"] .jst-nav-link { position: relative; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-.jst[data-tpl="treichville"] .jst-nav-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; background: var(--st-accent); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
+.jst[data-tpl="treichville"] .jst-nav-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: 6px; height: 3px; background: var(--st-accent); transform: scaleX(0); transform-origin: left; transition: transform .2s ease; }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-nav-link:hover { opacity: 1; }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-nav-link:hover::after { transform: scaleX(1); }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-header-actions { gap: 8px; }
@@ -873,7 +885,7 @@
 }
 .jst[data-tpl="treichville"] .jst-about-title { font-size: 30px; }
 .jst[data-tpl="treichville"] .jst-about-text { font-size: 16px; }
-.jst[data-tpl="treichville"] .jst-about-text p:first-child { font-size: 1.1em; font-weight: 600; }
+.jst[data-tpl="treichville"] .jst-about-text p:first-child:not(:only-child) { font-size: 1.1em; font-weight: 600; }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-about { gap: 88px; }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-about-media { margin-right: 18px; box-shadow: 18px 18px 0 var(--st-accent); }
 .jst[data-tpl="treichville"][data-device="desktop"] .jst-about-title { font-size: 52px; }

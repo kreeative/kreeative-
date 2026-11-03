@@ -48,13 +48,17 @@
   const plural = (n, one, many) => n + NBSP + (n > 1 ? many : one);
   const pad2 = (n) => (n < 10 ? '0' : '') + n;
 
+  // French typography on display only (the fiche keeps what the seller typed): a no-break space
+  // before : ; ? ! and inside « », so a lone colon never starts a line.
+  const fr = (t) => t.replace(/[ \t]+([:;?!»])/g, NBSP + '$1').replace(/«[ \t]+/g, '«' + NBSP);
+
   // Multi-line text (textarea): paragraphs on blank lines, <br> on single line breaks. Escaped.
   function paras(text) {
     const t = str(text).trim();
     if (!t) return '';
-    return t.split(/\n\s*\n/).map((p) => '<p>' + esc(p.trim()).replace(/\n/g, '<br>') + '</p>').join('');
+    return t.split(/\n\s*\n/).map((p) => '<p>' + esc(fr(p.trim())).replace(/\n/g, '<br>') + '</p>').join('');
   }
-  const line = (text) => esc(str(text).replace(/\s*\n\s*/g, ' ').trim());
+  const line = (text) => esc(fr(str(text).replace(/\s*\n\s*/g, ' ').trim()));
 
   const IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
   const validImage = (v) => (typeof v === 'string' && v.length < 16000000 && IMAGE_RE.test(v) ? v.replace(/\s+/g, '') : null);
@@ -236,39 +240,42 @@
       '<circle cx="100" cy="118" r="4" fill="' + p.l2 + '"/>',
 
     tshirt: (p) =>
-      SH(100, 215, 62, 7) +
-      '<path d="M74 62l16-7c3 10 6 14 10 14s7-4 10-14l16 7 38 23-14 30-16-8v96c0 3-2 5-5 5H71c-3 0-5-2-5-5v-96l-16 8-14-30z" fill="' + p.c + '"/>' +
-      '<path d="M36 85l14 30 9-4.5-13.5-30z" fill="' + p.d1 + '" fill-opacity=".7"/>' +
-      '<path d="M164 85l-14 30-9-4.5 13.5-30z" fill="' + p.d1 + '" fill-opacity=".7"/>' +
-      '<path d="M116 98l18 9v96c0 3-2 5-5 5h-13z" fill="' + p.d1 + '" fill-opacity=".4"/>' +
-      '<path d="M88 56c3 12 7 18 12 18s9-6 12-18" fill="none" stroke="' + p.d2 + '" stroke-width="6" stroke-linecap="round"/>' +
-      '<rect x="106" y="94" width="18" height="20" rx="3" fill="' + p.d1 + '" fill-opacity=".65"/>' +
-      '<path d="M78 92v100" stroke="#fff" stroke-opacity=".3" stroke-width="7" stroke-linecap="round"/>',
+      SH(100, 215, 64, 7) +
+      '<path d="M72 62l18-7c3 10 6 14 10 14s7-4 10-14l18 7 38 23-14 30-17-8v95c0 3-2 5-5 5H68c-3 0-5-2-5-5v-95l-17 8-14-30z" fill="' + p.c + '"/>' +
+      '<path d="M90 55c3 10 6 14 10 14s7-4 10-14c-3-1.6-6.5-2.4-10-2.4s-7 .8-10 2.4z" fill="' + p.d2 + '"/>' +
+      '<path d="M32 85l14 30 9.5-4.5L41.5 80.6z" fill="' + p.d1 + '" fill-opacity=".7"/>' +
+      '<path d="M168 85l-14 30-9.5-4.5 14-29.9z" fill="' + p.d1 + '" fill-opacity=".7"/>' +
+      '<path d="M118 99l19 9v95c0 3-2 5-5 5h-14z" fill="' + p.d1 + '" fill-opacity=".38"/>' +
+      '<path d="M90 55c3 10 6 14 10 14s7-4 10-14" fill="none" stroke="' + p.d1 + '" stroke-width="4.5" stroke-linecap="round"/>' +
+      '<rect x="108" y="92" width="18" height="20" rx="3" fill="' + p.d1 + '" fill-opacity=".6"/>' +
+      '<path d="M76 92v100" stroke="#fff" stroke-opacity=".3" stroke-width="7" stroke-linecap="round"/>',
 
     shoe: (p) =>
-      '<g transform="translate(-2 -14)">' + SH(104, 200, 80, 7) +
-      '<path d="M24 170h156c5 0 7 4 5 9-3 8-9 12-17 12H38c-9 0-14-5-14-12z" fill="' + p.w + '"/>' +
-      '<path d="M24 181h161c-3 7-9 10-17 10H38c-7 0-12-4-14-10z" fill="' + p.d1 + '" fill-opacity=".55"/>' +
-      '<path d="M28 170l5-58c1-11 7-16 16-16h17c8 0 12 5 15 11 9 17 21 25 37 27l28 6c26 6 36 16 38 30z" fill="' + p.c + '"/>' +
-      '<path d="M146 140c21 6 31 15 34 30h-31c-1-12-5-22-12-29z" fill="' + p.l1 + '"/>' +
-      '<path d="M33 112c1-11 7-16 16-16h6l-4 74H28z" fill="' + p.d1 + '"/>' +
-      '<path d="M80 107c9 17 21 25 37 27l5 22c-25 0-44-9-56-24z" fill="' + p.d1 + '" fill-opacity=".5"/>' +
-      '<path d="M86 119l9-7M96 127l9-7M107 132l8-7" stroke="' + p.w + '" stroke-width="4.5" stroke-linecap="round"/>' +
-      '<path d="M46 101c8-4 16-4 24 0" stroke="' + p.d3 + '" stroke-width="5" stroke-linecap="round" fill="none"/>' +
-      '<path d="M58 158h70" stroke="' + p.d2 + '" stroke-width="4" stroke-linecap="round" stroke-opacity=".5"/>' +
-      '<path d="M40 126v34" stroke="#fff" stroke-opacity=".3" stroke-width="6" stroke-linecap="round"/></g>',
+      SH(102, 172, 86, 7) +
+      '<path d="M14 140h170c6 0 9 4 7 10-3 9-10 14-20 14H30c-10 0-16-6-16-14z" fill="' + p.w + '"/>' +
+      '<path d="M15.5 155H190c-4 6-10 9-19 9H30c-8 0-12.5-3-14.5-9z" fill="' + p.d2 + '" fill-opacity=".55"/>' +
+      '<path d="M24 147.5h156" stroke="' + p.d1 + '" stroke-width="2" stroke-dasharray="3 5" stroke-opacity=".7"/>' +
+      '<path d="M18 140l4-38c1-9 6-14 15-14h22c7 0 11 3 15 9 10 15 22 22 40 24l34 5c22 3 33 6 36 14z" fill="' + p.c + '"/>' +
+      '<path d="M150 126.3c20 3 30 6 34 13.7h-30c-.5-5-2-9.5-4-13.7z" fill="' + p.l1 + '"/>' +
+      '<path d="M22 102c1-9 6-14 15-14h6l-4 52H18z" fill="' + p.d1 + '"/>' +
+      '<path d="M72 95c10 15 22 23 42 26l6 19c-28 0-50-9-62-26z" fill="' + p.d1 + '" fill-opacity=".5"/>' +
+      '<path d="M80 104l10-7M90 112l10-7M101 118l10-6" stroke="' + p.w + '" stroke-width="4.5" stroke-linecap="round"/>' +
+      '<path d="M30 91c10-5 20-5 30 0" stroke="' + p.d3 + '" stroke-width="5" stroke-linecap="round" fill="none"/>' +
+      '<path d="M48 129h66" stroke="' + p.d2 + '" stroke-width="4" stroke-linecap="round" stroke-opacity=".5"/>' +
+      '<path d="M30 106v24" stroke="#fff" stroke-opacity=".3" stroke-width="6" stroke-linecap="round"/>',
 
     cap: (p) =>
-      SH(100, 206, 74, 7) +
-      '<path d="M42 160c-2-46 22-74 58-74s60 28 58 74z" fill="' + p.c + '"/>' +
-      '<path d="M100 86c-24 8-34 40-34 74h34z" fill="' + p.l1 + '"/>' +
-      '<path d="M100 86c-3 22-3 50 0 74M100 86c-21 10-31 40-34 74M100 86c21 10 31 40 34 74" stroke="' + p.d1 + '" stroke-width="2.5" fill="none" stroke-opacity=".8"/>' +
-      '<path d="M134 160c-2-30-12-56-34-74 30 4 56 30 58 74z" fill="' + p.d1 + '" fill-opacity=".45"/>' +
-      '<ellipse cx="100" cy="87" rx="9" ry="4.5" fill="' + p.d2 + '"/>' +
-      '<path d="M42 150c38 10 78 10 116 0l1 12c-39 11-79 11-118 0z" fill="' + p.d1 + '"/>' +
-      '<path d="M40 160c40 13 80 13 120 0 16 6 18 18 8 25-44 15-92 15-136 0-10-7-8-19 8-25z" fill="' + p.d2 + '"/>' +
-      '<path d="M54 170c30 8 62 8 92 0" stroke="#fff" stroke-opacity=".18" stroke-width="4" stroke-linecap="round" fill="none"/>' +
-      '<path d="M66 118c4-12 10-20 18-25" stroke="#fff" stroke-opacity=".35" stroke-width="6" stroke-linecap="round" fill="none"/>',
+      SH(102, 184, 76, 7) +
+      '<path d="M38 160c-3-48 24-78 62-78 36 0 58 28 56 66z" fill="' + p.c + '"/>' +
+      '<path d="M100 82c24 4 46 24 56 66l-46 6c-2-30-5-52-10-72z" fill="' + p.l1 + '"/>' +
+      '<path d="M100 82c-7 24-9 50-7 76M100 82c-26 12-42 40-46 78" stroke="' + p.d1 + '" stroke-width="2.5" fill="none" stroke-opacity=".8"/>' +
+      '<path d="M38 160c-1-14 0-26 4-38 6 20 12 30 24 36z" fill="' + p.d1 + '" fill-opacity=".45"/>' +
+      '<circle cx="72" cy="116" r="3" fill="' + p.d2 + '"/><circle cx="124" cy="104" r="3" fill="' + p.d2 + '"/>' +
+      '<ellipse cx="100" cy="83" rx="9" ry="4.5" fill="' + p.d2 + '"/>' +
+      '<path d="M38 160l118-12" stroke="' + p.d2 + '" stroke-width="5" stroke-linecap="round"/>' +
+      '<path d="M126 150c24-7 50-7 68 2 5 3 3 9-3 10-26 5-50 4-68-2z" fill="' + p.d2 + '"/>' +
+      '<path d="M136 152c18-4 36-4 50 0" stroke="#fff" stroke-opacity=".22" stroke-width="3" stroke-linecap="round" fill="none"/>' +
+      '<path d="M58 132c4-16 12-28 22-36" stroke="#fff" stroke-opacity=".35" stroke-width="6" stroke-linecap="round" fill="none"/>',
 
     jewel: (p) => {
       // A bead necklace with a faceted pendant. Beads follow a quadratic curve.
@@ -295,16 +302,16 @@
     },
 
     hair: (p) =>
-      SH(100, 220, 56, 7) +
-      '<path d="M68 200c6-8 18-12 32-12s26 4 32 12l4 14H64z" fill="#DCCBB9"/>' +
-      '<path d="M86 160h28v34c-4 3-9 4-14 4s-10-1-14-4z" fill="#E6D7C7"/>' +
-      '<path d="M100 48c-38 0-54 30-54 68l2 82c0 5 4 9 9 9h22c4-34 0-62-4-86 0-20 10-30 25-30s25 10 25 30c-4 24-8 52-4 86h22c5 0 9-4 9-9l2-82c0-38-16-68-54-68z" fill="' + p.c + '"/>' +
-      '<ellipse cx="100" cy="132" rx="27" ry="35" fill="#F1E6DA"/>' +
-      '<path d="M100 48c-34 0-50 26-52 60 14-18 34-28 58-28 18 0 32 8 44 24-2-34-18-56-50-56z" fill="' + p.c + '"/>' +
-      '<path d="M54 106c12-16 30-25 52-26-14 8-22 20-26 36-8-6-17-10-26-10z" fill="' + p.d1 + '"/>' +
-      '<path d="M60 124c-4 26-4 50-1 76M70 116c-3 30-2 58 2 86M140 124c4 26 4 50 1 76M130 116c3 30 2 58-2 86" stroke="' + p.d2 + '" stroke-width="2.5" stroke-linecap="round" fill="none" stroke-opacity=".7"/>' +
-      '<path d="M78 62c10-6 24-8 38-4" stroke="' + p.l2 + '" stroke-width="5" stroke-linecap="round" fill="none" stroke-opacity=".8"/>' +
-      '<path d="M146 112c2 30 2 60 0 90" stroke="' + p.d1 + '" stroke-width="7" stroke-linecap="round" fill="none" stroke-opacity=".6"/>',
+      SH(100, 224, 58, 6) +
+      '<path d="M50 224c4-20 24-30 50-30s46 10 50 30z" fill="#E4D4C3"/>' +
+      '<path d="M88 150h24v48c-4 2-8 3-12 3s-8-1-12-3z" fill="#EADCCD"/>' +
+      '<path d="M100 44c-40 0-58 30-58 70 0 30-6 54-13 76 11 9 26 11 38 6 4-24 8-48 6-72h54c-2 24 2 48 6 72 12 5 27 3 38-6-7-22-13-46-13-76 0-40-18-70-58-70z" fill="' + p.c + '"/>' +
+      '<ellipse cx="100" cy="128" rx="25" ry="32" fill="#F2E8DD"/>' +
+      '<path d="M76 110c-3 22-1 44 6 62M124 110c3 22 1 44-6 62" stroke="' + p.d2 + '" stroke-width="4" stroke-linecap="round" fill="none" stroke-opacity=".45"/>' +
+      '<path d="M100 44c-34 0-52 24-54 60 13-17 30-27 52-28 18-1 36 7 52 24-2-34-17-56-50-56z" fill="' + p.c + '"/>' +
+      '<path d="M48 110c10-21 31-33 58-31-17 8-27 21-31 39-8-6-18-9-27-8z" fill="' + p.d1 + '"/>' +
+      '<path d="M57 124c-5 22 4 38-3 64M66 118c-3 26 4 44 0 72M143 124c5 22-4 38 3 64M134 118c3 26-4 44 0 72" stroke="' + p.d2 + '" stroke-width="2.5" stroke-linecap="round" fill="none" stroke-opacity=".6"/>' +
+      '<path d="M80 58c12-7 27-8 40-3" stroke="' + p.l2 + '" stroke-width="5" stroke-linecap="round" fill="none" stroke-opacity=".85"/>',
 
     plate: (p) =>
       '<path d="M82 62c-7 8-7 15 0 22s7 14 0 22M108 54c-7 8-7 15 0 22s7 14 0 22" fill="none" stroke="' + p.d2 + '" stroke-width="4" stroke-linecap="round" stroke-opacity=".35"/>' +
@@ -352,6 +359,17 @@
       '<rect x="57" y="134" width="8" height="70" rx="4" ' + HI + '/>'
   };
 
+  // Re-centres the bottom-heavy drawings so every kind sits at the same optical height.
+  const ART_FIT = {
+    jar: 'translate(0 -14)',
+    bag: 'translate(0 -10)',
+    tshirt: 'translate(0 -6)',
+    cap: 'translate(-12 -8)',
+    box: 'translate(0 -12)',
+    hair: 'translate(0 -8)',
+    basket: 'translate(0 -6)'
+  };
+
   const artCache = new Map();
   function artSVG(kind, color) {
     try {
@@ -359,7 +377,9 @@
       const c = validHex(color) || '#E9D8BD';
       const key = k + c;
       if (artCache.has(key)) return artCache.get(key);
-      const svg = '<svg class="jst-art" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' + ART[k](artColors(c)) + '</svg>';
+      const inner = ART[k](artColors(c));
+      const svg = '<svg class="jst-art" viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+        (ART_FIT[k] ? '<g transform="' + ART_FIT[k] + '">' + inner + '</g>' : inner) + '</svg>';
       if (artCache.size > 400) artCache.clear();
       artCache.set(key, svg);
       return svg;
@@ -506,7 +526,8 @@
 
     const dark = lum(colors.bg) < 0.18;
     const accentInk = contrast(colors.accent, colors.bg) >= 4.5 ? colors.accent : colors.text;
-    const accentSoft = mix(colors.bg, colors.accent, dark ? 0.16 : 0.1);
+    // Tint for chips, avatars and icon discs. They sit on cards, so it is mixed from the surface.
+    const accentSoft = mix(colors.surface, colors.accent, dark ? 0.2 : 0.14);
 
     // Fallback visual when there is no product yet: the niche art, or a box in a soft accent tint.
     const leadFallback = {
@@ -725,7 +746,13 @@
       const cap = p.name
         ? '<p class="jst-hero-cap"><span>N°' + NBSP + '01</span><span>' + esc(p.name) + '</span>' + (typeof p.price === 'number' ? '<span>' + esc(fmtNum(p.price)) + NBSP + 'FCFA</span>' : '') + '</p>'
         : '';
-      stage = '<div class="jst-hero-stage" style="--tile:' + t.tile + ';--tile-hi:' + t.hi + ';--ink:' + inkOn(t.tile) + '">' +
+      // The hero button keeps the seller's accent unless it would vanish on the tile.
+      const ink = inkOn(t.tile);
+      const c = m.colors;
+      const solidOk = contrast(c.accent, t.tile) >= 2.4;
+      const lineOk = contrast(c.accent, t.tile) >= 4;
+      const btnVars = ';--hero-btn-bg:' + (solidOk ? c.accent : ink) + ';--hero-btn-fg:' + (solidOk ? c.onAccent : t.tile) + ';--hero-btn-line:' + (lineOk ? c.accent : ink);
+      stage = '<div class="jst-hero-stage" style="--tile:' + t.tile + ';--tile-hi:' + t.hi + ';--ink:' + ink + btnVars + '">' +
         heroCopy(m, st, 'jst-kicker') +
         '<div class="jst-hero-art"><div class="jst-arch">' + (p.image ? '<img src="' + esc(p.image) + '" alt="">' : artSVG(p.art, p.color)) + '</div>' + cap + '</div>' +
         '</div>';
@@ -944,7 +971,7 @@
           '--st-display-weight': String(m ? m.displayWeight : 600),
           '--st-accent-ink': m ? m.accentInk : c.text,
           '--st-accent-soft': m ? m.accentSoft : mix(c.bg, c.accent, 0.1),
-          '--st-surface-2': mix(c.surface, c.accent, m && m.dark ? 0.08 : 0.05),
+          '--st-surface-2': mix(c.surface, c.accent, m && m.dark ? 0.035 : 0.05),
           '--st-text-soft': mix(c.bg, c.text, 0.82),
           // Buttons set over a photo: the accent when it stands out on a dark scrim, else white.
           '--st-photo-btn-bg': lum(c.accent) < 0.2 ? '#FFFFFF' : c.accent,
