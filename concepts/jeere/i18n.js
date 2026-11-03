@@ -4,7 +4,7 @@ window.JEERE_EN = {
   'meta.description': 'JEERE, the all-in-one platform to build and run your online store and your in-person sales, with no code. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, prices in FCFA. Waitlist open in Abidjan.',
 
   'skip': 'Skip to content',
-  'nav.home': 'JEERE, home',
+  'nav.home': 'Jeere, home',
   'nav.label': 'Main menu',
   'nav.how': 'How it works',
   'nav.delivery': 'Delivery',

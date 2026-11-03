@@ -40,7 +40,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
 ## Identity used on the page
 
 - **Logo**: a geometric “j” drawn in SVG (`#mark` in `index.html`): a round dot above a thick
-  curved base with a small notch, next to “JEERE” set in Poppins SemiBold. The “j” is silver: a bright metallic
+  curved base with a small notch, next to “Jeere” set in Outfit SemiBold (SIL OFL), written like the inspiration (capital J, the rest lowercase) and converted to an SVG path (`#word`), so the logo needs no font. The “j” is silver: a bright metallic
   gradient (`#F4F6F8` → `#C3C8CE` → `#8A9199`) on dark backgrounds and a darker one (`#C9CED4` →
   `#9AA1A9` → `#5F6670`) on light backgrounds so it stays visible. The word is black on light
   backgrounds and silver on dark ones. The rest of the site stays black and white.

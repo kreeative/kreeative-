@@ -112,13 +112,14 @@ ul, ol { padding: 0; list-style: none; }
 /* Logo: the geometric "j" mark + JEERE in Poppins */
 .logo { display: inline-flex; align-items: center; gap: 8px; color: inherit; }
 .logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; flex: none; fill: url(#jeere-silver-dark); }
-.logo__word { font: 600 19px/1 var(--f-display); letter-spacing: .03em; }
+.logo__word { height: 19px; width: auto; aspect-ratio: 2497 / 713; flex: none; fill: currentColor; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .head__nav { display: none; gap: 26px; }
 .head__nav a { font-size: 15px; font-weight: 500; text-decoration: none; color: var(--muted); padding: 10px 0; }
 .head__nav a:hover { color: var(--ink); }
 .head__end { display: flex; align-items: center; gap: 10px; }
 .only-wide { display: none; }
-@media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .logo__mark { height: 30px; } .logo__word { font-size: 20px; } }
+@media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .logo__mark { height: 30px; } .logo__word { height: 20px; } }
 @media (min-width: 1000px) { .head__nav { display: flex; } .head__logo { margin-right: 12px; } .head__nav { margin-right: auto; } }
 
 .lang { display: flex; border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
@@ -245,9 +246,9 @@ html:not(.js) .msg { animation: none; opacity: 1; transform: none; }
 .logo--inline { gap: 6px; color: var(--white); }
 .logo--inline .logo__mark, .foot__j { fill: url(#jeere-silver); }
 /* The word in silver on dark backgrounds */
-.logo--inline .logo__word, .foot__word { background: linear-gradient(135deg, #F4F6F8, #C3C8CE 55%, #8A9199); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.logo--inline .logo__word, .foot__word { fill: url(#jeere-silver-word); }
 .logo--inline .logo__mark { height: 17px; }
-.logo--inline .logo__word { font-size: 14px; letter-spacing: .06em; }
+.logo--inline .logo__word { height: 13px; }
 .compare li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 16.5px; line-height: 1.45; }
 .compare__col--after li { border-top-color: var(--line-light); }
 .compare li:first-child { border-top: 0; padding-top: 0; }
@@ -489,7 +490,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .foot { background: var(--ink); color: var(--white); padding: 56px 0 40px; border-top: 1px solid var(--line-light); --focus: #fff; }
 .foot__brand { display: flex; align-items: flex-start; gap: clamp(16px, 3vw, 28px); color: var(--white); }
 .foot__txt { display: grid; gap: 10px; justify-items: end; margin-top: clamp(14px, 2.6vw, 30px); }
-.foot__word { font: 600 clamp(22px, 3.4vw, 34px)/1 var(--f-display); letter-spacing: .04em; }
+.foot__word { height: clamp(24px, 3.6vw, 38px); width: auto; aspect-ratio: 2497 / 713; }
 .foot__icons { display: flex; gap: 10px; color: var(--muted-light); }
 .foot__icons .ico { width: 16px; height: 16px; --paper: var(--ink); }
 .foot__j { height: clamp(150px, 26vw, 260px); width: auto; aspect-ratio: 300 / 372; flex: none; }
