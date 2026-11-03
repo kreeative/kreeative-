@@ -1945,7 +1945,7 @@
     S.page = 'home';
     S.productId = null;
     // A new store starts with an empty demo cart (render.js keeps it on the preview element)
-    ['__jstCart', '__jstForm', '__jstQty', '__jstCartCleared'].forEach((k) => { try { delete els.store[k]; } catch (e) { /* ignore */ } });
+    ['__jstCart', '__jstForm', '__jstQty', '__jstCartCleared', '__jstPeek', '__jstErr'].forEach((k) => { try { delete els.store[k]; } catch (e) { /* ignore */ } });
     syncPagePicks();
     S.previewDirty = true;
     els.ed.dataset.view = 'edit';
@@ -2165,9 +2165,13 @@
     if (k === 'y' || e.shiftKey) redo(); else undo();
   }
 
+  // The checkout speaks to shoppers; what the seller has to do goes here
+  const NOPAY_HINT = [`Aucun moyen de paiement activé${NB}: vos clients ne peuvent commander que sur WhatsApp. Activez-en un dans Boutique › Moyens de paiement.`, `Activez un moyen de paiement dans Boutique.`];
   function updateHint() {
     if (!els.stageHint) return;
-    const h = PAGE_HINTS[rendererHasPages() ? S.page : 'home'] || PAGE_HINTS.home;
+    const page = rendererHasPages() ? S.page : 'home';
+    const noPay = page === 'checkout' && S.config && S.config.payments && !Object.keys(S.config.payments).some((k) => S.config.payments[k] === true);
+    const h = noPay ? NOPAY_HINT : (PAGE_HINTS[page] || PAGE_HINTS.home);
     els.stageHint.textContent = isMobile() ? h[1] : h[0];
   }
 

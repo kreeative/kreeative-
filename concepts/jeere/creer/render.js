@@ -554,7 +554,9 @@
 
   /* The vivid colour set, derived from the palette so every pair keeps its contrast:
    *   tint / tintStrong   bg mixed with the accent (≈13 % / ≈30 %), or a deeper shade of the
-   *                       background when the accent is a neutral (black, white, grey);
+   *                       background when the accent is a neutral (black, white, grey); dark
+   *                       stores keep neutral raised surfaces (a bright accent mixed into
+   *                       near-black turns olive or brown) and show the accent as solid blocks;
    *   accentText          the accent, deepened (or lightened on dark stores) until it reads at
    *                       4.5:1 on bg, surface, tint and tintStrong: prices, badges, links;
    *   mutedTint / mutedStrong   secondary text that still reads at 4.5:1 on each tint;
@@ -568,9 +570,12 @@
     if (neutral) {
       tint = shade(c.bg, dark ? 0.07 : -0.055, 0.1);
       tintStrong = shade(c.bg, dark ? 0.13 : -0.11, 0.16);
+    } else if (dark) {
+      tint = c.surface;                          // Nuit #1D201D
+      tintStrong = mix(c.surface, c.text, 0.07); // Nuit ≈ #2C2F2C
     } else {
-      tint = mix(c.bg, c.accent, dark ? 0.15 : 0.13);
-      tintStrong = mix(c.bg, c.accent, dark ? 0.28 : 0.3);
+      tint = mix(c.bg, c.accent, 0.13);
+      tintStrong = mix(c.bg, c.accent, 0.3);
     }
     const surfaces = [c.bg, c.surface, tint, tintStrong];
     const accentText = readable(c.accent, surfaces, 4.5, dark);
@@ -821,10 +826,13 @@
     return '<header class="jst-header"><div class="jst-wrap jst-header-in">' +
       '<button type="button" class="jst-icon-btn jst-menu" aria-label="Menu" tabindex="-1">' + icon('menu') + '</button>' +
       '<a class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '"' + go('home') + '>' + esc(m.name) + '</a>' +
-      '<nav class="jst-nav" aria-label="Menu de la boutique">' + nav.map((n, i) => '<a class="jst-nav-link' + (i === 0 && j && j.page === 'home' ? ' is-current' : '') + '"' + go('home') + '>' + esc(n) + '</a>').join('') + '</nav>' +
+      '<nav class="jst-nav" aria-label="Menu de la boutique">' + nav.map((n, i) => {
+        const cur = i === 0 && !!j && j.page === 'home';
+        return '<a class="jst-nav-link' + (cur ? ' is-current" aria-current="page' : '') + '"' + go('home') + '>' + esc(n) + '</a>';
+      }).join('') + '</nav>' +
       '<div class="jst-header-actions">' +
       '<button type="button" class="jst-icon-btn jst-search" aria-label="Rechercher" tabindex="-1">' + icon('search') + '</button>' +
-      '<button type="button" class="jst-icon-btn jst-bag' + (j && j.page === 'cart' ? ' is-current' : '') + '" aria-label="' + esc(bagLabel) + '" tabindex="-1"' + go('cart') + '>' + icon('bag') +
+      '<button type="button" class="jst-icon-btn jst-bag' + (j && j.page === 'cart' ? ' is-current' : '') + '" aria-label="' + esc(bagLabel) + '" tabindex="-1"' + go('cart', j && j.page === 'product' ? j.productId : null) + '>' + icon('bag') +
       (count ? '<span class="jst-bag-n" aria-hidden="true">' + (count > 99 ? '99+' : count) + '</span>' : '') + '</button>' +
       '</div></div></header>';
   }
@@ -973,7 +981,8 @@
       (p.category ? '<p class="jst-card-cat">' + esc(p.category) + '</p>' : '') +
       '<h3 class="jst-card-name">' + name + '</h3>' +
       '<div class="jst-card-price">' + priceHTML(p.price) + '</div>' +
-      btn('Commander', { size: 'sm', icon: 'chat', block: true, cls: 'jst-card-btn' }) +
+      // Quick add (× 1) feeds the cart journey; the rest of the card opens the product page.
+      btn('Ajouter', { size: 'sm', icon: 'bag', block: true, cls: 'jst-card-btn', attrs: act('add', { product: p.id, quick: 1 }) + ' aria-label="' + esc('Ajouter ' + (p.name || 'ce produit') + ' au panier') + '"' }) +
       '</div></article>';
   }
 
@@ -1151,9 +1160,13 @@
     return '<div class="jst-row' + (cls ? ' ' + cls : '') + '"><dt>' + label + '</dt><dd>' + value + '</dd></div>';
   }
 
+  // Sub-total, delivery (the chosen commune's fee) and total. No commune yet: « À choisir » on the
+  // checkout, « À confirmer » elsewhere (a store without delivery zones settles it on WhatsApp).
   function totals(j) {
     const z = j.zone;
-    const fee = !z ? '—' : (z.fee === 0 ? '<span class="jst-price jst-free">Offerte</span>' : (z.fee === null ? '<span class="jst-price is-empty">À confirmer</span>' : priceHTML(z.fee)));
+    const fee = !z
+      ? '<span class="jst-price is-empty">' + (j.needZone ? 'À choisir' : 'À confirmer') + '</span>'
+      : (z.fee === 0 ? '<span class="jst-price jst-free">Offerte</span>' : (z.fee === null ? '<span class="jst-price is-empty">À confirmer</span>' : priceHTML(z.fee)));
     return '<dl class="jst-rows">' +
       row('Sous-total', priceHTML(j.subtotal)) +
       row('Livraison' + (z ? '<span class="jst-row-sub">' + esc(z.name) + '</span>' : ''), fee) +
@@ -1216,7 +1229,11 @@
     const rf = isObj(rootEl.__jstForm) ? rootEl.__jstForm : {};
     const form = { first: str(rf.first).slice(0, 40), phone: str(rf.phone).slice(0, 20), commune: str(rf.commune), address: str(rf.address).slice(0, 240), pay: str(rf.pay) };
     rootEl.__jstForm = form;
-    const zone = m.zones.find((z) => z.name === form.commune) || m.zones[0] || null;
+    // The commune is the shopper's choice: never preselected (its fee would sit in the total
+    // unseen), except when the store delivers to a single zone. The confirmation page, opened
+    // straight from the editor, shows the first zone as an example.
+    const zone = m.zones.find((z) => z.name === form.commune) ||
+      ((m.zones.length === 1 || page === 'confirmation') ? m.zones[0] || null : null);
     const fee = zone && typeof zone.fee === 'number' ? zone.fee : 0;
     const pay = m.payments.find((p) => p.key === form.pay) || m.payments[0] || null;
 
@@ -1226,10 +1243,14 @@
     const pdpQty = product && pq && pq.id === product.id ? clamp(Math.round(num(pq.n) || 1), QTY_MIN, QTY_MAX) : 1;
 
     if (!rootEl.__jstUid) rootEl.__jstUid = ++UID;
+    if (page !== 'checkout' || zone) rootEl.__jstErr = null;
     return {
       page: page, product: product, productId: product ? product.id : pid, uid: rootEl.__jstUid,
       cart: cart, lines: lines, count: count, subtotal: subtotal,
-      form: form, zone: zone, fee: fee, total: subtotal + fee, pay: pay, pdpQty: pdpQty
+      form: form, zone: zone, fee: fee, total: subtotal + fee, pay: pay, pdpQty: pdpQty,
+      needZone: page === 'checkout' && !zone && m.zones.length > 0 && m.payments.length > 0,
+      err: isObj(rootEl.__jstErr) ? rootEl.__jstErr : {},
+      peek: !!rootEl.__jstPeek
     };
   }
 
@@ -1248,15 +1269,17 @@
     out.push(header(m, j));
     const body = [];
     let plain = 0;
+    let endTint = false;
     for (; i < m.sections.length; i++) {
       const s = m.sections[i];
       if (m.vivid && PLAIN[s.type]) { s.tint = plain % 2 === 0; plain++; }
       body.push(renderSection(m, s));
+      endTint = !!s.tint;
     }
     if (!body.length) {
       body.push('<div class="jst-wrap jst-page-empty">' + empty('Votre page est vide pour l’instant. Activez ou ajoutez une section pour la remplir.') + '</div>');
     }
-    out.push('<main class="jst-main jst-main--home">' + body.join('') + '</main>');
+    out.push('<main class="jst-main jst-main--home' + (endTint ? ' jst-main--end-tint' : '') + '">' + body.join('') + '</main>');
     out.push(footer(m));
     return out.join('');
   }
@@ -1341,14 +1364,25 @@
   function pageCheckout(m, j) {
     const uid = 'jst' + j.uid + '-';
     const f = j.form;
-    const top = steps(2) + '<h1 class="jst-h jst-page-title">Finaliser ma commande</h1>';
+    const title = '<h1 class="jst-h jst-page-title">Finaliser ma commande</h1>';
     if (!j.lines.length) {
-      return '<div class="jst-wrap jst-co">' + top + empty('Votre panier est vide. Ajoutez un produit pour passer commande.') +
+      return '<div class="jst-wrap jst-co">' + steps(2) + title + empty('Votre panier est vide. Ajoutez un produit pour passer commande.') +
         '<div class="jst-co-alone">' + btn('Retour à la boutique', { size: 'lg', attrs: go('home') }) + '</div></div>';
     }
+    const noPay = !m.payments.length;
+    const recap = '<ul class="jst-mini-lines">' + j.lines.map((l) => miniLine(l, false)).join('') + '</ul>' + totals(j);
+    // Phone: what am I paying, before anything else (folded, like real mobile checkouts).
+    const peek = m.device === 'phone' && !noPay
+      ? '<details class="jst-co-peek"' + (j.peek ? ' open' : '') + '><summary class="jst-co-peek-bar"' + act('peek') + '>' +
+        '<span class="jst-co-peek-bag">' + icon('bag') + '<span class="jst-co-peek-n" aria-hidden="true">' + (j.count > 99 ? '99+' : j.count) + '</span></span>' +
+        '<span class="jst-co-peek-label"><span class="jst-co-peek-show">Voir ma commande</span><span class="jst-co-peek-hide">Masquer ma commande</span>' +
+        '<span class="jst-vh"> (' + plural(j.count, 'article', 'articles') + ')</span></span>' +
+        priceHTML(j.total) + icon('down', 'jst-co-peek-chev') + '</summary>' +
+        '<div class="jst-co-peek-body">' + recap + '</div></details>'
+      : '';
     const field = (id, label, control, help) => '<div class="jst-field jst-field--' + id + '"><label class="jst-label" for="' + uid + id + '">' + label + '</label>' + control +
       (help ? '<p class="jst-help">' + help + '</p>' : '') + '</div>';
-    const block = (n, title, body) => '<section class="jst-co-block"><h2 class="jst-co-h"><span class="jst-co-n" aria-hidden="true"><span class="jst-co-n0">0</span>' + n + '</span><span>' + title + '</span></h2>' + body + '</section>';
+    const block = (n, heading, body) => '<section class="jst-co-block"><h2 class="jst-co-h"><span class="jst-co-n" aria-hidden="true"><span class="jst-co-n0">0</span>' + n + '</span><span>' + heading + '</span></h2>' + body + '</section>';
 
     const contact = block(1, 'Vos coordonnées', '<div class="jst-fields">' +
       field('first', 'Prénom', '<input class="jst-input" id="' + uid + 'first" type="text" autocomplete="given-name" maxlength="40" placeholder="Ex.' + NBSP + ': Awa" tabindex="-1" data-jst-field="first" value="' + esc(f.first) + '">') +
@@ -1357,12 +1391,21 @@
       'Pour confirmer la commande et suivre la livraison.') +
       '</div>');
 
-    const opts = m.zones.map((z) => '<option value="' + esc(z.name) + '"' + (j.zone && z.name === j.zone.name ? ' selected' : '') + '>' +
-      esc(z.name) + ' — ' + feeText(z.fee) + '</option>').join('');
-    const delivery = block(2, 'Livraison',
-      (m.zones.length ? field('commune', 'Commune', '<div class="jst-select"><select class="jst-input" id="' + uid + 'commune" tabindex="-1" data-jst-field="commune">' + opts + '</select>' + icon('down') + '</div>') : '') +
+    const zoneErr = j.needZone && !!j.err.commune;
+    const opts = (j.zone ? '' : '<option value="" selected disabled>Choisissez votre commune</option>') +
+      m.zones.map((z) => '<option value="' + esc(z.name) + '"' + (j.zone && z.name === j.zone.name ? ' selected' : '') + '>' +
+        esc(z.name) + ' — ' + feeText(z.fee) + '</option>').join('');
+    const commune = m.zones.length
+      ? field('commune', 'Commune', '<div class="jst-select' + (j.zone ? '' : ' is-empty') + (zoneErr ? ' is-invalid' : '') + '"><select class="jst-input" id="' + uid + 'commune" tabindex="-1" data-jst-field="commune"' +
+          (zoneErr ? ' aria-invalid="true" aria-describedby="' + uid + 'commune-err"' : '') + '>' + opts + '</select>' + icon('down') + '</div>' +
+          (zoneErr ? '<p class="jst-error" id="' + uid + 'commune-err">' + icon('pin') + '<span>Choisissez votre commune' + NBSP + ': elle fixe les frais de livraison.</span></p>' : ''))
+      : '';
+    const eta = j.needZone
+      ? '<p class="jst-eta is-empty">' + icon('clock') + '<span>Choisissez votre commune pour voir les frais et le délai.</span></p>'
+      : '<p class="jst-eta">' + icon('clock') + '<span>Livraison estimée' + NBSP + ': <b>sous 24' + NBSP + 'h' + (j.zone ? ' à ' + esc(j.zone.name) : '') + '</b>, du lundi au samedi.</span></p>';
+    const delivery = block(2, 'Livraison', commune +
       field('address', 'Adresse et repère', '<textarea class="jst-input jst-textarea" id="' + uid + 'address" rows="3" maxlength="240" placeholder="Quartier, repère' + NBSP + ': ex. près de la pharmacie" tabindex="-1" data-jst-field="address">' + esc(f.address) + '</textarea>') +
-      '<p class="jst-eta">' + icon('clock') + '<span>Livraison estimée' + NBSP + ': <b>sous 24' + NBSP + 'h' + (j.zone ? ' à ' + esc(j.zone.name) : '') + '</b>, du lundi au samedi.</span></p>');
+      eta);
 
     const payBlock = block(3, 'Paiement', '<div class="jst-pay" role="radiogroup" aria-label="Moyen de paiement">' + m.payments.map((p) => {
       const on = !!j.pay && j.pay.key === p.key;
@@ -1372,32 +1415,37 @@
         '<span class="jst-pay-ico" aria-hidden="true">' + icon(p.icon) + '</span></button>';
     }).join('') + '</div>');
 
-    const noPay = !m.payments.length;
+    // No method enabled: the page speaks to the shopper (the editor tells the seller what to do).
     const main = noPay
-      ? '<div class="jst-co-main"><div class="jst-co-none">' + '<span class="jst-empty-ico" aria-hidden="true">' + icon('lock') + '</span>' +
-        '<p class="jst-h jst-co-none-title">Le paiement n’est pas encore activé</p>' +
-        '<p>Activez au moins un moyen de paiement (Wave, Orange Money, paiement à la livraison…) dans Boutique › Moyens de paiement. En attendant, vos clients peuvent commander sur WhatsApp.</p></div></div>'
+      ? '<div class="jst-co-main"><div class="jst-co-none">' + '<span class="jst-empty-ico" aria-hidden="true">' + icon('chat') + '</span>' +
+        '<p class="jst-h jst-co-none-title">Le paiement en ligne arrive bientôt</p>' +
+        '<p>Passez votre commande sur WhatsApp' + NBSP + ': ' + esc(m.name) + ' vous répond et vous indique comment payer.</p></div></div>'
       : '<div class="jst-co-main">' + contact + delivery + payBlock + '</div>';
 
     const summary = '<aside class="jst-summary jst-co-summary">' +
       '<div class="jst-summary-head"><h2 class="jst-h jst-summary-title">Votre commande</h2><a class="jst-link"' + go('cart') + '>Modifier</a></div>' +
-      '<ul class="jst-mini-lines">' + j.lines.map((l) => miniLine(l, true)).join('') + '</ul>' + totals(j) + '</aside>';
+      recap + '</aside>';
 
     const cod = !!j.pay && j.pay.key === 'cod';
+    const label = cod ? 'Confirmer la commande' : 'Payer ' + money(j.needZone ? j.subtotal : j.total) + (j.needZone ? ' + livraison' : '');
+    let note = '';
+    if (cod) note = j.needZone ? 'Vous paierez le livreur à la réception, livraison comprise.' : 'Vous paierez ' + money(j.total) + ' au livreur, à la réception.';
+    else if (j.pay && j.pay.key === 'card') note = 'Vous saisirez votre carte sur la page sécurisée de notre partenaire.';
+    else if (j.pay) {
+      note = 'Vous recevrez une demande ' + (j.needZone ? 'de paiement' : 'de ' + money(j.total)) + ' sur votre téléphone (' + esc(j.pay.label) + '). ' +
+        'Validez-la avec votre code secret' + NBSP + ': ne le donnez jamais, ni au vendeur ni au livreur.';
+    }
     const actions = '<div class="jst-co-actions">' +
       (noPay ? '' :
-        btn(cod ? 'Confirmer la commande' : 'Payer ' + money(j.total), { size: 'lg', block: true, icon: cod ? 'check' : 'lock', cls: 'jst-pay-btn', attrs: act('order') }) +
-        '<p class="jst-pay-note">' + (cod
-          ? 'Vous paierez ' + money(j.total) + ' au livreur, à la réception.'
-          : (j.pay && j.pay.key === 'card'
-            ? 'Vous saisirez votre carte sur la page sécurisée de notre partenaire.'
-            : (j.pay ? 'Vous validerez ' + money(j.total) + ' avec ' + esc(j.pay.label) + ' sur votre téléphone.' : ''))) + '</p>' +
+        btn(label, { size: 'lg', block: true, icon: cod ? 'check' : 'lock', cls: 'jst-pay-btn', attrs: act('order') }) +
+        '<p class="jst-pay-note">' + note + '</p>' +
         '<p class="jst-or"><span>ou</span></p>') +
-      btn('Commander sur WhatsApp', { size: 'lg', block: true, icon: 'chat', cls: 'jst-btn--ghost', attrs: act('wa') }) +
-      '<p class="jst-trust">' + icon('shield') + '<span>Paiement traité par un partenaire agréé par la BCEAO. Jeere ne garde jamais votre argent.</span></p>' +
+      btn('Commander sur WhatsApp', { size: 'lg', block: true, icon: 'chat', cls: noPay ? '' : 'jst-btn--ghost', attrs: act('wa') }) +
+      (noPay ? '' : '<p class="jst-trust">' + icon('shield') + '<span>Paiement traité par un partenaire agréé par la BCEAO. Jeere ne garde jamais votre argent.</span></p>') +
       '</div>';
 
-    return '<div class="jst-wrap jst-co">' + top + '<div class="jst-co-grid' + (noPay ? ' is-nopay' : '') + '">' + main + summary + actions + '</div></div>';
+    return '<div class="jst-wrap jst-co">' + steps(2) + peek + title + '<div class="jst-co-grid' + (noPay ? ' is-nopay' : '') + '">' + main +
+      '<div class="jst-co-side">' + summary + actions + '</div></div></div>';
   }
 
   function pageConfirmation(m, j) {
@@ -1417,7 +1465,8 @@
       '<span class="jst-ok-check" aria-hidden="true">' + icon('check') + '</span>' +
       '<h1 class="jst-h jst-ok-title">Merci' + (first ? ' ' + esc(first) : '') + NBSP + '!</h1>' +
       '<p class="jst-ok-num">Commande n°' + NBSP + ORDER_NO + ' confirmée</p>' + status +
-      '<p class="jst-ok-eta">' + icon('truck') + '<span>Livraison prévue sous 24' + NBSP + 'h' + (j.zone ? ' à ' + esc(j.zone.name) : '') + '. Le livreur vous appelle avant de passer.</span></p>' +
+      '<p class="jst-ok-eta">' + icon('truck') + '<span>Livraison prévue sous 24' + NBSP + 'h' + (j.zone ? ' à ' + esc(j.zone.name) : '') + '. Le livreur vous appelle avant de passer.' +
+      (phone ? ' Le récapitulatif vous est envoyé sur WhatsApp au +225' + NBSP + esc(phone) + '.' : '') + '</span></p>' +
       '<div class="jst-ok-actions">' + btn('Suivre ma commande sur WhatsApp', { size: 'lg', block: true, icon: 'chat', cls: 'jst-ok-wa', attrs: act('wa') }) +
       '<a class="jst-link jst-ok-back"' + act('done') + '>' + icon('back') + '<span>Retour à la boutique</span></a></div>' +
       '</div>';
@@ -1443,7 +1492,8 @@
     } catch (e) {
       main = '<div class="jst-wrap jst-page-empty">' + empty('Cette page n’a pas pu être affichée. Vérifiez la fiche boutique.') + '</div>';
     }
-    const out = j.page === 'checkout' ? [headerCheckout(m)] : leadingAnnouncements(m).concat([header(m, j)]);
+    // On the confirmation the order is placed: the bag shows empty (the cart itself is cleared by « Retour à la boutique »).
+    const out = j.page === 'checkout' ? [headerCheckout(m)] : leadingAnnouncements(m).concat([header(m, j.page === 'confirmation' ? Object.assign({}, j, { count: 0 }) : j)]);
     out.push('<main class="jst-main jst-main--' + j.page + '">' + main + '</main>');
     out.push(footer(m));
     return out.join('');
@@ -1478,6 +1528,24 @@
         p = p.parentElement;
       }
       if (r.top < 0 && typeof window !== 'undefined') window.scrollBy(0, r.top);
+    } catch (e) { /* scrolling is a nicety */ }
+  }
+
+  // Brings a node of the store into view (an invalid field), below the host's sticky bars.
+  function scrollToNode(rootEl, node) {
+    try {
+      const r = node.getBoundingClientRect();
+      let p = rootEl.parentElement;
+      while (p && p !== document.body && p !== document.documentElement) {
+        const cs = getComputedStyle(p);
+        if (/(auto|scroll)/.test(cs.overflowY) && p.scrollHeight > p.clientHeight + 1) {
+          const pr = p.getBoundingClientRect();
+          if (r.top < pr.top + 24 || r.bottom > pr.bottom - 24) p.scrollTop += r.top - pr.top - Math.max(24, (pr.height - r.height) / 3);
+          return;
+        }
+        p = p.parentElement;
+      }
+      if (typeof window !== 'undefined' && (r.top < 140 || r.bottom > window.innerHeight - 24)) window.scrollBy(0, r.top - Math.max(140, (window.innerHeight - r.height) / 3));
     } catch (e) { /* scrolling is a nicety */ }
   }
 
@@ -1528,7 +1596,8 @@
         navigate(rootEl, a.getAttribute('data-page') || 'home', id || null);
         break;
       case 'add': {
-        const q = isObj(rootEl.__jstQty) && rootEl.__jstQty.id === id ? clamp(Math.round(num(rootEl.__jstQty.n) || 1), QTY_MIN, QTY_MAX) : 1;
+        const quick = a.hasAttribute('data-quick');
+        const q = !quick && isObj(rootEl.__jstQty) && rootEl.__jstQty.id === id ? clamp(Math.round(num(rootEl.__jstQty.n) || 1), QTY_MIN, QTY_MAX) : 1;
         if (id) cart[id] = clamp((Math.round(num(cart[id]) || 0)) + q, QTY_MIN, QTY_MAX);
         rootEl.__jstQty = null;
         navigate(rootEl, 'cart', null);
@@ -1554,9 +1623,29 @@
         refresh(rootEl);
         break;
       }
-      case 'order':
+      case 'order': {
+        // Like a real checkout, the commune is required: its fee is part of what the shopper pays.
+        const sel = rootEl.querySelector('select[data-jst-field="commune"]');
+        if (sel && !sel.value) {
+          rootEl.__jstErr = { commune: true };
+          refresh(rootEl);
+          const ns = rootEl.querySelector('select[data-jst-field="commune"]');
+          if (ns) {
+            scrollToNode(rootEl, ns.closest('.jst-field') || ns);
+            try { ns.focus({ preventScroll: true }); } catch (err) { /* focus is a nicety */ }
+          }
+          break;
+        }
+        rootEl.__jstErr = null;
         navigate(rootEl, 'confirmation', null);
         break;
+      }
+      case 'peek': {
+        // <details> toggles itself; remember it so a live update (commune, payment) keeps it open.
+        const d = a.closest('details');
+        rootEl.__jstPeek = d ? !d.open : false;
+        break;
+      }
       case 'done':
         rootEl.__jstCart = {};
         navigate(rootEl, 'home', null);
@@ -1577,7 +1666,7 @@
     const form = isObj(rootEl.__jstForm) ? rootEl.__jstForm : (rootEl.__jstForm = {});
     form[key] = String(f.value == null ? '' : f.value).slice(0, 240);
     // The commune changes the delivery fee, the total and the pay button: redraw the page.
-    if (committed && key === 'commune') refresh(rootEl);
+    if (committed && key === 'commune') { rootEl.__jstErr = null; refresh(rootEl); }
   }
 
   function bind(rootEl) {
@@ -1659,7 +1748,9 @@
           '--st-muted-tint': v.mutedTint,
           '--st-muted-strong': v.mutedStrong,
           '--st-on-accent-soft': v.onAccentSoft,
-          '--st-field-line': v.fieldLine
+          '--st-field-line': v.fieldLine,
+          // Form errors: a red that reads at 4.5:1 on the store's light (or dark) surfaces
+          '--st-error': m && m.dark ? '#FF8A80' : '#B3261E'
         });
       }
       rootEl.innerHTML = html;

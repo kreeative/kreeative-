@@ -115,7 +115,7 @@
 .jst[data-device="desktop"] .jst-btn:hover .jst-btn-arrow { transform: translateX(3px); }
 
 .jst .jst-price { white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
-.jst .jst-price-c { font-size: .72em; font-weight: 500; letter-spacing: .05em; }
+.jst .jst-price-c { font-size: max(11px, .72em); font-weight: 500; letter-spacing: .05em; }
 .jst .jst-price.is-empty { font-weight: 500; font-size: .92em; color: var(--st-muted); }
 
 .jst .jst-stars { display: inline-flex; align-items: center; gap: 2px; color: var(--st-accent-ink); flex: none; }
@@ -149,7 +149,7 @@
   border: 1px solid var(--st-line); font-size: 12.5px; font-weight: 500; line-height: 1.2;
 }
 
-.jst .jst-kicker { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 10.5px; font-weight: 600; line-height: 1.4; letter-spacing: .2em; text-transform: uppercase; }
+.jst .jst-kicker { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 11px; font-weight: 600; line-height: 1.4; letter-spacing: .2em; text-transform: uppercase; }
 .jst .jst-kicker::before { content: ''; flex: none; width: 28px; height: 1px; background: currentColor; }
 
 .jst .jst-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--st-accent-ink); cursor: pointer; white-space: nowrap; }
@@ -318,7 +318,7 @@
 
 .jst[data-tpl="plateau"] .jst-btn { border-radius: var(--pl-r); text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 600; }
 .jst[data-tpl="plateau"] .jst-btn--lg { font-size: 12.5px; min-height: 52px; padding: 0 28px; }
-.jst[data-tpl="plateau"] .jst-btn--sm { font-size: 10.5px; min-height: 38px; letter-spacing: .14em; }
+.jst[data-tpl="plateau"] .jst-btn--sm { font-size: 11.5px; min-height: 38px; letter-spacing: .12em; }
 
 /* announcement */
 .jst[data-tpl="plateau"] .jst-sec--announcement { padding: 0; }
@@ -358,7 +358,7 @@
 .jst[data-tpl="plateau"] .jst-arch > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .jst[data-tpl="plateau"] .jst-hero-cap {
   position: absolute; top: 20px; left: var(--st-gutter); right: var(--st-gutter);
-  display: flex; gap: 14px; font-size: 9.5px; font-weight: 600; line-height: 1.4; letter-spacing: .16em; text-transform: uppercase; opacity: .72;
+  display: flex; gap: 14px; font-size: 11px; font-weight: 600; line-height: 1.4; letter-spacing: .14em; text-transform: uppercase; opacity: .9;
 }
 .jst[data-tpl="plateau"] .jst-hero-cap span { white-space: nowrap; }
 .jst[data-tpl="plateau"] .jst-hero-cap span:nth-child(2) { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
@@ -382,7 +382,7 @@
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-actions { margin-top: 36px; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-art { order: 0; min-height: 0; padding: 120px var(--st-gutter) 0 0; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-arch { width: 82%; max-width: 420px; }
-.jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-cap { top: 40px; left: auto; right: var(--st-gutter); width: 82%; max-width: 420px; font-size: 10.5px; justify-content: space-between; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-cap { top: 40px; left: auto; right: var(--st-gutter); width: 82%; max-width: 420px; font-size: 11.5px; justify-content: space-between; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img { min-height: 680px; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img .jst-hero-copy { grid-column: 1; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-scrim { background: linear-gradient(90deg, rgba(0, 0, 0, .64) 0%, rgba(0, 0, 0, .38) 44%, rgba(0, 0, 0, 0) 76%); }
@@ -400,7 +400,7 @@
 .jst[data-tpl="plateau"] .jst-cat { align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--st-line); }
 .jst[data-tpl="plateau"] .jst-cat-media { width: 60px; aspect-ratio: 4 / 5; border-radius: var(--pl-r); }
 .jst[data-tpl="plateau"] .jst-cat-body { flex: 1 1 auto; gap: 2px; }
-.jst[data-tpl="plateau"] .jst-cat-num { font-size: 10px; font-weight: 600; }
+.jst[data-tpl="plateau"] .jst-cat-num { font-size: 11px; font-weight: 600; }
 .jst[data-tpl="plateau"] .jst-cat-name { font-size: 22px; line-height: 1.15; letter-spacing: -0.015em; }
 .jst[data-tpl="plateau"] .jst-cat-count { font-size: 12px; }
 .jst[data-tpl="plateau"] .jst-cat-go { width: 40px; height: 40px; }
@@ -420,12 +420,12 @@
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-grid { gap: 56px 24px; }
 .jst[data-tpl="plateau"] .jst-card-media { aspect-ratio: 4 / 5; border-radius: var(--pl-r); }
 .jst[data-tpl="plateau"] .jst-card-body { padding-top: 14px; }
-.jst[data-tpl="plateau"] .jst-card-cat { font-size: 9.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 2px; }
+.jst[data-tpl="plateau"] .jst-card-cat { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 2px; }
 .jst[data-tpl="plateau"] .jst-card-price { font-weight: 500; }
-.jst[data-tpl="plateau"] .jst-badge { top: 10px; left: 10px; height: 22px; padding: 0 8px; border-radius: var(--pl-r); background: var(--st-bg); color: var(--st-text); font-size: 9px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.jst[data-tpl="plateau"] .jst-badge { top: 10px; left: 10px; height: 24px; padding: 0 9px; border-radius: var(--pl-r); background: var(--st-bg); color: var(--st-text); font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 .jst[data-tpl="plateau"] .jst-badge--best { background: var(--st-text); color: var(--st-bg); }
 .jst[data-tpl="plateau"] .jst-badge--promo { background: var(--st-accent); color: var(--st-on-accent); }
-.jst[data-tpl="plateau"][data-device="desktop"] .jst-badge { top: 14px; left: 14px; height: 24px; font-size: 9.5px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-badge { top: 14px; left: 14px; height: 26px; font-size: 11px; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-card-btn { width: auto; align-self: flex-start; padding: 0 18px; }
 
 /* about */
@@ -513,7 +513,7 @@
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-logo { font-size: 25px; }
 .jst[data-tpl="cocody"] .jst-nav { gap: 4px; padding: 5px; border-radius: var(--cc-pill); background: var(--st-surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .05); }
 .jst[data-tpl="cocody"] .jst-nav-link { padding: 9px 16px; border-radius: var(--cc-pill); font-size: 14px; }
-.jst[data-tpl="cocody"] .jst-nav-link:first-child { background: var(--st-accent-soft); color: var(--st-accent-ink); font-weight: 600; }
+.jst[data-tpl="cocody"] .jst-nav-link.is-current { background: var(--st-accent-soft); color: var(--st-accent-ink); font-weight: 600; }
 .jst[data-tpl="cocody"][data-device="desktop"] .jst-nav-link:hover { opacity: 1; background: var(--st-accent-soft); }
 
 /* hero: a soft banner card with circles */
@@ -1101,17 +1101,23 @@
 .jst[data-device="desktop"] .jst-stp.is-done .jst-stp-dot { border-color: var(--st-text); background: var(--st-text); color: var(--st-bg); }
 .jst[data-device="desktop"] .jst-stp.is-on .jst-stp-dot { border-color: var(--st-accent); background: var(--st-accent); color: var(--st-on-accent); }
 .jst[data-device="desktop"] .jst-stp + .jst-stp::before { margin: 0 14px; }
-.jst[data-device="phone"] .jst-stp.is-on .jst-stp-label { box-shadow: inset 0 -2px 0 var(--st-accent-ink); }
+/* Phone: numbered dots and only the current step's label, so the line never wraps */
+.jst[data-device="phone"] .jst-stp-dot { display: inline-flex; margin-right: 6px; }
+.jst[data-device="phone"] .jst-stp.is-done .jst-stp-dot { border-color: var(--st-text); background: var(--st-text); color: var(--st-bg); }
+.jst[data-device="phone"] .jst-stp.is-on .jst-stp-dot { border-color: var(--st-accent); background: var(--st-accent); color: var(--st-on-accent); }
+.jst[data-device="phone"] .jst-stp:not(.is-on) .jst-stp-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* Checkout */
 .jst .jst-co > .jst-page-title { margin-bottom: 20px; }
 .jst[data-device="desktop"] .jst-co > .jst-page-title { margin-bottom: 36px; }
-.jst .jst-co-grid { display: grid; grid-template-areas: "main" "summary" "actions"; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-.jst[data-device="desktop"] .jst-co-grid { grid-template-columns: minmax(0, 1.22fr) minmax(0, .9fr); grid-template-areas: "main summary" "actions summary"; gap: 20px 56px; align-items: start; }
+/* Phone: the form, then the summary and the pay button together. Desktop: the form on the left, the
+   summary with the pay button right under its total on the right (sticky in a real store page). */
+.jst .jst-co-grid { display: grid; grid-template-areas: "main" "side"; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.jst[data-device="desktop"] .jst-co-grid { grid-template-columns: minmax(0, 1.22fr) minmax(0, .9fr); grid-template-areas: "main side"; gap: 20px 56px; align-items: start; }
 .jst .jst-co-main { grid-area: main; display: grid; gap: 16px; min-width: 0; }
-.jst .jst-co-summary { grid-area: summary; }
-.jst[data-device="desktop"] .jst-co-summary { position: sticky; top: 24px; }
-.jst .jst-co-actions { grid-area: actions; display: grid; gap: 12px; min-width: 0; }
+.jst .jst-co-side { grid-area: side; display: grid; gap: 16px; min-width: 0; }
+.jst[data-device="desktop"] .jst-co-side { position: sticky; top: 24px; gap: 20px; }
+.jst .jst-co-actions { display: grid; gap: 12px; min-width: 0; }
 .jst .jst-co-block { min-width: 0; padding: 20px; border: 1px solid var(--st-line); border-radius: var(--st-radius); background: var(--st-surface); }
 .jst[data-device="desktop"] .jst-co-block { padding: 28px; }
 .jst .jst-co-h { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-family: var(--st-font-text); font-size: 17px; font-weight: 700; line-height: 1.25; }
@@ -1139,10 +1145,16 @@
 .jst .jst-select { position: relative; }
 .jst .jst-select .jst-input { padding-right: 44px; cursor: pointer; }
 .jst .jst-select > .jst-ico { position: absolute; top: 50%; right: 14px; width: 18px; height: 18px; transform: translateY(-50%); pointer-events: none; }
+.jst .jst-select.is-empty .jst-input { color: var(--st-muted); }
+.jst .jst-select option { color: var(--st-text); background: var(--st-surface); }
+.jst .jst-select.is-invalid .jst-input { border-color: var(--st-error); box-shadow: inset 0 0 0 1px var(--st-error); }
+.jst .jst-error { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; font-size: 13px; font-weight: 600; line-height: 1.4; color: var(--st-error); text-transform: none; letter-spacing: normal; }
+.jst .jst-error .jst-ico { width: 16px; height: 16px; margin-top: 1px; }
 .jst .jst-help { margin-top: 6px; font-size: 12.5px; line-height: 1.45; color: var(--st-muted); }
 .jst .jst-eta { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: min(var(--st-radius), 12px); background: var(--st-bg); font-size: 13.5px; line-height: 1.45; }
 .jst .jst-eta .jst-ico { width: 18px; height: 18px; margin-top: 1px; color: var(--st-accent-ink); }
 .jst .jst-eta b { font-weight: 600; }
+.jst .jst-eta.is-empty { color: var(--st-muted); }
 
 .jst .jst-pay { display: grid; gap: 10px; }
 .jst .jst-pay-opt {
@@ -1161,6 +1173,9 @@
 .jst .jst-pay-ico { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 40px; height: 40px; border-radius: min(var(--st-radius), 10px); background: var(--st-bg); color: var(--st-text); }
 .jst .jst-pay-ico .jst-ico { width: 20px; height: 20px; }
 .jst[data-device="desktop"] .jst-pay-opt:not(.is-on):hover { border-color: var(--st-text); }
+/* Only the chosen method shows its hint: three mobile-money lines say the same thing */
+.jst .jst-pay-opt:not(.is-on) .jst-pay-hint { display: none; }
+.jst .jst-pay-opt:not(.is-on) { min-height: 56px; padding-top: 10px; padding-bottom: 10px; }
 
 .jst .jst-pay-btn { min-height: 58px; font-size: 16px; }
 .jst .jst-pay-note { margin-top: -2px; font-size: 12.5px; line-height: 1.45; text-align: center; color: var(--st-muted); }
@@ -1175,6 +1190,27 @@
 .jst .jst-co-none { padding: 32px 22px; border: 1.5px dashed var(--st-field-line); border-radius: var(--st-radius); background: var(--st-surface); text-align: center; color: var(--st-muted); }
 .jst .jst-co-none-title { margin-bottom: 8px; font-size: 21px; color: var(--st-text); }
 .jst .jst-co-alone { margin-top: 20px; }
+
+/* Phone: « Voir ma commande · 3 articles  65 000 FCFA », folded at the top of the checkout */
+.jst .jst-co-peek { margin: -8px calc(-1 * var(--st-gutter)) 16px; padding: 0 var(--st-gutter); border-bottom: 1px solid var(--st-line); background: var(--st-surface); }
+.jst[data-intensity="vivid"] .jst-co-peek { background: var(--st-tint); --st-muted: var(--st-muted-tint); }
+.jst .jst-co-peek-bar { display: flex; align-items: center; gap: 10px; min-height: 54px; list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.jst .jst-co-peek-bar::-webkit-details-marker { display: none; }
+.jst .jst-co-peek-bar::marker { content: ''; }
+.jst .jst-co-peek-bag { position: relative; display: inline-flex; flex: none; padding: 4px 6px 0 0; }
+.jst .jst-co-peek-bag > .jst-ico { width: 22px; height: 22px; color: var(--st-accent-ink); }
+.jst .jst-co-peek-n {
+  position: absolute; top: -2px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--st-text); color: var(--st-bg); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; letter-spacing: 0;
+}
+.jst .jst-co-peek-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jst .jst-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.jst .jst-co-peek-hide, .jst .jst-co-peek[open] .jst-co-peek-show { display: none; }
+.jst .jst-co-peek[open] .jst-co-peek-hide { display: inline; }
+.jst .jst-co-peek-bar .jst-price { font-size: 16px; font-weight: 700; }
+.jst .jst-co-peek-bar > .jst-co-peek-chev { width: 18px; height: 18px; color: var(--st-text); transition: transform .2s ease; }
+.jst .jst-co-peek[open] > .jst-co-peek-bar > .jst-co-peek-chev { transform: rotate(180deg); }
+.jst .jst-co-peek-body { padding: 4px 0 18px; }
 
 /* Confirmation */
 .jst .jst-ok-hero { display: flex; flex-direction: column; align-items: center; padding: 32px 20px 28px; border: 1px solid var(--st-line); border-radius: var(--st-radius); background: var(--st-surface); text-align: center; }
@@ -1233,7 +1269,7 @@
 .jst[data-tpl="plateau"] .jst-page-sub,
 .jst[data-tpl="plateau"] .jst-ok-dl dt,
 .jst[data-tpl="plateau"] .jst-co-back,
-.jst[data-tpl="plateau"] .jst-secure { font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.jst[data-tpl="plateau"] .jst-secure { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 .jst[data-tpl="plateau"] .jst-crumbs [aria-current] { max-width: 28ch; }
 .jst[data-tpl="plateau"] .jst-stepper,
 .jst[data-tpl="plateau"] .jst-input,
@@ -1256,7 +1292,7 @@
 .jst[data-tpl="plateau"][data-device="phone"] .jst-pdp-media { margin: 0 calc(-1 * var(--st-gutter)); }
 .jst[data-tpl="plateau"][data-device="phone"] .jst-pdp-tile { border-radius: 0; }
 .jst[data-tpl="plateau"] .jst-pdp-tile > svg.jst-art { left: 14%; top: 10%; width: 72%; height: 80%; }
-.jst[data-tpl="plateau"] .jst-pdp-cat { font-size: 10.5px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+.jst[data-tpl="plateau"] .jst-pdp-cat { font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
 .jst[data-tpl="plateau"] .jst-pdp-name { font-size: 34px; line-height: 1.06; letter-spacing: -0.02em; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-pdp-name { font-size: 54px; }
 .jst[data-tpl="plateau"] .jst-pdp-price { font-size: 19px; font-weight: 500; letter-spacing: .02em; }
@@ -1268,7 +1304,7 @@
 .jst[data-tpl="plateau"] .jst-lines { border-top-color: var(--st-text); }
 .jst[data-tpl="plateau"] .jst-line { gap: 16px; padding: 20px 0; }
 .jst[data-tpl="plateau"] .jst-line-tile { aspect-ratio: 4 / 5; }
-.jst[data-tpl="plateau"] .jst-line-cat { font-size: 9.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.jst[data-tpl="plateau"] .jst-line-cat { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 .jst[data-tpl="plateau"] .jst-line-name { font-family: var(--st-font-display); font-size: 18px; font-weight: var(--st-display-weight, 600); line-height: 1.2; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-line-name { font-size: 22px; }
 .jst[data-tpl="plateau"] .jst-line-total, .jst[data-tpl="plateau"] .jst-mini-total { font-weight: 500; }
@@ -1280,10 +1316,10 @@
 .jst[data-tpl="plateau"] .jst-row--total dd { font-size: 25px; font-weight: 500; }
 .jst[data-tpl="plateau"] .jst-mini-name { font-weight: 500; }
 /* steps */
-.jst[data-tpl="plateau"] .jst-steps { font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
-.jst[data-tpl="plateau"][data-device="desktop"] .jst-steps { font-size: 11px; }
+.jst[data-tpl="plateau"] .jst-steps { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-steps { font-size: 11.5px; }
 .jst[data-tpl="plateau"] .jst-stp-dot { letter-spacing: 0; font-weight: 600; border-width: 1px; }
-.jst[data-tpl="plateau"][data-device="phone"] .jst-steps { font-size: 9.5px; letter-spacing: .1em; }
+.jst[data-tpl="plateau"][data-device="phone"] .jst-steps { font-size: 11.5px; letter-spacing: .12em; }
 .jst[data-tpl="plateau"][data-device="phone"] .jst-stp + .jst-stp::before { margin: 0 7px; }
 /* checkout */
 .jst[data-tpl="plateau"] .jst-header--co .jst-logo { font-size: 21px; }
@@ -1293,7 +1329,7 @@
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-co-block { padding: 30px 0 0; }
 .jst[data-tpl="plateau"] .jst-co-h { gap: 14px; margin-bottom: 20px; font-family: var(--st-font-display); font-size: 25px; font-weight: var(--st-display-weight, 600); letter-spacing: -0.015em; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-co-h { font-size: 30px; }
-.jst[data-tpl="plateau"] .jst-co-n { width: auto; height: auto; padding-top: 4px; border-radius: 0; background: none; color: var(--st-muted); font-family: var(--st-font-text); font-size: 10.5px; font-weight: 600; letter-spacing: .16em; align-self: flex-start; }
+.jst[data-tpl="plateau"] .jst-co-n { width: auto; height: auto; padding-top: 4px; border-radius: 0; background: none; color: var(--st-muted); font-family: var(--st-font-text); font-size: 11px; font-weight: 600; letter-spacing: .14em; align-self: flex-start; }
 .jst[data-tpl="plateau"] .jst-co-n0 { display: inline; }
 .jst[data-tpl="plateau"] .jst-pay-ico { border: 1px solid var(--st-line); border-radius: 50%; background: transparent; }
 .jst[data-tpl="plateau"] .jst-pay-ico .jst-ico { stroke-width: 1.4; }
@@ -1309,7 +1345,7 @@
 .jst[data-tpl="plateau"] .jst-ok-check .jst-ico { width: 34px; height: 34px; stroke-width: 1.4; }
 .jst[data-tpl="plateau"] .jst-ok-title { font-size: 42px; letter-spacing: -0.025em; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-ok-title { font-size: 68px; }
-.jst[data-tpl="plateau"] .jst-ok-num { margin-top: 14px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; }
+.jst[data-tpl="plateau"] .jst-ok-num { margin-top: 14px; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; }
 .jst[data-tpl="plateau"] .jst-ok-status { font-size: 13px; }
 
 /* ---------------------------------------------------------------- Cocody journey: soft cards,
@@ -1431,6 +1467,7 @@
 .jst[data-tpl="treichville"] .jst-line-tile, .jst[data-tpl="treichville"] .jst-mini-tile { border-radius: var(--st-radius); }
 .jst[data-tpl="treichville"] .jst-line-cat { font-size: 10.5px; color: var(--st-accent-ink); }
 .jst[data-tpl="treichville"] .jst-line-name, .jst[data-tpl="treichville"] .jst-mini-name { font-size: 13.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; }
+.jst[data-tpl="treichville"] .jst-mini-name { -webkit-line-clamp: 3; }
 .jst[data-tpl="treichville"] .jst-line-total, .jst[data-tpl="treichville"] .jst-mini-total { font-family: var(--st-font-display); font-weight: var(--st-display-weight, 600); letter-spacing: -0.01em; }
 .jst[data-tpl="treichville"] .jst-remove { font-size: 10.5px; }
 .jst[data-tpl="treichville"] .jst-bag-n { background: var(--st-text); color: var(--st-bg); }
@@ -1439,7 +1476,7 @@
 .jst[data-tpl="treichville"] .jst-steps { font-size: 10.5px; }
 .jst[data-tpl="treichville"] .jst-stp.is-on .jst-stp-label { padding: 4px 8px; border-radius: var(--tv-r); background: var(--st-accent); color: var(--st-on-accent); box-shadow: none; }
 .jst[data-tpl="treichville"] .jst-stp-dot { border-radius: var(--tv-r); border-width: 1.5px; }
-.jst[data-tpl="treichville"][data-device="desktop"] .jst-stp.is-on .jst-stp-dot { display: none; }
+.jst[data-tpl="treichville"] .jst-stp.is-on .jst-stp-dot { display: none; }
 /* checkout */
 .jst[data-tpl="treichville"] .jst-co-main { gap: 14px; }
 .jst[data-tpl="treichville"] .jst-co-h { font-family: var(--st-font-display); font-size: 19px; font-weight: var(--st-display-weight, 600); letter-spacing: -0.01em; text-transform: uppercase; }
@@ -1486,7 +1523,10 @@
 .jst[data-intensity="vivid"] .jst-eta,
 .jst[data-intensity="vivid"] .jst-prefix { background: var(--st-tint); }
 .jst[data-intensity="vivid"] .jst-pay-ico { background: var(--st-tint); }
-.jst[data-intensity="vivid"] .jst-footer { background: var(--st-tint); --st-muted: var(--st-muted-tint); }
+/* The footer takes the stronger tint, so it never merges with a tinted last section above it */
+.jst[data-intensity="vivid"] .jst-footer { background: var(--st-tint-strong); --st-muted: var(--st-muted-strong); }
+/* A tinted last section runs straight into the footer (no stray band of page colour) */
+.jst[data-intensity="vivid"] .jst-main--end-tint { padding-bottom: 0; }
 
 /* Plateau: a deep accent band behind the hero text, an accent frame around a hero photo */
 .jst[data-tpl="plateau"][data-intensity="vivid"] .jst-badge--new { background: var(--st-accent); color: var(--st-on-accent); }
@@ -1500,6 +1540,13 @@
 .jst[data-tpl="plateau"][data-intensity="vivid"][data-device="desktop"] .jst-hero-stage.has-img::after { border-width: 16px; }
 .jst[data-tpl="plateau"][data-intensity="vivid"] .jst-head { border-bottom: 2px solid var(--st-accent-ink); }
 .jst[data-tpl="plateau"][data-intensity="vivid"] .jst-main > .jst-sec--hero:first-child + .jst-sec--tint { padding-top: calc(var(--st-sec) * .62); }
+/* Dark palettes: a neon slab behind the editorial serif reads garish. A charcoal band with the
+   accent on the title, a top rule and the button keeps the colour and the editorial calm. */
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"] .jst-hero-stage:not(.has-img) .jst-hero-copy { background: var(--st-tint-strong); color: var(--st-text); --st-muted: var(--st-muted-strong); box-shadow: inset 0 6px 0 var(--st-accent); }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"] .jst-hero-stage:not(.has-img) .jst-hero-title { color: var(--st-accent); }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"] .jst-hero-stage:not(.has-img) .jst-hero-text { color: var(--st-muted-strong); }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"]:not([data-buttons="outline"]) .jst-hero-stage:not(.has-img) .jst-btn { background: var(--st-accent); color: var(--st-on-accent); border-color: var(--st-accent); }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"][data-buttons="outline"] .jst-hero-stage:not(.has-img) .jst-btn { background: transparent; color: var(--st-accent); border-color: var(--st-accent); }
 
 /* Cocody: saturated soft blocks */
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-hero-card { background: var(--st-tint-strong); --st-muted: var(--st-muted-strong); }
@@ -1508,11 +1555,10 @@
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-badge--new { background: var(--st-accent); color: var(--st-on-accent); }
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-avatar,
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-delivery-ico { background: var(--st-accent); color: var(--st-on-accent); }
-.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-nav-link:first-child,
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-nav-link.is-current,
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-filter-chip.is-on { background: var(--st-accent); color: var(--st-on-accent); }
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-zone,
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-delivery-notes span { background: var(--st-tint); }
-.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-footer { background: var(--st-tint-strong); --st-muted: var(--st-muted-strong); }
 .jst[data-tpl="cocody"][data-intensity="vivid"] .jst-steps { background: var(--st-tint); }
 
 /* Treichville: full accent blocks */
@@ -1529,6 +1575,22 @@
 .jst[data-tpl="treichville"][data-intensity="vivid"] .jst-page-head { margin: -8px calc(-1 * var(--st-gutter)) 24px; padding: 4px var(--st-gutter) 22px; background: var(--st-accent); color: var(--st-on-accent); --st-muted: var(--st-on-accent-soft); }
 .jst[data-tpl="treichville"][data-intensity="vivid"][data-device="desktop"] .jst-page-head { margin: -24px calc(-1 * var(--st-gutter)) 40px; padding: 16px var(--st-gutter) 36px; }
 
+
+/* ===================================================================== touch
+   Phone: every control of the journey is at least 44 px tall (cheap Android, a thumb). Links keep
+   their place in the text: the hit area grows, not the layout. */
+
+.jst[data-device="phone"] .jst-stepper:not(.jst-stepper--lg) { --jst-step: 44px; }
+.jst[data-device="phone"] .jst-stepper { box-sizing: content-box; } /* the border sits outside: the buttons themselves are 44 px */
+.jst .jst-header a.jst-logo { padding-top: 12px; padding-bottom: 12px; margin-top: -12px; margin-bottom: -12px; }
+.jst[data-device="phone"] .jst-stepper--sm .jst-step .jst-ico { width: 16px; height: 16px; }
+.jst[data-device="phone"] .jst-remove { min-height: 44px; }
+.jst[data-device="phone"] .jst-card-btn,
+.jst[data-device="phone"] .jst-btn--sm { min-height: 44px; }
+.jst .jst-summary-head .jst-link,
+.jst .jst-head-aside .jst-link { min-height: 44px; margin: -12px -8px; padding: 0 8px; }
+.jst .jst-stp-link { min-height: 44px; min-width: 44px; margin: -14px -8px; padding: 0 8px; }
+.jst[data-tpl="treichville"] .jst-co-actions { margin-right: 8px; }
 
 /* ===================================================================== motion */
 

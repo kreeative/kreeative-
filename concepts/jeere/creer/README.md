@@ -86,7 +86,7 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
 | `theme.fonts` | `editorial`, `moderne`, `doux`, `audacieux`, `classique`, `simple` |
 | `theme.radius` / `theme.buttons` | `none`, `soft`, `round` / `solid`, `outline` |
 | `payments` | exactly `wave`, `orange`, `mtn`, `moov`, `cod`, `card` (booleans), shown as plain text, never with the operators' logos or colours: in the footer, on the product page and as the checkout's payment options |
-| `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`). The zones of the first enabled `delivery` section are also the checkout's commune list |
+| `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`). The zones of the first enabled `delivery` section (else of a hidden one) are also the checkout's commune list |
 | `products[]` | ids `p1`, `p2`…; `price` is a whole number of FCFA (`6500`, formatted `6 500 FCFA` for display); `badge` `null`, `new`, `best` or `promo`; `art` one of 12 illustrations; `color` `#RRGGBB`; `image` `null` or a JPEG data URL (≤ 800 px wide) |
 
 The header and the footer are always rendered and are not sections. Character limits (hero
@@ -142,7 +142,9 @@ the store. It never touches `location` or `history`. `JeereRender.PAGES` mirrors
 | Click | Goes to |
 | --- | --- |
 | A product card | the product page of that product |
+| « Ajouter » on a product card (quick add, × 1) | the cart |
 | « Ajouter au panier » | the cart |
+| The header bag | the cart (from a product page with an empty cart, seeded with that product) |
 | « Passer au paiement » | the checkout |
 | « Payer 14 500 FCFA » / « Confirmer la commande » | the confirmation |
 | The header logo, « Retour à la boutique », « Continuer mes achats » | home |
@@ -151,12 +153,16 @@ the store. It never touches `location` or `history`. `JeereRender.PAGES` mirrors
 **Demo cart.** The cart lives on the root element: `rootEl.__jstCart = { [productId]: qty }`. It
 survives re-renders, drops ids that no longer exist, and, when the cart, checkout or confirmation
 page is rendered with an empty cart, it is seeded with the first product × 1 (and with the product
-of the product page when coming from there). Quantity steppers (− / +, from 1 to 20) and the remove
-button work in the preview. What the customer types on the checkout is kept in `rootEl.__jstForm`
-for the confirmation page, and nowhere else.
+of the product page when coming from there, by « Ajouter au panier » or by the header bag). Quantity
+steppers (− / +, from 1 to 20) and the remove button work in the cart. What the customer types on
+the checkout is kept in `rootEl.__jstForm` for the confirmation page, and nowhere else; the open
+order summary of the phone checkout (`rootEl.__jstPeek`) and the commune error (`rootEl.__jstErr`)
+live there too. On the confirmation the order is placed: the header bag shows no count.
 
 **What each page shows**
 
+- **Accueil**: the enabled sections in order. Each product card opens its page; its « Ajouter »
+  button (bag icon) is a quick add (× 1) that leads to the cart.
 - **Fiche produit**: a large visual (the photo, or the illustration on the product colour, at the
   template's image ratio), the badge, name, price, short description, a quantity stepper, the
   primary « Ajouter au panier », the secondary « Commander sur WhatsApp » (chat icon), a delivery
@@ -166,26 +172,46 @@ for the confirmation page, and nowhere else.
   « Frais de livraison calculés à l'étape suivante », the primary « Passer au paiement » and the link
   « Continuer mes achats ».
 - **Paiement** (the checkout, designed as a trustworthy mobile-money checkout): the steps
-  « Panier › Livraison et paiement › Confirmation »; contact (Prénom, Numéro WhatsApp); delivery
-  (a commune select with the fee of each option, « Quartier, repère : ex. près de la pharmacie »,
-  an estimated delay); payment (a radio card per **enabled** method, label and hint from
-  `JEERE_DATA.PAYMENTS`, neutral text chips or icons, never the companies' logos or colours); the
-  order summary (lines, subtotal, delivery fee of the selected commune, total), which updates live
-  when the commune or a quantity changes; the primary « Payer 14 500 FCFA » (« Confirmer la
-  commande » when « Paiement à la livraison » is selected); the secondary « Commander sur
-  WhatsApp »; the trust line « Paiement traité par un partenaire agréé par la BCEAO. Jeere ne garde
-  jamais votre argent. ». With no payment method enabled, a clear placeholder replaces the form.
+  « Panier › Livraison et paiement › Confirmation » (on the phone: numbered dots and only the
+  current label, so the line never wraps); on the phone, a folded « Voir ma commande » bar with the
+  item count and the amount right under the steps, which opens on the lines and the totals; contact
+  (Prénom, Numéro WhatsApp); delivery (a commune select with the fee of each option, « Quartier,
+  repère : ex. près de la pharmacie », an estimated delay); payment (a radio card per **enabled**
+  method, label from `JEERE_DATA.PAYMENTS`, the hint shown under the selected method only, neutral
+  text chips or icons, never the companies' logos or colours); the order summary (read-only lines
+  with a quantity badge, « Modifier » back to the cart, subtotal, delivery fee of the selected
+  commune, total), which updates live when the commune changes and follows the quantities set in
+  the cart; then, right under the total (on desktop in the right column, sticky in a real store
+  page), the primary « Payer 14 500 FCFA » (« Confirmer la commande » when « Paiement à la
+  livraison » is selected) with a note under it (mobile money: « Vous recevrez une demande de
+  14 500 FCFA sur votre téléphone (Wave). Validez-la avec votre code secret : ne le donnez jamais,
+  ni au vendeur ni au livreur. »), the secondary « Commander sur WhatsApp » and the trust line
+  « Paiement traité par un partenaire agréé par la BCEAO. Jeere ne garde jamais votre argent. ».
+  - **The commune is never preselected** (its fee would sit in the total unseen; a store with a
+    single zone is the exception): the select opens on « Choisissez votre commune », the summary
+    says « Livraison : À choisir », the button « Payer 13 000 FCFA + livraison » and the delay line
+    asks for the commune. Like a real checkout, « Payer » without a commune does not go on: the
+    select is outlined in red with « Choisissez votre commune : elle fixe les frais de livraison. »
+    and brought into view. Choosing one fills the fee, the total, the button and the delay live.
+  - **No payment method enabled**: the page speaks to shoppers (« Le paiement en ligne arrive
+    bientôt. Passez votre commande sur WhatsApp : {boutique} vous répond et vous indique comment
+    payer. »), with the summary and « Commander sur WhatsApp », and no trust line (nothing is paid
+    on that page). What the seller has to do is said by the editor, above the preview, and by the
+    Qualité tab.
 - **Confirmation**: a big check, « Merci Awa ! » (or « Merci ! » without a first name),
   « Commande n° 1042 confirmée », a status line for the chosen method (« Paiement Wave reçu »,
-  « À payer à la livraison »…), the delivery estimate, the summary, the primary « Suivre ma commande
-  sur WhatsApp » and the link « Retour à la boutique ».
+  « À payer à la livraison »…), the delivery estimate (with « Le récapitulatif vous est envoyé sur
+  WhatsApp au +225 07 07 12 34 56. » when the shopper typed her number), the summary, the primary
+  « Suivre ma commande sur WhatsApp » and the link « Retour à la boutique ». Opened straight from the
+  page selector (no commune chosen yet), it shows the first zone as an example.
 
 **Where the data comes from.** Everything comes from the fiche and `data.js`; the checkout adds
 nothing to the fiche.
 
-- Delivery: the zones of the first enabled `delivery` section, or `JEERE_DATA.communes` (11
-  Abidjan communes, 1 500 to 3 000 FCFA) when there is none. The cheapest fee gives « Livraison
-  dès … ».
+- Delivery: the zones of the first enabled `delivery` section, else of a hidden one (hiding the
+  section on the home page keeps the seller's fees), or `JEERE_DATA.communes` (11 Abidjan communes,
+  1 500 to 3 000 FCFA) when the fiche has no delivery section (or no zone). The cheapest fee gives
+  « Livraison dès … ».
 - Payment methods: `config.payments`, in the order of `JEERE_DATA.PAYMENTS`. Each entry has
   `key`, `label`, `kind` (`mobile`, `cod` or `card`), `hint` (the line under the method on the
   checkout) and `status` (the line on the confirmation):
@@ -203,8 +229,8 @@ nothing to the fiche.
   illustrations as the home page.
 
 **Rules inside the preview.** Everything stays scoped under `.jst`. The inputs work (typing a
-first name shows it on the confirmation) but nothing is sent, stored or validated: no network
-request, no `fetch`, no form submission. `keydown` events inside `.jst` inputs stop propagating,
+first name shows it on the confirmation) but nothing is sent or stored, and the only check is the
+commune before « Payer »: no network request, no `fetch`, no form submission. `keydown` events inside `.jst` inputs stop propagating,
 so typing in the checkout never triggers the editor's shortcuts (undo, redo…).
 
 **In the editor.** A page selector « Page : Accueil ▾ » lists the 5 pages, in the top bar on
@@ -256,7 +282,9 @@ JEERE_DATA.DEFAULT_INTENSITY = 'vivid';
   (a missing value is not an error: it reads as vivid).
 
 **Contrast budget** (WCAG, computed from the palettes in `data.js`; must hold for 8 palettes × 3
-templates × 2 intensities). On accent backgrounds, text uses `onAccent`; on tinted backgrounds,
+templates × 2 intensities). An automated pass over 8 palettes × 3 templates × 2 intensities × 5
+pages × 2 devices (with the checkout's commune error and the phone order summary open) finds no
+text under 4.5:1 (3:1 for large text); text drawn on product tiles and photos is not counted. On accent backgrounds, text uses `onAccent`; on tinted backgrounds,
 text uses `text`. `text` keeps at least 10.7:1 on every tint up to 18 %, but `muted` and accent
 coloured text need care:
 
@@ -270,6 +298,13 @@ coloured text need care:
 | Mangue | 5.24 | 3.22 | 6.05 / 5.80 / 5.57 | 36 % | 2.88 / 2.66 |
 | Menthe | 6.56 | 5.95 | 5.22 / 4.91 / 4.65 | 19 % | 5.17 / 4.60 |
 | Nuit | 14.30 | 14.30 | 6.26 / 5.57 / 4.94 | 20 % | 11.50 / 9.07 |
+
+Nuit is dark, and a bright accent mixed into near-black turns olive: its vivid « tints » are not
+accent mixes but neutral raised surfaces, `surface` (#1D201D) and `surface` + 7 % `text`
+(#2C2F2C). There, `muted` reads 6.86:1 and 5.65:1, `text` 12.25:1 on the stronger one, the lime
+accent 12.60:1 and 10.38:1; the lime itself fills the announcement bar, the hero blocks, the
+buttons, the badges and the selected states. Plateau on a dark palette puts the hero text on the
+stronger surface with a lime title, a lime top rule and a lime button, instead of a neon slab.
 
 So: keep Sable tints at 12 % or less (or use `text` instead of `muted` on them); Mangue's accent
 (3.22:1 on its background) is for large text, buttons, badges with `onAccent` and graphics only,
@@ -348,10 +383,12 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
    devices and the three templates. Select a product in the Produits tab: « Fiche produit » shows it.
 5. Inside the preview: click a product card, « Ajouter au panier », change quantities (1 to 20),
    remove a line, « Passer au paiement »; the page selector follows. On the checkout, type a first
-   name (Ctrl/Cmd+Z in the field must not undo the editor), pick another commune (the delivery fee
-   and the total change), pick « Paiement à la livraison » (the button becomes « Confirmer la
-   commande »), then confirm: « Merci {prénom} ! ». Turn every payment method off in the Boutique
-   tab: the checkout shows its placeholder; hide the Livraison section: the checkout uses the
+   name (Ctrl/Cmd+Z in the field must not undo the editor), press « Payer » before choosing a
+   commune (the select turns red), pick a commune (the delivery fee, the total and the button
+   change), pick « Paiement à la livraison » (the button becomes « Confirmer la commande »), then
+   confirm: « Merci {prénom} ! », and the header bag is empty. Turn every payment method off in the Boutique
+   tab: the checkout shows its placeholder (and the editor says what to do above the preview);
+   hide the Livraison section: the checkout keeps its zones; delete it: the checkout uses the
    default communes.
 6. « Fiche boutique »: the JSON (photos shown as `[photo]`, `theme.intensity` present), Copier,
    Télécharger, Importer (import an older fiche without `intensity`: it opens in vivid).
