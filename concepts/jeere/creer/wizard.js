@@ -49,14 +49,14 @@
       help: 'grands titres en capitales, blocs de couleur et contraste fort.' }
   };
   const PALETTE_DESC = {
-    sable: 'sable clair et noir doux',
-    karite: 'crème et brun chaud',
-    lagune: 'blanc et bleu-vert profond',
-    hibiscus: 'rose poudré et framboise',
-    indigo: 'gris clair et indigo',
-    mangue: 'crème et orange mangue',
-    menthe: 'menthe pâle et vert profond',
-    nuit: 'fond noir et vert acidulé'
+    sable: 'blanc cassé et noir',
+    karite: 'pêche clair et terracotta vif',
+    lagune: 'blanc bleuté et turquoise vif',
+    hibiscus: 'rose clair et rose fuchsia',
+    indigo: 'bleu très clair et bleu électrique',
+    mangue: 'crème et jaune mangue',
+    menthe: 'vert d’eau et vert vif',
+    nuit: 'fond noir et vert fluo'
   };
   const NICHE_COPY = {
     fashion: { shop: 'une boutique de mode', short: 'la mode', alt: 'vêtements' },

@@ -389,34 +389,43 @@ JEERE_DATA.DEFAULT_INTENSITY = 'vivid';
   `validate` reports any other value as an error with target `{ kind: 'theme', id: 'intensity' }`
   (a missing value is not an error: it reads as vivid).
 
+**Pop colours.** The palettes are bright and saturated on purpose (3 November 2026: the sellers
+want « des couleurs pop, vivantes »): a light tint of the hue behind the page and a vivid accent,
+terracotta, turquoise, fuchsia, electric blue, mango yellow, green and lime. The bright accents
+carry dark text (`onAccent` near-black on Karité, Lagune, Mangue, Menthe and Nuit), the pink and
+the blue carry white. The ids and the colour families stay, so the assistant's colour words
+(« rose », « jaune », « turquoise »…) still pick the same palette.
+
 **Contrast budget** (WCAG, computed from the palettes in `data.js`; must hold for 8 palettes × 3
 templates × 2 intensities). An automated pass over 8 palettes × 3 templates × 2 intensities × 5
 pages × 2 devices (with the checkout's commune error and the phone order summary open) finds no
-text under 4.5:1 (3:1 for large text); text drawn on product tiles and photos is not counted. On accent backgrounds, text uses `onAccent`; on tinted backgrounds,
-text uses `text`. `text` keeps at least 10.7:1 on every tint up to 18 %, but `muted` and accent
-coloured text need care:
+text under 4.5:1 (3:1 for large text); text drawn on product tiles and photos is not counted. On accent backgrounds, text uses `onAccent` (and `onAccentSoft` for secondary text); on tinted backgrounds,
+text uses `text`, which keeps at least 10:1 on every tint up to 30 %.
 
-| Palette | onAccent / accent | accent / bg | muted on 10 % / 14 % / 18 % tint | Max tint for muted ≥ 4.5 | accent text on 10 % / 18 % tint |
-| --- | --- | --- | --- | --- | --- |
-| Sable | 17.12 | 15.33 | 4.84 / 4.43 / 4.05 | 13 % | 12.64 / 10.59 |
-| Karité | 5.84 | 5.34 | 5.64 / 5.30 / 5.02 | 25 % | 4.69 / 4.18 |
-| Lagune | 7.60 | 7.60 | 5.69 / 5.31 / 4.98 | 23 % | 6.51 / 5.70 |
-| Hibiscus | 7.57 | 6.77 | 5.45 / 5.11 / 4.74 | 20 % | 5.70 / 4.97 |
-| Indigo | 8.68 | 7.76 | 5.47 / 5.12 / 4.80 | 21 % | 6.63 / 5.81 |
-| Mangue | 5.24 | 3.22 | 6.05 / 5.80 / 5.57 | 36 % | 2.88 / 2.66 |
-| Menthe | 6.56 | 5.95 | 5.22 / 4.91 / 4.65 | 19 % | 5.17 / 4.60 |
-| Nuit | 14.30 | 14.30 | 6.26 / 5.57 / 4.94 | 20 % | 11.50 / 9.07 |
+| Palette | onAccent / accent | accent / bg | text / bg | muted on 10 % / 14 % / 18 % tint | Max tint for muted ≥ 4.5 | raw accent as text on bg / 18 % tint |
+| --- | --- | --- | --- | --- | --- | --- |
+| Sable | 18.88 | 17.16 | 17.16 | 5.08 / 4.66 / 4.26 | 15 % | 17.16 / 11.64 |
+| Karité | 5.54 | 3.10 | 15.83 | 6.43 / 6.16 / 5.88 | 40 % | 3.10 / 2.54 |
+| Lagune | 7.00 | 2.12 | 15.50 | 6.19 / 6.01 / 5.80 | 50 % | 2.12 / 1.83 |
+| Hibiscus | 4.71 | 4.19 | 16.17 | 6.37 / 5.97 / 5.60 | 31 % | 4.19 / 3.16 |
+| Indigo | 5.30 | 4.72 | 15.74 | 6.09 / 5.73 / 5.43 | 30 % | 4.72 / 3.68 |
+| Mangue | 9.45 | 1.71 | 16.19 | 6.31 / 6.16 / 6.02 | 60 % | 1.71 / 1.55 |
+| Menthe | 7.04 | 2.14 | 15.07 | 6.45 / 6.20 / 6.01 | 54 % | 2.14 / 1.85 |
+| Nuit | 16.27 | 16.27 | 17.39 | 6.48 / 5.80 / 5.06 | 21 % | 16.27 / 10.14 |
+
+The raw accent is a **fill**: the announcement bar, the hero blocks, solid buttons, badges and
+selected states, always with `onAccent` on it. It is never small text on the page: prices, stars,
+links and outline buttons (text and border) use `--st-accent-text` / `--st-accent-ink`, the accent
+deepened by `readable()` in `render.js` until it reads at 4.5:1 on the background, the surface and
+both tints. That is why a yellow (Mangue, 1.71:1 on its background) or a turquoise (Lagune) accent
+is fine. Sable's vivid tints are deeper shades of its background (its accent is black), and the
+renderer keeps `muted` readable on them (`mutedTint`, `mutedStrong`).
 
 Nuit is dark, and a bright accent mixed into near-black turns olive: its vivid « tints » are not
-accent mixes but neutral raised surfaces, `surface` (#1D201D) and `surface` + 7 % `text`
-(#2C2F2C). There, `muted` reads 6.86:1 and 5.65:1, `text` 12.25:1 on the stronger one, the lime
-accent 12.60:1 and 10.38:1; the lime itself fills the announcement bar, the hero blocks, the
-buttons, the badges and the selected states. Plateau on a dark palette puts the hero text on the
-stronger surface with a lime title, a lime top rule and a lime button, instead of a neon slab.
-
-So: keep Sable tints at 12 % or less (or use `text` instead of `muted` on them); Mangue's accent
-(3.22:1 on its background) is for large text, buttons, badges with `onAccent` and graphics only,
-never for small text such as prices; Karité's accent text needs a tint of 12 % or less. Tint =
+accent mixes but neutral raised surfaces, `surface` (#1C1E1C) and `surface` + 7 % `text`. The lime
+(#CCFF33) fills the announcement bar, the hero blocks, the buttons, the badges and the selected
+states. Plateau on a dark palette puts the hero text on the stronger surface with a lime title, a
+lime top rule and a lime button, instead of a neon slab. Tint =
 `color-mix(in srgb, accent p%, bg)`.
 
 ## The logo

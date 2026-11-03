@@ -228,19 +228,23 @@
   ]);
 
   /* ------------------------------------------------------------------ palettes
+   * Pop colours: a light tint of the hue behind the page, a bright, saturated accent.
    * WCAG contrast (checked): text/bg >= 7, text/surface >= 7, muted/bg >= 4.5,
-   * onAccent/accent >= 4.5, accent/bg >= 3. Only `line` may be rgba.
+   * onAccent/accent >= 4.5 (dark text on the bright accents, white on pink and blue).
+   * The accent is a fill (buttons, bars, blocks): where it would be text or a thin line on the
+   * page, the renderer uses a deepened accent (accentText, accentInk) that reads at 4.5:1,
+   * so a bright yellow or turquoise accent is fine. Only `line` may be rgba.
    */
 
   var palettes = collection([
-    { id: 'sable', name: 'Sable', colors: { bg: '#F6F2EA', surface: '#FFFFFF', text: '#1B1814', muted: '#655C52', accent: '#1F1B16', onAccent: '#FFFFFF', line: 'rgba(27,24,20,0.14)' } },
-    { id: 'karite', name: 'Karité', colors: { bg: '#FBF4E8', surface: '#F2E6D3', text: '#2B1D12', muted: '#6A5543', accent: '#8B5A2B', onAccent: '#FFFFFF', line: 'rgba(43,29,18,0.14)' } },
-    { id: 'lagune', name: 'Lagune', colors: { bg: '#FFFFFF', surface: '#EAF4F3', text: '#0E2023', muted: '#4C6064', accent: '#0B5D64', onAccent: '#FFFFFF', line: 'rgba(14,32,35,0.13)' } },
-    { id: 'hibiscus', name: 'Hibiscus', colors: { bg: '#FCEFF2', surface: '#FFFFFF', text: '#2B1119', muted: '#714D58', accent: '#A3164B', onAccent: '#FFFFFF', line: 'rgba(43,17,25,0.12)' } },
-    { id: 'indigo', name: 'Indigo', colors: { bg: '#F1F2F6', surface: '#FFFFFF', text: '#15172C', muted: '#525672', accent: '#3A3EA6', onAccent: '#FFFFFF', line: 'rgba(21,23,44,0.12)' } },
-    { id: 'mangue', name: 'Mangue', colors: { bg: '#FFF5E6', surface: '#FFFFFF', text: '#24170A', muted: '#6B5236', accent: '#D66D0A', onAccent: '#1F1306', line: 'rgba(36,23,10,0.13)' } },
-    { id: 'menthe', name: 'Menthe', colors: { bg: '#EDF6F0', surface: '#FFFFFF', text: '#0F2419', muted: '#4A6254', accent: '#1D6A45', onAccent: '#FFFFFF', line: 'rgba(15,36,25,0.13)' } },
-    { id: 'nuit', name: 'Nuit', colors: { bg: '#111311', surface: '#1D201D', text: '#F3F4EE', muted: '#A4A99F', accent: '#C8F135', onAccent: '#111311', line: 'rgba(243,244,238,0.14)' } }
+    { id: 'sable', name: 'Sable', colors: { bg: '#F5F4F0', surface: '#FFFFFF', text: '#111111', muted: '#5B5A56', accent: '#111111', onAccent: '#FFFFFF', line: 'rgba(17,17,17,0.13)' } },
+    { id: 'karite', name: 'Karité', colors: { bg: '#FFF1E7', surface: '#FFFFFF', text: '#2B1308', muted: '#77442B', accent: '#EE5A2A', onAccent: '#1F0B03', line: 'rgba(43,19,8,0.13)' } },
+    { id: 'lagune', name: 'Lagune', colors: { bg: '#ECFBFB', surface: '#FFFFFF', text: '#052326', muted: '#2F5F63', accent: '#00BFCB', onAccent: '#04272B', line: 'rgba(5,35,38,0.13)' } },
+    { id: 'hibiscus', name: 'Hibiscus', colors: { bg: '#FFEDF5', surface: '#FFFFFF', text: '#2E0618', muted: '#7D3556', accent: '#DE0F7B', onAccent: '#FFFFFF', line: 'rgba(46,6,24,0.12)' } },
+    { id: 'indigo', name: 'Indigo', colors: { bg: '#EFF1FF', surface: '#FFFFFF', text: '#0C1342', muted: '#454E86', accent: '#3657FF', onAccent: '#FFFFFF', line: 'rgba(12,19,66,0.12)' } },
+    { id: 'mangue', name: 'Mangue', colors: { bg: '#FFF7E1', surface: '#FFFFFF', text: '#261800', muted: '#6E5418', accent: '#FFB000', onAccent: '#261800', line: 'rgba(38,24,0,0.13)' } },
+    { id: 'menthe', name: 'Menthe', colors: { bg: '#EAFBF1', surface: '#FFFFFF', text: '#05261A', muted: '#2F5E47', accent: '#14C46C', onAccent: '#05261A', line: 'rgba(5,38,26,0.13)' } },
+    { id: 'nuit', name: 'Nuit', colors: { bg: '#0F100F', surface: '#1C1E1C', text: '#F4F5EF', muted: '#A6AB9F', accent: '#CCFF33', onAccent: '#0F100F', line: 'rgba(244,245,239,0.14)' } }
   ]);
 
   /* ------------------------------------------------------------------ font pairs

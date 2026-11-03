@@ -1565,11 +1565,9 @@
         type: 'button', class: 'b-pal', 'aria-pressed': String(th.palette === p.id), 'data-fk': 'pal-' + p.id, 'aria-label': `Couleurs ${p.name}`,
         on: { click: () => setTheme('palette', p.id, `Couleurs ${p.name}`) }
       },
-        el('span', { class: 'b-pal__sw', style: `background:${c.bg};color:${c.text}` },
-          el('span', { class: 'b-pal__aa', text: 'Aa' }),
-          el('span', { class: 'b-pal__dots' },
-            el('i', { style: `background:${c.accent}` }),
-            el('i', { style: `background:${c.surface}` }))),
+        // The strong colour fills the chip (« Aa » in its text colour), the page background below
+        el('span', { class: 'b-pal__sw', style: `--pa:${c.accent};--po:${c.onAccent};--pb:${c.bg}` },
+          el('span', { class: 'b-pal__aa', text: 'Aa' })),
         el('span', { class: 'b-pal__name', text: p.name })));
     });
     tp.append(group('b-g-theme-palette', 'Palette', 'Une couleur de fond, une couleur forte pour les boutons et les blocs.', pals));

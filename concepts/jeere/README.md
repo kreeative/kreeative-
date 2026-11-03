@@ -49,7 +49,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
   delivery) beside a large J. The favicon is the white J on a blue rounded square.
 - **Name**: always written « Jeere » (only the J in capital), never « JEERE ».
 - **Text weights**: light on purpose: titles in Poppins 400, buttons and labels 500, body 400.
-- **Colours**: black and white only. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
+- **Colours**: black and white only for Jeere itself. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
   colour, so only the demo stores and product pictures on the page are in colour.
 - **Type**: Poppins (SIL OFL) for everything. Poppins has no ɛ, ɔ or ŋ (needed for Dioula and
@@ -62,7 +62,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
    WhatsApp number. The card sends nothing: it copies the number into the waitlist form, scrolls there and asks for
    the first name (without JavaScript it simply links to the waitlist). On the right, an editor canvas on a faint grid:
    a store page (shea butter jar) with floating editor tools: a text toolbar with the Jeere assistant, a colour tray
-   (Karité, Lagune, Hibiscus, Indigo, Menthe, white) that recolours the store, a product card whose quantity updates
+   (Karité, Lagune, Hibiscus, Indigo, Mangue, Menthe, white: the same bright colours as the store palettes) that recolours the store, a product card whose quantity updates
    the “Paiement Wave reçu” chip, and a pause button. The colours change by themselves every 2.8 s until the visitor
    hovers, focuses or pauses; with reduced motion they start paused. Then “Encaissez comme vos clients paient” with
    the payment methods.

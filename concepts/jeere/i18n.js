@@ -33,6 +33,7 @@ window.JEERE_EN = {
   'hero.swatch.lagune': 'Lagune colour',
   'hero.swatch.hibiscus': 'Hibiscus colour',
   'hero.swatch.indigo': 'Indigo colour',
+  'hero.swatch.mangue': 'Mangue colour',
   'hero.swatch.menthe': 'Menthe colour',
   'hero.swatch.blanc': 'White',
   'hero.product': 'Whipped shea butter',

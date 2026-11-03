@@ -224,8 +224,8 @@ MODÈLES (template) :
 - cocody : Cocody, style Doux. Des cartes arrondies, des couleurs tendres et des catégories faciles à parcourir. Idéal pour : Beauté, perruques, artisanat et petits créateurs. Par défaut : palette hibiscus, polices doux, angles round, boutons solid.
 - treichville : Treichville, style Audacieux. De grands titres en capitales, des blocs de couleur et un contraste fort qui attire l’œil. Idéal pour : Sneakers, streetwear, restauration et promotions. Par défaut : palette nuit, polices audacieux, angles none, boutons solid.
 PALETTES (theme.palette) :
-- sable : Sable (blanc cassé chaud, accent presque noir)
-- karite : Karité (crème, accent brun chaud)
+- sable : Sable (blanc cassé, accent noir)
+- karite : Karité (pêche clair, accent terracotta vif)
 ...
 COULEURS (theme.intensity) : vivid (Vives, par défaut : votre couleur habille toute la boutique), soft (Douces : des fonds clairs, la couleur en touches). Un style doux (cocody) n’est pas la même chose que des couleurs douces.
 ...
@@ -959,10 +959,10 @@ function extraireNumero(texte: string): { numero: string; reste: string } {
 // Le catalogue de la partie 3.4, construit depuis data.js : le prompt ne peut pas diverger de l'éditeur.
 export function catalogueForPrompt(): string {
   const intention: Record<string, string> = {
-    sable: "blanc cassé chaud, accent presque noir", karite: "crème, accent brun chaud",
-    lagune: "blanc, accent bleu-vert profond", hibiscus: "rose poudré, accent framboise",
-    indigo: "gris clair froid, accent indigo", mangue: "crème chaude, accent orange mangue",
-    menthe: "vert d’eau, accent vert profond", nuit: "fond presque noir, texte clair, accent vert acide",
+    sable: "blanc cassé, accent noir", karite: "pêche clair, accent terracotta vif",
+    lagune: "blanc bleuté, accent turquoise vif", hibiscus: "rose clair, accent rose fuchsia",
+    indigo: "bleu très clair, accent bleu électrique", mangue: "crème, accent jaune mangue",
+    menthe: "vert d’eau, accent vert vif", nuit: "fond presque noir, texte clair, accent vert fluo",
   };
   const L: string[] = ['<catalogue_jeere version="1">', "MODÈLES (template) :"];
   // deno-lint-ignore no-explicit-any

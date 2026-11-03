@@ -108,7 +108,7 @@
 .jst .jst-btn--sm { min-height: 38px; padding: 0 12px; font-size: 13px; gap: 6px; white-space: nowrap; }
 .jst .jst-btn--sm .jst-ico { width: 16px; height: 16px; }
 .jst .jst-btn--block { width: 100%; }
-.jst[data-buttons="outline"] .jst-btn { background: transparent; color: var(--st-accent-ink); }
+.jst[data-buttons="outline"] .jst-btn { background: transparent; color: var(--st-accent-ink); border-color: var(--st-accent-ink); }
 .jst .jst-on-accent .jst-btn { background: var(--st-on-accent); color: var(--st-accent); border-color: var(--st-on-accent); }
 .jst[data-buttons="outline"] .jst-on-accent .jst-btn { background: transparent; color: var(--st-on-accent); }
 .jst[data-device="desktop"] .jst-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .45); }
@@ -286,7 +286,7 @@
 .jst .jst-wa-ico .jst-ico { width: 26px; height: 26px; }
 .jst .jst-wa-copy { min-width: 0; }
 .jst .jst-wa-title { font-size: 28px; }
-.jst .jst-wa-text { margin-top: 12px; font-size: 15px; line-height: 1.6; opacity: .88; overflow-wrap: anywhere; }
+.jst .jst-wa-text { margin-top: 12px; font-size: 15px; line-height: 1.6; color: var(--st-on-accent-soft); overflow-wrap: anywhere; }
 .jst .jst-wa-cta { display: flex; flex-direction: column; align-items: inherit; gap: 12px; margin-top: 24px; min-width: 0; }
 .jst .jst-wa-num { font-size: 13px; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
 
