@@ -3,18 +3,23 @@
  * Turns a fiche boutique (store config v1) into a store page, with one of three tested templates:
  * Plateau (editorial), Cocody (soft) and Treichville (bold).
  *
- * Global: window.JeereRender = { render, ensureFonts, artSVG, PAGES }
+ * Global: window.JeereRender = { render, ensureFonts, artSVG, pages, PAGES }
  *
  * render(config, rootEl, { device: 'phone' | 'desktop', page: 'home' | 'product' | 'cart' |
- *   'checkout' | 'confirmation', productId })
+ *   'checkout' | 'confirmation' | 'page', productId, pageId })
  *   Draws one page of the store. The whole customer journey works inside the preview: a product
  *   card opens its page, « Ajouter au panier » opens the cart, then the checkout and the
  *   confirmation. Each such move re-renders the same rootEl and dispatches a bubbling, cancelable
- *   CustomEvent 'jst:navigate' on rootEl with detail { page, productId } (productId is null except
- *   on the product page). Cancel it to stop the default scroll back to the top of the store.
+ *   CustomEvent 'jst:navigate' on rootEl with detail { page, productId, pageId } (productId is null
+ *   except on the product page, pageId null except on a custom page). Cancel it to stop the default
+ *   scroll back to the top of the store.
+ *   page 'page' draws one of the seller's own pages (config.pages: À propos, Livraison et retours,
+ *   Contact, Conditions de vente…), picked by pageId (the first page when it is missing or
+ *   unknown). Pages with inMenu are in the header (desktop nav, phone menu), pages with inFooter
+ *   in a footer column. Every page ends with « Propulsé par Jeere ».
  *   The demo cart lives on the element: rootEl.__jstCart = { [productId]: qty } (1 to 20). The
- *   checkout form lives in rootEl.__jstForm. Nothing is sent anywhere: no location, no history,
- *   no network request.
+ *   checkout form lives in rootEl.__jstForm, the open phone menu in rootEl.__jstMenu. Nothing is
+ *   sent anywhere: no location, no history, no network request.
  *
  * Rules kept here:
  * - pure and defensive: reads only JEERE_DATA and the config, never throws, falls back to defaults;
@@ -80,6 +85,54 @@
     return t.split(/\n\s*\n/).map((p) => '<p>' + esc(fr(p.trim())).replace(/\n/g, '<br>') + '</p>').join('');
   }
   const line = (text) => esc(fr(str(text).replace(/\s*\n\s*/g, ' ').trim()));
+
+  // A seller's page text (plain text, at most 4 000 characters in the fiche): paragraphs on blank
+  // lines; a block whose lines start with « - », « • » or « 1. » becomes a list (an intro line
+  // ending with « : » may lead it); a short single line followed by more text, starting with a
+  // capital and not ending with punctuation, becomes a sub-heading. Escaped.
+  const LIST_RE = /^\s*(?:[-•*–]|\d{1,2}[.)])\s+/;
+  // « Prix : les prix sont… » — a short label (4 words at most, no comma) before « : » is set in bold.
+  const LABEL_RE = /^([A-ZÀ-ÖØ-Þ][^:,.;!?()\n]{0,34}?)\u00A0:\s/;
+  function textBlocks(text, pages) {
+    const refs = (Array.isArray(pages) ? pages : []).filter((p) => p.title).map((p) => ({ id: p.id, t: esc(fr(p.title)) }));
+    // A page named between « » (« Livraison et retours ») becomes a link to it, inside the preview.
+    const link = (h) => refs.reduce((out, r) => out.split('«' + NBSP + r.t + NBSP + '»').join('«' + NBSP + '<a class="jst-cp-ref"' + goPage(r.id) + '>' + r.t + '</a>' + NBSP + '»'), h);
+    const inline = (raw) => {
+      let h = esc(fr(raw));
+      const lm = LABEL_RE.exec(h);
+      if (lm && lm[1].trim().split(/\s+/).length <= 4) h = '<b class="jst-cp-label">' + lm[1] + '</b>' + h.slice(lm[1].length);
+      return link(h);
+    };
+    const t = str(text).replace(/\r\n?/g, '\n').slice(0, 6000).trim();
+    if (!t) return '';
+    const blocks = t.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+    const list = (lines) => {
+      const ordered = lines.every((l) => /^\s*\d{1,2}[.)]\s+/.test(l));
+      const tag = ordered ? 'ol' : 'ul';
+      return '<' + tag + ' class="jst-cp-list' + (ordered ? ' is-ordered' : '') + '">' +
+        lines.map((l) => '<li>' + inline(l.replace(LIST_RE, '').trim()) + '</li>').join('') + '</' + tag + '>';
+    };
+    return blocks.map((b, i) => {
+      const lines = b.split('\n').map((l) => l.trim()).filter(Boolean);
+      if (lines.length > 1 && lines.every((l) => LIST_RE.test(l))) return list(lines);
+      if (lines.length > 2 && /:$/.test(lines[0]) && lines.slice(1).every((l) => LIST_RE.test(l))) {
+        return '<p>' + inline(lines[0]) + '</p>' + list(lines.slice(1));
+      }
+      if (lines.length === 1 && i < blocks.length - 1 && b.length <= 60 && /^[A-ZÀ-ÖØ-Þ]/.test(b) && !/[.!?;:,…»)"]$/.test(b)) {
+        return '<h2 class="jst-h jst-cp-h2">' + esc(fr(b)) + '</h2>';
+      }
+      return '<p>' + inline(lines.join('\n')).replace(/\n/g, '<br>') + '</p>';
+    }).join('');
+  }
+
+  // Same rules as JEERE_DATA.slugify (accents removed, lowercase, hyphens); used when data.js is older.
+  function slugify(s) {
+    const d = DATA();
+    try { if (d && typeof d.slugify === 'function') { const r = d.slugify(s); if (typeof r === 'string') return r; } } catch (e) { /* fall back */ }
+    let t = str(s);
+    try { t = t.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { /* old engine */ }
+    return t.toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
 
   const IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
   const validImage = (v) => (typeof v === 'string' && v.length < 16000000 && IMAGE_RE.test(v) ? v.replace(/\s+/g, '') : null);
@@ -509,6 +562,22 @@
     return list.filter((p) => isObj(p) && typeof p.id === 'string').map((p) => ({ id: p.id, label: str(p.label, p.id) }));
   }
 
+  // What a custom page is about, from its slug or title: the Contact page gets a WhatsApp block,
+  // the delivery page the store's fees by commune. Anything else is plain text.
+  function pageKind(slug, title) {
+    const d = DATA();
+    try {
+      const k = d && typeof d.pageKind === 'function' ? d.pageKind({ slug: slug, title: title }) : null;
+      if (k === 'contact') return 'contact';
+      if (k === 'shipping' || k === 'delivery') return 'delivery';
+    } catch (e) { /* fall back on the slug */ }
+    const keys = [slug, slugify(title)];
+    const any = (re) => keys.some((k) => re.test(k));
+    if (any(/^(contact|contactez-nous|nous-contacter|nous-ecrire)(-|$)/)) return 'contact';
+    if (any(/^(livraison|livraisons|expedition|delais-de-livraison)(-|$)/)) return 'delivery';
+    return 'text';
+  }
+
   const MOMO_HINT = 'Validez le paiement sur votre téléphone.';
   const PAY_FALLBACK = {
     wave: { label: 'Wave', hint: 'Vous recevrez une demande de paiement sur votre numéro Wave.' },
@@ -688,6 +757,20 @@
 
     const prices = products.map((p) => p.price).filter((n) => typeof n === 'number' && n > 0);
 
+    // The seller's own pages (config.pages). normalizeConfig fixes ids and slugs; here they only
+    // have to be safe to draw: the first page with an id wins, booleans are strict.
+    const pages = [];
+    const usedPg = {};
+    (Array.isArray(cfg.pages) ? cfg.pages : []).forEach((p, i) => {
+      if (!isObj(p)) return;
+      const id = str(p.id).trim() || 'pg' + (i + 1);
+      if (usedPg[id]) return;
+      usedPg[id] = true;
+      const title = str(p.title).replace(/\s+/g, ' ').trim().slice(0, 120);
+      const slug = slugify(str(p.slug).trim() || title);
+      pages.push({ id: id, title: title, slug: slug, body: str(p.body), inMenu: p.inMenu === true, inFooter: p.inFooter === true, kind: pageKind(slug, title) });
+    });
+
     const dark = lum(colors.bg) < 0.18;
     const intensity = theme.intensity === 'soft' ? 'soft' : 'vivid';
     const vivid = intensity === 'vivid';
@@ -723,6 +806,7 @@
       niche: niche,
       products: products,
       sections: sections,
+      pages: pages,
       payments: payments,
       cod: pay.cod === true,
       categories: Array.from(catMap.values()),
@@ -746,7 +830,8 @@
     if (isObj(data)) Object.keys(data).forEach((k) => { if (data[k] != null && data[k] !== '') out += ' data-' + k + '="' + esc(data[k]) + '"'; });
     return out;
   }
-  const go = (page, productId) => act('go', { page: page, product: productId || null });
+  const go = (page, productId, pageId) => act('go', { page: page, product: productId || null, 'page-id': pageId || null });
+  const goPage = (pageId) => go('page', null, pageId);
 
   function btn(label, opts) {
     const o = opts || {};
@@ -813,28 +898,69 @@
 
   const NAV_LABELS = { products: 'Boutique', categories: 'Catégories', reviews: 'Avis', about: 'À propos', delivery: 'Livraison', whatsapp: 'Contact' };
 
-  function header(m, j) {
+  const NAV_MAX = 5;
+  const ptitle = (p) => (p.title ? esc(fr(p.title)) : '<span class="jst-muted-inline">Page sans titre</span>');
+  const isCurPage = (j, p) => !!j && j.page === 'page' && j.pageId === p.id;
+
+  // Desktop nav: the section links (to the home page), then the pages the seller put in the menu,
+  // 5 links at most. A page wins over a section link with the same name (« À propos », « Contact »);
+  // the first section link (the way back to the shop) always stays.
+  function navItems(m) {
+    const pages = m.pages.filter((p) => p.inMenu);
+    const taken = {};
+    pages.forEach((p) => { if (p.slug) taken[p.slug] = true; });
+    const secs = [];
     const seen = {};
-    const nav = [];
     m.sections.forEach((s) => {
       const label = NAV_LABELS[s.type];
-      if (label && !seen[label] && nav.length < 4) { seen[label] = true; nav.push(label); }
+      if (label && !seen[label] && !taken[slugify(label)] && secs.length < 4) { seen[label] = true; secs.push(label); }
     });
-    if (!nav.length) nav.push('Boutique');
+    if (!secs.length) secs.push('Boutique');
+    const shownPages = pages.slice(0, NAV_MAX - 1);
+    return secs.slice(0, NAV_MAX - shownPages.length).map((label) => ({ label: label })).concat(shownPages.map((p) => ({ page: p })));
+  }
+
+  function header(m, j) {
+    const items = navItems(m);
     const count = j ? j.count : 0;
     const bagLabel = count ? 'Panier, ' + plural(count, 'article', 'articles') : 'Panier';
-    return '<header class="jst-header"><div class="jst-wrap jst-header-in">' +
-      '<button type="button" class="jst-icon-btn jst-menu" aria-label="Menu" tabindex="-1">' + icon('menu') + '</button>' +
-      '<a class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '"' + go('home') + '>' + esc(m.name) + '</a>' +
-      '<nav class="jst-nav" aria-label="Menu de la boutique">' + nav.map((n, i) => {
-        const cur = i === 0 && !!j && j.page === 'home';
-        return '<a class="jst-nav-link' + (cur ? ' is-current" aria-current="page' : '') + '"' + go('home') + '>' + esc(n) + '</a>';
-      }).join('') + '</nav>' +
+    const phone = m.device === 'phone';
+    const open = phone && !!j && j.menu;
+    const menuId = 'jst' + (j ? j.uid : 0) + '-menu';
+    const nav = phone ? '' : '<nav class="jst-nav" aria-label="Menu de la boutique" data-count="' + items.length + '">' + items.map((it, i) => {
+      if (it.page) {
+        const cur = isCurPage(j, it.page);
+        return '<a class="jst-nav-link jst-nav-link--page' + (cur ? ' is-current" aria-current="page' : '') + '"' + goPage(it.page.id) + '><span class="jst-nav-txt">' + ptitle(it.page) + '</span></a>';
+      }
+      const cur = i === 0 && !!j && j.page === 'home';
+      return '<a class="jst-nav-link' + (cur ? ' is-current" aria-current="page' : '') + '"' + go('home') + '>' + esc(it.label) + '</a>';
+    }).join('') + '</nav>';
+    const menuBtn = phone
+      ? '<button type="button" class="jst-icon-btn jst-menu' + (open ? ' is-open' : '') + '" aria-label="' + (open ? 'Fermer le menu' : 'Menu') + '" aria-expanded="' + open + '" aria-controls="' + menuId + '" tabindex="-1"' + act('menu') + '>' + icon(open ? 'close' : 'menu') + '</button>'
+      : '<button type="button" class="jst-icon-btn jst-menu" aria-label="Menu" tabindex="-1">' + icon('menu') + '</button>';
+    return '<header class="jst-header' + (open ? ' is-menu-open' : '') + '"><div class="jst-wrap jst-header-in">' + menuBtn +
+      '<a class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '"' + go('home') + '>' + esc(m.name) + '</a>' + nav +
       '<div class="jst-header-actions">' +
       '<button type="button" class="jst-icon-btn jst-search" aria-label="Rechercher" tabindex="-1">' + icon('search') + '</button>' +
       '<button type="button" class="jst-icon-btn jst-bag' + (j && j.page === 'cart' ? ' is-current' : '') + '" aria-label="' + esc(bagLabel) + '" tabindex="-1"' + go('cart', j && j.page === 'product' ? j.productId : null) + '>' + icon('bag') +
       (count ? '<span class="jst-bag-n" aria-hidden="true">' + (count > 99 ? '99+' : count) + '</span>' : '') + '</button>' +
-      '</div></div></header>';
+      '</div></div>' + (open ? drawer(m, j, menuId) : '') + '</header>';
+  }
+
+  // Phone: the menu icon opens a small menu inside the preview, under the header: home, the pages
+  // the seller put in the menu, the cart, and the WhatsApp number when there is one.
+  function drawer(m, j, menuId) {
+    const link = (label, attrs, cur, extra) => '<li><a class="jst-drawer-link' + (cur ? ' is-current" aria-current="page' : '') + '"' + attrs + '>' +
+      '<span class="jst-drawer-label">' + label + '</span>' + (extra || '') + icon('chevron', 'jst-drawer-chev') + '</a></li>';
+    const items = [link('Accueil', go('home'), j.page === 'home')];
+    m.pages.filter((p) => p.inMenu).forEach((p) => items.push(link(ptitle(p), goPage(p.id), isCurPage(j, p))));
+    items.push(link('Panier', go('cart'), j.page === 'cart', j.count ? '<span class="jst-drawer-n" aria-label="' + esc(plural(j.count, 'article', 'articles')) + '">' + (j.count > 99 ? '99+' : j.count) + '</span>' : ''));
+    const wa = m.whatsapp
+      ? '<a class="jst-drawer-wa"' + act('wa') + '>' + icon('chat') + '<span>Une question' + NBSP + '? <b>' + esc(prettyPhone(m.whatsapp)) + '</b></span></a>'
+      : '';
+    return '<div class="jst-drawer" id="' + menuId + '"><nav class="jst-wrap jst-drawer-in" aria-label="Menu de la boutique">' +
+      '<ul class="jst-drawer-list">' + items.join('') + '</ul>' + wa + '</nav></div>' +
+      '<button type="button" class="jst-drawer-scrim" aria-label="Fermer le menu" tabindex="-1"' + act('menu') + '></button>';
   }
 
   // Checkout: logo, « Paiement sécurisé » and a way back to the cart, nothing to wander off to.
@@ -846,7 +972,19 @@
       '</div></header>';
   }
 
-  function footer(m) {
+  // « Propulsé par Jeere »: the small Jeere mark drawn inline in currentColor, so the store never
+  // depends on the builder's SVG symbols.
+  const JEERE_MARK = '<svg class="jst-powered-mark" viewBox="0 0 300 372" fill="currentColor" aria-hidden="true" focusable="false">' +
+    '<circle cx="237" cy="62" r="62"/><path d="M0 199H126V222A24 24 0 0 0 174 222V154H300V222A150 150 0 0 1 0 222Z"/></svg>';
+  const powered = () => '<span class="jst-powered"><span class="jst-powered-by">Propulsé par</span>' + JEERE_MARK + '<b>Jeere</b></span>';
+
+  function footer(m, j) {
+    const fpages = m.pages.filter((p) => p.inFooter);
+    const pagesCol = fpages.length
+      ? '<div class="jst-footer-col jst-footer-pages"><h3 class="jst-footer-h">Informations</h3><ul class="jst-footer-links">' +
+        fpages.map((p) => '<li><a class="jst-footer-link' + (isCurPage(j, p) ? ' is-current" aria-current="page' : '') + '"' + goPage(p.id) + '>' + ptitle(p) + '</a></li>').join('') +
+        '</ul></div>'
+      : '';
     const chips = m.payments.length
       ? '<ul class="jst-chips">' + m.payments.map((p) => '<li class="jst-chip">' + esc(p.label) + '</li>').join('') + '</ul>'
       : '<p class="jst-footer-muted">Aucun moyen de paiement activé pour l’instant.</p>';
@@ -858,13 +996,14 @@
     }
     if (!contact.length) contact.push('<p class="jst-footer-muted">Ajoutez votre ville et votre numéro WhatsApp.</p>');
     return '<footer class="jst-footer"><div class="jst-wrap">' +
-      '<div class="jst-footer-top">' +
+      '<div class="jst-footer-top" data-cols="' + (pagesCol ? 4 : 3) + '">' +
       '<div class="jst-footer-brand"><p class="jst-h jst-footer-name">' + esc(m.name) + '</p>' +
       (m.tagline ? '<p class="jst-footer-tag">' + line(m.tagline) + '</p>' : '') + '</div>' +
+      pagesCol +
       '<div class="jst-footer-col"><h3 class="jst-footer-h">Moyens de paiement</h3>' + chips + '</div>' +
       '<div class="jst-footer-col"><h3 class="jst-footer-h">Nous trouver</h3>' + contact.join('') + '</div>' +
       '</div>' +
-      '<div class="jst-footer-bottom"><span>©' + NBSP + esc(m.name) + '</span><span class="jst-powered">Propulsé par <b>Jeere</b></span></div>' +
+      '<div class="jst-footer-bottom"><span>©' + NBSP + esc(m.name) + '</span>' + powered() + '</div>' +
       '</div></footer>';
   }
 
@@ -1201,7 +1340,7 @@
    * confirmation (with the product being looked at, else the first one), except right after the
    * shopper emptied it on the cart page.
    */
-  function journey(m, rootEl, page, productId) {
+  function journey(m, rootEl, page, productId, pageId) {
     const byId = {};
     m.products.forEach((p) => { if (!byId[p.id]) byId[p.id] = p; });
     const pid = typeof productId === 'string' && own(byId, productId) ? productId : null;
@@ -1242,10 +1381,16 @@
     const pq = isObj(rootEl.__jstQty) ? rootEl.__jstQty : null;
     const pdpQty = product && pq && pq.id === product.id ? clamp(Math.round(num(pq.n) || 1), QTY_MIN, QTY_MAX) : 1;
 
+    // A custom page: the one asked for, else the first one (like the product page).
+    let customPage = null;
+    if (page === 'page') customPage = m.pages.find((p) => p.id === pageId) || m.pages[0] || null;
+
     if (!rootEl.__jstUid) rootEl.__jstUid = ++UID;
     if (page !== 'checkout' || zone) rootEl.__jstErr = null;
     return {
       page: page, product: product, productId: product ? product.id : pid, uid: rootEl.__jstUid,
+      customPage: customPage, pageId: customPage ? customPage.id : null,
+      menu: m.device === 'phone' && rootEl.__jstMenu === true,
       cart: cart, lines: lines, count: count, subtotal: subtotal,
       form: form, zone: zone, fee: fee, total: subtotal + fee, pay: pay, pdpQty: pdpQty,
       needZone: page === 'checkout' && !zone && m.zones.length > 0 && m.payments.length > 0,
@@ -1280,7 +1425,7 @@
       body.push('<div class="jst-wrap jst-page-empty">' + empty('Votre page est vide pour l’instant. Activez ou ajoutez une section pour la remplir.') + '</div>');
     }
     out.push('<main class="jst-main jst-main--home' + (endTint ? ' jst-main--end-tint' : '') + '">' + body.join('') + '</main>');
-    out.push(footer(m));
+    out.push(footer(m, j));
     return out.join('');
   }
 
@@ -1482,7 +1627,79 @@
     return '<div class="jst-wrap jst-ok">' + top + hero + '<div class="jst-ok-grid">' + recap + info + '</div></div>';
   }
 
-  const PAGE_RENDERERS = { product: pageProduct, cart: pageCart, checkout: pageCheckout, confirmation: pageConfirmation };
+  /* ------------------------------------------------------------------ custom pages
+   * À propos, Livraison et retours, Contact, Conditions de vente… : the seller's title and text in
+   * the template's style. The Contact page adds a WhatsApp block, the delivery page the fees by
+   * commune (the same zones as the checkout). On desktop, a side list leads to the other pages.
+   */
+
+  function pageContact(m, j) {
+    const tid = 'jst' + j.uid + '-cpwa';
+    if (!m.whatsapp) {
+      return '<section class="jst-cp-extra jst-cp-wa is-empty">' +
+        empty('Ajoutez votre numéro WhatsApp' + NBSP + ': vos clients pourront vous écrire en un clic depuis cette page.') + '</section>';
+    }
+    return '<section class="jst-cp-extra jst-cp-wa jst-on-accent" aria-labelledby="' + tid + '">' +
+      '<span class="jst-cp-wa-deco jst-cp-wa-deco--a" aria-hidden="true"></span><span class="jst-cp-wa-deco jst-cp-wa-deco--b" aria-hidden="true"></span>' +
+      '<span class="jst-cp-wa-ico" aria-hidden="true">' + icon('chat') + '</span>' +
+      '<div class="jst-cp-wa-copy">' +
+      '<h2 class="jst-h jst-cp-wa-title" id="' + tid + '">Écrivez-nous sur WhatsApp</h2>' +
+      '<p class="jst-cp-wa-text">Une question sur un produit, une commande ou une livraison' + NBSP + '? ' + esc(m.name) + ' vous répond directement.</p>' +
+      '</div>' +
+      '<div class="jst-cp-wa-cta">' + btn('Écrire sur WhatsApp', { icon: 'chat', size: 'lg', cls: 'jst-cp-wa-btn', attrs: act('wa') }) +
+      '<p class="jst-cp-wa-num">' + esc(prettyPhone(m.whatsapp)) + '</p></div>' +
+      (m.city ? '<p class="jst-cp-wa-city">' + icon('pin') + '<span>' + esc(m.city) + '</span></p>' : '') +
+      '</section>';
+  }
+
+  function pageZones(m) {
+    if (!m.zones.length) return '';
+    const list = '<ul class="jst-zones' + (m.zones.length > 6 ? ' is-many' : '') + '">' + m.zones.map((z) => {
+      const fee = z.fee === 0 ? '<span class="jst-price jst-free">Offerte</span>' : priceHTML(z.fee);
+      return '<li class="jst-zone"><span class="jst-zone-name">' + esc(z.name) + '</span><span class="jst-zone-dots" aria-hidden="true"></span>' + fee + '</li>';
+    }).join('') + '</ul>';
+    const notes = ['<span>' + icon('clock') + 'Livraison sous 24' + NBSP + 'h, du lundi au samedi</span>'];
+    if (m.cod) notes.push('<span>' + icon('cash') + 'Paiement à la livraison possible</span>');
+    return '<section class="jst-cp-extra jst-cp-zones"><h2 class="jst-h jst-cp-h2">Frais de livraison par commune</h2>' + list +
+      '<p class="jst-delivery-notes">' + notes.join('') + '</p></section>';
+  }
+
+  function pageCustom(m, j) {
+    const pg = j.customPage;
+    if (!pg) {
+      return '<div class="jst-wrap jst-page-pad">' + backLink('Retour à la boutique', 'home') +
+        empty('Créez une page (À propos, Livraison, Contact…) dans le tableau de bord' + NBSP + ': elle apparaîtra ici, dans le menu ou en bas de la boutique.') + '</div>';
+    }
+    const desktop = m.device === 'desktop';
+    const nav = desktop
+      ? crumbs([{ label: 'Accueil', page: 'home' }, { label: pg.title || 'Page sans titre' }])
+      : backLink('Retour à la boutique', 'home');
+    const kickerCls = m.tpl === 'cocody' ? 'jst-pill' : (m.tpl === 'treichville' ? 'jst-tag' : 'jst-kicker');
+    const body = textBlocks(pg.body, m.pages.filter((p) => p.id !== pg.id));
+    const extra = pg.kind === 'contact' ? pageContact(m, j) : (pg.kind === 'delivery' ? pageZones(m) : '');
+    const bodyHTML = body
+      ? '<div class="jst-cp-body">' + body + '</div>'
+      : '<div class="jst-cp-body is-empty">' + empty('Cette page est vide pour l’instant. Écrivez son texte dans le tableau de bord, rubrique Pages.') + '</div>';
+    // Desktop: the store's other pages beside the text, like a help centre.
+    const others = m.pages.filter((p) => p.inMenu || p.inFooter || p.id === pg.id);
+    const side = desktop && others.length > 1
+      ? '<aside class="jst-cp-side"><nav aria-label="Informations"><p class="jst-cp-side-h">Informations</p><ul class="jst-cp-side-list">' +
+        others.map((p) => '<li><a class="jst-cp-side-link' + (p.id === pg.id ? ' is-current" aria-current="page' : '') + '"' + goPage(p.id) + '>' + ptitle(p) + '</a></li>').join('') +
+        '</ul></nav></aside>'
+      : '';
+    return '<div class="jst-wrap jst-cp-nav">' + nav + '</div>' +
+      '<article class="jst-cp jst-cp--' + pg.kind + (side ? ' has-side' : '') + '" data-page-id="' + esc(pg.id) + '">' +
+      '<header class="jst-cp-head"><div class="jst-wrap jst-cp-head-in">' +
+      '<span class="jst-blob jst-blob--a" aria-hidden="true"></span><span class="jst-blob jst-blob--b" aria-hidden="true"></span>' +
+      '<p class="' + kickerCls + ' jst-cp-kicker">' + esc(m.name) + '</p>' +
+      '<h1 class="jst-h jst-cp-title" data-len="' + titleLen(pg.title) + '">' + ptitle(pg) + '</h1></div></header>' +
+      '<div class="jst-wrap jst-cp-in">' + side +
+      '<div class="jst-cp-content">' + bodyHTML + extra +
+      '<p class="jst-cp-more"><a class="jst-link"' + go('home') + '>Voir la boutique' + icon('arrow') + '</a></p></div>' +
+      '</div></article>';
+  }
+
+  const PAGE_RENDERERS = { product: pageProduct, cart: pageCart, checkout: pageCheckout, confirmation: pageConfirmation, page: pageCustom };
 
   function renderPage(m, j) {
     if (j.page === 'home') return pageHome(m, j);
@@ -1495,7 +1712,7 @@
     // On the confirmation the order is placed: the bag shows empty (the cart itself is cleared by « Retour à la boutique »).
     const out = j.page === 'checkout' ? [headerCheckout(m)] : leadingAnnouncements(m).concat([header(m, j.page === 'confirmation' ? Object.assign({}, j, { count: 0 }) : j)]);
     out.push('<main class="jst-main jst-main--' + j.page + '">' + main + '</main>');
-    out.push(footer(m));
+    out.push(footer(m, j));
     return out.join('');
   }
 
@@ -1510,7 +1727,47 @@
   function refresh(rootEl) {
     const v = rootEl.__jstView;
     if (!v) return;
-    render(v.config, rootEl, { device: v.device, page: v.page, productId: v.productId });
+    render(v.config, rootEl, { device: v.device, page: v.page, productId: v.productId, pageId: v.pageId });
+  }
+
+  // Desktop nav: when the links do not fit beside the logo (a long store name), the templates hide
+  // the overflow; the seller's pages must stay, so section links give way first (never the first).
+  function fitNav(rootEl) {
+    try {
+      const nav = rootEl.querySelector('.jst-header .jst-nav');
+      if (!nav || !nav.offsetWidth || !nav.querySelector('.jst-nav-link--page')) return;
+      const head = rootEl.querySelector('.jst-header-in');
+      const pagesOut = () => {
+        const links = Array.prototype.slice.call(nav.children);
+        const top = links.length ? links[0].offsetTop : 0;
+        const nr = nav.getBoundingClientRect();
+        const crowded = head && head.scrollWidth > head.clientWidth + 1;
+        return crowded || links.some((l) => {
+          if (!l.classList.contains('jst-nav-link--page')) return false;
+          const r = l.getBoundingClientRect();
+          return l.offsetTop !== top || r.right > nr.right + 1 || r.left < nr.left - 1;
+        });
+      };
+      // 1. section links give way, from the last one; 2. tighter links; 3. the first section link too.
+      for (let step = 0; step < 8 && pagesOut(); step++) {
+        const secs = Array.prototype.filter.call(nav.children, (l) => !l.classList.contains('jst-nav-link--page'));
+        if (secs.length > 1) secs[secs.length - 1].remove();
+        else if (!nav.classList.contains('is-tight')) { nav.classList.add('is-tight'); if (head) head.classList.add('is-tight'); }
+        else if (secs.length === 1) secs[0].remove();
+        else break;
+        nav.setAttribute('data-count', String(nav.children.length));
+      }
+    } catch (e) { /* the nav is a nicety */ }
+  }
+
+  // Phone menu: open or close it, keeping the menu button focused (Escape closes it again).
+  function setMenu(rootEl, open) {
+    rootEl.__jstMenu = !!open;
+    refresh(rootEl);
+    try {
+      const b = rootEl.querySelector('.jst-header .jst-menu');
+      if (b && typeof b.focus === 'function') b.focus({ preventScroll: true });
+    } catch (e) { /* focus is a nicety */ }
   }
 
   // Brings the top of the store back into view inside its nearest scrolling box.
@@ -1549,12 +1806,17 @@
     } catch (e) { /* scrolling is a nicety */ }
   }
 
-  function navigate(rootEl, page, productId) {
+  function navigate(rootEl, page, productId, pageId) {
     const v = rootEl.__jstView;
     if (!v) return;
-    render(v.config, rootEl, { device: v.device, page: page, productId: productId || null });
+    rootEl.__jstMenu = false;
+    render(v.config, rootEl, { device: v.device, page: page, productId: productId || null, pageId: pageId || null });
     const nv = rootEl.__jstView || {};
-    const detail = { page: nv.page || 'home', productId: nv.page === 'product' ? (nv.productId || null) : null };
+    const detail = {
+      page: nv.page || 'home',
+      productId: nv.page === 'product' ? (nv.productId || null) : null,
+      pageId: nv.page === 'page' ? (nv.pageId || null) : null
+    };
     let ok = true;
     try {
       let ev;
@@ -1593,7 +1855,10 @@
     const cart = isObj(rootEl.__jstCart) ? rootEl.__jstCart : (rootEl.__jstCart = {});
     switch (action) {
       case 'go':
-        navigate(rootEl, a.getAttribute('data-page') || 'home', id || null);
+        navigate(rootEl, a.getAttribute('data-page') || 'home', id || null, a.getAttribute('data-page-id') || null);
+        break;
+      case 'menu':
+        setMenu(rootEl, !rootEl.__jstMenu);
         break;
       case 'add': {
         const quick = a.hasAttribute('data-quick');
@@ -1680,6 +1945,11 @@
     rootEl.addEventListener('keydown', (e) => {
       const t = e.target;
       if (t && t.closest && t.closest('input, textarea, select')) e.stopPropagation();
+      // Escape closes the phone menu (and only that: the host keeps its own Escape otherwise).
+      if (e.key === 'Escape' && rootEl.__jstMenu) {
+        e.stopPropagation();
+        try { setMenu(rootEl, false); } catch (err) { /* ignore */ }
+      }
     });
   }
 
@@ -1691,25 +1961,30 @@
     const device = o.device === 'desktop' ? 'desktop' : 'phone';
     let page = typeof o.page === 'string' && (o.page === 'home' || own(PAGE_RENDERERS, o.page)) ? o.page : 'home';
     const productId = typeof o.productId === 'string' && o.productId ? o.productId : null;
+    const pageId = typeof o.pageId === 'string' && o.pageId ? o.pageId : null;
+    // The phone menu stays open across live edits, not when the host shows another page or device.
+    const prev = rootEl.__jstView;
+    if (rootEl.__jstMenu && (device !== 'phone' || !prev || prev.page !== page || (page === 'page' && pageId && prev.pageId !== pageId))) rootEl.__jstMenu = false;
     let m = null;
     let j = null;
     let html;
     try {
       m = buildModel(config, device);
       VIVID = m.vivid;
-      j = journey(m, rootEl, page, productId);
+      j = journey(m, rootEl, page, productId, pageId);
       html = renderPage(m, j);
     } catch (e) {
       m = null;
       page = 'home';
       const name = isObj(config) && isObj(config.store) ? str(config.store.name).trim() : '';
       html = '<header class="jst-header"><div class="jst-wrap jst-header-in"><span class="jst-logo">' + esc(name || 'Votre boutique') + '</span></div></header>' +
-        '<main class="jst-main"><div class="jst-wrap jst-page-empty">' + empty('L’aperçu n’a pas pu être affiché. Vérifiez la fiche boutique.') + '</div></main>';
+        '<main class="jst-main"><div class="jst-wrap jst-page-empty">' + empty('L’aperçu n’a pas pu être affiché. Vérifiez la fiche boutique.') + '</div></main>' +
+        '<footer class="jst-footer"><div class="jst-wrap"><div class="jst-footer-bottom"><span>©' + NBSP + esc(name || 'Votre boutique') + '</span>' + powered() + '</div></div></footer>';
     } finally {
       VIVID = false;
     }
     try {
-      rootEl.__jstView = { config: config, device: device, page: page, productId: j ? j.productId : productId };
+      rootEl.__jstView = { config: config, device: device, page: page, productId: j ? j.productId : productId, pageId: j ? j.pageId : (page === 'page' ? pageId : null) };
       rootEl.className = 'jst';
       if (rootEl.dataset) {
         rootEl.dataset.tpl = m ? m.tpl : 'plateau';
@@ -1754,6 +2029,14 @@
         });
       }
       rootEl.innerHTML = html;
+      if (device === 'desktop') {
+        fitNav(rootEl);
+        // Web fonts change the widths: check again once they are in (same element, same render).
+        const stamp = rootEl.__jstNavStamp = (rootEl.__jstNavStamp || 0) + 1;
+        if (typeof document !== 'undefined' && document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+          document.fonts.ready.then(() => { if (rootEl.__jstNavStamp === stamp) fitNav(rootEl); }, () => {});
+        }
+      }
     } catch (e) {
       try { rootEl.textContent = 'Aperçu indisponible.'; } catch (e2) { /* nothing more to do */ }
     }

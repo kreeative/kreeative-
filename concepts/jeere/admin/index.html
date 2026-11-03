@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="fr-CI">
+<head>
+  <meta charset="utf-8">
+  <!-- resizes-content: on Android the on-screen keyboard shrinks the layout, so the field being typed in stays visible -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <!-- The page lives in a folder (/concepts/jeere/admin/): add the final slash so relative links keep working -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Tableau de bord · Jeere</title>
+  <meta name="description" content="Prototype du tableau de bord Jeere&nbsp;: commandes, produits, pages, paiements, livraison, connecteurs et paramètres de votre boutique.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#FFFFFF">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Poppins has no ɛ, ɔ or ŋ: load just those letters from Montserrat as a fallback (a few KB) -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&text=%C9%9B%C9%94%C6%90%C6%86%C5%8B%C5%8A&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../creer/store.css">
+  <link rel="stylesheet" href="admin.css">
+  <script src="../creer/data.js" defer></script>
+  <script src="../creer/render.js" defer></script>
+  <script src="admin.js" defer></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- The Jeere logo, copied from the landing page (../index.html): a geometric silver « j » mark and the word « Jeere ».
+         Bright silver on dark backgrounds (jeere-silver), a darker silver on light ones (jeere-silver-dark): set with CSS fill. -->
+    <linearGradient id="jeere-silver" x1="0" y1="0" x2="300" y2="372" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset=".5" stop-color="#C3C8CE"/>
+      <stop offset="1" stop-color="#8A9199"/>
+    </linearGradient>
+    <linearGradient id="jeere-silver-dark" x1="0" y1="0" x2="300" y2="372" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C9CED4"/>
+      <stop offset=".5" stop-color="#9AA1A9"/>
+      <stop offset="1" stop-color="#5F6670"/>
+    </linearGradient>
+    <linearGradient id="jeere-silver-word" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4F6F8"/>
+      <stop offset=".55" stop-color="#C3C8CE"/>
+      <stop offset="1" stop-color="#8A9199"/>
+    </linearGradient>
+    <!-- "Jeere" set in Outfit SemiBold (SIL OFL), converted to a path so the logo needs no font -->
+    <symbol id="word" viewBox="19 297 2497 713">
+      <path d="M212 1010Q148 1010 99.5 985.5Q51 961 19 919L111 831Q129 857 154.5 870.5Q180 884 211 884Q242 884 265.5 871Q289 858 301.5 833Q314 808 314 772V297H451V764Q451 838 421.5 893.5Q392 949 338.5 979.5Q285 1010 212 1010ZM802 1010Q726 1010 667 977.5Q608 945 573.5 888Q539 831 539 758Q539 686 572.5 629.5Q606 573 664 539.5Q722 506 793 506Q863 506 916.5 537.5Q970 569 1000.5 623.5Q1031 678 1031 747Q1031 760 1029.5 773.5Q1028 787 1024 804L618 805V707L963 706L910 747Q908 704 894.5 675Q881 646 855.5 630.5Q830 615 793 615Q754 615 725 632.5Q696 650 680.5 681.5Q665 713 665 756Q665 800 681.5 832.5Q698 865 729 882.5Q760 900 801 900Q838 900 868 887.5Q898 875 920 850L997 927Q962 968 911.5 989Q861 1010 802 1010ZM1343 1010Q1267 1010 1208 977.5Q1149 945 1114.5 888Q1080 831 1080 758Q1080 686 1113.5 629.5Q1147 573 1205 539.5Q1263 506 1334 506Q1404 506 1457.5 537.5Q1511 569 1541.5 623.5Q1572 678 1572 747Q1572 760 1570.5 773.5Q1569 787 1565 804L1159 805V707L1504 706L1451 747Q1449 704 1435.5 675Q1422 646 1396.5 630.5Q1371 615 1334 615Q1295 615 1266 632.5Q1237 650 1221.5 681.5Q1206 713 1206 756Q1206 800 1222.5 832.5Q1239 865 1270 882.5Q1301 900 1342 900Q1379 900 1409 887.5Q1439 875 1461 850L1538 927Q1503 968 1452.5 989Q1402 1010 1343 1010ZM1653 1000V517H1784V1000ZM1784 733 1733 699Q1742 610 1785 558.5Q1828 507 1909 507Q1944 507 1972 518.5Q2000 530 2023 556L1941 650Q1930 638 1914.5 632Q1899 626 1879 626Q1837 626 1810.5 652.5Q1784 679 1784 733ZM2287 1010Q2211 1010 2152 977.5Q2093 945 2058.5 888Q2024 831 2024 758Q2024 686 2057.5 629.5Q2091 573 2149 539.5Q2207 506 2278 506Q2348 506 2401.5 537.5Q2455 569 2485.5 623.5Q2516 678 2516 747Q2516 760 2514.5 773.5Q2513 787 2509 804L2103 805V707L2448 706L2395 747Q2393 704 2379.5 675Q2366 646 2340.5 630.5Q2315 615 2278 615Q2239 615 2210 632.5Q2181 650 2165.5 681.5Q2150 713 2150 756Q2150 800 2166.5 832.5Q2183 865 2214 882.5Q2245 900 2286 900Q2323 900 2353 887.5Q2383 875 2405 850L2482 927Q2447 968 2396.5 989Q2346 1010 2287 1010Z"/>
+    </symbol>
+    <symbol id="mark" viewBox="0 0 300 372">
+      <circle cx="237" cy="62" r="62"/>
+      <path d="M0 199H126V222A24 24 0 0 0 174 222V154H300V222A150 150 0 0 1 0 222Z"/>
+    </symbol>
+    <!-- Line icons, 24 px grid; stroke and fill come from .a-ico. Neutral pictograms only: never a company's logo. -->
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5v9a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3.5h12v17l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.5 1.5 0 0 1 0 2.1l-6.2 6.2a1.5 1.5 0 0 1-2.1 0z"/><circle cx="8.3" cy="8.3" r="1.5"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5a6.5 6.5 0 0 1 13 0"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 13.6a6.5 6.5 0 0 1 4 5.9"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.5 4h13L20 9.5M4 9.5h16M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0M5.5 12v8h13v-8M10 20v-4.5h4V20"/></symbol>
+    <symbol id="i-pages" viewBox="0 0 24 24"><path d="M12 20.5H6.5a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1h7.2L18 7.8v2.7"/><path d="M13.5 3.5V8H18M8.5 11.5h5.5M8.5 14.5h3.5"/><path d="m14.6 20.6.6-2.7 4.1-4.1a1.5 1.5 0 0 1 2.1 2.1l-4.1 4.1z"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7.5h14.5A1.5 1.5 0 0 1 20 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM4 7.5 15.5 4v3.5"/><circle cx="16" cy="14" r="1.3" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7"/><circle cx="6.5" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3.5v4M15 3.5v4M6.5 7.5h11v3a5.5 5.5 0 0 1-11 0zM12 16v4.5"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M10.3 3.5h3.4l.5 2.4 1.6.9 2.3-.8 1.7 2.9-1.8 1.6v1.9l1.8 1.6-1.7 2.9-2.3-.8-1.6.9-.5 2.4h-3.4l-.5-2.4-1.6-.9-2.3.8-1.7-2.9 1.8-1.6v-1.9L3.7 8.9l1.7-2.9 2.3.8 1.6-.9z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 4.5H6.5a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1H14M10 12h10.5M17 8.5l3.5 3.5-3.5 3.5"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.4 5.2 3.4 8.5s-1.1 6.1-3.4 8.5c-2.3-2.4-3.4-5.2-3.4-8.5s1.1-6.1 3.4-8.5z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M6.5 15h4"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z"/><path d="M8.6 9.2c.2 2.9 3 5.9 6.1 6.3l1-1.3-1.8-1-.8.8c-1-.4-2.3-1.7-2.7-2.7l.8-.8-1-1.8z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M4 5.5h16v10.5H10l-4.5 3.5V16H4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5h4l1.5-2.5h6l1.5 2.5h4v11h-17z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10.5 5-3v9l-5-3"/></symbol>
+    <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5a6.5 6.5 0 0 1 13 0"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 13.6a6.5 6.5 0 0 1 4 5.9"/></symbol>
+    <symbol id="i-scooter" viewBox="0 0 24 24"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="17" r="2.5"/><path d="M8.5 17h7.2M14 5.5h3l3 9M17 8.5h-2.5L12 14.5H6.5"/><path d="M4 11h6"/></symbol>
+    <symbol id="i-bike" viewBox="0 0 24 24"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 9.5h6.5l3 7M9 9.5l3.5 7M14 5.5h2.5l1.2 4"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20.5h16M7 17v-6M12 17V6.5M17 17V9"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5 13.8 9l5.7 1.9-5.7 1.9L12 18.5l-1.8-5.7L4.5 10.9 10.2 9z"/><path d="M18.5 16v4M16.5 18h4"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9M7 17.5H4.5v-7A1.5 1.5 0 0 1 6 9h12a1.5 1.5 0 0 1 1.5 1.5v7H17"/><path d="M7 14h10v6.5H7z"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10M19.5 4.5 11 13M17 13.5v5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6z"/><path d="m8.6 12 2.4 2.4 4.4-4.6"/></symbol>
+    <symbol id="i-data" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9.5 6.5h10.5M9.5 12h10.5M9.5 17.5h10.5M4.5 6.5h.5M4.5 12h.5M4.5 17.5h.5"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5.5v13M15 5.5v13"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m6.5 14.5 5.5-5.5 5.5 5.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4.5 19.5h4l10-10a2.8 2.8 0 0 0-4-4l-10 10z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 15.5-5-5L7 19.5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.5v-11M7.5 9 12 4.5 16.5 9M4.5 15v4.5h15V15"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4.5v11M7.5 11l4.5 4.5 4.5-4.5M4.5 15v4.5h15V15"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.3 0 1.9-.8 1.9-1.7 0-1.2-1-1.6-1-2.7 0-1 .8-1.6 1.8-1.6h2.2a4.1 4.1 0 0 0 4.1-4.1C21 6.6 17 3.5 12 3.5z"/><circle cx="7.6" cy="11.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="9.6" cy="7.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.4" cy="7.4" r="1.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V13M12 16.3v.2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 20.5V4M5.5 4.5h11l-2 4 2 4h-11"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============================================================ GATE (no logged-in account) -->
+<div class="a-gate" id="a-gate" hidden>
+  <header class="a-gate__head">
+    <a class="a-logo" href="../" aria-label="Jeere, retour à l’accueil">
+      <span class="a-lock"><svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg><svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg></span>
+    </a>
+    <a class="a-link a-gate__back" href="../">Retour à Jeere</a>
+  </header>
+  <main class="a-gate__main" id="a-gate-main">
+    <div class="a-gate__card">
+      <p class="a-eyebrow" id="a-gate-eyebrow">Tableau de bord</p>
+      <h1 class="a-gate__title" id="a-gate-title" tabindex="-1">Connectez-vous pour gérer votre boutique</h1>
+      <p class="a-gate__lead" id="a-gate-lead">Commandes, produits, paiements, livraison&nbsp;: tout votre commerce au même endroit, depuis votre téléphone.</p>
+      <div class="a-gate__actions">
+        <a class="a-btn a-btn--primary a-btn--lg" id="a-gate-primary" href="../compte/#inscription">Créer un compte</a>
+        <a class="a-btn a-btn--ghost a-btn--lg" id="a-gate-secondary" href="../compte/#connexion">Se connecter</a>
+      </div>
+      <div class="a-gate__or" aria-hidden="true"><span>ou</span></div>
+      <button class="a-btn a-btn--soft a-btn--lg a-btn--block" type="button" id="a-gate-demo"><svg class="a-ico" aria-hidden="true"><use href="#i-eye"/></svg>Voir la démo</button>
+      <p class="a-gate__hint">Avec une boutique d’exemple, Awa Beauté. Tout reste dans ce navigateur&nbsp;: rien n’est envoyé.</p>
+      <ul class="a-gate__list">
+        <li><svg class="a-ico" aria-hidden="true"><use href="#i-receipt"/></svg><span><strong>Vos commandes</strong> de la boutique, de WhatsApp, d’Instagram et de TikTok</span></li>
+        <li><svg class="a-ico" aria-hidden="true"><use href="#i-wallet"/></svg><span><strong>Le mobile money</strong> sur votre numéro, jamais chez Jeere</span></li>
+        <li><svg class="a-ico" aria-hidden="true"><use href="#i-truck"/></svg><span><strong>La livraison</strong> commune par commune, avec vos livreurs</span></li>
+      </ul>
+    </div>
+    <div class="a-gate__visual" aria-hidden="true">
+      <div class="a-mini a-mini--gate" id="a-gate-mini"><div class="a-mini__screen"></div></div>
+    </div>
+  </main>
+  <p class="a-gate__foot">Prototype&nbsp;: aucun vrai compte, aucune vraie boutique. Tout est enregistré sur cet appareil.</p>
+</div>
+
+<!-- ============================================================ APP -->
+<div class="a-app" id="a-app" hidden>
+  <a class="a-skip" href="#" data-act="skip">Aller au contenu</a>
+
+  <aside class="a-side" aria-label="Menu du tableau de bord">
+    <div class="a-side__top">
+      <a class="a-logo" href="../" aria-label="Jeere, retour à l’accueil">
+        <span class="a-lock"><svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg><svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg></span>
+      </a>
+    </div>
+    <div class="a-storecard">
+      <span class="a-storecard__av" data-bind="store-initial" aria-hidden="true">A</span>
+      <span class="a-storecard__txt">
+        <span class="a-storecard__name" data-bind="store-name">Ma boutique</span>
+        <span class="a-storecard__url" data-bind="store-url"></span>
+      </span>
+    </div>
+    <button class="a-btn a-btn--ghost a-btn--sm a-btn--block a-side__view" type="button" data-act="view-store"><svg class="a-ico" aria-hidden="true"><use href="#i-eye"/></svg>Voir la boutique</button>
+    <nav class="a-nav" aria-label="Sections">
+      <ul class="a-nav__list">
+        <li><a class="a-nav__link" href="#accueil" data-nav="accueil"><svg class="a-ico" aria-hidden="true"><use href="#i-home"/></svg><span>Accueil</span></a></li>
+        <li><a class="a-nav__link" href="#commandes" data-nav="commandes"><svg class="a-ico" aria-hidden="true"><use href="#i-receipt"/></svg><span>Commandes</span><span class="a-nav__count" data-bind="todo-count" hidden></span></a></li>
+        <li><a class="a-nav__link" href="#produits" data-nav="produits"><svg class="a-ico" aria-hidden="true"><use href="#i-tag"/></svg><span>Produits</span></a></li>
+        <li><a class="a-nav__link" href="#clients" data-nav="clients"><svg class="a-ico" aria-hidden="true"><use href="#i-users"/></svg><span>Clients</span></a></li>
+      </ul>
+      <p class="a-nav__group">Canal de vente</p>
+      <ul class="a-nav__list">
+        <li><a class="a-nav__link" href="#boutique" data-nav="boutique"><svg class="a-ico" aria-hidden="true"><use href="#i-store"/></svg><span>Boutique en ligne</span></a></li>
+        <li><a class="a-nav__link" href="#pages" data-nav="pages"><svg class="a-ico" aria-hidden="true"><use href="#i-pages"/></svg><span>Pages</span></a></li>
+      </ul>
+      <p class="a-nav__group">Réglages</p>
+      <ul class="a-nav__list">
+        <li><a class="a-nav__link" href="#paiements" data-nav="paiements"><svg class="a-ico" aria-hidden="true"><use href="#i-wallet"/></svg><span>Paiements</span></a></li>
+        <li><a class="a-nav__link" href="#livraison" data-nav="livraison"><svg class="a-ico" aria-hidden="true"><use href="#i-truck"/></svg><span>Livraison</span></a></li>
+        <li><a class="a-nav__link" href="#connecteurs" data-nav="connecteurs"><svg class="a-ico" aria-hidden="true"><use href="#i-plug"/></svg><span>Connecteurs</span></a></li>
+        <li><a class="a-nav__link" href="#parametres" data-nav="parametres"><svg class="a-ico" aria-hidden="true"><use href="#i-gear"/></svg><span>Paramètres</span></a></li>
+      </ul>
+    </nav>
+    <p class="a-side__demo"><svg class="a-ico" aria-hidden="true"><use href="#i-info"/></svg><span>Prototype&nbsp;: tout reste dans ce navigateur.</span></p>
+  </aside>
+
+  <div class="a-frame">
+    <header class="a-top">
+      <a class="a-top__store" href="#accueil" aria-label="Accueil du tableau de bord">
+        <span class="a-top__av" data-bind="store-initial" aria-hidden="true">A</span>
+        <span class="a-top__name" data-bind="store-name">Ma boutique</span>
+      </a>
+      <div class="a-search" id="a-search" role="search">
+        <button class="a-ibtn a-search__back" type="button" data-act="search-close" aria-label="Fermer la recherche"><svg class="a-ico" aria-hidden="true"><use href="#i-back"/></svg></button>
+        <div class="a-search__field">
+          <svg class="a-ico a-search__ico" aria-hidden="true"><use href="#i-search"/></svg>
+          <label class="a-sr" for="a-search-input">Rechercher</label>
+          <input class="a-search__input" id="a-search-input" type="search" placeholder="Rechercher une commande, un produit, un client" autocomplete="off" enterkeyhint="search" aria-controls="a-search-results" aria-describedby="a-search-status">
+          <kbd class="a-search__kbd" aria-hidden="true">/</kbd>
+        </div>
+        <div class="a-search__panel" id="a-search-results" hidden></div>
+        <p class="a-sr" id="a-search-status" aria-live="polite"></p>
+      </div>
+      <div class="a-top__tools">
+        <button class="a-ibtn a-top__searchbtn" type="button" data-act="search-open" aria-label="Rechercher"><svg class="a-ico" aria-hidden="true"><use href="#i-search"/></svg></button>
+        <button class="a-chip a-chip--demo" type="button" data-act="demo-info">Démo</button>
+        <div class="a-acct">
+          <button class="a-acct__btn" type="button" id="a-acct-btn" aria-expanded="false" aria-controls="a-acct-menu" aria-haspopup="true">
+            <span class="a-avatar" data-bind="user-initial" aria-hidden="true">A</span>
+            <span class="a-acct__name" data-bind="user-name">Mon compte</span>
+            <svg class="a-ico a-acct__chev" aria-hidden="true"><use href="#i-down"/></svg>
+            <span class="a-sr">Mon compte</span>
+          </button>
+          <div class="a-acct__menu" id="a-acct-menu" hidden></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="a-savebar" id="a-savebar" role="region" aria-label="Modifications non enregistrées" hidden>
+      <p class="a-savebar__txt"><svg class="a-ico" aria-hidden="true"><use href="#i-alert"/></svg><span id="a-savebar-txt">Modifications non enregistrées</span></p>
+      <div class="a-savebar__btns">
+        <button class="a-btn a-btn--inv-ghost a-btn--sm" type="button" data-act="discard">Ignorer</button>
+        <button class="a-btn a-btn--inv a-btn--sm" type="button" data-act="save">Enregistrer</button>
+      </div>
+    </div>
+
+    <main class="a-main" id="a-main" tabindex="-1"></main>
+  </div>
+
+  <nav class="a-tabbar" aria-label="Navigation">
+    <a class="a-tab" href="#accueil" data-tab="accueil"><svg class="a-ico" aria-hidden="true"><use href="#i-home"/></svg><span>Accueil</span></a>
+    <a class="a-tab" href="#commandes" data-tab="commandes"><svg class="a-ico" aria-hidden="true"><use href="#i-receipt"/></svg><span>Commandes</span><span class="a-tab__dot" data-bind="todo-dot" hidden></span></a>
+    <a class="a-tab" href="#produits" data-tab="produits"><svg class="a-ico" aria-hidden="true"><use href="#i-tag"/></svg><span>Produits</span></a>
+    <a class="a-tab" href="#boutique" data-tab="boutique"><svg class="a-ico" aria-hidden="true"><use href="#i-store"/></svg><span>Boutique</span></a>
+    <button class="a-tab" type="button" data-tab="plus" data-act="more" aria-haspopup="dialog"><svg class="a-ico" aria-hidden="true"><use href="#i-more"/></svg><span>Plus</span></button>
+  </nav>
+</div>
+
+<div class="a-boot" id="a-boot" aria-hidden="true"><span class="a-boot__mark"><svg class="logo__mark" viewBox="0 0 300 372" focusable="false"><use href="#mark"/></svg></span></div>
+<noscript><p class="a-noscript">Activez JavaScript pour utiliser le tableau de bord Jeere.</p></noscript>
+
+<!-- « Plus » on the phone: the rest of the sections -->
+<dialog class="a-dialog a-dialog--sheet" id="a-more" aria-labelledby="a-more-t">
+  <div class="a-dialog__card">
+    <div class="a-dialog__head">
+      <h2 class="a-dialog__title" id="a-more-t">Plus</h2>
+      <button class="a-ibtn" type="button" data-close aria-label="Fermer"><svg class="a-ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <ul class="a-morelist">
+      <li><a href="#clients" data-more="clients"><svg class="a-ico" aria-hidden="true"><use href="#i-users"/></svg><span>Clients</span></a></li>
+      <li><a href="#pages" data-more="pages"><svg class="a-ico" aria-hidden="true"><use href="#i-pages"/></svg><span>Pages</span></a></li>
+      <li><a href="#paiements" data-more="paiements"><svg class="a-ico" aria-hidden="true"><use href="#i-wallet"/></svg><span>Paiements</span></a></li>
+      <li><a href="#livraison" data-more="livraison"><svg class="a-ico" aria-hidden="true"><use href="#i-truck"/></svg><span>Livraison</span></a></li>
+      <li><a href="#connecteurs" data-more="connecteurs"><svg class="a-ico" aria-hidden="true"><use href="#i-plug"/></svg><span>Connecteurs</span></a></li>
+      <li><a href="#parametres" data-more="parametres"><svg class="a-ico" aria-hidden="true"><use href="#i-gear"/></svg><span>Paramètres</span></a></li>
+    </ul>
+    <div class="a-morefoot">
+      <button class="a-btn a-btn--ghost a-btn--block" type="button" data-act="view-store"><svg class="a-ico" aria-hidden="true"><use href="#i-eye"/></svg>Voir la boutique</button>
+      <button class="a-btn a-btn--quiet a-btn--block" type="button" data-act="logout"><svg class="a-ico" aria-hidden="true"><use href="#i-logout"/></svg>Se déconnecter</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Every other dialog: filled by admin.js -->
+<dialog class="a-dialog" id="a-dialog" aria-labelledby="a-dialog-t"></dialog>
+
+<div class="a-toasts" id="a-toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<!-- The order slip, printed alone by « Imprimer le bon » (see @media print in admin.css) -->
+<div class="a-print" id="a-print" aria-hidden="true"></div>
+
+</body>
+</html>

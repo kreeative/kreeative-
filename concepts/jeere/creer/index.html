@@ -101,6 +101,9 @@
     <symbol id="i-template" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 9.5h17M9.5 9.5v11"/></symbol>
     <symbol id="i-blank" viewBox="0 0 24 24"><path d="M6 3.5h8l4.5 4.5v12.5H6z"/><path d="M13.5 3.5v5h5M12 11.5v6M9 14.5h6"/></symbol>
     <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5 13.8 9l5.7 1.9-5.7 1.9L12 18.5l-1.8-5.7L4.5 10.9 10.2 9z"/><path d="M18.5 16v4M16.5 18h4"/></symbol>
+    <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="9" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.6"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.6"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.6"/></symbol>
+    <symbol id="i-pages" viewBox="0 0 24 24"><path d="M12 20.5H6.5a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1h7.2L18 7.8v2.7"/><path d="M13.5 3.5V8H18M8.5 11.5h5.5M8.5 14.5h3.5"/><path d="m14.6 20.6.6-2.7 4.1-4.1a1.5 1.5 0 0 1 2.1 2.1l-4.1 4.1z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
   </defs>
 </svg>
 
@@ -108,7 +111,7 @@
 
   <!-- ============================================================ START SCREEN -->
   <div class="b-start" id="b-start">
-    <header class="b-shead">
+    <header class="b-shead b-shead--out" id="b-shead">
       <div class="b-wrap b-shead__in">
         <a class="b-logo" href="../" aria-label="Jeere, retour à l’accueil">
           <span class="b-logo__lock"><svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg><svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg></span>
@@ -116,7 +119,15 @@
         <span class="b-shead__tag">Studio</span>
         <nav class="b-shead__nav" aria-label="Liens">
           <a class="b-link b-only-wide" href="../">Retour à Jeere</a>
-          <a class="b-btn b-btn--primary b-btn--sm" href="../#liste"><span class="b-only-wide">Rejoindre la liste d’attente</span><span class="b-only-narrow">Liste d’attente</span></a>
+          <!-- Account-aware (editor.js reads 'jeere-account'): signed out by default, so the links work without JavaScript -->
+          <div class="b-acct" id="b-acct-out">
+            <a class="b-link b-acct__login" href="../compte/#connexion">Se connecter</a>
+            <a class="b-btn b-btn--primary b-btn--sm b-acct__btn" href="../compte/#inscription"><span class="b-acct__long">Créer un compte</span><span class="b-acct__short">S’inscrire</span></a>
+          </div>
+          <div class="b-acct" id="b-acct-in" hidden>
+            <p class="b-acct__hello"><span class="b-acct__av" id="b-acct-av" aria-hidden="true"></span><span class="b-acct__txt"><span class="b-acct__hi">Bonjour</span> <span class="b-acct__name" id="b-acct-name"></span></span></p>
+            <a class="b-btn b-btn--primary b-btn--sm b-acct__btn" href="../admin/" data-leave><svg class="b-ico" aria-hidden="true"><use href="#i-dash"/></svg>Tableau de bord</a>
+          </div>
         </nav>
       </div>
     </header>
@@ -202,22 +213,26 @@
       <a class="b-top__logo" href="../" aria-label="Jeere, retour à l’accueil">
         <span class="b-logo__lock"><svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg><svg class="logo__word" viewBox="0 0 2497 713" aria-hidden="true" focusable="false"><use href="#word"/></svg></span>
       </a>
+      <a class="b-top__dash" href="../admin/" id="b-dash-link" data-leave title="Tableau de bord"><svg class="b-ico" aria-hidden="true"><use href="#i-dash"/></svg><span class="b-top__dlbl">Tableau de bord</span></a>
       <span class="b-top__sep" aria-hidden="true"></span>
       <button class="b-top__store" type="button" id="b-top-store" aria-describedby="b-saved">
         <span class="b-top__name" id="b-top-name">Ma boutique</span>
         <span class="b-saved" id="b-saved">Enregistré dans ce navigateur</span>
       </button>
       <div class="b-top__mid">
-        <div class="b-pagesel b-top__page" data-page-select>
-          <label class="b-pagesel__k" for="b-page-top">Page&nbsp;:</label>
-          <select class="b-pagesel__sel" id="b-page-top" data-page-pick>
-            <option value="home">Accueil</option>
-            <option value="product">Fiche produit</option>
-            <option value="cart">Panier</option>
-            <option value="checkout">Paiement</option>
-            <option value="confirmation">Confirmation</option>
-          </select>
-          <svg class="b-ico b-pagesel__chev" aria-hidden="true" focusable="false"><use href="#i-down"/></svg>
+        <div class="b-pagegrp b-top__page" data-page-select>
+          <div class="b-pagesel">
+            <label class="b-pagesel__k" for="b-page-top">Page&nbsp;:</label>
+            <select class="b-pagesel__sel" id="b-page-top" data-page-pick>
+              <option value="home">Accueil</option>
+              <option value="product">Fiche produit</option>
+              <option value="cart">Panier</option>
+              <option value="checkout">Paiement</option>
+              <option value="confirmation">Confirmation</option>
+            </select>
+            <svg class="b-ico b-pagesel__chev" aria-hidden="true" focusable="false"><use href="#i-down"/></svg>
+          </div>
+          <a class="b-pagemng" href="../admin/#pages" data-leave title="Gérer les pages dans le tableau de bord"><svg class="b-ico" aria-hidden="true"><use href="#i-pages"/></svg><span class="b-pagemng__lbl">Gérer les pages</span></a>
         </div>
         <div class="b-seg b-top__device" role="group" aria-label="Taille de l’aperçu" data-device-toggle>
           <button class="b-seg__btn" type="button" data-device="phone" aria-pressed="true"><svg class="b-ico" aria-hidden="true"><use href="#i-phone"/></svg><span>Téléphone</span></button>
@@ -252,16 +267,19 @@
 
       <section class="b-stage" id="b-stage" aria-label="Aperçu de la boutique">
         <div class="b-stage__bar">
-          <div class="b-pagesel b-stage__page" data-page-select>
-            <label class="b-pagesel__k" for="b-page-stage">Page&nbsp;:</label>
-            <select class="b-pagesel__sel" id="b-page-stage" data-page-pick>
-              <option value="home">Accueil</option>
-              <option value="product">Fiche produit</option>
-              <option value="cart">Panier</option>
-              <option value="checkout">Paiement</option>
-              <option value="confirmation">Confirmation</option>
-            </select>
-            <svg class="b-ico b-pagesel__chev" aria-hidden="true" focusable="false"><use href="#i-down"/></svg>
+          <div class="b-pagegrp b-stage__page" data-page-select>
+            <div class="b-pagesel">
+              <label class="b-pagesel__k" for="b-page-stage">Page&nbsp;:</label>
+              <select class="b-pagesel__sel" id="b-page-stage" data-page-pick>
+                <option value="home">Accueil</option>
+                <option value="product">Fiche produit</option>
+                <option value="cart">Panier</option>
+                <option value="checkout">Paiement</option>
+                <option value="confirmation">Confirmation</option>
+              </select>
+              <svg class="b-ico b-pagesel__chev" aria-hidden="true" focusable="false"><use href="#i-down"/></svg>
+            </div>
+            <a class="b-pagemng" href="../admin/#pages" data-leave title="Gérer les pages dans le tableau de bord"><svg class="b-ico" aria-hidden="true"><use href="#i-pages"/></svg><span class="b-pagemng__lbl">Gérer les pages</span></a>
           </div>
           <p class="b-stage__hint" id="b-stage-hint">Aperçu en direct. Cliquez sur une section pour la modifier.</p>
           <div class="b-seg b-stage__device" role="group" aria-label="Taille de l’aperçu" data-device-toggle>

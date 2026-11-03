@@ -23,6 +23,7 @@ Sommaire
 - Il comprend les fautes, l’écriture SMS, le nouchi et les changements d’avis (« non, plutôt en vert »).
 - À chaque réponse, il remplit un morceau de la fiche boutique : le nom, le modèle, les couleurs (vives par défaut, ou douces), les textes, les produits. L’aperçu de la boutique change pendant qu’elle parle.
 - À la fin, la fiche est complète. La vendeuse ouvre l’éditeur et retouche ce qu’elle veut, sans IA.
+- Si elle le veut, il adapte aussi les pages de sa boutique (À propos, Livraison et retours, Contact, Conditions de vente) à ce qu’elle lui a dit : ses délais, ce qu’elle reprend ou échange, où la trouver.
 
 **Ce que ça coûte**
 
@@ -38,11 +39,13 @@ Il n’écrit pas de code. Il ne publie rien seul. Il ne touche pas à l’argen
 
 > **Une IA, pas une équipe d’agents.** Il n’y a pas de système multi-agents : une conversation, un modèle, un outil. La vérification que ferait un « agent relecteur » est faite par du code, gratuitement et sans erreur.
 
+**Bientôt, dans le tableau de bord.** Le connecteur « Assistant Jeere » (marqué « Bientôt » dans `../admin/#connecteurs`) reprendra la même IA et la même clé pour deux tâches de plus. Écrire les descriptions de produits : c’est un patch sur `products`, avec le même outil. Répondre aux clients sur WhatsApp : ce sera un autre prompt, qui lit la fiche (prix, délais, frais de livraison, pages) sans la modifier, ne prend jamais de paiement ni de code secret, et passe la main à la vendeuse dès qu’une question sort de la fiche.
+
 ---
 
 ## 2. Pourquoi l’IA remplit une fiche et n’écrit jamais de code
 
-La fiche boutique est un petit fichier JSON (environ 1 500 tokens) : le modèle choisi, la palette, la liste des sections avec leurs textes, les produits. Son format est décrit dans [`schema.json`](schema.json). Nos trois modèles (Plateau, Cocody, Treichville) savent l’afficher, et toute la boutique en sort : l’accueil, la fiche produit, le panier, le paiement et la confirmation de commande. Rien dans la fiche n’est propre à une page : le paiement montre les moyens de paiement activés et les communes de la section livraison.
+La fiche boutique est un petit fichier JSON (environ 1 500 tokens, 3 000 avec ses quatre pages) : le modèle choisi, la palette, la liste des sections avec leurs textes, les produits, les pages de la boutique. Son format est décrit dans [`schema.json`](schema.json). Nos trois modèles (Plateau, Cocody, Treichville) savent l’afficher, et toute la boutique en sort : l’accueil, la fiche produit, le panier, le paiement, la confirmation de commande et les pages (À propos, Livraison et retours, Contact, Conditions de vente). Rien d’autre dans la fiche n’est propre à une page : le paiement montre les moyens de paiement activés et les communes de la section livraison.
 
 | | Si l’IA écrivait le site (code) | L’IA remplit la fiche (JSON) |
 | --- | --- | --- |
@@ -105,6 +108,7 @@ Dans cet ordre, mais saute ce que tu sais déjà :
 6. La ville et le numéro WhatsApp. Le code enregistre le numéro lui-même : tu verras « [numéro WhatsApp enregistré] » à sa place.
 7. Ses produits : demande 3 à 6 produits avec leur prix en un seul message (exemple : « Perruque lisse 14 pouces 65000 »). Si elle n’a pas encore ses produits, garde les exemples et dis clairement que ce sont des exemples à remplacer.
 8. Le résumé : écris toute la fiche (textes, produits, sections) et mets termine à true.
+9. Les pages, après le résumé : propose une seule fois d’adapter ses pages (voir « Les pages de la boutique »).
 
 Si elle donne plusieurs informations d’un coup (« Awa Beauté, je vends du karité à Cocody »), prends-les toutes et passe directement à ce qui manque.
 
@@ -129,10 +133,18 @@ Si tu ne comprends pas une réponse, dis-le simplement et propose des réponses 
 - Pas de clichés sur « l’Afrique », pas de stéréotypes. Parle de son quartier, de ses produits, de ses clients.
 - Frais de livraison : garde ceux du catalogue, sauf si elle donne les siens.
 
+# Les pages de la boutique
+La fiche contient les pages de la boutique (pages) : À propos, Livraison et retours, Contact et Conditions de vente, déjà écrites avec des textes d’exemple adaptés à sa niche. Après le résumé, propose une seule fois de les adapter. Si elle accepte, pose au plus deux questions (ses délais de livraison, ce qu’elle reprend ou échange), puis réécris les pages qui changent, dans un seul patch.
+- Texte simple, sans HTML ni Markdown : des paragraphes séparés par une ligne vide. Titre de 60 caractères au plus, texte de 4 000 caractères au plus.
+- Désigne une page par son id (pg1...). Ne donne jamais de slug : le code calcule l’adresse. Pour une nouvelle page (par exemple « Guide des tailles ») : title, body, inMenu, inFooter, sans id.
+- N’écris pas le numéro WhatsApp dans une page : la page Contact l’affiche elle-même.
+- Délais, retours, remboursements, horaires : seulement ce qu’elle a dit ou ce qui est déjà écrit. N’invente aucune garantie.
+- Conditions de vente : garde le paragraphe « À adapter… faites-le vérifier par un juriste » tant qu’elle ne dit pas les avoir fait vérifier. Ne dis jamais que ses conditions sont conformes à la loi.
+
 # L’outil mettre_a_jour_fiche
 - Appelle-le à CHAQUE réponse, une seule fois, même quand rien ne change (patch vide). Tout ce que la vendeuse doit lire va dans message. N’écris rien en dehors de l’outil.
 - reponses_rapides : 2 à 8 boutons courts (24 caractères au plus) qui répondent à ta question. Pour la couleur, des noms de palette ; pour les besoins, les six besoins et « C’est bon ».
-- patch : seulement ce qui change. Désigne les sections et les produits par leur id (s1, p2...). Une liste (items, zones) se remplace en entier.
+- patch : seulement ce qui change. Désigne les sections, les produits et les pages par leur id (s1, p2, pg3...). Une liste (items, zones) se remplace en entier.
 - Le résultat de l’outil te dit si la fiche est valide, avec sa note et des conseils. S’il contient des erreurs, corrige exactement ces champs dans un nouvel appel, sans rien redemander à la vendeuse.
 
 # Ce que tu ne fais jamais
@@ -159,7 +171,7 @@ Une seule définition, à garder identique d’un appel à l’autre (elle fait 
     "properties": {
       "message": { "type": "string", "description": "Ce que la vendeuse lit : une courte confirmation puis une seule question. 300 caractères au plus." },
       "reponses_rapides": { "type": "array", "items": { "type": "string" }, "maxItems": 8, "description": "2 à 8 boutons de réponse, 24 caractères au plus chacun." },
-      "etape": { "type": "string", "enum": ["nom", "niche", "style", "couleur", "besoins", "ville_whatsapp", "produits", "resume", "retouche"] },
+      "etape": { "type": "string", "enum": ["nom", "niche", "style", "couleur", "besoins", "ville_whatsapp", "produits", "resume", "pages", "retouche"] },
       "patch": {
         "type": "object",
         "description": "Uniquement ce qui change.",
@@ -173,7 +185,9 @@ Une seule définition, à garder identique d’un appel à l’autre (elle fait 
           "supprimer_sections": { "type": "array", "items": { "type": "string" }, "description": "Ids des sections à retirer." },
           "products": { "type": "array", "items": { "type": "object" }, "description": "Chaque élément : { id } d’un produit existant avec les champs qui changent, ou un nouveau produit sans id (name, price, category, badge, art, color, description)." },
           "remplacer_produits": { "type": "boolean", "description": "true : la liste products remplace tous les produits (pour mettre ceux de la vendeuse à la place des exemples)." },
-          "supprimer_produits": { "type": "array", "items": { "type": "string" }, "description": "Ids des produits à retirer." }
+          "supprimer_produits": { "type": "array", "items": { "type": "string" }, "description": "Ids des produits à retirer." },
+          "pages": { "type": "array", "items": { "type": "object" }, "description": "Chaque élément : { id } d’une page existante avec les champs qui changent (title, body, inMenu, inFooter), ou une nouvelle page sans id (title, body, inMenu, inFooter). Jamais de slug : le code calcule l’adresse." },
+          "supprimer_pages": { "type": "array", "items": { "type": "string" }, "description": "Ids des pages à retirer." }
         },
         "additionalProperties": false
       },
@@ -193,8 +207,11 @@ Une seule définition, à garder identique d’un appel à l’autre (elle fait 
 | `store`, `theme`, `payments` | Seules les clés données changent. Le numéro WhatsApp n’est jamais pris dans le patch. |
 | `sections` | `{ id }` : met à jour cette section. `{ type }` sans id : met à jour la première section de ce type, ou l’ajoute à la fin avec les textes par défaut de la niche (`sectionSettings`). Dans `settings`, une liste (`items`, `zones`) remplace l’ancienne. |
 | `products` | `{ id }` existant : met à jour ce produit. Sans id : nouveau produit, avec le premier id libre (`newId`). Toute image venant de l’IA est ignorée. |
+| `pages` | `{ id }` existant : met à jour cette page (title, body, inMenu, inFooter). Sans id : nouvelle page, avec le premier id libre (`newId(f, 'pg')`) et une adresse libre tirée du titre (`uniqueSlug`). L’adresse (`slug`) ne vient jamais de l’IA. Avant, les pages encore d’origine suivent le nom et la ville de la boutique (`normalizeConfig`) ; celles que la vendeuse a modifiées ne bougent pas. |
 | `remplacer_produits`, `supprimer_*`, `ordre_sections` | Appliqués dans cet ordre : remplacer, ajouter, supprimer, réordonner. |
 | Après | `{name}` est remplacé par le nom de la boutique dans le titre, la typographie est corrigée (espaces insécables, 12 500 FCFA), puis toute la fiche est vérifiée. |
+
+Les pages, l’étape `pages` et les clés `pages` et `supprimer_pages` arrivent avec la version `v2` du prompt et de l’outil : une conversation commencée en `v1` finit en `v1`, sans toucher aux pages.
 
 ### 3.4 Le catalogue (généré par le code, jamais tapé à la main)
 
@@ -220,6 +237,7 @@ SECTIONS (type : nom, réglages avec limite de caractères) :
 ...
 NICHES (store.niche → modèle et palette conseillés) : fashion = Mode et vêtements → plateau/sable ; hair = Perruques et mèches → cocody/hibiscus ; ...
 COMMUNES ET FRAIS PAR DÉFAUT (FCFA) : Abobo 2500, Adjamé 2000, Attécoubé 2500, Cocody 1500, ...
+PAGES (pages[]) : title ≤60, body ≤4000 (texte simple, paragraphes séparés par une ligne vide), inMenu et inFooter (booléens), 20 pages au plus. Pages d’origine : À propos (a-propos), Livraison et retours (livraison-et-retours), Contact (contact), Conditions de vente (conditions-de-vente).
 </catalogue_jeere>
 ```
 
@@ -260,6 +278,13 @@ IA → mettre_a_jour_fiche
   message : « C’est fait : des fonds clairs, et votre vert en touches. Voulez-vous changer autre chose ? »
   reponses_rapides : Couleurs vives · Changer la couleur · C’est parfait
   patch : { "theme": { "intensity": "soft" } }
+
+Vendeuse : oui écrivez mes pages. je livre en 24h et je reprends pas les mèches ouvertes
+
+IA → mettre_a_jour_fiche
+  message : « C’est fait : vos pages disent que vous livrez sous 24 h et que les mèches ouvertes ne sont pas reprises. Faites relire vos conditions de vente par un juriste avant d’ouvrir votre boutique. Autre chose ? »
+  reponses_rapides : Voir mes pages · C’est parfait
+  patch : { "pages": [{ "id": "pg2", "body": "Nous livrons à Abidjan du lundi au samedi, sous 24 h. Les frais dépendent de votre commune…\n\nPour des raisons d’hygiène, les mèches et les perruques ouvertes ne sont ni reprises ni échangées…" }] }
 ```
 
 ---
@@ -275,6 +300,7 @@ IA → mettre_a_jour_fiche
 | Prix et typographie (12 500 FCFA, espaces insécables) | `formatPrice()` et un petit correcteur | 0 |
 | Couleurs exactes, couleurs vives ou douces, polices, contrastes vérifiés | `data.js` et `render.js` (l’IA ne donne qu’un identifiant) | 0 |
 | Afficher la boutique | `render.js` | 0 |
+| Pages d’origine adaptées à la niche, adresses uniques, pages d’origine qui suivent le nom et la ville | `defaultPages()`, `slugify()`, `normalizeConfig()` | 0 |
 | Remplacer l’IA si elle ne répond pas | `wizard.js` (mots-clés) | 0 |
 
 **La boucle de correction, sans second agent**
@@ -830,6 +856,16 @@ function appliquerPatch(base: Fiche, patch: any): Fiche {
   if (patch.theme) Object.assign(f.theme, patch.theme);
   if (patch.payments) Object.assign(f.payments, patch.payments);
 
+  // Les pages encore d'origine suivent le nom et la ville (normalizeConfig les réécrit) ; celles de la vendeuse ne bougent pas.
+  f.pages = D.normalizeConfig(f).pages;
+  for (const pg of patch.pages ?? []) {
+    const { id, slug: _slug, ...champs } = pg; // l'adresse (slug) est toujours calculée par le code
+    // deno-lint-ignore no-explicit-any
+    const cible = id ? f.pages.find((x: any) => x.id === id) : undefined;
+    if (cible) Object.assign(cible, champs);
+    else f.pages.push({ title: "", body: "", inMenu: false, inFooter: true, ...champs, id: D.newId(f, "pg"), slug: D.uniqueSlug(f, champs.title ?? "") });
+  }
+
   for (const s of patch.sections ?? []) {
     // deno-lint-ignore no-explicit-any
     let cible = s.id ? f.sections.find((x: any) => x.id === s.id) : f.sections.find((x: any) => x.type === s.type);
@@ -864,6 +900,9 @@ function appliquerPatch(base: Fiche, patch: any): Fiche {
   const sansSections = new Set(patch.supprimer_sections ?? []);
   // deno-lint-ignore no-explicit-any
   f.sections = f.sections.filter((s: any) => !sansSections.has(s.id));
+  const sansPages = new Set(patch.supprimer_pages ?? []);
+  // deno-lint-ignore no-explicit-any
+  f.pages = f.pages.filter((p: any) => !sansPages.has(p.id));
   if (Array.isArray(patch.ordre_sections)) {
     const rang = (id: string) => (patch.ordre_sections.includes(id) ? patch.ordre_sections.indexOf(id) : 999);
     // deno-lint-ignore no-explicit-any
@@ -903,6 +942,10 @@ function typographieFiche(f: Fiche) {
   for (const p of f.products) {
     p.name = typographie(p.name);
     p.description = typographie(p.description);
+  }
+  for (const pg of f.pages ?? []) {
+    pg.title = typographie(pg.title);
+    pg.body = String(pg.body ?? "").split("\n").map(typographie).join("\n"); // ligne par ligne : les paragraphes restent séparés
   }
 }
 
@@ -962,6 +1005,10 @@ export function catalogueForPrompt(): string {
   L.push("NICHES (store.niche → modèle et palette conseillés) : " + D.niches.map((n: any) => `${n.id} = ${n.label} → ${n.template}/${n.palette}`).join(" ; "));
   // deno-lint-ignore no-explicit-any
   L.push("COMMUNES ET FRAIS PAR DÉFAUT (FCFA) : " + D.communes.map((c: any) => `${c.name} ${c.fee}`).join(", "));
+  const lim = D.PAGE_LIMITS;
+  L.push(`PAGES (pages[]) : title ≤${lim.title}, body ≤${lim.body} (texte simple, paragraphes séparés par une ligne vide), inMenu et inFooter (booléens), ${lim.max} pages au plus. Pages d’origine : `
+    // deno-lint-ignore no-explicit-any
+    + D.PAGE_KINDS.map((k: any) => `${k.title} (${k.slug})`).join(", ") + ".");
   L.push("</catalogue_jeere>");
   return L.join("\n");
 }
@@ -1060,6 +1107,8 @@ Après mise en production, vérifiez que le cache fonctionne : dès le deuxièm
 | **100 boutiques par mois** | **1,16 $ (environ 700 FCFA)** | 22 $ (environ 13 000 FCFA) |
 | **1 000 boutiques par mois** | **11,60 $ (environ 7 000 FCFA)** | 217 $ (environ 130 000 FCFA) |
 | **10 000 boutiques par mois** | **116 $ (environ 70 000 FCFA)** | 2 170 $ (environ 1 300 000 FCFA) |
+
+**Les pages de la boutique.** Les pages d’origine sont écrites par le code (`defaultPages`) : 0 $. Les adapter avec l’IA, si la vendeuse le veut, coûte un appel de plus, avec environ 1 800 tokens de sortie : environ 0,0013 $ avec Claude Haiku 5.5 (moins de 1 FCFA) et 0,025 $ avec Claude Sonnet 5.5 (environ 15 FCFA). Les quatre pages font passer la fiche d’environ 1 500 à 3 000 tokens : relue en cache pendant les retouches, la différence est d’environ 0,0005 $ par boutique et par mois avec Haiku.
 
 **Pour budgéter, doublez ces chiffres** (conversations plus longues que prévu, réflexion plus longue, messages vocaux transcrits). Avec Claude Haiku 5.5, un plafond de 30 $ par mois couvre largement 1 000 boutiques ; le plafond par boutique (0,05 $, environ 7 fois le coût moyen d’une création) arrête une conversation anormale. L’hébergement Supabase est facturé à part.
 

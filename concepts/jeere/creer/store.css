@@ -12,7 +12,8 @@
  * --st-field-line. Product tiles carry --tile --tile-hi --ink inline.
  *
  * Templates: [data-tpl="plateau"] editorial · [data-tpl="cocody"] soft · [data-tpl="treichville"] bold.
- * Pages: [data-page="home" | "product" | "cart" | "checkout" | "confirmation"].
+ * Pages: [data-page="home" | "product" | "cart" | "checkout" | "confirmation" | "page"] (page: the
+ * seller's own pages, .jst-cp*); the phone menu is .jst-drawer, the footer pages .jst-footer-links.
  * Colour intensity: [data-intensity="vivid"] (the accent carries the page) or "soft".
  */
 
@@ -1026,7 +1027,7 @@
 .jst .jst-line-unit { margin-top: 3px; font-size: 12.5px; color: var(--st-muted); }
 .jst .jst-line-total { flex: none; font-size: 14.5px; font-weight: 600; }
 .jst[data-device="desktop"] .jst-line-total { font-size: 16px; }
-.jst .jst-line-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; }
+.jst .jst-line-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; margin-top: auto; }
 .jst .jst-remove { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 0 2px; font-size: 13px; font-weight: 500; color: var(--st-muted); }
 .jst .jst-remove .jst-ico { width: 16px; height: 16px; }
 .jst[data-device="desktop"] .jst-remove:hover { color: var(--st-text); }
@@ -1575,6 +1576,314 @@
 .jst[data-tpl="treichville"][data-intensity="vivid"] .jst-page-head { margin: -8px calc(-1 * var(--st-gutter)) 24px; padding: 4px var(--st-gutter) 22px; background: var(--st-accent); color: var(--st-on-accent); --st-muted: var(--st-on-accent-soft); }
 .jst[data-tpl="treichville"][data-intensity="vivid"][data-device="desktop"] .jst-page-head { margin: -24px calc(-1 * var(--st-gutter)) 40px; padding: 16px var(--st-gutter) 36px; }
 
+
+/* =====================================================================
+   PAGES — the seller's own pages (config.pages, page 'page'), the phone menu, the footer column
+   « Informations » and « Propulsé par Jeere ». Shared base first, then each template, then vivid.
+   ===================================================================== */
+
+/* Footer: the pages column and the Jeere line */
+.jst[data-device="desktop"] .jst-footer-top[data-cols="4"] { grid-template-columns: minmax(0, 1.3fr) minmax(0, .8fr) minmax(0, .9fr) minmax(0, 1.2fr); gap: 40px; }
+/* Four columns leave the store name less room: it wraps between words, never inside one */
+.jst[data-device="desktop"] .jst-footer-top[data-cols="4"] .jst-footer-name { overflow-wrap: break-word; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-footer-top[data-cols="4"] .jst-footer-name { font-size: 48px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-footer-top[data-cols="4"] .jst-footer-name { font-size: 36px; }
+.jst .jst-footer-pages .jst-footer-h { margin-bottom: 2px; }
+.jst[data-device="desktop"] .jst-footer-pages .jst-footer-h { margin-bottom: 10px; }
+.jst .jst-footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
+.jst[data-device="desktop"] .jst-footer-links { grid-template-columns: minmax(0, 1fr); row-gap: 6px; }
+.jst .jst-footer-link { display: flex; align-items: center; min-height: 44px; font-size: 14.5px; line-height: 1.35; overflow-wrap: anywhere; cursor: pointer; }
+.jst[data-device="desktop"] .jst-footer-link { display: inline-flex; min-height: 26px; }
+.jst[data-device="desktop"] .jst-footer-link:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.jst .jst-footer-link.is-current { font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.jst .jst-footer-bottom { align-items: center; }
+.jst .jst-powered { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.jst .jst-powered-mark { display: block; width: 9.7px; height: 12px; flex: none; margin-left: 1px; color: var(--st-text); }
+.jst .jst-powered b { line-height: 1; }
+
+/* Desktop nav: page links never push the logo away (long titles end with …) */
+.jst .jst-nav-txt { display: block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jst[data-page="page"][data-tpl="plateau"] .jst-nav-link.is-current .jst-nav-txt { padding-bottom: 5px; margin-bottom: -5px; background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat; }
+/* Five links: a little less air between them */
+.jst[data-tpl="plateau"] .jst-nav[data-count="5"] { gap: 24px; }
+.jst[data-tpl="treichville"] .jst-nav[data-count="5"] { gap: 24px; }
+.jst[data-tpl="cocody"] .jst-nav[data-count="5"] .jst-nav-link { padding: 9px 13px; }
+/* A long store name leaves the links little room: tighter links, shorter titles */
+.jst .jst-nav.is-tight { gap: 18px; }
+.jst .jst-nav.is-tight .jst-nav-txt { max-width: 132px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-header-in.is-tight .jst-logo { max-width: 340px; font-size: 24px; }
+.jst[data-tpl="plateau"] .jst-nav.is-tight .jst-nav-link { letter-spacing: .12em; }
+.jst[data-tpl="cocody"] .jst-nav.is-tight { gap: 0; }
+.jst[data-tpl="cocody"] .jst-nav.is-tight .jst-nav-link { padding: 9px 11px; }
+.jst[data-page="page"][data-tpl="treichville"] .jst-nav-link.is-current::after { transform: scaleX(1); }
+
+/* Phone menu, inside the preview: a panel under the header over a dimmed store */
+.jst .jst-header.is-menu-open { z-index: 30; }
+.jst .jst-drawer {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 2;
+  border-top: 1px solid var(--st-line); background: var(--st-bg); color: var(--st-text);
+  box-shadow: 0 30px 48px -28px rgba(0, 0, 0, .5);
+  animation: jst-drawer .22s cubic-bezier(.2, .7, .2, 1) both;
+}
+.jst .jst-drawer-in { padding-top: 4px; padding-bottom: 16px; }
+.jst .jst-drawer-list { display: grid; }
+.jst .jst-drawer-link {
+  display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid var(--st-line);
+  font-family: var(--st-font-display); font-weight: var(--st-display-weight, 600); font-size: 21px; line-height: 1.2; letter-spacing: -0.01em; cursor: pointer;
+}
+.jst .jst-drawer-label { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; padding: 8px 0; }
+.jst .jst-drawer-chev { width: 18px; height: 18px; color: var(--st-muted); }
+.jst .jst-drawer-link.is-current .jst-drawer-label { color: var(--st-accent-ink); }
+.jst .jst-drawer-n {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; min-width: 24px; height: 24px; padding: 0 7px;
+  border-radius: 12px; background: var(--st-accent); color: var(--st-on-accent);
+  font-family: var(--st-font-text); font-size: 12px; font-weight: 700; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums;
+}
+.jst .jst-drawer-wa { display: flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 10px; font-size: 14px; line-height: 1.4; color: var(--st-muted); cursor: pointer; }
+.jst .jst-drawer-wa .jst-ico { width: 20px; height: 20px; color: var(--st-accent-ink); }
+.jst .jst-drawer-wa b { font-weight: 600; color: var(--st-text); white-space: nowrap; }
+.jst .jst-drawer-scrim {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 1; display: block; width: 100%; height: 2400px;
+  background: rgba(10, 8, 6, .38); cursor: pointer; animation: jst-fade .22s ease both;
+}
+@keyframes jst-drawer { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes jst-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* The page: back link or crumbs, a title band, the text, then the WhatsApp block or the fees */
+.jst .jst-main--page { padding-bottom: 0; }
+.jst .jst-cp-nav { padding-top: 6px; padding-bottom: 2px; }
+.jst[data-device="desktop"] .jst-cp-nav { padding-top: 18px; padding-bottom: 0; }
+.jst .jst-cp { display: block; padding-bottom: calc(var(--st-sec) * .6); }
+.jst .jst-cp-head { position: relative; }
+.jst .jst-cp-head-in { position: relative; padding-top: 14px; padding-bottom: 30px; }
+.jst[data-device="desktop"] .jst-cp-head-in { padding-top: 32px; padding-bottom: 56px; }
+.jst .jst-cp-head .jst-blob { display: none; }
+.jst .jst-cp-title { font-size: 38px; line-height: 1.05; overflow-wrap: break-word; }
+.jst .jst-cp-title[data-len="l"] { font-size: 30px; }
+.jst[data-device="desktop"] .jst-cp-title { font-size: 64px; }
+.jst[data-device="desktop"] .jst-cp-title[data-len="l"] { font-size: 46px; }
+.jst .jst-cp-in { display: block; }
+.jst[data-device="desktop"] .jst-cp.has-side .jst-cp-in { display: grid; grid-template-columns: minmax(0, 250px) minmax(0, 1fr); gap: 80px; align-items: start; }
+.jst .jst-cp-content { min-width: 0; max-width: 700px; }
+.jst .jst-cp-body { font-size: 16px; line-height: 1.75; overflow-wrap: anywhere; }
+.jst[data-device="desktop"] .jst-cp-body { font-size: 17px; }
+.jst .jst-cp-body > * + * { margin-top: 16px; }
+.jst .jst-cp-body > .jst-cp-h2 { margin-top: 34px; }
+.jst .jst-cp-h2 { font-size: 22px; line-height: 1.2; }
+.jst[data-device="desktop"] .jst-cp-h2 { font-size: 27px; }
+.jst .jst-cp-list { display: grid; gap: 8px; }
+.jst .jst-cp-list li { position: relative; padding-left: 24px; }
+.jst .jst-cp-list li::before { content: ''; position: absolute; left: 3px; top: calc(.875em - 3.5px); width: 7px; height: 7px; border-radius: 50%; background: var(--st-accent-ink); }
+.jst .jst-cp-list.is-ordered { counter-reset: jst-cp; }
+.jst .jst-cp-list.is-ordered li { counter-increment: jst-cp; padding-left: 30px; }
+.jst .jst-cp-list.is-ordered li::before { content: counter(jst-cp) '.'; top: 0; left: 0; width: auto; height: auto; border-radius: 0; background: none; color: var(--st-accent-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.jst .jst-cp-label { font-weight: 700; color: var(--st-text); }
+.jst .jst-cp-ref { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; cursor: pointer; }
+.jst[data-device="desktop"] .jst-cp-ref:hover { color: var(--st-accent-ink); }
+.jst .jst-cp-extra { margin-top: 40px; }
+.jst[data-device="desktop"] .jst-cp-extra { margin-top: 56px; }
+.jst .jst-cp-more { margin-top: 32px; }
+.jst .jst-cp-more .jst-link { min-height: 44px; }
+
+/* Desktop: the store's other pages beside the text */
+.jst .jst-cp-side { position: sticky; top: 24px; min-width: 0; }
+.jst .jst-cp-side-h { margin-bottom: 12px; font-size: 11.5px; font-weight: 600; line-height: 1.4; letter-spacing: .12em; text-transform: uppercase; color: var(--st-muted); }
+.jst .jst-cp-side-list { display: grid; border-top: 1px solid var(--st-line); }
+.jst .jst-cp-side-link { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 10px 0; border-bottom: 1px solid var(--st-line); font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; cursor: pointer; transition: opacity .15s ease; }
+.jst .jst-cp-side-link.is-current { font-weight: 600; color: var(--st-accent-ink); }
+.jst[data-device="desktop"] .jst-cp-side-link:not(.is-current):hover { opacity: .6; }
+
+/* WhatsApp block (Contact page) */
+.jst .jst-cp-wa {
+  position: relative; overflow: hidden; isolation: isolate; display: grid; gap: 18px; padding: 28px 22px;
+  border-radius: var(--st-radius); background: var(--st-accent); color: var(--st-on-accent); --st-muted: var(--st-on-accent-soft);
+}
+.jst .jst-cp-wa.is-empty { display: block; overflow: visible; padding: 0; border-radius: 0; background: none; color: inherit; --st-muted: inherit; }
+.jst .jst-cp-wa-deco { position: absolute; z-index: -1; display: none; border-radius: 50%; background: currentColor; opacity: .09; pointer-events: none; }
+.jst .jst-cp-wa-ico { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex: none; border-radius: 50%; background: var(--st-on-accent); color: var(--st-accent); }
+.jst .jst-cp-wa-ico .jst-ico { width: 24px; height: 24px; }
+.jst .jst-cp-wa-copy { min-width: 0; }
+.jst .jst-cp-wa-title { font-size: 26px; }
+.jst .jst-cp-wa-text { margin-top: 8px; max-width: 34em; font-size: 15px; line-height: 1.6; color: var(--st-on-accent-soft); overflow-wrap: anywhere; }
+.jst .jst-cp-wa-cta { display: flex; flex-direction: column; align-items: stretch; gap: 10px; min-width: 0; }
+.jst .jst-cp-wa-num { font-size: 14px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; text-align: center; }
+.jst .jst-cp-wa-city { position: relative; display: flex; align-items: center; gap: 8px; padding-top: 16px; font-size: 14px; font-weight: 500; }
+.jst .jst-cp-wa-city::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: currentColor; opacity: .28; }
+.jst .jst-cp-wa-city .jst-ico { width: 18px; height: 18px; }
+.jst[data-device="desktop"] .jst-cp-wa { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 20px 28px; padding: 36px 40px; }
+.jst[data-device="desktop"] .jst-cp-wa-cta { align-items: center; }
+.jst[data-device="desktop"] .jst-cp-wa-city { grid-column: 1 / -1; }
+.jst[data-device="desktop"] .jst-cp-wa-title { font-size: 30px; }
+
+/* Delivery fees (delivery page): the zones list of the template, under a heading */
+.jst .jst-cp-zones .jst-cp-h2 { margin-bottom: 18px; }
+.jst .jst-cp-zones .jst-zones.is-many { grid-template-columns: minmax(0, 1fr); }
+.jst[data-device="desktop"] .jst-cp-zones .jst-zones.is-many { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; }
+
+/* ---------------------------------------------------------------- Plateau: an editorial page,
+   a big serif title over a thin rule, a lede, the pages listed in serif with a dash. */
+.jst[data-tpl="plateau"] .jst-drawer-link { font-size: 24px; letter-spacing: -0.015em; min-height: 60px; }
+.jst[data-tpl="plateau"] .jst-drawer-list { border-top: 0; }
+.jst[data-tpl="plateau"] .jst-drawer-chev { stroke-width: 1.3; }
+.jst[data-tpl="plateau"] .jst-drawer-n { border-radius: var(--pl-r); }
+.jst[data-tpl="plateau"] .jst-drawer-link.is-current .jst-drawer-label::before { content: '—'; margin-right: 12px; font-weight: 400; }
+.jst[data-tpl="plateau"] .jst-drawer-wa { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.jst[data-tpl="plateau"] .jst-drawer-wa b { letter-spacing: .06em; }
+.jst[data-tpl="plateau"] .jst-cp-head-in { padding-top: 22px; padding-bottom: 34px; }
+.jst[data-tpl="plateau"] .jst-cp-head-in::after { content: ''; display: block; height: 1px; margin-top: 30px; background: var(--st-text); }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-head-in { padding-top: 40px; padding-bottom: 64px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-head-in::after { margin-top: 48px; }
+.jst[data-tpl="plateau"] .jst-cp-title { font-size: 46px; line-height: 1.02; letter-spacing: -0.025em; }
+.jst[data-tpl="plateau"] .jst-cp-title[data-len="l"] { font-size: 34px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-title { font-size: 84px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-title[data-len="m"] { font-size: 68px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-title[data-len="l"] { font-size: 54px; }
+.jst[data-tpl="plateau"] .jst-cp-body { font-size: 16px; line-height: 1.8; }
+.jst[data-tpl="plateau"] .jst-cp-body > p:first-child { font-family: var(--st-font-display); font-size: 21px; line-height: 1.5; letter-spacing: -0.005em; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-body { font-size: 17px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-body > p:first-child { font-size: 26px; line-height: 1.45; }
+.jst[data-tpl="plateau"] .jst-cp-h2 { font-size: 26px; letter-spacing: -0.015em; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-h2 { font-size: 32px; }
+.jst[data-tpl="plateau"] .jst-cp-list li { padding-left: 26px; }
+.jst[data-tpl="plateau"] .jst-cp-list li::before { left: 0; top: calc(.9em - .5px); width: 14px; height: 1px; border-radius: 0; background: currentColor; }
+.jst[data-tpl="plateau"] .jst-cp-list.is-ordered li::before { top: 0; width: auto; height: auto; background: none; font-family: var(--st-font-display); font-weight: 400; color: var(--st-text); }
+.jst[data-tpl="plateau"] .jst-cp-side-h { font-size: 11px; letter-spacing: .16em; }
+.jst[data-tpl="plateau"] .jst-cp-side-list { border-top-color: var(--st-text); }
+.jst[data-tpl="plateau"] .jst-cp-side-link { font-family: var(--st-font-display); font-weight: var(--st-display-weight, 600); font-size: 20px; letter-spacing: -0.01em; min-height: 58px; }
+.jst[data-tpl="plateau"] .jst-cp-side-link.is-current { color: var(--st-text); }
+.jst[data-tpl="plateau"] .jst-cp-side-link.is-current::before { content: '—'; flex: none; font-weight: 400; }
+.jst[data-tpl="plateau"] .jst-cp-wa { justify-items: center; padding: 40px 24px; border-radius: var(--pl-r); text-align: center; }
+.jst[data-tpl="plateau"] .jst-cp-wa-ico { width: 52px; height: 52px; border: 1px solid currentColor; background: transparent; color: inherit; }
+.jst[data-tpl="plateau"] .jst-cp-wa-ico .jst-ico { width: 22px; height: 22px; stroke-width: 1.4; }
+.jst[data-tpl="plateau"] .jst-cp-wa-title { font-size: 30px; letter-spacing: -0.02em; }
+.jst[data-tpl="plateau"] .jst-cp-wa-text { margin-left: auto; margin-right: auto; }
+.jst[data-tpl="plateau"] .jst-cp-wa-cta { width: 100%; align-items: center; }
+.jst[data-tpl="plateau"][data-device="phone"] .jst-cp-wa-btn { width: 100%; }
+.jst[data-tpl="plateau"] .jst-cp-wa-num { font-size: 11.5px; letter-spacing: .16em; }
+.jst[data-tpl="plateau"] .jst-cp-wa-city { justify-content: center; justify-self: stretch; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-wa { grid-template-columns: minmax(0, 1fr); padding: 64px 48px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-wa-title { font-size: 40px; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-cp-wa-cta { width: auto; }
+
+/* ---------------------------------------------------------------- Cocody: a soft title card with
+   circles, the text on a white card, the pages as pills. */
+.jst[data-tpl="cocody"] .jst-drawer { left: 8px; right: 8px; top: calc(100% + 2px); border: 0; border-radius: calc(var(--st-radius) * 1.1 + 4px); background: var(--st-surface); box-shadow: 0 2px 4px rgba(0, 0, 0, .04), 0 26px 50px -24px rgba(0, 0, 0, .45); }
+.jst[data-tpl="cocody"] .jst-drawer-in { padding: 8px; }
+.jst[data-tpl="cocody"] .jst-drawer-list { gap: 2px; }
+.jst[data-tpl="cocody"] .jst-drawer-link { min-height: 52px; padding: 0 14px; border: 0; border-radius: var(--cc-field); font-family: var(--st-font-text); font-size: 16px; font-weight: 600; letter-spacing: 0; }
+.jst[data-tpl="cocody"] .jst-drawer-label { padding: 6px 0; }
+.jst[data-tpl="cocody"] .jst-drawer-link.is-current { background: var(--st-accent-soft); }
+.jst[data-tpl="cocody"] .jst-drawer-wa { margin: 6px 6px 0; padding: 0 8px; border-top: 1px dashed var(--st-line); padding-top: 6px; }
+.jst[data-tpl="cocody"] .jst-cp-head-in { width: calc(100% - 2 * var(--st-gutter)); max-width: var(--st-max); margin-top: 6px; padding: 30px 22px 34px; overflow: hidden; isolation: isolate; border-radius: calc(var(--st-radius) * 1.3); background: var(--st-surface-2); text-align: center; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-head-in { margin-top: 10px; padding: 64px 56px 68px; border-radius: calc(var(--st-radius) * 1.6); }
+.jst[data-tpl="cocody"] .jst-cp-head .jst-blob { display: block; }
+.jst[data-tpl="cocody"] .jst-cp-kicker { margin-bottom: 14px; }
+.jst[data-tpl="cocody"] .jst-cp-title { font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; }
+.jst[data-tpl="cocody"] .jst-cp-title[data-len="l"] { font-size: 27px; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-title { font-size: 52px; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-title[data-len="l"] { font-size: 40px; }
+.jst[data-tpl="cocody"] .jst-cp-in { padding-top: 12px; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-in { padding-top: 32px; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp:not(.has-side) .jst-cp-content { margin: 0 auto; }
+.jst[data-tpl="cocody"] .jst-cp-body,
+.jst[data-tpl="cocody"] .jst-cp-zones {
+  padding: 24px 20px; border-radius: var(--cc-card); background: var(--st-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 12px 28px -20px rgba(0, 0, 0, .24);
+}
+.jst[data-tpl="cocody"][data-tone="dark"] .jst-cp-body,
+.jst[data-tpl="cocody"][data-tone="dark"] .jst-cp-zones { box-shadow: none; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-body,
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-zones { padding: 44px 48px; }
+.jst[data-tpl="cocody"] .jst-cp-body.is-empty { padding: 0; background: none; box-shadow: none; }
+.jst[data-tpl="cocody"] .jst-cp-extra { margin-top: 12px; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-extra { margin-top: 20px; }
+.jst[data-tpl="cocody"] .jst-cp-h2 { font-size: 20px; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-h2 { font-size: 24px; }
+.jst[data-tpl="cocody"] .jst-cp-list li::before { left: 2px; top: calc(.875em - 4.5px); width: 9px; height: 9px; background: var(--st-accent-soft); box-shadow: inset 0 0 0 2.5px var(--st-accent-ink); }
+.jst[data-tpl="cocody"] .jst-cp-list.is-ordered li::before { top: 0; left: 0; width: auto; height: auto; box-shadow: none; background: none; }
+.jst[data-tpl="cocody"] .jst-cp-more { text-align: center; }
+.jst[data-tpl="cocody"] .jst-cp-side nav { padding: 8px; border-radius: var(--cc-card); background: var(--st-surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 12px 28px -20px rgba(0, 0, 0, .24); }
+.jst[data-tpl="cocody"][data-tone="dark"] .jst-cp-side nav { box-shadow: none; }
+.jst[data-tpl="cocody"] .jst-cp-side-h { padding: 8px 12px 2px; margin-bottom: 4px; }
+.jst[data-tpl="cocody"] .jst-cp-side-list { gap: 2px; border: 0; }
+.jst[data-tpl="cocody"] .jst-cp-side-link { min-height: 46px; padding: 8px 14px; border: 0; border-radius: var(--cc-field); font-weight: 500; }
+.jst[data-tpl="cocody"] .jst-cp-side-link.is-current { background: var(--st-accent-soft); font-weight: 600; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-side-link:not(.is-current):hover { opacity: 1; background: var(--st-bg); }
+.jst[data-tpl="cocody"] .jst-cp-wa { justify-items: center; padding: 34px 22px; border-radius: calc(var(--st-radius) * 1.3); text-align: center; }
+.jst[data-tpl="cocody"] .jst-cp-wa-deco { display: block; }
+.jst[data-tpl="cocody"] .jst-cp-wa-deco--a { width: 220px; height: 220px; right: -80px; top: -90px; }
+.jst[data-tpl="cocody"] .jst-cp-wa-deco--b { width: 150px; height: 150px; left: -60px; bottom: -70px; }
+.jst[data-tpl="cocody"] .jst-cp-wa-ico { width: 56px; height: 56px; border-radius: var(--cc-pill); }
+.jst[data-tpl="cocody"] .jst-cp-wa-cta { width: 100%; }
+.jst[data-tpl="cocody"] .jst-cp-wa-city { justify-content: center; justify-self: stretch; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-wa { justify-items: stretch; padding: 40px 44px; text-align: left; border-radius: calc(var(--st-radius) * 1.6); }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-wa-cta { width: auto; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-wa-city { justify-content: flex-start; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-cp-wa-deco--a { width: 320px; height: 320px; right: -90px; top: -170px; }
+.jst[data-tpl="cocody"] .jst-cp-zones .jst-delivery-notes { margin-top: 16px; }
+
+/* ---------------------------------------------------------------- Treichville: a huge uppercase
+   title over a thick rule, bold text, accent bars and hard shadows. */
+.jst[data-tpl="treichville"] .jst-drawer { border-top: var(--tv-line); }
+.jst[data-tpl="treichville"] .jst-drawer-link { min-height: 58px; border-bottom: var(--tv-line); font-size: 22px; text-transform: uppercase; letter-spacing: -0.01em; line-height: 1; }
+.jst[data-tpl="treichville"] .jst-drawer-chev { stroke-width: 2.2; color: var(--st-text); }
+.jst[data-tpl="treichville"] .jst-drawer-link.is-current { margin: 0 calc(-1 * var(--st-gutter)); padding: 0 var(--st-gutter); background: var(--st-accent); color: var(--st-on-accent); }
+.jst[data-tpl="treichville"] .jst-drawer-link.is-current .jst-drawer-label,
+.jst[data-tpl="treichville"] .jst-drawer-link.is-current .jst-drawer-chev { color: inherit; }
+.jst[data-tpl="treichville"] .jst-drawer-n { border-radius: var(--tv-r); background: var(--st-text); color: var(--st-bg); }
+.jst[data-tpl="treichville"] .jst-drawer-wa { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.jst[data-tpl="treichville"] .jst-cp-head { border-bottom: 3px solid var(--st-text); }
+.jst[data-tpl="treichville"] .jst-cp-head-in { padding-top: 18px; padding-bottom: 28px; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-head-in { padding-top: 36px; padding-bottom: 52px; }
+.jst[data-tpl="treichville"] .jst-cp-title { font-size: 46px; line-height: .94; letter-spacing: -0.03em; }
+.jst[data-tpl="treichville"] .jst-cp-title[data-len="m"] { font-size: 38px; line-height: .98; }
+.jst[data-tpl="treichville"] .jst-cp-title[data-len="l"] { font-size: 30px; line-height: 1.02; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-title { font-size: 104px; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-title[data-len="m"] { font-size: 76px; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-title[data-len="l"] { font-size: 56px; }
+.jst[data-tpl="treichville"] .jst-cp-in { padding-top: 30px; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-in { padding-top: 64px; }
+.jst[data-tpl="treichville"] .jst-cp-body { font-weight: 500; line-height: 1.7; }
+.jst[data-tpl="treichville"] .jst-cp-body > p:first-child { font-size: 19px; font-weight: 700; line-height: 1.45; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-body > p:first-child { font-size: 23px; }
+.jst[data-tpl="treichville"] .jst-cp-h2 { padding-left: 14px; border-left: 6px solid var(--st-accent); font-size: 22px; line-height: 1; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-h2 { font-size: 30px; }
+.jst[data-tpl="treichville"] .jst-cp-list li::before { left: 2px; top: calc(.85em - 4px); width: 8px; height: 8px; border-radius: 0; background: var(--st-accent); }
+.jst[data-tpl="treichville"] .jst-cp-list.is-ordered li::before { top: 0; width: auto; height: auto; background: none; color: var(--st-accent-ink); font-weight: 800; }
+.jst[data-tpl="treichville"] .jst-cp-more .jst-link { font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.jst[data-tpl="treichville"] .jst-cp-side-h { color: var(--st-text); font-weight: 800; }
+.jst[data-tpl="treichville"] .jst-cp-side-list { border-top: 3px solid var(--st-text); }
+.jst[data-tpl="treichville"] .jst-cp-side-link { border-bottom: var(--tv-line); font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.jst[data-tpl="treichville"] .jst-cp-side-link.is-current { padding: 10px 14px; background: var(--st-accent); color: var(--st-on-accent); }
+.jst[data-tpl="treichville"] .jst-cp-wa { margin-right: 8px; border: var(--tv-line); box-shadow: 8px 8px 0 var(--st-text); }
+.jst[data-tpl="treichville"] .jst-cp-wa.is-empty { margin-right: 0; border: 0; box-shadow: none; }
+.jst[data-tpl="treichville"] .jst-cp-wa-ico { border-radius: var(--tv-r); }
+.jst[data-tpl="treichville"] .jst-cp-wa-title { font-size: 28px; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-cp-wa-title { font-size: 36px; }
+.jst[data-tpl="treichville"] .jst-cp-wa-num { font-family: var(--st-font-display); font-size: 16px; font-weight: var(--st-display-weight, 600); letter-spacing: 0; }
+.jst[data-tpl="treichville"] .jst-cp-wa-city { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+
+/* ---------------------------------------------------------------- vivid: the colour carries the
+   title band; the text stays on the page colour. */
+.jst[data-tpl="plateau"][data-intensity="vivid"] .jst-cp-head { background: var(--st-tint); --st-muted: var(--st-muted-tint); }
+.jst[data-tpl="plateau"][data-intensity="vivid"] .jst-cp-head-in { padding-top: 36px; padding-bottom: 40px; }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-device="desktop"] .jst-cp-head-in { padding-top: 80px; padding-bottom: 84px; }
+.jst[data-tpl="plateau"][data-intensity="vivid"] .jst-cp-head-in::after { display: none; }
+.jst[data-tpl="plateau"][data-intensity="vivid"] .jst-cp-kicker { color: var(--st-accent-ink); }
+.jst[data-tpl="plateau"][data-intensity="vivid"] .jst-cp-in { padding-top: 40px; }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-device="desktop"] .jst-cp-in { padding-top: 72px; }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"] .jst-cp-head { box-shadow: inset 0 6px 0 var(--st-accent); }
+.jst[data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"] .jst-cp-title { color: var(--st-accent); }
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-cp-head-in { background: var(--st-tint-strong); --st-muted: var(--st-muted-strong); }
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-drawer-link.is-current,
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-cp-side-link.is-current { background: var(--st-accent); color: var(--st-on-accent); }
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-drawer-link.is-current .jst-drawer-label,
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-drawer-link.is-current .jst-drawer-chev { color: inherit; }
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-drawer-link.is-current .jst-drawer-n { background: var(--st-on-accent); color: var(--st-accent); }
+.jst[data-tpl="cocody"][data-intensity="vivid"] .jst-cp-zones .jst-zone { background: var(--st-tint); }
+.jst[data-tpl="treichville"][data-intensity="vivid"] .jst-cp-head { border-bottom: 0; background: var(--st-accent); color: var(--st-on-accent); --st-muted: var(--st-on-accent-soft); }
+.jst[data-tpl="treichville"][data-intensity="vivid"] .jst-cp-head .jst-tag { background: var(--st-on-accent); color: var(--st-accent); }
+.jst[data-tpl="treichville"][data-intensity="vivid"] .jst-cp-h2 { border-left-color: var(--st-accent); }
 
 /* ===================================================================== touch
    Phone: every control of the journey is at least 44 px tall (cheap Android, a thumb). Links keep

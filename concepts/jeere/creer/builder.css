@@ -107,7 +107,38 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; line-height: 1;
   padding: 5px 8px; border: 1.5px solid var(--ink); border-radius: 7px;
 }
-.b-shead__nav { margin-left: auto; display: flex; align-items: center; gap: 20px; }
+.b-shead__nav { margin-left: auto; display: flex; align-items: center; gap: 20px; min-width: 0; }
+
+/* The seller's account in the start screen header (editor.js reads 'jeere-account' and shows one of the two) */
+.b-acct { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.b-acct__btn { flex: none; white-space: nowrap; }
+.b-acct__login { flex: none; white-space: nowrap; }
+.b-acct__hello { display: flex; align-items: center; gap: 10px; min-width: 0; margin: 0; font-size: 14.5px; line-height: 1.25; }
+.b-acct__av {
+  display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%;
+  background: var(--grey-2); color: var(--ink); font-size: 14px; font-weight: 600; line-height: 1;
+}
+.b-acct__txt { min-width: 0; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.b-acct__name { font-weight: 600; }
+.b-acct__short { display: none; }
+/* « Retour à Jeere » only where the account links have room beside it (the logo also leads back) */
+@media (max-width: 799.98px) { .b-shead__nav > .b-only-wide { display: none; } }
+@media (max-width: 639.98px) {
+  .b-shead__nav { gap: 12px; }
+  .b-acct { gap: 12px; }
+  .b-acct__btn { padding: 0 13px; }
+  .b-acct__btn .b-ico { display: none; }
+  /* « Bonjour » on top of the first name: the greeting and « Tableau de bord » fit a 360 px phone */
+  .b-acct__av { display: none; }
+  .b-acct__hello { flex: 0 1 auto; }
+  .b-acct__txt { display: grid; max-width: 110px; text-align: right; }
+  .b-acct__hi, .b-acct__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .b-acct__hi { font-size: 11.5px; line-height: 1.3; color: var(--muted); }
+  .b-acct__name { font-size: 14px; line-height: 1.3; }
+}
+/* Small phones: the « Studio » tag makes room for the account links */
+@media (max-width: 479.98px) { .b-shead__tag { display: none; } }
+@media (max-width: 409.98px) { .b-acct__long { display: none; } .b-acct__short { display: inline; } }
 
 .b-smain { padding-top: 28px; padding-bottom: 36px; }
 @media (min-width: 1000px) { .b-smain { padding-top: 52px; } }
@@ -233,6 +264,18 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 }
 .b-top__logo { display: flex; align-items: center; flex: none; min-height: 44px; padding: 0 2px; color: var(--ink); border-radius: 8px; }
 .b-top__sep { width: 1px; height: 26px; flex: none; background: var(--line); }
+/* « Tableau de bord »: back to the seller's dashboard (../admin/), like the exit button of Shopify's theme editor */
+.b-top__dash {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none; min-width: 44px; min-height: 44px; padding: 0 14px 0 12px;
+  border-radius: 12px; background: var(--grey-1); color: var(--ink); font: 600 14px/1.2 var(--b-font); text-decoration: none; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent; transition: background-color .15s;
+}
+.b-top__dash:hover { background: var(--grey-2); }
+.b-top__dash .b-ico { width: 19px; height: 19px; }
+@media (max-width: 1439.98px) {
+  .b-top__dash { width: 44px; padding: 0; }
+  .b-top__dlbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 .b-top__store {
   display: grid; align-content: center; min-width: 0; max-width: 280px; min-height: 44px; padding: 3px 10px;
   border: 0; border-radius: 10px; background: none; color: var(--ink); text-align: left; cursor: pointer; font-family: var(--b-font);
@@ -268,8 +311,24 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-pagesel__sel option { color: var(--ink); background: var(--white); font-weight: 500; }
 .b-pagesel__chev { position: absolute; top: 50%; right: 13px; width: 18px; height: 18px; transform: translateY(-50%); pointer-events: none; }
 /* Another page than the home page is shown: the selector stands out a little, so the seller knows where she is */
-.b-pagesel.is-other { background: var(--white); box-shadow: inset 0 0 0 1.5px var(--ink); }
-.b-pagesel.is-other:hover { background: var(--grey-1); }
+.b-pagegrp.is-other .b-pagesel { background: var(--white); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.b-pagegrp.is-other .b-pagesel:hover { background: var(--grey-1); }
+/* The selector and « Gérer les pages » (the seller's own pages are written in the dashboard, ../admin/#pages) */
+.b-pagegrp { display: inline-flex; align-items: stretch; gap: 4px; flex: none; min-width: 0; }
+.b-pagesel { min-width: 0; }
+.b-pagesel__sel { max-width: 270px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* As wide as the page shown, not as the longest page title (where supported) */
+.b-pagesel__sel { field-sizing: content; }
+.b-top__page .b-pagesel__sel { min-width: 196px; }
+.b-pagemng {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: none; min-width: 44px; padding: 0 12px;
+  border-radius: 13px; background: var(--grey-1); color: var(--ink); font: 600 13.5px/1.2 var(--b-font); text-decoration: none; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent; transition: background-color .15s;
+}
+.b-pagemng:hover, .b-pagemng:active { background: var(--grey-2); }
+.b-pagemng .b-ico { width: 19px; height: 19px; }
+.b-pagemng__lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.b-pagegrp .b-pagemng { width: 48px; padding: 0; }
 .b-top__end { display: flex; align-items: center; gap: 4px; flex: none; margin-left: auto; }
 .b-top__fiche { margin: 0 4px 0 6px; }
 @media (max-width: 1199.98px) {
@@ -563,6 +622,32 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-switch[aria-pressed="true"] .b-switch__ui { background: var(--ink); box-shadow: none; }
 .b-switch[aria-pressed="true"] .b-switch__ui::after { transform: translateX(18px); }
 
+/* Boutique: « Vos pages » (config.pages, written in the dashboard; here they open in the preview) */
+.b-pglist { display: grid; margin: 12px 0 0; padding: 0; overflow: hidden; list-style: none; border: 1px solid var(--line); border-radius: 14px; }
+.b-pglist > li + li { border-top: 1px solid var(--line); }
+.b-pgrow {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 8px 12px 8px 10px;
+  border: 0; background: var(--white); color: var(--ink); text-align: left; font-family: var(--b-font); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.b-pgrow:hover { background: var(--grey-1); }
+.b-pgrow:focus-visible { outline-offset: -3px; }
+.b-pgrow .b-item__ico { width: 36px; height: 36px; }
+.b-pgrow__txt { display: grid; flex: 1; gap: 1px; min-width: 0; }
+.b-pgrow__name { overflow: hidden; font-size: 14.5px; font-weight: 600; line-height: 1.3; white-space: nowrap; text-overflow: ellipsis; }
+.b-pgrow__name.is-empty { color: var(--muted); font-style: italic; font-weight: 500; }
+.b-pgrow__meta { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); white-space: nowrap; }
+.b-pgrow__slug { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.b-pgrow__where { flex: none; }
+.b-pgrow__go { display: inline-flex; align-items: center; gap: 6px; flex: none; padding: 6px 8px; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.b-pgrow__go .b-ico { width: 18px; height: 18px; }
+.b-pgrow:hover .b-pgrow__go { color: var(--ink); }
+/* The page shown in the preview */
+.b-pgrow[aria-current="page"] { background: var(--grey-1); box-shadow: inset 3px 0 0 var(--ink); }
+.b-pgrow[aria-current="page"] .b-pgrow__go { background: var(--ink); color: var(--white); }
+.b-group > .b-pgmanage { margin-top: 12px; }
+.b-pgmanage .b-ico:last-child { margin-left: auto; }
+
 /* Qualité */
 .b-score { padding: 18px; border-radius: 18px; background: var(--grey-1); }
 .b-score.is-ok { background: var(--ink); color: var(--white); }
@@ -601,6 +686,8 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-stage { position: relative; min-width: 0; background: var(--grey-1); }
 .b-stage__bar { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 24px 0; }
 .b-stage__hint { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--muted); text-align: center; text-wrap: balance; }
+.b-stage__hint a { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; white-space: nowrap; }
+.b-stage__hint a:hover { text-decoration-thickness: 2px; }
 .b-stage__inner { padding: 14px 32px 56px; }
 .b-dwrap { position: relative; margin: 0 auto; }
 .b-device { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
@@ -688,6 +775,12 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   }
   .b-stage__hint { flex: 1 1 0; min-width: 0; text-align: left; font-size: 12px; text-wrap: pretty; }
   .b-stage__page .b-pagesel__sel { min-height: 46px; }
+  .b-stage__page { flex: 0 1 auto; }
+  /* Room for the device toggle: a long page title is cut with an ellipsis */
+  .b-stage__page .b-pagesel__sel { max-width: min(270px, calc(100vw - 172px)); }
+  .b-stage__page .b-pagemng { width: 46px; background: var(--white); box-shadow: inset 0 0 0 1px var(--line); }
+  .b-stage__page .b-pagemng:active { background: var(--grey-2); }
+  .b-top__dash { margin-left: 4px; }
   .b-stage__inner { padding: 16px 12px 28px; }
   .b-mnav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 35; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
@@ -709,12 +802,24 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   /* Dialogs open as bottom sheets here: show the toast at the top so it never covers their buttons */
   html.b-modal-open .b-toast[role="status"] { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 }
-@media (min-width: 420px) and (max-width: 899.98px) {
+@media (min-width: 520px) and (max-width: 899.98px) {
   .b-top__sep { display: block; margin: 0 6px 0 8px; }
 }
-@media (max-width: 419.98px) {
+@media (max-width: 519.98px) {
   .b-top__store { display: none; }
   .b-top__end { margin-left: auto; }
+}
+/* The smallest phones: the « j » mark alone, so « Tableau de bord », Annuler, Rétablir, the fiche and « Publier » all fit */
+@media (max-width: 379.98px) {
+  .b-top__logo .logo__word { display: none; }
+  .b-top { padding-left: 10px; }
+  .b-top__logo { padding: 0 6px; }
+}
+/* On small phones the selector shows the page name only (its label stays for screen readers) */
+@media (max-width: 399.98px) {
+  .b-stage__page .b-pagesel__k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .b-stage__page .b-pagesel__sel { padding-left: 14px; padding-right: 36px; }
+  .b-stage__page .b-pagesel__chev { right: 11px; }
 }
 @media (max-width: 599.98px) {
   .b-stage__hint { display: none; }

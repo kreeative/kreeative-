@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kreeative.xyz/concepts/jeere/creer/schema.json",
   "title": "JEERE fiche boutique, version 1",
-  "description": "The store config ('fiche boutique') that the JEERE assistant fills, the editor edits and the templates render. Source of truth for ids, labels and limits: data.js (window.JEERE_DATA). One fiche renders the whole store: the home page (the sections below), the product page, the cart, the checkout and the confirmation (JEERE_DATA.PAGES); nothing in it is specific to a page. This schema checks structure, enums, ranges and the editor's character limits. Quality rules (empty store name, no payment method, fewer than 3 products, missing WhatsApp number...) are checked by JEERE_DATA.validate(), not here. Unique section and product ids cannot be expressed in JSON Schema: code checks them (normalizeConfig fixes them).",
+  "description": "The store config ('fiche boutique') that the JEERE assistant fills, the editor edits and the templates render. Source of truth for ids, labels and limits: data.js (window.JEERE_DATA). One fiche renders the whole store: the home page (the sections below), the product page, the cart, the checkout and the confirmation (JEERE_DATA.PAGES), plus the store's own custom pages (pages: À propos, Livraison et retours, Contact, Conditions de vente...); nothing else in it is specific to a page. This schema checks structure, enums, ranges and the editor's character limits. Quality rules (empty store name, no payment method, fewer than 3 products, missing WhatsApp number, empty page title...) are checked by JEERE_DATA.validate(), not here. Unique section, product and page ids and unique page slugs cannot be expressed in JSON Schema: code checks them (normalizeConfig fixes them; validate() warns about a duplicate slug).",
   "type": "object",
-  "required": ["version", "template", "store", "theme", "payments", "sections", "products"],
+  "required": ["version", "template", "store", "theme", "payments", "sections", "products", "pages"],
   "additionalProperties": false,
   "properties": {
     "version": { "const": 1, "description": "Fiche format version." },
@@ -21,6 +21,12 @@
       "type": "array",
       "description": "The catalogue, in display order. Ids 'p1', 'p2'... must be unique (checked by code).",
       "items": { "$ref": "#/$defs/product" }
+    },
+    "pages": {
+      "type": "array",
+      "maxItems": 20,
+      "description": "The store's custom pages, in order (the dashboard's « Pages »). A fiche saved before pages existed has no such key: normalizeConfig adds the 4 default pages of its niche (À propos, Livraison et retours, Contact, Conditions de vente); an empty list is kept. Ids 'pg1', 'pg2'... and slugs must be unique (checked by code).",
+      "items": { "$ref": "#/$defs/page" }
     }
   },
   "$defs": {
@@ -129,6 +135,26 @@
         "color": { "$ref": "#/$defs/hexColor", "description": "Tile colour behind the illustration." },
         "description": { "type": "string", "description": "One or two sentences: material, size, use." },
         "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "page": {
+      "type": "object",
+      "description": "A custom page, rendered by JeereRender.render(config, root, { page: 'page', pageId }) in the template's style, with the header and the footer; the page whose slug is 'contact' also shows a WhatsApp contact block. validate() reports an error for an empty title, a warning for a duplicate slug and a tip for an empty body.",
+      "required": ["id", "title", "slug", "body", "inMenu", "inFooter"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^pg[1-9][0-9]*$" },
+        "title": { "type": "string", "maxLength": 60, "description": "The page title, also the link text in the menu and the footer. validate() reports an error when it is empty." },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "description": "The page's address: JEERE_DATA.slugify(title) by default ('livraison-et-retours'), lower case, no accent, words joined by hyphens. Unique in the fiche."
+        },
+        "body": { "type": "string", "maxLength": 4000, "description": "Plain text, no HTML and no Markdown: paragraphs separated by a blank line. The renderer escapes it." },
+        "inMenu": { "type": "boolean", "description": "Linked in the header: the desktop menu (after the section links, 5 links at most in all) and the phone menu." },
+        "inFooter": { "type": "boolean", "description": "Linked in the footer's pages column." }
       }
     },
     "section": {

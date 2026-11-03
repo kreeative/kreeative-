@@ -1,11 +1,22 @@
 /*
  * Jeere Studio — editor.js
  * The start screen and the store editor. Exposes one global: window.JeereBuilder
- *   openEditor(config)        normalises the fiche boutique and shows the editor
+ *   openEditor(config, opts)  normalises the fiche boutique and shows the editor; opts (optional):
+ *                             { page, pageId, productId } the page to open the preview on
  *   getConfig()               deep copy of the fiche being edited (null before the editor opens)
  *   showStart()               back to the start screen « Créez votre boutique »
- *   showPage(page, productId) shows one page of the store in the preview (see JEERE_DATA.PAGES)
- *   getPage()                 { page, productId } shown in the preview
+ *   showPage(page, id)        shows one page of the store in the preview (see JEERE_DATA.PAGES): id is the
+ *                             productId of 'product', the pageId of 'page' (the seller's own pages, config.pages)
+ *   getPage()                 { page, productId, pageId } shown in the preview
+ *
+ * The seller side (round 3): the start screen header reads 'jeere-account' (« Bonjour Awa » and
+ * « Tableau de bord », or « Se connecter » and « Créer un compte »); the top bar links to the
+ * dashboard (../admin/); the page selector lists the seller's own pages (« Vos pages ») with
+ * « Gérer les pages » (../admin/#pages). On load, a one-shot 'jeere-studio-open' { page, pageId?,
+ * productId?, view? } left by the dashboard opens the editor straight on that page (on a phone, on
+ * the preview unless the page is home or view is 'edit'), then is deleted. A change made to the
+ * fiche by the dashboard in another tab (or before a Back) is taken in; a fiche deleted there is not
+ * written back. A template chosen by a signed-in seller carries her store name and WhatsApp number.
  *
  * The editor edits one "fiche boutique" (store config v1, see data.js). Every change re-renders the
  * live preview with JeereRender, goes into an undo history and is autosaved in localStorage.
@@ -22,6 +33,10 @@
 
   const D = window.JEERE_DATA;
   const STORE_KEY = 'jeere-studio-config';
+  const ACCOUNT_KEY = 'jeere-account'; // { version, firstName, phone, storeName, createdAt, plan, loggedIn } (compte/)
+  const OPEN_KEY = 'jeere-studio-open'; // one-shot { page, pageId?, productId? } left by the dashboard
+  const ADMIN_URL = '../admin/';
+  const PAGES_URL = '../admin/#pages';
   const HISTORY_MAX = 60;
   const PREVIEW_DELAY = 80;
   const COMMIT_DELAY = 400;
@@ -55,7 +70,8 @@
     product: [`La fiche produit. Cliquez sur la photo pour modifier le produit, sur ${guil('Ajouter au panier')} pour continuer.`, 'Touchez la photo pour modifier le produit.'],
     cart: [`Le panier, avec un produit d’exemple. Changez les quantités, puis ${guil('Passer au paiement')}.`, 'Un panier d’exemple, comme le verront vos clients.'],
     checkout: [`La page de paiement. Remplissez-la comme un client${NB}: rien n’est envoyé, personne n’est débité.`, `Remplissez-la comme un client${NB}: rien n’est envoyé.`],
-    confirmation: ['La confirmation de commande, telle que vos clients la verront.', 'Ce que voit le client après sa commande.']
+    confirmation: ['La confirmation de commande, telle que vos clients la verront.', 'Ce que voit le client après sa commande.'],
+    page: [`Une de vos pages, telle que vos clients la verront. Son texte se modifie dans le tableau de bord${NB}:`, 'Son texte se modifie dans le tableau de bord.']
   };
   // Sections whose settings also show on other pages (the delivery zones feed the checkout's communes)
   const SECTION_PAGES = { delivery: ['product', 'checkout', 'confirmation'] };
@@ -90,7 +106,8 @@
     config: null,
     history: [], index: 0, pending: false,
     open: false,
-    tab: 'sections', device: 'phone', view: 'edit', page: 'home', productId: null,
+    tab: 'sections', device: 'phone', view: 'edit', page: 'home', productId: null, pageId: null, pagesSig: null,
+    lastSaved: null, // the exact JSON last read from or written to localStorage: anything else there was written elsewhere
     openSection: null, openProduct: null, openItem: {}, reorder: { sections: false, produits: false },
     scale: 1, previewDirty: true, pendingReveal: null, hoverNode: null, pick: null,
     scrollY: { edit: 0, preview: 0 },
@@ -200,6 +217,21 @@
     return out.length ? out : PAGES_FALLBACK;
   }
   const isPage = (id) => pagesList().some((p) => p.id === id);
+  // The seller's own pages (config.pages: À propos, Livraison et retours, Contact…), drawn by render.js as page 'page'
+  function customPages() {
+    const list = S.config && Array.isArray(S.config.pages) ? S.config.pages : [];
+    return list.filter((p) => p && typeof p === 'object' && typeof p.id === 'string' && p.id);
+  }
+  const findCustomPage = (id) => (typeof id === 'string' && customPages().find((p) => p.id === id)) || null;
+  const pageTitle = (p) => String((p && p.title) || '').trim() || 'Page sans titre';
+  const isView = (id) => id === 'page' || isPage(id);
+  // The value of the page selector: 'home'…'confirmation', or 'page:pg2' for one of the seller's pages
+  const pickValue = () => (S.page === 'page' && S.pageId ? 'page:' + S.pageId : S.page);
+  function parsePick(v) {
+    const m = /^page:(.+)$/.exec(String(v || ''));
+    return m ? { page: 'page', id: m[1] } : { page: String(v || 'home'), id: null };
+  }
+  function pagesSig() { return customPages().map((p) => p.id + '\u0001' + pageTitle(p)).join('\u0002'); }
   function intensityOptions() {
     const list = D && Array.isArray(D.INTENSITY_OPTIONS) && D.INTENSITY_OPTIONS.length ? D.INTENSITY_OPTIONS : INTENSITY_FALLBACK;
     return list.filter((o) => o && typeof o.value === 'string').map((o) => {
@@ -227,15 +259,70 @@
 
   /* ------------------------------------------------------------------ storage */
 
-  function readSaved() {
-    let raw = null;
-    try { raw = window.localStorage.getItem(STORE_KEY); } catch (e) { return null; }
+  function readRaw(key) {
+    try { const v = window.localStorage.getItem(key); return typeof v === 'string' ? v : null; } catch (e) { return null; }
+  }
+  function parseConfig(raw) {
     if (!raw) return null;
     try {
       const obj = JSON.parse(raw);
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
       return D.normalizeConfig(obj);
     } catch (e) { return null; }
+  }
+  function readSaved() {
+    const raw = readRaw(STORE_KEY);
+    const cfg = parseConfig(raw);
+    if (cfg && !S.open) S.lastSaved = raw;
+    return cfg;
+  }
+
+  /* ---------- the seller's account and the dashboard's one-shot instruction ---------- */
+
+  function clip(v, n) { return typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, n) : ''; }
+  // 'jeere-account' as { firstName, phone, storeName, loggedIn }, or null (none, unreadable, blocked storage)
+  function readAccount() {
+    const raw = readRaw(ACCOUNT_KEY);
+    if (!raw) return null;
+    let obj = null;
+    try { obj = typeof D.normalizeAccount === 'function' ? D.normalizeAccount(raw) : JSON.parse(raw); } catch (e) { obj = null; }
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
+    let phone = '';
+    try { phone = typeof obj.phone === 'string' ? D.normalizeWhatsapp(obj.phone) : ''; } catch (e) { phone = ''; }
+    return { firstName: clip(obj.firstName, 40), phone, storeName: clip(obj.storeName, 40), loggedIn: obj.loggedIn === true };
+  }
+  // Read and delete 'jeere-studio-open': { page, pageId?, productId? } or null
+  function takeOpen() {
+    const raw = readRaw(OPEN_KEY);
+    if (raw === null) return null;
+    try { window.localStorage.removeItem(OPEN_KEY); } catch (e) { /* blocked storage: nothing to delete */ }
+    let o = null;
+    try { o = JSON.parse(raw); } catch (e) { return null; }
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+    const id = (v) => (typeof v === 'string' && v.length < 64 ? v : null);
+    // view (optional, not in the contract): 'preview' or 'edit', what a phone shows first
+    const view = o.view === 'preview' || o.view === 'edit' ? o.view : null;
+    return { page: typeof o.page === 'string' ? o.page : 'home', pageId: id(o.pageId), productId: id(o.productId), view };
+  }
+  // A template chosen by a signed-in seller carries her store name and WhatsApp number from sign-up
+  function personalize(cfg) {
+    const acc = readAccount();
+    if (!cfg || !cfg.store || !acc || !acc.loggedIn) return cfg;
+    const name = acc.storeName;
+    const old = String(cfg.store.name || '');
+    if (name && name !== old) {
+      const hero = D.sectionTypes && D.sectionTypes.hero;
+      const tf = hero && Array.isArray(hero.fields) ? hero.fields.find((f) => f.key === 'title') : null;
+      const max = tf && typeof tf.max === 'number' ? tf.max : 70;
+      (cfg.sections || []).forEach((s) => {
+        if (s.type !== 'hero' || !s.settings || typeof s.settings.title !== 'string' || !old || s.settings.title.indexOf(old) === -1) return;
+        const t = s.settings.title.split(old).join(name);
+        s.settings.title = t.length <= max ? t : name;
+      });
+      cfg.store.name = name;
+    }
+    if (!cfg.store.whatsapp && acc.phone) cfg.store.whatsapp = acc.phone;
+    return cfg;
   }
   function isQuota(e) {
     return !!e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014);
@@ -254,12 +341,15 @@
     try { json = JSON.stringify(S.config); } catch (e) { return; }
     try {
       window.localStorage.setItem(STORE_KEY, json);
+      S.lastSaved = json;
       setSaved('ok');
       return;
     } catch (e) {
       if (isQuota(e)) {
         try {
-          window.localStorage.setItem(STORE_KEY, JSON.stringify(stripImages(S.config)));
+          const lite = JSON.stringify(stripImages(S.config));
+          window.localStorage.setItem(STORE_KEY, lite);
+          S.lastSaved = lite;
           if (S.saveState !== 'partial') toast(`La mémoire du navigateur est pleine à cause des photos. Le reste est enregistré${NB}: téléchargez la fiche boutique pour garder aussi les photos.`, 6000);
           setSaved('partial');
           return;
@@ -369,7 +459,12 @@
     if (!previewVisible()) { S.previewDirty = true; return; }
     S.previewDirty = false;
     if (S.page === 'product' && !findProduct(S.productId)) S.productId = S.config.products[0] ? S.config.products[0].id : null;
-    renderStoreInto(els.store, S.config, S.device, els.screen, S.page, S.productId);
+    // The page shown was deleted (undo, import, the dashboard): the first of the seller's pages, else home
+    if (S.page === 'page' && !findCustomPage(S.pageId)) {
+      const first = customPages()[0];
+      if (first) S.pageId = first.id; else { S.page = 'home'; S.pageId = null; }
+    }
+    renderStoreInto(els.store, S.config, S.device, els.screen, S.page, S.productId, S.pageId);
     readView();
     hideHover();
     fit();
@@ -379,11 +474,12 @@
       if (node) placeHl(els.hlFlash, node, labelFor(S.flash)); else els.hlFlash.classList.remove('is-on');
     }
   }
-  function renderStoreInto(root, config, device, screen, page, productId) {
+  function renderStoreInto(root, config, device, screen, page, productId, pageId) {
     const R = window.JeereRender;
     let ok = false;
     if (R && typeof R.render === 'function') {
-      try { R.render(config, root, { device, page: page || 'home', productId: productId || null }); ok = true; } catch (e) { ok = false; }
+      const p = page || 'home';
+      try { R.render(config, root, { device, page: p, productId: productId || null, pageId: p === 'page' ? (pageId || null) : null }); ok = true; } catch (e) { ok = false; }
     }
     if (!ok) {
       root.className = 'b-noprev';
@@ -408,35 +504,72 @@
   function readView() {
     const v = els.store && els.store.__jstView;
     if (!rendererHasPages() || !v || typeof v !== 'object') { S.page = 'home'; syncPagePicks(); return; }
-    S.page = isPage(v.page) ? v.page : 'home';
+    S.page = isView(v.page) ? v.page : 'home';
     if (S.page === 'product' && typeof v.productId === 'string' && findProduct(v.productId)) S.productId = v.productId;
+    if (S.page === 'page') {
+      if (typeof v.pageId === 'string' && findCustomPage(v.pageId)) S.pageId = v.pageId;
+      else if (!findCustomPage(S.pageId)) { S.page = 'home'; S.pageId = null; }
+    }
     syncPagePicks();
   }
   function syncPagePicks() {
     const on = rendererHasPages();
+    if (S.config && S.pagesSig !== pagesSig()) buildPagePicks();
+    const val = pickValue();
     (els.pageSels || []).forEach((wrap) => { wrap.hidden = !on; wrap.classList.toggle('is-other', S.page !== 'home'); });
-    (els.pagePicks || []).forEach((sel) => { if (sel.value !== S.page) sel.value = S.page; });
+    (els.pagePicks || []).forEach((sel) => { if (sel.value !== val) sel.value = val; });
+    updatePageRows();
+    updateUrl();
     updateHint();
   }
+  // The 5 pages of the buying journey, then the seller's own pages (« Vos pages »)
   function buildPagePicks() {
     const list = pagesList();
+    const own = customPages();
+    S.pagesSig = pagesSig();
     els.pagePicks.forEach((sel) => {
       sel.textContent = '';
-      list.forEach((p) => sel.append(el('option', { value: p.id, text: p.label })));
-      sel.value = S.page;
+      const sys = list.map((p) => el('option', { value: p.id, text: p.label }));
+      if (own.length) {
+        sel.append(el('optgroup', { label: 'Parcours d’achat' }, sys));
+        sel.append(el('optgroup', { label: 'Vos pages' }, own.map((p) => el('option', { value: 'page:' + p.id, text: shorten(pageTitle(p), 26) }))));
+      } else append(sel, sys);
+      sel.value = pickValue();
+    });
+  }
+  // The store's address in the desktop frame, with the path of the seller's page shown
+  function updateUrl() {
+    if (!els.url || !S.config) return;
+    let path = '';
+    if (S.page === 'page') {
+      const pg = findCustomPage(S.pageId);
+      if (pg && typeof pg.slug === 'string' && pg.slug) path = '/' + pg.slug;
+    }
+    els.url.textContent = slug(storeName()) + '.jeere.shop' + path;
+  }
+  // « Vos pages » in the Boutique tab: mark the page shown in the preview
+  function updatePageRows() {
+    if (!els.tp || !els.tp.boutique || S.tab !== 'boutique') return;
+    els.tp.boutique.querySelectorAll('[data-pgid]').forEach((b) => {
+      const on = S.page === 'page' && b.getAttribute('data-pgid') === S.pageId;
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
   }
   function scrollPreviewTop() {
     if (isMobile()) { if (S.view === 'preview' && window.scrollY > 0) window.scrollTo(0, 0); }
     else if (els.stage) els.stage.scrollTop = 0;
   }
-  // Show a page of the store (from the selector, the Produits tab, the Qualité tab…)
-  function showPage(page, productId, opts = {}) {
+  // Show a page of the store (from the selector, the Produits tab, the Qualité tab…). id: the product of
+  // 'product', the seller's page of 'page'
+  function showPage(page, id, opts = {}) {
     if (!S.config) return;
-    if (!isPage(page) || !rendererHasPages()) page = 'home';
+    if (page === 'page') {
+      const pg = findCustomPage(id) || findCustomPage(S.pageId) || customPages()[0] || null;
+      if (pg && rendererHasPages()) S.pageId = pg.id; else page = 'home';
+    } else if (!isPage(page) || !rendererHasPages()) page = 'home';
     S.page = page;
     if (page === 'product') {
-      const want = [productId, S.openProduct, S.productId].find((id) => typeof id === 'string' && findProduct(id));
+      const want = [id, S.openProduct, S.productId].find((x) => typeof x === 'string' && findProduct(x));
       S.productId = want || (S.config.products[0] ? S.config.products[0].id : null);
     }
     hidePick();
@@ -456,7 +589,12 @@
   function onStoreNavigate(e) {
     const d = (e && e.detail) || {};
     if (e && typeof e.preventDefault === 'function') e.preventDefault(); // we scroll our own stage
-    S.page = isPage(d.page) ? d.page : 'home';
+    S.page = isView(d.page) ? d.page : 'home';
+    if (S.page === 'page') {
+      const v = els.store && els.store.__jstView;
+      const want = [d.pageId, v && v.pageId].find((x) => typeof x === 'string' && findCustomPage(x));
+      if (want) S.pageId = want; else if (!findCustomPage(S.pageId)) { S.page = 'home'; S.pageId = null; }
+    }
     if (S.page === 'product' && typeof d.productId === 'string' && findProduct(d.productId)) {
       S.productId = d.productId;
       // Keep the Produits tab on the product being looked at, if a product is open there
@@ -1508,9 +1646,51 @@
     });
     tp.append(group('b-g-payments', 'Moyens de paiement', 'Proposés à vos clients sur la page Paiement, et écrits en bas de votre boutique. Activez au moins un moyen.', pays));
 
+    tp.append(pagesGroup());
+
     tp.append(group('b-g-restart', 'Changer de point de départ', `Votre boutique reste enregistrée dans ce navigateur${NB}: vous pourrez la reprendre.`,
       el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--block', 'data-fk': 'restart', on: { click: () => showStart() } },
         icon('i-back'), 'Revenir à l’écran de départ')));
+  }
+
+  // « Vos pages »: the seller's own pages, shown in the preview from here; they are written in the dashboard
+  function pagesGroup() {
+    const own = customPages();
+    let content;
+    if (own.length) {
+      content = el('ul', { class: 'b-pglist' });
+      own.forEach((pg) => {
+        const where = pg.inMenu && pg.inFooter ? ['Menu', 'pied de page'] : [pg.inMenu ? 'Menu' : null, pg.inFooter ? 'Pied de page' : null].filter(Boolean);
+        const shown = S.page === 'page' && S.pageId === pg.id;
+        const hasTitle = !!String(pg.title || '').trim();
+        content.append(el('li', null, el('button', {
+          type: 'button', class: 'b-pgrow', id: 'b-pg-' + pg.id, 'data-pgid': pg.id, 'data-fk': 'pg-' + pg.id, 'aria-current': shown ? 'page' : null,
+          on: { click: () => viewCustomPage(pg.id) }
+        },
+          el('span', { class: 'b-item__ico', 'aria-hidden': 'true' }, icon('i-pages')),
+          el('span', { class: 'b-pgrow__txt' },
+            el('span', { class: 'b-pgrow__name' + (hasTitle ? '' : ' is-empty'), text: pageTitle(pg) }),
+            el('span', { class: 'b-pgrow__meta' },
+              el('span', { class: 'b-pgrow__where', text: where.length ? where.join(' et ') : 'Ni menu ni pied de page' }),
+              el('span', { 'aria-hidden': 'true', text: '·' }),
+              el('span', { class: 'b-pgrow__slug', text: '/' + (pg.slug || '') }))),
+          el('span', { class: 'b-pgrow__go' }, icon('i-eye'), el('span', { text: 'Voir' })))));
+      });
+    } else {
+      content = el('p', { class: 'b-empty b-empty--box', text: `Aucune page pour l’instant. Ajoutez ${guil('À propos')} ou ${guil('Contact')} dans le tableau de bord.` });
+    }
+    return group('b-g-pages', 'Vos pages', `Les pages de votre menu et de votre pied de page. Choisissez-en une pour la voir dans l’aperçu${NB}: son texte se modifie dans le tableau de bord.`,
+      content,
+      el('a', { class: 'b-btn b-btn--ghost b-btn--block b-pgmanage', href: PAGES_URL, 'data-leave': true, 'data-fk': 'pg-manage' },
+        icon('i-pages'), 'Gérer les pages', icon('i-arrow')));
+  }
+  function viewCustomPage(id) {
+    if (!findCustomPage(id)) return;
+    if (isMobile()) {
+      showPage('page', id);
+      setView('preview');
+      scrollPreviewTop();
+    } else showPage('page', id);
   }
 
   /* ---------- Qualité tab ---------- */
@@ -1582,6 +1762,13 @@
         if (t.id && findProduct(t.id)) selectTarget({ kind: 'product', id: t.id }, { reveal: true });
         else { setTab('produits'); const b = document.getElementById('b-p-add'); focusEl(b); pulse(b); }
         break;
+      case 'page':
+        // The seller's pages are written in the dashboard: show the page here, and the way there
+        if (t.id && findCustomPage(t.id)) showPage('page', t.id);
+        setTab('boutique');
+        if (t.id && document.getElementById('b-pg-' + t.id)) focusField('b-pg-' + t.id);
+        else focusGroup('b-g-pages');
+        break;
       default:
         setTab('boutique');
     }
@@ -1614,7 +1801,8 @@
     if (!S.config) return;
     const name = storeName();
     els.topName.textContent = name;
-    els.url.textContent = slug(name) + '.jeere.shop';
+    // The seller's pages were renamed, added or removed (undo, import, the dashboard): rebuild the selector
+    if (S.pagesSig !== pagesSig()) syncPagePicks(); else updateUrl();
     if (S.open) document.title = `${name} · Jeere Studio`;
     const v = D.validate(S.config);
     els.tabScore.textContent = String(v.score);
@@ -1758,7 +1946,7 @@
     els.ficheCode.scrollTop = 0;
     const photos = S.config.products.filter((p) => p.image).length + S.config.sections.filter((s) => s.settings && s.settings.image).length;
     const size = Math.max(1, Math.round(JSON.stringify(S.config).length / 1024));
-    els.ficheMeta.textContent = `${count(S.config.sections.length, 'section')} · ${count(S.config.products.length, 'produit')} · ${count(photos, 'photo')} · ${size} Ko`;
+    els.ficheMeta.textContent = `${count(S.config.sections.length, 'section')} · ${count(S.config.products.length, 'produit')} · ${count(customPages().length, 'page')} · ${count(photos, 'photo')} · ${size} Ko`;
     showImport(false);
     openModal('m-fiche', { initial: els.ficheCopy });
   }
@@ -1808,7 +1996,7 @@
       importError(`Ce texte n’est pas une fiche boutique valide. Vérifiez qu’il commence par { et se termine par }.`);
       return;
     }
-    if (!obj || typeof obj !== 'object' || Array.isArray(obj) || !['version', 'template', 'store', 'theme', 'sections', 'products', 'payments'].some((k) => Object.prototype.hasOwnProperty.call(obj, k))) {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj) || !['version', 'template', 'store', 'theme', 'sections', 'products', 'payments', 'pages'].some((k) => Object.prototype.hasOwnProperty.call(obj, k))) {
       importError('Cette fiche ne contient ni boutique, ni sections, ni produits.');
       return;
     }
@@ -1856,17 +2044,40 @@
   function isPristine(cfg) {
     try {
       const a = JSON.stringify(cfg);
-      return a === JSON.stringify(D.normalizeConfig(D.defaultConfig(cfg.template))) ||
-        a === JSON.stringify(D.normalizeConfig(D.defaultConfig(cfg.template, cfg.store && cfg.store.niche)));
+      const niche = cfg.store && cfg.store.niche;
+      return [D.defaultConfig(cfg.template), D.defaultConfig(cfg.template, niche)].some((d) =>
+        a === JSON.stringify(D.normalizeConfig(d)) || a === JSON.stringify(D.normalizeConfig(personalize(D.clone(d)))));
     } catch (e) { return false; }
   }
+  // The start screen header: « Bonjour Awa » and « Tableau de bord » for a signed-in seller, else
+  // « Se connecter » and « Créer un compte » (the account pages are in ../compte/)
+  function renderAccount() {
+    if (!els.acctIn || !els.acctOut) return;
+    const acc = readAccount();
+    const signed = !!(acc && acc.loggedIn);
+    els.acctIn.hidden = !signed;
+    els.acctOut.hidden = signed;
+    if (els.shead) {
+      els.shead.classList.toggle('b-shead--in', signed);
+      els.shead.classList.toggle('b-shead--out', !signed);
+    }
+    if (!signed) return;
+    const first = acc.firstName;
+    els.acctName.textContent = first;
+    els.acctName.hidden = !first;
+    els.acctAv.textContent = '';
+    if (first) els.acctAv.textContent = first.charAt(0).toLocaleUpperCase('fr');
+    else els.acctAv.append(icon('i-user'));
+  }
   function renderStart() {
+    renderAccount();
     const saved = readSaved();
     if (saved) {
       const n = saved.products.length;
       const on = saved.sections.filter((s) => s.enabled).length;
       els.resumeName.textContent = String(saved.store.name || '').trim() || 'Ma boutique';
-      els.resumeMeta.textContent = `Modèle ${templateOf(saved.template).name} · ${count(n, 'produit')} · ${count(on, 'section')}`;
+      const np = Array.isArray(saved.pages) ? saved.pages.length : 0;
+      els.resumeMeta.textContent = `Modèle ${templateOf(saved.template).name} · ${count(n, 'produit')} · ${count(on, 'section')}` + (np ? ` · ${count(np, 'page')}` : '');
       els.resume.hidden = false;
     } else els.resume.hidden = true;
     if (!S.startBuilt) buildTemplateCards();
@@ -1922,7 +2133,11 @@
       });
       if (!ok) return;
     }
-    openEditor(D.defaultConfig(id));
+    const cfg = D.defaultConfig(id);
+    const example = cfg.store.name;
+    personalize(cfg);
+    openEditor(cfg);
+    if (cfg.store.name !== example) toast(`Modèle ${templateOf(id).name}, à votre nom${NB}: ${cfg.store.name}.`);
   }
   function openAssistant() {
     const W = window.JeereWizard;
@@ -1933,19 +2148,38 @@
 
   /* ------------------------------------------------------------------ open / close */
 
-  function openEditor(config) {
+  // opts: { page, pageId, productId } the page of the store to land on (the dashboard's « Voir dans la
+  // boutique », « Personnaliser »…); view: 'preview' | 'edit', what a phone shows first (default: the
+  // preview for any page but home); replace: the editor takes the place of the start screen in the
+  // history (Back returns to where the seller came from)
+  function openEditor(config, opts) {
     if (!D) return;
     init();
+    const o = opts && typeof opts === 'object' ? opts : {};
     S.config = D.normalizeConfig(config);
     resetHistory();
     S.openSection = null; S.openProduct = null; S.openItem = {};
+    S.reorder = { sections: false, produits: false };
     S.pendingReveal = null;
     S.scrollY = { edit: 0, preview: 0 };
     S.view = 'edit';
     S.page = 'home';
     S.productId = null;
+    S.pageId = null;
     // A new store starts with an empty demo cart (render.js keeps it on the preview element)
-    ['__jstCart', '__jstForm', '__jstQty', '__jstCartCleared', '__jstPeek', '__jstErr'].forEach((k) => { try { delete els.store[k]; } catch (e) { /* ignore */ } });
+    ['__jstCart', '__jstForm', '__jstQty', '__jstCartCleared', '__jstPeek', '__jstErr', '__jstMenu'].forEach((k) => { try { delete els.store[k]; } catch (e) { /* ignore */ } });
+    // Where to land: a page of the journey, a product, one of the seller's pages
+    let tab = 'sections';
+    let focus = null;
+    const want = typeof o.page === 'string' && isView(o.page) && rendererHasPages() ? o.page : 'home';
+    if (want === 'product') {
+      const pid = [o.productId, o.pageId].find((x) => typeof x === 'string' && findProduct(x)) || (S.config.products[0] ? S.config.products[0].id : null);
+      if (pid) { S.page = 'product'; S.productId = pid; S.openProduct = pid; tab = 'produits'; focus = 'pm-' + pid; }
+    } else if (want === 'page') {
+      const pg = findCustomPage(o.pageId) || customPages()[0] || null;
+      if (pg) { S.page = 'page'; S.pageId = pg.id; tab = 'boutique'; focus = 'pg-' + pg.id; }
+    } else S.page = want;
+    S.pagesSig = null;
     syncPagePicks();
     S.previewDirty = true;
     els.ed.dataset.view = 'edit';
@@ -1955,15 +2189,22 @@
     els.ed.hidden = false;
     document.documentElement.classList.add('b-editing');
     S.open = true;
-    try { if (!(history.state && history.state.jeere === 'editor')) history.pushState({ jeere: 'editor' }, '', '#editeur'); } catch (e) { /* file:// or sandbox */ }
+    try {
+      if (!(history.state && history.state.jeere === 'editor')) history[o.replace ? 'replaceState' : 'pushState']({ jeere: 'editor' }, '', '#editeur');
+    } catch (e) { /* file:// or sandbox */ }
     S.tab = '';
-    setTab('sections', { top: true });
+    setTab(tab, { top: true, focus: isMobile() ? null : focus });
     refreshMeta();
     window.scrollTo(0, 0);
     renderPreviewNow();
     els.stage.scrollTop = 0;
     saveNow();
-    focusEl(els.tabBtns[0]);
+    // On a phone, « Voir » means the preview (opts.view can say otherwise); on a computer the panel opens what is shown
+    if (isMobile() && (o.view === 'preview' || (o.view !== 'edit' && S.page !== 'home'))) { setView('preview'); window.scrollTo(0, 0); focusEl(els.viewBtns[1]); }
+    else if (focus && document.querySelector(`[data-fk="${CSS.escape(focus)}"]`)) {
+      const n = document.querySelector(`[data-fk="${CSS.escape(focus)}"]`);
+      n.scrollIntoView({ block: 'center' });
+    } else focusEl(els.tabBtns[TABS.indexOf(tab)] || els.tabBtns[0]);
   }
   function doShowStart() {
     if (S.open) { commit(); saveNow(); }
@@ -1992,6 +2233,7 @@
     Object.assign(els, {
       root: $('b-root'), start: $('b-start'), startTitle: $('b-start-title'), tpls: $('b-tpls'),
       resume: $('b-resume'), resumeName: $('b-resume-name'), resumeMeta: $('b-resume-meta'), resumeBtn: $('b-resume-btn'), aiBtn: $('b-ai-btn'),
+      shead: $('b-shead'), acctIn: $('b-acct-in'), acctOut: $('b-acct-out'), acctName: $('b-acct-name'), acctAv: $('b-acct-av'),
       ed: $('b-ed'), top: document.querySelector('.b-top'), topStore: $('b-top-store'), topName: $('b-top-name'), saved: $('b-saved'),
       undo: $('b-undo'), redo: $('b-redo'), ficheBtn: $('b-fiche-btn'), publishBtn: $('b-publish-btn'),
       panelScroll: $('b-panel-scroll'), tablist: document.querySelector('.b-tabs'),
@@ -2022,7 +2264,7 @@
     els.undo.addEventListener('click', undo);
     els.redo.addEventListener('click', redo);
     buildPagePicks();
-    els.pagePicks.forEach((sel) => sel.addEventListener('change', () => showPage(sel.value)));
+    els.pagePicks.forEach((sel) => sel.addEventListener('change', () => { const v = parsePick(sel.value); showPage(v.page, v.id); }));
     els.store.addEventListener('jst:navigate', onStoreNavigate);
     // render.js redraws the preview by itself (quantities, payment choice, commune): keep it tamed
     if (window.MutationObserver) {
@@ -2133,13 +2375,86 @@
 
     window.addEventListener('popstate', (e) => {
       const st = e.state;
-      if (st && st.jeere === 'editor') { if (!S.open && S.config) openEditor(S.config); }
+      // Forward to the editor: the saved fiche (the dashboard may have changed it meanwhile), else the one in hand
+      if (st && st.jeere === 'editor') { if (!S.open) { const cfg = readSaved() || S.config; if (cfg) openEditor(cfg); } }
       else if (S.open) doShowStart();
     });
-    const flush = () => { if (S.open) { commit(); saveNow(); } };
     window.addEventListener('pagehide', flush);
     window.addEventListener('beforeunload', flush);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+    // Links to the dashboard and the account pages: save first (the dashboard reads the same fiche)
+    document.addEventListener('click', (e) => {
+      const a = e.target instanceof Element ? e.target.closest('a[data-leave]') : null;
+      if (a) flush();
+    }, true);
+
+    // The dashboard (or the account page) changed the shared state in another tab…
+    window.addEventListener('storage', (e) => {
+      const k = e.key;
+      if (k === null || k === ACCOUNT_KEY) renderAccount();
+      if (k === null || k === STORE_KEY) syncStored(k === null ? readRaw(STORE_KEY) : e.newValue, 'dans un autre onglet');
+    });
+    // …or in this tab, before Back brought this page back from the browser's cache
+    window.addEventListener('pageshow', (e) => {
+      if (!e.persisted) return;
+      renderAccount();
+      const ins = takeOpen();
+      syncStored(readRaw(STORE_KEY), 'dans le tableau de bord');
+      if (ins) openAt(ins);
+    });
+  }
+
+  function flush() { if (S.open) { commit(); saveNow(); } }
+
+  // The fiche in localStorage is not the one this page last read or wrote: the dashboard changed it
+  // (products, pages, payments, delivery…) or deleted it (« Supprimer mon compte »). Take it in.
+  function syncStored(raw, where) {
+    if (raw === S.lastSaved) return;
+    if (raw === null || raw === '') {
+      // Deleted elsewhere: never write it back (not even with Forward to the editor). Back to the start screen.
+      S.lastSaved = null;
+      if (!S.open) { S.config = null; renderStart(); return; }
+      S.open = false;
+      clearTimeout(S.timers.save);
+      clearTimeout(S.timers.commit);
+      S.pending = false;
+      S.config = null;
+      doShowStart();
+      try { if (history.state && history.state.jeere === 'editor') history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+      toast(`Votre boutique a été supprimée depuis le tableau de bord.`, 4000);
+      return;
+    }
+    const cfg = parseConfig(raw);
+    if (!cfg) return;
+    S.lastSaved = raw;
+    if (!S.open) { renderStart(); return; }
+    commit();
+    clearTimeout(S.timers.save);
+    let same = false;
+    try { same = JSON.stringify(cfg) === JSON.stringify(S.config); } catch (e) { same = false; }
+    if (same) return;
+    // A new step in the history: Annuler brings back what this page had
+    S.config = cfg;
+    S.history.length = S.index + 1;
+    S.history.push(copy(cfg));
+    if (S.history.length > HISTORY_MAX) S.history.shift();
+    S.index = S.history.length - 1;
+    if (S.openSection && !findSection(S.openSection)) S.openSection = null;
+    if (S.openProduct && !findProduct(S.openProduct)) S.openProduct = null;
+    renderPreviewNow();
+    renderTab();
+    refreshMeta();
+    updateUndo();
+    toast(`Votre boutique a été modifiée ${where || 'ailleurs'}${NB}: l’aperçu est à jour.`, 3200);
+  }
+
+  // Apply a 'jeere-studio-open' instruction to the fiche in hand
+  function openAt(ins) {
+    if (!ins) return false;
+    const cfg = S.open && S.config ? S.config : readSaved();
+    if (!cfg) return false;
+    openEditor(cfg, { page: ins.page, pageId: ins.pageId, productId: ins.productId, view: ins.view, replace: true });
+    return true;
   }
 
   function onKey(e) {
@@ -2172,7 +2487,11 @@
     const page = rendererHasPages() ? S.page : 'home';
     const noPay = page === 'checkout' && S.config && S.config.payments && !Object.keys(S.config.payments).some((k) => S.config.payments[k] === true);
     const h = noPay ? NOPAY_HINT : (PAGE_HINTS[page] || PAGE_HINTS.home);
-    els.stageHint.textContent = isMobile() ? h[1] : h[0];
+    const text = isMobile() ? h[1] : h[0];
+    if (els.stageHint.__text === text) return;
+    els.stageHint.__text = text;
+    els.stageHint.textContent = text;
+    if (page === 'page' && !isMobile()) els.stageHint.append(' ', el('a', { href: PAGES_URL, 'data-leave': true, text: 'Gérer les pages' }));
   }
 
   function init() {
@@ -2185,14 +2504,42 @@
     }
     bind();
     updateHint();
-    // A reload while editing lands on the start screen, with « Reprendre ma boutique »
-    try { if (/^#editeur$/.test(location.hash) || (history.state && history.state.jeere === 'editor')) history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+    // A reload while editing lands on the start screen, with « Reprendre ma boutique ». Coming back with the
+    // Back button (from the dashboard…) to the editor's history entry reopens the editor instead.
+    let wasEditing = false;
+    let back = false;
+    try { wasEditing = /^#editeur$/.test(location.hash) || !!(history.state && history.state.jeere === 'editor'); } catch (e) { wasEditing = false; }
+    try { const nav = performance.getEntriesByType('navigation')[0]; back = !!nav && nav.type === 'back_forward'; } catch (e) { back = false; }
+    const ins0 = readRaw(OPEN_KEY);
+    if (wasEditing && back && ins0 === null) {
+      const saved = readSaved();
+      if (saved) {
+        try { if (!(history.state && history.state.jeere === 'editor')) history.replaceState({ jeere: 'editor' }, '', '#editeur'); } catch (e) { /* ignore */ }
+        openEditor(saved, { replace: true });
+        return;
+      }
+    }
+    try { if (wasEditing) history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+    // The dashboard sent the seller here to see or customise a page (« Personnaliser », « Voir dans la
+    // boutique »…): open the editor straight on it. The instruction is used once (deleted when read);
+    // a link to …/creer/#assistant is for the assistant (wizard.js) instead.
+    const ins = takeOpen();
+    let assistant = false;
+    try { assistant = location.hash === '#assistant'; } catch (e) { assistant = false; }
+    if (ins && !assistant) {
+      if (openAt(ins)) return;
+      renderStart();
+      toast(`Votre boutique n’est pas encore créée${NB}: choisissez un point de départ.`, 4200);
+      return;
+    }
     renderStart();
   }
 
-  function getPage() { return { page: S.page, productId: S.page === 'product' ? S.productId : null }; }
+  function getPage() {
+    return { page: S.page, productId: S.page === 'product' ? S.productId : null, pageId: S.page === 'page' ? S.pageId : null };
+  }
 
-  window.JeereBuilder = { openEditor, getConfig, showStart, showPage: (page, productId) => { if (S.open) showPage(page, productId); }, getPage };
+  window.JeereBuilder = { openEditor, getConfig, showStart, showPage: (page, id) => { if (S.open) showPage(page, id); }, getPage };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

@@ -9,29 +9,46 @@ It demonstrates Jeere's key architecture: **the AI never writes code.** It fills
 boutique; our three tested templates render it; the editor edits the very same JSON. A store is
 data, not a generated website.
 
-Live (unlisted): https://kreeative.xyz/concepts/jeere/creer/ — `noindex, nofollow`, not linked
-from the landing page and not in the sitemap. French only (Côte d'Ivoire, prices in FCFA).
+Since round 3 the prototype also answers the founder's question « how do sellers sign up to manage
+their pages, and where are the connectors and the other settings? »: a phone-first **account**
+page (`../compte/`), a Shopify-class **seller dashboard** (`../admin/`) with orders, products,
+customers, the store's own pages, payments, delivery, **connectors** and settings, and custom
+store pages in the fiche (`config.pages`). Everything stays a front-end demo: no backend, the
+state lives in this browser's `localStorage`, and every screen says so where it matters.
+
+Live (unlisted): https://kreeative.xyz/concepts/jeere/creer/ (and `/concepts/jeere/compte/`,
+`/concepts/jeere/admin/`) — `noindex, nofollow`, not linked from the landing page and not in the
+sitemap. French only (Côte d'Ivoire, prices in FCFA).
 
 ```
-Start screen « Créez votre boutique »
+../compte/  « Créer un compte » / « Se connecter »                 ../admin/  Tableau de bord
+ prénom + numéro WhatsApp ─► code à 6 chiffres (démo) ─►            Accueil · Commandes · Produits · Clients
+ nom de la boutique ─► « Comment voulez-vous commencer ? » ──────►  Boutique en ligne · Pages · Paiements
+      │ Choisir un modèle / Discuter avec l'assistant                Livraison · Connecteurs · Paramètres
+      ▼                                                                  │ « Personnaliser », « Voir »
+Start screen « Créez votre boutique »                                    ▼ ('jeere-studio-open')
  ├─ Partir d'un modèle ─ Plateau · Cocody · Treichville ─┐
  ├─ Décrire ma boutique ─ l'assistant Jeere (chat) ──────┼──► Editor + live preview ──► Fiche boutique (JSON)
- └─ Partir de zéro ─ « Bientôt »                         │      (same JSON in and out)
+ └─ Partir de zéro ─ « Bientôt »                         │      (same JSON in and out; the dashboard
+                                                          │       reads and writes it too)
                                                           └─ JEERE_DATA.defaultConfig / JeereWizard.generate
 
-Live preview, « Page : Accueil ▾ » (one fiche, five pages):
- Accueil ──► Fiche produit ──► Panier ──► Paiement ──► Confirmation
- (home)      (product)         (cart)     (checkout)    (confirmation)
+Live preview, « Page : Accueil ▾ » (one fiche, five pages, plus the store's own pages):
+ Accueil ──► Fiche produit ──► Panier ──► Paiement ──► Confirmation     Vos pages: À propos · Livraison
+ (home)      (product)         (cart)     (checkout)    (confirmation)   et retours · Contact · Conditions
+                                                                         de vente (page: 'page', pageId)
 ```
 
 ## Open it
 
-- Online: `/concepts/jeere/creer/` on kreeative.xyz.
-- Locally: serve the repository root (the page uses `../favicon.svg` and links back to the landing):
+- Online: `/concepts/jeere/creer/` (editor), `/concepts/jeere/compte/` (account) and
+  `/concepts/jeere/admin/` (dashboard) on kreeative.xyz.
+- Locally: serve the repository root (the pages use `../favicon.svg`, `../creer/data.js` and link
+  back to the landing):
 
   ```sh
   python3 -m http.server 8000 --directory /path/to/kreeative-
-  # then open http://localhost:8000/concepts/jeere/creer/
+  # then open http://localhost:8000/concepts/jeere/creer/, …/compte/ or …/admin/
   ```
 
 ## Files and who does what
@@ -41,13 +58,18 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 
 | File | Role | Global |
 | --- | --- | --- |
-| `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, 6 font pairs, the 8 section types and their form fields, 8 niches with French example content, Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `newId`, `clone`. No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
+| `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, 6 font pairs, the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
 | `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, draws product illustrations in SVG when there is no photo, never makes a network request. Store CSS is scoped under `.jst`. | `window.JeereRender` |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
 | `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jeere assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
-| `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1. | — |
-| `prompts.md` | In French: the single AI assistant of the real product — system prompt, its one tool, the free code around it, the self-improvement loop, the TypeScript orchestration and the cost estimate. | — |
-| `README.md` | This file. | — |
+| `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1, `pages` included. | — |
+| `prompts.md` | In French: the single AI assistant of the real product — system prompt, its one tool, the free code around it, the self-improvement loop, the TypeScript orchestration and the cost estimate. The assistant can also adapt the 4 default pages. | — |
+| `README.md` | This file: the whole prototype, the account and the dashboard included. | — |
+| `../compte/` (`index.html`, `compte.css`, `compte.js`) | Sign-up and login, phone number first, no e-mail: see [Seller accounts](#seller-accounts-compte). Loads `../creer/data.js`. | — |
+| `../admin/` (`index.html`, `admin.css`, `admin.js`) | The seller dashboard: see [The seller dashboard](#the-seller-dashboard-admin). Loads `../creer/data.js`, `../creer/render.js` and `../creer/store.css` (for its mini preview of the store). | — |
+
+The three apps share four `localStorage` keys, listed in
+[Shared browser storage](#shared-browser-storage).
 
 The builder chrome (start screen, editor, chat) is black and white only, in Poppins with a
 Montserrat fallback for ɛ ɔ ŋ, like the landing page; its only grey is the silver of the logo.
@@ -72,6 +94,10 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
   ],
   "products": [
     { "id": "p1", "name": "Beurre de karité fouetté", "price": 6500, "category": "Corps", "badge": "best", "art": "jar", "color": "#E9D8BD", "description": "…", "image": null }
+  ],
+  "pages": [
+    { "id": "pg1", "title": "À propos", "slug": "a-propos", "body": "Awa Beauté, ce sont des soins simples…\n\nTout a commencé dans notre cuisine à Cocody…", "inMenu": true, "inFooter": true },
+    { "id": "pg3", "title": "Contact", "slug": "contact", "body": "Le plus simple pour nous joindre, c'est WhatsApp…", "inMenu": true, "inFooter": true }
   ]
 }
 ```
@@ -88,10 +114,11 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
 | `payments` | exactly `wave`, `orange`, `mtn`, `moov`, `cod`, `card` (booleans), shown as plain text, never with the operators' logos or colours: in the footer, on the product page and as the checkout's payment options |
 | `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`). The zones of the first enabled `delivery` section (else of a hidden one) are also the checkout's commune list |
 | `products[]` | ids `p1`, `p2`…; `price` is a whole number of FCFA (`6500`, formatted `6 500 FCFA` for display); `badge` `null`, `new`, `best` or `promo`; `art` one of 12 illustrations; `color` `#RRGGBB`; `image` `null` or a JPEG data URL (≤ 800 px wide) |
+| `pages[]` | the store's own pages, 20 at most: ids `pg1`, `pg2`…; `title` ≤ 60; `slug` unique, `[a-z0-9]` words joined by hyphens; `body` plain text ≤ 4 000 characters, paragraphs separated by a blank line; `inMenu`, `inFooter` booleans — see [The store's own pages](#the-stores-own-pages-configpages) |
 
 The header and the footer are always rendered and are not sections. Character limits (hero
-title 70, announcement 90, product name 60, store name 40…) are the editor's and are in the
-schema.
+title 70, announcement 90, product name 60, store name 40, page title 60, page body 4 000…) are
+the editor's and the dashboard's, and are in the schema.
 
 Three layers check a fiche:
 
@@ -101,13 +128,15 @@ Three layers check a fiche:
 2. **`JEERE_DATA.validate(config)`** — quality rules with a score out of 100 and a status
    (`APPROUVÉ` or `À CORRIGER`): empty store name, no payment method, products section with no
    product, unknown template, palette, fonts or colour intensity, missing WhatsApp number, fewer
-   than 3 products, products without a photo… The editor's Qualité tab shows them. A default
-   fiche scores 92. Each issue has a `target` (`{ kind: 'theme', id: 'intensity' }`…) that the
-   Qualité tab uses to open the right control.
+   than 3 products, products without a photo, a page without a title… The editor's Qualité tab
+   shows them. A default fiche scores 92. Each issue has a `target` (`{ kind: 'theme', id:
+   'intensity' }`, `{ kind: 'page', id: 'pg2' }`…) that the Qualité tab uses to open the right
+   control.
 3. **`JEERE_DATA.normalizeConfig(anything)`** — repairs: fills missing keys, drops unknown types,
    fixes ids, parses prices (`'12 500 FCFA'` → `12500`), reads a fiche saved without
-   `theme.intensity` as `vivid`. The editor runs it on import and on load. Unique ids are
-   guaranteed here (JSON Schema cannot express them).
+   `theme.intensity` as `vivid`, gives a fiche saved without `pages` the 4 default pages of its
+   niche. The editor runs it on import and on load, the dashboard on every write. Unique ids and
+   page slugs are guaranteed here (JSON Schema cannot express them).
 
 ## The store pages and the checkout journey
 
@@ -246,6 +275,78 @@ the Livraison section, whose zones feed the product page, the checkout and the c
 `JeereBuilder.showPage(page, productId)` and `JeereBuilder.getPage()` expose the same thing to
 scripts. The start screen thumbnails and template cards always render the home page.
 
+## The store's own pages (`config.pages`)
+
+Besides the five pages of the buying journey, a store has its own pages, like Shopify's « Pages »:
+« À propos », « Livraison et retours », « Contact », « Conditions de vente », or anything the seller
+adds (« Guide des tailles »…). They live in the fiche, so the assistant, the editor, the dashboard
+and the renderer all see the same ones.
+
+```js
+config.pages = [
+  { id: 'pg1', title: 'À propos', slug: 'a-propos', body: '…', inMenu: true, inFooter: true },
+  { id: 'pg2', title: 'Livraison et retours', slug: 'livraison-et-retours', body: '…', inMenu: false, inFooter: true },
+  { id: 'pg3', title: 'Contact', slug: 'contact', body: '…', inMenu: true, inFooter: true },
+  { id: 'pg4', title: 'Conditions de vente', slug: 'conditions-de-vente', body: '…', inMenu: false, inFooter: true }
+];
+JEERE_DATA.PAGE_LIMITS = { title: 60, slug: 60, body: 4000, max: 20 };
+JeereRender.render(config, rootEl, { device, page: 'page', pageId: 'pg3' });
+```
+
+- **`body`** is plain text, never HTML or Markdown: paragraphs separated by a blank line (the
+  renderer escapes it). **`slug`** is the page's address, `JEERE_DATA.slugify(title)` by default:
+  accents removed (also ɛ ɔ ŋ, œ, æ), lower case, words joined by hyphens, 60 characters at most
+  (`slugify('Conditions d’utilisation !')` → `'conditions-d-utilisation'`).
+- **The 4 default pages**, written for each of the 8 niches (and a generic set when the store has
+  no niche), in French, with the store's name and city:
+  - « À propos » (menu and footer): who the store is, the niche's story (the same as the home
+    page's À propos section), how it works, and an invitation to ask on WhatsApp.
+  - « Livraison et retours » (footer): days, fees by commune shown before paying, the niche's
+    delays, checking the parcel in front of the courier, delivery outside the city, a return
+    policy that fits the niche (hygiene for wigs and cosmetics, fresh food never taken back,
+    7-day size exchange for clothes and shoes, handmade variations for crafts), refunds by mobile
+    money. The renderer adds the store's fees by commune under it.
+  - « Contact » (menu and footer): WhatsApp first (hours as an example to edit), where the store
+    is (`{city}`), what to send for an order already placed. The renderer adds the WhatsApp
+    contact block with the store's number; the text never contains the number.
+  - « Conditions de vente » (footer): seller, order, prices in FCFA, payment through an approved
+    partner (never give your secret code), delivery, returns, personal data, disputes under
+    Ivorian law. It **starts with « À adapter : ce texte est un modèle général. Faites-le vérifier
+    par un juriste avant d’ouvrir votre boutique, puis supprimez ce paragraphe. »**: it is a
+    sensible template, not legal advice.
+  - The example promises stay those of the niche's example content (the shoe store's free size
+    exchange, the jewellery's one-year clasp repair…): the seller edits them, like the products.
+- **`JEERE_DATA.pageKind(page)`** returns `'about'`, `'shipping'`, `'contact'` or `'terms'` for the
+  4 default slugs (else `null`); `JEERE_DATA.defaultPages(nicheId, { name, city })` returns fresh
+  default pages; `JEERE_DATA.uniqueSlug(config, title, exceptId)` a free slug for the dashboard's
+  address field; `JEERE_DATA.newId(config, 'pg')` the next free id.
+- **`normalizeConfig`**: a fiche without `pages` (saved before round 3) gets the 4 default pages
+  of its niche; an array is the seller's list and is kept, even empty, and repaired: non-objects
+  dropped, ids `pgN` made unique, the title on one line and clipped at 60, the body clipped at
+  4 000 (line breaks normalised to `\n`), `inMenu` / `inFooter` read as booleans (missing: footer
+  only), the slug slugified, taken from the title when missing, made unique with `-2`, `-3`… (the
+  first page keeps it), `'page'` when nothing is left.
+- **Untouched default pages follow the store.** A default body is written with `{name}` and
+  `{city}`; `normalizeConfig` recognises an untouched default body (any niche, any name, any city)
+  and rewrites it with the current store name and city, so a store renamed by the assistant
+  (`JeereWizard.generate` renames the store after `defaultConfig`) or relocated in the dashboard
+  never shows the example store's name. A page the seller has edited, even by one character, is
+  never touched. An empty name reads « Notre boutique », an empty city « Abidjan ».
+- **`validate`** (target `{ kind: 'page', id }`): a page without a title is an **error**; a
+  duplicate slug, an invalid slug, a title over 60 or a body over 4 000 characters are
+  **warnings**; an empty body, or a page in neither the menu nor the footer, is a **tip**. The 4
+  default pages raise nothing, so a default fiche still scores 92.
+- **In the store** (renderer): on desktop the header nav shows the pages with `inMenu` after the
+  section links (5 links at most in all); on the phone the menu icon opens a small in-preview menu
+  (home, the `inMenu` pages, the cart). The footer has a column of the `inFooter` pages. Clicking
+  them navigates inside the preview and dispatches `jst:navigate` with `{ page: 'page', pageId }`.
+  Every store page ends with a discreet « Propulsé par Jeere » (the mark is inline SVG in
+  `currentColor`, so the store does not depend on the builder's symbols).
+- **In the editor**: the page selector lists the 5 pages, then the group « Vos pages », and a link
+  « Gérer les pages » to `../admin/#pages`. **In the dashboard**: `#pages` lists, adds, edits
+  (title, slug auto-filled and editable, body with a counter, menu, footer), reorders and deletes
+  them; `#boutique` › « Navigation » toggles `inMenu` / `inFooter`.
+
 ## Colour intensity
 
 The founder felt the stores looked pale. A fiche now says how much of the page its colour covers,
@@ -343,6 +444,192 @@ symbol) and the EE monogram.
 - **The brand word** is written « Jeere » in the UI copy (« l'assistant Jeere », « Retour à
   Jeere »). Code identifiers keep their names: `JEERE_DATA`, `jeere-studio-config`, `.jst`, `.jwz`.
 
+## Seller accounts (`../compte/`)
+
+How a seller signs up to manage her store: **phone number first, no e-mail, no password**, like
+the brainstorm and like the mobile-money apps she already uses. One step per screen, big inputs,
+built for 360 px with the on-screen keyboard open.
+
+```
+#inscription (default when there is no account)
+  Prénom + Numéro WhatsApp (+225 by default, the landing form's country list)
+   └─ « Recevoir le code » ─► 6 boxes (paste works, autocomplete="one-time-code", resend after 30 s)
+       └─ « Le nom de votre boutique » (prefilled from the fiche when there is one)
+           └─ « Comment voulez-vous commencer ? »
+                Choisir un modèle → ../creer/ · Discuter avec l'assistant → ../creer/#assistant
+                Aller au tableau de bord → ../admin/
+#connexion
+  Numéro ─► code ─► ../admin/   (another number than the saved account's: offer to create one)
+```
+
+- **Demo, said on the screen**: « Démo : aucun SMS ni WhatsApp n'est envoyé. Tapez n'importe quel
+  code à 6 chiffres. » The consent line reads « En continuant, vous acceptez les conditions et la
+  politique de confidentialité de Jeere. »
+- **Saved** as `'jeere-account'` = `{ version: 1, firstName, phone, storeName, createdAt, plan,
+  loggedIn }` (`phone` normalised with `normalizeWhatsapp`, `+2250707123456`; `plan` `'gratuit'` at
+  sign-up; `loggedIn: true`). When a fiche exists, sign-up sets its `store.name` and
+  `store.whatsapp` only if they are empty. `JEERE_DATA.normalizeAccount(raw)` turns whatever was
+  saved into that shape (or `null` when there is no account).
+- **In the real product**: the same screens on Supabase Auth's phone sign-in, with a one-time code
+  sent over WhatsApp (an approved WhatsApp Business provider) or by SMS as a fallback; rate limits
+  per number; the session in an HTTP-only cookie; the store row tied to the user id.
+
+## The seller dashboard (`../admin/`)
+
+A Shopify-class admin, mobile-first because the seller runs her shop from her phone: a left
+sidebar on desktop (logo, store name, « Voir la boutique », the sections), a bottom bar on the
+phone (Accueil, Commandes, Produits, Boutique, Plus). Hash routes, so the Back button works. A
+search box finds orders, products and customers; the account menu shows the plan and « Se
+déconnecter » (`loggedIn: false`, back to the gate).
+
+- **Gate**: without a logged-in account, « Connectez-vous pour gérer votre boutique », with « Créer
+  un compte » / « Se connecter » (`../compte/`) and « Voir la démo » (a demo account « Awa », plan
+  gratuit, and `defaultConfig('cocody', 'beauty')` when there is no fiche).
+
+| Route | What it does |
+| --- | --- |
+| `#accueil` | Greeting; KPI cards from the demo orders (Ventes, Commandes, Panier moyen, Commandes à préparer, labelled « Données d'exemple »); the « Lancez votre boutique » checklist computed from the real state (3 products with photos, mobile money connected, WhatsApp number, delivery zones, pages complete, quality score ≥ 80 from `validate`, domain chosen); a small live preview of the store (`JeereRender`) with « Personnaliser »; recent orders |
+| `#commandes` | Orders with status filters, counts and search; the detail (items, customer, commune, address, payment, channel, timeline); status changes (Payée → Expédiée → Livrée, Annuler); « Écrire au client sur WhatsApp » (a `wa.me` link with a pre-filled French message); « Imprimer le bon » (print stylesheet) |
+| `#produits` | The fiche's products: add, edit, duplicate, delete, photo (downscaled like the editor: ≤ 800 px, JPEG 0.8); an optional stock kept outside the fiche in `'jeere-admin'.stock[productId]`; « Voir dans la boutique » opens the editor on that product page |
+| `#clients` | Customers aggregated from the orders (orders, total spent), WhatsApp contact |
+| `#boutique` | « Boutique en ligne »: theme (template, palette, intensity, « Personnaliser »), pages, navigation (`inMenu` / `inFooter`), preferences (name, tagline, city, WhatsApp: written to the fiche) |
+| `#pages` | The fiche's pages (see above) |
+| `#paiements` | The 6 methods on or off (`fiche.payments`), the mobile-money connector and payout number, the plan's Jeere fee per sale and the partner's fee (« par exemple 1,95 % pour le mobile money »), « Jeere ne garde jamais votre argent » |
+| `#livraison` | Delivery zones and fees (the delivery section's `settings.zones`, a delivery section is created if there is none), delays, couriers (connectors `yango`, `gozem`, `livreurs`) |
+| `#connecteurs` | The connectors catalogue (below), « Démo : aucune connexion réelle n'est faite. » |
+| `#parametres` | Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`<slug>.jeere.shop`, a custom domain with DNS instructions, « À vérifier »), Équipe (invite by name, phone and role), Abonnement (the 4 plans, change, mois/semaine, « Mettre en pause », « Payer par mobile money »: a demo dialog), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
+
+The dashboard writes the fiche through `JEERE_DATA.normalizeConfig`, so the editor opens exactly
+what the dashboard saved. To open the editor on a given page it sets `'jeere-studio-open'`
+(below); the editor's top bar has « Tableau de bord » (`../admin/`), and its start screen says
+« Bonjour {prénom} » with « Tableau de bord » when an account is logged in, else « Se connecter »
+and « Créer un compte ».
+
+**`'jeere-admin'`** = `{ version: 1, orders: [Order], settings, connectors, stock? }`, created
+lazily:
+
+```js
+JEERE_DATA.ADMIN_DEFAULTS = {            // the settings; subdomain '' = fill with subdomainFor(name)
+  language: 'fr', subdomain: '', customDomain: '', payoutPhone: '', payoutMethod: 'wave',
+  notifications: { newOrderWhatsapp: true, newOrderSms: false, dailySummary: true, lowStock: false },
+  team: [],                              // { name, phone, role: 'proprietaire' | 'gestion' | 'livraison' }
+  billing: { cycle: 'mois', paused: false }  // or 'semaine'
+};
+JEERE_DATA.subdomainFor('Awa Beauté');  // 'awa-beaute.jeere.shop'
+JEERE_DATA.adminDefaults(config, account, now);   // a fresh 'jeere-admin': settings (subdomain, payout
+                                                  // number, the owner in the team), {} connectors, 14 demo orders
+JEERE_DATA.normalizeAdmin(saved, config, now);    // repairs any saved value; keeps unknown keys (stock…)
+```
+
+`TEAM_ROLES` gives the three roles with a French hint, `OPERATOR_OPTIONS` the four payout
+operators (plain text), `DNS_TARGET` the CNAME target (`boutiques.jeere.shop`, a placeholder).
+`ADMIN_DEFAULTS` is shared: clone it before changing it.
+
+## Connectors
+
+The catalogue of `#connecteurs`, in `data.js` so the real product and the prototype list the same
+services. Service names appear as plain text; never their logos or brand colours (`icon` is a
+neutral pictogram name the dashboard draws itself).
+
+```js
+JEERE_DATA.CONNECTOR_CATEGORIES = [{ id, label, hint }]   // in this order
+JEERE_DATA.CONNECTORS = [{ id, category, name, description, icon, fields: [{ key, label, type, placeholder?, options?, default? }], note?, soon?, payments? }]
+// fields[].type: 'text' | 'tel' | 'select' (options [{ value, label }]) | 'toggle' (stored as 'true' / 'false')
+// state: 'jeere-admin'.connectors[id] = { status: 'connected' | 'off', values: { [key]: string }, connectedAt }
+```
+
+| Category | id | Name | Fields |
+| --- | --- | --- | --- |
+| Paiements | `mobile-money` | Paiement mobile money (Wave, Orange Money, MTN MoMo, Moov Money through a partner approved by the BCEAO; `payments: wave, orange, mtn, moov`) | payout number, payout operator |
+| | `card` | Carte bancaire et diaspora (`payments: card`) | payout number, name on the customer's statement |
+| Messagerie | `whatsapp` | WhatsApp Business | number, automatic order messages |
+| | `sms` | SMS | sender name, order confirmation SMS |
+| Réseaux sociaux | `instagram` | Instagram | account, import posts as products, link in bio |
+| | `tiktok` | TikTok | account, link on the profile |
+| | `facebook` | Facebook | page, show products on the page |
+| Livraison | `yango` | Yango | account number, pick-up address |
+| | `gozem` | Gozem | account number, pick-up address |
+| | `livreurs` | Mes livreurs | two couriers: first name and number |
+| Mesure d'audience | `google-analytics` | Google Analytics | measurement id |
+| | `meta-pixel` | Pixel Meta | pixel id |
+| | `tiktok-pixel` | Pixel TikTok | pixel id |
+| Nom de domaine | `domain` | Nom de domaine | domain (CNAME `www` → `boutiques.jeere.shop`) |
+| Intelligence artificielle | `assistant` | Assistant Jeere (writes descriptions, answers customers on WhatsApp) | none: `soon: true`, « Bientôt » |
+
+Every connector has a one-sentence French `description`; `note` carries the honest small print
+(the partner's fees, « Jeere ne garde jamais votre argent », consent before any measurement). In
+the prototype nothing is connected: the dialog saves the values in `'jeere-admin'` and the page
+says « Démo : aucune connexion réelle n'est faite. » In the real product each connector is a
+server-side integration (the payment partner's API and webhooks, the WhatsApp Business Platform,
+Meta and TikTok catalogue APIs…), with secrets that never reach the browser.
+
+## Plans
+
+`JEERE_DATA.PLANS` is exactly the landing page's pricing (`../index.html#tarifs`):
+
+| id | name | price | orders per month | Jeere fee per online sale |
+| --- | --- | --- | --- | --- |
+| `gratuit` | Gratuit | 0 FCFA | 20 | 3 % |
+| `essentiel` | Essentiel (`recommended`) | 3 000 FCFA / mois, or 1 000 FCFA par semaine | 150 | 1 % |
+| `pro` | Pro | 10 000 FCFA / mois | 600 | 0 % |
+| `business` | Business | 25 000 FCFA / mois | unlimited (`orders: null`, `unlimited: true`) | 0 % |
+
+Each plan has `priceMonth`, `priceWeek` (`null` when there is no weekly price), `orders`, `fee` (a
+percentage), ready-made French labels (`priceLabel`, `priceWeekLabel`, `ordersLabel`, `feeLabel`),
+`for` (« Pour démarrer »…), `support: true` and `features` (= `PLAN_FEATURES`): every feature and
+human support are in every plan, a seller moves up when she sells more. `PLAN_NOTE` is the
+landing's small print (« Tarifs prévus pour le lancement… par exemple 1,95 % pour le mobile
+money »).
+
+## Demo orders
+
+```js
+JEERE_DATA.demoOrders(config, n = 14, now = new Date())   // also (config, { n, now }) and (config, now)
+// demoOrders(defaultConfig('cocody', 'beauty'), 14, '2026-11-03T12:00:00Z')[0] →
+//    { id: '#1055', date: '2026-11-03T11:28:00.000Z',
+//      customer: { name: 'Yao N.', phone: '+2250100451676', commune: 'Adjamé', address: 'Williamsville, face au marché' },
+//      items: [{ productId: 'p2', name: 'Savon noir au karité', qty: 1, price: 3000 }],
+//      subtotal: 3000, delivery: 2000, total: 5000,
+//      payment: 'orange', status: 'new', channel: 'boutique' }      // some orders also have a note
+JEERE_DATA.ORDER_STATUSES = [{ id: 'new', label: 'Nouvelle' }, { id: 'paid', label: 'Payée' },
+  { id: 'shipped', label: 'Expédiée' }, { id: 'delivered', label: 'Livrée' }, { id: 'cancelled', label: 'Annulée' }];
+JEERE_DATA.ORDER_CHANNELS = [{ id: 'boutique', … }, { id: 'whatsapp', … }, { id: 'instagram', … }, { id: 'tiktok', … }];
+```
+
+- **Deterministic**: a seeded generator (no `Math.random`): the same fiche and the same `now` give
+  the same orders, byte for byte; another `now` only shifts the dates.
+- Made from the fiche: items are its products (name and price), 1 to 3 per order; the customer's
+  commune is one of the checkout's zones (`JEERE_DATA.deliveryZones(config)`: the first enabled
+  delivery section, else a hidden one, else the communes) and the delivery fee is that zone's;
+  the payment is one of the **enabled** methods (`'cod'` when none is: the order came by
+  WhatsApp). No product: no order.
+- Newest first; ids from `#1042` (the oldest) up; dates over the last 10 days, never after `now`
+  (Abidjan is on UTC, so the ISO time is the local time); a realistic mix of statuses (a few
+  « Nouvelle » and « Payée » to prepare, some « Expédiée », mostly « Livrée », one « Annulée »;
+  a cash-on-delivery order is never « Payée » before it is delivered); a few customers order
+  twice; some orders carry a note.
+- The customers are made up (an Ivorian first name and an initial, a `+225 07 00…` style number,
+  a real quartier and a landmark). The dashboard labels everything built on them « Données
+  d'exemple ».
+
+## Shared browser storage
+
+The editor, the account page and the dashboard are separate pages that share four
+`localStorage` keys (`JEERE_DATA.STORAGE_KEYS`). Every read and write is in `try/catch`; a
+missing, corrupted or older value falls back to the defaults, and a browser where `localStorage`
+throws still works for the session.
+
+| Key | Holds | Written by | Read by |
+| --- | --- | --- | --- |
+| `jeere-studio-config` | The fiche boutique, always through `normalizeConfig` | editor, dashboard, account (name and WhatsApp when empty) | all three |
+| `jeere-account` | `{ version: 1, firstName, phone, storeName, createdAt, plan, loggedIn }` | account page, dashboard (plan, log out, demo account) | all three (`normalizeAccount`) |
+| `jeere-admin` | `{ version: 1, orders, settings, connectors, stock? }`, created from `ADMIN_DEFAULTS` and `demoOrders(config)` | dashboard | dashboard (`normalizeAdmin`) |
+| `jeere-studio-open` | One-shot `{ page, pageId?, productId? }`: the editor opens directly on that page, then deletes the key | dashboard, account page | editor |
+
+« Supprimer mon compte » (dashboard › Paramètres › Données) clears all four. In the real product
+they become Supabase rows (the store, the account, orders, settings, connectors), shared by the
+seller's devices and her team.
+
 ## What is simulated
 
 - **The assistant runs locally, without AI.** In this prototype, « l'assistant Jeere » understands
@@ -358,6 +645,16 @@ symbol) and the EE monogram.
 - **Nothing is published and nothing leaves the browser.** « Publier » opens a dialog that
   explains this and points to the waitlist (`../#liste`). The work is saved in `localStorage` on
   this device only.
+- **The account is a demo.** No SMS or WhatsApp message is sent and any 6-digit code is
+  accepted (the screen says so); the account is a `localStorage` entry on this device, not a
+  login anyone could use elsewhere.
+- **The dashboard's orders, customers and KPIs are examples** computed by `demoOrders` from the
+  fiche (labelled « Données d'exemple »); changing a status only changes this browser's copy.
+  Its WhatsApp buttons open `wa.me` links to made-up numbers. **Connectors connect nothing**
+  (« Démo : aucune connexion réelle n'est faite. »); the custom domain is never verified;
+  changing plan and « Payer par mobile money » open a demo dialog and charge nobody. What the
+  dashboard writes to the fiche (products, pages, payments, delivery zones, store preferences)
+  is real fiche data: the editor shows it.
 - **The cart, the checkout and the confirmation are a demo inside the preview.** The cart is held
   in memory on the preview element; the form fields work but nothing is sent; « Payer » never
   charges anyone and always leads to the same confirmation (« Commande n° 1042 »). WhatsApp links
@@ -398,6 +695,22 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
    correction (« non, plutôt audacieux »), then « Ouvrir l'éditeur »: the store is vivid.
 9. No horizontal scroll at 360 px, the input stays above the on-screen keyboard, Esc closes the
    dialogs, everything works with the keyboard.
+10. Page selector, « Vos pages »: open À propos, Livraison et retours, Contact (with its WhatsApp
+    block) and Conditions de vente, on both devices; the header menu (desktop) and the phone menu
+    list the `inMenu` pages, the footer lists the `inFooter` pages and ends with « Propulsé par
+    Jeere ». Ask the assistant for « Chez Fanta » in Bouaké: the pages say « Chez Fanta » and
+    « Bouaké ».
+11. `../compte/`: sign up with a first name and a number (any 6-digit code; paste a code; wait for
+    « Renvoyer le code »), name the store, pick « Aller au tableau de bord ». Log out from the
+    dashboard and log in again with the same number; try another number (it offers to create an
+    account).
+12. `../admin/`: without an account, the gate and « Voir la démo »; then every route at 360 px and
+    on desktop: change an order's status, write to a customer, print a slip; add a product with a
+    photo; edit, reorder and delete a page and see it in the editor; turn payment methods off;
+    edit delivery fees; connect and disconnect a connector; change plan and cycle; export the
+    fiche and the orders; « Supprimer mon compte ». Reload after each step: everything persists.
+13. Corrupt each key in the console (`localStorage.setItem('jeere-admin', '{oops')`…) and reload
+    the three pages: they fall back to the defaults without an error.
 
 From the command line (Node, from this folder):
 
@@ -411,7 +724,32 @@ node -e "global.window={};require('./data.js');const D=window.JEERE_DATA;const c
 # validate a fiche against schema.json (draft 2020-12), with either tool
 npx ajv-cli validate --spec=draft2020 -s schema.json -d /tmp/fiche.json
 python3 -c "import json,jsonschema;jsonschema.Draft202012Validator(json.load(open('schema.json'))).validate(json.load(open('/tmp/fiche.json')));print('valid')"
+
+# pages: a fiche saved before round 3 gets the 4 default pages, with its own name and city
+# (prints: 4 a-propos,livraison-et-retours,contact,conditions-de-vente true)
+node -e "global.window={};require('./data.js');const D=window.JEERE_DATA;const c=D.defaultConfig('plateau','fashion');delete c.pages;c.store.city='Bouaké';const n=D.normalizeConfig(c);console.log(n.pages.length, n.pages.map(p=>p.slug).join(), n.pages[2].body.includes('Bouaké'))"
+
+# demo orders are deterministic for a given date and use only the enabled payment methods (prints: true [ 'cod', 'mtn', 'orange', 'wave' ])
+node -e "global.window={};require('./data.js');const D=window.JEERE_DATA;const c=D.defaultConfig('cocody','beauty');const a=D.demoOrders(c,14,'2026-11-03T12:00:00Z'),b=D.demoOrders(c,14,'2026-11-03T12:00:00Z');console.log(JSON.stringify(a)===JSON.stringify(b),[...new Set(a.map(o=>o.payment))].sort())"
 ```
+
+**Round 3 checks** (Node and Python `jsonschema`, about 5 000 assertions): all 27
+`defaultConfig(template, niche)` fiches (3 templates × 8 niches, and without a niche) validate
+with 0 errors, score 92, pass `schema.json` and are unchanged by `normalizeConfig`; a fiche
+without `pages` gets the 4 default pages with its own name and city; the assistant's
+`generate()` (renamed, relocated stores) gives pages with the new name and city and passes the
+schema; an edited page is never rewritten; garbage pages (duplicate ids and slugs, accents,
+missing fields, non-objects, a title of 80 and a body of 5 000 characters) are repaired into a
+fiche that passes the schema, and `normalizeConfig` is stable on its own output; `validate`
+reports the empty title (error), the duplicate or invalid slug (warnings), the empty or
+unreachable page (tips) and never throws; the schema rejects a missing `pages`, a bad id, slugs
+with accents, capitals or a trailing hyphen, a title of 61, a body of 4 001, a string boolean, an
+extra key and 21 pages. `demoOrders` is identical for the same date for every template × niche,
+dates are within the 10 days before `now`, newest first, totals add up, fees are those of the
+customer's commune, items are the fiche's products, the payments are only enabled ones (only
+`moov` when only Moov is on, `cod` when none is), and it returns `[]` without products. `PLANS`
+match the landing; every new string follows French typography (non-breaking spaces before
+: ; ? ! % and inside « », 12 500 FCFA, 14 h).
 
 When the schema was written, every `defaultConfig(template, niche)` (3 templates × 8 niches),
 `normalizeConfig` of garbage input and an editor-like fiche with a photo validated, with both
@@ -424,9 +762,14 @@ value).
 
 ## Known limits
 
-- One store per browser, saved in `localStorage`: no account, no sync between devices. Large
-  photos can fill the storage quota; the editor then saves the store without its photos, says so
-  and keeps working. Download the fiche boutique to keep the photos.
+- One store and one demo account per browser, saved in `localStorage`: no real login, no sync
+  between devices, no team that actually shares the store. Large photos can fill the storage
+  quota; the editor then saves the store without its photos, says so and keeps working.
+  Download the fiche boutique to keep the photos.
+- The default pages are good starting texts, not legal advice: « Conditions de vente » says to
+  have it checked by a lawyer, and the return promises are examples to adapt.
+- Stock lives in the dashboard's storage, outside the fiche (the fiche has no stock): the store
+  never shows « épuisé ».
 - The local assistant only knows its keyword lists; an unusual phrasing gets « je n'ai pas
   compris » and the chips. It never invents products: it uses the niche's example products.
 - The example reviews in the default fiches are made up. A real store must never publish invented
@@ -445,7 +788,9 @@ value).
    Function holding the Anthropic API key as a secret, the system prompt and its one tool, code
    validation with `schema.json` and `JEERE_DATA.validate`, monthly and per-store budget caps, and
    this prototype's local assistant as the free fallback.
-2. Save fiches in Supabase (one row per store) instead of `localStorage`, with a seller account.
+2. Save fiches in Supabase (one row per store) instead of `localStorage`, with the seller
+   account of `../compte/` on Supabase Auth's phone sign-in (one-time code over WhatsApp, SMS as
+   a fallback), and the dashboard's orders, settings, team and connectors as rows of their own.
 3. Start the « il se nourrit lui-même » loop: anonymised kept stores (opt-in), the nightly job that
    updates the defaults library (template, palette and intensity per niche), the few-shot examples
    and the keyword lists.
