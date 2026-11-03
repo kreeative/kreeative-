@@ -1,5 +1,5 @@
 /* Jeere Studio — wizard.css
-   « l’assistant Jeere » : the « Décrire ma boutique » chat. Black and white only (Jeere brand; the avatar is
+   « l’assistant Jeere » : the « Décrire ma boutique » chat. Black and white (Jeere brand, colour only for a meaning: the orange warning card; the avatar is
    the hand-drawn Jeere cloud, white on black);
    the store preview inside the summary card brings its own colours.
    Every rule is scoped under .jwz (the overlay), plus html.jwz-lock while it is open.
@@ -15,6 +15,8 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
   --jwz-muted: #5E5E5E;
   --jwz-line: rgba(17, 17, 17, .12);
   --jwz-line2: rgba(17, 17, 17, .22);
+  /* Status colours: the shared names and values of builder.css / admin.css (README « Couleurs d’état »). Only orange is used here */
+  --warn: #C76A00; --warn-bg: #FFF0D9; --warn-ink: #8A4600;
   --jwz-font: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --jwz-col: 720px;
   --jwz-av: 30px;
@@ -231,7 +233,8 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
 .jwz-card__next { margin: 14px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--jwz-g1); font-size: 13.5px; line-height: 1.45; }
 .jwz-card__next strong { font-weight: 500; }
 .jwz-card__actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-.jwz-card__warn { margin: 0 0 4px; padding: 10px 12px; border: 1.5px solid var(--jwz-ink); border-radius: 12px; font-size: 13.5px; line-height: 1.45; }
+.jwz-card__warn { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 4px; padding: 10px 12px; border: 1.5px solid var(--warn); border-radius: 12px; background: var(--warn-bg); color: var(--warn-ink); font-size: 13.5px; line-height: 1.45; }
+.jwz-card__warn::before { content: '!' / ''; display: grid; place-items: center; flex: none; width: 19px; height: 19px; margin-top: 1px; border-radius: 50%; background: var(--warn); color: #FFFFFF; font-size: 12px; font-weight: 700; line-height: 1; }
 .jwz-note { margin: 10px 4px 0; font-size: 12.5px; line-height: 1.45; color: var(--jwz-muted); }
 
 /* ---------- Composer ---------- */

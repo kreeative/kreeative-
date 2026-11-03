@@ -72,9 +72,61 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 The three apps share four `localStorage` keys, listed in
 [Shared browser storage](#shared-browser-storage).
 
-The builder chrome (start screen, editor, chat) is black and white only, in Poppins with a
+The builder chrome (start screen, editor, chat) is black and white, in Poppins with a
 Montserrat fallback for ɛ ɔ ŋ, like the landing page; the logo is black ink too (the hand-drawn cloud).
-The stores in the preview are in colour: sellers bring the colour.
+The stores in the preview are in colour: sellers bring the colour. The platform UI (editor, assistant,
+dashboard, account) only adds colour when it means something: see [Couleurs d’état](#couleurs-détat).
+
+### Couleurs d’état
+
+Black and white everywhere is tiring and hides what needs attention, so the platform UI (`builder.css`,
+`wizard.css`, `../admin/admin.css`, `../compte/compte.css`; never `store.css`, `render.js` or the landing page)
+uses four colour codes, like apps do. Only in small doses: a badge, a dot, an icon, a thin line, a chart bar,
+never a big coloured area. Never colour alone either: there is always the word (« Payée ») or an icon
+(✓ ! × i) next to it, so the meaning survives for colour-blind people and in greyscale.
+
+| Meaning | Where | Dot / icon / line | Tint (background) | Text on the tint |
+|---|---|---|---|---|
+| **OK, done** (`--ok`) | « Payée », « Livrée », « Encaissée », « Connecté », « Prête », « Enregistré dans ce navigateur », done checklist steps and timeline steps, « APPROUVÉ », code accepted, « Compte créé » | `#2E8B47` (4.3:1 on white) | `#E5F4E8` | `#1E6B34` (5.8:1 on the tint) |
+| **Attention** (`--warn`) | « Paiement en attente », « À encaisser », « En attente », « Stock faible » (fewer than 3), « À vérifier », « À relire », « À améliorer » in Qualité, « Enregistré, sans les photos », warning notes | `#C76A00` (3.8:1) | `#FFF0D9` | `#8A4600` (6.3:1) |
+| **Problem** (`--err`) | « Annulée », failed delivery, « Épuisé », « Ce navigateur bloque l’enregistrement », form errors (`aria-invalid`, `.a-error`, `.c-err`, `.b-error`), « À corriger » in Qualité, « Non enregistré », delete buttons | `#C62D23` (5.5:1) | `#FCE9E7` | `#A3221A` (6.4:1) |
+| **Info, in progress** (`--info`) | « Nouvelle », « Expédiée » (on its way), « Conseils » in Qualité, help notes (info icon), demo notices | `#3657FF` (5.3:1, the brand icon blue) | `#EAEEFF` | `#2440C9` (6.9:1) |
+
+Each CSS file defines the tokens once on `:root` (`.jwz` for the assistant, which only needs `--warn…`): `--ok`, `--ok-bg`, `--ok-ink`,
+then `--warn…`, `--err…`, `--info…`, with the same values everywhere. The `-ink` colours also pass 4.5:1 on
+white and on `--grey-1`. A class gives an element its meaning: `.a-tone--ok|warn|err|info` in the dashboard,
+`.b-tone--…` in the editor; it sets `--t`, `--t-bg` and `--t-ink`, which pills (`.a-pill`), chips
+(`.a-chip`), dots (`.a-dot`), stock lines (`.a-stock`), payment boxes (`.a-paystate`), the Qualité badge
+(`.b-status`), its meter and its counters read. Toasts (`.a-toast--…`, `.b-toast[data-tone]`) get a small
+round icon on a tint; `toast(msg, { tone })` in the dashboard and `toast(msg, ms, tone)` in the editor take the
+tone, and without one it is guessed from the wording (« n’a pas pu » = problem, « d’abord » = attention,
+« enregistré », « ajouté » = OK…). The order filter chips show a dot of their status colour; « Toutes » and
+« À préparer » have none.
+
+**Charts** use five series colours. None of them is a status colour: green, orange and red keep their
+meaning, so a chart bar never reads as « attention » or « problem ». `--chart-1` `#3657FF` (brand blue, main
+series, 5.3:1 on white), `--chart-2` `#86198F` (deep violet-leaning magenta, 8.2:1), `--chart-3` `#0E9AA7`
+(turquoise, 3.4:1), `--chart-4` `#334155` (slate, 10.4:1), `--chart-5` `#9C80EB` (lilac, 3.1:1). Neighbours
+differ in lightness as well as hue (CIE L 45 / 33 / 58 / 27 / 60), so two stacked segments are at least 1.5:1
+apart even in greyscale. In a simulation (Machado 2009, full severity, CIE76 ΔE) series 1 and 2 stay apart
+for protanopia (ΔE 38), deuteranopia (ΔE 56) and tritanopia (ΔE 66); the closest pair of all five series, for
+any vision, is ΔE 23 (magenta / slate, deuteranopia), and the closest series to a status colour is turquoise
+vs green for tritanopes (ΔE 11). Every chart has a legend that names each colour. The dashboard home chart
+« Ventes par jour et par canal » stacks each day's bar by sales channel (Boutique en ligne, WhatsApp,
+Instagram, TikTok, in that order from the bottom, with a 2 px white gap between segments); the legend under
+the bars says « De bas en haut » and lists the channels in the stack order with their totals, and the
+`role="img"` label reads the amounts per channel for every day. Before changing a chart colour, check
+its contrast on white (3:1), its contrast with its neighbours in the stack, and its ΔE to the other series and
+to `--ok`, `--warn`, `--err` under the three simulations.
+
+**Same situation, same colour, in every app.** « Ce navigateur bloque l’enregistrement » (changes will be
+lost) is red everywhere: the dashboard toast, the editor save state, the account page notice
+(`.c-notice--err`). A partial save (« Enregistré, sans les photos », the editor toast about photos filling the
+memory) is orange. A failed delivery that cancels the order is red in both the timeline and its note
+(`.a-note--err`); « à relivrer » (back to « Nouvelle ») is orange. In the order timeline the green line stops
+before a red « Commande annulée » step. Status changes pass their tone to the toast explicitly
+(`STATUS_TONE`), as do failed saves (« n’a pas été enregistré(e) » = red), so a green check never sits on a
+problem.
 
 ## The fiche boutique contract (version 1)
 

@@ -1,5 +1,7 @@
 /* Jeere Studio — builder chrome: start screen, editor, modals.
-   Black and white only (the Jeere logo itself is black ink): the stores in the preview bring the colour.
+   Black and white (the Jeere logo itself is black ink): the stores in the preview bring the colour.
+   Colour only carries a meaning, in small doses (badges, dots, icons): green = done, orange = attention,
+   red = problem, blue = information. Tokens below, documented in README.md « Couleurs d’état ».
    Every rule is scoped to a b- class so nothing leaks into the store preview (.jst) or the assistant (.jwz).
    Designed at 360 px first. */
 
@@ -17,7 +19,17 @@
   --b-panel-w: 360px;
   --b-shadow-1: 0 1px 2px rgba(17, 17, 17, .06), 0 6px 18px -8px rgba(17, 17, 17, .16);
   --b-shadow-2: 0 34px 70px -28px rgba(17, 17, 17, .38), 0 12px 28px -14px rgba(17, 17, 17, .22);
+  /* Status colours (same values as ../admin/admin.css): --x dot / icon (>= 3:1 on white), --x-bg tint, --x-ink text (>= 4.5:1) */
+  --ok: #2E8B47;   --ok-bg: #E5F4E8;   --ok-ink: #1E6B34;
+  --warn: #C76A00; --warn-bg: #FFF0D9; --warn-ink: #8A4600;
+  --err: #C62D23;  --err-bg: #FCE9E7;  --err-ink: #A3221A;
+  --info: #3657FF; --info-bg: #EAEEFF; --info-ink: #2440C9;
+  --chart-1: #3657FF; --chart-2: #86198F; --chart-3: #0E9AA7; --chart-4: #334155; --chart-5: #9C80EB;
 }
+.b-tone--ok { --t: var(--ok); --t-bg: var(--ok-bg); --t-ink: var(--ok-ink); }
+.b-tone--warn { --t: var(--warn); --t-bg: var(--warn-bg); --t-ink: var(--warn-ink); }
+.b-tone--err { --t: var(--err); --t-bg: var(--err-bg); --t-ink: var(--err-ink); }
+.b-tone--info { --t: var(--info); --t-bg: var(--info-bg); --t-ink: var(--info-ink); }
 /* No underline under any text: links are shown by their weight and colour */
 a:not(.jst a) { text-decoration: none; }
 
@@ -289,8 +301,11 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-top__name { overflow: hidden; font-size: 14.5px; font-weight: 500; line-height: 1.3; white-space: nowrap; text-overflow: ellipsis; }
 .b-saved { overflow: hidden; font-size: 11.5px; line-height: 1.3; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
 .b-saved::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; vertical-align: 1px; border-radius: 50%; background: var(--ink); }
-.b-saved.is-warn { color: var(--ink); font-weight: 500; }
-.b-saved.is-warn::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.b-saved.is-ok::before { background: var(--ok); }
+.b-saved.is-warn { color: var(--warn-ink); font-weight: 500; }
+.b-saved.is-warn::before { background: var(--warn); }
+.b-saved.is-err { color: var(--err-ink); font-weight: 500; }
+.b-saved.is-err::before { background: var(--err); }
 .b-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 13px; background: var(--grey-1); }
 .b-seg__btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 44px; min-height: 44px; padding: 0 12px;
@@ -362,6 +377,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   box-shadow: 0 0 0 2px var(--white);
 }
 .b-tab__score.is-ok { background: var(--ink); color: var(--white); }
+.b-tab__score[class*="b-tone--"] { background: var(--t-bg); color: var(--t-ink); }
 
 .b-tp { padding: 18px 16px 40px; }
 .b-tp:focus { outline: none; }
@@ -664,6 +680,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 /* Qualité */
 .b-score { padding: 18px; border-radius: 18px; background: var(--grey-1); }
 .b-score.is-ok { background: var(--ink); color: var(--white); }
+.b-score[class*="b-tone--"] { background: var(--white); color: var(--ink); border: 1px solid var(--line); }
 .b-score__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .b-score__num { display: flex; align-items: baseline; gap: 2px; margin: 0; }
 .b-score__num strong { font-size: 46px; font-weight: 600; line-height: 1; letter-spacing: -.04em; }
@@ -674,11 +691,16 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 }
 .b-status--ok { background: var(--ink); color: var(--white); border-color: var(--ink); }
 .b-score.is-ok .b-status--ok { background: var(--white); color: var(--ink); border-color: var(--white); }
+.b-status[class*="b-tone--"], .b-score.is-ok .b-status[class*="b-tone--"] { gap: 6px; background: var(--t-bg); color: var(--t-ink); border-color: transparent; }
+.b-status__ico { width: 14px; height: 14px; stroke-width: 2.4; }
 .b-meter { height: 6px; margin-top: 14px; overflow: hidden; border-radius: 99px; background: rgba(17, 17, 17, .12); }
 .b-meter i { display: block; height: 100%; border-radius: inherit; background: currentColor; transition: width .3s; }
 .b-score.is-ok .b-meter { background: rgba(255, 255, 255, .22); }
+.b-score[class*="b-tone--"] .b-meter { background: var(--grey-2); }
+.b-score[class*="b-tone--"] .b-meter i { background: var(--t); }
 .b-score__text { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; }
 .b-issgroup { margin-top: 22px; }
+.b-issgroup__n[class*="b-tone--"] { background: var(--t-bg); color: var(--t-ink); }
 .b-issgroup__n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: var(--grey-2); font-size: 12px; font-weight: 600; }
 .b-issues { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
 .b-issue {
@@ -687,8 +709,10 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   text-align: left; font: 400 13.5px/1.45 var(--b-font); cursor: pointer;
 }
 .b-issue:hover { border-color: var(--ink); }
-.b-issue--error { border-width: 1.5px; border-color: var(--ink); }
-.b-issue--error .b-issue__ico { stroke-width: 2.1; }
+.b-issue--error { border-width: 1.5px; border-color: var(--err); }
+.b-issue--error .b-issue__ico { stroke-width: 2.1; color: var(--err); }
+.b-issue--warning .b-issue__ico { color: var(--warn); }
+.b-issue--tip .b-issue__ico { color: var(--info); }
 .b-issue--tip { background: var(--grey-1); border-color: transparent; }
 .b-issue--tip:hover { border-color: var(--ink); }
 .b-issue__ico { width: 19px; height: 19px; margin-top: 1px; }
@@ -892,7 +916,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-j-p { padding: 0 4px; border-radius: 4px; background: var(--ink); color: var(--white); }
 .b-import { display: grid; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
 .b-import__row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
-.b-error { margin: 0; padding: 10px 12px; border: 1.5px solid var(--ink); border-radius: 10px; font-size: 13.5px; font-weight: 400; }
+.b-error { margin: 0; padding: 10px 12px; border: 1.5px solid var(--err); border-radius: 10px; background: var(--err-bg); color: var(--err-ink); font-size: 13.5px; font-weight: 400; }
 .b-pubscore { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 12px; font-size: 14px; }
 .b-addlist { display: grid; gap: 6px; margin: 14px 0 10px; padding: 0; list-style: none; }
 .b-addopt {
@@ -910,6 +934,14 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   opacity: 0; pointer-events: none; transform: translate(-50%, 14px); transition: opacity .2s, transform .2s;
 }
 .b-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+.b-toast[data-tone] { display: flex; align-items: flex-start; gap: 10px; padding-left: 12px; }
+.b-toast[data-tone]::before {
+  content: '✓' / ''; display: grid; place-items: center; flex: none; width: 22px; height: 22px; margin-top: -1px; border-radius: 50%;
+  background: var(--ok-bg); color: var(--ok-ink); font-size: 12px; font-weight: 700; line-height: 1;
+}
+.b-toast[data-tone="warn"]::before { content: '!' / ''; background: var(--warn-bg); color: var(--warn-ink); }
+.b-toast[data-tone="err"]::before { content: '×' / ''; background: var(--err-bg); color: var(--err-ink); font-size: 15px; }
+.b-toast[data-tone="info"]::before { content: 'i' / ''; background: var(--info-bg); color: var(--info-ink); font-family: Georgia, serif; font-style: italic; }
 
 @media (prefers-reduced-motion: reduce) {
   .b-root *, .b-modal, .b-modal *, .b-toast { transition-duration: .01ms !important; animation-duration: .01ms !important; }

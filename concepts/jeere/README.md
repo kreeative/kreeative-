@@ -58,9 +58,12 @@ Numbers are personal data: keep the table private, and delete a row when someone
 - **Name**: always written « Jeere » in text (only the J in capital), never « JEERE »; only the
   handwritten wordmark is lowercase « jeere ».
 - **Text weights**: light on purpose: titles in Poppins 400, buttons and labels 500, body 400.
-- **Colours**: black and white only for Jeere itself. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
+- **Colours**: black and white for Jeere itself. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
-  colour, so only the demo stores and product pictures on the page are in colour.
+  colour, so only the demo stores and product pictures on the page are in colour. Inside the
+  platform (editor, dashboard, account), small status badges, dots and chart bars carry colour codes
+  with a meaning (green done, orange attention, red problem, blue info): see
+  `creer/README.md`, « Couleurs d’état ».
 - **Type**: Poppins (SIL OFL) for everything. Poppins has no ɛ, ɔ or ŋ (needed for Dioula and
   Bambara names), so the page also loads those six letters alone from Montserrat (SIL OFL), a
   few KB, and the browser uses them in place of the missing ones.

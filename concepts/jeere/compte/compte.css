@@ -1,5 +1,7 @@
 /* Jeere — the seller account: sign-up and login by phone number and a one-time code.
-   Black and white only, like the editor's chrome (the Jeere logo itself is black ink).
+   Black and white, like the editor's chrome (the Jeere logo itself is black ink). Colour only carries a meaning,
+   in small doses: red = error, green = verified / done, orange = attention, blue = information
+   (tokens below, same values as ../creer/builder.css; README « Couleurs d’état »).
    Every rule is scoped to a c- class. Designed at 360 px first, with the on-screen keyboard open. */
 
 :root {
@@ -13,6 +15,10 @@
   --c-font: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --c-shadow: 0 1px 2px rgba(17, 17, 17, .05), 0 24px 60px -32px rgba(17, 17, 17, .30);
   --c-ring: 0 0 0 4px rgba(17, 17, 17, .10);
+  --ok: #2E8B47;   --ok-bg: #E5F4E8;   --ok-ink: #1E6B34;
+  --warn: #C76A00; --warn-bg: #FFF0D9; --warn-ink: #8A4600;
+  --err: #C62D23;  --err-bg: #FCE9E7;  --err-ink: #A3221A;
+  --info: #3657FF; --info-bg: #EAEEFF; --info-ink: #2440C9;
 }
 /* No underline under any text: links are shown by their weight and colour */
 a:not(.jst a) { text-decoration: none; }
@@ -109,10 +115,10 @@ a { color: inherit; }
 .c-field { display: grid; gap: 8px; min-width: 0; }
 .c-label { font-weight: 500; font-size: 15px; line-height: 1.3; }
 .c-hint { font-size: 13.5px; line-height: 1.45; color: var(--muted); }
-.c-err { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--ink); }
+.c-err { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--err-ink); }
 .c-err::before {
   content: '!'; display: grid; place-items: center; flex: none; width: 19px; height: 19px; margin-top: 0; border-radius: 50%;
-  background: var(--ink); color: var(--white); font-size: 12px; font-weight: 600; line-height: 1;
+  background: var(--err); color: var(--white); font-size: 12px; font-weight: 600; line-height: 1;
 }
 
 .c-input {
@@ -125,7 +131,8 @@ a { color: inherit; }
 .c-input::placeholder { color: #8E8E8E; font-weight: 400; opacity: 1; }
 .c-input:hover { border-color: rgba(17, 17, 17, .4); }
 .c-input:focus { outline: none; border-color: var(--ink); box-shadow: var(--c-ring); }
-.c-input[aria-invalid="true"] { border-color: var(--ink); border-width: 2px; padding: 13.5px 15.5px; }
+.c-input[aria-invalid="true"] { border-color: var(--err); border-width: 2px; padding: 13.5px 15.5px; }
+.c-input[aria-invalid="true"]:focus { box-shadow: 0 0 0 4px rgba(198, 45, 35, .14); }
 .c-input--lg { font-size: 19px; font-weight: 500; }
 .c-input--lg::placeholder { font-weight: 400; }
 
@@ -180,8 +187,15 @@ a { color: inherit; }
   border-radius: 14px; background: var(--grey-1); font-size: 14px; line-height: 1.5;
 }
 .c-notice .c-ico, .c-demo .c-ico { width: 20px; height: 20px; margin-top: 1px; }
+/* Information = blue icon; « attention » = orange icon */
+.c-notice > .c-ico:has(use[href="#i-info"]), .c-demo > .c-ico:has(use[href="#i-info"]) { color: var(--info); }
+.c-notice > .c-ico:has(use[href="#i-alert"]) { color: var(--warn); }
+.c-notice:has(> .c-ico use[href="#i-alert"]) { background: var(--warn-bg); color: var(--warn-ink); }
+/* Storage blocked: changes will be lost, so red (as in the dashboard and the editor) */
+.c-notice--err, .c-notice--err:has(> .c-ico use[href="#i-alert"]) { background: var(--err-bg); color: var(--err-ink); }
+.c-notice--err > .c-ico, .c-notice--err > .c-ico:has(use[href="#i-alert"]) { color: var(--err); }
 .c-notice .c-link { white-space: nowrap; }
-.c-notice--strong { margin-top: 0; border: 1.5px solid var(--ink); background: var(--white); }
+.c-notice--strong { margin-top: 0; border: 1.5px solid var(--info); background: var(--white); }
 .c-notice--strong > div { display: grid; gap: 12px; justify-items: start; }
 .c-demo { border: 1.5px dashed rgba(17, 17, 17, .35); background: var(--white); }
 .c-demo strong { font-weight: 600; }
@@ -234,8 +248,8 @@ a { color: inherit; }
   content: ''; width: 2px; height: 28px; border-radius: 2px; background: var(--ink); animation: c-blink 1.1s steps(1) infinite;
 }
 @keyframes c-blink { 50% { opacity: 0; } }
-.c-otp.is-bad .c-otp__cell { border-color: var(--ink); border-width: 2px; }
-.c-otp.is-ok .c-otp__cell { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.c-otp.is-bad .c-otp__cell { border-color: var(--err); border-width: 2px; }
+.c-otp.is-ok .c-otp__cell { background: var(--ok-bg); border-color: var(--ok); color: var(--ok-ink); }
 .c-otp.is-ok .c-otp__cell { transition-delay: calc(var(--i, 0) * 40ms); }
 .c-otp__input {
   position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; padding: 0;
@@ -263,9 +277,9 @@ a { color: inherit; }
 /* ---------- How to start ---------- */
 .c-done {
   display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 6px 12px 6px 8px;
-  border-radius: 999px; background: var(--grey-1); font-size: 13.5px; font-weight: 500;
+  border-radius: 999px; background: var(--ok-bg); color: var(--ok-ink); font-size: 13.5px; font-weight: 500;
 }
-.c-done .c-ico { width: 22px; height: 22px; padding: 3px; border-radius: 50%; background: var(--ink); color: var(--white); stroke-width: 2.4; }
+.c-done .c-ico { width: 22px; height: 22px; padding: 3px; border-radius: 50%; background: var(--ok); color: var(--white); stroke-width: 2.4; }
 .c-choices { display: grid; gap: 12px; margin-top: 24px; }
 .c-choice {
   display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 16px; border-radius: 18px;

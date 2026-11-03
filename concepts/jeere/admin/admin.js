@@ -390,13 +390,34 @@
 
   /* ------------------------------------------------------------------ toasts */
 
+  // Colour codes with a meaning (see ../creer/README.md, « Couleurs d’état »): green done, orange attention,
+  // red problem, blue info. A toast gets its small icon from opts.tone, or from its wording when no tone is given.
+  const TOAST_TONES = ['ok', 'warn', 'err', 'info'];
+  const TOAST_ICO = { ok: 'check', warn: 'alert', err: 'x', info: 'info' };
+  function toastTone(msg) {
+    const m = String(msg || '');
+    if (/pas pu|n’a pas été|n’ont pas été|bloque|pleine|n’est pas disponible|impossible|échoué|annulée/i.test(m)) return 'err';
+    if (/à relivrer/i.test(m)) return 'warn';
+    if (/d’abord|au plus|Enregistrez ou ignorez|modifiée ailleurs|non enregistrées|Pensez à enregistrer|Sélectionnez le lien/i.test(m)) return 'warn';
+    if (/^Démo|bientôt|C’est noté/i.test(m)) return 'info';
+    if (/enregistr|ajouté|copié|connecté|téléchargé|activé|créé|confirmée|reçu|rétabli|choisie|supprimé|retiré|prête|effacés|Bienvenue|Statut|Commande #|Code |livrera|Préférences|Numéro|Couleurs|Paiement à la|Abonnement|Vous êtes|fait partie|reconnecté|désactivé|en pause|actif|Domaine|Livraison enregistrée|communes? ajoutée|Modifications ignorées|sont de retour|Texte d’exemple|Déconnexion|Boutique /i.test(m)) return 'ok';
+    return '';
+  }
   function toast(msg, opts) {
     const o = opts || {};
     const box = $('#a-toasts');
     if (!box) return;
     while (box.children.length >= 2) box.firstChild.remove();
     const t = document.createElement('div');
-    t.className = 'a-toast';
+    const tone = TOAST_TONES.indexOf(o.tone) >= 0 ? o.tone : toastTone(msg);
+    t.className = 'a-toast' + (tone ? ' a-toast--' + tone : '');
+    if (tone) {
+      const i = document.createElement('span');
+      i.className = 'a-toast__ico';
+      i.setAttribute('aria-hidden', 'true');
+      i.innerHTML = ico(TOAST_ICO[tone]);
+      t.appendChild(i);
+    }
     const m = document.createElement('span');
     m.className = 'a-toast__msg';
     m.textContent = fr(msg);
@@ -781,8 +802,10 @@
   /* ------------------------------------------------------------------ shared bits of views */
 
   const STATUS_ICO = { new: '<span class="a-pill__dot" aria-hidden="true"></span>', paid: ico('check'), shipped: ico('truck'), delivered: ico('check'), cancelled: ico('x') };
+  // Which meaning each order status carries: blue = to handle / on its way, green = done, red = problem
+  const STATUS_TONE = { new: 'info', paid: 'ok', shipped: 'info', delivered: 'ok', cancelled: 'err' };
   function pill(status) {
-    return '<span class="a-pill a-pill--' + esc(status) + '">' + (STATUS_ICO[status] || '') + esc(statusLabel(status)) + '</span>';
+    return '<span class="a-pill a-pill--' + esc(status) + (STATUS_TONE[status] ? ' a-tone--' + STATUS_TONE[status] : '') + '">' + (STATUS_ICO[status] || '') + esc(statusLabel(status)) + '</span>';
   }
   // 185 500 FCFA for a big figure: the number never breaks, « FCFA » smaller
   const money = (n) => '<span class="a-nowrap">' + esc(number(n)) + '</span><small>' + NB + 'FCFA</small>';
@@ -924,49 +947,67 @@
     const quick = s.quick && !s.done ? H`<div class="a-step__quick"><button class="a-btn a-btn--soft a-btn--sm" type="button" data-act="${s.quick.act}">${ico(s.quick.icon || 'check')}${esc(fr(s.quick.label))}</button></div>` : '';
     return H`<li${hidden ? ' hidden' : ''}>${link}${quick}</li>`;
   }
+  // Sales per day, stacked by sales channel: each channel keeps one chart colour (--chart-1 … --chart-5, never the
+  // status green / orange / red). The legend names every colour with its total, so the colour is never alone.
+  const CHART_CHANNELS = () => {
+    const list = arr(D && D.ORDER_CHANNELS).length ? D.ORDER_CHANNELS : [{ id: 'boutique', label: 'Boutique en ligne' }, { id: 'whatsapp', label: 'WhatsApp' }, { id: 'instagram', label: 'Instagram' }, { id: 'tiktok', label: 'TikTok' }];
+    return list.slice(0, 5).map((c, i) => ({ id: c.id, label: c.label, n: i + 1 }));
+  };
   function chart(orders) {
     if (!orders.length) return '';
+    const chans = CHART_CHANNELS();
+    const chanOf = (o) => (chans.some((c) => c.id === o.channel) ? o.channel : chans[0].id);
     const last = orders.reduce((m, o) => { const d = toDate(o.date); return d && d > m ? d : m; }, new Date(0));
     const end = dayKey(last);
     const days = [];
-    for (let i = 9; i >= 0; i--) days.push({ key: end - i, total: 0, n: 0 });
+    for (let i = 9; i >= 0; i--) days.push({ key: end - i, total: 0, n: 0, by: {} });
+    const sums = {};
     orders.forEach((o) => {
       if (o.status === 'cancelled') return;
       const d = toDate(o.date);
       if (!d) return;
       const slot = days.find((x) => x.key === dayKey(d));
-      if (slot) { slot.total += o.total || 0; slot.n += 1; }
+      if (!slot) return;
+      const ch = chanOf(o);
+      slot.total += o.total || 0; slot.n += 1;
+      slot.by[ch] = (slot.by[ch] || 0) + (o.total || 0);
+      sums[ch] = (sums[ch] || 0) + (o.total || 0);
     });
+    const used = chans.filter((c) => sums[c.id]);
     const max = Math.max.apply(null, days.map((x) => x.total)) || 1;
     const today = dayKey(S.now);
     const best = days.reduce((m, x) => (x.total > m.total ? x : m), days[0]);
     const bestD = new Date(best.key * DAY_MS);
-    const label = (x) => { const d = new Date(x.key * DAY_MS); return fr(DAYS_SHORT[d.getUTCDay()] + ' ' + dateShort(d) + ' : ' + (x.total ? price(x.total) + ' (' + plural(x.n, 'commande', 'commandes') + ')' : 'aucune vente')); };
-    const aria = fr('Ventes par jour, du ' + dateShort(new Date(days[0].key * DAY_MS)) + ' au ' + dateShort(new Date(end * DAY_MS)) + '. ' + days.map(label).join(' ; ') + '.');
+    const parts = (x) => used.filter((c) => x.by[c.id]).map((c) => c.label + ' ' + price(x.by[c.id])).join(', ');
+    const label = (x) => { const d = new Date(x.key * DAY_MS); return fr(DAYS_SHORT[d.getUTCDay()] + ' ' + dateShort(d) + ' : ' + (x.total ? price(x.total) + ' (' + plural(x.n, 'commande', 'commandes') + (used.length > 1 ? ' ; ' + parts(x) : '') + ')' : 'aucune vente')); };
+    const aria = fr('Ventes par jour et par canal, du ' + dateShort(new Date(days[0].key * DAY_MS)) + ' au ' + dateShort(new Date(end * DAY_MS)) + '. ' + days.map(label).join(' ; ') + '.');
     const cols = days.map((x) => {
       const d = new Date(x.key * DAY_MS);
       const h = x.total ? Math.max(4, Math.round((x.total / max) * 100)) : 0;
+      // Segments from the bottom: channel 1 first; a 2 px white gap keeps two neighbours apart
+      const segs = x.total ? used.filter((c) => x.by[c.id]).map((c) => '<span class="a-chart__seg" style="flex-grow:' + x.by[c.id] + ';background:var(--chart-' + c.n + ')"></span>').join('') : '';
       return '<div class="a-chart__col' + (x.key === today ? ' is-today' : '') + (x === best && best.total ? ' is-best' : '') + '" title="' + esc(label(x)) + '">' +
-        '<span class="a-chart__track"><span class="a-chart__bar' + (x.total ? '' : ' is-zero') + '" style="height:' + (x.total ? h + '%' : '3px') + '"></span></span>' +
+        '<span class="a-chart__track"><span class="a-chart__bar' + (x.total ? '' : ' is-zero') + '" style="height:' + (x.total ? h + '%' : '3px') + '">' + segs + '</span></span>' +
         '<span class="a-chart__d">' + DAYS_MINI[d.getUTCDay()] + '</span><span class="a-chart__n">' + d.getUTCDate() + '</span></div>';
     }).join('');
-    return '<div class="a-chart"><div class="a-chart__cols" role="img" aria-label="' + esc(aria) + '">' + cols + '</div>' +
+    const legend = used.length ? '<ul class="a-chart__keys" aria-label="Légende, de bas en haut">' + (used.length > 1 ? '<li class="a-chart__lead" aria-hidden="true">De bas en haut' + NB + ':</li>' : '') + used.map((c) => '<li><span class="a-chart__key" style="background:var(--chart-' + c.n + ')" aria-hidden="true"></span>' + esc(c.label) + ' <span class="a-tnum a-muted">' + esc(price(sums[c.id])) + '</span></li>').join('') + '</ul>' : '';
+    return '<div class="a-chart"><div class="a-chart__cols" role="img" aria-label="' + esc(aria) + '">' + cols + '</div>' + legend +
       '<p class="a-chart__legend">' + esc(fr('Meilleur jour : ' + DAYS[bestD.getUTCDay()] + ' ' + dateShort(bestD) + ', ' + price(best.total) + '.')) + '</p></div>';
   }
   // How an order is paid, at a glance: what the courier must collect, what is already paid, what waits
   function payChip(o, short) {
     if (o.status === 'cancelled') return '';
     if (isCod(o)) {
-      if (o.status === 'delivered') return H`<span class="a-chip a-chip--soft">${ico('check')}Encaissée</span>`;
-      return H`<span class="a-chip a-chip--line a-chip--due">${ico('wallet')}À encaisser${paidDeposit(o) ? ' ' + esc(price(dueAtDoor(o))) : ''}</span>`;
+      if (o.status === 'delivered') return H`<span class="a-chip a-chip--soft a-tone--ok">${ico('check')}Encaissée</span>`;
+      return H`<span class="a-chip a-chip--line a-chip--due a-tone--warn">${ico('wallet')}À encaisser${paidDeposit(o) ? ' ' + esc(price(dueAtDoor(o))) : ''}</span>`;
     }
-    if (o.status === 'new') return H`<span class="a-chip a-chip--line">${ico('clock')}Paiement en attente</span>`;
-    return H`<span class="a-chip a-chip--soft">${ico('check')}Payée${short ? '' : ' · ' + esc(payLabel(o.payment))}</span>`;
+    if (o.status === 'new') return H`<span class="a-chip a-chip--line a-tone--warn">${ico('clock')}Paiement en attente</span>`;
+    return H`<span class="a-chip a-chip--soft a-tone--ok">${ico('check')}Payée${short ? '' : ' · ' + esc(payLabel(o.payment))}</span>`;
   }
   function orderRow(o) {
     const c = o.customer || {};
     const tags = payChip(o) +
-      (o.status === 'new' && o.confirmedAt ? H`<span class="a-chip a-chip--line">${ico('check')}Confirmée</span>` : '') +
+      (o.status === 'new' && o.confirmedAt ? H`<span class="a-chip a-chip--line a-tone--ok">${ico('check')}Confirmée</span>` : '') +
       (o.status === 'shipped' && o.courier ? H`<span class="a-chip a-chip--line">${ico('bike')}${esc(courierName(o.courier))}</span>` : '');
     return H`<li><a class="a-orow" href="#commandes/${esc(o.id.replace('#', ''))}">
       <span class="a-orow__top"><span class="a-orow__id">${esc(o.id)} <span class="a-orow__who">· ${esc(c.name)}</span></span>${pill(o.status)}</span>
@@ -1003,7 +1044,7 @@
         <p class="a-card__sub">${esc(p.priceMonth ? p.priceLabel : '0' + NB + 'FCFA')} · ${esc(fr(p.feeLabel))}</p></div>
         <a class="a-more-link" href="#parametres/abonnement">Gérer${ico('chev')}</a></div>
       <div class="a-meter"><div class="a-meter__row"><span>Commandes ce mois-ci</span><strong>${p.orders ? esc(number(used) + ' sur ' + number(p.orders)) : esc(number(used)) + ' · illimitées'}</strong></div>
-        ${p.orders ? H`<div class="a-progress__bar" aria-hidden="true"><div class="a-progress__fill" style="width:${pct}%"></div></div>` : ''}</div>
+        ${p.orders ? H`<div class="a-progress__bar" aria-hidden="true"><div class="a-progress__fill${pct >= 80 ? ' is-high' : ''}" style="width:${pct}%"></div></div>` : ''}</div>
       ${L.near ? H`<p class="a-planwarn">${ico('alert')}<span><strong>${esc(fr(L.left ? 'Plus que ' + plural(L.left, 'commande', 'commandes') + ' ce mois-ci.' : 'Vous avez atteint ' + p.orders + ' commandes ce mois-ci.'))}</strong> ${esc(fr(L.policy))}</span></p>` : ''}
       <p class="a-small" style="margin-top:10px">Toutes les fonctions et l’aide d’une vraie personne sont dans chaque formule.${hasDemoOrders() ? ' Commandes : données d’exemple.' : ''}</p>
     </section>`;
@@ -1050,15 +1091,15 @@
         <div class="a-kpis">
           <div class="a-kpi a-kpi--sales"><span class="a-kpi__label">${ico('wallet')}Ventes · 10 derniers jours</span><span class="a-kpi__value">${money(m.collected + m.due + m.pending)}</span>
             <span class="a-kpi__split">
-              <span class="a-kpi__part"><span class="a-kpi__k">Encaissé</span><strong>${esc(price(m.collected))}</strong><span class="a-kpi__sub">Mobile money, carte et livraisons payées</span></span>
-              <a class="a-kpi__part" href="#commandes?statut=a-encaisser"><span class="a-kpi__k">À encaisser</span><strong>${esc(price(m.due))}</strong><span class="a-kpi__sub">${m.withCouriers ? esc(fr('dont ' + price(m.withCouriers) + ' chez vos livreurs')) : 'Paiement à la livraison'}</span></a>
-              ${m.pending ? H`<span class="a-kpi__part"><span class="a-kpi__k">En attente</span><strong>${esc(price(m.pending))}</strong><span class="a-kpi__sub">Paiements mobile money pas encore validés</span></span>` : ''}
+              <span class="a-kpi__part"><span class="a-kpi__k"><span class="a-dot a-tone--ok" aria-hidden="true"></span>Encaissé</span><strong>${esc(price(m.collected))}</strong><span class="a-kpi__sub">Mobile money, carte et livraisons payées</span></span>
+              <a class="a-kpi__part" href="#commandes?statut=a-encaisser"><span class="a-kpi__k"><span class="a-dot a-tone--warn" aria-hidden="true"></span>À encaisser</span><strong>${esc(price(m.due))}</strong><span class="a-kpi__sub">${m.withCouriers ? esc(fr('dont ' + price(m.withCouriers) + ' chez vos livreurs')) : 'Paiement à la livraison'}</span></a>
+              ${m.pending ? H`<span class="a-kpi__part"><span class="a-kpi__k"><span class="a-dot a-tone--warn" aria-hidden="true"></span>En attente</span><strong>${esc(price(m.pending))}</strong><span class="a-kpi__sub">Paiements mobile money pas encore validés</span></span>` : ''}
             </span></div>
           <a class="a-kpi" href="#commandes"><span class="a-kpi__label">${ico('receipt')}Commandes</span><span class="a-kpi__value">${esc(number(st.count))}</span><span class="a-kpi__sub">${st.cancelled ? esc(plural(st.cancelled, 'annulée', 'annulées') + (st.failed ? ', dont ' + plural(st.failed, 'livraison échouée', 'livraisons échouées') : '')) : 'Aucune annulée'}</span></a>
           <div class="a-kpi"><span class="a-kpi__label">${ico('bag')}Panier moyen</span><span class="a-kpi__value">${money(st.avg)}</span><span class="a-kpi__sub">Livraison comprise</span></div>
           <a class="a-kpi" href="#commandes?statut=a-preparer"><span class="a-kpi__label">${ico('clock')}Commandes à préparer</span><span class="a-kpi__value">${esc(number(todo))}</span><span class="a-kpi__sub">Nouvelles et payées</span></a>
         </div>
-        <div class="a-card" style="margin-top:10px"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title">Ventes par jour</h3><p class="a-card__sub">${hasDemoOrders() ? 'Les 10 derniers jours, avec des commandes d’exemple' : 'Les 10 derniers jours'}</p></div></div>${chart(orders)}</div>
+        <div class="a-card" style="margin-top:10px"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title">Ventes par jour et par canal</h3><p class="a-card__sub">${hasDemoOrders() ? 'Les 10 derniers jours, avec des commandes d’exemple' : 'Les 10 derniers jours'}</p></div></div>${chart(orders)}</div>
       </section>
       <section class="a-card a-card--flush a-home__orders" aria-labelledby="h-recent">
         <div class="a-card__head"><div><h2 class="a-card__title" id="h-recent">Dernières commandes</h2><p class="a-card__sub">${hasDemoOrders() ? 'Données d’exemple, faites à partir de vos produits' : 'Les vôtres, de la boutique et de WhatsApp'}</p></div></div>
@@ -1084,12 +1125,12 @@
   const FILTERS = [
     { id: 'all', label: 'Toutes', test: () => true },
     { id: 'a-preparer', label: 'À préparer', test: (o) => o.status === 'new' || o.status === 'paid' },
-    { id: 'a-encaisser', label: 'À encaisser', test: (o) => isCod(o) && (o.status === 'new' || o.status === 'shipped') },
-    { id: 'new', label: 'Nouvelles', test: (o) => o.status === 'new' },
-    { id: 'paid', label: 'Payées', test: (o) => o.status === 'paid' },
-    { id: 'shipped', label: 'Expédiées', test: (o) => o.status === 'shipped' },
-    { id: 'delivered', label: 'Livrées', test: (o) => o.status === 'delivered' },
-    { id: 'cancelled', label: 'Annulées', test: (o) => o.status === 'cancelled' }
+    { id: 'a-encaisser', label: 'À encaisser', tone: 'warn', test: (o) => isCod(o) && (o.status === 'new' || o.status === 'shipped') },
+    { id: 'new', label: 'Nouvelles', tone: 'info', test: (o) => o.status === 'new' },
+    { id: 'paid', label: 'Payées', tone: 'ok', test: (o) => o.status === 'paid' },
+    { id: 'shipped', label: 'Expédiées', tone: 'info', test: (o) => o.status === 'shipped' },
+    { id: 'delivered', label: 'Livrées', tone: 'ok', test: (o) => o.status === 'delivered' },
+    { id: 'cancelled', label: 'Annulées', tone: 'err', test: (o) => o.status === 'cancelled' }
   ];
   function filteredOrders() {
     const f = FILTERS.find((x) => x.id === S.orderFilter) || FILTERS[0];
@@ -1136,7 +1177,7 @@
   function filtersHTML() {
     return FILTERS.map((f) => {
       const n = S.admin.orders.filter(f.test).length;
-      return H`<button class="a-filter" type="button" data-act="order-filter" data-f="${f.id}" aria-pressed="${S.orderFilter === f.id ? 'true' : 'false'}">${esc(f.label)}<span class="a-filter__n">${n}</span></button>`;
+      return H`<button class="a-filter" type="button" data-act="order-filter" data-f="${f.id}" aria-pressed="${S.orderFilter === f.id ? 'true' : 'false'}">${f.tone ? H`<span class="a-dot a-tone--${f.tone}" aria-hidden="true"></span>` : ''}${esc(f.label)}<span class="a-filter__n">${n}</span></button>`;
     }).join('');
   }
   function updateOrdersList() {
@@ -1312,8 +1353,8 @@
     if (cod && o.status !== 'cancelled' && o.status !== 'delivered') {
       if (o.deposit && o.deposit.amount) {
         dep = o.deposit.paid
-          ? H`<p class="a-paystate a-paystate--line" style="margin-top:12px">${ico('check')}<span><strong>${esc(fr('Acompte reçu : ' + price(o.deposit.amount)))}</strong><span>${esc(fr('Par ' + (opLabel(o.deposit.op) || 'mobile money') + '. Démo : rien n’a été encaissé.'))}</span></span></p>`
-          : H`<div class="a-paystate a-paystate--line" style="margin-top:12px">${ico('clock')}<span><strong>${esc(fr('Acompte demandé : ' + price(o.deposit.amount)))}</strong><span>${esc(fr('Par ' + (opLabel(o.deposit.op) || 'mobile money') + ', sur le ' + phoneFmt(c.phone) + '.'))}</span></span><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="deposit-paid" data-id="${esc(o.id)}">Acompte reçu</button></div>`;
+          ? H`<p class="a-paystate a-paystate--line a-tone--ok" style="margin-top:12px">${ico('check')}<span><strong>${esc(fr('Acompte reçu : ' + price(o.deposit.amount)))}</strong><span>${esc(fr('Par ' + (opLabel(o.deposit.op) || 'mobile money') + '. Démo : rien n’a été encaissé.'))}</span></span></p>`
+          : H`<div class="a-paystate a-paystate--line a-tone--warn" style="margin-top:12px">${ico('clock')}<span><strong>${esc(fr('Acompte demandé : ' + price(o.deposit.amount)))}</strong><span>${esc(fr('Par ' + (opLabel(o.deposit.op) || 'mobile money') + ', sur le ' + phoneFmt(c.phone) + '.'))}</span></span><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="deposit-paid" data-id="${esc(o.id)}">Acompte reçu</button></div>`;
       } else if (o.status === 'new' && o.total >= 20000) {
         dep = H`<div class="a-deposit"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="deposit-ask" data-id="${esc(o.id)}">${ico('phone')}Demander un acompte</button><span class="a-hint">Par mobile money, avant que le livreur parte : utile pour une grosse commande.</span></div>`;
       }
@@ -1321,7 +1362,7 @@
     return H`<section class="a-card a-od-deliv" aria-labelledby="h-deliv">
       <div class="a-card__head"><h2 class="a-card__title" id="h-deliv">Livraison</h2></div>
       <dl class="a-dl"><div><dt>Livrer à</dt><dd>${esc(c.commune)}${c.address ? ' · ' + esc(c.address) : ''}</dd></div>${collect}</dl>
-      ${o.failNote ? H`<div class="a-note a-note--strong" style="margin-top:12px">${ico('alert')}<p>${esc(fr(o.failNote))}</p></div>` : ''}
+      ${o.failNote ? H`<div class="a-note ${o.status === 'cancelled' ? 'a-note--err' : 'a-note--strong'}" style="margin-top:12px">${ico('alert')}<p>${esc(fr(o.failNote))}</p></div>` : ''}
       ${who}${dep}
     </section>`;
   }
@@ -1354,7 +1395,7 @@
                 <span class="a-item__main"><span class="a-item__name">${esc(it.name)}</span><span class="a-item__qty">${esc(it.qty + ' × ' + price(it.price))}</span></span><span class="a-item__total">${esc(price(it.qty * it.price))}</span></li>`;
             })}</ul>
             <dl class="a-totals"><div><dt>Sous-total</dt><dd>${esc(price(o.subtotal))}</dd></div><div><dt>Livraison (${esc(c.commune)})</dt><dd>${esc(price(o.delivery))}</dd></div><div class="is-total"><dt>Total</dt><dd>${esc(price(o.total))}</dd></div></dl>
-            <div class="a-paystate" style="margin-top:12px">${ico(ps.icon)}<span><strong>${esc(fr(ps.title))}</strong><span>${esc(fr(ps.sub))}</span></span></div>
+            <div class="a-paystate a-tone--${({ x: 'err', check: 'ok', wallet: 'warn', clock: 'warn' })[ps.icon] || 'info'}" style="margin-top:12px">${ico(ps.icon)}<span><strong>${esc(fr(ps.title))}</strong><span>${esc(fr(ps.sub))}</span></span></div>
           </section>
           <section class="a-card a-od-tl" aria-labelledby="h-tl"><div class="a-card__head"><h2 class="a-card__title" id="h-tl">Suivi</h2></div>${timelineHTML(o)}</section>
         </div>
@@ -1394,6 +1435,7 @@
     refresh('[data-primary]');
     if (!$('#a-main [data-primary]')) focusMain();
     toast(x.toast || ('Commande ' + id + ' : ' + statusLabel(status) + '.'), {
+      tone: x.tone || STATUS_TONE[status] || 'ok',
       action: 'Annuler',
       onAction: () => {
         const y = findOrder(id);
@@ -1507,8 +1549,8 @@
     const r = FAIL_REASONS.find((x) => x.id === (serialize(form).reason || 'absent')) || FAIL_REASONS[0];
     closeDialog(true);
     const day = fr(dateShort(S.now));
-    if (r.id === 'relivrer') setOrderStatus(id, 'new', { failNote: 'Livraison du ' + day + ' échouée : à relivrer. Prévenez le client, puis confiez-la de nouveau au livreur.', toast: 'Commande ' + id + ' : à relivrer.' });
-    else setOrderStatus(id, 'cancelled', { cancelReason: r.label, failNote: 'Livraison du ' + day + ' échouée : ' + r.label.toLowerCase() + '.', toast: 'Commande ' + id + ' : livraison échouée (' + r.label.toLowerCase() + ').' });
+    if (r.id === 'relivrer') setOrderStatus(id, 'new', { failNote: 'Livraison du ' + day + ' échouée : à relivrer. Prévenez le client, puis confiez-la de nouveau au livreur.', toast: 'Commande ' + id + ' : à relivrer.', tone: 'warn' });
+    else setOrderStatus(id, 'cancelled', { cancelReason: r.label, failNote: 'Livraison du ' + day + ' échouée : ' + r.label.toLowerCase() + '.', toast: 'Commande ' + id + ' : livraison échouée (' + r.label.toLowerCase() + ').', tone: 'err' });
   }
   // A deposit by mobile money for a big cash-on-delivery order (demo: nothing is sent)
   function openDeposit(id) {
@@ -1841,14 +1883,18 @@
   function stockText(id) {
     const n = stockOf(id);
     if (n === null) return '';
-    return n === 0 ? 'Épuisé' : plural(n, 'en stock', 'en stock');
+    if (n === 0) return 'Épuisé';
+    return (n < LOW_STOCK ? 'Stock faible : ' : '') + plural(n, 'en stock', 'en stock');
   }
+  const LOW_STOCK = 3;
+  const stockTone = (id) => { const n = stockOf(id); return n === null ? '' : (n === 0 ? 'err' : (n < LOW_STOCK ? 'warn' : '')); };
   function productMeta(p) {
     const bits = [];
     if (p.category) bits.push(esc(p.category));
     if (p.badge && BADGES()[p.badge]) bits.push(esc(BADGES()[p.badge]));
     const st = stockText(p.id);
-    if (st) bits.push('<span class="a-stock' + (stockOf(p.id) === 0 ? ' is-out' : '') + '">' + esc(st) + '</span>');
+    const tone = stockTone(p.id);
+    if (st) bits.push('<span class="a-stock' + (stockOf(p.id) === 0 ? ' is-out' : '') + (tone ? ' a-tone--' + tone : '') + '">' + (tone ? '<span class="a-dot" aria-hidden="true"></span>' : '') + esc(st) + '</span>');
     return bits.join(' · ');
   }
   const hasPhoto = (p) => typeof p.image === 'string' && /^data:image\//.test(p.image);
@@ -2129,7 +2175,7 @@
         cfg.products.push(Object.assign({ id: savedId }, prod));
       }
     });
-    if (!saved) { toast('Le produit n’a pas été enregistré.'); return; }
+    if (!saved) { toast('Le produit n’a pas été enregistré.', { tone: 'err' }); return; }
     if (stock === null) delete S.admin.stock[savedId]; else S.admin.stock[savedId] = stock;
     saveAdmin();
     clearDirty();
@@ -2440,7 +2486,7 @@
         cfg.pages.push(Object.assign({ id: savedId }, pg));
       }
     });
-    if (!saved) { toast('La page n’a pas été enregistrée.'); return; }
+    if (!saved) { toast('La page n’a pas été enregistrée.', { tone: 'err' }); return; }
     clearDirty();
     if (!id) { window.location.replace('#pages/' + savedId); toast('Page ajoutée à votre boutique.', { action: 'Voir', onAction: () => openEditor({ page: 'page', pageId: savedId, view: 'preview' }) }); }
     else { refresh(); focusMain(); toast('Page enregistrée.', { action: 'Voir', onAction: () => openEditor({ page: 'page', pageId: savedId, view: 'preview' }) }); }
@@ -2602,8 +2648,8 @@
   }
   function connPill(c) {
     if (c.soon) return H`<span class="a-pill a-pill--soon">Bientôt</span>`;
-    if (c.id === 'livreurs') { const n = couriers().length; return n ? H`<span class="a-pill a-pill--on">${ico('check')}${esc(plural(n, 'livreur', 'livreurs'))}</span>` : H`<span class="a-pill a-pill--off">Aucun livreur</span>`; }
-    return isOn(c.id) ? H`<span class="a-pill a-pill--on">${ico('check')}Connecté</span>` : H`<span class="a-pill a-pill--off">Non connecté</span>`;
+    if (c.id === 'livreurs') { const n = couriers().length; return n ? H`<span class="a-pill a-pill--on a-tone--ok">${ico('check')}${esc(plural(n, 'livreur', 'livreurs'))}</span>` : H`<span class="a-pill a-pill--off">Aucun livreur</span>`; }
+    return isOn(c.id) ? H`<span class="a-pill a-pill--on a-tone--ok">${ico('check')}Connecté</span>` : H`<span class="a-pill a-pill--off">Non connecté</span>`;
   }
   function connRow(id, quiet) {
     const c = connector(id);
@@ -3025,14 +3071,14 @@
     const slug = subdomain().replace(suffix, '');
     const chosen = S.admin.subdomainChosen === true;
     return H`<section class="a-card" aria-labelledby="h-dfree"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dfree">Votre adresse Jeere <span class="a-chip">Gratuite</span></h3><p class="a-card__sub">Incluse dans toutes les formules, avec le cadenas de sécurité (https).</p></div></div>
-        <div class="a-domain">${ico('globe')}<span class="a-domain__name">${esc(subdomain())}</span>${chosen ? H`<span class="a-pill a-pill--check">${ico('check')}Choisie</span>` : ''}</div>
+        <div class="a-domain">${ico('globe')}<span class="a-domain__name">${esc(subdomain())}</span>${chosen ? H`<span class="a-pill a-pill--check a-tone--ok">${ico('check')}Choisie</span>` : ''}</div>
         <form class="a-form" data-form="subdomain" data-light novalidate style="margin-top:14px">
           <div class="a-field"><label class="a-label" for="d-sub">Changer l’adresse</label><div class="a-affix"><input class="a-input" id="d-sub" name="sub" maxlength="40" value="${esc(slug)}" autocapitalize="off" spellcheck="false" autocomplete="off"><span class="a-affix__txt">${esc(suffix)}</span></div>
             <p class="a-hint">Lettres sans accent, chiffres et tirets. Démo : nous ne vérifions pas si elle est libre.</p></div>
           <div class="a-formfoot"><button class="a-btn ${chosen ? 'a-btn--ghost' : 'a-btn--primary'}" type="submit">${ico('check')}${chosen ? 'Enregistrer l’adresse' : 'Choisir cette adresse'}</button></div>
         </form></section>
       <section class="a-card" aria-labelledby="h-dcust"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dcust">Votre propre nom de domaine</h3><p class="a-card__sub">Par exemple awabeaute.ci, acheté chez un registraire.</p></div></div>
-        ${set.customDomain ? H`<div class="a-domain">${ico('link')}<span class="a-domain__name">${esc(set.customDomain)}</span><span class="a-pill a-pill--off">${ico('clock')}À vérifier</span></div>
+        ${set.customDomain ? H`<div class="a-domain">${ico('link')}<span class="a-domain__name">${esc(set.customDomain)}</span><span class="a-pill a-pill--off a-tone--warn">${ico('clock')}À vérifier</span></div>
           <div class="a-btnrow" style="margin-top:12px"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="domain-verify">${ico('refresh')}Vérifier maintenant</button><button class="a-btn a-btn--quiet a-btn--sm" type="button" data-act="domain-remove">${ico('trash')}Retirer ce domaine</button></div>`
           : H`<form class="a-form" data-form="domain" data-light novalidate><div class="a-field"><label class="a-label" for="d-cust">Nom de domaine</label><input class="a-input" id="d-cust" name="domain" maxlength="120" placeholder="awabeaute.ci" autocapitalize="off" spellcheck="false" autocomplete="off"></div>
             <div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">${ico('link')}Ajouter le domaine</button></div></form>`}
@@ -3130,7 +3176,7 @@
           <p class="a-card__sub">${esc(fr(cur.ordersLabel))} · ${esc(fr(cur.feeLabel))}</p></div></div>
         <p class="a-big">${esc(cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? price(cur.priceWeek) : price(cur.priceMonth)) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? ' / semaine' : ' / mois') : ''}</small></p>
         <div class="a-meter"><div class="a-meter__row"><span>Commandes ce mois-ci${hasDemoOrders() ? ' (exemple)' : ''}</span><strong>${cur.orders ? esc(number(used) + ' sur ' + number(cur.orders)) : esc(number(used)) + ' · illimitées'}</strong></div>
-          ${cur.orders ? H`<div class="a-progress__bar" aria-hidden="true"><div class="a-progress__fill" style="width:${Math.min(100, Math.round((used / cur.orders) * 100))}%"></div></div>` : ''}
+          ${cur.orders ? H`<div class="a-progress__bar" aria-hidden="true"><div class="a-progress__fill${used / cur.orders >= .8 ? ' is-high' : ''}" style="width:${Math.min(100, Math.round((used / cur.orders) * 100))}%"></div></div>` : ''}
           ${cur.orders ? H`<p class="a-hint" style="margin-top:8px">${esc(fr(planLimit().policy))}</p>` : ''}</div>
         ${cur.priceMonth ? H`<div class="a-field"><span class="a-label" id="l-cycle">Paiement</span><div class="a-seg" role="group" aria-labelledby="l-cycle">
           <button class="a-seg__btn" type="button" data-act="cycle" data-v="mois" aria-pressed="${b.cycle !== 'semaine' || !weekOk ? 'true' : 'false'}">Par mois</button>
@@ -3234,7 +3280,7 @@
     return H`<section class="a-card a-card--flush" aria-labelledby="h-legal"><div class="a-card__head"><div><h3 class="a-card__title" id="h-legal">Vos pages légales</h3><p class="a-card__sub">Ce que vos clients lisent avant d’acheter : vente, livraison, retours, données personnelles.</p></div></div>
         ${legal.length ? H`<ul class="a-rows" style="margin-top:8px">${legal.map((p) => {
           const draft = /À adapter/.test(p.body);
-          return H`<li><a class="a-row" href="#pages/${esc(p.id)}">${ico('shield')}<span class="a-row__main"><span class="a-row__title"><span>${esc(p.title)}</span></span><span class="a-row__meta">${draft ? 'Modèle à faire relire' : (p.body.trim() ? 'Rédigée' : 'Vide')}</span></span>${draft ? H`<span class="a-chip a-chip--line">${ico('alert')}À relire</span>` : H`<span class="a-pill a-pill--check">${ico('check')}Prête</span>`}${ico('chev', 'a-row__chev')}</a></li>`;
+          return H`<li><a class="a-row" href="#pages/${esc(p.id)}">${ico('shield')}<span class="a-row__main"><span class="a-row__title"><span>${esc(p.title)}</span></span><span class="a-row__meta">${draft ? 'Modèle à faire relire' : (p.body.trim() ? 'Rédigée' : 'Vide')}</span></span>${draft ? H`<span class="a-chip a-chip--line a-tone--warn">${ico('alert')}À relire</span>` : H`<span class="a-pill a-pill--check a-tone--ok">${ico('check')}Prête</span>`}${ico('chev', 'a-row__chev')}</a></li>`;
         })}</ul>` : H`<p class="a-small" style="padding:0 16px 16px">Aucune page légale pour l’instant.</p>`}
         <div class="a-card__foot"><a class="a-btn a-btn--ghost" href="#pages">Gérer toutes les pages</a></div></section>
       <div class="a-note">${ico('info')}<p>Les textes de Jeere sont des modèles, pas des conseils juridiques : faites-les vérifier avant d’ouvrir votre boutique.</p></div>`;

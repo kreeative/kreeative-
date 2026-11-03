@@ -99,6 +99,8 @@
     { level: 'warning', title: 'À améliorer', icon: 'i-warn' },
     { level: 'tip', title: 'Conseils', icon: 'i-bulb' }
   ];
+  // To fix = red (problem), to improve = orange (attention), tips = blue (help)
+  const ISSUE_TONE = { error: 'err', warning: 'warn', tip: 'info' };
   // Schematic thumbnails of the three templates (builder chrome: black and white only)
   const SCHEMATICS = {
     plateau: '<svg viewBox="0 0 120 80" aria-hidden="true" focusable="false"><rect width="120" height="80" fill="#F5F5F3"/><rect x="8" y="7" width="104" height="38" fill="#DCDCD8"/><rect x="15" y="24" width="52" height="6" fill="#111"/><rect x="15" y="34" width="32" height="3" fill="#5E5E5E"/><path d="M8 51.5h104" stroke="#111" stroke-width=".7"/><rect x="8" y="56" width="22" height="18" fill="#E3E3DF"/><rect x="35" y="56" width="22" height="18" fill="#E3E3DF"/><rect x="62" y="56" width="22" height="18" fill="#E3E3DF"/><rect x="89" y="56" width="23" height="18" fill="#E3E3DF"/></svg>',
@@ -378,7 +380,7 @@
           const lite = JSON.stringify(stripImages(S.config));
           window.localStorage.setItem(STORE_KEY, lite);
           S.lastSaved = lite;
-          if (S.saveState !== 'partial') toast(`La mémoire du navigateur est pleine à cause des photos. Le reste est enregistré${NB}: téléchargez la fiche boutique pour garder aussi les photos.`, 6000);
+          if (S.saveState !== 'partial') toast(`La mémoire du navigateur est pleine à cause des photos. Le reste est enregistré${NB}: téléchargez la fiche boutique pour garder aussi les photos.`, 6000, 'warn');
           setSaved('partial');
           return;
         } catch (e2) { /* still full */ }
@@ -399,7 +401,10 @@
       fail: 'Non enregistré',
       blocked: 'Non enregistré'
     }[state] || '';
-    els.saved.classList.toggle('is-warn', state !== 'ok');
+    // Colour codes (README « Couleurs d’état »): green dot saved, orange partly saved, red not saved
+    els.saved.classList.toggle('is-ok', state === 'ok');
+    els.saved.classList.toggle('is-warn', state === 'partial');
+    els.saved.classList.toggle('is-err', state === 'fail' || state === 'blocked');
   }
 
   /* ------------------------------------------------------------------ history (undo / redo) */
@@ -1762,14 +1767,17 @@
 
   /* ---------- Qualité tab ---------- */
 
+  // The meaning of a quality result: green approved, red if something must be fixed, orange otherwise
+  const scoreTone = (v) => (v.status === 'APPROUVÉ' ? 'ok' : ((v.issues || []).some((i) => i.level === 'error') ? 'err' : 'warn'));
   function renderQuality(tp) {
     const v = D.validate(S.config);
     const ok = v.status === 'APPROUVÉ';
+    const tone = scoreTone(v);
     tp.append(tabHead('Qualité', 'Nous relisons votre fiche boutique avant publication, comme le fera Jeere.'));
-    tp.append(el('div', { class: 'b-score' + (ok ? ' is-ok' : '') },
+    tp.append(el('div', { class: 'b-score b-tone--' + tone + (ok ? ' is-ok' : '') },
       el('div', { class: 'b-score__top' },
         el('p', { class: 'b-score__num' }, el('strong', { text: String(v.score) }), el('span', { text: '/100' })),
-        el('span', { class: 'b-status' + (ok ? ' b-status--ok' : ''), text: v.status })),
+        el('span', { class: 'b-status b-tone--' + tone + (ok ? ' b-status--ok' : '') }, icon(ok ? 'i-check' : (tone === 'err' ? 'i-x' : 'i-alert'), 'b-status__ico'), v.status)),
       el('div', { class: 'b-meter', role: 'img', 'aria-label': `Score${NB}: ${v.score} sur 100` }, el('i', { style: `width:${v.score}%` })),
       el('p', { class: 'b-score__text', text: ok ? `Votre fiche est prête${NB}: elle pourrait être publiée telle quelle.` : 'Corrigez les points ci-dessous avant de publier.' })));
 
@@ -1787,7 +1795,7 @@
           icon(g.icon, 'b-issue__ico'), el('span', { class: 'b-issue__msg', text: iss.message }), icon('i-arrow', 'b-issue__go'))));
       });
       tp.append(el('section', { class: 'b-issgroup', 'aria-label': g.title },
-        el('h3', { class: 'b-group__title' }, g.title, el('span', { class: 'b-issgroup__n', text: String(items.length) })), ul));
+        el('h3', { class: 'b-group__title' }, g.title, el('span', { class: 'b-issgroup__n b-tone--' + ISSUE_TONE[g.level], text: String(items.length) })), ul));
     });
     tp.append(el('p', { class: 'b-foot-note' }, icon('i-info'), el('span', { text: `Cette relecture est faite par du code simple, sans IA${NB}: elle est instantanée et ne coûte rien.` })));
   }
@@ -1874,6 +1882,8 @@
     const v = D.validate(S.config);
     els.tabScore.textContent = String(v.score);
     els.tabScore.classList.toggle('is-ok', v.status === 'APPROUVÉ');
+    const tt = scoreTone(v);
+    ['ok', 'warn', 'err'].forEach((x) => els.tabScore.classList.toggle('b-tone--' + x, x === tt));
     els.tabBtns[4].setAttribute('aria-label', `Qualité, score ${v.score} sur 100, ${v.status === 'APPROUVÉ' ? 'approuvé' : 'à corriger'}`);
     if (S.tab === 'qualite' && S.open) renderTab();
   }
@@ -2081,7 +2091,7 @@
     const ok = v.status === 'APPROUVÉ';
     els.pubScore.textContent = '';
     append(els.pubScore, [
-      el('span', { class: 'b-status' + (ok ? ' b-status--ok' : ''), text: v.status }),
+      el('span', { class: 'b-status b-tone--' + scoreTone(v) + (ok ? ' b-status--ok' : '') }, icon(ok ? 'i-check' : (scoreTone(v) === 'err' ? 'i-x' : 'i-alert'), 'b-status__ico'), v.status),
       el('span', { text: ok ? ` Score qualité${NB}: ${v.score}/100. Votre fiche est prête.` : ` Score qualité${NB}: ${v.score}/100. Il reste des points à corriger dans l’onglet Qualité.` })
     ]);
     openModal('m-publish');
@@ -2089,9 +2099,20 @@
 
   /* ------------------------------------------------------------------ toast */
 
-  function toast(msg, ms = 2800) {
+  // A small status icon before the message, guessed from its wording (or given): ok, warn, err or info
+  function toastTone(msg) {
+    const m = String(msg || '');
+    if (/pas pu|a échoué|bloque|pleine|ne sont plus/i.test(m)) return 'err';
+    if (/masquée|pas encore créée|Réessayez|arrive dans un instant/i.test(m)) return 'warn';
+    if (/modifiée|supprimée depuis|Annuler permet/i.test(m)) return 'info';
+    if (/ajouté|appliqué|copiée|téléchargée|affichée|retirée|Supprimé|supprimée|à votre nom|enregistr/i.test(m)) return 'ok';
+    return '';
+  }
+  function toast(msg, ms = 2800, tone) {
     const t = els.toast;
     if (!t) return;
+    const tn = ['ok', 'warn', 'err', 'info'].indexOf(tone) >= 0 ? tone : toastTone(msg);
+    if (tn) t.setAttribute('data-tone', tn); else t.removeAttribute('data-tone');
     clearTimeout(S.timers.toast);
     clearTimeout(S.timers.toastClear);
     t.classList.remove('is-on');
@@ -2497,7 +2518,7 @@
       S.config = null;
       doShowStart();
       try { if (history.state && history.state.jeere === 'editor') history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
-      toast(`Votre boutique a été supprimée depuis le tableau de bord.`, 4000);
+      toast(`Votre boutique a été supprimée depuis le tableau de bord.`, 4000, 'warn');
       return;
     }
     const cfg = parseConfig(raw);
