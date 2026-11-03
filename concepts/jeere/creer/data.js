@@ -310,20 +310,22 @@
 
   /* ------------------------------------------------------------------ demo photos
    * Real photos for the example stores, hosted with the app in creer/img/demo/ (never loaded from
-   * another site). The catalogue ships empty: until it is filled, every store shows its
-   * illustrations, exactly as before.
+   * another site): 8 per niche (6 products, the hero, the about section), plus 5 for the mock-ups of
+   * the landing page. Without this catalogue, every store shows its illustrations.
    *
    * DEMO_PHOTOS = { '<id>': entry }, the id in lower case words joined by hyphens
-   * (^[a-z0-9]+(?:-[a-z0-9]+)*$, 'beauty-karite'), the entry:
+   * (^[a-z0-9]+(?:-[a-z0-9]+)*$): '<niche>-<file name>'. The entry:
    *   {
-   *     file: 'beauty/karite.webp',               // path under creer/img/demo/
-   *     alt: 'Pot de beurre de karité fouetté',   // French description of the photo
+   *     file: 'beauty/savon-noir-karite.webp',    // path under creer/img/demo/
+   *     focus: '50% 50%',                         // optional: CSS object-position of the crop
+   *     alt: 'Pain de savon noir posé sur du marbre blanc…',   // French description of the photo
    *     credit: {
    *       name: 'Photographer Name', username: 'unsplash_username',
    *       photoUrl: 'https://unsplash.com/photos/<id>', profileUrl: 'https://unsplash.com/@username'
-   *     },
-   *     focus: '50% 50%'                          // optional: CSS object-position of the crop
+   *     }
    *   }
+   * Ids and file names come from the photo search and were kept when a product was renamed to
+   * match its photo (food-sauce-graine-riz is the « Sauce gombo et riz »): see creer/README.md.
    * The photos come from Unsplash (Unsplash License: free to use, commercial use included, no
    * permission needed). We credit each photographer anyway: in the editor under the photo, and in
    * creer/img/demo/CREDITS.md.
@@ -333,16 +335,404 @@
    * then the demo photo, then the illustration. normalizeConfig turns an id the catalogue does not
    * know into null. JeereRender.photoSrc(id) gives the URL.
    */
-  var DEMO_PHOTOS = {};
+  var DEMO_PHOTOS = {
+    // fashion
+    'fashion-robe-portefeuille': {
+      file: 'fashion/robe-portefeuille.webp', focus: '50% 5%',
+      alt: 'Femme portant une robe portefeuille noire sans manches, à col à revers et ceinture à boucle, sur fond turquoise',
+      credit: { name: 'McFollis', username: 'thisismcfollis', photoUrl: 'https://unsplash.com/photos/young-woman-in-black-dress-and-glasses-on-blue-background-4myUEOinXxs', profileUrl: 'https://unsplash.com/@thisismcfollis' }
+    },
+    'fashion-robe-chemise-lin': {
+      file: 'fashion/robe-chemise-lin.webp', focus: '50% 30%',
+      alt: 'Femme coiffée d’un chapeau de paille portant une robe chemise blanche froissée à col et taille froncée, sur une plage',
+      credit: { name: 'INHB WORLDWIDE', username: 'inhb2014', photoUrl: 'https://unsplash.com/photos/a-woman-standing-on-a-beach-talking-on-a-cell-phone-hzUVGcC5bNM', profileUrl: 'https://unsplash.com/@inhb2014' }
+    },
+    'fashion-ensemble-pagne-tisse': {
+      file: 'fashion/ensemble-pagne-tisse.webp', focus: '50% 75%',
+      alt: 'Homme portant une tunique en pagne tissé à rayures bleues et blanches devant une palissade bleu clair',
+      credit: { name: 'Oswald Elsaboath', username: 'ozzzyphotos', photoUrl: 'https://unsplash.com/photos/man-in-traditional-striped-clothing-stands-by-blue-fence-vezuIcFOPfU', profileUrl: 'https://unsplash.com/@ozzzyphotos' }
+    },
+    'fashion-ensemble-tunique-pantalon': {
+      file: 'fashion/ensemble-tunique-pantalon.webp', focus: '50% 35%',
+      alt: 'Femme en ensemble tunique et pantalon large en wax vert et orange, foulard assorti, devant une palissade en bambou',
+      credit: { name: 'Delight Dzansi', username: 'alkebulanprints', photoUrl: 'https://unsplash.com/photos/a-person-in-a-colorful-dress-FiggxDNdkUs', profileUrl: 'https://unsplash.com/@alkebulanprints' }
+    },
+    'fashion-chemise-col-mao': {
+      file: 'fashion/chemise-col-mao.webp', focus: '50% 50%',
+      alt: 'Chemise homme bleu marine à col mao en lin, suspendue à un cintre en bois sur fond beige',
+      credit: { name: 'tian dayong', username: 'tonnnyj', photoUrl: 'https://unsplash.com/photos/a-blue-shirt-hanging-on-a-clothes-line-8UsQoiJLNNQ', profileUrl: 'https://unsplash.com/@tonnnyj' }
+    },
+    'fashion-chemise-oversize': {
+      file: 'fashion/chemise-oversize.webp', focus: '50% 10%',
+      alt: 'Jeune femme portant une chemise oversize bleu ciel ouverte sur un débardeur blanc et un pantalon beige',
+      credit: { name: 'Good Faces', username: 'goodfacesagency', photoUrl: 'https://unsplash.com/photos/a-woman-in-a-white-top-and-tan-pants-NVwweuXv2vg', profileUrl: 'https://unsplash.com/@goodfacesagency' }
+    },
+    'fashion-hero': {
+      file: 'fashion/hero.webp', focus: '50% 40%',
+      alt: 'Portrait éditorial d’une femme coiffée d’un gélé imprimé bleu et vêtue d’une veste bleu vif',
+      credit: { name: 'Ben Iwara', username: '1hundredimages', photoUrl: 'https://unsplash.com/photos/woman-in-blue-headwrap-in-lagos-VFiTzNzaTeU', profileUrl: 'https://unsplash.com/@1hundredimages' }
+    },
+    'fashion-about': {
+      file: 'fashion/about.webp', focus: '50% 45%',
+      alt: 'Deux couturières en robes en wax penchées sur un tissu près d’une machine à coudre, dans un atelier tapissé de pagnes',
+      credit: { name: 'Unavailable Photographer', username: 'unavailablephotographer', photoUrl: 'https://unsplash.com/photos/women-sewing-fabric-in-workshop-KK1SKkRfk1c', profileUrl: 'https://unsplash.com/@unavailablephotographer' }
+    },
+    // hair
+    'hair-perruque-lisse-14': {
+      file: 'hair/perruque-lisse-14.webp', focus: '50% 20%',
+      alt: 'Femme noire souriante portant une perruque lisse noire aux longueurs soyeuses, fond beige',
+      credit: { name: 'John Ekow', username: 'jaughnekow_', photoUrl: 'https://unsplash.com/photos/woman-with-long-black-hair-pJ5yzJNpfVg', profileUrl: 'https://unsplash.com/@jaughnekow_' }
+    },
+    'hair-perruque-bouclee-carre': {
+      file: 'hair/perruque-bouclee-carre.webp', focus: '50% 55%',
+      alt: 'Perruque bouclée mi-longue couleur miel cuivré posée sur une tête de mannequin, vue de dos',
+      credit: { name: 'J Morgan', username: 'jerrold01', photoUrl: 'https://unsplash.com/photos/a-womans-hair-with-a-braid-fNFf_XBASTQ', profileUrl: 'https://unsplash.com/@jerrold01' }
+    },
+    'hair-perruque-bob-blond-miel': {
+      file: 'hair/perruque-bob-blond-miel.webp', focus: '50% 25%',
+      alt: 'Femme noire portant une perruque courte blond platine avec frange, main sur la joue, fond beige',
+      credit: { name: 'David Banjo', username: 'davidbvnjo', photoUrl: 'https://unsplash.com/photos/person-with-blonde-hair-and-dark-jacket-touching-their-face-1kVvRKJ34Yk', profileUrl: 'https://unsplash.com/@davidbvnjo' }
+    },
+    'hair-meches-ondulees-lot-3': {
+      file: 'hair/meches-ondulees-lot-3.webp', focus: '50% 30%',
+      alt: 'Femme vue de dos avec de longues mèches noires ondulées, fond blanc',
+      credit: { name: 'Sunber Hair', username: 'alisalucy', photoUrl: 'https://unsplash.com/photos/woman-poses-with-long-flowing-black-hair-S862PXCdSHk', profileUrl: 'https://unsplash.com/@alisalucy' }
+    },
+    'hair-meches-kinky-tresses': {
+      file: 'hair/meches-kinky-tresses.webp', focus: '50% 10%',
+      alt: 'Femme noire souriante coiffée de longues box braids relevées en chignon, haut à motifs géométriques, fond clair',
+      credit: { name: 'Gustavo Spindula', username: 'gspindula', photoUrl: 'https://unsplash.com/photos/woman-wearing-multicolored-blouse-and-braided-hair-K2D7muBun1A', profileUrl: 'https://unsplash.com/@gspindula' }
+    },
+    'hair-huile-legere-perruque': {
+      file: 'hair/huile-legere-perruque.webp', focus: '50% 55%',
+      alt: 'Flacon compte-gouttes d’huile dorée aux pétales de fleurs séchées sur fond crème',
+      credit: { name: 'sam limon', username: 'limone', photoUrl: 'https://unsplash.com/photos/yellow-and-white-plastic-bottle-g5oq-wH71OQ', profileUrl: 'https://unsplash.com/@limone' }
+    },
+    'hair-hero': {
+      file: 'hair/hero.webp', focus: '50% 35%',
+      alt: 'Femme noire souriante aux longs cheveux bouclés volumineux, fond doré flou',
+      credit: { name: 'Jabari Timothy', username: 'jabarib', photoUrl: 'https://unsplash.com/photos/a-close-up-of-a-person-with-long-hair-bT3c6aMlbbE', profileUrl: 'https://unsplash.com/@jabarib' }
+    },
+    'hair-about': {
+      file: 'hair/about.webp', focus: '50% 40%',
+      alt: 'Mains d’une coiffeuse tressant des nattes collées pour une pose de mèches en salon',
+      credit: { name: 'Mohamed B.', username: 'bangscreative', photoUrl: 'https://unsplash.com/photos/hands-braiding-hair-with-extensions-S6S4jH8KQjg', profileUrl: 'https://unsplash.com/@bangscreative' }
+    },
+    // beauty
+    'beauty-beurre-karite-fouette': {
+      file: 'beauty/beurre-karite-fouette.webp', focus: '50% 50%',
+      alt: 'Bol de beurre de karité brut en morceaux sur un plan de travail en marbre blanc',
+      credit: { name: 'Alex Bayev', username: 'alexbayev', photoUrl: 'https://unsplash.com/photos/a-bowl-of-food-that-is-on-a-table-dmusxNBR2hk', profileUrl: 'https://unsplash.com/@alexbayev' }
+    },
+    'beauty-savon-noir-karite': {
+      file: 'beauty/savon-noir-karite.webp', focus: '50% 50%',
+      alt: 'Pain de savon noir posé sur du marbre blanc, avec un brin de lavande et un linge en lin',
+      credit: { name: 'Miguel Constantin Montes', username: 'createwithconstantin', photoUrl: 'https://unsplash.com/photos/a-gray-book-sitting-on-top-of-a-table-next-to-flowers-x4021J6aHfw', profileUrl: 'https://unsplash.com/@createwithconstantin' }
+    },
+    'beauty-huile-coco-vierge': {
+      file: 'beauty/huile-coco-vierge.webp', focus: '50% 40%',
+      alt: 'Petite bouteille d’huile de coco à côté d’un bocal de noix de coco râpée et d’une noix de coco ouverte',
+      credit: { name: 'Tijana Drndarski', username: 'izgubljenausvemiru', photoUrl: 'https://unsplash.com/photos/white-powder-in-clear-glass-jar-beside-brown-wooden-spoon-Bb8_yBkb_6E', profileUrl: 'https://unsplash.com/@izgubljenausvemiru' }
+    },
+    'beauty-serum-eclat-baobab': {
+      file: 'beauty/serum-eclat-baobab.webp', focus: '50% 40%',
+      alt: 'Flacon compte-gouttes ambré de sérum posé sur un socle en bois, ombres de palmes sur un mur clair',
+      credit: { name: 'Kadarius Seegars', username: 'kseegars', photoUrl: 'https://unsplash.com/photos/brown-glass-bottle-on-white-table-b9KAwJRBXgw', profileUrl: 'https://unsplash.com/@kseegars' }
+    },
+    'beauty-masque-argile': {
+      file: 'beauty/masque-argile.webp', focus: '50% 50%',
+      alt: 'Petit bol de masque à l’argile verte avec un pinceau d’application sur fond blanc',
+      credit: { name: 'Towfiqu barbhuiya', username: 'towfiqu999999', photoUrl: 'https://unsplash.com/photos/green-ceramic-round-bowl-on-white-table-0BEqLfQwVzM', profileUrl: 'https://unsplash.com/@towfiqu999999' }
+    },
+    'beauty-coffret-decouverte': {
+      file: 'beauty/coffret-decouverte.webp', focus: '50% 50%',
+      alt: 'Coffret cadeau emballé dans du papier kraft à motifs végétaux, noué d’un ruban noir',
+      credit: { name: 'Fiona Murray-deGraaff', username: 'fionamurrayphoto', photoUrl: 'https://unsplash.com/photos/a-wrapped-gift-box-with-a-black-ribbon-beJTnEGzbAM', profileUrl: 'https://unsplash.com/@fionamurrayphoto' }
+    },
+    'beauty-hero': {
+      file: 'beauty/hero.webp', focus: '50% 30%',
+      alt: 'Portrait d’une femme noire à la peau lumineuse, coiffée de deux macarons afro, sur fond sombre',
+      credit: { name: 'Divin Louis-Rémy MBEA DE MASSOCK', username: 'themysteriousstudio', photoUrl: 'https://unsplash.com/photos/a-woman-with-an-afro-is-wearing-a-dress-sDnm8GvBv1c', profileUrl: 'https://unsplash.com/@themysteriousstudio' }
+    },
+    'beauty-about': {
+      file: 'beauty/about.webp', focus: '50% 35%',
+      alt: 'Femmes en pagnes wax réunies dans la cour d’une coopérative de beurre de karité',
+      credit: { name: 'Kai-Liis Lepik', username: 'fairtaleghana', photoUrl: 'https://unsplash.com/photos/3G86T9Zwc80', profileUrl: 'https://unsplash.com/@fairtaleghana' }
+    },
+    // jewellery
+    'jewellery-collier-perles-verre': {
+      file: 'jewellery/collier-perles-verre.webp', focus: '50% 45%',
+      alt: 'Collier ras-du-cou en perles de verre noires avec pendentif brodé de perles multicolores, porté sur un haut noir',
+      credit: { name: 'Divaris Shirichena', username: 'divaris', photoUrl: 'https://unsplash.com/photos/woman-wearing-a-colorful-beaded-necklace-and-earrings-vNM_8K6EILc', profileUrl: 'https://unsplash.com/@divaris' }
+    },
+    'jewellery-creoles-martelees': {
+      file: 'jewellery/creoles-martelees.webp', focus: '50% 50%',
+      alt: 'Paire de créoles dorées torsadées posées sur un galet blanc, ombres de lumière naturelle',
+      credit: { name: 'Nataliya Melnychuk', username: 'natinati', photoUrl: 'https://unsplash.com/photos/gold-twisted-hoop-earrings-on-stones-5ngCICAXiH0', profileUrl: 'https://unsplash.com/@natinati' }
+    },
+    'jewellery-pendants-goutte-resine': {
+      file: 'jewellery/pendants-goutte-resine.webp', focus: '50% 50%',
+      alt: 'Boucles d’oreilles pendantes en forme de goutte en résine transparente avec fleurs violettes séchées',
+      credit: { name: 'Samuel Charris', username: 'sammiel56', photoUrl: 'https://unsplash.com/photos/silver-and-purple-heart-pendant-R2Jq3QX_cGQ', profileUrl: 'https://unsplash.com/@sammiel56' }
+    },
+    'jewellery-bracelet-jonc-grave': {
+      file: 'jewellery/bracelet-jonc-grave.webp', focus: '50% 50%',
+      alt: 'Bracelet jonc doré aux motifs gravés posé sur un présentoir blanc et un drapé satiné',
+      credit: { name: 'Imam Kurniawan', username: 'iklalu', photoUrl: 'https://unsplash.com/photos/a-gold-ring-on-a-white-surface-2EF7dcbdZAI', profileUrl: 'https://unsplash.com/@iklalu' }
+    },
+    'jewellery-bracelets-perles-lot-3': {
+      file: 'jewellery/bracelets-perles-lot-3.webp', focus: '50% 45%',
+      alt: 'Trois bracelets de perles empilés (pierre de lave noire, bois clair, verre fumé) sur un bois patiné',
+      credit: { name: 'Alexey Demidov', username: 'alexeydemidov', photoUrl: 'https://unsplash.com/photos/a-couple-of-bracelets-sitting-on-top-of-a-wooden-table-md87xXz3le4', profileUrl: 'https://unsplash.com/@alexeydemidov' }
+    },
+    'jewellery-parure-collier-boucles': {
+      file: 'jewellery/parure-collier-boucles.webp', focus: '50% 40%',
+      alt: 'Femme portant une parure assortie : collier plastron de perles rouges et boucles d’oreilles fleur rouges',
+      credit: { name: 'Divaris Shirichena', username: 'divaris', photoUrl: 'https://unsplash.com/photos/beautiful-woman-wearing-red-necklace-and-earrings-XIj_G608oto', profileUrl: 'https://unsplash.com/@divaris' }
+    },
+    'jewellery-hero': {
+      file: 'jewellery/hero.webp', focus: '25% 50%',
+      alt: 'Profil d’une femme coiffée d’un foulard, avec boucle d’oreille perlée et colliers rigides dorés et verts, sur fond noir',
+      credit: { name: 'Timothy Barlin', username: 'timbar', photoUrl: 'https://unsplash.com/photos/woman-wearing-gold-and-green-necklace-k2TtwfkRvP0', profileUrl: 'https://unsplash.com/@timbar' }
+    },
+    'jewellery-about': {
+      file: 'jewellery/about.webp', focus: '55% 50%',
+      alt: 'Mains d’un artisan façonnant une petite pièce de bijou en métal avec un outil rotatif à l’établi',
+      credit: { name: 'Tahlia Doyle', username: 'tahliaclaire', photoUrl: 'https://unsplash.com/photos/person-holding-silver-and-black-hand-tool-Mr9m0tGdTIE', profileUrl: 'https://unsplash.com/@tahliaclaire' }
+    },
+    // shoes
+    'shoes-sneakers-basses-blanches': {
+      file: 'shoes/sneakers-basses-blanches.webp', focus: '50% 50%',
+      alt: 'Paire de sneakers basses en cuir blanc uni, sans logo, posées contre un sac noir sur fond clair',
+      credit: { name: 'Ervan M Wirawan', username: 'ervan_me', photoUrl: 'https://unsplash.com/photos/a-pair-of-white-shoes-sitting-on-top-of-a-black-bag-aC8CeQy5S-I', profileUrl: 'https://unsplash.com/@ervan_me' }
+    },
+    'shoes-sneakers-montantes': {
+      file: 'shoes/sneakers-montantes.webp', focus: '50% 50%',
+      alt: 'Sneakers montantes en toile rouge bordeaux avec lacets blancs, posées au sol',
+      credit: { name: 'Fatqurrohman Arrosyid', username: 'farros_', photoUrl: 'https://unsplash.com/photos/a-pair-of-red-sneakers-with-white-laces-7KgJMAfI3ZU', profileUrl: 'https://unsplash.com/@farros_' }
+    },
+    'shoes-baskets-course-legeres': {
+      file: 'shoes/baskets-course-legeres.webp', focus: '50% 50%',
+      alt: 'Basket de course légère en maille gris anthracite avec semelle blanche en mousse, sur fond gris clair',
+      credit: { name: 'Rohit Sharma', username: 'rohitsharma1785', photoUrl: 'https://unsplash.com/photos/a-pair-of-black-and-white-sneakers-hanging-from-a-hook-VeW_kL0isfs', profileUrl: 'https://unsplash.com/@rohitsharma1785' }
+    },
+    'shoes-sandales-cuir-tresse': {
+      file: 'shoes/sandales-cuir-tresse.webp', focus: '50% 50%',
+      alt: 'Paire de sandales plates à bride en cuir tressé multicolore posées sur l’herbe',
+      credit: { name: 'Amar Preet Singh', username: 'amarallahabadi', photoUrl: 'https://unsplash.com/photos/a-pair-of-colorful-woven-sandals-resting-on-green-grass-f9KaXFyb4AU', profileUrl: 'https://unsplash.com/@amarallahabadi' }
+    },
+    'shoes-claquettes-confort': {
+      file: 'shoes/claquettes-confort.webp', focus: '50% 50%',
+      alt: 'Pied d’un homme noir en chaussette blanche portant une claquette en mousse blanche sur un court de sport',
+      credit: { name: 'Élison Bartolomeu', username: 'elisonbartolomeu', photoUrl: 'https://unsplash.com/photos/a-person-standing-on-a-tennis-court-holding-a-tennis-racquet-32-wbfzHGDM', profileUrl: 'https://unsplash.com/@elisonbartolomeu' }
+    },
+    'shoes-mocassins-daim': {
+      file: 'shoes/mocassins-daim.webp', focus: '50% 50%',
+      alt: 'Mocassin en daim ocre à franges et nœud, fait main, sur fond gris clair',
+      credit: { name: 'Melvin Peter', username: 'viztapluz', photoUrl: 'https://unsplash.com/photos/a-brown-and-white-shoe-bvHLQVnh3A4', profileUrl: 'https://unsplash.com/@viztapluz' }
+    },
+    'shoes-hero': {
+      file: 'shoes/hero.webp', focus: '55% 55%',
+      alt: 'Jambes d’un homme en jean noir portant des sneakers blanches sans logo sur des pavés',
+      credit: { name: 'Foto Bakirkoy', username: 'fotobakirkoy', photoUrl: 'https://unsplash.com/photos/a-close-up-of-a-person-wearing-white-sneakers-nB55k3TYJEA', profileUrl: 'https://unsplash.com/@fotobakirkoy' }
+    },
+    'shoes-about': {
+      file: 'shoes/about.webp', focus: '50% 50%',
+      alt: 'Étal de marché avec des piles de sandales et claquettes en cuir marron, noir et beige, étiquetées par pointure',
+      credit: { name: 'JL Merilles', username: 'jl_merilles', photoUrl: 'https://unsplash.com/photos/a-bunch-of-shoes-that-are-stacked-on-top-of-each-other-99cBeQQg_gU', profileUrl: 'https://unsplash.com/@jl_merilles' }
+    },
+    // food
+    'food-attieke-poisson-braise': {
+      file: 'food/attieke-poisson-braise.webp', focus: '50% 50%',
+      alt: 'Deux tilapias braisés garnis d’oignons et de piment sur une assiette à liseré bleu',
+      credit: { name: 'Francisca Dzise', username: 'sisc12', photoUrl: 'https://unsplash.com/photos/two-fish-on-a-plate-with-onions-and-peppers-KlDjAojLfRk', profileUrl: 'https://unsplash.com/@sisc12' }
+    },
+    'food-sauce-graine-riz': {
+      file: 'food/sauce-graine-riz.webp', focus: '50% 50%',
+      alt: 'Assiette creuse de sauce gombo rouge à la viande, aux crevettes et au piment, avec un dôme de riz blanc',
+      credit: { name: 'Keesha\'s Kitchen', username: 'keeshasskitchen', photoUrl: 'https://unsplash.com/photos/a-plate-of-food-N_544vYDfwM', profileUrl: 'https://unsplash.com/@keeshasskitchen' }
+    },
+    'food-alloco-poulet-braise': {
+      file: 'food/alloco-poulet-braise.webp', focus: '50% 50%',
+      alt: 'Assiette d’alloco servi en panier avec du poisson braisé sous les oignons, tomate, concombre et citron vert',
+      credit: { name: 'Emmanuel M', username: 'e4xtream', photoUrl: 'https://unsplash.com/photos/grilled-fish-with-fried-plantains-red-onions-and-lime-a5MP_o7xy54', profileUrl: 'https://unsplash.com/@e4xtream' }
+    },
+    'food-plateau-traiteur-20-personnes': {
+      file: 'food/plateau-traiteur-20-personnes.webp', focus: '50% 50%',
+      alt: 'Bacs chauffe-plats en inox remplis de bananes plantain frites lors d’un buffet traiteur',
+      credit: { name: 'Valdhy Mbemba', username: 'valdhy_mbemba', photoUrl: 'https://unsplash.com/photos/fried-plantain-slices-in-catering-dishes-qoxK2LBKmIs', profileUrl: 'https://unsplash.com/@valdhy_mbemba' }
+    },
+    'food-mini-beignets-boite-30': {
+      file: 'food/mini-beignets-boite-30.webp', focus: '50% 50%',
+      alt: 'Corbeille de beignets dorés (puff-puff) posée sur un tissu wax, avec des bananes',
+      credit: { name: 'Keesha\'s Kitchen', username: 'keeshasskitchen', photoUrl: 'https://unsplash.com/photos/a-bowl-of-fruit-_y325luZNUs', profileUrl: 'https://unsplash.com/@keeshasskitchen' }
+    },
+    'food-jus-bissap-maison-1l': {
+      file: 'food/jus-bissap-maison-1l.webp', focus: '50% 50%',
+      alt: 'Verre de jus de bissap rouge glacé avec une rondelle de citron vert et une fleur d’hibiscus',
+      credit: { name: 'Didi Paul', username: 'didipaul', photoUrl: 'https://unsplash.com/photos/a-red-drink-sitting-on-top-of-a-wooden-table--7oFAavr1Fw', profileUrl: 'https://unsplash.com/@didipaul' }
+    },
+    'food-hero': {
+      file: 'food/hero.webp', focus: '50% 50%',
+      alt: 'Vue du dessus de plats ouest-africains : alloco, frites d’igname, foutou en sauce, spaghetti à la tomate et sauce pimentée',
+      credit: { name: 'Rejoice Denhere', username: 'triolette', photoUrl: 'https://unsplash.com/photos/assorted-dishes-with-yuca-and-rice-Z4u67tvjYEo', profileUrl: 'https://unsplash.com/@triolette' }
+    },
+    'food-about': {
+      file: 'food/about.webp', focus: '50% 50%',
+      alt: 'Vue plongeante sur les étals du marché de Treichville à Abidjan : tomates sur pagne, aubergines, piments et vendeuses',
+      credit: { name: 'Ingeborg Korme', username: 'ingeborgkorme', photoUrl: 'https://unsplash.com/photos/a-group-of-people-standing-around-a-market-WWRgheXEAg0', profileUrl: 'https://unsplash.com/@ingeborgkorme' }
+    },
+    // home
+    'home-bougie-citronnelle': {
+      file: 'home/bougie-citronnelle.webp', focus: '50% 50%',
+      alt: 'Bougies artisanales en pot de verre ornées de feuilles vertes, l’une allumée, sur une table blanche',
+      credit: { name: 'Ozra Zamani', username: 'ozrazm', photoUrl: 'https://unsplash.com/photos/a-table-topped-with-candles-and-a-vase-filled-with-flowers-yzf65itmScs', profileUrl: 'https://unsplash.com/@ozrazm' }
+    },
+    'home-vase-terre-cuite': {
+      file: 'home/vase-terre-cuite.webp', focus: '50% 50%',
+      alt: 'Vase-cruche en terre cuite mate sur un fond orangé chaud',
+      credit: { name: 'Allec Gomes', username: 'allecgomes', photoUrl: 'https://unsplash.com/photos/a-brown-vase-sitting-on-top-of-a-table-CDuhbnnvBFA', profileUrl: 'https://unsplash.com/@allecgomes' }
+    },
+    'home-panier-rangement-tresse': {
+      file: 'home/panier-rangement-tresse.webp', focus: '50% 50%',
+      alt: 'Grand panier rond tressé en rotin avec couvercle, posé sur un parquet clair',
+      credit: { name: 'Rosemary Media', username: 'rosemarymedia', photoUrl: 'https://unsplash.com/photos/a-wooden-bowl-on-a-table-92_hR3igPiE', profileUrl: 'https://unsplash.com/@rosemarymedia' }
+    },
+    'home-service-6-assiettes': {
+      file: 'home/service-6-assiettes.webp', focus: '50% 50%',
+      alt: 'Pile d’assiettes en céramique à motifs floraux bleus sur une table en bois, cafetière et pot à lait en arrière-plan',
+      credit: { name: 'Mathias Reding', username: 'matreding', photoUrl: 'https://unsplash.com/photos/a-stack-of-plates-sitting-on-top-of-a-wooden-table-iZYxNyVUWcA', profileUrl: 'https://unsplash.com/@matreding' }
+    },
+    'home-saladier-teck': {
+      file: 'home/saladier-teck.webp', focus: '50% 50%',
+      alt: 'Saladier en bois à veinures marquées, garni et entouré de cerneaux de noix, sur fond blanc',
+      credit: { name: 'Mette van der Linden', username: 'mettevdl', photoUrl: 'https://unsplash.com/photos/brown-wooden-bowl-F35i2jcXYIE', profileUrl: 'https://unsplash.com/@mettevdl' }
+    },
+    'home-parure-lit-coton': {
+      file: 'home/parure-lit-coton.webp', focus: '50% 50%',
+      alt: 'Lit garni d’une parure en coton blanc, oreillers et couette baignés de soleil',
+      credit: { name: 'Liz Vo', username: 'lvphotos', photoUrl: 'https://unsplash.com/photos/a-bed-with-white-sheets-and-white-pillows-pl3sj3DigxM', profileUrl: 'https://unsplash.com/@lvphotos' }
+    },
+    'home-hero': {
+      file: 'home/hero.webp', focus: '50% 40%',
+      alt: 'Chambre lumineuse aux suspensions en rotin, macramé mural, panier tressé et petite plante',
+      credit: { name: 'Volodymyr Yarossvit', username: 'yarossvit_prod', photoUrl: 'https://unsplash.com/photos/a-bedroom-with-a-bed-lamps-and-a-basket-on-the-floor-TuPFc2iLnKs', profileUrl: 'https://unsplash.com/@yarossvit_prod' }
+    },
+    'home-about': {
+      file: 'home/about.webp', focus: '50% 50%',
+      alt: 'Atelier rustique aux étagères chargées de poteries en terre cuite, baigné de lumière par une fenêtre cintrée',
+      credit: { name: 'Marcos Vinícius do Vale', username: 'marcosvc34', photoUrl: 'https://unsplash.com/photos/rustic-room-with-shelves-full-of-traditional-terracotta-pottery-Us4_fFvjtBQ', profileUrl: 'https://unsplash.com/@marcosvc34' }
+    },
+    // crafts
+    'crafts-panier-rond-raffia': {
+      file: 'crafts/panier-rond-raffia.webp', focus: '50% 50%',
+      alt: 'Panier rond tressé en fibres naturelles à motifs colorés, accroché à un mur ocre',
+      credit: { name: 'Alef Morais', username: 'alef_visuals', photoUrl: 'https://unsplash.com/photos/two-woven-decorative-plates-with-colorful-patterns-uX9AyUcg64Y', profileUrl: 'https://unsplash.com/@alef_visuals' }
+    },
+    'crafts-sac-cabas-tresse': {
+      file: 'crafts/sac-cabas-tresse.webp', focus: '50% 50%',
+      alt: 'Sac cabas en paille tressée à anses en cuir, garni d’eucalyptus, posé sur un parquet',
+      credit: { name: 'Janita O’Hara', username: 'janitaohara', photoUrl: 'https://unsplash.com/photos/beige-and-brown-tote-bag-GlgERqX00r0', profileUrl: 'https://unsplash.com/@janitaohara' }
+    },
+    'crafts-jarre-terre-katiola': {
+      file: 'crafts/jarre-terre-katiola.webp', focus: '50% 35%',
+      alt: 'Jarre en terre cuite à deux anses posée sur un socle drapé de lin, lumière chaude',
+      credit: { name: 'Mhmd Sedky', username: 'sedky', photoUrl: 'https://unsplash.com/photos/brown-ceramic-vase-on-white-table-cloth-7JqR7Vdv8aQ', profileUrl: 'https://unsplash.com/@sedky' }
+    },
+    'crafts-bol-terre-cuite': {
+      file: 'crafts/bol-terre-cuite.webp', focus: '50% 50%',
+      alt: 'Bol en terre cuite brute à l’intérieur émaillé blanc décoré de brins d’herbe, sur fond clair',
+      credit: { name: 'Viviane Okubo', username: 'vivianeokubo', photoUrl: 'https://unsplash.com/photos/empty-bowl-BgIOYG835og', profileUrl: 'https://unsplash.com/@vivianeokubo' }
+    },
+    'crafts-pochette-toile-korhogo': {
+      file: 'crafts/pochette-toile-korhogo.webp', focus: '50% 50%',
+      alt: 'Pochette noire à rabat en pagne wax jaune et rose, avec chaînette dorée, sur fond blanc',
+      credit: { name: 'Delight Dzansi', username: 'alkebulanprints', photoUrl: 'https://unsplash.com/photos/a-black-and-yellow-purse-yTqMkFhscrE', profileUrl: 'https://unsplash.com/@alkebulanprints' }
+    },
+    'crafts-corbeille-fruits-tressee': {
+      file: 'crafts/corbeille-fruits-tressee.webp', focus: '50% 50%',
+      alt: 'Corbeille en osier tressé remplie de citrons, au soleil sur un rebord blanc',
+      credit: { name: 'olimpia campean', username: 'olimpiaborodiunsplash', photoUrl: 'https://unsplash.com/photos/a-basket-full-of-lemons-sitting-on-a-ledge-EPR7_yshCiM', profileUrl: 'https://unsplash.com/@olimpiaborodiunsplash' }
+    },
+    'crafts-hero': {
+      file: 'crafts/hero.webp', focus: '55% 30%',
+      alt: 'Artisane en pagne wax vert tressant un grand panier rond devant un mur en terre ocre',
+      credit: { name: 'Nnaemeka Ugochukwu', username: 'iblaqprinz', photoUrl: 'https://unsplash.com/photos/woman-making-basket-M-MzUrjQjtY', profileUrl: 'https://unsplash.com/@iblaqprinz' }
+    },
+    'crafts-about': {
+      file: 'crafts/about.webp', focus: '50% 50%',
+      alt: 'Mains d’un potier façonnant un vase en argile sur un tour, lumière naturelle d’atelier',
+      credit: { name: 'Random Institute', username: 'randominstitute', photoUrl: 'https://unsplash.com/photos/person-in-black-gloves-holding-brown-clay-pot-VIpyi3xNBJs', profileUrl: 'https://unsplash.com/@randominstitute' }
+    },
+    // landing page mock-ups (../index.html): credited and checked with the others
+    'landing-casquette': {
+      file: 'landing/casquette.webp', focus: '50% 45%',
+      alt: 'Jeune homme de profil portant une casquette rouge unie et un t-shirt blanc sur fond de ciel',
+      credit: { name: 'kofa boyah', username: 'kofaboyah', photoUrl: 'https://unsplash.com/photos/a-man-in-a-red-hat-looks-away-X038pJ3BBiI', profileUrl: 'https://unsplash.com/@kofaboyah' }
+    },
+    'landing-tshirt': {
+      file: 'landing/tshirt.webp', focus: '50% 50%',
+      alt: 'T-shirt blanc uni et ample suspendu à un cintre dans un sous-bois ensoleillé',
+      credit: { name: 'tian dayong', username: 'tonnnyj', photoUrl: 'https://unsplash.com/photos/a-white-t-shirt-hanging-from-a-tree-in-the-woods-CfZ4Y5WIYxc', profileUrl: 'https://unsplash.com/@tonnnyj' }
+    },
+    'landing-sac-banane': {
+      file: 'landing/sac-banane.webp', focus: '55% 50%',
+      alt: 'Sac banane en cuir rouge à zip doré accroché au dossier d’une chaise grise',
+      credit: { name: 'StartVisuals', username: 'startvisuals', photoUrl: 'https://unsplash.com/photos/a-pink-purse-sitting-on-top-of-a-white-bench-kYQ2uqYm0aY', profileUrl: 'https://unsplash.com/@startvisuals' }
+    },
+    'landing-baume-levres': {
+      file: 'landing/baume-levres.webp', focus: '50% 50%',
+      alt: 'Mains tenant une boîte ouverte de baume à lèvres teinté rouge',
+      credit: { name: 'lo lindo', username: 'lolindo', photoUrl: 'https://unsplash.com/photos/person-holding-red-and-silver-round-container-tF4SaFELfAI', profileUrl: 'https://unsplash.com/@lolindo' }
+    },
+    'landing-livraison': {
+      file: 'landing/livraison.webp', focus: '50% 40%',
+      alt: 'Livreur portant une pile de colis en carton dans une rue ensoleillée',
+      credit: { name: 'Luke Minnaar', username: 'lukeminnaar', photoUrl: 'https://unsplash.com/photos/a-man-with-a-box-on-a-city-street-xwbCZN4S9oA', profileUrl: 'https://unsplash.com/@lukeminnaar' }
+    }
+  };
 
   /* Which demo photos the example store of each niche uses: settings.photo of its hero and about
    * sections, and products[].photo in the order of the niche's products (null, or a short list,
    * leaves a product on its illustration). Applied to the niches below (niche.hero.photo,
    * niche.about.photo, niche.products[i].photo), which defaultConfig and sectionSettings copy into
-   * new fiches. Every id must be in DEMO_PHOTOS. Empty for now, for example:
-   *   beauty: { hero: 'beauty-hero', about: 'beauty-atelier', products: ['beauty-karite', null, 'beauty-savon'] }
+   * new fiches. Every id must be in DEMO_PHOTOS. Every niche has its 8 photos; a niche left out
+   * (or a null in products) keeps its illustrations.
    */
-  var NICHE_PHOTOS = {};
+  var NICHE_PHOTOS = {
+    fashion: {
+      hero: 'fashion-hero', about: 'fashion-about',
+      products: ['fashion-robe-portefeuille', 'fashion-robe-chemise-lin', 'fashion-ensemble-pagne-tisse', 'fashion-ensemble-tunique-pantalon', 'fashion-chemise-col-mao', 'fashion-chemise-oversize']
+    },
+    hair: {
+      hero: 'hair-hero', about: 'hair-about',
+      products: ['hair-perruque-lisse-14', 'hair-perruque-bouclee-carre', 'hair-perruque-bob-blond-miel', 'hair-meches-ondulees-lot-3', 'hair-meches-kinky-tresses', 'hair-huile-legere-perruque']
+    },
+    beauty: {
+      hero: 'beauty-hero', about: 'beauty-about',
+      products: ['beauty-beurre-karite-fouette', 'beauty-savon-noir-karite', 'beauty-huile-coco-vierge', 'beauty-serum-eclat-baobab', 'beauty-masque-argile', 'beauty-coffret-decouverte']
+    },
+    jewellery: {
+      hero: 'jewellery-hero', about: 'jewellery-about',
+      products: ['jewellery-collier-perles-verre', 'jewellery-creoles-martelees', 'jewellery-pendants-goutte-resine', 'jewellery-bracelet-jonc-grave', 'jewellery-bracelets-perles-lot-3', 'jewellery-parure-collier-boucles']
+    },
+    shoes: {
+      hero: 'shoes-hero', about: 'shoes-about',
+      products: ['shoes-sneakers-basses-blanches', 'shoes-sneakers-montantes', 'shoes-baskets-course-legeres', 'shoes-sandales-cuir-tresse', 'shoes-claquettes-confort', 'shoes-mocassins-daim']
+    },
+    food: {
+      hero: 'food-hero', about: 'food-about',
+      products: ['food-attieke-poisson-braise', 'food-sauce-graine-riz', 'food-alloco-poulet-braise', 'food-plateau-traiteur-20-personnes', 'food-mini-beignets-boite-30', 'food-jus-bissap-maison-1l']
+    },
+    home: {
+      hero: 'home-hero', about: 'home-about',
+      products: ['home-bougie-citronnelle', 'home-vase-terre-cuite', 'home-panier-rangement-tresse', 'home-service-6-assiettes', 'home-saladier-teck', 'home-parure-lit-coton']
+    },
+    crafts: {
+      hero: 'crafts-hero', about: 'crafts-about',
+      products: ['crafts-panier-rond-raffia', 'crafts-sac-cabas-tresse', 'crafts-jarre-terre-katiola', 'crafts-bol-terre-cuite', 'crafts-pochette-toile-korhogo', 'crafts-corbeille-fruits-tressee']
+    }
+  };
 
   var PHOTO_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   var PHOTO_FILE_RE = /^[a-z0-9][a-z0-9_-]*(?:\/[a-z0-9][a-z0-9_-]*)*\.(?:webp|jpe?g|png|avif)$/i;
@@ -544,12 +934,12 @@
         button: 'Écrire sur WhatsApp'
       },
       products: [
-        { name: 'Robe portefeuille Lagune', price: 18500, category: 'Robes', badge: 'new', art: 'dress', color: '#C9D6E3', description: 'Coupe portefeuille qui s’ajuste à toutes les silhouettes, en coton léger. Longueur midi, manches trois-quarts.' },
-        { name: 'Robe chemise en lin', price: 22000, category: 'Robes', badge: 'best', art: 'dress', color: '#E6D5BC', description: 'Lin lavé, poches côté et ceinture à nouer. Elle se porte au bureau comme le week-end.' },
-        { name: 'Ensemble en pagne tissé', price: 35000, category: 'Ensembles', badge: null, art: 'dress', color: '#D8B4A0', description: 'Haut court et jupe droite en pagne tissé à la main, doublés. Une tenue pour les mariages et les dots.' },
-        { name: 'Ensemble tunique et pantalon', price: 27500, category: 'Ensembles', badge: 'promo', art: 'tshirt', color: '#B8C4A8', description: 'Tunique ample et pantalon fluide en viscose, confortables même par forte chaleur.' },
-        { name: 'Chemise homme col mao', price: 15000, category: 'Chemises', badge: null, art: 'tshirt', color: '#DCE3EA', description: 'Coton respirant, coupe droite et boutons nacrés. Disponible du S au XXL.' },
-        { name: 'Chemise femme oversize', price: 14000, category: 'Chemises', badge: null, art: 'tshirt', color: '#F0E3CF', description: 'Coupe ample en popeline de coton. À porter ouverte sur un débardeur ou nouée à la taille.' }
+        { name: 'Robe portefeuille noire', price: 18500, category: 'Robes', badge: 'new', art: 'dress', color: '#4A4A52', description: 'Coupe portefeuille sans manches, col à revers et ceinture à boucle. Au-dessus du genou, à porter seule ou sur un haut à manches.' },
+        { name: 'Robe chemise en lin', price: 22000, category: 'Robes', badge: 'best', art: 'dress', color: '#E6D5BC', description: 'Lin lavé blanc, col chemise et taille froncée par un cordon. Elle se porte au bureau comme le week-end.' },
+        { name: 'Ensemble homme en pagne tissé', price: 35000, category: 'Ensembles', badge: null, art: 'tshirt', color: '#BCCADB', description: 'Tunique ample en pagne tissé à la main, rayée bleu et blanc. Pantalon noir assorti en option. Une tenue pour les mariages et les dots.' },
+        { name: 'Ensemble tunique et pantalon', price: 27500, category: 'Ensembles', badge: 'promo', art: 'tshirt', color: '#B8C4A8', description: 'Tunique ample, pantalon large et foulard assorti, en wax vert et orange. Confortable même par forte chaleur.' },
+        { name: 'Chemise homme col mao', price: 15000, category: 'Chemises', badge: null, art: 'tshirt', color: '#4B5C78', description: 'Lin bleu marine, manches courtes et coupe droite. Disponible du S au XXL.' },
+        { name: 'Chemise femme oversize', price: 14000, category: 'Chemises', badge: null, art: 'tshirt', color: '#CFE0F2', description: 'Coupe ample en popeline de coton bleu ciel. À porter ouverte sur un débardeur ou nouée à la taille.' }
       ]
     },
     {
@@ -581,10 +971,10 @@
       },
       products: [
         { name: 'Perruque lisse 14 pouces', price: 65000, category: 'Perruques', badge: 'best', art: 'hair', color: '#7A5444', description: 'Cheveux naturels, lace frontale 13×4, densité 180 %. Se lave et se lisse comme vos propres cheveux.' },
-        { name: 'Perruque bouclée coupe carré', price: 55000, category: 'Perruques', badge: 'new', art: 'hair', color: '#9C6B4E', description: 'Boucles souples, longueur à la mâchoire. Légère et idéale quand il fait chaud.' },
-        { name: 'Perruque bob blond miel', price: 48000, category: 'Perruques', badge: null, art: 'hair', color: '#C9A27E', description: 'Bob lisse couleur miel, lace transparente. Prête à porter, sans colle.' },
+        { name: 'Perruque bouclée mi-longue', price: 55000, category: 'Perruques', badge: 'new', art: 'hair', color: '#C98A45', description: 'Boucles souples couleur miel cuivré, longueur aux épaules. Légère et idéale quand il fait chaud.' },
+        { name: 'Perruque courte blond platine', price: 48000, category: 'Perruques', badge: null, art: 'hair', color: '#E4D8B8', description: 'Coupe courte effilée blond platine avec frange, lace transparente. Prête à porter, sans colle.' },
         { name: 'Mèches ondulées, lot de 3', price: 35000, category: 'Mèches', badge: 'promo', art: 'hair', color: '#6E4A3A', description: 'Trois paquets de 100 g en cheveux naturels ondulés. Assez pour une pose complète.' },
-        { name: 'Mèches kinky pour tresses', price: 4500, category: 'Mèches', badge: null, art: 'hair', color: '#5A4038', description: 'Texture proche des cheveux crépus, elles ne glissent pas. Comptez 4 à 6 paquets pour des tresses mi-longues.' },
+        { name: 'Mèches pour tresses', price: 4500, category: 'Mèches', badge: null, art: 'hair', color: '#5A4038', description: 'Fibre légère qui ne glisse pas, pour des box braids bien nettes. Comptez 6 à 8 paquets pour des tresses longues.' },
         { name: 'Huile légère pour perruque', price: 6000, category: 'Soins', badge: null, art: 'bottle', color: '#E8C9A8', description: 'Redonne de la brillance sans alourdir. Quelques gouttes sur les pointes, deux fois par semaine.' }
       ]
     },
@@ -606,7 +996,7 @@
       productsTitle: 'Nos soins',
       categoriesTitle: 'Par besoin',
       reviews: [
-        { name: 'Mariam, Cocody', text: 'Le beurre de karité fouetté est devenu indispensable. Il pénètre vite et ne laisse pas la peau grasse.', rating: 5 },
+        { name: 'Mariam, Cocody', text: 'Le beurre de karité brut est devenu indispensable. Il pénètre vite et ne laisse pas la peau grasse.', rating: 5 },
         { name: 'Yao, Marcory', text: 'J’ai offert le coffret à ma femme, elle a adoré. Livré le jour même à Marcory.', rating: 5 },
         { name: 'Adjoa, Plateau', text: 'Le sérum est léger et sent bon naturellement. J’attends de voir les résultats sur quelques semaines.', rating: 4 }
       ],
@@ -616,12 +1006,12 @@
         button: 'Commander sur WhatsApp'
       },
       products: [
-        { name: 'Beurre de karité fouetté', price: 6500, category: 'Corps', badge: 'best', art: 'jar', color: '#E9D8BD', description: 'Karité pur de Korhogo, fouetté pour fondre vite sur la peau. Non parfumé, pour le corps et les cheveux.' },
+        { name: 'Beurre de karité brut', price: 6500, category: 'Corps', badge: 'best', art: 'jar', color: '#E9D8BD', description: 'Karité pur de Korhogo, non raffiné et non parfumé. Il fond au contact de la peau, pour le corps et les cheveux.' },
         { name: 'Savon noir au karité', price: 3000, category: 'Corps', badge: null, art: 'box', color: '#A88B70', description: 'Savon noir traditionnel enrichi au karité. Il nettoie en douceur, même les peaux sensibles.' },
         { name: 'Huile de coco vierge', price: 4500, category: 'Cheveux', badge: null, art: 'bottle', color: '#F1E6CF', description: 'Pressée à froid près de Grand-Bassam. Nourrit les cheveux secs et les pointes abîmées.' },
         { name: 'Sérum éclat au baobab', price: 9500, category: 'Visage', badge: 'new', art: 'bottle', color: '#E7C7A2', description: 'Huile de baobab et vitamine E pour un teint plus uniforme. Deux gouttes le soir suffisent.' },
-        { name: 'Masque visage à l’argile', price: 5500, category: 'Visage', badge: null, art: 'jar', color: '#D9B9A0', description: 'Argile douce et miel pour nettoyer les pores en profondeur. À laisser poser 10 minutes, une fois par semaine.' },
-        { name: 'Coffret découverte', price: 14000, category: 'Corps', badge: 'promo', art: 'basket', color: '#E3CBB0', description: 'Beurre de karité, savon noir et huile de coco en format voyage. Une belle idée de cadeau.' }
+        { name: 'Masque visage à l’argile', price: 5500, category: 'Visage', badge: null, art: 'jar', color: '#D9B9A0', description: 'Argile verte et miel pour nettoyer les pores en profondeur. À laisser poser 10 minutes, une fois par semaine.' },
+        { name: 'Coffret découverte', price: 14000, category: 'Corps', badge: 'promo', art: 'basket', color: '#E3CBB0', description: 'Beurre de karité, savon noir et huile de coco en format voyage, emballés dans du papier kraft. Une belle idée de cadeau.' }
       ]
     },
     {
@@ -637,7 +1027,7 @@
       },
       about: {
         title: 'Derrière chaque bijou',
-        text: 'Nous travaillons le laiton et les perles de verre dans notre atelier de Marcory. Nos bijoux sont plaqués or 18 carats et sans nickel, pour être portés tous les jours. Un fermoir cassé ? Nous le réparons gratuitement pendant un an.'
+        text: 'Nous travaillons le laiton et les perles de verre dans notre atelier de Marcory. Nos montures dorées sont plaquées or 18 carats, et tous nos bijoux sont sans nickel, pour être portés tous les jours. Un fermoir cassé ? Nous le réparons gratuitement pendant un an.'
       },
       productsTitle: 'Tous nos bijoux',
       categoriesTitle: 'Par type de bijou',
@@ -652,12 +1042,12 @@
         button: 'Écrire à l’atelier'
       },
       products: [
-        { name: 'Collier en perles de verre', price: 12000, category: 'Colliers', badge: 'best', art: 'jewel', color: '#A8B8DC', description: 'Perles de verre recyclé, soufflées à la main, et fermoir doré. Longueur 45 cm, ajustable.' },
-        { name: 'Créoles martelées dorées', price: 9500, category: 'Boucles d’oreilles', badge: 'new', art: 'jewel', color: '#D8B56B', description: 'Laiton martelé plaqué or 18 carats, légères et sans nickel. Diamètre 4 cm.' },
-        { name: 'Pendants goutte en résine', price: 7500, category: 'Boucles d’oreilles', badge: null, art: 'jewel', color: '#C7B8E0', description: 'Résine teintée et monture dorée. Elles attrapent la lumière sans peser sur l’oreille.' },
-        { name: 'Bracelet jonc gravé', price: 11000, category: 'Bracelets', badge: null, art: 'jewel', color: '#D2B270', description: 'Jonc ouvert en laiton doré, gravé de motifs géométriques. Il s’ajuste à tous les poignets.' },
-        { name: 'Bracelets de perles, lot de 3', price: 6500, category: 'Bracelets', badge: 'promo', art: 'jewel', color: '#A9C4C9', description: 'Trois bracelets élastiques en perles de verre, à porter ensemble ou séparément.' },
-        { name: 'Parure collier et boucles', price: 24000, category: 'Colliers', badge: null, art: 'box', color: '#E3D3B5', description: 'Un collier ras-du-cou et ses boucles assorties, livrés dans un écrin. Le cadeau parfait pour une fête.' }
+        { name: 'Collier en perles de verre', price: 12000, category: 'Colliers', badge: 'best', art: 'jewel', color: '#A8B8DC', description: 'Ras-du-cou en perles de verre noires et pendentif brodé de perles de couleur. Fermoir doré, longueur ajustable.' },
+        { name: 'Créoles torsadées dorées', price: 9500, category: 'Boucles d’oreilles', badge: 'new', art: 'jewel', color: '#D8B56B', description: 'Laiton torsadé plaqué or 18 carats, légères et sans nickel. Diamètre 4 cm.' },
+        { name: 'Pendants goutte en résine', price: 7500, category: 'Boucles d’oreilles', badge: null, art: 'jewel', color: '#C7B8E0', description: 'Résine transparente, fleurs séchées et monture argentée. Elles attrapent la lumière sans peser sur l’oreille.' },
+        { name: 'Bracelet jonc gravé', price: 11000, category: 'Bracelets', badge: null, art: 'jewel', color: '#D2B270', description: 'Jonc en laiton doré, gravé de motifs géométriques. Il s’ouvre sur une charnière pour se mettre facilement.' },
+        { name: 'Bracelets de perles, lot de 3', price: 6500, category: 'Bracelets', badge: 'promo', art: 'jewel', color: '#A9C4C9', description: 'Trois bracelets élastiques : pierre de lave, bois clair et verre fumé. À porter ensemble ou séparément.' },
+        { name: 'Parure collier et boucles', price: 24000, category: 'Colliers', badge: null, art: 'box', color: '#E3D3B5', description: 'Un collier plastron en perles rouges et ses boucles fleurs assorties, livrés dans un écrin. Le cadeau parfait pour une fête.' }
       ]
     },
     {
@@ -689,11 +1079,11 @@
       },
       products: [
         { name: 'Sneakers basses blanches', price: 25000, category: 'Sneakers', badge: 'best', art: 'shoe', color: '#E8E6DF', description: 'Cuir synthétique facile à nettoyer et semelle épaisse, confortable toute la journée. Du 36 au 45.' },
-        { name: 'Sneakers montantes', price: 32000, category: 'Sneakers', badge: 'new', art: 'shoe', color: '#BFD3A0', description: 'Tige rembourrée et lacets plats, pour un look streetwear. Semelle antidérapante.' },
+        { name: 'Sneakers montantes', price: 32000, category: 'Sneakers', badge: 'new', art: 'shoe', color: '#B35A66', description: 'Toile bordeaux, tige rembourrée et lacets blancs, pour un look streetwear. Semelle antidérapante.' },
         { name: 'Baskets de course légères', price: 28500, category: 'Sneakers', badge: 'promo', art: 'shoe', color: '#A9C1D9', description: 'Mesh respirant et semelle souple, pour marcher des heures sans fatigue.' },
-        { name: 'Sandales en cuir tressé', price: 15000, category: 'Sandales', badge: null, art: 'shoe', color: '#C49A6C', description: 'Cuir véritable tressé à la main à Treichville. Semelle en caoutchouc qui ne glisse pas.' },
+        { name: 'Sandales en cuir tressé', price: 15000, category: 'Sandales', badge: null, art: 'shoe', color: '#C49A6C', description: 'Bride en cuir véritable tressé multicolore, faite à la main à Treichville. Semelle en caoutchouc qui ne glisse pas.' },
         { name: 'Claquettes confort', price: 7500, category: 'Sandales', badge: null, art: 'shoe', color: '#D9CFC2', description: 'Semelle moulée et légère, parfaite pour la maison ou la plage de Bassam.' },
-        { name: 'Mocassins en daim', price: 27000, category: 'Ville', badge: null, art: 'shoe', color: '#9A7B5F', description: 'Daim souple et semelle cousue, pour le bureau comme pour les cérémonies.' }
+        { name: 'Mocassins en daim', price: 27000, category: 'Ville', badge: null, art: 'shoe', color: '#D08A2E', description: 'Daim ocre souple, franges et semelle cousue, pour le bureau comme pour les cérémonies.' }
       ]
     },
     {
@@ -704,7 +1094,7 @@
       hero: {
         kicker: 'Cuisiné ce matin',
         title: '{name} : des plats maison, livrés à l’heure',
-        text: 'Attiéké poisson, sauce graine et alloco, préparés chaque matin avec les produits du marché. Pour vous, votre bureau ou vos fêtes.',
+        text: 'Foutou sauce, alloco et poisson braisé, préparés chaque matin avec les produits du marché. Pour vous, votre bureau ou vos fêtes.',
         button: 'Voir le menu'
       },
       about: {
@@ -716,7 +1106,7 @@
       reviews: [
         { name: 'Kouamé, Plateau', text: 'Nous commandons pour toute l’équipe chaque vendredi. Toujours chaud, toujours à l’heure.', rating: 5 },
         { name: 'Adjoa, Cocody', text: 'Le plateau traiteur pour le baptême de ma fille a régalé tout le monde. Merci pour l’organisation.', rating: 5 },
-        { name: 'Yao, Treichville', text: 'Le meilleur attiéké poisson du quartier. Un peu plus de piment la prochaine fois, s’il vous plaît !', rating: 4 }
+        { name: 'Yao, Treichville', text: 'Le meilleur poisson braisé du quartier. Un peu plus de piment la prochaine fois, s’il vous plaît !', rating: 4 }
       ],
       whatsapp: {
         title: 'Une commande pour un groupe ?',
@@ -724,12 +1114,12 @@
         button: 'Commander sur WhatsApp'
       },
       products: [
-        { name: 'Attiéké poisson braisé', price: 3500, category: 'Plats du jour', badge: 'best', art: 'plate', color: '#F2D59B', description: 'Attiéké frais, poisson braisé, oignons et piment à part. Une portion généreuse pour une personne.' },
-        { name: 'Sauce graine et riz', price: 3000, category: 'Plats du jour', badge: null, art: 'plate', color: '#E9B98A', description: 'Sauce graine mijotée avec bœuf et poisson fumé, servie avec du riz blanc.' },
-        { name: 'Alloco et poulet braisé', price: 4000, category: 'Plats du jour', badge: 'new', art: 'plate', color: '#F4C27A', description: 'Banane plantain frite et demi-poulet braisé, mariné aux épices. Sauce tomate pimentée offerte.' },
-        { name: 'Plateau traiteur 20 personnes', price: 60000, category: 'Traiteur', badge: null, art: 'basket', color: '#EFD3A8', description: 'Brochettes, alloco, attiéké et beignets, livrés prêts à servir. À commander 48 h à l’avance.' },
-        { name: 'Mini-beignets, boîte de 30', price: 5000, category: 'Traiteur', badge: null, art: 'box', color: '#F1CC8F', description: 'Beignets moelleux, saupoudrés de sucre. Parfaits pour les réunions et les anniversaires.' },
-        { name: 'Jus de bissap maison, 1 L', price: 1500, category: 'Boissons', badge: 'promo', art: 'bottle', color: '#D98FA0', description: 'Fleurs d’hibiscus infusées avec de la menthe fraîche et du gingembre. Peu sucré, servi bien frais.' }
+        { name: 'Tilapias braisés pour deux', price: 6500, category: 'Plats du jour', badge: 'best', art: 'plate', color: '#F2D59B', description: 'Deux tilapias braisés au charbon, garnis d’oignons et de piment, avec de l’attiéké frais à part. Pour deux personnes.' },
+        { name: 'Sauce gombo et riz', price: 3000, category: 'Plats du jour', badge: null, art: 'plate', color: '#E9B98A', description: 'Sauce gombo mijotée avec viande, crevettes et piment, servie avec du riz blanc et des gombos entiers.' },
+        { name: 'Alloco et poisson braisé', price: 4000, category: 'Plats du jour', badge: 'new', art: 'plate', color: '#F4C27A', description: 'Banane plantain frite et poisson braisé sous les oignons, avec tomate, concombre et citron vert. Sauce pimentée offerte.' },
+        { name: 'Plateau alloco, 20 personnes', price: 40000, category: 'Traiteur', badge: null, art: 'basket', color: '#EFD3A8', description: 'Alloco chaud pour 20 personnes, livré dans des bacs chauffe-plats. Poisson braisé et beignets en option. À commander 48 h à l’avance.' },
+        { name: 'Beignets maison, la corbeille', price: 5000, category: 'Traiteur', badge: null, art: 'box', color: '#F1CC8F', description: 'Une corbeille de beignets dorés et moelleux, frits le matin même. Parfaits pour les réunions et les anniversaires.' },
+        { name: 'Jus de bissap maison', price: 1500, category: 'Boissons', badge: 'promo', art: 'bottle', color: '#D98FA0', description: 'Fleurs d’hibiscus infusées avec du gingembre et un trait de citron vert. Peu sucré, servi glacé.' }
       ]
     },
     {
@@ -762,10 +1152,10 @@
       products: [
         { name: 'Bougie parfumée citronnelle', price: 6000, category: 'Salon', badge: 'new', art: 'jar', color: '#CFE3DF', description: 'Cire végétale et citronnelle, environ 40 heures de combustion. Elle éloigne aussi les moustiques.' },
         { name: 'Vase en terre cuite', price: 9000, category: 'Salon', badge: null, art: 'bottle', color: '#D7A98C', description: 'Façonné à la main et cuit au feu de bois. Chaque vase est unique, hauteur 30 cm.' },
-        { name: 'Panier de rangement tressé', price: 8500, category: 'Salon', badge: 'best', art: 'basket', color: '#D9C29A', description: 'Fibres naturelles tressées et deux anses. Pour les jouets, le linge ou les plaids.' },
-        { name: 'Service de 6 assiettes', price: 18000, category: 'Cuisine', badge: null, art: 'plate', color: '#BFD7D6', description: 'Grès émaillé bleu lagune. Passe au micro-ondes et au lave-vaisselle.' },
+        { name: 'Panier de rangement tressé', price: 8500, category: 'Salon', badge: 'best', art: 'basket', color: '#D9C29A', description: 'Rotin tressé, avec son couvercle. Pour les jouets, le linge ou les plaids.' },
+        { name: 'Service de 6 assiettes', price: 18000, category: 'Cuisine', badge: null, art: 'plate', color: '#BFD7D6', description: 'Céramique blanche à fleurs bleues. Passe au micro-ondes et au lave-vaisselle.' },
         { name: 'Saladier en bois de teck', price: 11000, category: 'Cuisine', badge: 'promo', art: 'plate', color: '#C69C72', description: 'Taillé dans une seule pièce de bois et huilé à la main. Diamètre 28 cm.' },
-        { name: 'Parure de lit en coton', price: 25000, category: 'Chambre', badge: null, art: 'box', color: '#E4ECE8', description: 'Housse de couette et deux taies en coton doux, pour un lit deux places. Lavable à 40 °C.' }
+        { name: 'Parure de lit en coton', price: 25000, category: 'Chambre', badge: null, art: 'box', color: '#E4ECE8', description: 'Housse de couette et deux taies en coton blanc, pour un lit deux places. Lavable à 40 °C.' }
       ]
     },
     {
@@ -776,12 +1166,12 @@
       hero: {
         kicker: 'Fait main',
         title: '{name} : l’artisanat d’ici, au quotidien',
-        text: 'Paniers, sacs en raphia, poteries et toiles peintes, fabriqués par des artisans de Korhogo, Katiola et Abidjan, payés au juste prix.',
+        text: 'Paniers, sacs tressés, poteries et pochettes en pagne, fabriqués par des artisans de Korhogo, Katiola et Abidjan, payés au juste prix.',
         button: 'Voir les créations'
       },
       about: {
         title: 'Nos artisans',
-        text: 'Nous travaillons avec une vingtaine d’artisans, que nous connaissons tous par leur prénom. Les potières de Katiola, les peintres de toiles de Korhogo et les vanniers d’Abidjan fixent eux-mêmes leurs prix. Quand vous achetez ici, vous faites vivre un savoir-faire.'
+        text: 'Nous travaillons avec une vingtaine d’artisans, que nous connaissons tous par leur prénom. Les potières de Katiola, les vanniers de Korhogo et les couturières d’Abidjan fixent eux-mêmes leurs prix. Quand vous achetez ici, vous faites vivre un savoir-faire.'
       },
       productsTitle: 'Nos créations',
       categoriesTitle: 'Par savoir-faire',
@@ -796,12 +1186,12 @@
         button: 'Écrire sur WhatsApp'
       },
       products: [
-        { name: 'Panier rond en raphia', price: 9500, category: 'Vannerie', badge: 'best', art: 'basket', color: '#D8C59A', description: 'Tressé à la main, avec couvercle. Pour le pain, les fruits ou le rangement.' },
+        { name: 'Panier rond en raphia', price: 9500, category: 'Vannerie', badge: 'best', art: 'basket', color: '#D8C59A', description: 'Tressé à la main, à motifs colorés. À accrocher au mur, ou pour servir le pain et les fruits.' },
         { name: 'Sac cabas tressé', price: 14500, category: 'Sacs', badge: 'new', art: 'bag', color: '#C8B37E', description: 'Raphia tressé, anses en cuir et doublure en coton. Assez grand pour le marché ou la plage.' },
         { name: 'Jarre en terre de Katiola', price: 16000, category: 'Poterie', badge: null, art: 'jar', color: '#C98F6B', description: 'Modelée à la main par les potières de Katiola. Elle garde l’eau fraîche naturellement.' },
-        { name: 'Bol en terre cuite', price: 4500, category: 'Poterie', badge: null, art: 'plate', color: '#D5A688', description: 'Petit bol cuit au four traditionnel, pour les sauces ou l’apéritif.' },
-        { name: 'Pochette en toile de Korhogo', price: 8000, category: 'Sacs', badge: 'promo', art: 'bag', color: '#E2D6BC', description: 'Toile peinte à la main, fermeture éclair et doublure. Pour le téléphone et les papiers.' },
-        { name: 'Corbeille à fruits tressée', price: 7000, category: 'Vannerie', badge: null, art: 'basket', color: '#BFD1B4', description: 'Fibres teintes au naturel et tressage serré, très solide. Diamètre 30 cm.' }
+        { name: 'Bol en terre cuite', price: 4500, category: 'Poterie', badge: null, art: 'plate', color: '#D5A688', description: 'Terre cuite brute, intérieur émaillé blanc peint à la main. Pour les sauces ou l’apéritif.' },
+        { name: 'Pochette en pagne wax', price: 8000, category: 'Sacs', badge: 'promo', art: 'bag', color: '#E9C46A', description: 'Rabat en pagne wax, fermoir et chaînette dorés. Pour le téléphone et les papiers.' },
+        { name: 'Corbeille à fruits tressée', price: 7000, category: 'Vannerie', badge: null, art: 'basket', color: '#D8BF8E', description: 'Osier tressé serré, très solide, avec une anse. Diamètre 30 cm.' }
       ]
     }
   ]);
@@ -876,7 +1266,7 @@
       visit: 'Nous sommes à {city}. Vous pouvez essayer les paires sur rendez-vous avant d’acheter.'
     },
     food: {
-      about: '{name}, c’est une cuisine ivoirienne faite comme à la maison : attiéké, sauce graine et alloco, pour votre déjeuner, votre bureau et vos fêtes.',
+      about: '{name}, c’est une cuisine ivoirienne faite comme à la maison : poisson braisé, sauce gombo et alloco, pour votre déjeuner, votre bureau et vos fêtes.',
       values: 'Moins de piment, une allergie, un plat sans viande ? Dites-le-nous à la commande : nous adaptons le plat. Pour vos réunions, nous livrons des plats chauds et à l’heure, pour toute l’équipe.',
       deliveryIntro: 'Nous livrons à {city} du lundi au samedi, pour le déjeuner. Commandez avant 10 h : vous êtes livré entre 12 h et 14 h. Les frais dépendent de votre commune et s’affichent avant que vous payiez.',
       delay: 'Les plats voyagent dans des sacs isothermes pour arriver chauds. Les plateaux traiteur se commandent au moins 48 h à l’avance.',
@@ -892,7 +1282,7 @@
       visit: 'Nous sommes à {city}. Pour une liste de mariage ou une commande d’entreprise, écrivez-nous : nous préparons un devis.'
     },
     crafts: {
-      about: '{name}, c’est de l’artisanat ivoirien fait main : paniers, sacs, poteries et toiles, achetés directement aux artisans.',
+      about: '{name}, c’est de l’artisanat ivoirien fait main : paniers, sacs et poteries, achetés directement aux artisans.',
       values: 'Chaque pièce est unique : sa couleur et sa forme peuvent varier un peu de la photo, c’est la marque du fait main. Nous vous disons toujours qui l’a fabriquée et comment l’entretenir.',
       delay: 'Les pièces disponibles partent sous 48 h. Nous envoyons aussi partout en Côte d’Ivoire, par car ou par un service d’expédition : comptez 2 à 4 jours.',
       outside: null,
@@ -2062,7 +2452,7 @@
     sectionTypes: sectionTypes,
     niches: niches,
     communes: communes,
-    // demo photos (empty until the photos are added): see the comment above DEMO_PHOTOS
+    // demo photos (69 photos from Unsplash, credited in img/demo/CREDITS.md): see the comment above DEMO_PHOTOS
     DEMO_PHOTOS: DEMO_PHOTOS,
     NICHE_PHOTOS: NICHE_PHOTOS,
     PHOTO_DIR: 'img/demo/',

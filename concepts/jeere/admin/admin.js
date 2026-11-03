@@ -1970,7 +1970,7 @@
     const ph = has ? null : demoPhoto(p);
     const c = ph && ph.credit ? ph.credit : {};
     const link = (url, text) => (url ? H`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
-    const credit = ph ? H`<p class="a-photo__credit">Photo d’exemple · ${c.name ? link(c.profileUrl, c.name) + ' / ' : ''}${link(c.photoUrl, 'Unsplash')}</p>` : '';
+    const credit = ph ? H`<p class="a-photo__credit">Photo : ${c.name ? link(c.profileUrl, c.name) + ' / ' : ''}${link(c.photoUrl, 'Unsplash')}</p>` : '';
     return H`<div class="a-photo__pic" style="background:${safeColor(p.color)}">${visual(p)}${has ? '' : H`<span class="a-chip a-chip--line a-photo__tag">${ph ? 'Photo d’exemple' : 'Illustration'}</span>`}</div>${credit}
       <div class="a-photo__btns"><label class="a-btn a-btn--primary a-btn--lg a-filebtn a-filebtn--cam">${ico('camera')}<span>${has ? 'Reprendre une photo' : 'Prendre une photo'}</span><input type="file" accept="image/*" capture="environment" data-photo aria-label="${has ? 'Reprendre une photo avec l’appareil photo' : 'Prendre une photo avec l’appareil photo'}"></label>
       <label class="a-btn a-btn--ghost a-filebtn a-filebtn--pick">${ico('image')}<span class="a-filebtn__touch">Choisir dans la galerie</span><span class="a-filebtn__mouse">${has ? 'Changer la photo' : 'Choisir une photo'}</span><input type="file" accept="image/*" data-photo aria-label="${has ? 'Changer la photo' : 'Choisir une photo'}"></label>
@@ -2004,7 +2004,7 @@
               <div class="a-photo" id="p-photo">${photoHTML(p)}</div></section>
             <section class="a-card" aria-labelledby="h-pinfo"><div class="a-card__head"><h2 class="a-card__title" id="h-pinfo">Informations</h2></div>
               <div class="a-field"><div class="a-label-row"><label class="a-label" for="p-name">Nom</label>${counter(str(p.name).length, 60)}</div>
-                <input class="a-input" id="p-name" name="name" maxlength="60" value="${esc(p.name)}" placeholder="Beurre de karité fouetté" autocomplete="off" data-count="60" required></div>
+                <input class="a-input" id="p-name" name="name" maxlength="60" value="${esc(p.name)}" placeholder="Beurre de karité brut" autocomplete="off" data-count="60" required></div>
               <div class="a-grid2" style="margin-top:16px">
                 <div class="a-field"><label class="a-label" for="p-price">Prix</label><div class="a-affix"><input class="a-input a-input--num" id="p-price" name="price" inputmode="numeric" value="${esc(p.price)}" placeholder="6 500" autocomplete="off"><span class="a-affix__txt">FCFA</span></div></div>
                 <div class="a-field"><label class="a-label" for="p-cat">Catégorie <span class="a-opt">(facultatif)</span></label><input class="a-input" id="p-cat" name="category" maxlength="40" value="${esc(p.category)}" list="p-cats" placeholder="${esc(cats[0] || 'Robes')}" autocomplete="off">

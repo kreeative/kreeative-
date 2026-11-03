@@ -1,6 +1,8 @@
 /* Jeere — landing page and waitlist (concept by Kreeative)
    Designed at 360 px first, then scaled up. Black and white only.
-   No images apart from the share image: every visual is HTML or SVG. */
+   The only photos are the store builder's demo photos (creer/img/demo/, WebP, Unsplash) in the
+   example stores: the hero canvas, the template mock-ups and the diaspora card. They are
+   <img> with width and height, object-fit: cover, and lazy below the hero. Everything else is HTML or SVG. */
 
 /* A local font (Arial, Roboto on Android) scaled to Poppins' width and line metrics: nothing to download */
 @font-face {
@@ -265,14 +267,13 @@ ul, ol { padding: 0; list-style: none; }
 .cv__logo { position: absolute; top: 2.6%; left: 50%; width: 2em; height: 2em; margin-left: -1em; display: grid; place-items: center; border-radius: 50%; border: 1px solid currentColor; font: 400 .9em/1 Georgia, 'Times New Roman', serif; }
 .cv__icons { position: absolute; top: 3.4%; right: 4.5%; display: flex; gap: .55em; }
 .cv__icons svg { position: static; width: 1.1em; height: 1.1em; }
+/* The product photo in a thick ring of the accent colour: the swatches recolour the ring */
 .cv__stage { position: absolute; left: 9%; top: 41%; width: 46%; aspect-ratio: 1; border-radius: 50%; background: var(--hc-accent); }
-.cv[data-tint="blanc"] .cv__stage { background: var(--hc-soft); }
-.cv__stage svg { left: 18%; top: 4%; width: 64%; height: auto; }
+.cv__stage img { position: absolute; inset: 9%; width: 82%; height: 82%; border-radius: 50%; object-fit: cover; object-position: 50% 30%; }
 .cv__ph { width: 2.3em; height: 2.3em; color: var(--hc-ink); opacity: .32; }
 .cv__ph--1 { left: 20%; top: 17%; }
 .cv__ph--2 { left: 46%; top: 72%; }
 .cv__ph--3 { left: 14%; top: 72%; }
-.jar__band { transition: fill .4s; }
 
 /* Floating editor tools */
 .cv__float { position: absolute; background: var(--white); border-radius: 12px; box-shadow: 0 1px 2px rgba(17, 17, 17, .08), 0 14px 34px -14px rgba(17, 17, 17, .28); }
@@ -299,8 +300,9 @@ ul, ol { padding: 0; list-style: none; }
 @keyframes sw-pulse { 35% { transform: scale(1.16); } }
 
 .cv__card { right: 0; top: 9%; width: 140px; width: clamp(140px, 35cqw, 176px); padding: 8px; color: var(--ink); }
-.cv__img { display: grid; place-items: center; aspect-ratio: 1; border-radius: 8px; background: var(--hc-soft); }
-.cv__img svg { width: 62%; height: auto; margin-top: 4%; }
+/* The same photo on a thin mat of the soft tint, which follows the swatches too */
+.cv__img { position: relative; aspect-ratio: 1; border-radius: 8px; background: var(--hc-soft); overflow: hidden; }
+.cv__img img { position: absolute; inset: 5px; width: calc(100% - 10px); height: calc(100% - 10px); border-radius: 5px; object-fit: cover; object-position: 50% 62%; }
 .cv__name { margin: 8px 3px 0; font-size: 12px; font-weight: 400; line-height: 1.3; }
 .cv__price { margin: 1px 3px 0; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .cv__step { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; border: 1px solid var(--line); border-radius: 10px; }
@@ -364,7 +366,6 @@ html:not(.js) .cv__play { display: none; }
   .cv__tray { left: 1%; top: 66%; }
   .cv__card { top: 14%; }
   .cv__img { aspect-ratio: 4 / 3; }
-  .cv__img svg { width: 50%; margin-top: 2%; }
   .cv__play { top: 84%; }
   .cv__chip { right: 3%; bottom: 2%; }
 }
@@ -508,49 +509,51 @@ html:not(.js) .cv__play { display: none; }
 .mini__grid--2 { grid-template-columns: 1fr 1fr; }
 .mini__item p { margin-top: 7px; font-size: .92em; }
 .mini__item b { display: block; font-size: .92em; margin-top: 1px; }
+/* A photo tile: the pop colour of the tile stays around the photo (frame, mat or block), and shows
+   alone while the photo loads or if it cannot load */
 .art { position: relative; aspect-ratio: 4 / 5; overflow: hidden; }
+.art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
+/* Plateau: editorial, the big photo in a turquoise frame (« Lagune »), products full bleed */
 .mini--plateau { background: #FFFFFF; }
 .mini--plateau .mini__name { font: 500 12px/1 var(--f-display); letter-spacing: .24em; }
 .mini__hero { position: relative; margin: 0 12px 14px; }
 .mini__hero .art { aspect-ratio: 4 / 4.6; background: #00BFCB; }
-.art--arch::before { content: ''; position: absolute; left: 34%; right: 10%; top: 12%; bottom: 0; border-radius: 999px 999px 0 0; background: #FFB000; }
-.art--arch::after { content: ''; position: absolute; left: 47%; right: 23%; top: 28%; bottom: 0; border-radius: 999px 999px 0 0; background: #FFF2D6; }
+.mini__hero .art img { inset: 7px; width: calc(100% - 14px); height: calc(100% - 14px); object-position: 50% 35%; }
 .mini__hero::after { content: ''; position: absolute; inset: 58% 0 0; background: linear-gradient(transparent, rgba(4, 39, 43, .86) 62%); }
 .mini__kicker { position: absolute; z-index: 1; left: 14px; bottom: 44px; font-size: .8em; letter-spacing: .14em; text-transform: uppercase; color: #FBF8F4; }
 .mini__headline { position: absolute; z-index: 1; left: 12px; bottom: 8px; font: italic 500 30px/1 var(--f-display); letter-spacing: -.03em; color: #FBF8F4; }
-.mini--plateau .art--p1 { background: linear-gradient(#FFE29E, #FFE29E); }
-.mini--plateau .art--p1::before { content: ''; position: absolute; left: 30%; right: 30%; top: 16%; bottom: 10%; border-radius: 40% 40% 6px 6px; background: #DE0F7B; }
-.mini--plateau .art--p2 { background: #3657FF; }
-.mini--plateau .art--p2::before { content: ''; position: absolute; left: 26%; right: 26%; top: 18%; bottom: 10%; border-radius: 6px; background: #FFFFFF; }
+.mini--plateau .art--p1 { background: #00BFCB; }
+.mini--plateau .art--p2 { background: #FFB000; }
+.mini--plateau .mini__item .art img { object-position: 50% 40%; }
 .mini--plateau .mini__item p { font-weight: 400; }
 .mini--plateau .mini__item b { font-weight: 400; color: var(--muted); }
 
+/* Cocody: soft, round cards; each photo sits on a pastel mat, the banner portrait in a fuchsia ring */
 .mini--cocody { background: #FFEDF5; }
 .mini--cocody .mini__name { font: 500 16px/1 var(--f-text); letter-spacing: -.01em; }
 .mini__banner { position: relative; margin: 0 12px 12px; padding: 18px 16px; min-height: 120px; border-radius: 20px; background: #F7ABD2; overflow: hidden; }
 .mini__banner p { position: relative; font: 500 1.35em/1.15 var(--f-text); letter-spacing: -.02em; max-width: 60%; color: #2E0618; z-index: 1; }
-.art--c0 { position: absolute; right: -10px; bottom: -18px; width: 110px; aspect-ratio: 1; border-radius: 50%; background: #DE0F7B; }
-.art--c0::after { content: ''; position: absolute; inset: 26%; border-radius: 50%; background: #FFFFFF; }
 .mini__chips { display: flex; gap: 6px; padding: 0 12px 12px; }
 .mini__chips span { padding: 5px 11px; border-radius: 999px; background: #fff; font-size: .88em; font-weight: 400; }
 .mini__chips .is-on { background: #DE0F7B; color: #FFFFFF; }
 .mini--cocody .art { aspect-ratio: 1; border-radius: 18px; }
+.mini--cocody .mini__item .art img { inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); border-radius: 13px; }
 .art--c1 { background: #FFE29E; } .art--c2 { background: #AAEAC9; } .art--c3 { background: #F7ABD2; } .art--c4 { background: #B8C3FF; }
-.mini--cocody .art::before { content: ''; position: absolute; left: 30%; right: 30%; top: 26%; bottom: 18%; border-radius: 10px 10px 14px 14px; background: rgba(255, 255, 255, .85); box-shadow: 0 -8px 0 -2px rgba(46, 6, 24, .5); }
-.art--c2::before { border-radius: 40% !important; left: 24% !important; right: 24% !important; top: 34% !important; box-shadow: none !important; background: #6E5A48 !important; }
+.art--c1 img { object-position: 50% 55%; } .art--c3 img { object-position: 50% 10%; } .art--c4 img { object-position: 50% 40%; }
+.mini--cocody .art--c0 { position: absolute; right: 8px; bottom: -16px; width: 104px; border-radius: 50%; background: #DE0F7B; }
+.art--c0 img { inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); border-radius: 50%; object-position: 50% 35%; }
 .mini--cocody .mini__item b { color: #C10D6B; }
 
+/* Treichville: bold blocks; each photo sits on a block of colour that sticks out like a hard shadow */
 .mini--treichville { background: var(--ink); color: #fff; }
 .mini--treichville .mini__name { font: 600 15px/1 var(--f-text); letter-spacing: .02em; }
 .mini__drop { padding: 4px 14px 0; font: 600 76px/.86 var(--f-text); letter-spacing: -.05em; color: #D4F06A; }
 .mini__tag { display: inline-block; margin: 10px 14px 12px; padding: 5px 9px; background: #6D5BF0; font-weight: 600; font-size: .85em; text-transform: uppercase; letter-spacing: .04em; }
 .mini--treichville .art { aspect-ratio: 1; }
+.mini--treichville .art img { width: calc(100% - 7px); height: calc(100% - 7px); }
 .art--t1 { background: #D4F06A; } .art--t2 { background: #FF6B4A; } .art--t3 { background: #F4EEE6; } .art--t4 { background: #6D5BF0; }
-.art--t1::before { content: ''; position: absolute; left: 14%; right: 12%; top: 44%; height: 26%; border-radius: 40% 60% 10px 10px; background: var(--ink); }
-.art--t2::before { content: ''; position: absolute; left: 22%; right: 22%; top: 30%; height: 36%; border-radius: 999px 999px 6px 6px; background: #F4EEE6; }
-.art--t3::before { content: ''; position: absolute; left: 22%; right: 22%; top: 20%; bottom: 16%; clip-path: polygon(0 12%, 30% 0, 70% 0, 100% 12%, 100% 34%, 82% 34%, 82% 100%, 18% 100%, 18% 34%, 0 34%); background: var(--ink); }
-.art--t4::before { content: ''; position: absolute; left: 18%; right: 18%; top: 36%; height: 30%; border-radius: 999px; background: var(--ink); }
+.art--t2 img { object-position: 50% 45%; } .art--t3 img { object-position: 50% 40%; } .art--t4 img { object-position: 45% 55%; }
 .mini--treichville .mini__item p { font-weight: 500; }
 .mini--treichville .mini__item b { color: #D4F06A; }
 
@@ -562,7 +565,9 @@ html:not(.js) .cv__play { display: none; }
 .dia__row span { color: var(--muted); }
 .dia__row b { text-align: right; font-weight: 500; }
 .dia__proof { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 12px; border-radius: 14px; background: var(--grey-1); }
-.dia__photo { width: 54px; height: 54px; border-radius: 10px; display: grid; place-items: center; flex: none; color: var(--grey-1); background: linear-gradient(135deg, #B48A6C, #7A4E3A); }
+/* The proof photo: a courier with the parcels (a demo photo) */
+.dia__photo { position: relative; width: 60px; height: 60px; border-radius: 10px; flex: none; overflow: hidden; background: linear-gradient(135deg, #B48A6C, #7A4E3A); }
+.dia__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
 .dia__proof p { display: grid; font-size: 14px; flex: 1; }
 .dia__proof span { color: var(--muted); font-size: 13px; }
 .dia__ok { color: #fff; background: var(--accent); border-radius: 50%; padding: 4px; width: 28px; height: 28px; }

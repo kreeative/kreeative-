@@ -1418,7 +1418,7 @@
     const fid = (k) => `b-p-${pid}-${k}`;
     const body = el('div', { class: 'b-item__body', id: bodyId });
 
-    body.append(textField({ key: 'name', label: 'Nom du produit', type: 'text', max: 60, placeholder: 'Beurre de karité fouetté' }, A('name'), fid('name')));
+    body.append(textField({ key: 'name', label: 'Nom du produit', type: 'text', max: 60, placeholder: 'Beurre de karité brut' }, A('name'), fid('name')));
 
     const badgeOpts = [{ value: '', label: 'Aucun' }].concat(Object.keys(D.BADGES).map((k) => ({ value: k, label: D.BADGES[k] })));
     body.append(el('div', { class: 'b-grid2' },

@@ -18,6 +18,8 @@ Live (unlisted): https://kreeative.xyz/concepts/jeere/ · English: add `?lang=en
   prices; the order caps (20 / 150 / 600) are guesses to test in the seller interviews. All are
   labelled as “planned, may still change”.
 - No logos of Wave, Orange, MTN or Moov are used: they appear as plain text.
+- The photos in the example stores are the store builder's demo photos (Unsplash, see
+  [Photos](#photos)), not photos of real Jeere sellers. The footer says « Photos d’exemple : Unsplash ».
 
 ## Waitlist
 
@@ -61,19 +63,30 @@ Numbers are personal data: keep the table private, and delete a row when someone
 1. Hero, on a light grey band: “Créez votre boutique en ligne gratuitement” and a black card that asks for a
    WhatsApp number. The card sends nothing: it copies the number into the waitlist form, scrolls there and asks for
    the first name (without JavaScript it simply links to the waitlist). On the right, an editor canvas on a faint grid:
-   a store page (shea butter jar) with floating editor tools: a text toolbar with the Jeere assistant, a colour tray
-   (Karité, Lagune, Hibiscus, Indigo, Mangue, Menthe, white: the same bright colours as the store palettes) that recolours the store, a product card whose quantity updates
-   the “Paiement Wave reçu” chip, and a pause button. The colours change by themselves every 2.8 s until the visitor
-   hovers, focuses or pauses; with reduced motion they start paused. Then “Encaissez comme vos clients paient” with
-   the payment methods.
+   a store page whose portrait (the beauty store's hero photo) sits in a thick ring of the store colour, with floating
+   editor tools: a text toolbar with the Jeere assistant, a colour tray (Karité, Lagune, Hibiscus, Indigo, Mangue,
+   Menthe, white: the same bright colours as the store palettes) that recolours the store (the ring, the page tint,
+   the soft mat around the product card's photo, the « Ajouter » button; black ring for white), a product card (a real photo of
+   raw shea butter) whose quantity updates the “Paiement Wave reçu” chip, and a pause button. The colours change by themselves every 2.8 s
+   until the visitor hovers, focuses or pauses; with reduced motion they start paused. Then “Encaissez comme vos
+   clients paient” with the payment methods.
 2. Tout-en-un: online store, payments, orders and stock, sell everywhere, everything included.
 3. Aujourd’hui / Avec Jeere.
 4. Pourquoi Jeere: nine common complaints about the big e-commerce platforms (six from sellers,
    three from their customers), each with Jeere’s answer. Other platforms are not named on the page.
 5. How it works, in four steps.
 6. Delivery by commune: pick one of 13 communes and the receipt updates (fee, total, delay).
-7. Templates: Plateau, Cocody and Treichville tabs switch the phone preview.
-8. Diaspora mode (marked “coming soon”).
+7. Templates: Plateau, Cocody and Treichville tabs switch the phone preview, a small store in real photos, each in
+   its template's character and with its pop colours kept around the photos:
+   - Plateau (« Maison Adjoa », editorial): « Nouvelle collection · Lagune » over a big portrait (blue gélé) in a
+     turquoise frame, then « Robe portefeuille noire » and « Ensemble tunique et pantalon » full bleed, with
+     the names and prices of the Maison Adjoa demo store.
+   - Cocody (« awa beauté », soft and round): the banner portrait in a fuchsia ring, then « Beurre de karité »,
+     « Savon noir », « Huile de coco » and « Baume à lèvres » on pastel mats.
+   - Treichville (« Studio 225 », bold blocks): « DROP 07 », then « Sneakers blanches » (the shoes demo store's photo
+     and price), « Casquette 225 »,
+     « T-shirt oversize » and « Sac banane », each on a block of colour that sticks out like a hard shadow.
+8. Diaspora mode (marked “coming soon”), with a delivery photo (a courier with the parcels) as the proof.
 9. Pricing by sales volume, not features: every plan (even Gratuit) has every feature, human
    support on WhatsApp, import/export and one-tap pause. Plans differ only by orders a month
    (20, 150, 600, unlimited) and Jeere’s fee per online sale (3 %, 1 %, 0 %, 0 %).
@@ -84,16 +97,62 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 ```
 index.html   markup and French copy
-i18n.js      English strings (French stays in the HTML)
+i18n.js      English strings, the photos' alt texts included (French stays in the HTML)
 style.css    tokens, layout, responsive rules (360 px first)
-site.js      language, delivery demo, template tabs, waitlist form, scroll-in
-favicon.svg  the EE monogram
-img/og.jpg   share image (a screenshot of the hero)
+site.js      language, delivery demo, template tabs, waitlist form, hero canvas, hidden fallback
+             for a photo that cannot load, scroll-in
+favicon.svg  the J mark
+img/og.jpg   share image: a 1200×630 screenshot of the top of the page, Hibiscus swatch, reduced
+             motion, JPEG quality 86
+creer/img/demo/…  the photos, shared with the store builder (not copied: see Photos)
 ```
 
-Plain static files, no build step, no library. Fonts from Google Fonts (Poppins, plus Montserrat for ɛ, ɔ and ŋ). Animations are CSS
-only and respect reduced motion. Check 390 px and 1440 px before publishing; there should be
-no horizontal scroll on a phone.
+Plain static files, no build step, no library. Fonts from Google Fonts (Poppins, plus Montserrat for ɛ, ɔ and ŋ):
+the only requests to another site; every image is local. Animations are CSS only and respect reduced motion.
+Check 360, 390, 768 and 1440 px before publishing; there should be no horizontal scroll on a phone.
+
+## Photos
+
+The example stores on the page use the store builder's demo photos (`creer/img/demo/`, WebP, from
+Unsplash, also credited in `creer/img/demo/CREDITS.md`), referenced from here with relative paths
+(`creer/img/demo/<niche>/<file>.webp`): nothing is copied and nothing is loaded from Unsplash.
+
+- **Markup**: `<img>` with `width` and `height` (the file's own size, so nothing jumps while it
+  loads), `decoding="async"`, `object-fit: cover` and an `object-position` per tile in `style.css`.
+  The hero's photo loads at once (it is on the first screen); the mock-ups and the diaspora photo
+  are `loading="lazy"`, so the first screen costs two photos (the portrait in the ring, 86 KB, and the karité on the
+  card, 67 KB) and the Cocody and Treichville
+  tabs load theirs when they are opened (13 photos, 887 KB in all).
+- **Alt texts**: the hero canvas and the diaspora card are hidden from screen readers
+  (`aria-hidden`), so their photos have `alt=""`. The template panels are read, so each photo has a
+  short alt (« Femme au gélé imprimé bleu »…), in English in `i18n.js` (`mini.*.a*`).
+- **A photo that cannot load** (missing, offline) is hidden by `site.js`: its colour tile, ring or
+  frame shows alone, never a broken image.
+- **Contrast**: the white « Nouvelle collection » and « Lagune » on the Plateau portrait stay at
+  4.8:1 or better on every pixel behind them (scrim included), at 360, 390, 768 and 1440 px, in FR
+  and EN.
+- To change a photo, pick another file in `creer/img/demo/` (its size, alt and credit are in the
+  builder's catalogue), update `src`, `width`, `height`, the alt in both languages and the table
+  below.
+
+| File | Size | Photographer | Photo |
+| --- | --- | --- | --- |
+| `beauty/beurre-karite-fouette.webp` (hero card « Beurre de karité brut », Cocody) | 1000×1250, 67 KB | [Alex Bayev](https://unsplash.com/@alexbayev) | [Unsplash](https://unsplash.com/photos/a-bowl-of-food-that-is-on-a-table-dmusxNBR2hk) |
+| `fashion/hero.webp` (Plateau) | 1600×1600, 107 KB | [Ben Iwara](https://unsplash.com/@1hundredimages) | [Unsplash](https://unsplash.com/photos/woman-in-blue-headwrap-in-lagos-VFiTzNzaTeU) |
+| `fashion/robe-portefeuille.webp` (Plateau) | 1000×1250, 28 KB | [McFollis](https://unsplash.com/@thisismcfollis) | [Unsplash](https://unsplash.com/photos/young-woman-in-black-dress-and-glasses-on-blue-background-4myUEOinXxs) |
+| `fashion/ensemble-tunique-pantalon.webp` (Plateau) | 1000×1250, 146 KB | [Delight Dzansi](https://unsplash.com/@alkebulanprints) | [Unsplash](https://unsplash.com/photos/a-person-in-a-colorful-dress-FiggxDNdkUs) |
+| `beauty/hero.webp` (hero ring, Cocody banner) | 1600×1600, 86 KB | [Divin Louis-Rémy MBEA DE MASSOCK](https://unsplash.com/@themysteriousstudio) | [Unsplash](https://unsplash.com/photos/a-woman-with-an-afro-is-wearing-a-dress-sDnm8GvBv1c) |
+| `beauty/savon-noir-karite.webp` (Cocody) | 1000×1250, 58 KB | [Miguel Constantin Montes](https://unsplash.com/@createwithconstantin) | [Unsplash](https://unsplash.com/photos/a-gray-book-sitting-on-top-of-a-table-next-to-flowers-x4021J6aHfw) |
+| `beauty/huile-coco-vierge.webp` (Cocody) | 1000×1250, 102 KB | [Tijana Drndarski](https://unsplash.com/@izgubljenausvemiru) | [Unsplash](https://unsplash.com/photos/white-powder-in-clear-glass-jar-beside-brown-wooden-spoon-Bb8_yBkb_6E) |
+| `landing/baume-levres.webp` (Cocody) | 800×1000, 37 KB | [lo lindo](https://unsplash.com/@lolindo) | [Unsplash](https://unsplash.com/photos/person-holding-red-and-silver-round-container-tF4SaFELfAI) |
+| `shoes/sneakers-basses-blanches.webp` (Treichville) | 1000×1250, 43 KB | [Ervan M Wirawan](https://unsplash.com/@ervan_me) | [Unsplash](https://unsplash.com/photos/a-pair-of-white-shoes-sitting-on-top-of-a-black-bag-aC8CeQy5S-I) |
+| `landing/casquette.webp` (Treichville) | 800×1000, 14 KB | [kofa boyah](https://unsplash.com/@kofaboyah) | [Unsplash](https://unsplash.com/photos/a-man-in-a-red-hat-looks-away-X038pJ3BBiI) |
+| `landing/tshirt.webp` (Treichville) | 800×1000, 54 KB | [tian dayong](https://unsplash.com/@tonnnyj) | [Unsplash](https://unsplash.com/photos/a-white-t-shirt-hanging-from-a-tree-in-the-woods-CfZ4Y5WIYxc) |
+| `landing/sac-banane.webp` (Treichville) | 800×1000, 100 KB | [StartVisuals](https://unsplash.com/@startvisuals) | [Unsplash](https://unsplash.com/photos/a-pink-purse-sitting-on-top-of-a-white-bench-kYQ2uqYm0aY) |
+| `landing/livraison.webp` (diaspora proof) | 800×1000, 45 KB | [Luke Minnaar](https://unsplash.com/@lukeminnaar) | [Unsplash](https://unsplash.com/photos/a-man-with-a-box-on-a-city-street-xwbCZN4S9oA) |
+
+Known weak spot: the delivery photo was taken in South Africa, not West Africa (nothing better was
+found on Unsplash); replace it with a real Jeere delivery photo when there is one.
 
 ## To do before sharing
 

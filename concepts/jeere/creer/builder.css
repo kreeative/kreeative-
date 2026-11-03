@@ -479,8 +479,10 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 /* « Photo d’exemple · Prénom Nom / Unsplash » under a demo photo: muted, links without underline */
 /* the two links are 44 px tall to tap (the caption's line grows; -6px only takes back the field's gap) */
 .b-img__credit { margin: -6px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
-.b-img__credit a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; font-weight: 500; text-decoration: none; }
-.b-img__credit a:hover { color: var(--ink); }
+/* links: ink and medium weight on the muted caption; hover and focus mark them with a grey band behind the
+   name (no underline, by design), the band only as tall as the text although the link is 44 px to tap */
+.b-img__credit a { display: inline-flex; align-items: center; min-height: 44px; margin: 0 -3px; padding: 0 3px; border-radius: 4px; color: var(--ink); font-weight: 500; text-decoration: none; background: linear-gradient(var(--grey-2), var(--grey-2)) center / 100% 1.6em no-repeat; background-size: 0 1.6em; transition: background-size .15s ease; }
+.b-img__credit a:hover, .b-img__credit a:focus-visible { background-size: 100% 1.6em; }
 .b-img__credit a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
 .b-filebtn { position: relative; cursor: pointer; }
 .b-filebtn:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }

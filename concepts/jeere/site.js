@@ -358,6 +358,13 @@
   syncPause();
   runDemo();
 
+  /* ---------- Demo photos: one that cannot load (missing, offline) is hidden, so its colour tile,
+     ring or frame shows alone instead of a broken image. Errors do not bubble: listen in the capture
+     phase, and catch the ones that happened before this deferred script ran. ---------- */
+  function dropPhoto(img) { img.hidden = true; }
+  document.addEventListener('error', function (e) { if (e.target && e.target.tagName === 'IMG') dropPhoto(e.target); }, true);
+  $$('main img').forEach(function (img) { if (img.complete && !img.naturalWidth) dropPhoto(img); });
+
   /* ---------- Gentle scroll-in for section headings and cards ---------- */
   if ('IntersectionObserver' in window && !reduceMotion.matches) {
     var items = $$('.section__head, .feature, .compare__col, .vs, .step, .plan, .receipt, .dia__card, .join__card');

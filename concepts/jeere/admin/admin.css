@@ -878,11 +878,14 @@ a.a-orow:focus-visible { outline-offset: -3px; }
 .a-photo__pic { position: relative; aspect-ratio: 1 / 1; max-width: 280px; width: 100%; border-radius: 14px; overflow: hidden; background: var(--grey-2); box-shadow: inset 0 0 0 1px var(--line); }
 .a-photo__pic img, .a-photo__pic svg { display: block; width: 100%; height: 100%; object-fit: cover; }
 .a-photo__tag { position: absolute; left: 8px; bottom: 8px; }
-/* « Photo d’exemple · Prénom Nom / Unsplash » under a demo photo: muted, links without underline */
+/* « Photo : Prénom Nom / Unsplash » under a demo photo (the chip on the photo already says « Photo d’exemple »):
+   muted, links without underline; hover and focus show a grey band behind the name */
 /* the two links are 44 px tall to tap: the caption's line grows, -12px takes back the gaps around it */
 .a-photo__credit { margin: -12px 0; max-width: 280px; font-size: 12.5px; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
-.a-photo__credit a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; font-weight: 500; text-decoration: none; }
-.a-photo__credit a:hover { color: var(--ink); }
+.a-photo__credit a { display: inline-flex; align-items: center; min-height: 44px; margin: 0 -3px; padding: 0 3px; border-radius: 4px; color: var(--ink); font-weight: 500; text-decoration: none; background: linear-gradient(var(--grey-2), var(--grey-2)) center / 100% 1.6em no-repeat; background-size: 0 1.6em; transition: background-size .15s ease; }
+.a-photo__credit a:hover, .a-photo__credit a:focus-visible { background-size: 100% 1.6em; }
+.a-photo__credit a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .a-photo__credit a { transition: none; } }
 .a-filebtn { position: relative; overflow: hidden; }
 .a-filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
 .a-filebtn:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }

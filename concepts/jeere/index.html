@@ -41,7 +41,6 @@
     <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.8" fill="var(--paper, #fff)" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="17" r="1.8" fill="var(--paper, #fff)" stroke="currentColor" stroke-width="1.6"/></symbol>
     <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
     <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5h4l1.5-2.5h6l1.5 2.5h4v11h-17z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <!-- Editor canvas icons (hero) -->
@@ -72,22 +71,6 @@
     <symbol id="mark" viewBox="0 0 300 372">
       <circle cx="237" cy="62" r="62"/>
       <path d="M0 199H126V222A24 24 0 0 0 174 222V154H300V222A150 150 0 0 1 0 222Z"/>
-    </symbol>
-    <!-- Whipped shea butter jar, drawn for the demo store; its label bands follow the hero canvas colour -->
-    <symbol id="jar" viewBox="0 0 200 250">
-      <ellipse cx="100" cy="230" rx="74" ry="9" fill="rgba(60,35,20,.16)"/>
-      <rect x="40" y="78" width="120" height="150" rx="24" fill="#EBDDC4"/>
-      <rect x="46" y="84" width="108" height="138" rx="20" fill="#F7EEDD"/>
-      <rect x="40" y="120" width="120" height="64" fill="#FBF8F4"/>
-      <rect class="jar__band" x="40" y="120" width="120" height="3" fill="var(--hc-accent, #EE5A2A)"/>
-      <rect class="jar__band" x="40" y="181" width="120" height="3" fill="var(--hc-accent, #EE5A2A)"/>
-      <text x="100" y="152" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="20" letter-spacing="3" fill="#1A1512">KARITÉ</text>
-      <text x="100" y="170" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="9" letter-spacing="1.5" fill="#5C524B">FOUETTÉ · 200 G</text>
-      <rect x="52" y="92" width="9" height="124" rx="4.5" fill="#fff" opacity=".45"/>
-      <rect x="34" y="50" width="132" height="34" rx="9" fill="#2B1E17"/>
-      <rect x="34" y="74" width="132" height="10" rx="4" fill="#20160F"/>
-      <rect x="44" y="58" width="112" height="2" rx="1" fill="#4A372B"/>
-      <rect x="44" y="65" width="112" height="2" rx="1" fill="#4A372B"/>
     </symbol>
   </defs>
 </svg>
@@ -162,7 +145,9 @@
 
       <!-- Editor canvas: a store page being edited, with floating tools. Decorative, except the small
            "Aperçu interactif" group (colours, quantity, pause), which works and is announced.
-           The group is inert until site.js runs, so without JavaScript its buttons are not offered. -->
+           The group is inert until site.js runs, so without JavaScript its buttons are not offered.
+           The product photo is a demo photo of the store builder (creer/img/demo/, Unsplash): in the
+           accent ring of the page and on the product card, so the swatches recolour around it. -->
       <div class="hero__visual">
         <p class="vh" data-i18n="hero.canvasAlt">Aperçu de l’éditeur Jeere&nbsp;: une boutique de beurre de karité dont on change les couleurs d’une touche, une barre d’outils de texte avec l’assistant Jeere, une fiche produit à 6&nbsp;500&nbsp;FCFA et un paiement Wave reçu.</p>
         <div class="cv" data-canvas data-tint="karite">
@@ -170,7 +155,7 @@
           <div class="cv__page" aria-hidden="true">
             <span class="cv__logo">A</span>
             <span class="cv__icons"><svg><use href="#i-user"/></svg><svg><use href="#i-search"/></svg><svg><use href="#i-bag"/></svg></span>
-            <span class="cv__stage"><svg viewBox="0 0 200 250"><use href="#jar"/></svg></span>
+            <span class="cv__stage"><img src="creer/img/demo/beauty/hero.webp" width="1600" height="1600" alt="" decoding="async"></span>
             <svg class="cv__ph cv__ph--1"><use href="#i-image"/></svg>
             <svg class="cv__ph cv__ph--2"><use href="#i-image"/></svg>
             <svg class="cv__ph cv__ph--3"><use href="#i-image"/></svg>
@@ -195,8 +180,8 @@
               <button class="cv__sw" type="button" data-swatch="blanc" style="--sw:#FFFFFF" aria-pressed="false" aria-label="Couleur Blanc" data-i18n-attr="aria-label:hero.swatch.blanc"></button>
             </div>
             <div class="cv__float cv__card">
-              <div class="cv__img" aria-hidden="true"><svg viewBox="0 0 200 250"><use href="#jar"/></svg></div>
-              <p class="cv__name" data-i18n="hero.product">Beurre de karité fouetté</p>
+              <div class="cv__img" aria-hidden="true"><img src="creer/img/demo/beauty/beurre-karite-fouette.webp" width="1000" height="1250" alt="" decoding="async"></div>
+              <p class="cv__name" data-i18n="hero.product">Beurre de karité brut</p>
               <p class="cv__price" data-hero-price>6&nbsp;500&nbsp;FCFA</p>
               <div class="cv__step">
                 <button type="button" data-step="-1" aria-label="Retirer un pot" data-i18n-attr="aria-label:hero.less" aria-disabled="true"><svg class="ico" aria-hidden="true"><use href="#i-minus"/></svg></button>
@@ -430,7 +415,7 @@
         <div class="receipt" aria-live="polite">
           <p class="receipt__head" data-i18n="ship.order">Commande n°&nbsp;1042 · Awa Beauté</p>
           <dl>
-            <div><dt data-i18n="ship.item">Beurre de karité fouetté&nbsp;×&nbsp;2</dt><dd data-money="13000">13&nbsp;000&nbsp;FCFA</dd></div>
+            <div><dt data-i18n="ship.item">Beurre de karité brut&nbsp;×&nbsp;2</dt><dd data-money="13000">13&nbsp;000&nbsp;FCFA</dd></div>
             <div><dt><span data-i18n="ship.to">Livraison</span> <span data-commune>Cocody</span></dt><dd data-fee-out>1&nbsp;500&nbsp;FCFA</dd></div>
             <div class="receipt__total"><dt data-i18n="ship.total">Total</dt><dd data-total-out>14&nbsp;500&nbsp;FCFA</dd></div>
           </dl>
@@ -469,31 +454,34 @@
         <a class="btn btn--primary tpl__try" href="creer/"><span data-i18n="tpl.try">Essayer l’éditeur</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
 
+      <!-- The mini stores use the store builder's demo photos (creer/img/demo/, Unsplash), loaded lazily:
+           the hidden tabs load theirs when they are opened. The tab panels are read by screen readers,
+           so each photo has a short alt (English in i18n.js). -->
       <div class="tpl__preview">
         <div class="phone phone--sm">
           <!-- Plateau -->
           <div class="phone__screen mini mini--plateau" role="tabpanel" id="tpl-plateau" aria-labelledby="tab-plateau">
             <div class="mini__bar"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg><span class="mini__name">MAISON ADJOA</span><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
             <div class="mini__hero">
-              <div class="art art--arch"></div>
+              <div class="art art--p0"><img src="creer/img/demo/fashion/hero.webp" width="1600" height="1600" alt="Femme au gélé imprimé bleu" data-i18n-attr="alt:mini.p.a0" loading="lazy" decoding="async"></div>
               <p class="mini__kicker" data-i18n="mini.p.kicker">Nouvelle collection</p>
               <p class="mini__headline" data-i18n="mini.p.head">Lagune</p>
             </div>
             <div class="mini__grid mini__grid--2">
-              <div class="mini__item"><div class="art art--p1"></div><p data-i18n="mini.p.i1">Robe portefeuille</p><b>38&nbsp;000&nbsp;FCFA</b></div>
-              <div class="mini__item"><div class="art art--p2"></div><p data-i18n="mini.p.i2">Ensemble en lin</p><b>45&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--p1"><img src="creer/img/demo/fashion/robe-portefeuille.webp" width="1000" height="1250" alt="Femme en robe portefeuille noire" data-i18n-attr="alt:mini.p.a1" loading="lazy" decoding="async"></div><p data-i18n="mini.p.i1">Robe portefeuille noire</p><b>18&nbsp;500&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--p2"><img src="creer/img/demo/fashion/ensemble-tunique-pantalon.webp" width="1000" height="1250" alt="Femme en ensemble wax vert et orange" data-i18n-attr="alt:mini.p.a2" loading="lazy" decoding="async"></div><p data-i18n="mini.p.i2">Ensemble tunique et pantalon</p><b>27&nbsp;500&nbsp;FCFA</b></div>
             </div>
           </div>
           <!-- Cocody -->
           <div class="phone__screen mini mini--cocody" role="tabpanel" id="tpl-cocody" aria-labelledby="tab-cocody" hidden>
             <div class="mini__bar"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg><span class="mini__name">awa beauté</span><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
-            <div class="mini__banner"><p data-i18n-html="mini.c.head">Soins naturels,<br>faits ici.</p><div class="art art--c0"></div></div>
+            <div class="mini__banner"><p data-i18n-html="mini.c.head">Soins naturels,<br>faits ici.</p><div class="art art--c0"><img src="creer/img/demo/beauty/hero.webp" width="1600" height="1600" alt="Femme aux macarons afro" data-i18n-attr="alt:mini.c.a0" loading="lazy" decoding="async"></div></div>
             <div class="mini__chips"><span class="is-on" data-i18n="mini.c.all">Tout</span><span data-i18n="mini.c.body">Corps</span><span data-i18n="mini.c.hair">Cheveux</span></div>
             <div class="mini__grid mini__grid--2">
-              <div class="mini__item"><div class="art art--c1"></div><p data-i18n="mini.c.i1">Beurre de karité</p><b>6&nbsp;500&nbsp;FCFA</b></div>
-              <div class="mini__item"><div class="art art--c2"></div><p data-i18n="mini.c.i2">Savon noir</p><b>3&nbsp;000&nbsp;FCFA</b></div>
-              <div class="mini__item"><div class="art art--c3"></div><p data-i18n="mini.c.i3">Huile de coco</p><b>4&nbsp;500&nbsp;FCFA</b></div>
-              <div class="mini__item"><div class="art art--c4"></div><p data-i18n="mini.c.i4">Baume à lèvres</p><b>2&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--c1"><img src="creer/img/demo/beauty/beurre-karite-fouette.webp" width="1000" height="1250" alt="Bol de beurre de karité" data-i18n-attr="alt:mini.c.a1" loading="lazy" decoding="async"></div><p data-i18n="mini.c.i1">Beurre de karité</p><b>6&nbsp;500&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--c2"><img src="creer/img/demo/beauty/savon-noir-karite.webp" width="1000" height="1250" alt="Pain de savon noir" data-i18n-attr="alt:mini.c.a2" loading="lazy" decoding="async"></div><p data-i18n="mini.c.i2">Savon noir</p><b>3&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--c3"><img src="creer/img/demo/beauty/huile-coco-vierge.webp" width="1000" height="1250" alt="Huile de coco et noix de coco" data-i18n-attr="alt:mini.c.a3" loading="lazy" decoding="async"></div><p data-i18n="mini.c.i3">Huile de coco</p><b>4&nbsp;500&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--c4"><img src="creer/img/demo/landing/baume-levres.webp" width="800" height="1000" alt="Boîte de baume à lèvres rouge" data-i18n-attr="alt:mini.c.a4" loading="lazy" decoding="async"></div><p data-i18n="mini.c.i4">Baume à lèvres</p><b>2&nbsp;000&nbsp;FCFA</b></div>
             </div>
           </div>
           <!-- Treichville -->
@@ -502,10 +490,10 @@
             <p class="mini__drop">DROP<br>07</p>
             <p class="mini__tag" data-i18n="mini.t.tag">Sortie vendredi · 18&nbsp;h</p>
             <div class="mini__grid mini__grid--2">
-              <div class="mini__item"><div class="art art--t1"></div><p data-i18n="mini.t.i1">Sneakers Bassam</p><b>35&nbsp;000&nbsp;FCFA</b></div>
-              <div class="mini__item"><div class="art art--t2"></div><p data-i18n="mini.t.i2">Casquette 225</p><b>8&nbsp;000&nbsp;FCFA</b></div>
-              <div class="mini__item"><div class="art art--t3"></div><p data-i18n="mini.t.i3">T-shirt oversize</p><b>10&nbsp;000&nbsp;FCFA</b></div>
-              <div class="mini__item"><div class="art art--t4"></div><p data-i18n="mini.t.i4">Sac banane</p><b>12&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--t1"><img src="creer/img/demo/shoes/sneakers-basses-blanches.webp" width="1000" height="1250" alt="Sneakers basses blanches" data-i18n-attr="alt:mini.t.a1" loading="lazy" decoding="async"></div><p data-i18n="mini.t.i1">Sneakers blanches</p><b>25&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--t2"><img src="creer/img/demo/landing/casquette.webp" width="800" height="1000" alt="Homme en casquette rouge" data-i18n-attr="alt:mini.t.a2" loading="lazy" decoding="async"></div><p data-i18n="mini.t.i2">Casquette 225</p><b>8&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--t3"><img src="creer/img/demo/landing/tshirt.webp" width="800" height="1000" alt="T-shirt blanc sur un cintre" data-i18n-attr="alt:mini.t.a3" loading="lazy" decoding="async"></div><p data-i18n="mini.t.i3">T-shirt oversize</p><b>10&nbsp;000&nbsp;FCFA</b></div>
+              <div class="mini__item"><div class="art art--t4"><img src="creer/img/demo/landing/sac-banane.webp" width="800" height="1000" alt="Sac banane en cuir rouge" data-i18n-attr="alt:mini.t.a4" loading="lazy" decoding="async"></div><p data-i18n="mini.t.i4">Sac banane</p><b>12&nbsp;000&nbsp;FCFA</b></div>
             </div>
           </div>
         </div>
@@ -526,7 +514,7 @@
         <p class="dia__row"><span data-i18n="dia.r2k">Livré à</span><b data-i18n="dia.r2v">Maman · Yopougon</b></p>
         <p class="dia__row"><span data-i18n="dia.r3k">Reçu par la boutique</span><b>15&nbsp;000&nbsp;FCFA</b></p>
         <div class="dia__proof">
-          <div class="dia__photo"><svg class="ico" aria-hidden="true"><use href="#i-camera"/></svg></div>
+          <div class="dia__photo"><img src="creer/img/demo/landing/livraison.webp" width="800" height="1000" alt="" loading="lazy" decoding="async"></div>
           <p><b data-i18n="dia.proofT">Photo à la livraison</b><span data-i18n="dia.proofS">Envoyée sur WhatsApp à 16&nbsp;h&nbsp;42</span></p>
           <svg class="ico dia__ok" aria-hidden="true"><use href="#i-check"/></svg>
         </div>
@@ -805,7 +793,7 @@
       </nav>
     </div>
     <p class="foot__small" data-i18n-html="foot.small">Jeere est en préparation&nbsp;: les fonctions et les tarifs peuvent changer avant le lancement. Les paiements seront traités par un partenaire agréé par la BCEAO&nbsp;; Jeere ne détiendra jamais l’argent des vendeurs. Une idée née chez <a href="https://kreeative.xyz">Kreeative</a>. Contact&nbsp;: <a href="mailto:annklyy@gmail.com?subject=Jeere">annklyy@gmail.com</a></p>
-    <p class="foot__small">© 2026 Jeere</p>
+    <p class="foot__small">© 2026 Jeere · <span data-i18n-html="foot.photos">Photos d’exemple&nbsp;: <a href="https://unsplash.com/" target="_blank" rel="noopener">Unsplash</a></span></p>
   </div>
 </footer>
 

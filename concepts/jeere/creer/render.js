@@ -798,13 +798,17 @@
     const seenZone = {};
     zones = zones.filter((z) => { const k = z.name.toLowerCase(); if (seenZone[k]) return false; seenZone[k] = true; return true; });
 
-    // Distinct categories, in order of first appearance; empty ones are skipped.
+    // Distinct categories, in order of first appearance; empty ones are skipped. A tile shows the
+    // category's last product: the product grid opens with the first ones, so a small store does not
+    // show the same pictures twice in a row.
     const catMap = new Map();
     products.forEach((p) => {
       if (!p.category) return;
       const key = p.category.toLowerCase();
       if (!catMap.has(key)) catMap.set(key, { name: p.category, count: 0, product: p });
-      catMap.get(key).count++;
+      const c = catMap.get(key);
+      c.count++;
+      c.product = p;
     });
 
     // Average rating from the first enabled reviews section that has items.
@@ -913,10 +917,11 @@
   function inkOn(bg) { return contrast('#15120E', bg) >= contrast('#FFFFFF', bg) ? '#15120E' : '#FFFFFF'; }
 
   // A product visual: the seller's photo if there is one, else its demo photo, else the illustration
-  // on a tile of its colour.
-  function media(p, cls, extra) {
+  // on a tile of its colour. Cards, tiles, cart lines and summaries show the name next to the picture,
+  // so their picture is decorative (alt=""); the product page (named) gives it the product's name.
+  function media(p, cls, extra, named) {
     const inner = p.image
-      ? '<img src="' + esc(p.image) + '" alt="' + esc(p.name || (p.photo ? p.photo.alt : '')) + '"' + photoAttrs(p.photo) + ' loading="lazy" decoding="async">'
+      ? '<img src="' + esc(p.image) + '" alt="' + (named ? esc(p.name || (p.photo ? p.photo.alt : '')) : '') + '"' + photoAttrs(p.photo) + ' loading="lazy" decoding="async">'
       : artSVG(p.art, p.color);
     return '<div class="jst-tile' + (p.image ? ' has-photo' : '') + (cls ? ' ' + cls : '') + '" style="' + tileStyle(p.color) + '">' + inner + (extra || '') + '</div>';
   }
@@ -1140,7 +1145,8 @@
         '<div class="jst-hero-visual">' + block + sticker + '</div></div>' + stripHTML + '</section>';
     }
 
-    // Plateau: a large stage, image or arch composition, text set over it.
+    // Plateau: a large stage. With a photo, the text sits on a dark ground beside it (desktop) or under it
+    // (phone), never on the photo (store.css); without, the arch composition with the text over its tile.
     let stage;
     if (img) {
       stage = '<div class="jst-hero-stage has-img" style="--ink:#FFFFFF">' + imgTag + '<div class="jst-hero-scrim" aria-hidden="true"></div>' + heroCopy(m, st, 'jst-kicker') + '</div>';
@@ -1521,7 +1527,7 @@
       : '';
     return '<div class="jst-wrap jst-pdp-nav">' + nav + '</div>' +
       '<section class="jst-pdp" data-product-id="' + esc(p.id) + '"><div class="jst-wrap jst-pdp-in">' +
-      '<div class="jst-pdp-media">' + media(p, 'jst-pdp-tile', badge(p.badge, m.d)) + '</div>' +
+      '<div class="jst-pdp-media">' + media(p, 'jst-pdp-tile', badge(p.badge, m.d), true) + '</div>' +
       '<div class="jst-pdp-info">' +
       (p.category ? '<p class="jst-pdp-cat">' + esc(p.category) + '</p>' : '') +
       '<h1 class="jst-h jst-pdp-name">' + pname(p) + '</h1>' + rating +

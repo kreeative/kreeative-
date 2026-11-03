@@ -60,7 +60,7 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | --- | --- | --- |
 | `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, 6 font pairs, the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
 | `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, shows the seller's photo, else the demo photo, else draws the product illustration in SVG, never makes a network request to another site. Store CSS is scoped under `.jst`. | `window.JeereRender` |
-| `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). Not there yet: the catalogue is empty. | — |
+| `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
 | `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jeere assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
 | `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1, `pages` included. | — |
@@ -91,10 +91,10 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
   "payments": { "wave": true, "orange": true, "mtn": true, "moov": false, "cod": true, "card": false },
   "sections": [
     { "id": "s1", "type": "announcement", "enabled": true, "settings": { "text": "Livraison offerte dès 20 000 FCFA à Cocody" } },
-    { "id": "s2", "type": "hero", "enabled": true, "settings": { "kicker": "Nouvelle collection", "title": "Awa Beauté : des soins simples et naturels", "text": "…", "button": "Découvrir", "image": null, "photo": null } }
+    { "id": "s2", "type": "hero", "enabled": true, "settings": { "kicker": "Nouvelle collection", "title": "Awa Beauté : des soins simples et naturels", "text": "…", "button": "Découvrir", "image": null, "photo": "beauty-hero" } }
   ],
   "products": [
-    { "id": "p1", "name": "Beurre de karité fouetté", "price": 6500, "category": "Corps", "badge": "best", "art": "jar", "color": "#E9D8BD", "description": "…", "image": null, "photo": null }
+    { "id": "p1", "name": "Beurre de karité brut", "price": 6500, "category": "Corps", "badge": "best", "art": "jar", "color": "#E9D8BD", "description": "…", "image": null, "photo": "beauty-beurre-karite-fouette" }
   ],
   "pages": [
     { "id": "pg1", "title": "À propos", "slug": "a-propos", "body": "Awa Beauté, ce sont des soins simples…\n\nTout a commencé dans notre cuisine à Cocody…", "inMenu": true, "inFooter": true },
@@ -141,25 +141,29 @@ Three layers check a fiche:
 
 ## Demo photos
 
-The example stores can show real photos instead of the illustrations: « demo photos », hosted
-with the app in `img/demo/<niche>/<file>.webp` (never loaded from another site). **The catalogue
-ships empty**: until it is filled, every fiche has `photo: null` everywhere and every store
-renders exactly as before (byte for byte).
+The example stores show real photos instead of the illustrations: « demo photos », hosted with
+the app in `img/demo/<niche>/<file>.webp` (never loaded from another site). There are 69: 8 per
+niche (6 products, the hero, the about section) and 5 in `img/demo/landing/` for the mock-ups of
+the landing page (in the catalogue so that they are credited and checked like the others). Without
+the catalogue (`DEMO_PHOTOS` emptied), every fiche has `photo: null` everywhere and every store
+renders as it did before the photos, byte for byte, apart from two later changes that have nothing
+to do with photos: a category tile shows the category's last product (the product grid opens with
+the first ones), and a product picture next to the product's name has `alt=""`.
 
 - **The catalogue**, `JEERE_DATA.DEMO_PHOTOS` in `data.js`, keyed by photo id (lower case words
-  joined by hyphens, `^[a-z0-9]+(?:-[a-z0-9]+)*$`):
+  joined by hyphens, `^[a-z0-9]+(?:-[a-z0-9]+)*$`): `<folder>-<file name>`, so `beauty/hero.webp`
+  is `beauty-hero` and `landing/casquette.webp` is `landing-casquette`. An entry:
 
   ```js
-  'beauty-karite': {
-    file: 'beauty/karite.webp',                 // path under creer/img/demo/
-    alt: 'Pot de beurre de karité fouetté',     // French description of the photo
-    credit: {
-      name: 'Photographer Name', username: 'unsplash_username',
-      photoUrl: 'https://unsplash.com/photos/<id>', profileUrl: 'https://unsplash.com/@username'
-    },
-    focus: '50% 30%'                            // optional: CSS object-position of the crop
+  'beauty-savon-noir-karite': {
+    file: 'beauty/savon-noir-karite.webp', focus: '50% 50%',   // path under creer/img/demo/; optional CSS object-position of the crop
+    alt: 'Pain de savon noir posé sur du marbre blanc, avec un brin de lavande et un linge en lin',  // French description of the photo
+    credit: { name: 'Miguel Constantin Montes', username: 'createwithconstantin', photoUrl: 'https://unsplash.com/photos/a-gray-book-sitting-on-top-of-a-table-next-to-flowers-x4021J6aHfw', profileUrl: 'https://unsplash.com/@createwithconstantin' }
   }
   ```
+
+  Sizes: products 1000 × 1250 (4:5), heroes 1600 × 1600, about photos 1200 × 1500, landing photos
+  800 × 1000.
 
 - **Which store uses which photo**, `NICHE_PHOTOS` in `data.js`: `niche -> { hero, about,
   products: [ids in the order of the niche's products] }` (`null`, or a short list, leaves a product
@@ -189,25 +193,71 @@ renders exactly as before (byte for byte).
   from `creer/`, `../admin/` and `../compte/`. Every product picture (cards, category tiles, the
   hero's circle, arch or block, the about collage, the product page and « Vous aimerez aussi »,
   cart lines, checkout and confirmation summaries) and the hero and about images use it, with
-  `object-fit: cover` and the entry's `focus`. Product photos keep the product name as `alt`;
-  hero and about images stay decorative (`alt=""`), like the seller's.
+  `object-fit: cover` and the entry's `focus`. On the product page the photo has the product name
+  as `alt`; everywhere else (cards, category tiles, the hero's float card, cart lines, summaries)
+  the name is written right next to it, so the picture is decorative (`alt=""`), like the hero and
+  about images and like the seller's own photos in the same places.
 - **The editor** shows a demo photo in the product form, the product rows and the hero and about
   image fields, with « Photo d’exemple · photographer / Unsplash » under it (the name links to the
   photographer's profile, « Unsplash » to the photo, in a new tab), « Mettre ma photo » and
   « Retirer la photo ». Undo and redo cover both fields. **The dashboard** shows it in its
-  thumbnails and its product page (« Photo d’exemple » chip, same credit, same actions); the
+  thumbnails and its product page (a « Photo d’exemple » chip on the photo, « Photo : photographer
+  / Unsplash » under it, same actions); the
   « Sans vraie photo » filter and the checklist still count it as not the seller's photo.
 - **Credits**: the photos come from Unsplash. The Unsplash License lets anyone use them for free,
-  commercial use included, without asking. We credit the photographers anyway: in the editor
-  under each photo, and in `img/demo/CREDITS.md` (one line per photo: file, photographer, link),
-  written when the photos are added.
-- **Adding the photos** (a later step): put the WebP files (about 1 200 px on the long side) in
-  `img/demo/<niche>/`, fill `DEMO_PHOTOS` and `NICHE_PHOTOS`, write `img/demo/CREDITS.md`. Nothing
-  else changes. Hero photos: Plateau sets the white text on the photo, over a scrim that keeps it
-  at 4.5:1 or better even on a white wall (as tall as the text on a phone, the left half on a
-  desktop); on a phone the text covers the lower two thirds of the photo, so use `focus` to keep
-  the subject in its top part. Then run, from this folder (prints `ok · N photos`, else one line
-  per problem):
+  commercial use included, without asking. We credit the photographers anyway: in the editor and
+  the dashboard under each photo, and in [`img/demo/CREDITS.md`](img/demo/CREDITS.md): one line per
+  photo with the file, what it is used for, what it shows, the photographer (linked to the
+  profile) and the photo's page, and a note where the photo was retouched (a label or a logo
+  removed, a backdrop extended) or only stands in for the product. « Unavailable Photographer »
+  (`fashion/about.webp`) is the real display name of that Unsplash account
+  (`@unavailablephotographer`), so it is credited as it is.
+- **Products renamed to match their photo.** A demo product must look like its photo, so these
+  example products of `data.js` were renamed when the photos came in (their description, their
+  illustration colour and the reviews and texts that named them follow):
+
+  | Niche | Before | Now | Why |
+  | --- | --- | --- | --- |
+  | fashion | Robe portefeuille Lagune | Robe portefeuille noire | a black sleeveless wrap dress |
+  | fashion | Ensemble en pagne tissé | Ensemble homme en pagne tissé | a man's striped woven tunic |
+  | hair | Perruque bouclée coupe carré | Perruque bouclée mi-longue | shoulder length, honey-copper curls |
+  | hair | Perruque bob blond miel | Perruque courte blond platine | a short platinum pixie cut with a fringe |
+  | hair | Mèches kinky pour tresses | Mèches pour tresses | finished box braids, not kinky hair |
+  | beauty | Beurre de karité fouetté | Beurre de karité brut | raw chunks, not whipped |
+  | jewellery | Créoles martelées dorées | Créoles torsadées dorées | twisted hoops |
+  | food | Attiéké poisson braisé | Tilapias braisés pour deux | two braised tilapias (priced for two); the attiéké comes on the side |
+  | food | Sauce graine et riz | Sauce gombo et riz | an okra stew with rice |
+  | food | Alloco et poulet braisé | Alloco et poisson braisé | the grilled meat is fish |
+  | food | Plateau traiteur 20 personnes | Plateau alloco, 20 personnes | only alloco in the chafing dishes; fish and beignets as options |
+  | food | Mini-beignets, boîte de 30 | Beignets maison, la corbeille | a basket of about ten plain puff-puff |
+  | food | Jus de bissap maison, 1 L | Jus de bissap maison | served in a glass |
+  | crafts | Pochette en toile de Korhogo | Pochette en pagne wax | a wax-print clutch |
+
+  Other descriptions were corrected to what the photos show (colours, sleeves, a lid or none,
+  materials: ochre suede, the woven tunic's trousers « en option »), and so were the texts around
+  them: the food hero leads with what its photo shows (« Foutou sauce, alloco et poisson braisé »),
+  the food pages say « poisson braisé, sauce gombo et alloco », the crafts hero and about no longer promise Korhogo cloth, and the
+  jewellery about says « Nos montures dorées sont plaquées or » (the resin earrings have a silver
+  frame). File names and ids come from the photo search and were kept:
+  `food/sauce-graine-riz.webp` (`food-sauce-graine-riz`) is the « Sauce gombo et riz ».
+- **The crop (`focus`)**: products and about photos are 4:5. Plateau shows them whole in its cards,
+  product page and cart lines; its checkout and confirmation summaries crop them to 1:1, and so do
+  Cocody and Treichville everywhere (cards, category tiles, the product page, cart lines, summaries,
+  the hero's circle or block, the about frame), so the second value picks the part kept: `50% 5%`
+  keeps the head of a full-length portrait. Hero photos are square. The Plateau hero never puts
+  text on its photo: a phone shows the whole square above the text; a desktop shows it in the right
+  56 % of the stage (680 px high, up to 820 px on a wide screen), whole at 1200 px and cropped in
+  height on wider screens, where the second value counts (`50% 40%` keeps the bed and the lamps of
+  `home/hero.webp`). The Cocody desktop hero is 4:5, where the first value counts (`25% 50%` keeps
+  the profile of `jewellery/hero.webp`). Each focus was checked on the three templates, phone and
+  desktop.
+- **Adding or replacing a photo**: put the WebP file in `img/demo/<niche>/` (sizes above), add or
+  replace its entry in `DEMO_PHOTOS` and its id in `NICHE_PHOTOS`, and its line in
+  `img/demo/CREDITS.md`. Nothing else changes. Hero photos: the Plateau text sits on a dark ground
+  that the photo melts into (under the photo on a phone, beside it on a desktop), never on the photo,
+  so its white text keeps 11.9:1 whatever the photo (checked with the 8 hero photos at 360, 390,
+  1024, 1200, 1440 and 1920 px, default and long texts). Then run, from this folder (prints `ok · 69 photos`, else one line per
+  problem):
 
   ```sh
   # every demo photo is on disk and in CREDITS.md, every NICHE_PHOTOS id is in DEMO_PHOTOS
