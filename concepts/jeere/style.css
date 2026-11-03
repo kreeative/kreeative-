@@ -2,6 +2,13 @@
    Designed at 360 px first, then scaled up. Black and white only.
    No images apart from the share image: every visual is HTML or SVG. */
 
+/* A local font (Arial, Roboto on Android) scaled to Poppins' width and line metrics: nothing to download */
+@font-face {
+  font-family: 'Poppins Fallback';
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Roboto'), local('Roboto-Regular'), local('Roboto Regular');
+  size-adjust: 110.6%; ascent-override: 94.9%; descent-override: 31.6%; line-gap-override: 9%;
+}
+
 :root {
   /* JEERE is black and white, nothing else: the sellers' photos and stores bring the colour.
      The "accent" names are kept so every rule has one place to change. */
@@ -21,8 +28,9 @@
   --paper: #fff;
 
   /* Poppins everywhere. Poppins has no ɛ, ɔ or ŋ (Dioula and Bambara names): the page also loads
-     those six letters alone from Montserrat, which the browser uses for them. */
-  --f-display: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+     those six letters alone from Montserrat, which the browser uses for them. Until Poppins arrives,
+     'Poppins Fallback' (below) stands in at the same width, so the text does not reflow when it loads. */
+  --f-display: 'Poppins', 'Montserrat', 'Poppins Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --f-text: var(--f-display);
 
   --r-sm: 10px;
@@ -116,10 +124,17 @@ ul, ol { padding: 0; list-style: none; }
 .head__nav a { font-size: 15px; font-weight: 500; text-decoration: none; color: var(--muted); padding: 10px 0; }
 .head__nav a:hover { color: var(--ink); }
 .head__nav .head__try { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.head__nav a, .head__end .btn { white-space: nowrap; }
 .head__end { display: flex; align-items: center; gap: 10px; }
 .only-wide { display: none; }
 @media (min-width: 560px) { .only-wide { display: inline; } .only-narrow { display: none; } .logo__mark { height: 30px; } .logo__word { height: 20px; } }
 @media (min-width: 1000px) { .head__nav { display: flex; } .head__logo { margin-right: 12px; } .head__nav { margin-right: auto; } }
+/* Small laptops: keep the menu on one line. « Questions » stays in the footer and the FAQ. */
+@media (min-width: 1000px) and (max-width: 1199px) {
+  .head__in, .head__nav { gap: 18px; }
+  .head__nav a { font-size: 14px; }
+  .head__nav a[href="#faq"] { display: none; }
+}
 
 .lang { display: flex; border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
 .lang button {
@@ -130,20 +145,23 @@ ul, ol { padding: 0; list-style: none; }
 
 /* ---------- Hero ---------- */
 /* Light grey band with the sign-up card on the left and the editor canvas on the right */
-.hero { background: var(--grey-1); padding: 24px 0 0; overflow: hidden; }
+/* The next section is grey too: a hairline marks where the hero ends */
+.hero { background: var(--grey-1); padding: 24px 0 0; overflow: hidden; border-bottom: 1px solid var(--line); }
 .hero__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 44px; align-items: center; }
 .hero__title {
   font: 500 clamp(40px, 9vw, 76px)/1.03 var(--f-display);
   letter-spacing: -.035em;
   text-wrap: balance;
 }
+@media (max-width: 599px) { .hero__title { font-size: clamp(34px, 10.1vw, 52px); } }
 .hero__lead { font-size: clamp(16.5px, 2.3vw, 19px); line-height: 1.55; color: var(--muted); max-width: 31em; margin-top: 18px; text-wrap: pretty; }
 
 /* The black sign-up card */
-.hero__card { --focus: #fff; max-width: 520px; margin-top: 28px; padding: 22px 16px 16px; border-radius: 28px; background: #111; color: var(--white); }
+.hero__card { --focus: #fff; text-wrap: pretty; max-width: 520px; margin-top: 28px; padding: 22px 16px 16px; border-radius: 28px; background: #111; color: var(--white); }
 .hero__cardTitle { padding: 0 6px; font: 500 18px/1.35 var(--f-display); letter-spacing: -.01em; }
 .hero__cardSub { padding: 0 6px; font-size: 16px; line-height: 1.4; color: rgba(255, 255, 255, .72); margin-top: 2px; }
 .hero__consent { padding: 0 6px; font-size: 12px; line-height: 1.45; color: rgba(255, 255, 255, .6); margin-top: 12px; }
+.hero__cardSub, .hero__consent { text-wrap: balance; }
 .hero__pill {
   display: flex; align-items: center; height: 58px; margin-top: 12px; padding: 0 6px 0 4px;
   border-radius: 999px; background: var(--ink-2); border: 1px solid rgba(255, 255, 255, .18);
@@ -193,12 +211,13 @@ ul, ol { padding: 0; list-style: none; }
 
 .hero__visual { container-type: inline-size; }
 
+@media (min-width: 600px) { .hero { padding-top: 40px; } }
 @media (min-width: 1000px) {
-  .hero { padding-top: 56px; }
+  .hero { padding-top: 48px; }
   .hero__grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 48px; }
-  /* Two columns: the title follows its column so it sets on 2 or 3 balanced lines */
-  .hero__title { font-size: clamp(52px, 4.8vw, 70px); }
-  .hero__lead { margin-top: 22px; }
+  /* 2 balanced lines like the reference, from 1000 px (46 px) to 1920 px (58 px) */
+  .hero__title { font-size: clamp(46px, 5.2vw - 8px, 58px); line-height: 1.04; }
+  .hero__lead { font-size: 18px; max-width: 34em; margin-top: 20px; }
 }
 
 /* ---------- Editor canvas (hero) ----------
@@ -221,6 +240,8 @@ ul, ol { padding: 0; list-style: none; }
 .cv[data-tint="indigo"] { --hc-accent: #3E3A99; }
 .cv[data-tint="menthe"] { --hc-accent: #1E6B4E; }
 .cv[data-tint="blanc"] { --hc-accent: #111111; --hc-bg: #FFFFFF; --hc-soft: #EFEEEB; }
+/* Older browsers without color-mix(): keep a warm page whatever the palette */
+@supports not (color: color-mix(in srgb, red, red)) { .cv:not([data-tint="blanc"]) { --hc-bg: #E1DAD3; --hc-soft: #D6CABF; } }
 
 .cv__grid {
   position: absolute; inset: -10% -14%;
@@ -235,7 +256,8 @@ ul, ol { padding: 0; list-style: none; }
 .cv__logo { position: absolute; top: 2.6%; left: 50%; width: 2em; height: 2em; margin-left: -1em; display: grid; place-items: center; border-radius: 50%; border: 1px solid currentColor; font: 400 .9em/1 Georgia, 'Times New Roman', serif; }
 .cv__icons { position: absolute; top: 3.4%; right: 4.5%; display: flex; gap: .55em; }
 .cv__icons svg { position: static; width: 1.1em; height: 1.1em; }
-.cv__stage { position: absolute; left: 9%; top: 41%; width: 46%; aspect-ratio: 1; border-radius: 50%; background: var(--hc-soft); }
+.cv__stage { position: absolute; left: 9%; top: 41%; width: 46%; aspect-ratio: 1; border-radius: 50%; background: var(--hc-accent); }
+.cv[data-tint="blanc"] .cv__stage { background: var(--hc-soft); }
 .cv__stage svg { left: 18%; top: 4%; width: 64%; height: auto; }
 .cv__ph { width: 2.3em; height: 2.3em; color: var(--hc-ink); opacity: .32; }
 .cv__ph--1 { left: 20%; top: 17%; }
@@ -245,7 +267,7 @@ ul, ol { padding: 0; list-style: none; }
 
 /* Floating editor tools */
 .cv__float { position: absolute; background: var(--white); border-radius: 12px; box-shadow: 0 1px 2px rgba(17, 17, 17, .08), 0 14px 34px -14px rgba(17, 17, 17, .28); }
-.cv__tools { left: 0; top: 30%; display: flex; gap: .15em; padding: .35em; color: var(--ink); }
+.cv__tools { left: 0; top: 26%; display: flex; gap: .15em; padding: .35em; color: var(--ink); }
 .cv__tools span { display: grid; place-items: center; width: 2.35em; height: 2.35em; border-radius: 7px; }
 .cv__tools svg { width: 1.4em; height: 1.4em; }
 .cv__tools .cv__ai { margin-right: .2em; background: var(--ink); color: var(--white); }
@@ -294,27 +316,55 @@ ul, ol { padding: 0; list-style: none; }
 
 .cv__play { position: absolute; left: 0; top: 88%; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--ink); color: var(--white); cursor: pointer; box-shadow: 0 10px 24px -10px rgba(17, 17, 17, .5); }
 .cv__play:focus-visible { outline-offset: 3px; border-radius: 50%; }
-.cv__play .cv__i-play, .cv__play[aria-pressed="true"] .cv__i-pause { display: none; }
-.cv__play[aria-pressed="true"] .cv__i-play { display: block; }
+.cv__play .cv__i-play, .cv__play[data-paused] .cv__i-pause { display: none; }
+.cv__play[data-paused] .cv__i-play { display: block; }
 html:not(.js) .cv__play { display: none; }
-@media (prefers-reduced-motion: reduce) { .cv { transition: none; } .cv__sw.is-pulse::before { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cv__sw.is-pulse::before, .cv__chip.is-bump { animation: none; } }
 
-@media (min-width: 600px) {
+/* The layout follows the canvas width, not the screen: narrow canvases (phones, small laptops)
+   keep the tall layout above; from 440 px wide the tools spread like a desktop editor. */
+@container (max-width: 325px) {
+  .cv { aspect-ratio: 330 / 560; }
+  .cv__tools span:nth-child(n+6) { display: none; }
+  .cv__tray { top: 72%; }
+  .cv__play { top: 83%; }
+}
+@container (min-width: 440px) {
   .cv { aspect-ratio: 500 / 540; }
   .cv__page { left: 11%; top: 2%; width: 72%; height: 92%; }
   .cv__stage { left: 10%; top: 12%; width: 44%; }
   .cv__ph--1 { left: 64%; top: 6%; }
-  .cv__ph--2 { left: 40%; top: 52%; }
+  .cv__ph--2 { left: 40%; top: 56%; }
   .cv__ph--3 { left: 30%; top: 88%; }
-  .cv__tools { top: 36%; }
+  .cv__tools { top: 43%; } /* just under the coloured circle */
   .cv__tray { left: 1%; top: 63%; }
   .cv__card { top: 10%; }
   .cv__name, .cv__price { font-size: 12.5px; }
   .cv__play { top: 85%; }
   .cv__chip { right: 3%; bottom: 3%; font-size: 12.5px; }
 }
-/* Two columns: a slightly taller canvas, level with the copy */
-@media (min-width: 1000px) { .cv { aspect-ratio: 500 / 580; } }
+/* Two columns: a square canvas like the reference, level with the copy (after the @container rules so it wins) */
+@media (min-width: 1000px) {
+  .cv { aspect-ratio: 1 / 1; }
+  .cv__page { left: 11%; top: 2%; width: 72%; height: 90%; }
+  .cv__stage { left: 12%; top: 12%; width: 40%; }
+  .cv__ph--1 { left: 62%; top: 8%; }
+  .cv__ph--2 { left: 44%; top: 60%; }
+  .cv__ph--3 { left: 22%; top: 84%; }
+  .cv__tools { top: 42%; }
+  .cv__tray { left: 1%; top: 66%; }
+  .cv__card { top: 14%; }
+  .cv__img { aspect-ratio: 4 / 3; }
+  .cv__img svg { width: 50%; margin-top: 2%; }
+  .cv__play { top: 84%; }
+  .cv__chip { right: 3%; bottom: 2%; }
+}
+/* With a mouse the swatches can be smaller (touch screens keep 44 px targets) */
+@media (min-width: 1000px) and (pointer: fine) {
+  .cv__sw { width: 36px; height: 36px; }
+  .cv__sw::before { inset: 7px; border-radius: 6px; }
+  .cv__tray { padding: 3px; border-radius: 12px; }
+}
 
 /* ---------- Phone mockup (template preview) ---------- */
 .phone {
@@ -332,7 +382,7 @@ html:not(.js) .cv__play { display: none; }
 .paystrip__label { font: 400 clamp(26px, 4vw, 40px)/1.15 var(--f-display); letter-spacing: -.025em; text-wrap: balance; }
 .paystrip__list { display: flex; flex-wrap: wrap; gap: 8px; }
 .paystrip__list li { padding: 8px 14px; border-radius: 999px; background: var(--white); border: 1px solid var(--line); font-size: 14px; font-weight: 600; letter-spacing: -.005em; }
-@media (min-width: 1000px) { .paystrip { gap: 26px; margin-top: 88px; padding-bottom: 96px; } .paystrip__list li { padding: 9px 16px; font-size: 15px; } }
+@media (min-width: 1000px) { .paystrip { gap: 26px; margin-top: 64px; padding-bottom: 88px; } .paystrip__label { font-size: clamp(26px, 2.4vw, 34px); } .paystrip__list li { padding: 9px 16px; font-size: 15px; } }
 
 /* ---------- Sections ---------- */
 .section { padding: 72px 0; }
@@ -558,7 +608,7 @@ html:not(.js) .cv__play { display: none; }
 .join__perks { margin-top: 26px; display: grid; gap: 12px; }
 .join__perks li { display: flex; gap: 12px; align-items: center; font-weight: 500; }
 .join__perks .ico { color: var(--ink); background: var(--accent-light); border-radius: 50%; padding: 3px; width: 24px; height: 24px; }
-.join__card { --focus: var(--ink); background: var(--white); color: var(--ink); border-radius: 26px; padding: 22px 18px; box-shadow: 0 50px 80px -50px rgba(0, 0, 0, .6); }
+.join__card { scroll-margin-top: 16px; --focus: var(--ink); background: var(--white); color: var(--ink); border-radius: 26px; padding: 22px 18px; box-shadow: 0 50px 80px -50px rgba(0, 0, 0, .6); }
 @media (min-width: 600px) { .join__card { padding: 32px; } }
 @media (min-width: 1000px) { .join { grid-template-columns: .9fr 1.1fr; gap: 72px; align-items: start; } .join__copy { position: sticky; top: calc(var(--head-h) + 40px); } }
 

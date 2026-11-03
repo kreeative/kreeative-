@@ -55,8 +55,14 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 ## Page
 
-1. Hero: “Tout votre commerce, au même endroit”, the store on a phone (Plateau template) and a WhatsApp order that plays out
-   in three bubbles, then the payment methods.
+1. Hero, on a light grey band: “Créez votre boutique en ligne gratuitement” and a black card that asks for a
+   WhatsApp number. The card sends nothing: it copies the number into the waitlist form, scrolls there and asks for
+   the first name (without JavaScript it simply links to the waitlist). On the right, an editor canvas on a faint grid:
+   a store page (shea butter jar) with floating editor tools: a text toolbar with the Jeere assistant, a colour tray
+   (Karité, Lagune, Hibiscus, Indigo, Menthe, white) that recolours the store, a product card whose quantity updates
+   the “Paiement Wave reçu” chip, and a pause button. The colours change by themselves every 2.8 s until the visitor
+   hovers, focuses or pauses; with reduced motion they start paused. Then “Encaissez comme vos clients paient” with
+   the payment methods.
 2. Tout-en-un: online store, payments, orders and stock, sell everywhere, everything included.
 3. Aujourd’hui / Avec JEERE.
 4. Pourquoi JEERE: nine common complaints about the big e-commerce platforms (six from sellers,

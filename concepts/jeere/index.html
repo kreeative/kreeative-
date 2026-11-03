@@ -177,7 +177,8 @@
       </div>
 
       <!-- Editor canvas: a store page being edited, with floating tools. Decorative, except the small
-           "Aperçu interactif" group (colours, quantity, pause), which works and is announced. -->
+           "Aperçu interactif" group (colours, quantity, pause), which works and is announced.
+           The group is inert until site.js runs, so without JavaScript its buttons are not offered. -->
       <div class="hero__visual">
         <p class="vh" data-i18n="hero.canvasAlt">Aperçu de l’éditeur Jeere&nbsp;: une boutique de beurre de karité dont on change les couleurs d’une touche, une barre d’outils de texte avec l’assistant Jeere, une fiche produit à 6&nbsp;500&nbsp;FCFA et un paiement Wave reçu.</p>
         <div class="cv" data-canvas data-tint="karite">
@@ -199,7 +200,7 @@
             <span><svg><use href="#i-list"/></svg></span>
             <span><svg><use href="#i-olist"/></svg></span>
           </div>
-          <div class="cv__ui" role="group" aria-label="Aperçu interactif" data-i18n-attr="aria-label:hero.ui">
+          <div class="cv__ui" role="group" aria-label="Aperçu interactif" data-i18n-attr="aria-label:hero.ui" inert>
             <div class="cv__float cv__tray">
               <button class="cv__sw" type="button" data-swatch="karite" style="--sw:#8A5A3C" aria-pressed="true" aria-label="Couleur Karité" data-i18n-attr="aria-label:hero.swatch.karite"></button>
               <button class="cv__sw" type="button" data-swatch="lagune" style="--sw:#0F5F63" aria-pressed="false" aria-label="Couleur Lagune" data-i18n-attr="aria-label:hero.swatch.lagune"></button>
@@ -220,7 +221,7 @@
               <button class="cv__add" type="button" data-add><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg><span data-i18n="hero.add">Ajouter</span></button>
             </div>
             <p class="cv__chip" data-chip><span class="cv__ok" aria-hidden="true"><svg class="ico"><use href="#i-check"/></svg></span><span><span data-i18n="hero.paid">Paiement Wave reçu</span> · <span data-hero-total>6&nbsp;500&nbsp;FCFA</span></span></p>
-            <button class="cv__play" type="button" data-pause aria-pressed="false" aria-label="Mettre en pause l’animation" data-label-pause="Mettre en pause l’animation" data-label-play="Lancer l’animation" data-i18n-attr="data-label-pause:hero.pause;data-label-play:hero.play"><svg class="ico cv__i-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="ico cv__i-play" aria-hidden="true"><use href="#i-play"/></svg></button>
+            <button class="cv__play" type="button" data-pause aria-label="Mettre en pause l’animation" data-label-pause="Mettre en pause l’animation" data-label-play="Lancer l’animation" data-i18n-attr="data-label-pause:hero.pause;data-label-play:hero.play"><svg class="ico cv__i-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="ico cv__i-play" aria-hidden="true"><use href="#i-play"/></svg></button>
           </div>
         </div>
       </div>

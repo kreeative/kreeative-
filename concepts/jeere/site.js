@@ -267,13 +267,24 @@
   heroForm.addEventListener('submit', function (e) {
     e.preventDefault();
     var raw = heroTel.value.trim();
-    var intl = /^(\+|00)/.test(raw); // "+225 07…" typed in full: the waitlist reads it as is
-    var digits = raw.replace(/\D/g, '').replace(intl ? /^00/ : /^$/, '');
+    var intl = /^(\+|00)/.test(raw); // a number typed with its country code (+33 6…, 00225 07…)
+    var digits = raw.replace(/\D/g, '');
+    if (intl) digits = digits.replace(/^00/, '');
+    // A known country code typed in front: move it to the select, so only the national digits are counted
+    // and the waitlist shows a matching pair (+33 / 6 12 34 56 78). Unknown codes stay as typed.
+    if (intl) {
+      var known = $$('#hero-cc option').map(function (o) { return o.value; })
+        .filter(function (c) { return digits.indexOf(c) === 0; })
+        .sort(function (x, y) { return y.length - x.length; })[0];
+      if (known) { $('#hero-cc').value = known; digits = digits.slice(known.length); intl = false; }
+    }
     if (digits.length < 8) { heroBad(true); heroTel.focus(); return; }
     heroBad(false);
     form.cc.value = $('#hero-cc').value;
     form.phone.value = intl ? '+' + digits : digits;
-    $('#liste').scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+    // In one column the waitlist starts with a long intro: go straight to the form card
+    var target = window.matchMedia('(min-width: 1000px)').matches ? $('#liste') : $('.join__card');
+    target.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
     if (form.hidden) { done.focus({ preventScroll: true }); return; } // already signed up
     nextNote.hidden = false;
     form.first_name.focus({ preventScroll: true });
@@ -289,6 +300,7 @@
 
   /* ---------- Hero canvas: palette swatches, quantity, auto-demo ---------- */
   var cv = $('[data-canvas]');
+  $('.cv__ui', cv).removeAttribute('inert'); // the controls work from here on
   var swatches = $$('[data-swatch]', cv);
   var pauseBtn = $('[data-pause]', cv);
   var qtyOut = $('[data-qty]', cv);
@@ -307,8 +319,9 @@
     clearInterval(demo);
     demo = (paused || hovering || focused || offscreen || document.hidden) ? null : setInterval(function () { pickSwatch(cur + 1, true); }, 2800);
   }
+  // The label says what the button does (« Lancer l’animation » while paused); data-paused swaps the icon
   function syncPause() {
-    pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    if (paused) pauseBtn.setAttribute('data-paused', ''); else pauseBtn.removeAttribute('data-paused');
     pauseBtn.setAttribute('aria-label', pauseBtn.getAttribute(paused ? 'data-label-play' : 'data-label-pause'));
   }
   function updateHero() {
@@ -327,10 +340,16 @@
     var chip = $('[data-chip]', cv);
     chip.classList.remove('is-bump'); void chip.offsetWidth; chip.classList.add('is-bump');
   });
-  pauseBtn.addEventListener('click', function () { paused = !paused; syncPause(); runDemo(); });
+  // An explicit « play » restarts at once, even with the mouse still over the canvas
+  pauseBtn.addEventListener('click', function () {
+    paused = !paused;
+    if (!paused) { hovering = false; pickSwatch(cur + 1, true); }
+    syncPause(); runDemo();
+  });
   cv.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { hovering = true; runDemo(); } });
   cv.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { hovering = false; runDemo(); } });
-  cv.addEventListener('focusin', function () { focused = true; runDemo(); });
+  // Focus on the pause button itself does not hold the demo (a click or tap focuses it)
+  cv.addEventListener('focusin', function (e) { focused = e.target !== pauseBtn; runDemo(); });
   cv.addEventListener('focusout', function (e) { if (!cv.contains(e.relatedTarget)) { focused = false; runDemo(); } });
   document.addEventListener('visibilitychange', runDemo);
   if ('IntersectionObserver' in window) {
@@ -340,7 +359,7 @@
   runDemo();
 
   /* ---------- Gentle scroll-in for section headings and cards ---------- */
-  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if ('IntersectionObserver' in window && !reduceMotion.matches) {
     var items = $$('.section__head, .feature, .compare__col, .vs, .step, .plan, .receipt, .dia__card, .join__card');
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
