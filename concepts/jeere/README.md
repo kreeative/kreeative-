@@ -41,7 +41,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 - **Logo**: « Jeere », in blue `#809EE6` (the blue of the founder's inspiration). The J is the
   geometric mark drawn in SVG (`#mark` in `index.html`: a round dot above a thick curved base with
-  a small notch); « eere » is set in Poppins ExtraBold (800, SIL OFL), aligned on the J's stem and
+  a small notch); « eere » is set in Outfit Black (900, SIL OFL), aligned on the J's stem and
   base, and converted to a path (`#word`), so the logo needs no font. `#logo` is the whole « Jeere »
   in one symbol. Three uses: the whole word, the J alone (favicon, avatars), or « Jeere » alone.
   It stays blue on light and dark backgrounds; the rest of the site stays black and white.

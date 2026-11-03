@@ -47,7 +47,7 @@ a { color: inherit; }
 .c-logo { display: block; padding: 8px 0; color: var(--ink); text-decoration: none; border-radius: 8px; }
 .c-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
 .c-logo__lock .logo__mark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
-.c-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 875.9 / 372; fill: var(--jeere-blue, #809EE6); }
+.c-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
 
 /* ---------- Layout ---------- */
 .c-shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }

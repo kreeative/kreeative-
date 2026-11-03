@@ -45,7 +45,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 /* The Jeere logo (symbols #mark and #word in index.html): the blue J mark + « eere », like the landing page */
 .b-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
 .b-logo__lock .logo__mark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
-.b-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 875.9 / 372; fill: var(--jeere-blue, #809EE6); }
+.b-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
 .b-logo__lock--sm { gap: 0; }
 .b-logo__lock--sm .logo__mark { height: 23px; }
 .b-logo__lock--sm .logo__word { height: 23px; }

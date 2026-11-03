@@ -423,24 +423,24 @@ never for small text such as prices; Karité's accent text needs a tint of 12 % 
 
 The builder (editor top bar, start screen header), the dashboard, the account pages and the chat
 use the landing page's logo: « Jeere » in blue `#809EE6`, the geometric J mark followed by « eere »
-in Poppins ExtraBold (800, SIL OFL), converted to paths so no font is needed.
+in Outfit Black (900, SIL OFL), converted to paths so no font is needed.
 
 - **Symbols** (hidden `<svg><defs>` of each `index.html`, copied from `../index.html`):
   `mark` = the J alone (viewBox `0 0 300 372`), `word` = « eere » drawn to sit right after the mark
-  at the same height (viewBox `0 0 875.9 372`), `logo` = the whole « Jeere » (viewBox `0 0 1175.9 372`).
+  at the same height (viewBox `0 0 906.6 372`), `logo` = the whole « Jeere » (viewBox `0 0 1206.6 372`).
 - **Usage**:
 
   ```html
   <span class="b-logo__lock">
     <svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg>
-    <svg class="logo__word" viewBox="0 0 875.9 372" aria-hidden="true" focusable="false"><use href="#word"/></svg>
+    <svg class="logo__word" viewBox="0 0 906.6 372" aria-hidden="true" focusable="false"><use href="#word"/></svg>
   </span>
   ```
 
   ```css
   .b-logo__lock { display: inline-flex; align-items: center; gap: 0; }
   .logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
-  .logo__word { height: 28px; width: auto; aspect-ratio: 875.9 / 372; fill: var(--jeere-blue, #809EE6); }
+  .logo__word { height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
   ```
 
   Mark and word share the same height and no gap: together they read « Jeere ».
