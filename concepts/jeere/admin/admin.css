@@ -21,6 +21,9 @@
   --a-shadow-1: 0 1px 2px rgba(17, 17, 17, .05);
   --a-shadow-2: 0 18px 50px -18px rgba(17, 17, 17, .35), 0 6px 18px -10px rgba(17, 17, 17, .2);
 }
+/* No underline under any text: links are shown by their weight and colour */
+a:not(.jst a) { text-decoration: none; }
+
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -105,10 +108,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .a-ibtn--line:hover { border-color: var(--ink); background: var(--white); }
 
 .a-link {
-  color: var(--ink); font-weight: 400; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  color: var(--ink); font-weight: 400; text-decoration: none;
   background: none; border: 0; padding: 0; cursor: pointer; font-size: inherit;
 }
-.a-link:hover { text-decoration-thickness: 2px; }
+.a-link:hover { }
 .a-more-link {
   display: inline-flex; align-items: center; gap: 4px; min-height: 44px; color: var(--ink); font-weight: 500; font-size: 14px;
   text-decoration: none; border-radius: 10px;
@@ -468,7 +471,7 @@ html.has-savebar .a-tabbar { visibility: hidden; }
 .a-label .a-opt { font-weight: 400; color: var(--muted); }
 .a-count { flex: none; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .a-count.is-near { color: var(--ink); font-weight: 500; }
-.a-count.is-over { color: var(--ink); font-weight: 600; text-decoration: underline; }
+.a-count.is-over { color: var(--ink); font-weight: 600; text-decoration: none; }
 .a-hint { font-size: 12.5px; line-height: 1.45; color: var(--muted); }
 .a-input {
   display: block; width: 100%; min-height: 46px; padding: 11px 13px;
@@ -773,7 +776,7 @@ a.a-step:focus-visible { outline-offset: -3px; }
 .a-otable th:last-child, .a-otable td:last-child { padding-right: 20px; }
 .a-otable .a-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .a-otable a { color: var(--ink); font-weight: 500; text-decoration: none; }
-.a-otable a:hover { text-decoration: underline; }
+.a-otable a:hover { text-decoration: none; }
 .a-otable__cust { display: grid; }
 .a-otable__cust span { font-size: 12.5px; color: var(--muted); }
 .a-olist { display: block; }
@@ -1195,13 +1198,13 @@ a.a-kpi__part:hover { background: var(--grey-1); }
 .a-payout__t { font-size: 14px; font-weight: 400; }
 .a-payout__fees { font-size: 12.5px; color: var(--muted); }
 .a-payout__amt { flex: none; display: grid; justify-items: end; font-variant-numeric: tabular-nums; }
-.a-payout__from { font-size: 12.5px; color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.a-payout__from { font-size: 12.5px; color: var(--muted); text-decoration: line-through; }
 .a-payout__amt strong { font-size: 14.5px; font-weight: 500; }
 .a-payouts__foot { justify-content: space-between; font-size: 13.5px; color: var(--muted); }
 .a-payouts__foot strong { color: var(--ink); font-weight: 500; }
 .a-cashrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; }
 .a-cashrow__main { flex: 1 1 180px; min-width: 0; display: grid; gap: 1px; color: var(--ink); text-decoration: none; }
-.a-cashrow__main:hover .a-row__title span { text-decoration: underline; }
+.a-cashrow__main:hover .a-row__title span { text-decoration: none; }
 @media (min-width: 960px) { .a-payout, .a-cashrow { padding: 10px 20px; } }
 
 /* Connectors: chips to jump to a category, the 3 that matter first, compact rows for the rest on the phone */

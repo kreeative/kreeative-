@@ -14,6 +14,9 @@
   --c-shadow: 0 1px 2px rgba(17, 17, 17, .05), 0 24px 60px -32px rgba(17, 17, 17, .30);
   --c-ring: 0 0 0 4px rgba(17, 17, 17, .10);
 }
+/* No underline under any text: links are shown by their weight and colour */
+a:not(.jst a) { text-decoration: none; }
+
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -158,8 +161,8 @@ a { color: inherit; }
 .c-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.2px solid rgba(255, 255, 255, .35); border-top-color: var(--white); animation: c-rot .8s linear infinite; }
 @keyframes c-rot { to { transform: rotate(360deg); } }
 
-.c-link { color: var(--ink); font-weight: 500; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; border-radius: 4px; }
-.c-link:hover { text-decoration-thickness: 2.5px; }
+.c-link { color: var(--ink); font-weight: 500; text-decoration: none; border-radius: 4px; }
+.c-link:hover { }
 .c-switch { margin-top: 18px; text-align: center; font-size: 15px; color: var(--muted); }
 .c-switch .c-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
 .c-consent { margin-top: -6px; font-size: 13px; line-height: 1.45; color: var(--muted); text-align: center; }

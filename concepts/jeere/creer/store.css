@@ -301,7 +301,7 @@
 .jst .jst-footer-h { margin-bottom: 14px; font-family: var(--st-font-text); font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--st-muted); }
 .jst .jst-footer-line { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14.5px; line-height: 1.4; min-width: 0; overflow-wrap: anywhere; }
 .jst .jst-footer-line .jst-ico { width: 18px; height: 18px; color: var(--st-muted); }
-.jst .jst-footer-wa span { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.jst .jst-footer-wa span { text-decoration: none; }
 .jst .jst-footer-muted { font-size: 13.5px; color: var(--st-muted); }
 .jst .jst-footer-bottom {
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px;
@@ -1594,8 +1594,8 @@
 .jst[data-device="desktop"] .jst-footer-links { grid-template-columns: minmax(0, 1fr); row-gap: 6px; }
 .jst .jst-footer-link { display: flex; align-items: center; min-height: 44px; font-size: 14.5px; line-height: 1.35; overflow-wrap: anywhere; cursor: pointer; }
 .jst[data-device="desktop"] .jst-footer-link { display: inline-flex; min-height: 26px; }
-.jst[data-device="desktop"] .jst-footer-link:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.jst .jst-footer-link.is-current { font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.jst[data-device="desktop"] .jst-footer-link:hover { text-decoration: none; }
+.jst .jst-footer-link.is-current { font-weight: 600; text-decoration: none; }
 .jst .jst-footer-bottom { align-items: center; }
 .jst .jst-powered { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .jst .jst-powered-mark { display: block; width: 9.7px; height: 12px; flex: none; margin-left: 1px; color: var(--st-text); }
@@ -1678,7 +1678,7 @@
 .jst .jst-cp-list.is-ordered li { counter-increment: jst-cp; padding-left: 30px; }
 .jst .jst-cp-list.is-ordered li::before { content: counter(jst-cp) '.'; top: 0; left: 0; width: auto; height: auto; border-radius: 0; background: none; color: var(--st-accent-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
 .jst .jst-cp-label { font-weight: 700; color: var(--st-text); }
-.jst .jst-cp-ref { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; cursor: pointer; }
+.jst .jst-cp-ref { text-decoration: none; cursor: pointer; }
 .jst[data-device="desktop"] .jst-cp-ref:hover { color: var(--st-accent-ink); }
 .jst .jst-cp-extra { margin-top: 40px; }
 .jst[data-device="desktop"] .jst-cp-extra { margin-top: 56px; }

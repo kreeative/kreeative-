@@ -58,7 +58,11 @@ body {
   overflow-x: hidden;
 }
 img, svg { display: block; max-width: 100%; }
-a { color: inherit; }
+a { color: inherit; text-decoration: none; }
+a:hover { opacity: .72; }
+.btn:hover, .head__logo:hover, .lang a:hover { opacity: 1; }
+p a, li a, dd a { font-weight: 500; color: var(--ink); }
+.section--ink p a, .foot p a { color: var(--white); }
 button, input, select, textarea { font: inherit; color: inherit; }
 p, h1, h2, h3, h4, ul, ol, dl, dd, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
@@ -123,7 +127,7 @@ ul, ol { padding: 0; list-style: none; }
 .head__nav { display: none; gap: 26px; }
 .head__nav a { font-size: 15px; font-weight: 400; text-decoration: none; color: var(--muted); padding: 10px 0; }
 .head__nav a:hover { color: var(--ink); }
-.head__nav .head__try { color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+.head__nav .head__try { color: var(--ink); font-weight: 500; text-decoration: none; }
 .head__nav a, .head__end .btn { white-space: nowrap; }
 .head__end { display: flex; align-items: center; gap: 10px; }
 .only-wide { display: none; }
@@ -190,7 +194,7 @@ ul, ol { padding: 0; list-style: none; }
 .hero__go:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; border-radius: 50%; }
 .hero__err { display: flex; align-items: center; gap: 8px; margin: 12px 6px 2px; font-size: 14px; font-weight: 400; line-height: 1.4; }
 .hero__err::before { content: '!'; flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--white); color: var(--ink); font-size: 13px; font-weight: 600; }
-.hero__try { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; font-size: 15.5px; font-weight: 400; color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.hero__try { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; font-size: 15.5px; font-weight: 400; color: var(--ink); text-decoration: none; }
 .hero__try .ico { width: 16px; height: 16px; transition: transform .2s; }
 .hero__try:hover .ico { transform: translateX(3px); }
 @media (max-width: 459px) {

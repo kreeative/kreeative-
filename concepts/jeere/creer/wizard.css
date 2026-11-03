@@ -181,7 +181,7 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
 .jwz-check .jwz-ico { width: 15px; height: 15px; stroke-width: 2.6; }
 .jwz-chip--toggle[aria-pressed="true"] { border-color: var(--jwz-ink); background: var(--jwz-ink); color: var(--jwz-white); }
 .jwz-chip--toggle[aria-pressed="true"] .jwz-check { border-color: var(--jwz-white); background: var(--jwz-white); color: var(--jwz-ink); }
-.jwz-chip--toggle[aria-pressed="false"] .jwz-chip__label { color: var(--jwz-muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.jwz-chip--toggle[aria-pressed="false"] .jwz-chip__label { color: var(--jwz-muted); text-decoration: line-through; }
 
 /* ---------- Buttons ---------- */
 .jwz-btn {
