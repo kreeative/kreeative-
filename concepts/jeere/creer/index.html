@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="fr-CI">
+<head>
+  <meta charset="utf-8">
+  <!-- resizes-content: on Android the on-screen keyboard shrinks the layout, so the field being typed in stays visible -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <!-- The page lives in a folder (/concepts/jeere/creer/): add the final slash so relative links keep working -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Créez votre boutique · JEERE Studio</title>
+  <meta name="description" content="Prototype de l’éditeur de boutique JEERE : choisissez un modèle ou décrivez votre boutique à l’assistant, puis modifiez-la avec un aperçu en direct.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#FFFFFF">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Poppins has no ɛ, ɔ or ŋ: load just those letters from Montserrat as a fallback (a few KB) -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&text=%C9%9B%C9%94%C6%90%C6%86%C5%8B%C5%8A&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="builder.css">
+  <link rel="stylesheet" href="store.css">
+  <link rel="stylesheet" href="wizard.css">
+  <script src="data.js" defer></script>
+  <script src="render.js" defer></script>
+  <script src="editor.js" defer></script>
+  <script src="wizard.js" defer></script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="wordmark" viewBox="0 0 346 100">
+      <path fill="currentColor" d="M44 0H64V68A32 32 0 0 1 0 68V56H20V68A12 12 0 0 0 44 68Z"/>
+      <path fill="currentColor" d="M78 0H132V20H98V80H132V100H78Z"/>
+      <path fill="currentColor" d="M146 0H200V20H166V80H200V100H146Z"/>
+      <rect x="98" y="40" width="96" height="20" fill="var(--link-bar, #111111)"/>
+      <path fill="currentColor" fill-rule="evenodd" d="M214 0H246A30 30 0 0 1 246 60H234V100H214ZM234 20H246A10 10 0 0 1 246 40H234Z"/>
+      <path fill="currentColor" d="M240 50H262L280 100H258Z"/>
+      <path fill="currentColor" d="M292 0H346V20H312V40H340V60H312V80H346V100H292Z"/>
+    </symbol>
+    <!-- EE monogram: the two Es of the wordmark and the bar that links them -->
+    <symbol id="monogram" viewBox="0 0 122 100">
+      <path fill="currentColor" d="M0 0H54V20H20V80H54V100H0Z"/>
+      <path fill="currentColor" d="M68 0H122V20H88V80H122V100H68Z"/>
+      <rect x="20" y="40" width="96" height="20" fill="currentColor"/>
+    </symbol>
+    <!-- Line icons, 24 px grid; stroke and fill come from .b-ico -->
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0-7.4 12.7L3.5 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5z"/><path d="M8.6 9.2c.2 2.9 3 5.9 6.1 6.3l1-1.3-1.8-1-.8.8c-1-.4-2.3-1.7-2.7-2.7l.8-.8-1-1.8z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="m4 4 16 16M10.4 5.6A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16.6 16.6 0 0 1-2.7 3.5M6.5 7.3C4 9 2.5 12 2.5 12S6 18.5 12 18.5c1.5 0 2.9-.4 4.1-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m6.5 14.5 5.5-5.5 5.5 5.5"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 6.5 4.5 11 9 15.5"/><path d="M4.5 11H15a4.5 4.5 0 0 1 0 9h-3"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 6.5 19.5 11 15 15.5"/><path d="M19.5 11H9a4.5 4.5 0 0 0 0 9h3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></symbol>
+    <symbol id="i-desktop" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="12.5" rx="1.5"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
+    <symbol id="i-fiche" viewBox="0 0 24 24"><path d="M6 3.5h8l4.5 4.5v12.5H6z"/><path d="M13.5 3.5v5h5M10.5 12.5l-2 2 2 2M14 12.5l2 2-2 2"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.5v-11M7.5 9 12 4.5 16.5 9M4.5 15v4.5h15V15"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4.5v11M7.5 11l4.5 4.5 4.5-4.5M4.5 15v4.5h15V15"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24"><path d="M6 3.5h8l4.5 4.5v12.5H6z"/><path d="M13.5 3.5v5h5M12 11v6M9.5 14.5 12 17l2.5-2.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 15.5-5-5L7 19.5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8.5h4l1.5-2.5h6l1.5 2.5h4v11h-17z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3.5 20.5 8 12 12.5 3.5 8zM3.5 12 12 16.5 20.5 12M3.5 16 12 20.5 20.5 16"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.5 1.5 0 0 1 0 2.1l-6.2 6.2a1.5 1.5 0 0 1-2.1 0z"/><circle cx="8.3" cy="8.3" r="1.5"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.3 0 1.9-.8 1.9-1.7 0-1.2-1-1.6-1-2.7 0-1 .8-1.6 1.8-1.6h2.2a4.1 4.1 0 0 0 4.1-4.1C21 6.6 17 3.5 12 3.5z"/><circle cx="7.6" cy="11.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="9.6" cy="7.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.4" cy="7.4" r="1.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.5 4h13L20 9.5M4 9.5h16M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0M5.5 12v8h13v-8M10 20v-4.5h4V20"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6z"/><path d="m8.6 12 2.4 2.4 4.4-4.6"/></symbol>
+    <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M4 10v4a1 1 0 0 0 1 1h2l6.5 4V5L7 9H5a1 1 0 0 0-1 1z"/><path d="M17 9a4 4 0 0 1 0 6M8 15l1 4.5"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.8 2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7"/><circle cx="6.5" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.2"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V13M12 16.3v.2"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4.2 21 19.5H3z"/><path d="M12 10v4.3M12 16.9v.2"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.2 17.5h5.6M10.2 20.5h3.6M12 3.5a5.5 5.5 0 0 0-3.3 9.9c.6.5 1 1.2 1 2v.1h4.6v-.1c0-.8.4-1.5 1-2A5.5 5.5 0 0 0 12 3.5z"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4.5 19.5h4l10-10a2.8 2.8 0 0 0-4-4l-10 10z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></symbol>
+    <symbol id="i-header" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9h17"/></symbol>
+    <symbol id="i-footer" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 15h17"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7.5h14.5A1.5 1.5 0 0 1 20 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM4 7.5 15.5 4v3.5"/><circle cx="16" cy="14" r="1.3" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-template" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 9.5h17M9.5 9.5v11"/></symbol>
+    <symbol id="i-blank" viewBox="0 0 24 24"><path d="M6 3.5h8l4.5 4.5v12.5H6z"/><path d="M13.5 3.5v5h5M12 11.5v6M9 14.5h6"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5 13.8 9l5.7 1.9-5.7 1.9L12 18.5l-1.8-5.7L4.5 10.9 10.2 9z"/><path d="M18.5 16v4M16.5 18h4"/></symbol>
+  </defs>
+</svg>
+
+<div class="b-root" id="b-root">
+
+  <!-- ============================================================ START SCREEN -->
+  <div class="b-start" id="b-start">
+    <header class="b-shead">
+      <div class="b-wrap b-shead__in">
+        <a class="b-logo" href="../" aria-label="JEERE, retour à l’accueil">
+          <svg class="b-wordmark" viewBox="0 0 346 100" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg>
+        </a>
+        <span class="b-shead__tag">Studio</span>
+        <nav class="b-shead__nav" aria-label="Liens">
+          <a class="b-link b-only-wide" href="../">Retour à JEERE</a>
+          <a class="b-btn b-btn--primary b-btn--sm" href="../#liste"><span class="b-only-wide">Rejoindre la liste d’attente</span><span class="b-only-narrow">Liste d’attente</span></a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="b-wrap b-smain" id="b-start-main">
+      <div class="b-intro">
+        <p class="b-eyebrow">JEERE Studio · prototype</p>
+        <h1 class="b-h1" id="b-start-title" tabindex="-1">Créez votre boutique</h1>
+        <p class="b-lead">Choisissez un point de départ. Textes, produits, couleurs&nbsp;: vous pourrez tout changer ensuite, avec l’aperçu sous les yeux.</p>
+      </div>
+
+      <div class="b-resume" id="b-resume" hidden>
+        <span class="b-resume__ico" aria-hidden="true"><svg class="b-ico"><use href="#i-store"/></svg></span>
+        <div class="b-resume__txt">
+          <p class="b-resume__k">Enregistrée dans ce navigateur</p>
+          <p class="b-resume__name" id="b-resume-name"></p>
+          <p class="b-resume__meta" id="b-resume-meta"></p>
+        </div>
+        <button class="b-btn b-btn--primary" type="button" id="b-resume-btn">Reprendre ma boutique<svg class="b-ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </div>
+
+      <div class="b-ways">
+        <section class="b-way b-way--tpl" aria-labelledby="b-way1-t">
+          <div class="b-way__head">
+            <span class="b-way__ico" aria-hidden="true"><svg class="b-ico"><use href="#i-template"/></svg></span>
+            <div>
+              <h2 class="b-way__title" id="b-way1-t">Partir d’un modèle</h2>
+              <p class="b-way__sub">Trois modèles testés, remplis avec un exemple. Changez les textes et les photos, c’est prêt.</p>
+            </div>
+          </div>
+          <div class="b-tpls" id="b-tpls"></div>
+        </section>
+
+        <div class="b-ways__side">
+          <section class="b-way b-way--ai" aria-labelledby="b-way2-t">
+            <div class="b-way__head">
+              <span class="b-way__ico b-way__ico--inv" aria-hidden="true"><svg class="b-ico"><use href="#i-chat"/></svg></span>
+              <div>
+                <h2 class="b-way__title" id="b-way2-t">Décrire ma boutique</h2>
+                <p class="b-way__sub">avec l’assistant JEERE</p>
+              </div>
+            </div>
+            <div class="b-chatdemo" aria-hidden="true">
+              <p class="b-chatdemo__msg"><span class="b-chatdemo__av"><svg viewBox="0 0 122 100"><use href="#monogram"/></svg></span><span>Bonjour&nbsp;! Comment s’appelle votre boutique et que vendez-vous&nbsp;?</span></p>
+              <p class="b-chatdemo__msg b-chatdemo__msg--me"><span>Awa Beauté, je vends du karité et des savons</span></p>
+              <p class="b-chatdemo__msg"><span class="b-chatdemo__av"><svg viewBox="0 0 122 100"><use href="#monogram"/></svg></span><span>Parfait&nbsp;: une boutique de soins. Quel style vous plaît&nbsp;?</span></p>
+            </div>
+            <p class="b-way__text">Répondez à quelques questions, comme sur WhatsApp. L’assistant prépare votre boutique, vous la retouchez ensuite.</p>
+            <button class="b-btn b-btn--inv b-btn--block" type="button" id="b-ai-btn">Commencer la conversation<svg class="b-ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </section>
+
+          <section class="b-way b-way--zero" aria-labelledby="b-way3-t">
+            <div class="b-way__head">
+              <span class="b-way__ico" aria-hidden="true"><svg class="b-ico"><use href="#i-blank"/></svg></span>
+              <div>
+                <h2 class="b-way__title" id="b-way3-t">Partir de zéro <span class="b-soon">Bientôt</span></h2>
+                <p class="b-way__sub">Une page vide, vos sections, votre ordre.</p>
+              </div>
+            </div>
+            <button class="b-btn b-btn--ghost b-btn--block" type="button" disabled aria-describedby="b-way3-t">Pas encore disponible</button>
+          </section>
+        </div>
+      </div>
+
+      <p class="b-note"><svg class="b-ico" aria-hidden="true"><use href="#i-lock"/></svg><span>Ceci est un prototype&nbsp;: rien n’est publié, et votre boutique reste dans ce navigateur.</span></p>
+    </main>
+
+    <footer class="b-sfoot">
+      <div class="b-wrap b-sfoot__in">
+        <svg class="b-wordmark b-wordmark--sm" viewBox="0 0 346 100" role="img" aria-label="JEERE"><use href="#wordmark"/></svg>
+        <p>Tout votre commerce, au même endroit. Un concept Kreeative.</p>
+        <nav class="b-sfoot__nav" aria-label="Pied de page">
+          <a class="b-link" href="../">Découvrir JEERE</a>
+          <a class="b-link" href="../#liste">Rejoindre la liste d’attente</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============================================================ EDITOR -->
+  <div class="b-ed" id="b-ed" data-view="edit" hidden>
+    <header class="b-top">
+      <a class="b-top__logo" href="../" aria-label="JEERE, retour à l’accueil">
+        <svg class="b-wordmark" viewBox="0 0 346 100" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg>
+      </a>
+      <span class="b-top__sep" aria-hidden="true"></span>
+      <button class="b-top__store" type="button" id="b-top-store" aria-describedby="b-saved">
+        <span class="b-top__name" id="b-top-name">Ma boutique</span>
+        <span class="b-saved" id="b-saved">Enregistré dans ce navigateur</span>
+      </button>
+      <div class="b-seg b-top__device" role="group" aria-label="Taille de l’aperçu" data-device-toggle>
+        <button class="b-seg__btn" type="button" data-device="phone" aria-pressed="true"><svg class="b-ico" aria-hidden="true"><use href="#i-phone"/></svg><span>Téléphone</span></button>
+        <button class="b-seg__btn" type="button" data-device="desktop" aria-pressed="false"><svg class="b-ico" aria-hidden="true"><use href="#i-desktop"/></svg><span>Ordinateur</span></button>
+      </div>
+      <div class="b-top__end">
+        <button class="b-ibtn" type="button" id="b-undo" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled><svg class="b-ico" aria-hidden="true"><use href="#i-undo"/></svg></button>
+        <button class="b-ibtn" type="button" id="b-redo" aria-label="Rétablir" title="Rétablir (Ctrl+Maj+Z)" disabled><svg class="b-ico" aria-hidden="true"><use href="#i-redo"/></svg></button>
+        <button class="b-btn b-btn--ghost b-btn--sm b-top__fiche" type="button" id="b-fiche-btn" aria-label="Fiche boutique"><svg class="b-ico" aria-hidden="true"><use href="#i-fiche"/></svg><span class="b-top__lbl">Fiche boutique</span></button>
+        <button class="b-btn b-btn--primary b-btn--sm" type="button" id="b-publish-btn">Publier</button>
+      </div>
+    </header>
+
+    <div class="b-body">
+      <aside class="b-panel" id="b-panel" aria-label="Réglages de la boutique">
+        <div class="b-tabs" role="tablist" aria-label="Réglages">
+          <button class="b-tab" type="button" role="tab" id="b-tab-sections" aria-controls="b-tp-sections" aria-selected="true" data-tab="sections"><svg class="b-ico" aria-hidden="true"><use href="#i-layers"/></svg><span>Sections</span></button>
+          <button class="b-tab" type="button" role="tab" id="b-tab-produits" aria-controls="b-tp-produits" aria-selected="false" tabindex="-1" data-tab="produits"><svg class="b-ico" aria-hidden="true"><use href="#i-tag"/></svg><span>Produits</span></button>
+          <button class="b-tab" type="button" role="tab" id="b-tab-theme" aria-controls="b-tp-theme" aria-selected="false" tabindex="-1" data-tab="theme"><svg class="b-ico" aria-hidden="true"><use href="#i-palette"/></svg><span>Thème</span></button>
+          <button class="b-tab" type="button" role="tab" id="b-tab-boutique" aria-controls="b-tp-boutique" aria-selected="false" tabindex="-1" data-tab="boutique"><svg class="b-ico" aria-hidden="true"><use href="#i-store"/></svg><span>Boutique</span></button>
+          <button class="b-tab" type="button" role="tab" id="b-tab-qualite" aria-controls="b-tp-qualite" aria-selected="false" tabindex="-1" data-tab="qualite"><svg class="b-ico" aria-hidden="true"><use href="#i-shield"/></svg><span>Qualité <b class="b-tab__score" id="b-tab-score">–</b></span></button>
+        </div>
+        <div class="b-panel__scroll" id="b-panel-scroll">
+          <div class="b-tp" role="tabpanel" id="b-tp-sections" aria-labelledby="b-tab-sections" tabindex="-1"></div>
+          <div class="b-tp" role="tabpanel" id="b-tp-produits" aria-labelledby="b-tab-produits" tabindex="-1" hidden></div>
+          <div class="b-tp" role="tabpanel" id="b-tp-theme" aria-labelledby="b-tab-theme" tabindex="-1" hidden></div>
+          <div class="b-tp" role="tabpanel" id="b-tp-boutique" aria-labelledby="b-tab-boutique" tabindex="-1" hidden></div>
+          <div class="b-tp" role="tabpanel" id="b-tp-qualite" aria-labelledby="b-tab-qualite" tabindex="-1" hidden></div>
+        </div>
+      </aside>
+
+      <section class="b-stage" id="b-stage" aria-label="Aperçu de la boutique">
+        <div class="b-stage__bar">
+          <p class="b-stage__hint" id="b-stage-hint">Aperçu en direct. Cliquez sur une section pour la modifier.</p>
+          <div class="b-seg b-stage__device" role="group" aria-label="Taille de l’aperçu" data-device-toggle>
+            <button class="b-seg__btn" type="button" data-device="phone" aria-pressed="true"><svg class="b-ico" aria-hidden="true"><use href="#i-phone"/></svg><span>Téléphone</span></button>
+            <button class="b-seg__btn" type="button" data-device="desktop" aria-pressed="false"><svg class="b-ico" aria-hidden="true"><use href="#i-desktop"/></svg><span>Ordinateur</span></button>
+          </div>
+        </div>
+        <div class="b-stage__inner" id="b-stage-inner">
+          <div class="b-dwrap" id="b-dwrap">
+            <div class="b-device b-device--phone" id="b-device">
+              <div class="b-device__chrome" aria-hidden="true">
+                <span class="b-device__dots"><i></i><i></i><i></i></span>
+                <span class="b-device__url"><svg class="b-ico" aria-hidden="true"><use href="#i-lock"/></svg><span id="b-device-url">ma-boutique.jeere.shop</span></span>
+              </div>
+              <div class="b-device__notch" aria-hidden="true"></div>
+              <div class="b-device__screen" id="b-screen">
+                <div id="b-store"></div>
+                <div class="b-hl" id="b-hl-hover" aria-hidden="true"><span class="b-hl__tag"></span></div>
+                <div class="b-hl b-hl--flash" id="b-hl-flash" aria-hidden="true"><span class="b-hl__tag"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="b-pick" id="b-pick" hidden>
+          <button class="b-btn b-btn--primary" type="button" id="b-pick-btn"><svg class="b-ico" aria-hidden="true"><use href="#i-edit"/></svg><span id="b-pick-label">Modifier</span></button>
+          <button class="b-ibtn b-ibtn--light" type="button" id="b-pick-close" aria-label="Fermer"><svg class="b-ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+        </div>
+      </section>
+    </div>
+
+    <nav class="b-mnav" role="tablist" aria-label="Vue">
+      <button class="b-mnav__btn" type="button" role="tab" id="b-view-edit" aria-selected="true" aria-controls="b-panel" data-view="edit"><svg class="b-ico" aria-hidden="true"><use href="#i-edit"/></svg><span>Modifier</span></button>
+      <button class="b-mnav__btn" type="button" role="tab" id="b-view-preview" aria-selected="false" aria-controls="b-stage" data-view="preview" tabindex="-1"><svg class="b-ico" aria-hidden="true"><use href="#i-eye"/></svg><span>Aperçu</span></button>
+    </nav>
+  </div>
+
+  <noscript><p class="b-noscript">Activez JavaScript pour utiliser JEERE Studio.</p></noscript>
+</div>
+
+<!-- ============================================================ MODALS (outside #b-root so the page behind can be made inert) -->
+<div class="b-modal" id="m-fiche" role="dialog" aria-modal="true" aria-labelledby="m-fiche-t" aria-describedby="m-fiche-d" hidden>
+  <div class="b-modal__card b-modal__card--wide">
+    <div class="b-modal__head">
+      <h2 class="b-modal__title" id="m-fiche-t">Fiche boutique</h2>
+      <button class="b-ibtn" type="button" data-close aria-label="Fermer"><svg class="b-ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="b-modal__body">
+      <p class="b-modal__lead" id="m-fiche-d">C’est cette fiche que l’IA remplit et que nos modèles affichent.</p>
+      <p class="b-fiche__meta" id="fiche-meta"></p>
+      <pre class="b-code" id="fiche-code" tabindex="0" aria-label="Fiche boutique au format JSON"></pre>
+      <div class="b-import" id="fiche-import" hidden>
+        <label class="b-label" for="fiche-paste">Collez une fiche boutique</label>
+        <textarea class="b-input b-input--code" id="fiche-paste" rows="6" spellcheck="false" placeholder="{ &quot;version&quot;: 1, &quot;template&quot;: &quot;cocody&quot;, … }"></textarea>
+        <p class="b-error" id="fiche-error" role="alert" hidden></p>
+        <div class="b-import__row">
+          <label class="b-btn b-btn--ghost b-btn--sm b-filebtn"><svg class="b-ico" aria-hidden="true"><use href="#i-upload"/></svg><span>Choisir un fichier .json</span><input class="b-sr" type="file" id="fiche-file" accept=".json,application/json,text/plain"></label>
+          <button class="b-btn b-btn--primary b-btn--sm" type="button" id="fiche-apply">Importer cette fiche</button>
+        </div>
+      </div>
+    </div>
+    <div class="b-modal__foot">
+      <button class="b-btn b-btn--ghost b-btn--sm" type="button" id="fiche-copy"><svg class="b-ico" aria-hidden="true"><use href="#i-copy"/></svg>Copier</button>
+      <button class="b-btn b-btn--ghost b-btn--sm" type="button" id="fiche-download"><svg class="b-ico" aria-hidden="true"><use href="#i-download"/></svg>Télécharger</button>
+      <button class="b-btn b-btn--primary b-btn--sm" type="button" id="fiche-import-btn" aria-expanded="false" aria-controls="fiche-import"><svg class="b-ico" aria-hidden="true"><use href="#i-import"/></svg>Importer</button>
+    </div>
+  </div>
+</div>
+
+<div class="b-modal" id="m-publish" role="dialog" aria-modal="true" aria-labelledby="m-publish-t" aria-describedby="m-publish-d" hidden>
+  <div class="b-modal__card">
+    <div class="b-modal__head">
+      <h2 class="b-modal__title" id="m-publish-t">Publier votre boutique</h2>
+      <button class="b-ibtn" type="button" data-close aria-label="Fermer"><svg class="b-ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="b-modal__body">
+      <p class="b-pubscore" id="m-publish-score"></p>
+      <p class="b-modal__lead" id="m-publish-d">Ceci est un prototype&nbsp;: rien n’est publié, et votre boutique reste dans ce navigateur. Dans JEERE, ce bouton mettra votre boutique en ligne, avec les paiements Wave, Orange Money, MTN MoMo, Moov Money et à la livraison.</p>
+      <p class="b-modal__text">JEERE ouvre bientôt à Abidjan. Rejoignez la liste d’attente pour faire partie des 50 premières boutiques.</p>
+    </div>
+    <div class="b-modal__foot">
+      <button class="b-btn b-btn--ghost" type="button" data-close>Continuer à modifier</button>
+      <a class="b-btn b-btn--primary" href="../#liste">Rejoindre la liste d’attente<svg class="b-ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</div>
+
+<div class="b-modal" id="m-add" role="dialog" aria-modal="true" aria-labelledby="m-add-t" hidden>
+  <div class="b-modal__card">
+    <div class="b-modal__head">
+      <h2 class="b-modal__title" id="m-add-t">Ajouter une section</h2>
+      <button class="b-ibtn" type="button" data-close aria-label="Fermer"><svg class="b-ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="b-modal__body">
+      <p class="b-modal__lead" id="m-add-where"></p>
+      <ul class="b-addlist" id="m-add-list"></ul>
+    </div>
+  </div>
+</div>
+
+<div class="b-modal" id="m-confirm" role="alertdialog" aria-modal="true" aria-labelledby="m-confirm-t" aria-describedby="m-confirm-d" hidden>
+  <div class="b-modal__card b-modal__card--small">
+    <div class="b-modal__body">
+      <h2 class="b-modal__title" id="m-confirm-t"></h2>
+      <p class="b-modal__lead" id="m-confirm-d"></p>
+    </div>
+    <div class="b-modal__foot">
+      <button class="b-btn b-btn--ghost" type="button" id="m-confirm-no">Annuler</button>
+      <button class="b-btn b-btn--primary" type="button" id="m-confirm-yes">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<div class="b-toast" id="b-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+</body>
+</html>
