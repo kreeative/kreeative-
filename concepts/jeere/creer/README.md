@@ -73,7 +73,7 @@ The three apps share four `localStorage` keys, listed in
 [Shared browser storage](#shared-browser-storage).
 
 The builder chrome (start screen, editor, chat) is black and white only, in Poppins with a
-Montserrat fallback for ɛ ɔ ŋ, like the landing page; its only colour is the blue of the logo.
+Montserrat fallback for ɛ ɔ ŋ, like the landing page; the logo is black ink too (the hand-drawn cloud).
 The stores in the preview are in colour: sellers bring the colour.
 
 ## The fiche boutique contract (version 1)
@@ -557,30 +557,36 @@ lime top rule and a lime button, instead of a neon slab. Tint =
 ## The logo
 
 The builder (editor top bar, start screen header), the dashboard, the account pages and the chat
-use the landing page's logo: « Jeere » in blue `#809EE6`, the geometric J mark followed by « eere »
-in Outfit Black (900, SIL OFL), converted to paths so no font is needed.
+use the landing page's logo, drawn by hand by the founder in black ink and traced to paths (no
+font, no image request).
 
 - **Symbols** (hidden `<svg><defs>` of each `index.html`, copied from `../index.html`):
-  `mark` = the J alone (viewBox `0 0 300 372`), `word` = « eere » drawn to sit right after the mark
-  at the same height (viewBox `0 0 906.6 372`), `logo` = the whole « Jeere » (viewBox `0 0 1206.6 372`).
-- **Usage**:
+  `cloud` = the mark, a cloud with two eyes (viewBox `0 0 600 446`, `fill-rule: evenodd`);
+  `wordmark` = « jeere » written by hand in lowercase (viewBox `0 0 900 479`; in the landing page
+  and this page only, for the footers). The account and dashboard pages carry `cloud` alone.
+- **Usage**: headers show the cloud alone, black ink, 32 px tall on phones and 36 px from 560 px:
 
   ```html
   <span class="b-logo__lock">
-    <svg class="logo__mark" viewBox="0 0 300 372" aria-hidden="true" focusable="false"><use href="#mark"/></svg>
-    <svg class="logo__word" viewBox="0 0 906.6 372" aria-hidden="true" focusable="false"><use href="#word"/></svg>
+    <svg class="logo__cloud" viewBox="0 0 600 446" aria-hidden="true" focusable="false"><use href="#cloud"/></svg>
   </span>
   ```
 
   ```css
-  .b-logo__lock { display: inline-flex; align-items: center; gap: 0; }
-  .logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
-  .logo__word { height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
+  .logo__cloud { display: block; height: 32px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; }
+  .logo__wordmark { display: block; height: 28px; width: auto; aspect-ratio: 900 / 479; fill: currentColor; }
   ```
 
-  Mark and word share the same height and no gap: together they read « Jeere ».
-- **Chat avatar**: the blue J on a black circle.
-- **Favicon**: `../favicon.svg`, the white J on a blue rounded square.
+  The link around it carries the accessible name (« Jeere, retour à l’accueil »). The start
+  screen footer shows the cloud and the handwritten « jeere » side by side.
+- **Chat avatar** (wizard and the start screen's chat demo): the cloud in white on a black circle.
+  The account page's message uses it in ink on a white circle; its dark aside has a large, faint
+  white cloud; the dashboard's loading splash shows the cloud in ink.
+- **« Propulsé par Jeere »** in a store's footer: the cloud drawn inline by `render.js` (a
+  simplified trace of about 2.7KB, 12 px tall, `currentColor`), so a store never needs the page's symbols.
+- **Favicon**: `../favicon.svg`, the black cloud (simplified trace, bolder eyes, sized for 16 px tabs)
+  on a bright pop blue `#3657FF` rounded square, and
+  `../apple-touch-icon.png` (180×180) for home screens.
 - **The brand word** is written « Jeere » in the UI copy (« l'assistant Jeere », « Retour à
   Jeere »). Code identifiers keep their names: `JEERE_DATA`, `jeere-studio-config`, `.jst`, `.jwz`.
 
@@ -862,7 +868,7 @@ seller's devices and her team.
 
 In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on desktop:
 
-1. Start screen: the logo (blue J + « eere ») in the header; the three template cards
+1. Start screen: the logo (the hand-drawn cloud, black ink) in the header; the three template cards
    show live previews of their home page; « Partir de zéro » is disabled.
 2. Pick a template: the editor opens with the matching default fiche, in vivid colours. Switch
    Téléphone / Ordinateur, edit a section, add a product with a photo, change the palette and the
@@ -885,7 +891,7 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
 6. « Fiche boutique »: the JSON (photos shown as `[photo]`, `theme.intensity` present), Copier,
    Télécharger, Importer (import an older fiche without `intensity`: it opens in vivid).
 7. Reload: « Reprendre ma boutique » brings the store back, on its saved intensity.
-8. « Décrire ma boutique »: the avatar is the blue J on black, the copy says « l'assistant
+8. « Décrire ma boutique »: the avatar is the white cloud on black, the copy says « l'assistant
    Jeere ». Answer by chips and by free text (« slt c Mariam Hair, jvd des perruques »), try a
    correction (« non, plutôt audacieux »), then « Ouvrir l'éditeur »: the store is vivid.
 9. No horizontal scroll at 360 px, the input stays above the on-screen keyboard, Esc closes the

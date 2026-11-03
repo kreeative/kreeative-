@@ -1606,7 +1606,7 @@
 .jst .jst-footer-link.is-current { font-weight: 600; text-decoration: none; }
 .jst .jst-footer-bottom { align-items: center; }
 .jst .jst-powered { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-.jst .jst-powered-mark { display: block; width: 9.7px; height: 12px; flex: none; margin-left: 1px; color: var(--st-text); }
+.jst .jst-powered-mark { display: block; width: 16px; height: 12px; flex: none; margin-left: 1px; color: var(--st-text); }
 .jst .jst-powered b { line-height: 1; }
 
 /* Desktop nav: page links never push the logo away (long titles end with …) */

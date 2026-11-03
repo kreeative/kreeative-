@@ -1,5 +1,5 @@
 /* Jeere — the seller account: sign-up and login by phone number and a one-time code.
-   Black and white only, like the editor's chrome (the only colour of Jeere itself is the blue of the logo).
+   Black and white only, like the editor's chrome (the Jeere logo itself is black ink).
    Every rule is scoped to a c- class. Designed at 360 px first, with the on-screen keyboard open. */
 
 :root {
@@ -46,11 +46,11 @@ a { color: inherit; }
 }
 .c-nowrap { white-space: nowrap; }
 
-/* ---------- The Jeere logo (symbols #mark and #word): the blue J mark + « eere », as in the editor ---------- */
+/* ---------- The Jeere logo (symbol #cloud): the hand-drawn cloud, black ink, as in the editor ---------- */
 .c-logo { display: block; padding: 8px 12px 8px 8px; color: var(--ink); text-decoration: none; border-radius: 10px; }
 .c-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
-.c-logo__lock .logo__mark { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
-.c-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
+.c-logo__lock .logo__cloud { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; }
+@media (min-width: 560px) { .c-logo__lock .logo__cloud { height: 36px; } }
 
 /* ---------- Layout ---------- */
 .c-shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
@@ -328,10 +328,10 @@ a { color: inherit; }
     margin: 0 20px 20px 0; padding: 52px 52px 48px; border-radius: 30px; background: var(--ink); color: var(--white);
     isolation: isolate;
   }
-  /* the blue J, large and quiet, behind the frosted message */
+  /* the cloud, large and quiet, behind the frosted message */
   .c-aside__bg {
-    position: absolute; z-index: -1; right: -56px; top: 50%; width: auto; height: 500px; aspect-ratio: 300 / 372;
-    transform: translateY(-44%); fill: var(--jeere-blue, #809EE6); opacity: .2;
+    position: absolute; z-index: -1; right: -120px; top: 50%; width: auto; height: 420px; aspect-ratio: 600 / 446;
+    transform: translateY(-30%); fill: #FFFFFF; opacity: .08;
   }
   .c-aside__k { font-size: 12.5px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: rgba(255, 255, 255, .62); }
   .c-aside__t { margin-top: 16px; max-width: 13em; font-size: 40px; line-height: 1.1; font-weight: 500; letter-spacing: -.025em; }
@@ -344,7 +344,7 @@ a { color: inherit; }
   }
   .c-msg__head { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
   .c-msg__av { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--white); }
-  .c-msg__av svg { width: auto; height: 17px; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
+  .c-msg__av svg { display: block; width: auto; height: 15px; aspect-ratio: 600 / 446; fill: #111111; }
   .c-msg__from { font-weight: 500; }
   .c-msg__when { margin-left: auto; color: rgba(255, 255, 255, .55); font-size: 12.5px; }
   .c-msg__body { margin-top: 10px; font-size: 15px; line-height: 1.55; color: rgba(255, 255, 255, .88); }

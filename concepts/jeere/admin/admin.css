@@ -1,5 +1,5 @@
 /* Jeere — tableau de bord du vendeur (prototype).
-   Black and white only, like the builder: the only colour of Jeere itself is the blue of the logo; the store preview brings the colour.
+   Black and white only, like the builder: the Jeere logo itself is black ink; the store preview brings the colour.
    Every rule is scoped to an a- class (the store preview keeps its own .jst styles from ../creer/store.css).
    Designed at 360 px first: bottom tab bar on the phone, left sidebar from 960 px. */
 
@@ -56,15 +56,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .a-nowrap { white-space: nowrap; }
 .a-muted { color: var(--muted); }
 
-/* ---------- The Jeere logo: the blue J mark + « eere » (symbols #mark and #word) ---------- */
+/* ---------- The Jeere logo: the hand-drawn cloud, black ink (symbol #cloud) ---------- */
 .a-logo { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 12px 6px 8px; color: var(--ink); text-decoration: none; border-radius: 10px; }
 .a-lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); }
-.a-lock .logo__mark { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
-.a-lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
+.a-lock .logo__cloud { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; }
+@media (min-width: 560px) { .a-lock .logo__cloud { height: 36px; } }
 
 /* ---------- Boot ---------- */
 .a-boot { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--white); }
-.a-boot__mark svg { display: block; height: 40px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); animation: a-breathe 1.4s ease-in-out infinite; }
+.a-boot__mark svg { display: block; height: 44px; width: auto; aspect-ratio: 600 / 446; fill: #111111; animation: a-breathe 1.4s ease-in-out infinite; }
 @keyframes a-breathe { 50% { opacity: .45; transform: scale(.94); } }
 
 /* ---------- Buttons ---------- */

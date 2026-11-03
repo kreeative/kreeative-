@@ -41,15 +41,22 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 ## Identity used on the page
 
-- **Logo**: « Jeere », in blue `#809EE6` (the blue of the founder's inspiration). The J is the
-  geometric mark drawn in SVG (`#mark` in `index.html`: a round dot above a thick curved base with
-  a small notch); « eere » is set in Outfit Black (900, SIL OFL), aligned on the J's stem and
-  base, and converted to a path (`#word`), so the logo needs no font. `#logo` is the whole « Jeere »
-  in one symbol. Three uses: the whole word, the J alone (favicon, avatars), or « Jeere » alone.
-  It stays blue on light and dark backgrounds; the rest of the site stays black and white.
-  The footer echoes the brand board: « Jeere » with four small icons (store, payment, chat,
-  delivery) beside a large J. The favicon is the white J on a blue rounded square.
-- **Name**: always written « Jeere » (only the J in capital), never « JEERE ».
+- **Logo**: drawn by hand by the founder in black ink, then traced to vector paths (no font, no
+  image request): two pieces, kept as inline symbols in the page's hidden sprite.
+  - `#cloud` (viewBox `0 0 600 446`): a scribbled cloud with two eyes, the **mark**. The header
+    shows it alone (32 px tall on phones, 36 px from 560 px), with generous room around it.
+  - `#wordmark` (viewBox `0 0 900 479`): « jeere » written by hand in lowercase, the **wordmark**,
+    used where the name is meant as a word: « Avec jeere » in the before/after title and the footer.
+  Both fill with `currentColor` (`fill-rule: evenodd`, the inside of the cloud stays open): ink
+  `#111111` on the white UI, white on dark backgrounds (footer, the dark « Avec jeere » column).
+  The footer echoes the brand board: the handwritten « jeere » with four small icons (store,
+  payment, chat, delivery) beside a large cloud. Accessible names stay « Jeere ».
+- **App and tab icon**: the black cloud on a bright, lively pop blue `#3657FF` (`favicon.svg`, 64×64
+  rounded square, with a simplified trace of the cloud, slightly bolder eyes and a tight margin so it
+  still reads at 16 px in a tab; `apple-touch-icon.png`, 180×180 full bleed: iOS rounds the corners). The pop blue
+  is only for the icon: the site itself stays black and white.
+- **Name**: always written « Jeere » in text (only the J in capital), never « JEERE »; only the
+  handwritten wordmark is lowercase « jeere ».
 - **Text weights**: light on purpose: titles in Poppins 400, buttons and labels 500, body 400.
 - **Colours**: black and white only for Jeere itself. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
@@ -101,7 +108,8 @@ i18n.js      English strings, the photos' alt texts included (French stays in th
 style.css    tokens, layout, responsive rules (360 px first)
 site.js      language, delivery demo, template tabs, waitlist form, hero canvas, hidden fallback
              for a photo that cannot load, scroll-in
-favicon.svg  the J mark
+favicon.svg  the black cloud on pop blue #3657FF (tab icon)
+apple-touch-icon.png  the same, 180×180, for home screens
 img/og.jpg   share image: a 1200×630 screenshot of the top of the page, Hibiscus swatch, reduced
              motion, JPEG quality 86
 creer/img/demo/…  the photos, shared with the store builder (not copied: see Photos)

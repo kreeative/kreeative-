@@ -1,5 +1,5 @@
 /* Jeere Studio — builder chrome: start screen, editor, modals.
-   Black and white only (the only colour of Jeere itself is the blue of the logo): the stores in the preview bring the colour.
+   Black and white only (the Jeere logo itself is black ink): the stores in the preview bring the colour.
    Every rule is scoped to a b- class so nothing leaks into the store preview (.jst) or the assistant (.jwz).
    Designed at 360 px first. */
 
@@ -45,13 +45,15 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   display: block; width: 20px; height: 20px; flex: none;
   fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
 }
-/* The Jeere logo (symbols #mark and #word in index.html): the blue J mark + « eere », like the landing page */
+/* The Jeere logo (symbols #cloud and #wordmark in index.html): the hand-drawn cloud, black ink, like the landing page */
 .b-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
-.b-logo__lock .logo__mark { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 300 / 372; fill: var(--jeere-blue, #809EE6); }
-.b-logo__lock .logo__word { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 906.6 / 372; fill: var(--jeere-blue, #809EE6); }
-.b-logo__lock--sm { gap: 0; }
-.b-logo__lock--sm .logo__mark { height: 23px; }
-.b-logo__lock--sm .logo__word { height: 23px; }
+.b-logo__lock .logo__cloud { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; }
+.b-logo__lock .logo__wordmark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 900 / 479; fill: currentColor; }
+@media (min-width: 560px) { .b-logo__lock .logo__cloud { height: 36px; } }
+/* The footer: the cloud and « jeere » written by hand */
+.b-logo__lock.b-logo__lock--sm { gap: 8px; }
+.b-logo__lock--sm .logo__cloud { height: 24px; }
+.b-logo__lock--sm .logo__wordmark { height: 28px; }
 .b-noscript { padding: 32px 16px; text-align: center; font-weight: 400; }
 
 /* ---------- Buttons ---------- */
@@ -212,7 +214,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%;
   background: #000000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .24);
 }
-.b-chatdemo__av svg { display: block; width: auto; height: 15px; aspect-ratio: 300 / 372; margin-left: 1px; fill: var(--jeere-blue, #809EE6); }
+.b-chatdemo__av svg { display: block; width: auto; height: 13px; aspect-ratio: 600 / 446; fill: var(--white, #FFFFFF); }
 
 /* Template cards with a live preview */
 .b-tpls { display: grid; gap: 10px; }
@@ -778,8 +780,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   .b-top { position: sticky; top: 0; z-index: 30; height: 56px; gap: 2px; padding: 0 8px 0 14px; }
   .b-top__sep, .b-top__mid, .b-saved { display: none; }
   .b-top__logo { padding: 0 8px 0 6px; }
-  .b-top__logo .logo__mark { height: 30px; }
-  .b-top__logo .logo__word { height: 26px; }
+  .b-top__logo .logo__cloud { height: 32px; }
   .b-top__store { flex: 1; max-width: none; padding: 3px 8px; }
   .b-top__name { font-size: 14px; }
   .b-top__fiche { width: 44px; margin: 0; padding: 0; border-color: transparent; }
@@ -829,9 +830,8 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   .b-top__store { display: none; }
   .b-top__end { margin-left: auto; }
 }
-/* The smallest phones: the « j » mark alone, so « Tableau de bord », Annuler, Rétablir, the fiche and « Publier » all fit */
+/* The smallest phones: a little less room around the cloud, so « Tableau de bord », Annuler, Rétablir, the fiche and « Publier » all fit */
 @media (max-width: 379.98px) {
-  .b-top__logo .logo__word { display: none; }
   .b-top { padding-left: 10px; }
   .b-top__logo { padding: 0 6px; }
 }
