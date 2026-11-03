@@ -1920,7 +1920,8 @@
     config: 'jeere-studio-config', // the fiche boutique (the editor's; the dashboard writes it too, through normalizeConfig)
     account: 'jeere-account', // { version, firstName, phone, storeName, createdAt, plan, loggedIn }
     admin: 'jeere-admin', // { version, orders, settings, connectors, stock? }
-    open: 'jeere-studio-open' // one-shot { page, pageId?, productId? } read and deleted by the editor
+    open: 'jeere-studio-open', // one-shot { page, pageId?, productId? } read and deleted by the editor
+    tour: 'jeere-tour' // { version: 1, seen: { editor: iso, admin: iso } }: the guided tours already shown (tour.js)
   };
 
   var DOMAIN_SUFFIX = '.jeere.shop';

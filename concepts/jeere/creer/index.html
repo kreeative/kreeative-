@@ -20,8 +20,10 @@
   <link rel="stylesheet" href="builder.css">
   <link rel="stylesheet" href="store.css">
   <link rel="stylesheet" href="wizard.css">
+  <link rel="stylesheet" href="tour.css">
   <script src="data.js" defer></script>
   <script src="render.js" defer></script>
+  <script src="tour.js" defer></script>
   <script src="editor.js" defer></script>
   <script src="wizard.js" defer></script>
 </head>
@@ -82,6 +84,7 @@
     <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5 13.8 9l5.7 1.9-5.7 1.9L12 18.5l-1.8-5.7L4.5 10.9 10.2 9z"/><path d="M18.5 16v4M16.5 18h4"/></symbol>
     <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="9" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.6"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.6"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.6"/></symbol>
     <symbol id="i-pages" viewBox="0 0 24 24"><path d="M12 20.5H6.5a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1h7.2L18 7.8v2.7"/><path d="M13.5 3.5V8H18M8.5 11.5h5.5M8.5 14.5h3.5"/><path d="m14.6 20.6.6-2.7 4.1-4.1a1.5 1.5 0 0 1 2.1 2.1l-4.1 4.1z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.7M12 16.6v.2"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
   </defs>
 </svg>
@@ -223,6 +226,8 @@
         <button class="b-ibtn" type="button" id="b-redo" aria-label="Rétablir" title="Rétablir (Ctrl+Maj+Z)" disabled><svg class="b-ico" aria-hidden="true"><use href="#i-redo"/></svg></button>
         <button class="b-btn b-btn--ghost b-btn--sm b-top__fiche" type="button" id="b-fiche-btn" aria-label="Fiche boutique" title="Fiche boutique"><svg class="b-ico" aria-hidden="true"><use href="#i-fiche"/></svg><span class="b-top__lbl">Fiche boutique</span></button>
         <button class="b-btn b-btn--ghost b-btn--sm b-top__storeedit" type="button" id="b-store-edit" hidden><svg class="b-ico" aria-hidden="true"><use href="#i-edit"/></svg><span>Modifier la boutique</span></button>
+        <!-- « ? Aide »: replays the guided tour (tour.js) -->
+        <button class="b-btn b-btn--ghost b-btn--sm b-top__help" type="button" id="b-help-btn" aria-label="Aide&nbsp;: revoir la visite guidée" title="Aide&nbsp;: revoir la visite guidée"><svg class="b-ico" aria-hidden="true"><use href="#i-help"/></svg><span class="b-top__lbl">Aide</span></button>
         <button class="b-btn b-btn--primary b-btn--sm" type="button" id="b-publish-btn">Publier</button>
       </div>
     </header>

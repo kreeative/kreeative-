@@ -241,6 +241,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .a-top__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: 15px; }
 .a-top__tools { display: flex; align-items: center; gap: 4px; flex: none; }
+/* « ? Aide »: an icon on the phone (its name stays in aria-label), « ? Aide » on a computer */
+.a-top__help { min-width: 44px; min-height: 44px; padding: 0 10px; gap: 7px; }
+.a-top__helplbl { display: none; }
+@media (max-width: 959.98px) { .a-top__help { width: 44px; padding: 0; } }
+/* Small phones (360): tighter tools so the store name keeps its room next to « ? Aide » */
+@media (max-width: 399.98px) {
+  .a-top { gap: 6px; }
+  .a-top__tools { gap: 0; }
+  .a-top__searchbtn, .a-top__help { width: 40px; min-width: 40px; }
+  .a-chip--demo { padding: 0 8px; margin: 0 2px; }
+  .a-acct__btn { padding: 0 4px; }
+}
 .a-acct { position: relative; }
 .a-acct__btn {
   display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 6px; border: 0; border-radius: 12px;
@@ -405,6 +417,7 @@ html.has-savebar .a-tabbar { visibility: hidden; }
   .a-acct__btn { padding: 0 10px 0 5px; }
   .a-acct__name { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; font-size: 14.5px; }
   .a-acct__chev { display: block; width: 17px; height: 17px; color: var(--muted); }
+  .a-top__helplbl { display: inline; }
 
   .a-tabbar { display: none; }
   html.has-savebar .a-tabbar { display: none; }
@@ -1154,6 +1167,16 @@ a.a-orow:focus-visible { outline-offset: -3px; }
 .a-steps__more { margin: 8px -6px -8px; }
 @media (min-width: 960px) { .a-step__quick { padding: 0 20px 13px 56px; } .a-steps__more { margin: 12px -8px -10px; } }
 .a-home__check.is-ready { border: 1.5px solid var(--ink); }
+/* « Masquer »: the card goes away (S.admin.onboarding.checklistHidden); « ? Aide » brings it back */
+.a-home__hide { flex: none; margin: -8px -8px 0 0; padding: 0 10px; gap: 6px; color: var(--muted); }
+.a-home__hide:hover { color: var(--ink); }
+@media (max-width: 399.98px) { .a-home__hidelbl { display: none; } .a-home__hide { width: 44px; padding: 0; } }
+/* A step that is an action (« Partagez le lien sur WhatsApp » opens the share sheet) looks like the link steps */
+button.a-step { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+button.a-step:hover { background: var(--grey-1); }
+button.a-step:focus-visible { outline-offset: -3px; }
+/* « ? Aide »: the tour and « Premiers pas » first, then the real person */
+.a-help__acts { display: grid; gap: 8px; margin-bottom: 16px; }
 
 /* Sales KPI: collected, due at the door, pending */
 .a-sechead__sub { font-weight: 400; color: var(--muted); font-size: 14px; }

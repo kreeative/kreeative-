@@ -62,14 +62,15 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, shows the seller's photo, else the demo photo, else draws the product illustration in SVG, never makes a network request to another site. Store CSS is scoped under `.jst`. | `window.JeereRender` |
 | `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
+| `tour.js`, `tour.css` | The guided tour shared by the editor and the dashboard: a spotlight on one area, a short bubble with the cloud as the guide, « Suivant » / « Retour » / « Passer », « 2/8 ». See [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas). Styles scoped under `.jt`. | `window.JeereTour` |
 | `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jeere assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
 | `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1, `pages` included. | — |
 | `prompts.md` | In French: the single AI assistant of the real product — system prompt, its one tool, the free code around it, the self-improvement loop, the TypeScript orchestration and the cost estimate. The assistant can also adapt the 4 default pages. | — |
 | `README.md` | This file: the whole prototype, the account and the dashboard included. | — |
 | `../compte/` (`index.html`, `compte.css`, `compte.js`) | Sign-up and login, phone number first, no e-mail: see [Seller accounts](#seller-accounts-compte). Loads `../creer/data.js`. | — |
-| `../admin/` (`index.html`, `admin.css`, `admin.js`) | The seller dashboard: see [The seller dashboard](#the-seller-dashboard-admin). Loads `../creer/data.js`, `../creer/render.js` and `../creer/store.css` (for its mini preview of the store). | — |
+| `../admin/` (`index.html`, `admin.css`, `admin.js`) | The seller dashboard: see [The seller dashboard](#the-seller-dashboard-admin). Loads `../creer/data.js`, `../creer/render.js` and `../creer/store.css` (for its mini preview of the store), and `../creer/tour.js` and `../creer/tour.css` (its guided tour). | — |
 
-The three apps share four `localStorage` keys, listed in
+The three apps share five `localStorage` keys, listed in
 [Shared browser storage](#shared-browser-storage).
 
 The builder chrome (start screen, editor, chat) is black and white, in Poppins with a
@@ -707,7 +708,7 @@ is there for tests.
 
 | Route | What it does |
 | --- | --- |
-| `#accueil` | Greeting; an « Aujourd'hui » strip (orders to prepare, cash to collect, « Nouvelle commande »); the « Lancez votre boutique » checklist computed from the real state (3 products with photos, mobile money connected, WhatsApp number, delivery zones, pages complete, quality score ≥ 80 from `validate`, domain chosen), showing the next 3 steps (« Voir les 7 étapes »), a one-tap « Utiliser mon numéro » for the WhatsApp step, and « Publier ma boutique » (the editor's honest publish dialog) when all is done; KPI cards over the last 10 days (Ventes split into Encaissé / À encaisser, « dont … chez vos livreurs » / En attente; Commandes, Panier moyen, Commandes à préparer; « Données d'exemple » while example orders are there); a small live preview of the store (`JeereRender`) with « Personnaliser », « Voir », « Partager »; recent orders; the plan card warns from 80 % of the monthly order limit |
+| `#accueil` | Greeting; an « Aujourd'hui » strip (orders to prepare, cash to collect, « Nouvelle commande »); the « Premiers pas » checklist with its progress bar, computed from the real state (see [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas): 3 products with photos, Wave / mobile money connected, WhatsApp number, delivery communes, the store customised in the Studio, the link shared on WhatsApp, pages complete, quality score ≥ 80 from `validate`, domain chosen), showing the next 3 steps (« Voir les 9 étapes »), a one-tap « Utiliser mon numéro » for the WhatsApp step, « Masquer », and « Publier ma boutique » (the editor's honest publish dialog) when all is done; KPI cards over the last 10 days (Ventes split into Encaissé / À encaisser, « dont … chez vos livreurs » / En attente; Commandes, Panier moyen, Commandes à préparer; « Données d'exemple » while example orders are there); a small live preview of the store (`JeereRender`) with « Personnaliser », « Voir », « Partager »; recent orders; the plan card warns from 80 % of the monthly order limit |
 | `#commandes` | Orders with status filters (À préparer, À encaisser…), counts and search (a table on desktop, cards on the phone, each with how it is paid: « À encaisser », « Payée · Wave », « Paiement en attente »); opens on « À préparer » when there is something to prepare. « Nouvelle commande » records an order received on WhatsApp or by phone (customer, number, commune and its fee, products with a quantity stepper, payment, channel, note; `manual: true`), then offers to send the customer a recap. The detail is its own page, `#commandes/1055`: items, a Livraison card (where, what the courier collects, the courier: her own couriers or Yango / Gozem, « Envoyer au livreur sur WhatsApp »), customer, payment, channel, timeline. Cash on delivery: « Demander la confirmation » (a `wa.me` message, « Répondez OUI ») → « Le client a confirmé » → « Confier au livreur » (the courier's WhatsApp message, status Expédiée) → « Livrée, argent reçu »; « Livraison échouée » (absent, injoignable, a refusé → Annulée with the reason; à relivrer → Nouvelle); a deposit by mobile money from 20 000 FCFA. « Écrire sur WhatsApp » and « Appeler » for the customer; « Plus d'actions »: « Imprimer le bon » (print stylesheet; the browser's own Print on an order page prints that slip), send the slip on WhatsApp, cancel. « Rétablir la commande » brings back the status it had. « Retirer les commandes d'exemple » once she has her own |
 | `#produits` | The fiche's products: add, edit, duplicate, delete, photo (downscaled like the editor: ≤ 800 px, JPEG 0.8); an optional stock kept outside the fiche in `'jeere-admin'.stock[productId]`; « Voir dans la boutique » opens the editor on that product page |
 | `#clients` | Customers aggregated from the orders (orders, total spent), a WhatsApp button on each row |
@@ -720,8 +721,9 @@ is there for tests.
 | `#parametres` | A hub: Paiements, Livraison, Connecteurs (their own pages), then Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`<slug>.jeere.shop`, a custom domain with DNS instructions, « À vérifier »), Équipe (invite by name, phone and role; the signed-in seller cannot remove herself), Abonnement (the 4 plans, change, what happens at the order limit, mois/semaine for paid plans, « Mettre en pause », « Payer par mobile money »: a demo dialog), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
 
 Every phone number typed in the dashboard (WhatsApp, payout, team, couriers, a new order, payment) follows the
-account page's rule: `+` and 8 to 15 digits, and exactly 10 digits after +225. « Aide · une vraie personne sur
-WhatsApp » (account menu, « Plus », sidebar) opens a demo dialog. « Partager » (home, boutique, a product,
+account page's rule: `+` and 8 to 15 digits, and exactly 10 digits after +225. « ? Aide » (top bar) and « Aide · une
+vraie personne sur WhatsApp » (account menu, « Plus », sidebar) open the Aide dialog: « Revoir la visite guidée »,
+« Afficher les premiers pas » when they were hidden, and the real person on WhatsApp (a demo). « Partager » (home, boutique, a product,
 empty states) shows the store's address with « Envoyer sur WhatsApp » (`wa.me/?text=`), « Copier le lien »
 and the phone's own share sheet. « Voir la boutique » opens the editor on the storefront alone on a computer
 (no panel; « Modifier la boutique » brings it back) and on the preview on a phone.
@@ -841,7 +843,7 @@ JEERE_DATA.ORDER_CHANNELS = [{ id: 'boutique', … }, { id: 'whatsapp', … }, {
 
 ## Shared browser storage
 
-The editor, the account page and the dashboard are separate pages that share four
+The editor, the account page and the dashboard are separate pages that share five
 `localStorage` keys (`JEERE_DATA.STORAGE_KEYS`). Every read and write is in `try/catch`; a
 missing, corrupted or older value falls back to the defaults, and a browser where `localStorage`
 throws still works for the session.
@@ -852,6 +854,7 @@ throws still works for the session.
 | `jeere-account` | `{ version: 1, firstName, phone, storeName, createdAt, plan, loggedIn }` | account page, dashboard (plan, log out, demo account) | all three (`normalizeAccount`) |
 | `jeere-admin` | `{ version: 1, orders, settings, connectors, stock? }`, created from `ADMIN_DEFAULTS` and `demoOrders(config)` | dashboard | dashboard (`normalizeAdmin`) |
 | `jeere-studio-open` | One-shot `{ page, pageId?, productId?, view? }`: the editor opens directly on that page, then deletes the key. `page` is `'home'`, `'product'` (with `productId`) or `'page'` (with `pageId`); the optional `view` (`'preview'` or `'edit'`) says what to show first: the dashboard sends `'preview'` for « Voir la boutique » / « Voir dans la boutique » (a phone opens on the preview; a computer shows the storefront alone, without the panel, until « Modifier la boutique ») | dashboard | editor |
+| `jeere-tour` | `{ version: 1, seen: { editor?: iso date, admin?: iso date } }`: the guided tours already shown in this browser (`JeereTour.seen(id)`), written when a tour first shows, so it starts by itself only once | `tour.js` (editor, dashboard) | `tour.js` |
 
 What each app adds around these keys:
 
@@ -861,7 +864,8 @@ What each app adds around these keys:
   exists), `subdomainChosen` (the seller confirmed her address; until then the address follows
   the store's name, also when it is renamed in the editor), `prefs` (`{ productView: 'list' |
   'grid' }`), `notify` (`{ [connectorId]: true }`, « Me prévenir » on a « Bientôt » connector),
-  `demoFor` (`template/niche` the example orders were made for: another template or niche in the
+  `onboarding` (`{ checklistHidden?: true, sharedAt?: iso date }`: « Masquer » on « Premiers pas », and the
+  first « Envoyer sur WhatsApp » of the share sheet, which ticks the share step), `demoFor` (`template/niche` the example orders were made for: another template or niche in the
   Studio makes them again, unless the seller touched them), `ownerPhone` (whose dashboard it is: a
   new account on the same device takes the payout number over and the previous owner leaves the
   team), `promos` (the codes promo) and `orders[].history` (`[{ status, date }]` or `{ event:
@@ -879,9 +883,93 @@ What each app adds around these keys:
   changed elsewhere in as an undo step, the dashboard never overwrites a form with unsaved
   changes.
 
-« Supprimer mon compte » (dashboard › Paramètres › Données) clears all four. In the real product
+« Supprimer mon compte » (dashboard › Paramètres › Données) clears all five (the tours start again). In the real product
 they become Supabase rows (the store, the account, orders, settings, connectors), shared by the
 seller's devices and her team.
+
+## Guided tours and « Premiers pas »
+
+One small engine, `tour.js` (`window.JeereTour`, styles in `tour.css`, scoped under `.jt`), shows people how
+to use the Studio and the dashboard. A tour is a list of steps; each step puts a spotlight on one area (a
+rounded hole in a dark veil, with a white and black ring) and a short bubble: the cloud as the guide's
+avatar, « 2/8 », a title, one or two sentences, a progress bar, « Retour », « Suivant » (« C’est parti » on
+the last step) and « Passer ».
+
+```js
+JeereTour.start({
+  id: 'editor',                       // remembered in 'jeere-tour' when the first step shows
+  steps: [{ target: '#b-g-theme-palette' /* selector, element, array (one spotlight around all) or function */,
+            title: 'Vos couleurs', text: '…', prepare: (dir) => { /* switch the tab or the view first; may return a Promise */ } }],
+  insets: () => ({ top, bottom }),    // the sticky bars to keep clear when a target is scrolled in
+  returnFocus: () => button,          // where the focus goes when the tour ends (default: where it was)
+  onEnd: (reason, index) => {}        // 'done' | 'skip' | 'esc' | 'outside' | 'replaced' | 'empty'
+});
+JeereTour.seen('editor'); JeereTour.forget('editor'); JeereTour.current(); // { id, index, total, targets }
+```
+
+- **Never blocks the page.** The veil lets every click through (`pointer-events: none`); a click, a tap or a
+  focus anywhere outside the bubble closes the tour (`'outside'`) and goes on to what was touched. On a touch
+  screen only a real tap does (the finger lifted within 10 px of where it went down): scrolling the page to
+  read the rest of a tall target keeps the tour open. Turning the phone or resizing the window scrolls the
+  target back into view and places the spotlight and the bubble again. A step
+  whose target is missing or hidden is skipped. A tour starts by itself only once per browser, about a
+  second after the page is ready, and not at all if the seller has already clicked or typed by then
+  (it waits for the next visit).
+- **Keyboard and screen readers.** The bubble is a non-modal `role="dialog"` (`aria-modal="false"`: the page
+  stays usable) named by « Étape 1 sur 8 » and the step's title, described by its text; the focus goes into
+  it, so the first step is read from there, once. Tab / Shift+Tab stay in it; Échap closes; ← and → move
+  between steps; each following step is announced in an `aria-live="polite"` region (« Étape 2 sur 8 : Vos
+  couleurs. … »). Every button is at least 44 px tall. The wording follows the device: « touchez » on a
+  phone, « cliquez » on a computer.
+- **Phones (< 600 px).** The bubble is a bottom sheet, at the top of the screen instead when the target sits
+  at the bottom (the dashboard's tab bar). The target is scrolled into the free part of the screen, under
+  the sticky bars and above the sheet; a target taller than that part gets a spotlight on what can be seen.
+  **Computers.** A 360 px bubble below, above, then beside the target, kept on screen.
+- `prefers-reduced-motion`: no transition, no animation, no smooth scrolling. `forced-colors`: the veil
+  goes, the ring uses `Highlight`. Nothing of the tour is printed.
+
+**The Studio's tour** (8 steps, `tourSteps()` in `editor.js`): Votre modèle (Thème › Modèle) · Vos couleurs
+(the palettes) · Vives ou Douces · Modifier une section (the hero in the preview: « Cliquez » on a computer,
+« Touchez, puis Modifier » on a phone) · Ajouter un produit (« Ajouter un produit » in Produits) · Téléphone ou
+ordinateur (the device toggle) · La relecture Qualité (the tab and the score) · Publier, et revoir la visite
+(« ? Aide » and « Publier »). On a phone each step switches to the view that shows its area (Modifier or
+Aperçu), as the seller would; « Passer », Échap or the last step bring her back to the tab and the view
+she was on (a click elsewhere leaves the editor as it is). It starts by itself the first time the editor
+opens (a template, the assistant, « Reprendre ma boutique », or « Personnaliser » and the « Premiers pas »
+steps in the dashboard, which open the home page), not when the dashboard sends her to a precise place
+(`'jeere-studio-open'` with another page, a product, one of her pages or a view) nor when the Back button
+brings her back to the editor. « ? Aide » in the top bar (an icon below 1200 px) replays it;
+`JeereBuilder.startTour()` too.
+
+**The dashboard's tour** (6 steps on `#accueil`, `tourSteps()` in `admin.js`): Vos premiers pas (the
+checklist) · Vos commandes (the sidebar link, the tab bar on the phone) · Vos paiements (the sales card:
+Encaissé / À encaisser, and where to connect Wave) · Vos produits · Partagez votre lien (« Partager » on the
+store card) · Besoin d’aide ? (« ? Aide »). It starts by itself on the first visit to the home page (signed
+in or « Voir la démo »); going to another page ends it. A toast on screen (« Bienvenue dans la démo ») is
+cleared when it starts, so nothing shows through the spotlight. « ? Aide » (top bar) › « Revoir la visite guidée »
+replays it (from any page: it goes back to Accueil first); `JeereAdmin.startTour()` too.
+
+**« Premiers pas »** (the home page's checklist, `checklist()` in `admin.js`): a progress bar (« 3 sur 9 »,
+a `progressbar` with `aria-valuenow`) and steps that tick themselves from the real state; nothing is ticked
+by hand. Each step opens the screen where it is done:
+
+| Step | Done when | Opens |
+| --- | --- | --- |
+| Ajoutez 3 produits avec une vraie photo | 3 products have a photo of her own (`products[].image`; a demo photo does not count) | `#produits` |
+| Connectez Wave et le mobile money | the `mobile-money` connector is connected (payout number and operator, e.g. Wave) | `#paiements` |
+| Ajoutez votre numéro WhatsApp | `store.whatsapp` is a valid number (« Utiliser mon numéro » does it in one tap) | `#parametres/boutique` |
+| Choisissez vos communes de livraison | the delivery section has zones | `#livraison` |
+| Personnalisez votre boutique | the theme or a section differs from the template she started from (the hero title carrying her store name does not count) | the Studio |
+| Partagez le lien sur WhatsApp | she shared from the share sheet: « Envoyer sur WhatsApp », « Copier le lien » (copied) or « Autres applications » (the system share completed) (`'jeere-admin'.onboarding.sharedAt`) | the share sheet |
+| Relisez vos pages | the pages are written and checked | `#pages` |
+| Atteignez un score qualité de 80 | `validate(fiche).score >= 80` | the Studio |
+| Choisissez l’adresse de votre boutique | an address confirmed or a custom domain | `#parametres/domaine` |
+
+The first steps are the five the founder asked for (with the WhatsApp number among them); the last three
+lead to the launch. The card shows the next 3 steps to do (« Voir les 9 étapes » for all). « Masquer »
+hides the card (`'jeere-admin'.onboarding.checklistHidden`); « ? Aide » › « Afficher les premiers pas »
+brings it back. When every step is done the card becomes « Votre boutique est prête » with « Publier ma
+boutique ».
 
 ## What is simulated
 
@@ -922,7 +1010,9 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
 
 1. Start screen: the logo (the hand-drawn cloud, black ink) in the header; the three template cards
    show live previews of their home page; « Partir de zéro » is disabled.
-2. Pick a template: the editor opens with the matching default fiche, in vivid colours. Switch
+2. Pick a template: the editor opens with the matching default fiche, in vivid colours, and after a
+   second the guided tour (8 steps): go through it with « Suivant » / « Retour », Tab, ← →, then Échap; reload
+   and « Reprendre »: no tour; « ? Aide » replays it. Clicking anywhere outside the bubble closes it. Switch
    Téléphone / Ordinateur, edit a section, add a product with a photo, change the palette and the
    template (the intensity stays), undo and redo (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z), check the Qualité
    tab.

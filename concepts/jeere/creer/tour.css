@@ -1,0 +1,87 @@
+/* Jeere — tour.css: the guided tour (tour.js), shared by the Studio and the dashboard.
+   Black and white like the rest of the platform; the spotlight is a hole in a dark veil.
+   The veil lets every click through (pointer-events: none): only the bubble catches the pointer.
+   Phones (< 600 px): the bubble is a bottom sheet (jt--sheet), at the top when the target is at the bottom (jt--top). */
+
+.jt {
+  --jt-ink: #111111;
+  --jt-white: #FFFFFF;
+  --jt-muted: #5E5E5E;
+  --jt-line: rgba(17, 17, 17, .12);
+  --jt-line-2: rgba(17, 17, 17, .22);
+  --jt-grey: #EBEBE8;
+  --jt-font: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  position: fixed; inset: 0; z-index: 110; pointer-events: none;
+  font-family: var(--jt-font); color: var(--jt-ink);
+}
+.jt[hidden] { display: none !important; }
+
+/* The spotlight: the screen dimmed by an SVG veil with a rounded hole; a white and black ring so it shows on any colour */
+.jt__veil { position: fixed; left: 0; top: 0; display: block; pointer-events: none; }
+.jt__veil path { fill: rgba(17, 17, 17, .55); }
+.jt__hole {
+  position: fixed; left: 0; top: 0; width: 0; height: 0; border-radius: 14px;
+  box-shadow: 0 0 0 2px var(--jt-white), 0 0 0 4px var(--jt-ink);
+  pointer-events: none;
+}
+
+.jt__bubble {
+  position: fixed; left: 12px; top: 12px; width: min(360px, calc(100vw - 24px)); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px);
+  overflow: auto; padding: 14px 16px 16px; border-radius: 18px; background: var(--jt-white); color: var(--jt-ink);
+  box-shadow: 0 30px 70px -24px rgba(17, 17, 17, .5), 0 10px 26px -12px rgba(17, 17, 17, .3);
+  pointer-events: auto; overscroll-behavior: contain; text-align: left;
+}
+.jt__bubble:focus { outline: none; }
+.jt__bubble:focus-visible { outline: 3px solid var(--jt-ink); outline-offset: 2px; }
+.jt :focus-visible { outline: 3px solid var(--jt-ink); outline-offset: 2px; }
+
+.jt__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+/* The guide: the hand-drawn Jeere cloud */
+.jt__av { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--jt-grey); color: var(--jt-ink); }
+.jt__cloud { display: block; width: 30px; height: auto; aspect-ratio: 600 / 446; fill: currentColor; }
+.jt__count { flex: 1; margin: 0; font-size: 13px; font-weight: 500; color: var(--jt-muted); font-variant-numeric: tabular-nums; }
+.jt__skip {
+  min-height: 44px; min-width: 44px; margin: -4px -8px -4px 0; padding: 0 12px; border: 0; border-radius: 12px; background: none;
+  color: var(--jt-ink); font: 500 14px/1 var(--jt-font); cursor: pointer;
+}
+.jt__skip:hover { background: var(--jt-grey); }
+.jt__title { margin: 0 0 4px; font-size: 17px; font-weight: 600; line-height: 1.3; letter-spacing: -.005em; }
+.jt__text { margin: 0; font-size: 14.5px; line-height: 1.55; color: #333333; text-wrap: pretty; }
+.jt__bar { height: 4px; margin: 14px 0 0; border-radius: 2px; background: var(--jt-grey); overflow: hidden; }
+.jt__fill { display: block; height: 100%; width: 0; border-radius: 2px; background: var(--jt-ink); }
+.jt__foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.jt__btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+  border: 1.5px solid transparent; border-radius: 12px; font: 500 14.5px/1 var(--jt-font); cursor: pointer; white-space: nowrap;
+}
+.jt__btn--primary { background: var(--jt-ink); color: var(--jt-white); }
+.jt__btn--primary:hover { background: #333333; }
+.jt__btn--ghost { background: var(--jt-white); color: var(--jt-ink); border-color: var(--jt-line-2); }
+.jt__btn--ghost:hover { border-color: var(--jt-ink); }
+.jt__btn[hidden], .jt__skip[hidden] { display: none; }
+.jt__live, .jt__sr {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* Phones: a bottom sheet over the app's bottom bar */
+.jt--sheet .jt__bubble {
+  left: 0 !important; right: 0; top: auto !important; bottom: 0; width: auto !important; max-height: 58vh; max-height: 58dvh;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0;
+  box-shadow: 0 -18px 50px -20px rgba(17, 17, 17, .45);
+}
+.jt--sheet .jt__foot .jt__btn { flex: 1; }
+.jt--sheet.jt--top .jt__bubble { top: 0 !important; bottom: auto; padding-top: calc(14px + env(safe-area-inset-top)); padding-bottom: 14px; border-radius: 0 0 20px 20px; box-shadow: 0 18px 50px -20px rgba(17, 17, 17, .45); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .jt:not(.jt--still) .jt__bubble { transition: left .22s ease, top .22s ease; }
+  .jt:not(.jt--still) .jt__fill { transition: width .22s ease; }
+  .jt:not([hidden]) .jt__bubble { animation: jt-in .2s ease-out; }
+  @keyframes jt-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+@media (forced-colors: active) {
+  .jt__veil { display: none; }
+  .jt__hole { outline: 3px solid Highlight; }
+  .jt__bubble { border: 2px solid CanvasText; }
+}
+@media print { .jt { display: none !important; } }

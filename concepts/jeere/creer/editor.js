@@ -8,6 +8,9 @@
  *   showPage(page, id)        shows one page of the store in the preview (see JEERE_DATA.PAGES): id is the
  *                             productId of 'product', the pageId of 'page' (the seller's own pages, config.pages)
  *   getPage()                 { page, productId, pageId } shown in the preview
+ *   startTour()               replays the guided tour (tour.js, window.JeereTour), as « ? Aide » does; it also
+ *                             starts by itself once per browser ('jeere-tour') when the editor first opens
+ *                             from the start screen
  *
  * The seller side (round 3): the start screen header reads 'jeere-account' (« Bonjour Awa » and
  * « Tableau de bord », or « Se connecter » and « Créer un compte »); the top bar links to the
@@ -2296,8 +2299,15 @@
       const n = document.querySelector(`[data-fk="${CSS.escape(focus)}"]`);
       n.scrollIntoView({ block: 'center' });
     } else focusEl(els.tabBtns[TABS.indexOf(tab)] || els.tabBtns[0]);
+    // The tour starts on a first use (a template, the assistant, « Reprendre », « Personnaliser » in the dashboard),
+    // not when the dashboard sent her to a precise place (a product, one of her pages, « Voir la boutique »)
+    const deep = (typeof o.page === 'string' && o.page !== 'home') || o.productId || o.pageId || o.view;
+    const restored = o.replace && o.page === undefined; // back to the editor with the Back button: not a first use
+    if (!deep && !restored) maybeAutoTour();
   }
   function doShowStart() {
+    clearTimeout(S.timers.tour);
+    if (window.JeereTour && window.JeereTour.isOpen()) window.JeereTour.stop('outside');
     setStoreView(false);
     if (S.open) { commit(); saveNow(); }
     S.open = false;
@@ -2318,6 +2328,95 @@
   }
   function getConfig() { return S.config ? D.clone(S.config) : null; }
 
+  /* ------------------------------------------------------------------ guided tour (tour.js) */
+
+  // Eight steps, each on one area of the editor. On a phone, each step switches to the view that shows its
+  // area (Modifier / Aperçu), as the seller would. It starts once per browser, a moment after the editor first
+  // opens (a template, the assistant…), unless she is already busy; « ? Aide » replays it. A click anywhere
+  // outside the bubble closes it and goes on to what was clicked (tour.js): the editor is never blocked.
+  const TOUR_ID = 'editor';
+  const visibleOf = (sels) => sels.map((q) => Array.from(document.querySelectorAll(q)).find((n) => n.getClientRects().length > 0)).find(Boolean) || null;
+  function tourView(v) { if (isMobile()) setView(v); else if (S.storeView) setStoreView(false); }
+  function tourTab(tab) { tourView('edit'); hidePick(); if (S.tab !== tab) setTab(tab, { top: true }); }
+  function tourPreviewNode() {
+    const secs = S.config ? S.config.sections.filter((x) => x.enabled) : [];
+    const sec = secs.find((x) => x.type === 'hero') || secs[0];
+    const n = sec ? findPreviewNode({ kind: 'section', id: sec.id }) : null;
+    return n || els.store.querySelector('[data-section-id]') || els.device;
+  }
+  function tourSteps() {
+    const phone = isMobile();
+    return [
+      { target: '#b-g-theme-template', title: 'Votre modèle',
+        text: `Il donne l’allure de votre boutique. Changez-en quand vous voulez, dans Thème${NB}: vos textes et vos produits restent.`,
+        prepare: () => tourTab('theme') },
+      { target: '#b-g-theme-palette', title: 'Vos couleurs',
+        text: `Choisissez une palette${NB}: un fond et une couleur forte pour les boutons. L’aperçu change tout de suite.`,
+        prepare: () => tourTab('theme') },
+      { target: '#b-g-theme-intensity', title: 'Vives ou Douces',
+        text: `Vives${NB}: votre couleur habille toute la boutique. Douces${NB}: des fonds clairs, la couleur en touches.`,
+        prepare: () => tourTab('theme') },
+      { target: tourPreviewNode, title: 'Modifier une section',
+        text: phone
+          ? `Dans l’Aperçu, touchez une section (le grand titre, les produits…), puis ${guil('Modifier')}${NB}: ses réglages s’ouvrent.`
+          : `Cliquez sur une section de l’aperçu (le grand titre, les produits…)${NB}: ses réglages s’ouvrent à gauche.`,
+        prepare: () => { hidePick(); if (S.page !== 'home') showPage('home'); tourView('preview'); scrollPreviewTop(); } },
+      { target: '#b-p-add', title: 'Ajouter un produit',
+        text: `Un nom, un prix et une photo prise avec votre téléphone, à la lumière du jour${NB}: c’est tout.`,
+        prepare: () => tourTab('produits') },
+      { target: () => visibleOf(['.b-top__device', '.b-stage__device']), title: 'Téléphone ou ordinateur',
+        text: `Voyez votre boutique comme vos clients la verront. La plupart l’ouvriront sur leur téléphone.`,
+        prepare: () => { hidePick(); tourView('preview'); } },
+      { target: () => [document.getElementById('b-tab-qualite'), els.tp.qualite.querySelector('.b-score')], title: 'La relecture Qualité',
+        text: phone
+          ? `Un score sur 100 et ce qu’il reste à corriger avant de publier. La liste des points est juste en dessous.`
+          : `Un score sur 100 et ce qu’il reste à corriger avant de publier. Cliquez sur un point pour y aller.`,
+        prepare: () => tourTab('qualite') },
+      { target: ['#b-help-btn', '#b-publish-btn'], title: 'Publier, et revoir la visite',
+        text: `Quand le score vous convient, ${phone ? 'touchez' : 'cliquez sur'} ${guil('Publier')}. Pour revoir cette visite, ${phone ? 'touchez' : 'cliquez sur'} ${guil('? Aide')}.`,
+        prepare: () => { hidePick(); tourView('edit'); } }
+    ];
+  }
+  function tourInsets() {
+    if (!isMobile()) return { top: 0, bottom: 0 };
+    const bar = S.view === 'preview' ? els.stageBar : els.tablist;
+    const b = (n) => (n && n.getClientRects().length ? n.getBoundingClientRect().bottom : 0);
+    return { top: Math.max(b(els.top), b(bar)), bottom: els.mnav && els.mnav.getClientRects().length ? els.mnav.offsetHeight : 0 };
+  }
+  function startTour() {
+    const T = window.JeereTour;
+    if (!T || !S.open) return false;
+    while (S.modals.length) closeModal(false);
+    const from = { tab: S.tab, view: S.view };
+    T.start({
+      id: TOUR_ID, label: 'Visite guidée du Studio', steps: tourSteps(), insets: tourInsets, doneLabel: 'C’est parti',
+      returnFocus: () => els.helpBtn,
+      onEnd: (why) => {
+        // Closed by a click elsewhere: leave the editor as it is, the click goes on. Otherwise back to where she was.
+        if (why === 'outside' || !S.open) return;
+        hidePick();
+        if (S.tab !== from.tab) setTab(from.tab, { top: true });
+        tourView(from.view);
+      }
+    });
+    return true;
+  }
+  // Once per browser, a moment after the editor opens; not when she is already typing or clicking
+  function maybeAutoTour() {
+    const T = window.JeereTour;
+    if (!T || T.seen(TOUR_ID) || S.storeView) return;
+    let busy = false;
+    const mark = () => { busy = true; };
+    window.addEventListener('pointerdown', mark, true);
+    window.addEventListener('keydown', mark, true);
+    later('tour', () => {
+      window.removeEventListener('pointerdown', mark, true);
+      window.removeEventListener('keydown', mark, true);
+      if (busy || !S.open || S.modals.length || S.storeView || T.seen(TOUR_ID) || T.isOpen()) return;
+      startTour();
+    }, 1000);
+  }
+
   /* ------------------------------------------------------------------ init and events */
 
   function grab() {
@@ -2327,7 +2426,7 @@
       resume: $('b-resume'), resumeName: $('b-resume-name'), resumeMeta: $('b-resume-meta'), resumeBtn: $('b-resume-btn'), aiBtn: $('b-ai-btn'),
       shead: $('b-shead'), acctIn: $('b-acct-in'), acctOut: $('b-acct-out'), acctName: $('b-acct-name'), acctAv: $('b-acct-av'),
       ed: $('b-ed'), top: document.querySelector('.b-top'), topStore: $('b-top-store'), topName: $('b-top-name'), saved: $('b-saved'),
-      undo: $('b-undo'), redo: $('b-redo'), ficheBtn: $('b-fiche-btn'), publishBtn: $('b-publish-btn'), storeEdit: $('b-store-edit'),
+      undo: $('b-undo'), redo: $('b-redo'), ficheBtn: $('b-fiche-btn'), publishBtn: $('b-publish-btn'), helpBtn: $('b-help-btn'), storeEdit: $('b-store-edit'),
       panelScroll: $('b-panel-scroll'), tablist: document.querySelector('.b-tabs'),
       tabBtns: Array.from(document.querySelectorAll('.b-tab')), tabScore: $('b-tab-score'),
       stage: $('b-stage'), stageBar: document.querySelector('.b-stage__bar'), stageHint: $('b-stage-hint'), stageInner: $('b-stage-inner'),
@@ -2364,6 +2463,7 @@
     }
     els.ficheBtn.addEventListener('click', openFiche);
     els.publishBtn.addEventListener('click', openPublish);
+    if (els.helpBtn) els.helpBtn.addEventListener('click', () => { if (!startTour()) toast('La visite guidée n’a pas pu se charger. Rechargez la page.'); });
     if (els.storeEdit) els.storeEdit.addEventListener('click', () => { setStoreView(false); focusEl(els.tabBtns[TABS.indexOf(S.tab)] || els.tabBtns[0]); });
 
     els.tabBtns.forEach((b) => b.addEventListener('click', () => { setTab(b.dataset.tab); if (isMobile() && S.view !== 'edit') setView('edit'); }));
@@ -2637,7 +2737,7 @@
     return { page: S.page, productId: S.page === 'product' ? S.productId : null, pageId: S.page === 'page' ? S.pageId : null };
   }
 
-  window.JeereBuilder = { openEditor, getConfig, showStart, showPage: (page, id) => { if (S.open) showPage(page, id); }, getPage };
+  window.JeereBuilder = { openEditor, getConfig, showStart, showPage: (page, id) => { if (S.open) showPage(page, id); }, getPage, startTour };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

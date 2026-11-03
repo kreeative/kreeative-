@@ -19,8 +19,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&text=%C9%9B%C9%94%C6%90%C6%86%C5%8B%C5%8A&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../creer/store.css">
   <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="../creer/tour.css">
   <script src="../creer/data.js" defer></script>
   <script src="../creer/render.js" defer></script>
+  <script src="../creer/tour.js" defer></script>
   <script src="admin.js" defer></script>
 </head>
 <body>
@@ -173,7 +175,7 @@
         <li><a class="a-nav__link" href="#parametres" data-nav="parametres"><svg class="a-ico" aria-hidden="true"><use href="#i-gear"/></svg><span>Paramètres</span></a></li>
       </ul>
     </nav>
-    <button class="a-nav__link a-side__help" type="button" data-act="help"><svg class="a-ico" aria-hidden="true"><use href="#i-help"/></svg><span>Aide<small>Une vraie personne sur WhatsApp</small></span></button>
+    <button class="a-nav__link a-side__help" type="button" data-act="help"><svg class="a-ico" aria-hidden="true"><use href="#i-help"/></svg><span>Aide<small>Visite guidée, premiers pas, une vraie personne</small></span></button>
     <p class="a-side__demo"><svg class="a-ico" aria-hidden="true"><use href="#i-info"/></svg><span>Prototype&nbsp;: tout reste dans ce navigateur.</span></p>
   </aside>
 
@@ -197,6 +199,8 @@
       <div class="a-top__tools">
         <button class="a-ibtn a-top__searchbtn" type="button" data-act="search-open" aria-label="Rechercher"><svg class="a-ico" aria-hidden="true"><use href="#i-search"/></svg></button>
         <button class="a-chip a-chip--demo" type="button" data-act="demo-info">Démo</button>
+        <!-- « ? Aide »: the guided tour again, « Premiers pas », and a real person on WhatsApp (openHelp in admin.js) -->
+        <button class="a-btn a-btn--quiet a-btn--sm a-top__help" type="button" id="a-help-btn" data-act="help" aria-label="Aide&nbsp;: visite guidée et premiers pas" title="Aide&nbsp;: visite guidée et premiers pas"><svg class="a-ico" aria-hidden="true"><use href="#i-help"/></svg><span class="a-top__helplbl">Aide</span></button>
         <div class="a-acct">
           <button class="a-acct__btn" type="button" id="a-acct-btn" aria-expanded="false" aria-controls="a-acct-menu" aria-haspopup="true">
             <span class="a-avatar" data-bind="user-initial" aria-hidden="true">A</span>
@@ -247,7 +251,7 @@
       <li><a href="#livraison" data-more="livraison"><svg class="a-ico" aria-hidden="true"><use href="#i-truck"/></svg><span>Livraison</span></a></li>
       <li><a href="#connecteurs" data-more="connecteurs"><svg class="a-ico" aria-hidden="true"><use href="#i-plug"/></svg><span>Connecteurs</span></a></li>
       <li><a href="#parametres" data-more="parametres"><svg class="a-ico" aria-hidden="true"><use href="#i-gear"/></svg><span>Paramètres</span></a></li>
-      <li><button type="button" data-act="help"><svg class="a-ico" aria-hidden="true"><use href="#i-help"/></svg><span>Aide<small>Une vraie personne</small></span></button></li>
+      <li><button type="button" data-act="help"><svg class="a-ico" aria-hidden="true"><use href="#i-help"/></svg><span>Aide<small>Visite guidée, premiers pas, une vraie personne</small></span></button></li>
     </ul>
     <div class="a-morefoot">
       <button class="a-btn a-btn--ghost a-btn--block" type="button" data-act="view-store"><svg class="a-ico" aria-hidden="true"><use href="#i-eye"/></svg>Voir la boutique</button>

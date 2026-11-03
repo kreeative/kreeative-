@@ -1,6 +1,7 @@
 /*
  * Jeere — admin.js: the seller dashboard (front-end prototype, no backend).
- * Global: window.JeereAdmin = { go, state, reload } (for tests and the console).
+ * Global: window.JeereAdmin = { go, state, reload, startTour } (for tests and the console; startTour replays the
+ * guided tour of ../creer/tour.js, as « ? Aide » › « Revoir la visite guidée » does).
  *
  * Shares four localStorage keys with the editor (../creer/) and the account page (../compte/):
  *  - 'jeere-studio-config': the fiche boutique. Read and always written through JEERE_DATA.normalizeConfig.
@@ -9,6 +10,8 @@
  *    from JEERE_DATA.adminDefaults (ADMIN_DEFAULTS + demoOrders(config)). Extra top-level keys kept here:
  *    demoSeeded, subdomainChosen, prefs { productView }, notify { [connectorId]: true }.
  *  - 'jeere-studio-open': one-shot { page, pageId?, productId?, view? } set before opening the editor.
+ *  - 'jeere-tour': { version, seen: { editor, admin } }, the guided tours already shown (read and written by tour.js).
+ *    'jeere-admin'.onboarding = { checklistHidden?, sharedAt? } belongs to « Premiers pas ».
  * Every read and write is in try/catch: a missing, corrupted or blocked storage falls back to the defaults.
  *
  * Hash routes (the Back button works): #accueil, #commandes[/1055][?statut=a-preparer], #produits[/p3|/nouveau],
@@ -20,7 +23,7 @@
 
   const D = window.JEERE_DATA || null;
   const NB = ' ';
-  const KEYS = (D && D.STORAGE_KEYS) || { config: 'jeere-studio-config', account: 'jeere-account', admin: 'jeere-admin', open: 'jeere-studio-open' };
+  const KEYS = (D && D.STORAGE_KEYS) || { config: 'jeere-studio-config', account: 'jeere-account', admin: 'jeere-admin', open: 'jeere-studio-open', tour: 'jeere-tour' };
   const EDITOR_URL = '../creer/';
   const COMPTE_URL = '../compte/';
   const ROUTES = ['accueil', 'commandes', 'produits', 'clients', 'boutique', 'pages', 'promos', 'paiements', 'livraison', 'connecteurs', 'parametres'];
@@ -618,6 +621,8 @@
 
   function render(r, focus) {
     if (!S.inApp) return;
+    // The dashboard tour is on the home page: going elsewhere ends it
+    if (r.name !== 'accueil' && window.JeereTour && window.JeereTour.isOpen() && (window.JeereTour.current() || {}).id === 'admin') window.JeereTour.stop('outside');
     S.now = new Date();
     closeAcct();
     closeSearch();
@@ -921,28 +926,56 @@
     if (terms && /À adapter/.test(terms.body)) return { ok: false, hint: '« ' + terms.title + ' » est encore le modèle : faites-le relire, puis retirez le paragraphe « À adapter ».', pageId: terms.id };
     return { ok: true, hint: '' };
   }
+  // The store no longer looks like its template: another theme, or sections changed in the Studio. The template
+  // is compared as the editor made it (the hero title carries the seller's store name: see personalize in editor.js).
+  function customised(cfg) {
+    try {
+      const d = D.normalizeConfig(D.defaultConfig(cfg.template, cfg.store.niche));
+      if (['palette', 'fonts', 'radius', 'buttons', 'intensity'].some((k) => cfg.theme[k] !== d.theme[k])) return true;
+      const old = str(d.store.name);
+      const name = str(cfg.store.name);
+      const sig = (c, mine) => JSON.stringify(arr(c.sections).map((x) => {
+        const st = copy(x.settings) || {};
+        // the example name in the hero title becomes the seller's: not a change she made
+        if (!mine && x.type === 'hero' && old && name && name !== old && typeof st.title === 'string') st.title = st.title.split(old).join(name);
+        return [x.type, x.enabled !== false, st];
+      }));
+      return sig(cfg, true) !== sig(d, false);
+    } catch (e) { return false; }
+  }
+  const onboarding = () => (isObj(S.admin.onboarding) ? S.admin.onboarding : (S.admin.onboarding = {}));
+  // « Premiers pas »: every step ticks itself from what is really set (nothing to tick by hand). The first ones
+  // are the founder's five (products, Wave, delivery communes, the Studio, sharing on WhatsApp), with the
+  // WhatsApp number between them; the last ones lead to the launch. Each step opens the screen where it is done.
   function checklist() {
     const cfg = S.config;
     const ad = S.admin;
     const photos = cfg.products.filter((p) => p.image).length;
     const v = validateFiche();
     const ps = pagesState();
+    const shared = !!onboarding().sharedAt;
     return [
-      { done: photos >= 3, title: 'Ajoutez 3 produits avec une vraie photo', hint: photos ? photos + ' sur 3 pour l’instant. Une photo nette, à la lumière du jour, vend mieux qu’un dessin.' : 'Une photo nette, à la lumière du jour, vend mieux qu’un dessin.', href: '#produits' },
-      { done: isOn('mobile-money'), title: 'Connectez le paiement mobile money', hint: 'Wave, Orange Money, MTN MoMo et Moov Money, versés directement sur votre numéro.', href: '#paiements' },
-      { done: phoneOk(cfg.store.whatsapp), title: 'Ajoutez votre numéro WhatsApp', hint: 'Vos clients vous écrivent et vous recevez les commandes.', href: '#parametres/boutique',
+      { id: 'products', done: photos >= 3, title: 'Ajoutez 3 produits avec une vraie photo', hint: photos ? photos + ' sur 3 pour l’instant. Une photo nette, à la lumière du jour, vend mieux qu’un dessin.' : 'Une photo nette, à la lumière du jour, vend mieux qu’un dessin.', href: '#produits' },
+      { id: 'wave', done: isOn('mobile-money'), title: 'Connectez Wave et le mobile money', hint: 'Votre numéro Wave, Orange Money, MTN MoMo ou Moov Money : vos clients paient, l’argent arrive directement chez vous.', href: '#paiements' },
+      { id: 'whatsapp', done: phoneOk(cfg.store.whatsapp), title: 'Ajoutez votre numéro WhatsApp', hint: 'Vos clients vous écrivent et vous recevez les commandes.', href: '#parametres/boutique',
         quick: S.account && phoneOk(S.account.phone) ? { act: 'use-my-wa', icon: 'chat', label: 'Utiliser mon numéro ' + phoneFmt(S.account.phone) } : null },
-      { done: ownZones().length > 0, title: 'Indiquez vos zones de livraison', hint: 'Les communes où vous livrez, avec leurs frais.', href: '#livraison' },
-      { done: ps.ok, title: 'Relisez vos pages', hint: ps.hint, href: ps.pageId ? '#pages/' + ps.pageId : '#pages' },
-      { done: v.score >= 80, title: 'Atteignez un score qualité de 80', hint: 'Score actuel : ' + v.score + ' sur 100. Le Studio vous dit quoi corriger.', act: 'open-editor' },
-      { done: !!ad.settings.customDomain || ad.subdomainChosen === true, title: 'Choisissez l’adresse de votre boutique', hint: subdomain() + ' est gratuite. Vous pouvez aussi prendre votre propre nom de domaine.', href: '#parametres/domaine' }
+      { id: 'delivery', done: ownZones().length > 0, title: 'Choisissez vos communes de livraison', hint: 'Les communes où vous livrez, avec leurs frais.', href: '#livraison' },
+      { id: 'studio', done: customised(cfg), title: 'Personnalisez votre boutique', hint: 'Vos couleurs, votre grand titre, vos textes : dans le Studio, avec l’aperçu sous les yeux.', act: 'open-editor' },
+      { id: 'share', done: shared, title: 'Partagez le lien sur WhatsApp', hint: 'Sur votre statut et à vos clients : c’est comme ça qu’arrivent les premières commandes.', act: 'share-store', button: true },
+      { id: 'pages', done: ps.ok, title: 'Relisez vos pages', hint: ps.hint, href: ps.pageId ? '#pages/' + ps.pageId : '#pages' },
+      { id: 'score', done: v.score >= 80, title: 'Atteignez un score qualité de 80', hint: 'Score actuel : ' + v.score + ' sur 100. Le Studio vous dit quoi corriger.', act: 'open-editor' },
+      { id: 'address', done: !!ad.settings.customDomain || ad.subdomainChosen === true, title: 'Choisissez l’adresse de votre boutique', hint: subdomain() + ' est gratuite. Vous pouvez aussi prendre votre propre nom de domaine.', href: '#parametres/domaine' }
     ];
   }
   function stepItem(s, hidden) {
     const inner = H`<span class="a-step__ring">${s.done ? ico('check') : ''}</span><span class="a-step__txt"><span class="a-sr">${s.done ? 'Fait' + NB + ': ' : 'À faire' + NB + ': '}</span><span class="a-step__title">${esc(fr(s.title))}</span><span class="a-step__hint">${esc(fr(s.hint))}</span></span>${ico('chev', 'a-step__go')}`;
-    const link = s.act
-      ? H`<a class="a-step${s.done ? ' is-done' : ''}" href="${EDITOR_URL}" data-act="${s.act}" data-page="home">${inner}</a>`
-      : H`<a class="a-step${s.done ? ' is-done' : ''}" href="${s.href}">${inner}</a>`;
+    const cls = 'a-step' + (s.done ? ' is-done' : '');
+    const data = H` data-step="${esc(s.id || '')}"`;
+    const link = s.button
+      ? H`<button class="${cls}" type="button" data-act="${s.act}"${data}>${inner}</button>`
+      : s.act
+        ? H`<a class="${cls}" href="${EDITOR_URL}" data-act="${s.act}" data-page="home"${data}>${inner}</a>`
+        : H`<a class="${cls}" href="${s.href}"${data}>${inner}</a>`;
     // A one-tap action under the step (« Utiliser mon numéro »): done without leaving the home page
     const quick = s.quick && !s.done ? H`<div class="a-step__quick"><button class="a-btn a-btn--soft a-btn--sm" type="button" data-act="${s.quick.act}">${ico(s.quick.icon || 'check')}${esc(fr(s.quick.label))}</button></div>` : '';
     return H`<li${hidden ? ' hidden' : ''}>${link}${quick}</li>`;
@@ -1071,6 +1104,7 @@
     // The next 3 steps to do; the others (and the done ones) on demand
     const next = steps.filter((s) => !s.done).slice(0, 3);
     const open = S.checkOpen === true;
+    const checkHidden = onboarding().checklistHidden === true;
     const sample = hasDemoOrders() ? sampleChip() : '';
     const todayTxt = (todo ? plural(todo, 'commande à préparer', 'commandes à préparer') : 'Rien à préparer') + (dueAll.dueN ? ' · ' + number(dueAll.dueN) + ' à encaisser' : '');
     html += H`<div class="a-home">
@@ -1078,14 +1112,15 @@
         <a class="a-today__main" href="#commandes?statut=a-preparer"><span class="a-today__k" id="h-today">Aujourd’hui</span><span class="a-today__v">${esc(fr(todayTxt))}</span>${ico('chev', 'a-today__go')}</a>
         <button class="a-btn a-btn--inv a-today__btn" type="button" data-act="order-new">${ico('plus')}Nouvelle commande</button>
       </section>
-      <section class="a-card a-home__check${allDone ? ' is-ready' : ''}" aria-labelledby="h-check">
-        <div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-check">${allDone ? 'Votre boutique est prête' : 'Lancez votre boutique'}</h2>
-          <p class="a-card__sub">${allDone ? 'Les 7 étapes sont faites. Il ne reste plus qu’à la mettre en ligne.' : 'Les étapes qui comptent avant d’ouvrir. Elles se cochent toutes seules.'}</p></div></div>
+      ${checkHidden ? '' : H`<section class="a-card a-home__check${allDone ? ' is-ready' : ''}" aria-labelledby="h-check">
+        <div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-check">${allDone ? 'Votre boutique est prête' : 'Premiers pas'}</h2>
+          <p class="a-card__sub">${allDone ? 'Les ' + steps.length + ' étapes sont faites. Il ne reste plus qu’à la mettre en ligne.' : 'Les étapes qui comptent avant d’ouvrir. Elles se cochent toutes seules.'}</p></div>
+          <button class="a-btn a-btn--quiet a-btn--sm a-home__hide" type="button" data-act="checklist-hide" aria-label="Masquer les premiers pas">${ico('x')}<span class="a-home__hidelbl">Masquer</span></button></div>
         <div class="a-progress"><div class="a-progress__bar" role="progressbar" aria-label="Étapes faites" aria-valuemin="0" aria-valuemax="${steps.length}" aria-valuenow="${done}"><div class="a-progress__fill" style="width:${Math.round((done / steps.length) * 100)}%"></div></div><span class="a-progress__txt">${done} sur ${steps.length}</span></div>
         ${allDone ? H`<div class="a-card__foot"><button class="a-btn a-btn--primary a-btn--lg" type="button" data-act="publish">${ico('rocket')}Publier ma boutique</button></div>` : ''}
         <ul class="a-steps" id="a-steps">${steps.map((s) => stepItem(s, !open && next.indexOf(s) < 0))}</ul>
         <div class="a-steps__more"><button class="a-btn a-btn--quiet a-btn--sm" type="button" data-act="check-all" aria-expanded="${open ? 'true' : 'false'}" aria-controls="a-steps">${ico(open ? 'up' : 'down')}${esc(open ? 'Voir moins' : 'Voir les ' + steps.length + ' étapes (' + plural(done, 'faite', 'faites') + ')')}</button></div>
-      </section>
+      </section>`}
       <section class="a-home__kpi" aria-labelledby="h-kpi">
         <div class="a-sechead"><h2 class="a-sechead__title" id="h-kpi">Vos ventes</h2>${sample}</div>
         <div class="a-kpis">
@@ -1780,7 +1815,7 @@
       <div class="a-dialog__body"><p class="a-dialog__lead">Sur votre statut WhatsApp, dans la bio Instagram ou TikTok : c’est comme ça qu’arrivent les premières commandes.</p>
         <div class="a-field" style="margin-top:14px"><label class="a-label" for="sh-url">Le lien</label><input class="a-input" id="sh-url" value="${esc(url)}" readonly></div>
         <div class="a-sharebtns">
-          <a class="a-btn a-btn--primary" href="${esc('https://wa.me/?text=' + encodeURIComponent(msg))}" target="_blank" rel="noopener">${ico('chat')}Envoyer sur WhatsApp</a>
+          <a class="a-btn a-btn--primary" href="${esc('https://wa.me/?text=' + encodeURIComponent(msg))}" target="_blank" rel="noopener" data-share-wa>${ico('chat')}Envoyer sur WhatsApp</a>
           <button class="a-btn a-btn--ghost" type="button" data-act="share-copy" data-url="${esc(url)}">${ico('copy')}Copier le lien</button>
           ${canNative ? H`<button class="a-btn a-btn--quiet" type="button" data-act="share-native" data-url="${esc(url)}" data-text="${esc(fr(text))}" data-title="${esc(title)}">${ico('share')}Autres applications</button>` : ''}
         </div>
@@ -1794,7 +1829,7 @@
     shareSheet('Partager ce produit', (p.name || 'Mon produit') + ', ' + price(p.price) + ', chez ' + storeName() + ' :', productUrl(p));
   }
   function copyLink(url) {
-    const done = () => toast('Lien copié.');
+    const done = () => { toast('Lien copié.'); markShared(); };
     const fallback = () => { const i = $('#sh-url'); if (i) { i.focus(); i.select(); } toast('Sélectionnez le lien puis copiez-le.'); };
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, fallback);
@@ -1803,7 +1838,7 @@
   }
   function nativeShare(el) {
     try {
-      navigator.share({ title: el.getAttribute('data-title') || storeName(), text: el.getAttribute('data-text') || '', url: el.getAttribute('data-url') || storeUrl() }).catch(() => { /* cancelled */ });
+      navigator.share({ title: el.getAttribute('data-title') || storeName(), text: el.getAttribute('data-text') || '', url: el.getAttribute('data-url') || storeUrl() }).then(markShared, () => { /* cancelled */ });
     } catch (e) { /* not available */ }
   }
   function openPublish() {
@@ -1814,12 +1849,102 @@
         <p class="a-small" style="margin-top:10px">Jeere ouvre bientôt à Abidjan. Rejoignez la liste d’attente pour faire partie des 50 premières boutiques.</p></div>
       <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Plus tard</button><a class="a-btn a-btn--primary" href="../#liste">Rejoindre la liste d’attente${ico('arrow')}</a></div></div>`, { labelledby: 'pb-t' });
   }
+  // « ? Aide » (top bar, sidebar, « Plus »): the guided tour again, « Premiers pas » back on the home page, a real person
   function openHelp() {
+    const hidden = S.config && onboarding().checklistHidden === true;
+    const tourOk = !!window.JeereTour && !!S.config;
     openDialog(H`<div class="a-dialog__card">${dlgHead('hp-t', 'Aide')}
-      <div class="a-dialog__body"><div class="a-dialog__done"><span class="a-empty__ico">${ico('help')}</span>
+      <div class="a-dialog__body">
+        ${tourOk || hidden ? H`<div class="a-help__acts">
+          ${tourOk ? H`<button class="a-btn a-btn--primary a-btn--block" type="button" data-act="tour-replay" data-autofocus>${ico('flag')}Revoir la visite guidée</button>` : ''}
+          ${hidden ? H`<button class="a-btn a-btn--ghost a-btn--block" type="button" data-act="checklist-show">${ico('check')}Afficher les premiers pas</button>` : ''}
+        </div>` : ''}
+        <div class="a-dialog__done"><span class="a-empty__ico">${ico('help')}</span>
         <p class="a-dialog__lead"><strong>Une vraie personne vous répond.</strong> Dans Jeere, vous écrivez à notre équipe sur WhatsApp, en français : une question sur une commande, un paiement, votre boutique. C’est dans toutes les formules, même Gratuit.</p></div>
         <div class="a-note a-note--line" style="margin-top:8px">${ico('info')}<p>Démo : aucun message n’est envoyé.</p></div></div>
-      <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close data-autofocus>J’ai compris</button></div></div>`, { labelledby: 'hp-t' });
+      <div class="a-dialog__foot"><button class="a-btn ${tourOk || hidden ? 'a-btn--ghost' : 'a-btn--primary'}" type="button" data-close${tourOk ? '' : ' data-autofocus'}>J’ai compris</button></div></div>`, { labelledby: 'hp-t' });
+  }
+  function markShared() {
+    if (!S.admin || onboarding().sharedAt) return;
+    onboarding().sharedAt = new Date().toISOString();
+    saveAdmin();
+    // The share sheet stays open (the seller may copy the link too): the home page is redrawn when it closes
+    const again = () => { if (S.route && S.route.name === 'accueil') refresh(); };
+    if (dialogEl() && dialogEl().open) { const prev = dlgOnClose; dlgOnClose = () => { if (prev) prev(); again(); }; } else again();
+  }
+  function setChecklistHidden(on) {
+    onboarding().checklistHidden = on;
+    saveAdmin();
+    if (on) {
+      toast('Premiers pas masqués. Retrouvez-les dans « ? Aide ».');
+      refresh();
+      const b = $('#a-help-btn');
+      if (b && b.getClientRects().length) b.focus(); else focusMain();
+    } else {
+      closeDialog(true);
+      if (S.route && S.route.name === 'accueil') refresh('.a-home__check .a-step, [data-act="checklist-hide"]'); else go('accueil');
+    }
+  }
+
+  /* ---------- the guided tour of the dashboard (../creer/tour.js, shared with the Studio) ---------- */
+
+  // Six steps on the home page: « Premiers pas », orders, payments, products, the share link, « ? Aide ». It
+  // starts once per browser, a moment after the first visit (signed in or « Voir la démo »), unless the seller
+  // is already busy. « ? Aide » › « Revoir la visite guidée » replays it. A click outside the bubble closes it.
+  const TOUR_ID = 'admin';
+  const isDesk = () => window.innerWidth >= 960;
+  function tourSteps() {
+    const nav = (id) => () => (isDesk() ? $('.a-nav__link[data-nav="' + id + '"]') : $('.a-tab[data-tab="' + id + '"]'));
+    const desk = isDesk();
+    const tap = desk ? 'cliquez' : 'touchez';
+    return [
+      { target: '.a-home__check', title: fr('Vos premiers pas'),
+        text: fr('Les étapes pour ouvrir votre boutique. Elles se cochent toutes seules quand c’est fait ; ' + (desk ? 'cliquez sur l’une d’elles' : 'touchez-en une') + ' pour y aller.') },
+      { target: nav('commandes'), title: fr('Vos commandes'),
+        text: fr('Celles de votre boutique, de WhatsApp, d’Instagram et de TikTok, au même endroit. ' + (desk ? 'Le chiffre vous dit combien sont à préparer.' : 'Le point vous dit qu’il y en a à préparer.')) },
+      { target: '.a-kpi--sales', title: fr('Vos paiements'),
+        text: fr('Ce que vous avez encaissé, et ce que vos livreurs doivent encore encaisser. Connectez Wave dans Paiements : l’argent arrive sur votre numéro.') },
+      { target: nav('produits'), title: fr('Vos produits'),
+        text: fr('Ajoutez-les avec une photo prise au téléphone, un prix et le stock. Ils sont aussitôt dans votre boutique.') },
+      { target: '.a-home__preview [data-act="share-store"]', title: fr('Partagez votre lien'),
+        text: fr('Envoyez le lien de votre boutique sur WhatsApp, à vos clients et sur votre statut : les premières commandes arrivent comme ça.') },
+      { target: '#a-help-btn', title: fr('Besoin d’aide ?'),
+        text: fr('Revoyez cette visite, retrouvez les premiers pas ou écrivez à une vraie personne : ' + tap + (desk ? ' sur' : '') + ' « ? Aide ».') }
+    ];
+  }
+  function tourInsets() {
+    const top = $('.a-top');
+    const bar = $('.a-tabbar');
+    return {
+      top: top && top.getClientRects().length ? top.getBoundingClientRect().bottom : 0,
+      bottom: bar && bar.getClientRects().length ? bar.offsetHeight : 0
+    };
+  }
+  function startTour() {
+    const T = window.JeereTour;
+    if (!T || !S.inApp || !S.config) return false;
+    // A toast (« Bienvenue dans la démo »…) would show through the spotlight: it goes first
+    const box = $('#a-toasts');
+    if (box) box.innerHTML = '';
+    T.start({ id: TOUR_ID, label: 'Visite guidée du tableau de bord', steps: tourSteps(), insets: tourInsets, doneLabel: 'C’est parti', returnFocus: () => $('#a-help-btn') });
+    return true;
+  }
+  let tourTimer = 0;
+  function maybeAutoTour() {
+    const T = window.JeereTour;
+    if (!T || T.seen(TOUR_ID) || !S.config || !S.route || S.route.name !== 'accueil') return;
+    let busy = false;
+    const mark = () => { busy = true; };
+    window.addEventListener('pointerdown', mark, true);
+    window.addEventListener('keydown', mark, true);
+    clearTimeout(tourTimer);
+    tourTimer = setTimeout(() => {
+      window.removeEventListener('pointerdown', mark, true);
+      window.removeEventListener('keydown', mark, true);
+      // (the hash may have changed a moment ago, before its hashchange: read it from the address)
+      if (busy || !S.inApp || $('dialog[open]') || T.seen(TOUR_ID) || T.isOpen() || parseHash().name !== 'accueil') return;
+      startTour();
+    }, 1000);
   }
 
   /* ---------- the printed slip (« Imprimer le bon ») ---------- */
@@ -3332,7 +3457,7 @@
   }
   function doDeleteAccount(form) {
     if (fold(form.elements.confirm.value).trim() !== 'supprimer') { invalid(form.elements.confirm, 'Tapez SUPPRIMER pour confirmer.'); return; }
-    [KEYS.config, KEYS.account, KEYS.admin, KEYS.open].forEach(lsDel);
+    [KEYS.config, KEYS.account, KEYS.admin, KEYS.open, KEYS.tour || 'jeere-tour'].forEach(lsDel);
     S.drafts = {};
     clearDirty();
     closeDialog(true);
@@ -3419,9 +3544,11 @@
     S.inApp = true;
     if (!window.location.hash || window.location.hash === '#') { try { history.replaceState(null, '', '#accueil'); } catch (e) { /* ignore */ } }
     render(parseHash(), !!focus);
+    maybeAutoTour();
   }
   function logout() {
     if (S.dirty) { nudgeSave(); return; }
+    if (window.JeereTour && window.JeereTour.isOpen()) window.JeereTour.stop('outside');
     if (S.account) { S.account.loggedIn = false; saveAccount(); }
     const more = $('#a-more');
     if (more && more.open) { try { more.close(); } catch (e) { /* ignore */ } }
@@ -3476,6 +3603,14 @@
     'help': () => openHelp(),
     'publish': () => openPublish(),
     'check-all': () => { S.checkOpen = !S.checkOpen; refresh('[data-act="check-all"]'); },
+    'checklist-hide': () => setChecklistHidden(true),
+    'checklist-show': () => setChecklistHidden(false),
+    'tour-replay': () => {
+      closeDialog(true);
+      const later = !S.route || S.route.name !== 'accueil';
+      if (later) go('accueil');
+      setTimeout(() => { if (!startTour()) toast('La visite guidée n’a pas pu se charger. Rechargez la page.'); }, later ? 150 : 0);
+    },
     'use-my-wa': () => useMyWhatsapp(),
     'share-store': () => shareStore(),
     'share-product': (el) => shareProduct(el.getAttribute('data-id')),
@@ -3574,6 +3709,8 @@
   function onClick(e) {
     const t = e.target;
     if (!t || !t.closest) return;
+    // « Envoyer sur WhatsApp » in the share sheet: the « Premiers pas » step is done (the link opens WhatsApp)
+    if (t.closest('[data-share-wa]')) markShared();
     // Account menu: outside click closes it
     const acctBtn = t.closest('#a-acct-btn');
     if (acctBtn) { toggleAcct(); return; }
@@ -3770,6 +3907,7 @@
   window.JeereAdmin = {
     go,
     state: () => S,
+    startTour,
     reload: () => { loadAll(); if (isIn()) showApp(false); else showGate(); }
   };
 

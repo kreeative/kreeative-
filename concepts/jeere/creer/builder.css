@@ -351,12 +351,17 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-pagegrp .b-pagemng { width: 48px; padding: 0; }
 .b-top__end { display: flex; align-items: center; gap: 4px; flex: none; margin-left: auto; }
 .b-top__fiche { margin: 0 4px 0 6px; }
+/* « ? Aide »: replays the guided tour; an icon below 1200 px (its name stays in aria-label and title) */
+.b-top__help { margin: 0 4px 0 0; padding: 0 12px 0 10px; border-color: transparent; }
+.b-top__help .b-ico { width: 20px; height: 20px; }
 @media (max-width: 1199.98px) {
   .b-top__device .b-seg__btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .b-top__device .b-seg__btn { padding: 0 10px; }
   /* Room for the page selector: « Fiche boutique » becomes an icon (its name stays in aria-label and title) */
   .b-top__fiche { width: 44px; margin: 0 2px; padding: 0; }
   .b-top__fiche .b-top__lbl { display: none; }
+  .b-top__help { width: 44px; margin: 0 2px 0 0; padding: 0; }
+  .b-top__help .b-top__lbl { display: none; }
 }
 
 /* Panel */
@@ -859,6 +864,14 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   .b-top { padding-left: 10px; }
   .b-top__logo { padding: 0 6px; }
 }
+/* Small phones: « ? Aide » joins the bar, so the icon buttons are 40 px wide (still >= 40 px tall targets) and the cloud a little smaller */
+@media (max-width: 409.98px) {
+  .b-top__end .b-ibtn, .b-top__end .b-top__fiche, .b-top__end .b-top__help { width: 40px; min-width: 40px; }
+  .b-top__end .b-btn--primary { padding: 0 12px; }
+  .b-top__logo .logo__cloud { height: 28px; }
+  .b-top__dash { margin-left: 2px; }
+}
+@media (max-width: 379.98px) { .b-top__logo { padding: 0 4px; } .b-top__end .b-btn--primary { padding: 0 11px; } }
 /* On small phones the selector shows the page name only (its label stays for screen readers) */
 @media (max-width: 399.98px) {
   .b-stage__page .b-pagesel__k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
