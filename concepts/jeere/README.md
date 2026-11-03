@@ -40,11 +40,12 @@ Numbers are personal data: keep the table private, and delete a row when someone
 ## Identity used on the page
 
 - **Logo**: a geometric “j” drawn in SVG (`#mark` in `index.html`): a round dot above a thick
-  curved base with a small notch, next to “JEERE” set in Poppins SemiBold. The “j” is gold (a
-  soft metallic gradient `#F0D58A` → `#D2A845` → `#A97C22`, because it speaks of money); the
-  word is black on light backgrounds and white on dark ones. The rest of the site stays black
-  and white. The footer echoes the brand board: the word with four small icons (store, payment,
-  chat, delivery) beside the dot. The favicon is the gold “j” on a black rounded square.
+  curved base with a small notch, next to “JEERE” set in Poppins SemiBold. The “j” is silver: a bright metallic
+  gradient (`#F4F6F8` → `#C3C8CE` → `#8A9199`) on dark backgrounds and a darker one (`#C9CED4` →
+  `#9AA1A9` → `#5F6670`) on light backgrounds so it stays visible. The word is black on light
+  backgrounds and silver on dark ones. The rest of the site stays black and white.
+  The footer echoes the brand board: the word with four small icons (store, payment,
+  chat, delivery) beside the dot. The favicon is the silver “j” on a black rounded square.
 - **Colours**: black and white only. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
   colour, so only the demo stores and product pictures on the page are in colour.

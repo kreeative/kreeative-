@@ -111,7 +111,7 @@ ul, ol { padding: 0; list-style: none; }
 .head__logo { display: flex; align-items: center; min-height: 44px; margin-right: auto; color: var(--ink); text-decoration: none; }
 /* Logo: the geometric "j" mark + JEERE in Poppins */
 .logo { display: inline-flex; align-items: center; gap: 8px; color: inherit; }
-.logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; flex: none; }
+.logo__mark { height: 28px; width: auto; aspect-ratio: 300 / 372; flex: none; fill: url(#jeere-silver-dark); }
 .logo__word { font: 600 19px/1 var(--f-display); letter-spacing: .03em; }
 .head__nav { display: none; gap: 26px; }
 .head__nav a { font-size: 15px; font-weight: 500; text-decoration: none; color: var(--muted); padding: 10px 0; }
@@ -243,6 +243,9 @@ html:not(.js) .msg { animation: none; opacity: 1; transform: none; }
 .compare__title { display: flex; align-items: center; gap: 10px; font: 600 13px/1 var(--f-text); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 18px; min-height: 22px; }
 .compare__col--before .compare__title { color: var(--muted); }
 .logo--inline { gap: 6px; color: var(--white); }
+.logo--inline .logo__mark, .foot__j { fill: url(#jeere-silver); }
+/* The word in silver on dark backgrounds */
+.logo--inline .logo__word, .foot__word { background: linear-gradient(135deg, #F4F6F8, #C3C8CE 55%, #8A9199); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .logo--inline .logo__mark { height: 17px; }
 .logo--inline .logo__word { font-size: 14px; letter-spacing: .06em; }
 .compare li { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); font-size: 16.5px; line-height: 1.45; }
