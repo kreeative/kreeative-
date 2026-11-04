@@ -1,0 +1,2348 @@
+/* Jeere Studio — the advanced editor (Figma / Framer / Webflow-like) over the same fiche
+ * boutique as ../creer/. One classic script, one global: window.JeereStudio.
+ *
+ * It loads ../creer/data.js (JEERE_DATA) and ../creer/render.js (JeereRender) and codes
+ * defensively against that contract: every access is feature-detected, every render is caught,
+ * the fiche goes through normalizeConfig on load and on save, and the inspector forms are built
+ * from JEERE_DATA.sectionTypes[].fields — a new field added to the contract appears here on its
+ * own. The fiche lives in localStorage 'jeere-studio-config' (STORAGE_KEYS.config), shared with
+ * the simple editor and the dashboard. Studio-only UI state (pro flag, locks, device focus)
+ * lives in its own key 'jeere-studio-ui' and never touches the fiche.
+ */
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------ guards + helpers */
+
+  var D = window.JEERE_DATA;
+  var R = window.JeereRender;
+
+  function $(id) { return document.getElementById(id); }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function ce(tag, cls, html) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  }
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+  if (!D || !R || typeof D.normalizeConfig !== 'function' || typeof R.render !== 'function' ||
+      !D.sectionTypes || !D.palettes || !D.templates) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('studio');
+      if (st) st.innerHTML = '<div style="padding:60px;text-align:center;font-family:Poppins,sans-serif;color:#E8E8E8">' +
+        '<h1 style="font-size:19px">Le Studio n’a pas pu démarrer</h1>' +
+        '<p style="color:#9E9E9E">Les fichiers de l’éditeur (../creer/data.js, ../creer/render.js) n’ont pas chargé. Rechargez la page, ou ouvrez <a href="../creer/" style="color:#CFE0FF">l’éditeur simple</a>.</p></div>';
+    });
+    return;
+  }
+
+  var clone = typeof D.clone === 'function' ? D.clone : function (o) { try { return JSON.parse(JSON.stringify(o)); } catch (e) { return null; } };
+  var CONFIG_KEY = (D.STORAGE_KEYS && D.STORAGE_KEYS.config) || 'jeere-studio-config';
+  var UI_KEY = 'jeere-studio-ui';
+  var PAGES = Array.isArray(D.PAGES) && D.PAGES.length ? D.PAGES : [
+    { id: 'home', label: 'Accueil' }, { id: 'product', label: 'Fiche produit' }, { id: 'cart', label: 'Panier' },
+    { id: 'checkout', label: 'Paiement' }, { id: 'confirmation', label: 'Confirmation' }
+  ];
+
+  function sectionDef(type) { return (D.sectionTypes && D.sectionTypes[type]) || null; }
+  function defFields(type) { var d = sectionDef(type); return (d && Array.isArray(d.fields)) ? d.fields : []; }
+  function hasField(type, key) { return defFields(type).some(function (f) { return f && f.key === key; }); }
+
+  /* ------------------------------------------------------------------ state */
+
+  var ui = loadUI();
+  var state = {
+    config: loadConfig(),
+    page: 'home', pageId: null, productId: null,
+    sel: null,                      // {kind:'section'|'product'|'page', id, field?}
+    tool: 'select',                 // 'select' | 'hand'
+    zoom: 1, panX: 60, panY: 80,
+    deviceFocus: 'both'             // 'both' | 'phone' | 'desktop'
+  };
+  var clipboard = null;             // in-app clipboard: {kind:'jeere-section', data}
+  var undoStack = [];
+  var redoStack = [];
+  var coalesceKey = null, coalesceAt = 0;
+
+  function loadConfig() {
+    var raw = null;
+    try { raw = localStorage.getItem(CONFIG_KEY); } catch (e) { /* blocked */ }
+    if (raw) {
+      try { return D.normalizeConfig(raw); } catch (e) { /* fall through */ }
+    }
+    try { return D.normalizeConfig(D.defaultConfig('plateau', 'beauty')); }
+    catch (e) { return D.defaultConfig('plateau', 'beauty'); }
+  }
+
+  function loadUI() {
+    try {
+      var u = JSON.parse(localStorage.getItem(UI_KEY) || '{}');
+      return (u && typeof u === 'object') ? u : {};
+    } catch (e) { return {}; }
+  }
+  function saveUI() {
+    try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) { /* conveniences only */ }
+  }
+  if (!ui.locked || typeof ui.locked !== 'object') ui.locked = {};
+
+  function isLocked(id) { return !!ui.locked[id]; }
+
+  function sections() { return Array.isArray(state.config.sections) ? state.config.sections : []; }
+  function products() { return Array.isArray(state.config.products) ? state.config.products : []; }
+  function customPages() { return Array.isArray(state.config.pages) ? state.config.pages : []; }
+  function sectionById(id) { return sections().filter(function (s) { return s && s.id === id; })[0] || null; }
+  function productById(id) { return products().filter(function (p) { return p && p.id === id; })[0] || null; }
+  function pageById(id) { return customPages().filter(function (p) { return p && p.id === id; })[0] || null; }
+
+  function sectionName(s) {
+    if (!s) return '';
+    var def = sectionDef(s.type);
+    var base = def && def.name ? def.name : s.type;
+    var t = s.settings && typeof s.settings.title === 'string' && s.settings.title.trim() ? s.settings.title.trim() : '';
+    if (s.type === 'hero' && s.settings && typeof s.settings.title === 'string' && s.settings.title.trim()) t = s.settings.title.trim();
+    return t || base;
+  }
+
+  /* ------------------------------------------------------------------ history */
+
+  function snapshot() { return clone(state.config); }
+
+  function commit(label, mutate, opts) {
+    opts = opts || {};
+    var before = snapshot();
+    try { mutate(state.config); } catch (e) { toast('La modification n’a pas pu être appliquée.', 'err'); return; }
+    var now = Date.now();
+    if (opts.coalesce && coalesceKey === opts.coalesce && now - coalesceAt < 1200 && undoStack.length) {
+      undoStack[undoStack.length - 1].label = label; // keep the first 'before' of the burst
+    } else {
+      undoStack.push({ label: label, before: before });
+      if (undoStack.length > 120) undoStack.shift();
+    }
+    coalesceKey = opts.coalesce || null;
+    coalesceAt = now;
+    redoStack.length = 0;
+    afterChange(opts);
+  }
+
+  function undo() {
+    if (!undoStack.length) { toast('Rien à annuler.'); return; }
+    var entry = undoStack.pop();
+    redoStack.push({ label: entry.label, before: snapshot() });
+    state.config = entry.before;
+    coalesceKey = null;
+    validateSelection();
+    afterChange({ structure: true });
+    toast('Annulé : ' + entry.label.toLowerCase(), 'info');
+  }
+
+  function redo() {
+    if (!redoStack.length) { toast('Rien à rétablir.'); return; }
+    var entry = redoStack.pop();
+    undoStack.push({ label: entry.label, before: snapshot() });
+    state.config = entry.before;
+    coalesceKey = null;
+    validateSelection();
+    afterChange({ structure: true });
+    toast('Rétabli : ' + entry.label.toLowerCase(), 'info');
+  }
+
+  function validateSelection() {
+    var sel = state.sel;
+    if (!sel) return;
+    if (sel.kind === 'section' && !sectionById(sel.id)) state.sel = null;
+    if (sel.kind === 'product' && !productById(sel.id)) state.sel = null;
+    if (sel.kind === 'page' && !pageById(sel.id)) state.sel = null;
+    if (state.page === 'page' && state.pageId && !pageById(state.pageId)) { state.page = 'home'; state.pageId = null; }
+  }
+
+  /* ------------------------------------------------------------------ save (autosave + Ctrl+S) */
+
+  var saveTimer = null;
+  var saveStateEl, saveLabelEl;
+
+  function setSaveState(s, label) {
+    if (!saveStateEl) return;
+    saveStateEl.dataset.state = s;
+    saveLabelEl.textContent = label || (s === 'saved' ? 'Enregistré' : s === 'saving' ? 'Enregistrement…' : 'Non enregistré');
+  }
+
+  function scheduleSave() {
+    setSaveState('saving');
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNow, 600);
+  }
+
+  function saveNow() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    var out;
+    try { out = D.normalizeConfig(state.config); } catch (e) { out = state.config; }
+    try {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(out));
+      setSaveState('saved');
+      return true;
+    } catch (e) {
+      setSaveState('error', 'Non enregistré');
+      toast('Ce navigateur bloque l’enregistrement : vos changements seront perdus en fermant la page.', 'err');
+      return false;
+    }
+  }
+
+  /* ------------------------------------------------------------------ change pipeline */
+
+  var renderQueued = false;
+
+  function afterChange(opts) {
+    opts = opts || {};
+    if (opts.structure) prevCache = {}; // the insert previews render in the current style: drop them when it moves
+    scheduleRender();
+    scheduleSave();
+    buildTree();
+    if (opts.structure) buildInspector();
+    syncTopBar();
+  }
+
+  function scheduleRender() {
+    if (renderQueued) return;
+    renderQueued = true;
+    requestAnimationFrame(function () { renderQueued = false; renderArtboards(); });
+  }
+
+  /* ------------------------------------------------------------------ artboards */
+
+  var stage, world, roots = {}, abEls = {};
+
+  function renderArtboards() {
+    ['phone', 'desktop'].forEach(function (dev) {
+      var rootEl = roots[dev];
+      if (!rootEl) return;
+      try {
+        R.render(state.config, rootEl, { device: dev, page: state.page, productId: state.productId, pageId: state.pageId });
+      } catch (e) {
+        try {
+          rootEl.className = '';
+          rootEl.innerHTML = '<div class="st-ab__err">L’aperçu n’a pas pu être affiché.<small>La fiche boutique est peut-être abîmée. Annulez la dernière action (Ctrl Z), ou importez une fiche valide.</small></div>';
+        } catch (e2) { /* nothing more */ }
+      }
+    });
+    applyDecor();
+  }
+
+  /* The selection and hover outlines live on the rendered store nodes, re-applied after every
+   * render (render replaces innerHTML). */
+
+  function fieldSelectors(type, field) {
+    var m = {
+      title: ['.jst-hero-title', '.jst-about-title', '.jst-h', 'h1', 'h2', 'h3'],
+      text: ['.jst-hero-text', '.jst-ann-item', 'p'],
+      kicker: ['.jst-kicker', '.jst-tag'],
+      button: ['.jst-btn', 'button', 'a[class*="btn"]']
+    };
+    return m[field] || null;
+  }
+
+  function findFieldEl(secEl, type, field) {
+    var sels = fieldSelectors(type, field);
+    if (!sels) return null;
+    for (var i = 0; i < sels.length; i++) {
+      var n = null;
+      try { n = secEl.querySelector(sels[i]); } catch (e) { n = null; }
+      if (n) return n;
+    }
+    return null;
+  }
+
+  function applyDecor() {
+    ['phone', 'desktop'].forEach(function (dev) {
+      var rootEl = roots[dev];
+      if (!rootEl) return;
+      rootEl.querySelectorAll('.st-sel, .st-sel--sub, .st-hov, .st-lockhint').forEach(function (n) {
+        n.classList.remove('st-sel', 'st-sel--sub', 'st-hov', 'st-lockhint');
+        if (n.hasAttribute('data-st-name')) n.removeAttribute('data-st-name');
+      });
+      var sel = state.sel;
+      if (!sel) return;
+      if (sel.kind === 'section') {
+        var secEl = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
+        if (!secEl) return;
+        secEl.classList.add('st-sel');
+        secEl.setAttribute('data-st-name', sectionName(sectionById(sel.id)));
+        if (sel.field) {
+          var f = findFieldEl(secEl, sel.fieldType || '', sel.field);
+          if (f) f.classList.add('st-sel--sub');
+        }
+      } else if (sel.kind === 'product') {
+        var cards = rootEl.querySelectorAll('[data-product-id="' + cssEsc(sel.id) + '"]');
+        if (cards.length) {
+          var p = productById(sel.id);
+          cards[0].setAttribute('data-st-name', p && p.name ? p.name : 'Produit');
+        }
+        cards.forEach(function (c) { c.classList.add('st-sel'); });
+      }
+    });
+    positionTags();
+  }
+
+  /* The Figma-style name tag is a studio-owned element in the artboard layer (a sibling of the
+   * frame), never inside the rendered store: .jst clips its overflow, which used to swallow the
+   * tag of the first section and paint it over the section above for the others. */
+  function positionTags() {
+    ['phone', 'desktop'].forEach(function (dev) {
+      var ab = abEls[dev], rootEl = roots[dev];
+      if (!ab || !rootEl) return;
+      var tag = ab.querySelector('.st-ab__tag');
+      var sel = state.sel, target = null, text = '';
+      if (sel && sel.kind === 'section') {
+        target = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
+        text = sectionName(sectionById(sel.id));
+      } else if (sel && sel.kind === 'product') {
+        target = rootEl.querySelector('[data-product-id="' + cssEsc(sel.id) + '"]');
+        var p = productById(sel.id);
+        text = p && p.name ? p.name : 'Produit';
+      }
+      if (!target) { if (tag) tag.hidden = true; return; }
+      if (!tag) { tag = ce('div', 'st-ab__tag'); ab.appendChild(tag); }
+      tag.hidden = false;
+      text = String(text || '');
+      tag.textContent = text.length > 28 ? text.slice(0, 27) + '…' : text;
+      var tr = target.getBoundingClientRect();
+      var ar = ab.getBoundingClientRect();
+      var z = state.zoom || 1;
+      tag.style.left = ((tr.left - ar.left) / z) + 'px';
+      tag.style.top = ((tr.top - ar.top) / z) + 'px';
+    });
+  }
+
+  function cssEsc(s) {
+    s = String(s == null ? '' : s);
+    return (window.CSS && CSS.escape) ? CSS.escape(s) : s.replace(/[^a-zA-Z0-9_-]/g, '');
+  }
+
+  /* ------------------------------------------------------------------ viewport: zoom + pan */
+
+  function applyTransform() {
+    world.style.transform = 'translate(' + state.panX + 'px,' + state.panY + 'px) scale(' + state.zoom + ')';
+    world.style.setProperty('--inv', String(1 / state.zoom));
+    stage.style.backgroundPosition = state.panX + 'px ' + state.panY + 'px';
+    var d = clamp(24 * state.zoom, 8, 96);
+    stage.style.backgroundSize = d + 'px ' + d + 'px';
+    var zb = $('zoomBtn');
+    if (zb) zb.childNodes[0].nodeValue = Math.round(state.zoom * 100) + ' % ';
+  }
+
+  function setZoom(z, cx, cy) {
+    z = clamp(z, 0.03, 4);
+    var r = stage.getBoundingClientRect();
+    var px = (cx == null ? r.width / 2 : cx - r.left);
+    var py = (cy == null ? r.height / 2 : cy - r.top);
+    var wx = (px - state.panX) / state.zoom;
+    var wy = (py - state.panY) / state.zoom;
+    state.zoom = z;
+    state.panX = px - wx * z;
+    state.panY = py - wy * z;
+    applyTransform();
+  }
+
+  function visibleABs() {
+    var out = [];
+    if (state.deviceFocus !== 'desktop') out.push(abEls.phone);
+    if (state.deviceFocus !== 'phone') out.push(abEls.desktop);
+    return out;
+  }
+
+  /* « Ajuster à l'écran » matches the opening framing: the artboard widths fit, the view starts
+   * at the top of the pages. Fitting the FULL page heights (~6000px) landed at an unreadable
+   * 13 % where the two artboards were slivers — nothing like what Ctrl+0 means in Figma. */
+  function fit() { fitWidthTop(); }
+
+  /* Shift+2, like Figma: zoom on the selection (falls back to fit without one). */
+  function zoomToSelection() {
+    var sel = state.sel;
+    if (!sel) { fit(); return; }
+    var dev = state.deviceFocus === 'desktop' ? 'desktop' : 'phone';
+    var rootEl = roots[dev];
+    var n = null;
+    if (rootEl && sel.kind === 'section') n = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
+    if (rootEl && sel.kind === 'product') n = rootEl.querySelector('[data-product-id="' + cssEsc(sel.id) + '"]');
+    if (!n) { fit(); return; }
+    var nr = n.getBoundingClientRect();
+    var sr = stage.getBoundingClientRect();
+    var wx = (nr.left - sr.left - state.panX) / state.zoom;
+    var wy = (nr.top - sr.top - state.panY) / state.zoom;
+    var ww = Math.max(1, nr.width / state.zoom), wh = Math.max(1, nr.height / state.zoom);
+    var z = clamp(Math.min((sr.width - 160) / ww, (sr.height - 140) / wh), 0.03, 2);
+    state.zoom = z;
+    state.panX = (sr.width - ww * z) / 2 - wx * z;
+    state.panY = (sr.height - wh * z) / 2 - wy * z;
+    applyTransform();
+  }
+
+  function fitWidthTop() {
+    // The opening view: both artboards fit in width, aligned near the top (a Figma-like landing).
+    var abs = visibleABs();
+    if (!abs.length) return;
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity;
+    abs.forEach(function (ab) {
+      x0 = Math.min(x0, ab.offsetLeft);
+      y0 = Math.min(y0, ab.offsetTop);
+      x1 = Math.max(x1, ab.offsetLeft + ab.offsetWidth);
+    });
+    var r = stage.getBoundingClientRect();
+    var z = clamp((r.width - 120) / Math.max(1, x1 - x0), 0.03, 1);
+    state.zoom = z;
+    state.panX = (r.width - (x1 - x0) * z) / 2 - x0 * z;
+    state.panY = 56 - y0 * z;
+    applyTransform();
+  }
+
+  function panToSelection() {
+    var sel = state.sel;
+    if (!sel) return;
+    var dev = state.deviceFocus === 'desktop' ? 'desktop' : 'phone';
+    var rootEl = roots[dev];
+    var n = null;
+    if (sel.kind === 'section') n = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
+    if (sel.kind === 'product') n = rootEl.querySelector('[data-product-id="' + cssEsc(sel.id) + '"]');
+    if (!n) return;
+    var nr = n.getBoundingClientRect();
+    var sr = stage.getBoundingClientRect();
+    var fully = nr.top >= sr.top && nr.bottom <= sr.bottom && nr.left >= sr.left && nr.right <= sr.right;
+    if (fully) return;
+    var wx = (nr.left + nr.width / 2 - sr.left - state.panX) / state.zoom;
+    var wy = (nr.top + nr.height / 2 - sr.top - state.panY) / state.zoom;
+    state.panX = sr.width / 2 - wx * state.zoom;
+    state.panY = sr.height / 2 - wy * state.zoom;
+    applyTransform();
+  }
+
+  /* wheel: Ctrl/Cmd (and trackpad pinch) zooms towards the cursor; plain wheel pans */
+  function onWheel(e) {
+    e.preventDefault();
+    closeCtx();
+    if (e.ctrlKey || e.metaKey) {
+      var factor = Math.exp(-e.deltaY * 0.0022);
+      setZoom(state.zoom * factor, e.clientX, e.clientY);
+    } else {
+      state.panX -= e.shiftKey ? e.deltaY : e.deltaX;
+      state.panY -= e.shiftKey ? 0 : e.deltaY;
+      applyTransform();
+    }
+  }
+
+  /* pan: space+drag, middle-drag, or the hand tool */
+  var pan = null;
+  var spaceHeld = false;
+  var suppressClick = false;
+
+  function onStagePointerDown(e) {
+    if (e.button === 1 || spaceHeld || state.tool === 'hand') {
+      pan = { x: e.clientX, y: e.clientY, px: state.panX, py: state.panY, moved: false };
+      stage.classList.add('is-panning');
+      stage.setPointerCapture && stage.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    }
+  }
+  function onStagePointerMove(e) {
+    if (!pan) return;
+    var dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) pan.moved = true;
+    state.panX = pan.px + dx;
+    state.panY = pan.py + dy;
+    applyTransform();
+  }
+  function onStagePointerUp(e) {
+    if (!pan) return;
+    if (pan.moved) { suppressClick = true; setTimeout(function () { suppressClick = false; }, 0); }
+    pan = null;
+    stage.classList.remove('is-panning');
+  }
+
+  /* ------------------------------------------------------------------ canvas selection */
+
+  function hitSection(t) {
+    if (!t || !t.closest) return null;
+    return t.closest('[data-section-id]');
+  }
+  function insideFrame(t) {
+    return t && t.closest ? t.closest('.st-ab__frame') : null;
+  }
+
+  function onStageClickCapture(e) {
+    if (suppressClick || pan) { e.stopPropagation(); e.preventDefault(); return; }
+    if (state.tool !== 'select') return; // hand tool: the store preview stays interactive
+    var frame = insideFrame(e.target);
+    if (!frame) {
+      // the stage background or an artboard name: deselect
+      if (e.target === stage || e.target.closest('.st-ab__name') || e.target.closest('.st-world')) select(null);
+      return;
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    var secEl = hitSection(e.target);
+    if (!secEl) { select(null); return; }
+    var id = secEl.getAttribute('data-section-id');
+    if (isLocked(id)) { select(null); return; }
+    var sel = state.sel;
+    if (sel && sel.kind === 'section' && sel.id === id && !sel.field) {
+      drillInto(secEl, e.target);
+    } else if (sel && ((sel.kind === 'section' && sel.id === id && sel.field) || sel.kind === 'product')) {
+      // a click inside while a sub-element is selected: try a new sub-element, else keep the section
+      drillInto(secEl, e.target) || select({ kind: 'section', id: id });
+    } else {
+      select({ kind: 'section', id: id });
+    }
+  }
+
+  function drillInto(secEl, target) {
+    var id = secEl.getAttribute('data-section-id');
+    var type = secEl.getAttribute('data-section-type') || '';
+    var card = target.closest ? target.closest('[data-product-id]') : null;
+    if (card && secEl.contains(card)) {
+      var pid = card.getAttribute('data-product-id');
+      if (productById(pid)) { select({ kind: 'product', id: pid }); return true; }
+    }
+    var pairs = [
+      ['.jst-hero-title', 'title'], ['.jst-about-title', 'title'],
+      ['.jst-hero-text', 'text'], ['.jst-ann-item', 'text'],
+      ['.jst-kicker', 'kicker'], ['.jst-tag', 'kicker'],
+      ['.jst-btn', 'button']
+    ];
+    for (var i = 0; i < pairs.length; i++) {
+      var n = target.closest ? target.closest(pairs[i][0]) : null;
+      if (n && secEl.contains(n) && hasField(type, pairs[i][1])) {
+        select({ kind: 'section', id: id, field: pairs[i][1], fieldType: type });
+        return true;
+      }
+    }
+    var h = target.closest ? target.closest('h1,h2,h3') : null;
+    if (h && secEl.contains(h) && hasField(type, 'title')) { select({ kind: 'section', id: id, field: 'title', fieldType: type }); return true; }
+    var p = target.closest ? target.closest('p') : null;
+    if (p && secEl.contains(p) && hasField(type, 'text')) { select({ kind: 'section', id: id, field: 'text', fieldType: type }); return true; }
+    return false;
+  }
+
+  var hovEl = null;
+  function onStageOverCapture(e) {
+    if (state.tool !== 'select' || pan) return;
+    var frame = insideFrame(e.target);
+    var secEl = frame ? hitSection(e.target) : null;
+    if (hovEl && hovEl !== secEl) { hovEl.classList.remove('st-hov', 'st-lockhint'); hovEl = null; }
+    if (!secEl || secEl.classList.contains('st-sel')) return;
+    hovEl = secEl;
+    secEl.classList.add(isLocked(secEl.getAttribute('data-section-id')) ? 'st-lockhint' : 'st-hov');
+  }
+
+  function select(sel, opts) {
+    opts = opts || {};
+    state.sel = sel;
+    if (sel && sel.kind === 'section' && state.page !== 'home') {
+      var s = sectionById(sel.id);
+      if (!s || s.type !== 'delivery') showPage('home');
+    }
+    if (sel && sel.kind === 'product') {
+      state.productId = sel.id;
+      if (state.page === 'product') scheduleRender();
+    }
+    applyDecor();
+    buildTree();
+    buildInspector();
+    if (opts.pan) requestAnimationFrame(panToSelection);
+    if (!opts.fromTree) {
+      var row = $('layersPanel') && $('layersPanel').querySelector('.st-row.is-sel');
+      if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function escapeSelection() {
+    var sel = state.sel;
+    if (!sel) return;
+    if (sel.kind === 'section' && sel.field) select({ kind: 'section', id: sel.id });
+    else if (sel.kind === 'product') {
+      // the parent of a product: its products section (the first one)
+      var sec = sections().filter(function (s) { return s.type === 'products'; })[0];
+      select(sec ? { kind: 'section', id: sec.id } : null);
+    } else select(null);
+  }
+
+  /* double-click on text in the canvas: drill into the sub-element AND put the caret in the
+   * matching inspector field, text selected — the Figma/Webflow edit-text reflex */
+  function onStageDblClick(e) {
+    if (state.tool !== 'select' || pan) return;
+    var frame = insideFrame(e.target);
+    if (!frame) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var secEl = hitSection(e.target);
+    if (!secEl) return;
+    var id = secEl.getAttribute('data-section-id');
+    if (isLocked(id)) return;
+    if (!(state.sel && ((state.sel.kind === 'section' && state.sel.id === id) || state.sel.kind === 'product'))) {
+      select({ kind: 'section', id: id });
+    }
+    drillInto(secEl, e.target);
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      var box = $('inspector');
+      if (!box) return;
+      var n = box.querySelector('.st-field--focus input, .st-field--focus textarea');
+      if (!n && state.sel && state.sel.kind === 'product') n = box.querySelector('input[type="text"]');
+      if (n) {
+        n.focus();
+        if (n.select) { try { n.select(); } catch (err) { /* nothing */ } }
+      }
+    }); });
+  }
+
+  /* right-click: the design-tool context menu (reusing the zoom menu's styling) */
+  var ctxEl = null;
+  function closeCtx() { if (ctxEl) { ctxEl.remove(); ctxEl = null; } }
+
+  function openCtx(x, y, items) {
+    closeCtx();
+    ctxEl = ce('div', 'st-menu st-ctx');
+    items.forEach(function (it) {
+      if (!it) { ctxEl.appendChild(document.createElement('hr')); return; }
+      var b = ce('button', '', '<span>' + esc(it[0]) + '</span>' + (it[1] ? '<kbd>' + esc(it[1]) + '</kbd>' : ''));
+      b.type = 'button';
+      b.addEventListener('click', function () { closeCtx(); it[2](); });
+      ctxEl.appendChild(b);
+    });
+    document.body.appendChild(ctxEl);
+    ctxEl.style.left = clamp(x, 8, window.innerWidth - ctxEl.offsetWidth - 8) + 'px';
+    ctxEl.style.top = clamp(y, 8, window.innerHeight - ctxEl.offsetHeight - 8) + 'px';
+  }
+
+  function toggleHideSelected() {
+    var sel = state.sel;
+    if (!sel || sel.kind !== 'section') return;
+    var s = sectionById(sel.id);
+    if (!s) return;
+    commit(s.enabled === false ? 'Affichage de la section' : 'Masquage de la section', function (c) {
+      var t = (c.sections || []).filter(function (x) { return x.id === sel.id; })[0];
+      if (t) t.enabled = t.enabled === false;
+    }, { structure: true });
+  }
+
+  function onStageContextMenu(e) {
+    if (state.tool !== 'select') return; // hand tool: leave the browser menu alone
+    var frame = insideFrame(e.target);
+    if (!frame) { closeCtx(); return; }
+    e.preventDefault();
+    var secEl = hitSection(e.target);
+    if (!secEl) { closeCtx(); return; }
+    var id = secEl.getAttribute('data-section-id');
+    if (isLocked(id)) { closeCtx(); return; }
+    var card = e.target.closest ? e.target.closest('[data-product-id]') : null;
+    if (card && secEl.contains(card) && productById(card.getAttribute('data-product-id'))) {
+      select({ kind: 'product', id: card.getAttribute('data-product-id') });
+      openCtx(e.clientX, e.clientY, [
+        ['Dupliquer le produit', 'Ctrl D', duplicateSelection],
+        ['Supprimer le produit', 'Suppr', deleteSelection]
+      ]);
+      return;
+    }
+    if (!(state.sel && state.sel.kind === 'section' && state.sel.id === id && !state.sel.field)) select({ kind: 'section', id: id });
+    var s = sectionById(id);
+    openCtx(e.clientX, e.clientY, [
+      ['Copier', 'Ctrl C', copySelection],
+      ['Coller', 'Ctrl V', pasteClipboard],
+      ['Dupliquer', 'Ctrl D', duplicateSelection],
+      null,
+      [s && s.enabled === false ? 'Afficher la section' : 'Masquer la section', '', toggleHideSelected],
+      ['Supprimer', 'Suppr', deleteSelection]
+    ]);
+  }
+
+  /* ------------------------------------------------------------------ pages */
+
+  function showPage(page, pageId, productId) {
+    state.page = page;
+    state.pageId = page === 'page' ? (pageId || null) : null;
+    if (productId) state.productId = productId;
+    if (page === 'product' && !state.productId && products().length) state.productId = products()[0].id;
+    scheduleRender();
+    buildTree();
+  }
+
+  function onNavigate(e) {
+    // a click inside the store (hand tool): follow it on both artboards and in the tree
+    if (!e || !e.detail) return;
+    e.preventDefault(); // no scroll jump: the artboards stay where they are
+    var d = e.detail;
+    state.page = typeof d.page === 'string' ? d.page : 'home';
+    state.productId = d.productId || state.productId;
+    state.pageId = d.pageId || null;
+    scheduleRender(); // re-renders both (the source root is re-rendered identically)
+    buildTree();
+  }
+
+  /* ------------------------------------------------------------------ layers tree */
+
+  var treeDrag = null;
+
+  var ICONS = {
+    page: '<svg viewBox="0 0 16 16"><path d="M4 1.5h5.5L13 5v9.5H4z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M9.5 1.5V5H13" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    announcement: '<svg viewBox="0 0 16 16"><rect x="1.5" y="5" width="13" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    hero: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 10.5l2.6-3 2.4 2.2 1.6-1.6 1.4 2.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>',
+    categories: '<svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    products: '<svg viewBox="0 0 16 16"><path d="M3 5.5l5-3 5 3v5l-5 3-5-3z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3 5.5l5 3 5-3M8 8.5v5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    about: '<svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 13.5c.7-2.6 2.4-4 4.5-4s3.8 1.4 4.5 4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    reviews: '<svg viewBox="0 0 16 16"><path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.2L8 11.5l-3.8 2 .7-4.2-3.1-3 4.3-.6z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>',
+    delivery: '<svg viewBox="0 0 16 16"><rect x="1.5" y="4" width="8" height="6.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M9.5 6h3l2 2.4v2.1h-5z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5" cy="12" r="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="12" cy="12" r="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    whatsapp: '<svg viewBox="0 0 16 16"><path d="M8 2.2a5.8 5.8 0 00-5 8.7L2.2 14l3.2-.8A5.8 5.8 0 108 2.2z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    product: '<svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 13.5V9.8h5v3.7" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>',
+    eye: '<svg viewBox="0 0 16 16"><path d="M1.8 8S4 3.9 8 3.9 14.2 8 14.2 8 12 12.1 8 12.1 1.8 8 1.8 8z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="1.9" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    eyeOff: '<svg viewBox="0 0 16 16"><path d="M3 13L13 3M5.8 11.4A6.7 6.7 0 001.8 8S4 3.9 8 3.9c.8 0 1.5.2 2.2.4M12 5.7A11 11 0 0114.2 8S12 12.1 8 12.1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>',
+    lock: '<svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 7V5.4a2.5 2.5 0 015 0V7" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    unlock: '<svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 7V5.4a2.5 2.5 0 015-.8" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>'
+  };
+  function icon(name) { return ICONS[name] || ICONS.page; }
+
+  function buildTree() {
+    var panel = $('layersPanel');
+    if (!panel || panel.querySelector('.st-row__name input')) return; // a rename is in progress
+
+    /* the tree is rebuilt on every change: keep the keyboard user's focus on « their » row */
+    var focusKey = null;
+    var ae = document.activeElement;
+    if (ae && panel.contains(ae) && ae.classList && ae.classList.contains('st-row')) {
+      ['data-page', 'data-page-id', 'data-section-row', 'data-product-row'].forEach(function (a) {
+        if (!focusKey && ae.hasAttribute(a)) focusKey = [a, ae.getAttribute(a)];
+      });
+    }
+    panel.innerHTML = '';
+
+    /* pages of the buying journey */
+    var g1 = ce('div', 'st-group');
+    g1.appendChild(ce('div', 'st-group__title', 'Parcours d’achat'));
+    PAGES.forEach(function (pg) {
+      var row = ce('div', 'st-row is-page' + (state.page === pg.id ? ' is-on' : ''));
+      row.setAttribute('data-page', pg.id);
+      row.appendChild(ce('span', 'st-row__icon', icon('page')));
+      row.appendChild(ce('span', 'st-row__name', esc(pg.label)));
+      row.addEventListener('click', function () { showPage(pg.id); });
+      g1.appendChild(row);
+      if (pg.id === 'home') {
+        sections().forEach(function (s) { g1.appendChild(sectionRow(s)); });
+        if (!sections().length) g1.appendChild(ce('div', 'st-tree__empty', 'Aucune section. Ajoutez-en depuis l’onglet « Ajouter ».'));
+      }
+    });
+    panel.appendChild(g1);
+
+    /* the store's own pages */
+    var g2 = ce('div', 'st-group');
+    g2.appendChild(ce('div', 'st-group__title', 'Vos pages'));
+    customPages().forEach(function (pg) {
+      var row = ce('div', 'st-row is-page' + (state.page === 'page' && state.pageId === pg.id ? ' is-on' : '') +
+        (state.sel && state.sel.kind === 'page' && state.sel.id === pg.id ? ' is-sel' : ''));
+      row.setAttribute('data-page-id', pg.id);
+      row.appendChild(ce('span', 'st-row__icon', icon('page')));
+      var name = ce('span', 'st-row__name', esc(pg.title || 'Page'));
+      row.appendChild(name);
+      row.addEventListener('click', function () {
+        state.sel = { kind: 'page', id: pg.id };
+        showPage('page', pg.id);
+        buildInspector();
+      });
+      name.addEventListener('dblclick', function (e) { e.stopPropagation(); startRename(name, pg.title || '', 60, function (v) {
+        commit('Renommage de la page', function (c) {
+          var target = (c.pages || []).filter(function (x) { return x.id === pg.id; })[0];
+          if (target) {
+            target.title = v;
+            if (D.slugify) {
+              var slug = D.uniqueSlug ? D.uniqueSlug(c, v, pg.id) : D.slugify(v);
+              if (slug) target.slug = slug;
+            }
+          }
+        }, { structure: true });
+      }); });
+      g2.appendChild(row);
+    });
+    var addPg = ce('button', 'st-addbtn', '+ Ajouter une page');
+    addPg.type = 'button';
+    addPg.addEventListener('click', addCustomPage);
+    g2.appendChild(addPg);
+    panel.appendChild(g2);
+
+    /* keyboard access: every row is a focusable treeitem, one of them holds the tab stop */
+    var rows = Array.prototype.slice.call(panel.querySelectorAll('.st-row'));
+    var active = null;
+    rows.forEach(function (r) {
+      r.setAttribute('role', 'treeitem');
+      r.tabIndex = -1;
+      r.setAttribute('aria-selected', String(r.classList.contains('is-sel') || r.classList.contains('is-on')));
+      if (!active && r.classList.contains('is-sel')) active = r;
+    });
+    if (!active) active = rows.filter(function (r) { return r.classList.contains('is-on'); })[0] || rows[0];
+    if (active) active.tabIndex = 0;
+    if (focusKey) {
+      var nf = panel.querySelector('[' + focusKey[0] + '="' + cssEsc(focusKey[1]) + '"]');
+      if (nf) { nf.tabIndex = 0; nf.focus(); }
+    }
+  }
+
+  function sectionRow(s) {
+    var selOn = state.sel && ((state.sel.kind === 'section' && state.sel.id === s.id) ||
+      (state.sel.kind === 'product' && s.type === 'products'));
+    var row = ce('div', 'st-row st-row--child st-row--section' + (selOn && state.sel.kind === 'section' ? ' is-sel' : '') + (s.enabled === false ? ' is-off' : ''));
+    row.setAttribute('data-section-row', s.id);
+    row.appendChild(ce('span', 'st-row__icon', icon(s.type)));
+    var name = ce('span', 'st-row__name', esc(sectionName(s)));
+    row.appendChild(name);
+
+    var lockBtn = ce('button', 'st-row__btn' + (isLocked(s.id) ? ' is-active' : ''), icon(isLocked(s.id) ? 'lock' : 'unlock'));
+    lockBtn.type = 'button';
+    lockBtn.title = isLocked(s.id) ? 'Déverrouiller' : 'Verrouiller (plus sélectionnable sur le plan de travail)';
+    lockBtn.setAttribute('data-lock', s.id);
+    lockBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      ui.locked[s.id] = !ui.locked[s.id];
+      if (!ui.locked[s.id]) delete ui.locked[s.id];
+      saveUI();
+      buildTree();
+      toast(ui.locked[s.id] ? 'Section verrouillée.' : 'Section déverrouillée.');
+    });
+    row.appendChild(lockBtn);
+
+    var eyeBtn = ce('button', 'st-row__btn' + (s.enabled === false ? ' is-active' : ''), icon(s.enabled === false ? 'eyeOff' : 'eye'));
+    eyeBtn.type = 'button';
+    eyeBtn.title = s.enabled === false ? 'Afficher la section' : 'Masquer la section';
+    eyeBtn.setAttribute('data-eye', s.id);
+    eyeBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      commit(s.enabled === false ? 'Affichage de la section' : 'Masquage de la section', function (c) {
+        var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
+        if (t) t.enabled = t.enabled === false;
+      }, { structure: true });
+    });
+    row.appendChild(eyeBtn);
+
+    row.addEventListener('click', function (e) {
+      if (treeDrag && treeDrag.moved) return;
+      select({ kind: 'section', id: s.id }, { fromTree: true, pan: true });
+    });
+    var canRename = hasField(s.type, 'title');
+    name.addEventListener('dblclick', function (e) {
+      e.stopPropagation();
+      if (!canRename) { toast('Cette section n’a pas de titre dans la fiche.', 'info'); return; }
+      var cur = (s.settings && typeof s.settings.title === 'string') ? s.settings.title : '';
+      var max = 50;
+      defFields(s.type).forEach(function (f) { if (f.key === 'title' && typeof f.max === 'number') max = f.max; });
+      startRename(name, cur, max, function (v) {
+        commit('Renommage de la section', function (c) {
+          var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
+          if (t) { t.settings = t.settings || {}; t.settings.title = v; }
+        }, { structure: true });
+      });
+    });
+
+    row.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 || e.target.closest('.st-row__btn')) return;
+      startTreeDrag(e, s.id, row);
+    });
+
+    /* products as children of the first products section */
+    var frag = document.createDocumentFragment();
+    frag.appendChild(row);
+    var firstProducts = sections().filter(function (x) { return x.type === 'products'; })[0];
+    if (s.type === 'products' && firstProducts && firstProducts.id === s.id) {
+      products().forEach(function (p) {
+        var pr = ce('div', 'st-row st-row--child st-row--prod' + (state.sel && state.sel.kind === 'product' && state.sel.id === p.id ? ' is-sel' : ''));
+        pr.style.marginLeft = '40px';
+        pr.setAttribute('data-product-row', p.id);
+        var dot = ce('span', 'st-row__dot');
+        dot.style.background = p.color || '#E9D8BD';
+        pr.appendChild(dot);
+        var pn = ce('span', 'st-row__name', esc(p.name || 'Produit'));
+        pr.appendChild(pn);
+        pr.addEventListener('click', function (e) {
+          e.stopPropagation();
+          select({ kind: 'product', id: p.id }, { fromTree: true, pan: true });
+        });
+        pn.addEventListener('dblclick', function (e) {
+          e.stopPropagation();
+          startRename(pn, p.name || '', 60, function (v) {
+            commit('Renommage du produit', function (c) {
+              var t = (c.products || []).filter(function (x) { return x.id === p.id; })[0];
+              if (t) t.name = v;
+            }, { structure: true });
+          });
+        });
+        frag.appendChild(pr);
+      });
+    }
+    return frag;
+  }
+
+  function startRename(nameEl, current, max, done) {
+    var input = document.createElement('input');
+    input.value = current;
+    input.maxLength = max || 60;
+    nameEl.textContent = '';
+    nameEl.appendChild(input);
+    input.focus();
+    input.select();
+    var finished = false;
+    function finish(apply) {
+      if (finished) return;
+      finished = true;
+      var v = input.value;
+      input.remove();
+      nameEl.textContent = v || current;
+      if (apply && v !== current) done(v);
+      else buildTreeForce();
+    }
+    input.addEventListener('keydown', function (e) {
+      e.stopPropagation();
+      if (e.key === 'Enter') finish(true);
+      if (e.key === 'Escape') finish(false);
+    });
+    input.addEventListener('blur', function () { finish(true); });
+    input.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+  function buildTreeForce() {
+    var panel = $('layersPanel');
+    var inp = panel && panel.querySelector('.st-row__name input');
+    if (inp) inp.remove();
+    buildTree();
+  }
+
+  /* tree drag to reorder (pointer-based, with a drop indicator) */
+  function startTreeDrag(e, id, row) {
+    var startX = e.clientX, startY = e.clientY;
+    treeDrag = { id: id, row: row, moved: false, index: -1 };
+    var panel = $('layersPanel');
+    var line = null;
+
+    function rows() { return Array.prototype.slice.call(panel.querySelectorAll('[data-section-row]')); }
+
+    function onMove(ev) {
+      if (!treeDrag) return;
+      if (!treeDrag.moved && Math.abs(ev.clientY - startY) + Math.abs(ev.clientX - startX) < 5) return;
+      if (!treeDrag.moved) {
+        treeDrag.moved = true;
+        row.classList.add('is-dragging');
+        line = ce('div', 'st-tree__dropline');
+        panel.appendChild(line);
+        showGhost(sectionName(sectionById(id)), ev.clientX, ev.clientY);
+      }
+      moveGhost(ev.clientX, ev.clientY);
+      var rs = rows();
+      var idx = rs.length;
+      for (var i = 0; i < rs.length; i++) {
+        var r = rs[i].getBoundingClientRect();
+        if (ev.clientY < r.top + r.height / 2) { idx = i; break; }
+      }
+      treeDrag.index = idx;
+      var pr = panel.getBoundingClientRect();
+      var y;
+      if (idx < rs.length) y = rs[idx].getBoundingClientRect().top - pr.top + panel.scrollTop;
+      else if (rs.length) y = rs[rs.length - 1].getBoundingClientRect().bottom - pr.top + panel.scrollTop;
+      else y = 0;
+      line.style.top = y + 'px';
+    }
+
+    function onUp() {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      hideGhost();
+      if (line) line.remove();
+      row.classList.remove('is-dragging');
+      var drag = treeDrag;
+      setTimeout(function () { treeDrag = null; }, 0);
+      if (!drag || !drag.moved || drag.index < 0) return;
+      var list = sections();
+      var from = -1;
+      list.forEach(function (s, i) { if (s.id === drag.id) from = i; });
+      if (from === -1) return;
+      var to = drag.index;
+      if (to > from) to--;
+      if (to === from) return;
+      commit('Déplacement de section', function (c) {
+        var arr = c.sections || [];
+        var it = arr.splice(from, 1)[0];
+        arr.splice(clamp(to, 0, arr.length), 0, it);
+      }, { structure: true });
+      select({ kind: 'section', id: drag.id }, { fromTree: true });
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+
+  /* ------------------------------------------------------------------ ghost chip (shared by drags) */
+
+  var ghostEl;
+  function showGhost(text, x, y) { ghostEl.textContent = text; ghostEl.hidden = false; moveGhost(x, y); }
+  function moveGhost(x, y) { ghostEl.style.left = x + 'px'; ghostEl.style.top = y + 'px'; }
+  function hideGhost() { ghostEl.hidden = true; }
+
+  /* ------------------------------------------------------------------ insert panel */
+
+  var TYPE_GLYPHS = {
+    announcement: '<svg viewBox="0 0 44 32"><rect x="2" y="12" width="40" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    hero: '<svg viewBox="0 0 44 32"><rect x="2" y="2" width="40" height="28" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 22l7-8 6 6 4-4 5 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 8h12" stroke="currentColor" stroke-width="2.2"/></svg>',
+    categories: '<svg viewBox="0 0 44 32"><rect x="3" y="3" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="24" y="3" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="18" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="24" y="18" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    products: '<svg viewBox="0 0 44 32"><rect x="3" y="4" width="11" height="14" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="17" y="4" width="11" height="14" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="31" y="4" width="11" height="14" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 24h8M17 24h8M31 24h8" stroke="currentColor" stroke-width="2"/></svg>',
+    about: '<svg viewBox="0 0 44 32"><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 28c1.6-5 4.4-7 8-7s6.4 2 8 7M26 8h14M26 14h14M26 20h9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>',
+    reviews: '<svg viewBox="0 0 44 32"><path d="M10 4l2.4 5 5.3.7-3.9 3.8.9 5.2L10 16.2l-4.7 2.5.9-5.2L2.3 9.7 7.6 9z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M24 8h16M24 14h16M24 20h10" stroke="currentColor" stroke-width="1.6"/></svg>',
+    delivery: '<svg viewBox="0 0 44 32"><rect x="3" y="7" width="22" height="14" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M25 11h9l6 6v4H25z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="25" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="33" cy="25" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+    whatsapp: '<svg viewBox="0 0 44 32"><path d="M22 3a12.5 12.5 0 00-10.8 18.8L9 29l7.5-2A12.5 12.5 0 1022 3z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
+  };
+
+  var prevCache = {};
+
+  function buildInsertPanel() {
+    var panel = $('insertPanel');
+    panel.innerHTML = '';
+    panel.appendChild(ce('div', 'st-insert__hint', 'Glissez une section sur un aperçu pour l’insérer à cet endroit, ou cliquez pour l’ajouter après la sélection. Survolez pour voir un aperçu.'));
+    var grid = ce('div', 'st-insert__grid');
+    var list = [];
+    try { D.sectionTypes.forEach(function (t) { list.push(t); }); } catch (e) { /* collection helper missing */ }
+    if (!list.length && D.sectionTypes) { Object.keys(D.sectionTypes).forEach(function (k) { list.push(D.sectionTypes[k]); }); }
+    list.forEach(function (t) {
+      if (!t || !t.id) return;
+      var card = ce('div', 'st-typecard');
+      card.setAttribute('data-type', t.id);
+      card.innerHTML = (TYPE_GLYPHS[t.id] || TYPE_GLYPHS.about) + '<b>' + esc(t.name || t.id) + '</b>';
+      card.title = t.description || '';
+      card.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        startInsertDrag(e, t);
+      });
+      card.addEventListener('mouseenter', function () { showTypePreview(card, t); });
+      card.addEventListener('mouseleave', hideTypePreview);
+      grid.appendChild(card);
+    });
+    panel.appendChild(grid);
+  }
+
+  function showTypePreview(card, t) {
+    var prev = $('hoverPrev');
+    var r = card.getBoundingClientRect();
+    prev.innerHTML = '';
+    var shot = ce('div', 'st-prevcard__shot');
+    /* the cache key carries every style input (template, fonts, radius, buttons…), and
+     * afterChange({structure}) empties the cache besides: no stale previews after a restyle */
+    var th = state.config.theme || {};
+    var key = [t.id, state.config.template, th.palette, th.intensity, th.fonts, th.radius, th.buttons,
+      state.config.store ? state.config.store.niche : ''].join('|');
+    var root = prevCache[key];
+    if (!root) {
+      root = document.createElement('div');
+      try {
+        var cfg = clone(state.config);
+        cfg.sections = [{ id: 's1', type: t.id, enabled: true, settings: newSectionSettings(t.id) }];
+        R.render(cfg, root, { device: 'phone', page: 'home' });
+        prevCache[key] = root;
+      } catch (e) { root = null; }
+    }
+    if (root) shot.appendChild(root);
+    prev.appendChild(shot);
+    prev.appendChild(ce('p', '', esc(t.description || '')));
+    prev.hidden = false;
+    /* anchored past the panel's right edge, over the canvas: it never covers the
+     * neighbouring type cards you are comparing */
+    var aside = document.querySelector('.st-left');
+    var ar = aside ? aside.getBoundingClientRect() : r;
+    var top = clamp(r.top, 8, window.innerHeight - 240);
+    prev.style.left = (ar.right + 12) + 'px';
+    prev.style.top = top + 'px';
+  }
+  function hideTypePreview() { $('hoverPrev').hidden = true; }
+
+  function newSectionSettings(type) {
+    var niche = state.config.store ? state.config.store.niche : null;
+    var name = state.config.store ? state.config.store.name : '';
+    if (typeof D.sectionSettings === 'function') {
+      try { return D.sectionSettings(type, niche, name); } catch (e) { /* fall back */ }
+    }
+    var def = sectionDef(type);
+    return def && def.defaults ? clone(def.defaults) : {};
+  }
+
+  function insertSection(type, beforeId) {
+    var def = sectionDef(type);
+    if (!def) return;
+    var sec = {
+      id: typeof D.newId === 'function' ? D.newId(state.config, 's') : 's' + (sections().length + 101),
+      type: type, enabled: true, settings: newSectionSettings(type)
+    };
+    commit('Ajout de la section « ' + (def.name || type) + ' »', function (c) {
+      var arr = c.sections || (c.sections = []);
+      var at = arr.length;
+      if (beforeId) arr.forEach(function (s, i) { if (s.id === beforeId) at = i; });
+      else if (state.sel && state.sel.kind === 'section') {
+        arr.forEach(function (s, i) { if (s.id === state.sel.id) at = i + 1; });
+      }
+      arr.splice(at, 0, sec);
+    }, { structure: true });
+    select({ kind: 'section', id: sec.id }, { pan: true });
+    toast('Section « ' + (def.name || type) + ' » ajoutée.', 'ok');
+  }
+
+  /* drag a section type from the panel onto an artboard */
+  function startInsertDrag(e, t) {
+    var startX = e.clientX, startY = e.clientY, moved = false, beforeId, overFrame = null;
+    var dropline = $('dropline');
+    hideTypePreview();
+
+    function frameUnder(x, y) {
+      var el = document.elementFromPoint(x, y);
+      return el ? insideFrame(el) : null;
+    }
+
+    function onMove(ev) {
+      if (!moved && Math.abs(ev.clientX - startX) + Math.abs(ev.clientY - startY) < 5) return;
+      if (!moved) {
+        moved = true;
+        if (state.page !== 'home') showPage('home');
+        showGhost('+ ' + (t.name || t.id), ev.clientX, ev.clientY);
+        document.body.style.cursor = 'copy';
+      }
+      moveGhost(ev.clientX, ev.clientY);
+      var frame = frameUnder(ev.clientX, ev.clientY);
+      overFrame = frame;
+      beforeId = undefined;
+      if (!frame) { dropline.hidden = true; return; }
+      var secEls = Array.prototype.slice.call(frame.querySelectorAll('[data-section-id]'));
+      var y = null;
+      beforeId = null; // null = at the end
+      for (var i = 0; i < secEls.length; i++) {
+        var r = secEls[i].getBoundingClientRect();
+        if (ev.clientY < r.top + r.height / 2) { beforeId = secEls[i].getAttribute('data-section-id'); y = r.top; break; }
+      }
+      var fr = frame.getBoundingClientRect();
+      if (y === null) y = secEls.length ? secEls[secEls.length - 1].getBoundingClientRect().bottom : fr.top + 40;
+      var sr = stage.getBoundingClientRect();
+      dropline.style.left = (fr.left - sr.left) + 'px';
+      dropline.style.width = fr.width + 'px';
+      dropline.style.top = (y - sr.top - 1) + 'px';
+      dropline.hidden = false;
+    }
+
+    function onUp(ev) {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      hideGhost();
+      dropline.hidden = true;
+      document.body.style.cursor = '';
+      if (!moved) { insertSection(t.id); return; } // a simple click adds after the selection
+      if (overFrame) insertSection(t.id, beforeId === null ? undefined : beforeId);
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    e.preventDefault();
+  }
+
+  /* ------------------------------------------------------------------ inspector */
+
+  function buildInspector() {
+    var insp = $('inspector');
+    var title = $('inspTitle');
+    var sub = $('inspSub');
+    if (!insp) return;
+    insp.innerHTML = '';
+    var sel = state.sel;
+    if (sel && sel.kind === 'section') {
+      var s = sectionById(sel.id);
+      if (!s) { state.sel = null; return buildInspector(); }
+      var def = sectionDef(s.type);
+      /* one display name everywhere (tag, tree, toasts, here): the title, with the type as the
+       * dim suffix when they differ — never the raw s1/s2 ids */
+      var nm = sectionName(s);
+      var typeName = def && def.name ? def.name : s.type;
+      title.textContent = nm;
+      sub.textContent = nm === typeName ? '' : typeName;
+      insp.appendChild(sectionInspector(s, def, sel.field));
+    } else if (sel && sel.kind === 'product') {
+      var p = productById(sel.id);
+      if (!p) { state.sel = null; return buildInspector(); }
+      title.textContent = p.name || 'Produit';
+      sub.textContent = p.name ? 'Produit' : '';
+      insp.appendChild(productInspector(p));
+    } else if (sel && sel.kind === 'page') {
+      var pg = pageById(sel.id);
+      if (!pg) { state.sel = null; return buildInspector(); }
+      title.textContent = pg.title || 'Page';
+      sub.textContent = pg.title ? 'Page' : '';
+      insp.appendChild(pageInspector(pg));
+    } else {
+      title.textContent = 'Boutique';
+      sub.textContent = 'rien n’est sélectionné';
+      insp.appendChild(styleInspector());
+    }
+  }
+
+  function group(titleText, open) {
+    var g = ce('div', 'st-insp__group' + (open === false ? ' is-closed' : ''));
+    var head = ce('button', 'st-insp__head');
+    head.type = 'button';
+    head.innerHTML = '<span>' + esc(titleText) + '</span><svg viewBox="0 0 24 24" class="st-caret" width="12" height="12"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    var body = ce('div', 'st-insp__body');
+    head.addEventListener('click', function () { g.classList.toggle('is-closed'); });
+    g.appendChild(head);
+    g.appendChild(body);
+    g.body = body;
+    return g;
+  }
+
+  function fieldWrap(labelText, countEl) {
+    var w = ce('div', 'st-field');
+    var l = ce('label', '', '<span>' + esc(labelText) + '</span>');
+    if (countEl) l.appendChild(countEl);
+    w.appendChild(l);
+    return w;
+  }
+
+  function fieldText(labelText, value, max, onInput, multiline) {
+    var count = max ? ce('span', 'st-count') : null;
+    var w = fieldWrap(labelText, count);
+    var input = document.createElement(multiline ? 'textarea' : 'input');
+    if (!multiline) input.type = 'text';
+    input.value = value == null ? '' : String(value);
+    if (max) input.maxLength = max;
+    function updCount() {
+      if (!count) return;
+      count.textContent = input.value.length + ' / ' + max;
+      count.classList.toggle('is-over', input.value.length >= max);
+    }
+    updCount();
+    input.addEventListener('input', function () { updCount(); onInput(input.value); });
+    w.appendChild(input);
+    return w;
+  }
+
+  function fieldNumber(labelText, value, min, max, onChange, coKey) {
+    var w = fieldWrap(labelText);
+    var box = ce('div', 'st-num');
+    var drag = ce('div', 'st-num__drag', '<svg viewBox="0 0 16 16"><path d="M5 4L1.5 8 5 12M11 4l3.5 4L11 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    drag.title = 'Glissez horizontalement pour changer la valeur';
+    var input = document.createElement('input');
+    input.type = 'number';
+    if (typeof min === 'number') input.min = min;
+    if (typeof max === 'number') input.max = max;
+    input.value = value == null ? '' : String(value);
+    var lastV = value == null ? null : value; // the last committed value, mirrored back on blur
+    function push(v) {
+      v = Math.round(v);
+      if (typeof min === 'number') v = Math.max(min, v);
+      if (typeof max === 'number') v = Math.min(max, v);
+      input.value = String(v);
+      lastV = v;
+      onChange(v);
+    }
+    input.addEventListener('input', function () {
+      var v = parseFloat(input.value);
+      if (!isFinite(v)) return;
+      var cv = clamp(Math.round(v), typeof min === 'number' ? min : -1e15, typeof max === 'number' ? max : 1e15);
+      lastV = cv;
+      onChange(cv);
+    });
+    /* on blur/Enter the field shows what was really committed: typing 999 in a 2–24 field
+     * commits 24, and the input says 24 too (writing back on each keystroke would fight typing) */
+    input.addEventListener('change', function () {
+      var v = parseFloat(input.value);
+      if (isFinite(v)) push(v);
+      else input.value = lastV == null ? '' : String(lastV);
+    });
+    /* the Figma-style horizontal scrub */
+    drag.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      drag.setPointerCapture(e.pointerId);
+      var startX = e.clientX;
+      var startV = parseFloat(input.value);
+      if (!isFinite(startV)) startV = typeof min === 'number' ? min : 0;
+      var range = (typeof max === 'number' && typeof min === 'number') ? max - min : 200;
+      var step = Math.max(1, Math.round(range / 200));
+      function mv(ev) { push(startV + Math.round((ev.clientX - startX) / 2) * step); }
+      function up() { drag.removeEventListener('pointermove', mv); drag.removeEventListener('pointerup', up); }
+      drag.addEventListener('pointermove', mv);
+      drag.addEventListener('pointerup', up);
+    });
+    box.appendChild(drag);
+    box.appendChild(input);
+    w.appendChild(box);
+    return w;
+  }
+
+  function fieldSelect(labelText, value, options, onChange) {
+    var w = fieldWrap(labelText);
+    var wrap = ce('div', 'st-selectwrap');
+    var sel = document.createElement('select');
+    (options || []).forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = String(o.value);
+      opt.textContent = o.label;
+      if (String(o.value) === String(value)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function () {
+      var raw = sel.value;
+      var found = (options || []).filter(function (o) { return String(o.value) === raw; })[0];
+      onChange(found ? found.value : raw);
+    });
+    wrap.appendChild(sel);
+    w.appendChild(wrap);
+    return w;
+  }
+
+  function fieldCheck(labelText, value, onChange) {
+    var l = ce('label', 'st-check');
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!value;
+    input.addEventListener('change', function () { onChange(input.checked); });
+    l.appendChild(input);
+    l.appendChild(ce('span', '', esc(labelText)));
+    return l;
+  }
+
+  function readFileAsImage(file, done) {
+    if (!file || !/^image\//.test(file.type)) { toast('Choisissez une image (JPEG, PNG, WebP).', 'warn'); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var maxW = 800;
+          var scale = Math.min(1, maxW / img.width);
+          var cv = document.createElement('canvas');
+          cv.width = Math.max(1, Math.round(img.width * scale));
+          cv.height = Math.max(1, Math.round(img.height * scale));
+          cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+          done(cv.toDataURL('image/jpeg', 0.85));
+        } catch (e) { toast('L’image n’a pas pu être lue.', 'err'); }
+      };
+      img.onerror = function () { toast('L’image n’a pas pu être lue.', 'err'); };
+      img.src = reader.result;
+    };
+    reader.onerror = function () { toast('L’image n’a pas pu être lue.', 'err'); };
+    reader.readAsDataURL(file);
+  }
+
+  // The combined image control: the seller's image first, else the demo photo (credited), else nothing.
+  function fieldImage(labelText, getObj, setLabel, hasPhotoField) {
+    var w = ce('div', 'st-imgfield');
+    w.appendChild(ce('label', '', '<span style="font-size:11px;color:var(--st-ink-dim)">' + esc(labelText) + '</span>'));
+    var obj = getObj(state.config);
+    var image = obj ? obj.image : null;
+    var photo = obj && hasPhotoField ? obj.photo : null;
+    var info = photo && R.photoInfo ? (function () { try { return R.photoInfo(photo); } catch (e) { return null; } })() : null;
+    var prev = ce('div', 'st-imgfield__prev');
+    if (image) prev.innerHTML = '<img alt="" src="' + esc(image) + '">';
+    else if (info && info.src) prev.innerHTML = '<img alt="' + esc(info.alt || '') + '" src="' + esc(info.src) + '">';
+    else prev.innerHTML = '<span>Aucune image</span>';
+    w.appendChild(prev);
+    if (!image && info && info.credit) {
+      w.appendChild(ce('div', 'st-credit', 'Photo d’exemple · <a href="' + esc(info.credit.profileUrl || '#') + '" target="_blank" rel="noopener">' +
+        esc(info.credit.name || 'photographe') + '</a> / <a href="' + esc(info.credit.photoUrl || '#') + '" target="_blank" rel="noopener">Unsplash</a>'));
+    }
+    var row = ce('div', 'st-imgfield__row');
+    var up = ce('button', 'st-ghostbtn', 'Mettre ma photo');
+    up.type = 'button';
+    up.addEventListener('click', function () {
+      var fi = document.createElement('input');
+      fi.type = 'file';
+      fi.accept = 'image/*';
+      fi.addEventListener('change', function () {
+        readFileAsImage(fi.files && fi.files[0], function (dataUrl) {
+          commit(setLabel, function (c) {
+            var o = getObj(c);
+            if (o) { o.image = dataUrl; if (hasPhotoField) o.photo = null; }
+          }, { structure: true });
+        });
+      });
+      fi.click();
+    });
+    row.appendChild(up);
+    if (image || (info && info.src)) {
+      var rm = ce('button', 'st-ghostbtn', image ? 'Retirer' : 'Retirer la photo');
+      rm.type = 'button';
+      rm.addEventListener('click', function () {
+        commit('Retrait de l’image', function (c) {
+          var o = getObj(c);
+          if (!o) return;
+          if (o.image) o.image = null;
+          else if (hasPhotoField) o.photo = null;
+        }, { structure: true });
+      });
+      row.appendChild(rm);
+    }
+    w.appendChild(row);
+    return w;
+  }
+
+  /* --- section inspector: the form is built from the contract's field definitions --- */
+
+  function sectionInspector(s, def, focusField) {
+    var frag = document.createDocumentFragment();
+    var gc = group('Contenu');
+    var fields = def && Array.isArray(def.fields) ? def.fields : [];
+    fields.forEach(function (f) {
+      if (!f || !f.key || !f.type) return;
+      var node = sectionField(s, f);
+      if (!node) return;
+      if (focusField && f.key === focusField) node.classList && node.classList.add('st-field--focus');
+      gc.body.appendChild(node);
+    });
+    if (!fields.length) gc.body.appendChild(ce('div', 'st-insp__empty', 'Cette section n’a pas de réglages.'));
+    frag.appendChild(gc);
+
+    var gs = group('Section');
+    gs.body.appendChild(fieldCheck('Visible sur la page d’accueil', s.enabled !== false, function (v) {
+      commit(v ? 'Affichage de la section' : 'Masquage de la section', function (c) {
+        var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
+        if (t) t.enabled = v;
+      }, { structure: true });
+    }));
+    var dup = ce('button', 'st-addbtn', 'Dupliquer la section — Ctrl D');
+    dup.type = 'button';
+    dup.addEventListener('click', function () { duplicateSelection(); });
+    gs.body.appendChild(dup);
+    var del = ce('button', 'st-danger', 'Supprimer la section — Suppr');
+    del.type = 'button';
+    del.addEventListener('click', function () { deleteSelection(); });
+    gs.body.appendChild(del);
+    frag.appendChild(gs);
+
+    if (focusField) {
+      requestAnimationFrame(function () {
+        var n = $('inspector').querySelector('.st-field--focus');
+        if (n) {
+          n.scrollIntoView({ block: 'center' });
+          n.style.outline = '1.5px solid var(--st-blue)';
+          n.style.outlineOffset = '4px';
+          n.style.borderRadius = '6px';
+          setTimeout(function () { n.style.outline = ''; }, 1200);
+        }
+      });
+    }
+    return frag;
+  }
+
+  function sectionField(s, f) {
+    function setVal(label, co) {
+      return function (v) {
+        commit(label, function (c) {
+          var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
+          if (t) { t.settings = t.settings || {}; t.settings[f.key] = v; }
+        }, { coalesce: co });
+      };
+    }
+    var val = s.settings ? s.settings[f.key] : undefined;
+    var label = f.label || f.key;
+    var co = 'sec:' + s.id + ':' + f.key;
+    switch (f.type) {
+      case 'text':
+        return fieldText(label, val, f.max, setVal('Texte modifié (' + label.toLowerCase() + ')', co), false);
+      case 'textarea':
+        return fieldText(label, val, f.max, setVal('Texte modifié (' + label.toLowerCase() + ')', co), true);
+      case 'number':
+        return fieldNumber(label, val, f.min, f.max, setVal('Réglage « ' + label + ' »', co), co);
+      case 'select':
+        return fieldSelect(label, val, f.options || [], setVal('Réglage « ' + label + ' »'));
+      case 'image':
+        return fieldImage(label, function (c) {
+          return (c.sections || []).filter(function (x) { return x.id === s.id; }).map(function (x) { return x.settings; })[0] || null;
+        }, 'Image de la section', hasField(s.type, 'photo'));
+      case 'photo':
+        return null; // shown inside the image control, with its credit
+      case 'items':
+        return fieldItems(s, f);
+      default:
+        return null; // a field type this studio does not know yet (contract moving): skip, never crash
+    }
+  }
+
+  function fieldItems(s, f) {
+    var wrap = ce('div', 'st-items');
+    var list = (s.settings && Array.isArray(s.settings[f.key])) ? s.settings[f.key] : [];
+    var itemLabel = f.itemLabel || 'Élément';
+    list.forEach(function (item, idx) {
+      var card = ce('div', 'st-item');
+      var head = ce('div', 'st-item__head', '<span>' + esc(itemLabel) + ' ' + (idx + 1) + '</span>');
+      var del = ce('button', 'st-item__del', '×');
+      del.type = 'button';
+      del.title = 'Supprimer';
+      del.addEventListener('click', function () {
+        commit('Suppression d’un ' + itemLabel.toLowerCase(), function (c) {
+          var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
+          if (t && t.settings && Array.isArray(t.settings[f.key])) t.settings[f.key].splice(idx, 1);
+        }, { structure: true });
+      });
+      head.appendChild(del);
+      card.appendChild(head);
+      (f.itemFields || []).forEach(function (sf) {
+        if (!sf || !sf.key) return;
+        var co = 'sec:' + s.id + ':' + f.key + ':' + idx + ':' + sf.key;
+        function set(v) {
+          commit('Texte modifié (' + (sf.label || sf.key).toLowerCase() + ')', function (c) {
+            var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
+            if (t && t.settings && Array.isArray(t.settings[f.key]) && t.settings[f.key][idx]) t.settings[f.key][idx][sf.key] = v;
+          }, { coalesce: co });
+        }
+        var v = item ? item[sf.key] : undefined;
+        if (sf.type === 'text') card.appendChild(fieldText(sf.label || sf.key, v, sf.max, set, false));
+        else if (sf.type === 'textarea') card.appendChild(fieldText(sf.label || sf.key, v, sf.max, set, true));
+        else if (sf.type === 'number') card.appendChild(fieldNumber(sf.label || sf.key, v, sf.min, sf.max, set, co));
+        else if (sf.type === 'select') card.appendChild(fieldSelect(sf.label || sf.key, v, sf.options || [], set));
+      });
+      wrap.appendChild(card);
+    });
+    var add = ce('button', 'st-addbtn', '+ Ajouter un ' + itemLabel.toLowerCase());
+    add.type = 'button';
+    if (typeof f.maxItems === 'number' && list.length >= f.maxItems) add.disabled = true;
+    add.addEventListener('click', function () {
+      commit('Ajout d’un ' + itemLabel.toLowerCase(), function (c) {
+        var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
+        if (!t) return;
+        t.settings = t.settings || {};
+        if (!Array.isArray(t.settings[f.key])) t.settings[f.key] = [];
+        if (typeof f.maxItems === 'number' && t.settings[f.key].length >= f.maxItems) return;
+        t.settings[f.key].push(clone(f.itemDefaults || {}));
+      }, { structure: true });
+    });
+    wrap.appendChild(add);
+    return wrap;
+  }
+
+  /* --- product inspector --- */
+
+  function productInspector(p) {
+    function set(label, key, co) {
+      return function (v) {
+        commit(label, function (c) {
+          var t = (c.products || []).filter(function (x) { return x.id === p.id; })[0];
+          if (t) t[key] = v;
+        }, co ? { coalesce: co } : { structure: label.indexOf('Texte') === -1 });
+      };
+    }
+    var frag = document.createDocumentFragment();
+    var gc = group('Produit');
+    gc.body.appendChild(fieldText('Nom', p.name, 60, set('Texte modifié (nom du produit)', 'name', 'p:' + p.id + ':name'), false));
+    gc.body.appendChild(fieldNumber('Prix (FCFA)', p.price, 0, 100000000, set('Prix modifié', 'price', 'p:' + p.id + ':price'), 'p:' + p.id + ':price'));
+    gc.body.appendChild(fieldText('Catégorie', p.category, 40, set('Texte modifié (catégorie)', 'category', 'p:' + p.id + ':cat'), false));
+    var badgeOpts = [{ value: '', label: 'Aucun' }];
+    Object.keys(D.BADGES || {}).forEach(function (k) { badgeOpts.push({ value: k, label: D.BADGES[k] }); });
+    gc.body.appendChild(fieldSelect('Badge', p.badge == null ? '' : p.badge, badgeOpts, function (v) {
+      commit('Badge modifié', function (c) {
+        var t = (c.products || []).filter(function (x) { return x.id === p.id; })[0];
+        if (t) t.badge = v === '' ? null : v;
+      });
+    }));
+    gc.body.appendChild(fieldText('Description', p.description, 300, set('Texte modifié (description)', 'description', 'p:' + p.id + ':desc'), true));
+    frag.appendChild(gc);
+
+    var gv = group('Visuel');
+    gv.body.appendChild(fieldImage('Photo du produit', function (c) {
+      return (c.products || []).filter(function (x) { return x.id === p.id; })[0] || null;
+    }, 'Photo du produit', true));
+    var sw = fieldWrap('Couleur de la tuile');
+    var swatches = ce('div', 'st-swatches');
+    (D.PRODUCT_COLORS || []).forEach(function (col) {
+      var b = ce('button', 'st-swatch' + (String(p.color).toUpperCase() === String(col).toUpperCase() ? ' is-on' : ''));
+      b.type = 'button';
+      b.style.background = col;
+      b.title = col;
+      b.addEventListener('click', function () {
+        commit('Couleur du produit', function (c) {
+          var t = (c.products || []).filter(function (x) { return x.id === p.id; })[0];
+          if (t) t.color = col;
+        }, { structure: true });
+      });
+      swatches.appendChild(b);
+    });
+    sw.appendChild(swatches);
+    gv.body.appendChild(sw);
+    var artOpts = (D.ART_KINDS || []).map(function (k) { return { value: k, label: (D.ART_LABELS && D.ART_LABELS[k]) || k }; });
+    if (artOpts.length) gv.body.appendChild(fieldSelect('Illustration (sans photo)', p.art, artOpts, function (v) {
+      commit('Illustration du produit', function (c) {
+        var t = (c.products || []).filter(function (x) { return x.id === p.id; })[0];
+        if (t) t.art = v;
+      });
+    }));
+    frag.appendChild(gv);
+
+    var ga = group('Actions');
+    var dup = ce('button', 'st-addbtn', 'Dupliquer le produit — Ctrl D');
+    dup.type = 'button';
+    dup.addEventListener('click', duplicateSelection);
+    ga.body.appendChild(dup);
+    var del = ce('button', 'st-danger', 'Supprimer le produit — Suppr');
+    del.type = 'button';
+    del.addEventListener('click', deleteSelection);
+    ga.body.appendChild(del);
+    frag.appendChild(ga);
+    return frag;
+  }
+
+  /* --- custom page inspector --- */
+
+  function pageInspector(pg) {
+    var frag = document.createDocumentFragment();
+    var g = group('Page');
+    g.body.appendChild(fieldText('Titre', pg.title, (D.PAGE_LIMITS && D.PAGE_LIMITS.title) || 60, function (v) {
+      commit('Texte modifié (titre de la page)', function (c) {
+        var t = (c.pages || []).filter(function (x) { return x.id === pg.id; })[0];
+        if (t) t.title = v;
+      }, { coalesce: 'pg:' + pg.id + ':title' });
+    }, false));
+    var sub = (typeof D.subdomainFor === 'function' && state.config.store) ? D.subdomainFor(state.config.store.name) : 'ma-boutique.jeere.shop';
+    g.body.appendChild(ce('div', 'st-credit', 'Adresse : <code>' + esc(sub + '/pages/' + (pg.slug || '')) + '</code>'));
+    g.body.appendChild(fieldText('Texte de la page', pg.body, (D.PAGE_LIMITS && D.PAGE_LIMITS.body) || 4000, function (v) {
+      commit('Texte modifié (page)', function (c) {
+        var t = (c.pages || []).filter(function (x) { return x.id === pg.id; })[0];
+        if (t) t.body = v;
+      }, { coalesce: 'pg:' + pg.id + ':body' });
+    }, true));
+    g.body.appendChild(fieldCheck('Dans le menu', pg.inMenu, function (v) {
+      commit('Navigation de la page', function (c) {
+        var t = (c.pages || []).filter(function (x) { return x.id === pg.id; })[0];
+        if (t) t.inMenu = v;
+      }, { structure: true });
+    }));
+    g.body.appendChild(fieldCheck('Dans le pied de page', pg.inFooter, function (v) {
+      commit('Navigation de la page', function (c) {
+        var t = (c.pages || []).filter(function (x) { return x.id === pg.id; })[0];
+        if (t) t.inFooter = v;
+      }, { structure: true });
+    }));
+    var del = ce('button', 'st-danger', 'Supprimer la page');
+    del.type = 'button';
+    del.addEventListener('click', deleteSelection);
+    g.body.appendChild(del);
+    frag.appendChild(g);
+    return frag;
+  }
+
+  function addCustomPage() {
+    var limits = D.PAGE_LIMITS || { max: 20 };
+    if (customPages().length >= (limits.max || 20)) { toast('20 pages au maximum.', 'warn'); return; }
+    var id = typeof D.newId === 'function' ? D.newId(state.config, 'pg') : 'pg' + (customPages().length + 101);
+    commit('Ajout d’une page', function (c) {
+      if (!Array.isArray(c.pages)) c.pages = [];
+      var title = 'Nouvelle page';
+      var slug = (typeof D.uniqueSlug === 'function') ? D.uniqueSlug(c, title) : (D.slugify ? D.slugify(title) : 'nouvelle-page');
+      c.pages.push({ id: id, title: title, slug: slug || 'nouvelle-page', body: '', inMenu: false, inFooter: true });
+    }, { structure: true });
+    state.sel = { kind: 'page', id: id };
+    showPage('page', id);
+    buildInspector();
+  }
+
+  /* --- store style inspector (nothing selected) --- */
+
+  function styleInspector() {
+    var cfg = state.config;
+    var theme = cfg.theme || {};
+    var frag = document.createDocumentFragment();
+
+    var gt = group('Modèle');
+    var cards = ce('div', 'st-tplcards');
+    try {
+      D.templates.forEach(function (t) {
+        var b = ce('button', 'st-tplcard' + (cfg.template === t.id ? ' is-on' : ''), '<b>' + esc(t.name) + ' · ' + esc(t.style || '') + '</b><span>' + esc(t.bestFor || '') + '</span>');
+        b.type = 'button';
+        b.addEventListener('click', function () {
+          commit('Changement de modèle', function (c) { c.template = t.id; }, { structure: true });
+        });
+        cards.appendChild(b);
+      });
+    } catch (e) { /* templates missing */ }
+    gt.body.appendChild(cards);
+    frag.appendChild(gt);
+
+    var gp = group('Couleurs');
+    var sw = ce('div', 'st-swatches');
+    try {
+      D.palettes.forEach(function (pal) {
+        var b = ce('button', 'st-swatch' + (theme.palette === pal.id ? ' is-on' : ''));
+        b.type = 'button';
+        b.title = pal.name;
+        var c = pal.colors || {};
+        b.style.background = 'linear-gradient(135deg, ' + (c.bg || '#eee') + ' 48%, ' + (c.accent || '#333') + ' 52%)';
+        b.addEventListener('click', function () {
+          commit('Changement de palette', function (cc) { cc.theme = cc.theme || {}; cc.theme.palette = pal.id; }, { structure: true });
+        });
+        sw.appendChild(b);
+      });
+    } catch (e) { /* palettes missing */ }
+    gp.body.appendChild(sw);
+    var intens = ce('div', 'st-seg');
+    (D.INTENSITY_OPTIONS || [{ value: 'vivid', label: 'Vives' }, { value: 'soft', label: 'Douces' }]).forEach(function (o) {
+      var b = ce('button', theme.intensity === o.value ? 'is-on' : '', esc(o.label));
+      b.type = 'button';
+      b.title = o.hint || '';
+      b.addEventListener('click', function () {
+        commit('Intensité des couleurs', function (c) { c.theme = c.theme || {}; c.theme.intensity = o.value; }, { structure: true });
+      });
+      intens.appendChild(b);
+    });
+    var iw = fieldWrap('Intensité');
+    iw.appendChild(intens);
+    gp.body.appendChild(iw);
+    frag.appendChild(gp);
+
+    var gs = group('Style');
+    var fontOpts = [];
+    try { D.fontPairs.forEach(function (f) { fontOpts.push({ value: f.id, label: f.name }); }); } catch (e) { /* ignore */ }
+    if (fontOpts.length) gs.body.appendChild(fieldSelect('Polices', theme.fonts, fontOpts, function (v) {
+      commit('Changement de polices', function (c) { c.theme = c.theme || {}; c.theme.fonts = v; }, { structure: true });
+    }));
+    var rseg = ce('div', 'st-seg');
+    (D.RADIUS_OPTIONS || []).forEach(function (o) {
+      var b = ce('button', theme.radius === o.value ? 'is-on' : '', esc(o.label));
+      b.type = 'button';
+      b.addEventListener('click', function () {
+        commit('Angles modifiés', function (c) { c.theme = c.theme || {}; c.theme.radius = o.value; }, { structure: true });
+      });
+      rseg.appendChild(b);
+    });
+    var rw = fieldWrap('Angles');
+    rw.appendChild(rseg);
+    gs.body.appendChild(rw);
+    var bseg = ce('div', 'st-seg');
+    (D.BUTTON_OPTIONS || []).forEach(function (o) {
+      var b = ce('button', theme.buttons === o.value ? 'is-on' : '', esc(o.label));
+      b.type = 'button';
+      b.addEventListener('click', function () {
+        commit('Boutons modifiés', function (c) { c.theme = c.theme || {}; c.theme.buttons = o.value; }, { structure: true });
+      });
+      bseg.appendChild(b);
+    });
+    var bw = fieldWrap('Boutons');
+    bw.appendChild(bseg);
+    gs.body.appendChild(bw);
+    frag.appendChild(gs);
+
+    var gb = group('Boutique');
+    var store = cfg.store || {};
+    gb.body.appendChild(fieldText('Nom', store.name, 40, function (v) {
+      commit('Texte modifié (nom de la boutique)', function (c) { c.store = c.store || {}; c.store.name = v; }, { coalesce: 'store:name' });
+      syncTopBar();
+    }, false));
+    gb.body.appendChild(fieldText('Slogan', store.tagline, 90, function (v) {
+      commit('Texte modifié (slogan)', function (c) { c.store = c.store || {}; c.store.tagline = v; }, { coalesce: 'store:tagline' });
+    }, false));
+    gb.body.appendChild(fieldText('Numéro WhatsApp', store.whatsapp, 20, function (v) {
+      commit('Numéro WhatsApp modifié', function (c) { c.store = c.store || {}; c.store.whatsapp = v; }, { coalesce: 'store:wa' });
+    }, false));
+    gb.body.appendChild(fieldText('Ville', store.city, 40, function (v) {
+      commit('Texte modifié (ville)', function (c) { c.store = c.store || {}; c.store.city = v; }, { coalesce: 'store:city' });
+    }, false));
+    frag.appendChild(gb);
+
+    var gpay = group('Paiements', false);
+    (D.PAYMENTS || []).forEach(function (pm) {
+      gpay.body.appendChild(fieldCheck(pm.label, cfg.payments && cfg.payments[pm.key], function (v) {
+        commit('Moyens de paiement', function (c) { c.payments = c.payments || {}; c.payments[pm.key] = v; }, { structure: true });
+      }));
+    });
+    frag.appendChild(gpay);
+
+    var gf = group('Fiche boutique', false);
+    var exp = ce('button', 'st-addbtn', 'Exporter le JSON — Ctrl E');
+    exp.type = 'button';
+    exp.addEventListener('click', exportJSON);
+    gf.body.appendChild(exp);
+    var imp = ce('button', 'st-addbtn', 'Importer un JSON');
+    imp.type = 'button';
+    imp.addEventListener('click', function () { $('importFile').click(); });
+    gf.body.appendChild(imp);
+    var open = ce('a', 'st-addbtn', 'Ouvrir dans l’éditeur simple');
+    open.href = '../creer/';
+    open.style.textAlign = 'center';
+    open.style.display = 'block';
+    gf.body.appendChild(open);
+    frag.appendChild(gf);
+
+    return frag;
+  }
+
+  /* ------------------------------------------------------------------ edit actions */
+
+  function duplicateSelection() {
+    var sel = state.sel;
+    if (!sel) { toast('Sélectionnez une section ou un produit à dupliquer.'); return; }
+    if (sel.kind === 'section') {
+      var s = sectionById(sel.id);
+      if (!s) return;
+      var copy = clone(s);
+      copy.id = typeof D.newId === 'function' ? D.newId(state.config, 's') : 'sx' + Date.now();
+      commit('Duplication de la section', function (c) {
+        var arr = c.sections || [];
+        var at = arr.length;
+        arr.forEach(function (x, i) { if (x.id === sel.id) at = i + 1; });
+        arr.splice(at, 0, copy);
+      }, { structure: true });
+      select({ kind: 'section', id: copy.id });
+      toast('Section dupliquée.', 'ok');
+    } else if (sel.kind === 'product') {
+      var p = productById(sel.id);
+      if (!p) return;
+      var pc = clone(p);
+      pc.id = typeof D.newId === 'function' ? D.newId(state.config, 'p') : 'px' + Date.now();
+      if (pc.name) pc.name = (pc.name + ' (copie)').slice(0, 60);
+      commit('Duplication du produit', function (c) {
+        var arr = c.products || [];
+        var at = arr.length;
+        arr.forEach(function (x, i) { if (x.id === sel.id) at = i + 1; });
+        arr.splice(at, 0, pc);
+      }, { structure: true });
+      select({ kind: 'product', id: pc.id });
+      toast('Produit dupliqué.', 'ok');
+    }
+  }
+
+  function deleteSelection() {
+    var sel = state.sel;
+    if (!sel) return;
+    if (sel.kind === 'section') {
+      var s = sectionById(sel.id);
+      if (!s) return;
+      var nm = sectionName(s);
+      commit('Suppression de la section', function (c) {
+        c.sections = (c.sections || []).filter(function (x) { return x.id !== sel.id; });
+      }, { structure: true });
+      state.sel = null;
+      buildInspector();
+      toast('Section « ' + nm + ' » supprimée. Ctrl Z pour annuler.', 'info');
+    } else if (sel.kind === 'product') {
+      if (products().length <= 1) {
+        toast('Gardez au moins un produit : la boutique ne peut pas être vide.', 'warn');
+        return;
+      }
+      commit('Suppression du produit', function (c) {
+        c.products = (c.products || []).filter(function (x) { return x.id !== sel.id; });
+      }, { structure: true });
+      state.sel = null;
+      buildInspector();
+      toast('Produit supprimé. Ctrl Z pour annuler.', 'info');
+    } else if (sel.kind === 'page') {
+      commit('Suppression de la page', function (c) {
+        c.pages = (c.pages || []).filter(function (x) { return x.id !== sel.id; });
+      }, { structure: true });
+      state.sel = null;
+      if (state.page === 'page') showPage('home');
+      buildInspector();
+      toast('Page supprimée. Ctrl Z pour annuler.', 'info');
+    }
+  }
+
+  function copySelection() {
+    var sel = state.sel;
+    if (!sel || sel.kind !== 'section') { toast('Sélectionnez une section à copier.'); return; }
+    var s = sectionById(sel.id);
+    if (!s) return;
+    clipboard = { kind: 'jeere-section', data: clone(s) };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(JSON.stringify(clipboard)).catch(function () {});
+    } catch (e) { /* in-app clipboard is enough */ }
+    toast('Section « ' + sectionName(s) + ' » copiée.', 'ok');
+  }
+
+  function pasteClipboard() {
+    if (!clipboard || clipboard.kind !== 'jeere-section' || !clipboard.data) { toast('Rien à coller : copiez d’abord une section (Ctrl C).'); return; }
+    var copy = clone(clipboard.data);
+    if (!sectionDef(copy.type)) { toast('Cette section n’existe plus dans le contrat.', 'warn'); return; }
+    copy.id = typeof D.newId === 'function' ? D.newId(state.config, 's') : 'sx' + Date.now();
+    commit('Collage de la section', function (c) {
+      var arr = c.sections || (c.sections = []);
+      var at = arr.length;
+      if (state.sel && state.sel.kind === 'section') arr.forEach(function (x, i) { if (x.id === state.sel.id) at = i + 1; });
+      arr.splice(at, 0, copy);
+    }, { structure: true });
+    select({ kind: 'section', id: copy.id });
+    toast('Section collée.', 'ok');
+  }
+
+  function moveSelection(delta, alt) {
+    var sel = state.sel;
+    if (!sel || sel.kind !== 'section') return;
+    var list = sections();
+    var from = -1;
+    list.forEach(function (s, i) { if (s.id === sel.id) from = i; });
+    if (from === -1) return;
+    var to = clamp(from + delta, 0, list.length - 1);
+    if (to === from) return;
+    commit('Déplacement de section', function (c) {
+      var arr = c.sections || [];
+      var it = arr.splice(from, 1)[0];
+      arr.splice(to, 0, it);
+    }, { coalesce: 'move:' + sel.id });
+    buildTree();
+    if (!alt) {
+      var row = $('layersPanel').querySelector('.st-row.is-sel');
+      if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+      panToSelection();
+    }
+  }
+
+  /* ------------------------------------------------------------------ export / import */
+
+  function exportJSON() {
+    var out;
+    try { out = D.normalizeConfig(state.config); } catch (e) { out = state.config; }
+    var json = JSON.stringify(out, null, 2);
+    var name = 'fiche-boutique';
+    try { if (D.slugify && out.store && out.store.name) name = 'fiche-' + (D.slugify(out.store.name) || 'boutique'); } catch (e) { /* default name */ }
+    try {
+      var blob = new Blob([json], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      toast('Fiche boutique exportée (' + name + '.json).', 'ok');
+    } catch (e) { toast('L’export n’a pas pu démarrer.', 'err'); }
+  }
+
+  function importJSONFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var parsed = null;
+      try { parsed = JSON.parse(String(reader.result)); } catch (e) { toast('Ce fichier n’est pas un JSON valide.', 'err'); return; }
+      var normalized;
+      try { normalized = D.normalizeConfig(parsed); } catch (e) { toast('Cette fiche n’a pas pu être lue.', 'err'); return; }
+      commit('Import de la fiche', function (c) {
+        Object.keys(c).forEach(function (k) { delete c[k]; });
+        Object.keys(normalized).forEach(function (k) { c[k] = normalized[k]; });
+      }, { structure: true });
+      state.sel = null;
+      showPage('home');
+      buildInspector();
+      toast('Fiche importée et réparée (normalizeConfig).', 'ok');
+    };
+    reader.onerror = function () { toast('Le fichier n’a pas pu être lu.', 'err'); };
+    reader.readAsText(file);
+  }
+
+  /* ------------------------------------------------------------------ share / publish dialog */
+
+  /* Two different dialogs behind the two triggers (they used to open the same thing):
+   *   Partager — the fiche as a file: address + export / copy / import.
+   *   Publier  — the validation story: score, issues, what publishing will mean.
+   * Each has exactly ONE primary action. */
+  function openShare(publish) {
+    var body = $('shareBody');
+    var titleEl = $('shareTitle');
+    if (titleEl) titleEl.textContent = publish ? 'Publier la boutique' : 'Partager la fiche';
+    var v = null;
+    try { v = D.validate(D.normalizeConfig(state.config)); } catch (e) { v = null; }
+    var sub = 'ma-boutique.jeere.shop';
+    try { if (D.subdomainFor && state.config.store) sub = D.subdomainFor(state.config.store.name); } catch (e) { /* default */ }
+    var html = '';
+    if (publish) {
+      html += '<p>' + (v && v.status === 'APPROUVÉ'
+        ? 'Votre boutique est prête. La mise en ligne arrive avec le backend Jeere : en attendant, rien n’est publié — ce prototype garde tout dans ce navigateur.'
+        : 'Quelques points sont à corriger avant la mise en ligne. La publication réelle arrive avec le backend Jeere : rien n’est publié pour l’instant.') + '</p>';
+      if (v) {
+        html += '<div class="st-share__score"><span class="st-pill ' + (v.status === 'APPROUVÉ' ? 'st-pill--ok' : 'st-pill--err') + '">' + esc(v.status || '') + '</span>' +
+          '<span>Qualité : <b>' + esc(String(v.score != null ? v.score : '—')) + ' / 100</b></span></div>';
+        var worst = (v.issues || []).filter(function (i) { return i.level === 'error'; }).concat(
+          (v.issues || []).filter(function (i) { return i.level === 'warn' || i.level === 'warning'; })).slice(0, 5);
+        if (worst.length) {
+          html += '<ul class="st-share__issues">';
+          worst.forEach(function (i) { html += '<li>' + esc(i.message || '') + '</li>'; });
+          html += '</ul>';
+        }
+      }
+    } else {
+      html += '<p>La fiche boutique est un simple fichier JSON : exportez-la, partagez-la, ou ouvrez-la dans l’éditeur simple — c’est la même fiche, dans les deux sens.</p>';
+    }
+    html += '<div class="st-share__addr"><code>' + esc(sub) + '</code><span style="color:var(--st-ink-dim);font-size:11px">votre adresse Jeere</span></div>';
+    html += '<p class="st-modal__note">Prototype : l’enregistrement est local à ce navigateur. La publication en un clic, le domaine et les connecteurs s’activent à l’ouverture du backend.</p>';
+    body.innerHTML = html;
+    var row = ce('div', 'st-share__row');
+    var dl = ce('button', 'st-primary', 'Télécharger le JSON');
+    dl.type = 'button';
+    dl.addEventListener('click', exportJSON);
+    row.appendChild(dl);
+    var cp = ce('button', 'st-ghostbtn', 'Copier le JSON');
+    cp.type = 'button';
+    cp.addEventListener('click', function () {
+      var json = '';
+      try { json = JSON.stringify(D.normalizeConfig(state.config), null, 2); } catch (e) { json = JSON.stringify(state.config); }
+      var done = function () { toast('Fiche copiée dans le presse-papiers.', 'ok'); };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json).then(done, function () { toast('La copie a été bloquée par le navigateur.', 'warn'); });
+        else throw new Error('no clipboard');
+      } catch (e) { toast('La copie a été bloquée par le navigateur.', 'warn'); }
+    });
+    row.appendChild(cp);
+    if (!publish) {
+      var im = ce('button', 'st-ghostbtn', 'Importer un JSON');
+      im.type = 'button';
+      im.addEventListener('click', function () { closeModal($('shareModal')); $('importFile').click(); });
+      row.appendChild(im);
+      var op = ce('a', 'st-ghostbtn', 'Ouvrir dans l’éditeur simple');
+      op.href = '../creer/';
+      row.appendChild(op);
+    }
+    body.appendChild(row);
+    openModal($('shareModal'));
+  }
+
+  function openModal(m) { m.hidden = false; }
+  function closeModal(m) { m.hidden = true; }
+  function anyModalOpen() {
+    return ['proModal', 'shareModal', 'helpOverlay'].some(function (id) { var m = $(id); return m && !m.hidden; });
+  }
+  function closeModals() {
+    ['proModal', 'shareModal', 'helpOverlay'].forEach(function (id) { var m = $(id); if (m) m.hidden = true; });
+  }
+
+  /* ------------------------------------------------------------------ help overlay */
+
+  var SHORTCUTS = [
+    ['Essentiels', [
+      [['Ctrl', 'Z'], 'Annuler'],
+      [['Ctrl', '⇧', 'Z'], 'Rétablir'],
+      [['Ctrl', 'Y'], 'Rétablir (aussi)'],
+      [['Ctrl', 'S'], 'Enregistrer maintenant'],
+      [['Ctrl', 'E'], 'Exporter la fiche (JSON)'],
+      [['?'], 'Ce panneau'],
+      [['Échap'], 'Élément parent, puis tout désélectionner']
+    ]],
+    ['Édition', [
+      [['Ctrl', 'C'], 'Copier la section'],
+      [['Ctrl', 'V'], 'Coller après la sélection'],
+      [['Ctrl', 'D'], 'Dupliquer la section ou le produit'],
+      [['Suppr'], 'Supprimer la sélection'],
+      [['↑', '↓'], 'Déplacer la section'],
+      [['Alt', '↑/↓'], 'Déplacer sans faire défiler'],
+      [['Clic droit'], 'Copier · coller · dupliquer · masquer · supprimer']
+    ]],
+    ['Affichage', [
+      [['Ctrl', 'molette'], 'Zoomer vers le curseur (ou pincez le pavé tactile)'],
+      [['+', '−'], 'Zoomer, dézoomer (avec ou sans Ctrl)'],
+      [['Ctrl', '0'], 'Ajuster à l’écran'],
+      [['⇧', '1'], 'Ajuster à l’écran (aussi)'],
+      [['⇧', '2'], 'Zoomer sur la sélection'],
+      [['Ctrl', '1'], 'Zoom 100 %'],
+      [['Espace', 'glisser'], 'Déplacer la vue (ou clic molette)'],
+      [['D'], 'Téléphone seul · les deux · ordinateur seul']
+    ]],
+    ['Outils et pages', [
+      [['V'], 'Outil sélection'],
+      [['H'], 'Outil main'],
+      [['1', '…', '5'], 'Accueil · Fiche produit · Panier · Paiement · Confirmation']
+    ]]
+  ];
+
+  function buildHelp() {
+    var body = $('helpBody');
+    body.innerHTML = '';
+    SHORTCUTS.forEach(function (grp) {
+      var col = ce('div', 'st-help__group', '<h3>' + esc(grp[0]) + '</h3>');
+      grp[1].forEach(function (row) {
+        var keys = row[0].map(function (k) { return '<kbd>' + esc(k) + '</kbd>'; }).join('');
+        col.appendChild(ce('div', 'st-help__row', '<span>' + esc(row[1]) + '</span><span class="st-help__keys">' + keys + '</span>'));
+      });
+      body.appendChild(col);
+    });
+  }
+
+  /* ------------------------------------------------------------------ toasts */
+
+  function toast(msg, tone) {
+    var box = $('toasts');
+    if (!box) return;
+    var t = ce('div', 'st-toast', esc(msg));
+    if (tone) t.dataset.tone = tone;
+    box.appendChild(t);
+    while (box.children.length > 3) box.firstChild.remove();
+    setTimeout(function () { t.style.opacity = '0'; t.style.transition = 'opacity .25s'; }, 2600);
+    setTimeout(function () { t.remove(); }, 2950);
+  }
+
+  /* ------------------------------------------------------------------ keyboard */
+
+  function isTyping(t) {
+    return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+  }
+
+  function onKeyDown(e) {
+    var k = typeof e.key === 'string' ? e.key : '';
+    var low = k.toLowerCase();
+    var mod = e.ctrlKey || e.metaKey;
+    var typing = isTyping(e.target);
+
+    /* these work even while typing (and with a dialog open) */
+    if (mod && low === 's') { e.preventDefault(); saveNow(); toast('Enregistré dans ce navigateur.', 'ok'); return; }
+    if (mod && low === 'e') { e.preventDefault(); exportJSON(); return; }
+    if (k === 'Escape') {
+      if (ctxEl) { closeCtx(); return; }
+      if (anyModalOpen()) { closeModals(); return; }
+      if (typing) { e.target.blur(); return; }
+      escapeSelection();
+      return;
+    }
+
+    /* a dialog claiming aria-modal really blocks the canvas: no Delete/paste/arrows behind it */
+    if (anyModalOpen()) {
+      if (k === '?' && !typing) { e.preventDefault(); toggleHelp(); }
+      return;
+    }
+    if (typing) return;
+
+    if (k === ' ') {
+      /* Space on a focused button, link or tab activates it (keyboard users): only the
+       * stage/body arm the pan */
+      if (e.target && e.target.closest && e.target.closest('button, a, [role="button"], [role="tab"], [role="treeitem"], summary, [tabindex]:not(.st-stage)')) return;
+      spaceHeld = true; stage.classList.add('is-hand'); e.preventDefault(); return;
+    }
+
+    if (mod && low === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+    if (mod && low === 'y') { e.preventDefault(); redo(); return; }
+    if (mod && low === 'c') { copySelection(); return; }
+    if (mod && low === 'v') { pasteClipboard(); return; }
+    if (mod && low === 'd') { e.preventDefault(); duplicateSelection(); return; }
+    if (mod && (k === '0' || e.code === 'Digit0' || e.code === 'Numpad0')) { e.preventDefault(); fit(); return; }
+    if (mod && (k === '1' || e.code === 'Digit1' || e.code === 'Numpad1')) { e.preventDefault(); setZoom(1); return; }
+    /* Ctrl + / Ctrl − : the browser's page zoom reflex, captured as canvas zoom (Figma parity) */
+    if (mod && (k === '+' || k === '=' || e.code === 'Equal' || e.code === 'NumpadAdd')) { e.preventDefault(); setZoom(state.zoom * 1.25); return; }
+    if (mod && (k === '-' || e.code === 'Minus' || e.code === 'NumpadSubtract')) { e.preventDefault(); setZoom(state.zoom / 1.25); return; }
+    if (mod) return;
+
+    if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); deleteSelection(); return; }
+    if (k === 'ArrowUp') { e.preventDefault(); moveSelection(-1, e.altKey); return; }
+    if (k === 'ArrowDown') { e.preventDefault(); moveSelection(1, e.altKey); return; }
+    if (low === 'v' && !e.shiftKey) { setTool('select'); return; }
+    if (low === 'h' && !e.shiftKey) { setTool('hand'); return; }
+    if (low === 'd' && !e.shiftKey) { cycleDevice(); return; }
+    if (k === '?') { toggleHelp(); return; }
+    if (k === '+' || k === '=') { setZoom(state.zoom * 1.25); return; }
+    if (k === '-') { setZoom(state.zoom / 1.25); return; }
+
+    /* Shift+1 / Shift+2 : fit and zoom-to-selection, like Figma (by physical position, so the
+     * reflex works on QWERTY and the AZERTY shifted digits stop teleporting between pages) */
+    if (e.shiftKey && (e.code === 'Digit1' || e.code === 'Numpad1')) { e.preventDefault(); fit(); return; }
+    if (e.shiftKey && (e.code === 'Digit2' || e.code === 'Numpad2')) { e.preventDefault(); zoomToSelection(); return; }
+    if (e.shiftKey) return;
+
+    /* pages 1..5 — by key when the layout gives a digit, by physical position otherwise (AZERTY);
+     * never shifted: Shift+digits belong to the zoom vocabulary above. No toast: the tree's
+     * active-page marker and the artboards already say where you are. */
+    var digit = /^[1-5]$/.test(k) ? parseInt(k, 10)
+      : (/^Digit[1-5]$/.test(e.code || '') ? parseInt(e.code.slice(5), 10) : 0);
+    if (digit && !e.altKey) {
+      var pg = PAGES[digit - 1];
+      if (pg) showPage(pg.id);
+    }
+  }
+
+  function onKeyUp(e) {
+    if (e.key === ' ') { spaceHeld = false; if (state.tool !== 'hand') stage.classList.remove('is-hand'); }
+  }
+
+  function setTool(t) {
+    state.tool = t;
+    $('toolSelect').classList.toggle('is-on', t === 'select');
+    $('toolSelect').setAttribute('aria-pressed', String(t === 'select'));
+    $('toolHand').classList.toggle('is-on', t === 'hand');
+    $('toolHand').setAttribute('aria-pressed', String(t === 'hand'));
+    stage.classList.toggle('is-hand', t === 'hand');
+  }
+
+  function setDeviceFocus(dev) {
+    state.deviceFocus = dev;
+    abEls.phone.classList.toggle('is-hidden', dev === 'desktop');
+    abEls.desktop.classList.toggle('is-hidden', dev === 'phone');
+    document.querySelectorAll('.st-devices button').forEach(function (b) {
+      b.classList.toggle('is-on', b.getAttribute('data-dev') === dev);
+    });
+    fit();
+  }
+
+  function cycleDevice() {
+    var order = ['both', 'phone', 'desktop'];
+    var next = order[(order.indexOf(state.deviceFocus) + 1) % order.length];
+    setDeviceFocus(next);
+    toast(next === 'both' ? 'Les deux aperçus' : next === 'phone' ? 'Téléphone seul' : 'Ordinateur seul', 'info');
+  }
+
+  function toggleHelp() {
+    var m = $('helpOverlay');
+    if (m.hidden) { closeModals(); openModal(m); } else closeModal(m);
+  }
+
+  /* ------------------------------------------------------------------ top bar sync */
+
+  function syncTopBar() {
+    var input = $('ficheName');
+    if (input && document.activeElement !== input) {
+      input.value = (state.config.store && state.config.store.name) || '';
+    }
+  }
+
+  /* ------------------------------------------------------------------ init */
+
+  function init() {
+    stage = $('stage');
+    world = $('world');
+    ghostEl = $('dragGhost');
+    roots.phone = $('rootPhone');
+    roots.desktop = $('rootDesktop');
+    abEls.phone = $('abPhone');
+    abEls.desktop = $('abDesktop');
+    saveStateEl = $('saveState');
+    saveLabelEl = $('saveLabel');
+
+    buildHelp();
+    buildInsertPanel();
+    buildTree();
+    buildInspector();
+    syncTopBar();
+    renderArtboards();
+
+    /* viewport */
+    stage.addEventListener('wheel', onWheel, { passive: false });
+    stage.addEventListener('pointerdown', onStagePointerDown);
+    stage.addEventListener('pointermove', onStagePointerMove);
+    stage.addEventListener('pointerup', onStagePointerUp);
+    stage.addEventListener('pointercancel', onStagePointerUp);
+    stage.addEventListener('click', onStageClickCapture, true);
+    stage.addEventListener('dblclick', onStageDblClick, true);
+    stage.addEventListener('contextmenu', onStageContextMenu);
+    stage.addEventListener('pointerover', onStageOverCapture, true);
+    stage.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    document.addEventListener('pointerdown', function (e) {
+      if (ctxEl && !ctxEl.contains(e.target)) closeCtx();
+    }, true);
+
+    /* layers tree: roving focus — ↑/↓ move between rows, Enter or Space selects */
+    $('layersPanel').addEventListener('keydown', function (e) {
+      var t = e.target;
+      if (!t || !t.classList || !t.classList.contains('st-row')) return;
+      var rows = Array.prototype.slice.call($('layersPanel').querySelectorAll('.st-row'));
+      var i = rows.indexOf(t);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        var j = clamp(i + (e.key === 'ArrowDown' ? 1 : -1), 0, rows.length - 1);
+        if (rows[j] && rows[j] !== t) { t.tabIndex = -1; rows[j].tabIndex = 0; rows[j].focus(); }
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        t.click();
+      }
+    });
+
+    ['phone', 'desktop'].forEach(function (dev) {
+      roots[dev].addEventListener('jst:navigate', onNavigate);
+    });
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('resize', function () { /* keep the view; Ctrl+0 refits */ });
+
+    /* top bar */
+    $('toolSelect').addEventListener('click', function () { setTool('select'); });
+    $('toolHand').addEventListener('click', function () { setTool('hand'); });
+    $('ficheName').addEventListener('input', function () {
+      var v = $('ficheName').value;
+      commit('Texte modifié (nom de la boutique)', function (c) { c.store = c.store || {}; c.store.name = v; }, { coalesce: 'store:name' });
+    });
+    document.querySelectorAll('.st-devices button').forEach(function (b) {
+      b.addEventListener('click', function () { setDeviceFocus(b.getAttribute('data-dev')); });
+    });
+    var zoomBtn = $('zoomBtn'), zoomMenu = $('zoomMenu');
+    zoomBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      zoomMenu.hidden = !zoomMenu.hidden;
+      zoomBtn.setAttribute('aria-expanded', String(!zoomMenu.hidden));
+    });
+    document.addEventListener('click', function (e) {
+      if (!zoomMenu.hidden && !e.target.closest('.st-zoomwrap')) zoomMenu.hidden = true;
+    });
+    zoomMenu.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var z = b.getAttribute('data-zoom');
+        if (z === 'in') setZoom(state.zoom * 1.25);
+        else if (z === 'out') setZoom(state.zoom / 1.25);
+        else if (z === 'fit') fit();
+        else if (z === '100') setZoom(1);
+        else setZoom(parseFloat(z));
+        zoomMenu.hidden = true;
+      });
+    });
+    $('shareBtn').addEventListener('click', function () { openShare(false); });
+    $('publishBtn').addEventListener('click', function () { openShare(true); });
+    $('helpBtn').addEventListener('click', toggleHelp);
+    $('tabLayers').addEventListener('click', function () { switchLeftTab('layers'); });
+    $('tabInsert').addEventListener('click', function () { switchLeftTab('insert'); });
+    $('importFile').addEventListener('change', function () {
+      importJSONFile($('importFile').files && $('importFile').files[0]);
+      $('importFile').value = '';
+    });
+
+    /* modals */
+    document.querySelectorAll('.st-modal [data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { closeModal(b.closest('.st-modal')); });
+    });
+    document.querySelectorAll('.st-modal').forEach(function (m) {
+      m.addEventListener('click', function (e) { if (e.target === m) closeModal(m); });
+    });
+    $('proTry').addEventListener('click', function () {
+      ui.proSeen = true;
+      saveUI();
+      closeModal($('proModal'));
+      toast('Bienvenue dans le Studio. Appuyez sur ? pour les raccourcis.', 'ok');
+    });
+    if (!ui.proSeen) openModal($('proModal'));
+
+    /* the opening view: both artboards in sight, like opening a Figma file */
+    requestAnimationFrame(function () { requestAnimationFrame(fitWidthTop); });
+    setSaveState('saved');
+  }
+
+  function switchLeftTab(tab) {
+    var layers = tab === 'layers';
+    $('tabLayers').classList.toggle('is-on', layers);
+    $('tabLayers').setAttribute('aria-selected', String(layers));
+    $('tabInsert').classList.toggle('is-on', !layers);
+    $('tabInsert').setAttribute('aria-selected', String(!layers));
+    $('layersPanel').hidden = !layers;
+    $('insertPanel').hidden = layers;
+    hideTypePreview();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  /* ------------------------------------------------------------------ public (and testable) API */
+
+  window.JeereStudio = {
+    getConfig: function () { return clone(state.config); },
+    getState: function () {
+      return {
+        page: state.page, pageId: state.pageId, productId: state.productId,
+        sel: state.sel ? clone(state.sel) : null, tool: state.tool,
+        zoom: state.zoom, panX: state.panX, panY: state.panY,
+        deviceFocus: state.deviceFocus, undoDepth: undoStack.length, redoDepth: redoStack.length
+      };
+    },
+    select: function (sel) { select(sel || null); },
+    showPage: showPage,
+    undo: undo,
+    redo: redo,
+    fit: fit,
+    setZoom: setZoom,
+    save: saveNow,
+    exportJSON: exportJSON,
+    SHORTCUTS: SHORTCUTS
+  };
+})();
