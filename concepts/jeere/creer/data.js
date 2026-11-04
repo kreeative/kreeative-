@@ -450,9 +450,9 @@
       credit: { name: 'Fiona Murray-deGraaff', username: 'fionamurrayphoto', photoUrl: 'https://unsplash.com/photos/a-wrapped-gift-box-with-a-black-ribbon-beJTnEGzbAM', profileUrl: 'https://unsplash.com/@fionamurrayphoto' }
     },
     'beauty-hero': {
-      file: 'beauty/hero.webp', focus: '50% 30%',
-      alt: 'Portrait d’une femme noire à la peau lumineuse, coiffée de deux macarons afro, sur fond sombre',
-      credit: { name: 'Divin Louis-Rémy MBEA DE MASSOCK', username: 'themysteriousstudio', photoUrl: 'https://unsplash.com/photos/a-woman-with-an-afro-is-wearing-a-dress-sDnm8GvBv1c', profileUrl: 'https://unsplash.com/@themysteriousstudio' }
+      file: 'beauty/hero.webp', focus: '50% 35%',
+      alt: 'Femme noire à la peau ébène lumineuse et hydratée, souriante, sur fond orange',
+      credit: { name: 'Eze Joseph', username: 'justbeingblythe', photoUrl: 'https://unsplash.com/photos/a-black-woman-laughing-with-her-eyes-closed-7l5j_afULjk', profileUrl: 'https://unsplash.com/@justbeingblythe' }
     },
     'beauty-about': {
       file: 'beauty/about.webp', focus: '50% 35%',

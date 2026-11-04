@@ -162,7 +162,7 @@ window.JEERE_EN = {
   'mini.c.i2': 'Black soap',
   'mini.c.i3': 'Coconut oil',
   'mini.c.i4': 'Lip balm',
-  'mini.c.a0': 'Woman with afro puffs',
+  'mini.c.a0': 'Woman with glowing ebony skin',
   'mini.c.a1': 'Bowl of shea butter',
   'mini.c.a2': 'Bar of black soap',
   'mini.c.a3': 'Coconut oil and coconuts',
