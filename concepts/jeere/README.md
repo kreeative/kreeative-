@@ -24,8 +24,9 @@ Live (unlisted): https://kreeative.xyz/concepts/jeere/ · English: add `?lang=en
 
 ## Waitlist
 
-The form saves to Supabase, in the **Kreeative Teach** project, table `public.jeere_waitlist`
-(migration `create_jeere_waitlist`). The page posts straight to the REST API with the
+The form saves to Supabase, in the **Jeere** project (organisation « Jeere », region Paris, ref
+`aezchxfvzfoqlvzchqyk`), table `public.jeere_waitlist` (migration `create_jeere_waitlist`). Until 5 November 2026 it
+went to the « Kreeative Teach » project, now paused: sign-ups made before that are still there. The page posts straight to the REST API with the
 publishable key; row level security only lets visitors **add** a row, never read one. Read the
 sign-ups in Supabase → Table Editor → `jeere_waitlist`.
 

@@ -9,10 +9,10 @@
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var EN = window.JEERE_EN || {};
 
-  // Waitlist storage: Supabase project "Kreeative Teach", table public.jeere_waitlist.
+  // Waitlist storage: Supabase project "Jeere" (organisation Jeere), table public.jeere_waitlist.
   // The publishable key can only insert rows (row level security); nobody can read them with it.
-  var SB_URL = 'https://frhhbxawqungjjnrljhy.supabase.co';
-  var SB_KEY = 'sb_publishable_1cUmug1Bsk1WOw_oTe-lwA_3ksOJapg';
+  var SB_URL = 'https://aezchxfvzfoqlvzchqyk.supabase.co';
+  var SB_KEY = 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
   var PAGE_URL = 'https://kreeative.xyz/concepts/jeere/';
 
   // Strings that the script writes itself, in both languages
