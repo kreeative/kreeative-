@@ -937,14 +937,52 @@
       } catch (e) { return null; } // tainted (cross-origin): the caller drops the image
     }
 
-    function exportPNG(key) {
+    /* the store's web fonts, inlined as data: @font-face rules — an SVG rasterised through an
+     * <img> cannot fetch anything, so without this the headline font fell back to a generic sans */
+    var fontCssCache = {};
+    function blobToDataURL(b) {
+      return new Promise(function (resolve) {
+        var fr = new FileReader();
+        fr.onload = function () { resolve(String(fr.result)); };
+        fr.onerror = function () { resolve(''); };
+        fr.readAsDataURL(b);
+      });
+    }
+    function embeddedFontCss() {
+      var th = cfg().theme || {};
+      var pair = null;
+      try { pair = D.fontPairs[th.fonts] || null; } catch (e) { pair = null; }
+      var url = pair && pair.googleUrl;
+      if (!url || typeof fetch !== 'function') return Promise.resolve('');
+      if (fontCssCache[url] != null) return Promise.resolve(fontCssCache[url]);
+      return fetch(url).then(function (r) { return r.ok ? r.text() : ''; }).then(function (css) {
+        /* keep the latin faces only (the store is in French): a handful of small woff2 files */
+        var blocks = String(css).match(/@font-face\s*{[^}]*}/g) || [];
+        blocks = blocks.filter(function (b) { return /unicode-range:[^;]*U\+0000-00FF/i.test(b) || !/unicode-range/i.test(b); });
+        return Promise.all(blocks.map(function (b) {
+          var m = /url\(([^)]+)\)/.exec(b);
+          if (!m) return Promise.resolve('');
+          var src = m[1].replace(/["']/g, '');
+          return fetch(src).then(function (r) { return r.ok ? r.blob() : null; }).then(function (blob) {
+            return blob ? blobToDataURL(blob) : '';
+          }).then(function (data) { return data ? b.replace(m[0], 'url(' + data + ')') : ''; }).catch(function () { return ''; });
+        })).then(function (out) {
+          fontCssCache[url] = out.join('\n');
+          return fontCssCache[url];
+        });
+      }).catch(function () { fontCssCache[url] = ''; return ''; });
+    }
+
+    function exportPNG(key, scale) {
       key = key || S.primaryKey();
+      scale = scale || 2;
       var preset = null;
       S.presets.forEach(function (p) { if (p.key === key) preset = p; });
       var rootEl = S.roots()[key];
       if (!preset || !rootEl) { toast('Aucun artboard à exporter.', 'warn'); return Promise.resolve(false); }
       toast('Export de l’artboard ' + preset.width + ' en PNG…', 'info');
-      return fetchStoreCss().then(function (css) {
+      return Promise.all([fetchStoreCss(), embeddedFontCss()]).then(function (both) {
+        var css = both[1] + '\n' + both[0];
         var W = preset.width;
         var H = Math.max(200, rootEl.offsetHeight);
         var copy = rootEl.cloneNode(true);
@@ -980,16 +1018,20 @@
           img.onload = function () {
             try {
               var cv = document.createElement('canvas');
-              cv.width = W;
-              cv.height = H;
+              /* 2x by default (sharp on a phone screen), within the canvas limits of the browsers */
+              var k = scale;
+              while (k > 1 && (Math.max(W, H) * k > 32000 || W * H * k * k > 60000000)) k--;
+              cv.width = W * k;
+              cv.height = H * k;
               var ctx = cv.getContext('2d');
+              ctx.scale(k, k);
               ctx.fillStyle = '#fff';
               ctx.fillRect(0, 0, W, H);
-              ctx.drawImage(img, 0, 0);
+              ctx.drawImage(img, 0, 0, W, H);
               cv.toBlob(function (png) {
                 if (!png) { toast('Le navigateur a refusé de rastériser l’aperçu.', 'err'); resolve(false); return; }
-                var name = 'boutique-' + preset.width;
-                try { if (D.slugify && cfg().store && cfg().store.name) name = (D.slugify(cfg().store.name) || 'boutique') + '-' + preset.width; } catch (e) { /* default */ }
+                var name = 'boutique-' + preset.width + (k > 1 ? '@' + k + 'x' : '');
+                try { if (D.slugify && cfg().store && cfg().store.name) name = (D.slugify(cfg().store.name) || 'boutique') + '-' + preset.width + (k > 1 ? '@' + k + 'x' : ''); } catch (e) { /* default */ }
                 downloadBlob(png, name + '.png');
                 toast('Image exportée (' + name + '.png)' + (dropped ? ' — ' + dropped + ' photo(s) non embarquable(s) laissée(s) de côté.' : '.'), dropped ? 'warn' : 'ok');
                 resolve(true);
@@ -1355,6 +1397,18 @@
       add('view:fit', 'Affichage', 'Ajuster à l’écran', 'Ctrl 0', S.fit);
       add('view:100', 'Affichage', 'Zoom à 100 %', 'Ctrl 1', function () { S.setZoom(1); });
       add('view:selzoom', 'Affichage', 'Zoomer sur la sélection', '⇧ 2', S.zoomToSelection);
+      [['select', 'Déplacer', 'V'], ['hand', 'Main', 'H'], ['text', 'Texte (modifier sur place)', 'T'], ['comment', 'Commentaire', 'C']].forEach(function (t) {
+        add('tool:' + t[0], 'Outils', 'Outil : ' + t[1], t[2], function () { S.setTool(t[0]); });
+      });
+      add('tool:section', 'Outils', 'Outil : Section (insérer)', 'S', function () { if (hooks.sectionPopover) hooks.sectionPopover(); });
+      add('tool:image', 'Outils', 'Outil : Image (photo de la sélection)', 'I', function () { S.pickImageForSelection(); });
+      (S.nicheList ? S.nicheList() : []).forEach(function (n) {
+        var cur = cfg().store && cfg().store.niche === n.id;
+        add('niche:' + n.id, 'Boutique', 'Changer de métier : ' + n.label + (cur ? ' (actuel)' : ''), '', function () { S.changeNiche(n.id); });
+      });
+      add('sel:rename', 'Sélection', 'Renommer la sélection', 'F2', function () { S.renameSelection(); });
+      add('sel:lock', 'Sélection', 'Verrouiller la sélection', 'Ctrl ⇧ L', function () { S.toggleLockSelected(); });
+      add('view:chrome', 'Affichage', 'Masquer / afficher les panneaux', 'Ctrl \\', function () { S.toggleChrome(); });
       add('view:help', 'Aide', 'Raccourcis clavier (aide)', '?', function () { S.toggleHelp(); });
       add('view:simple', 'Aide', 'Ouvrir l’éditeur simple', '', function () { window.location.href = '../creer/'; });
       return cmds;
@@ -1421,21 +1475,52 @@
         list.appendChild(ce('div', 'st-cmdk__empty', 'Aucune commande ne correspond à « ' + esc(query) + ' ».'));
         return;
       }
-      var recentShown = false;
+      /* browsing (no query): category headers, the title without its repeated « Catégorie : »
+       * prefix; searching: one ranked list, the category as a dim label on the right */
+      var header = null;
       rows.forEach(function (r, i) {
-        if (!query && r.recent && !recentShown) { list.appendChild(ce('div', 'st-cmdk__recent', 'Récentes')); recentShown = true; }
-        if (!query && !r.recent && recentShown) { list.appendChild(ce('div', 'st-cmdk__recent', 'Toutes les commandes')); recentShown = false; }
+        if (!query) {
+          var h = r.recent ? 'Récentes' : r.cmd.cat;
+          if (h !== header) { list.appendChild(ce('div', 'st-cmdk__recent', esc(h))); header = h; }
+        }
         var b = ce('button', 'st-cmdk__item' + (i === 0 ? ' is-active' : ''));
         b.type = 'button';
         b.setAttribute('role', 'option');
         b.setAttribute('data-cmd', r.cmd.id);
-        b.innerHTML = '<span class="st-cmdk__cat">' + esc(r.cmd.cat) + '</span>' +
-          '<span class="st-cmdk__ttl">' + markTitle(r.cmd.title, r.marks) + '</span>' +
+        var ttl = r.cmd.title;
+        var pre = r.cmd.cat + ' : ';
+        var shown = (!query && ttl.indexOf(pre) === 0) ? esc(ttl.slice(pre.length)) : markTitle(ttl, r.marks);
+        b.innerHTML = '<span class="st-cmdk__ico">' + cmdIcon(r.cmd) + '</span>' +
+          '<span class="st-cmdk__ttl">' + shown + '</span>' +
+          ((query || r.recent) ? '<span class="st-cmdk__cat">' + esc(r.cmd.cat) + '</span>' : '') +
           (r.cmd.kbd ? '<kbd>' + esc(r.cmd.kbd) + '</kbd>' : '');
         b.addEventListener('click', function () { runCommand(r.cmd); });
         b.addEventListener('mousemove', function () { setActive(i); });
         list.appendChild(b);
       });
+    }
+
+    var CMD_ICONS = {
+      'Ajouter': '<path d="M8 3v10M3 8h10"/>',
+      'Mes blocs': '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M2.5 7h11"/>',
+      'Aller à': '<path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5"/>',
+      'Modèle': '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M2.5 6h11M6 6v7.5"/>',
+      'Palette': '<circle cx="8" cy="8" r="5.5"/><circle cx="6" cy="6.3" r=".8"/><circle cx="9.8" cy="6.3" r=".8"/><circle cx="5.6" cy="9.6" r=".8"/>',
+      'Style': '<path d="M4 12.5L8 3.5l4 9M5.6 9h4.8"/>',
+      'Appareils': '<rect x="2" y="3.5" width="9" height="7" rx="1"/><rect x="11.5" y="6" width="3" height="6.5" rx=".8"/>',
+      'Panneaux': '<rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M6 2.5v11"/>',
+      'Vérifier': '<path d="M3.5 8.3l3 3 6-6.6"/>',
+      'Sélection': '<path d="M4 2.8l8 5.4-3.5.7-1.6 3.6z"/>',
+      'Historique': '<path d="M3 8a5 5 0 101.3-3.4M3 3v2.4h2.4M8 5.5V8l1.8 1.2"/>',
+      'Fiche': '<path d="M4 1.8h5.3L12.5 5v9.2H4z"/><path d="M9.3 1.8V5h3.2"/>',
+      'Affichage': '<circle cx="7" cy="7" r="4.3"/><path d="M10.2 10.2l3.3 3.3"/>',
+      'Aide': '<circle cx="8" cy="8" r="5.6"/><path d="M6.4 6.4a1.7 1.7 0 113 1.1c-.6.5-1.4.8-1.4 1.8M8 11.4v.1"/>',
+      'Outils': '<path d="M4 2.8l8 5.4-3.5.7-1.6 3.6z"/>',
+      'Boutique': '<path d="M2.5 6l1-3.5h9l1 3.5M3.2 6v7.5h9.6V6"/>'
+    };
+    function cmdIcon(cmd) {
+      var d = CMD_ICONS[cmd.cat] || '<circle cx="8" cy="8" r="2"/>';
+      return '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
     }
 
     function setActive(i) {

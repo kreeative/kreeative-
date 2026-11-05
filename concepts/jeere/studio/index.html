@@ -10,13 +10,14 @@
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
   <link rel="stylesheet" href="../creer/store.css">
   <link rel="stylesheet" href="studio.css">
   <script src="../creer/data.js" defer></script>
   <script src="../creer/render.js" defer></script>
   <script src="studio.js" defer></script>
   <script src="studio-power.js" defer></script>
+  <script src="studio-toolbar.js" defer></script>
 </head>
 <body>
   <svg class="st-defs" aria-hidden="true" focusable="false"><defs>
@@ -28,77 +29,42 @@
 
     <header class="st-top">
       <div class="st-top__left">
-        <a class="st-logo" href="../creer/" title="Jeere — retour à l’éditeur simple">
+        <a class="st-logo" href="../creer/" data-tip="Retour à l’éditeur simple" aria-label="Jeere — retour à l’éditeur simple">
           <svg viewBox="0 0 600 446" aria-hidden="true" focusable="false"><use href="#cloud"/></svg>
         </a>
         <span class="st-brand">Studio</span>
         <span class="st-badge" title="Le Studio fait partie de la formule Avancée. Bientôt payant à l’ouverture des abonnements.">Formule Avancée</span>
         <span class="st-sep" aria-hidden="true"></span>
-        <input id="ficheName" class="st-name" maxlength="40" aria-label="Nom de la boutique" spellcheck="false" autocomplete="off">
+        <input id="ficheName" class="st-name" maxlength="40" aria-label="Nom de la boutique" spellcheck="false" autocomplete="off" data-tip="Nom de la boutique — cliquez pour le modifier">
       </div>
 
       <div class="st-top__center">
-        <div class="st-tools" role="group" aria-label="Outils">
-          <button id="toolSelect" class="st-tool is-on" title="Sélection — V" aria-pressed="true">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l12 9-5.2.9L15 19l-2.6 1.1-2.2-6.1L6 17.5z" fill="currentColor"/></svg>
-          </button>
-          <button id="toolHand" class="st-tool" title="Main (déplacer la vue) — H" aria-pressed="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 11.5V5.8a1.3 1.3 0 012.6 0v4.9m0-6.2a1.3 1.3 0 012.6 0v6.2m0-4.9a1.3 1.3 0 012.6 0v7.4c0 3.6-2.3 6.3-5.8 6.3-2.8 0-4.2-1.4-5.6-3.8l-1.8-3.2a1.26 1.26 0 012.1-1.4l1.3 1.8V7.1a1.3 1.3 0 012.6 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <div class="st-zoomwrap">
-          <button id="zoomBtn" class="st-zoombtn" aria-haspopup="true" aria-expanded="false" title="Zoom">100 %
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="st-caret"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          </button>
-          <div id="zoomMenu" class="st-menu" hidden>
-            <button data-zoom="in">Zoom avant <kbd>+</kbd></button>
-            <button data-zoom="out">Zoom arrière <kbd>−</kbd></button>
-            <hr>
-            <button data-zoom="fit">Ajuster à l’écran <kbd>Ctrl 0</kbd></button>
-            <button data-zoom="100">Zoom à 100 % <kbd>Ctrl 1</kbd></button>
-            <hr>
-            <button data-zoom="0.25">25 %</button>
-            <button data-zoom="0.5">50 %</button>
-            <button data-zoom="0.75">75 %</button>
-            <button data-zoom="2">200 %</button>
-          </div>
-        </div>
-        <div class="st-devices" role="group" aria-label="Appareils affichés" title="Appareils affichés — D">
-          <button data-dev="phone" title="Téléphone seul">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3.5" width="8" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="17.6" r=".9" fill="currentColor"/></svg>
-          </button>
-          <button data-dev="both" class="is-on" title="Les deux">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="13" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="16" y="9" width="5.5" height="10" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-          </button>
-          <button data-dev="desktop" title="Ordinateur seul">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 20h6m-3-3.5V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-          </button>
-        </div>
-        <div class="st-abchips" id="abChips" role="group" aria-label="Artboards affichés" title="Artboards : cliquez pour ajouter ou retirer une taille d’écran">
-          <button type="button" data-ab="360" aria-pressed="false">360</button>
-          <button type="button" data-ab="phone" aria-pressed="true">390</button>
-          <button type="button" data-ab="768" aria-pressed="false">768</button>
-          <button type="button" data-ab="desktop" aria-pressed="true">1200</button>
-          <button type="button" data-ab="1440" aria-pressed="false">1440</button>
+        <span class="st-abchips__lbl" aria-hidden="true">Aperçus</span>
+        <div class="st-abchips" id="abChips" role="group" aria-label="Aperçus affichés (tailles d’écran)">
+          <button type="button" data-ab="360" aria-pressed="false" data-tip="Petit téléphone · 360 px" data-sub="Cliquez pour ajouter ou retirer l’aperçu">360</button>
+          <button type="button" data-ab="phone" aria-pressed="true" data-tip="Téléphone · 390 px" data-sub="Cliquez pour ajouter ou retirer l’aperçu">390</button>
+          <button type="button" data-ab="768" aria-pressed="false" data-tip="Tablette · 768 px" data-sub="Cliquez pour ajouter ou retirer l’aperçu">768</button>
+          <button type="button" data-ab="desktop" aria-pressed="true" data-tip="Ordinateur · 1200 px" data-sub="Cliquez pour ajouter ou retirer l’aperçu">1200</button>
+          <button type="button" data-ab="1440" aria-pressed="false" data-tip="Grand écran · 1440 px" data-sub="Cliquez pour ajouter ou retirer l’aperçu">1440</button>
         </div>
       </div>
 
       <div class="st-top__right">
         <span id="saveState" class="st-save" data-state="saved"><span class="st-save__dot" aria-hidden="true"></span><span id="saveLabel">Enregistré</span></span>
-        <button id="contrastBtn" class="st-iconbtn" type="button" title="Vérifier les contrastes — Ctrl ⇧ C" aria-pressed="false" aria-label="Vérifier les contrastes">
+        <button id="contrastBtn" class="st-iconbtn" type="button" data-tip="Vérifier les contrastes" data-kbd="Ctrl ⇧ C" aria-pressed="false" aria-label="Vérifier les contrastes">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.3 9.4L14.6 4.7 4.9 14.4a2.6 2.6 0 000 3.7l1 1a2.6 2.6 0 003.7 0z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M13 6.3l4.7 4.7M17.5 3.5l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M20.6 16.2s1.4 1.8 1.4 3a1.4 1.4 0 11-2.8 0c0-1.2 1.4-3 1.4-3z" fill="currentColor"/></svg>
         </button>
-        <button id="tokensBtn" class="st-iconbtn" type="button" title="Jetons de design (couleurs, polices, angles)" aria-pressed="false" aria-label="Jetons de design">
+        <button id="tokensBtn" class="st-iconbtn" type="button" data-tip="Jetons de design" data-sub="Couleurs, polices, angles" aria-pressed="false" aria-label="Jetons de design">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M14.2 5.2h4.6v4.6M9.8 18.8H5.2v-4.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
         </button>
-        <button id="versionsBtn" class="st-iconbtn" type="button" title="Historique — versions nommées de la fiche" aria-pressed="false" aria-label="Historique des versions">
+        <button id="versionsBtn" class="st-iconbtn" type="button" data-tip="Historique" data-sub="Versions nommées de la fiche" aria-pressed="false" aria-label="Historique des versions">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 101.8-4.9M4.5 4.5v3.2h3.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8.2V12l2.8 1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
         </button>
         <span class="st-sep" aria-hidden="true"></span>
         <a id="openSimple" class="st-ghostbtn" href="../creer/">Éditeur simple</a>
         <button id="shareBtn" class="st-ghostbtn" type="button">Partager</button>
         <button id="publishBtn" class="st-primary" type="button">Publier</button>
-        <button id="helpBtn" class="st-helpbtn" type="button" title="Raccourcis et aide — ?" aria-label="Raccourcis et aide">?</button>
+        <button id="helpBtn" class="st-helpbtn" type="button" data-tip="Raccourcis et aide" data-kbd="?" aria-label="Raccourcis et aide">?</button>
       </div>
     </header>
 
@@ -106,7 +72,7 @@
       <aside class="st-left">
         <div class="st-left__tabs" role="tablist">
           <button id="tabLayers" role="tab" aria-selected="true" class="is-on">Calques</button>
-          <button id="tabInsert" role="tab" aria-selected="false">Ajouter</button>
+          <button id="tabInsert" role="tab" aria-selected="false">Insérer</button>
           <button id="tabAssets" role="tab" aria-selected="false">Images</button>
         </div>
         <div id="layersPanel" class="st-panel" role="tree" aria-label="Calques"></div>
@@ -119,6 +85,54 @@
         <div id="dropline" class="st-dropline" hidden></div>
         <div id="dragGhost" class="st-ghostchip" hidden></div>
         <div id="hoverPrev" class="st-prevcard" hidden></div>
+        <div class="st-ftb" id="ftb" role="toolbar" aria-label="Outils">
+          <button type="button" id="toolSelect" class="st-ftb__btn is-on" data-tool="select" aria-pressed="true" aria-label="Déplacer" data-tip="Déplacer" data-kbd="V" data-sub="Sélectionner, glisser une section">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.8l12 8.1-5.3 1.1-2.4 5.4z"/></svg>
+          </button>
+          <button type="button" id="toolHand" class="st-ftb__btn" data-tool="hand" aria-pressed="false" aria-label="Main" data-tip="Main" data-kbd="H" data-sub="Déplacer la vue (ou Espace + glisser)">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 11.5V5.8a1.3 1.3 0 012.6 0v4.9m0-6.2a1.3 1.3 0 012.6 0v6.2m0-4.9a1.3 1.3 0 012.6 0v7.4c0 3.6-2.3 6.3-5.8 6.3-2.8 0-4.2-1.4-5.6-3.8l-1.8-3.2a1.26 1.26 0 012.1-1.4l1.3 1.8V7.1a1.3 1.3 0 012.6 0"/></svg>
+          </button>
+          <span class="st-ftb__sep" aria-hidden="true"></span>
+          <button type="button" id="ftbSection" class="st-ftb__btn" aria-haspopup="true" aria-expanded="false" aria-label="Insérer une section" data-tip="Section" data-kbd="S" data-sub="Insérer une section responsive">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="6.5" rx="1.6"/><path d="M3.5 14.5h7.5M3.5 18.5h5.5M17.5 13.2v7M14.4 16.7h6.2"/></svg>
+          </button>
+          <button type="button" id="toolText" class="st-ftb__btn" data-tool="text" aria-pressed="false" aria-label="Texte" data-tip="Texte" data-kbd="T" data-sub="Cliquez un texte pour le modifier sur place">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 7V4.8h13V7M12 4.8v14.4M9.2 19.2h5.6"/></svg>
+          </button>
+          <button type="button" id="ftbImage" class="st-ftb__btn" aria-label="Image" data-tip="Image" data-kbd="I" data-sub="Changer la photo de la sélection">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17.3l4.8-4.3 3.5 3 3.1-2.6L20 17.6"/></svg>
+          </button>
+          <button type="button" id="toolComment" class="st-ftb__btn" data-tool="comment" aria-pressed="false" aria-label="Commentaire" data-tip="Commentaire" data-kbd="C" data-sub="Poser une note sur un aperçu">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.2h14a1.6 1.6 0 011.6 1.6v8.6A1.6 1.6 0 0119 17h-7.2l-4.4 3.3V17H5a1.6 1.6 0 01-1.6-1.6V6.8A1.6 1.6 0 015 5.2z"/></svg>
+            <span class="st-ftb__count" id="commentCount" hidden>0</span>
+          </button>
+          <span class="st-ftb__sep" aria-hidden="true"></span>
+          <button type="button" class="st-ftb__btn st-ftb__btn--sm" data-zoomstep="out" aria-label="Zoom arrière" data-tip="Zoom arrière" data-kbd="−">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 12h11"/></svg>
+          </button>
+          <div class="st-zoomwrap">
+            <button id="zoomBtn" class="st-zoombtn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Niveau de zoom" data-tip="Zoom" data-sub="Ajuster, 100 %, sélection"><span id="zoomLabel">100 % </span><svg viewBox="0 0 24 24" aria-hidden="true" class="st-caret"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+            <div id="zoomMenu" class="st-menu st-menu--up" hidden>
+              <button type="button" data-zoom="in">Zoom avant <kbd>+</kbd></button>
+              <button type="button" data-zoom="out">Zoom arrière <kbd>−</kbd></button>
+              <hr>
+              <button type="button" data-zoom="fit">Ajuster à l’écran <kbd>⇧ 1</kbd></button>
+              <button type="button" data-zoom="sel">Zoomer sur la sélection <kbd>⇧ 2</kbd></button>
+              <button type="button" data-zoom="100">Zoom à 100 % <kbd>⇧ 0</kbd></button>
+              <hr>
+              <button type="button" data-zoom="0.25">25 %</button>
+              <button type="button" data-zoom="0.5">50 %</button>
+              <button type="button" data-zoom="0.75">75 %</button>
+              <button type="button" data-zoom="2">200 %</button>
+            </div>
+          </div>
+          <button type="button" class="st-ftb__btn st-ftb__btn--sm" data-zoomstep="in" aria-label="Zoom avant" data-tip="Zoom avant" data-kbd="+">
+            <svg class="st-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5v11M6.5 12h11"/></svg>
+          </button>
+        </div>
+        <div class="st-pop" id="secPop" hidden role="dialog" aria-label="Insérer une section"></div>
+        <div class="st-selbar" id="selbar" hidden role="toolbar" aria-label="Actions de la sélection"></div>
+        <div class="st-pinlayer" id="pinComposer" hidden></div>
       </main>
 
       <aside class="st-right">
@@ -140,7 +154,7 @@
     <div class="st-guard__card">
       <svg viewBox="0 0 600 446" aria-hidden="true" class="st-guard__cloud"><use href="#cloud"/></svg>
       <h1>Le Studio se pilote sur ordinateur</h1>
-      <p>Jeere Studio a besoin d’un écran d’au moins 1024&nbsp;px de large : calques, plan de travail et réglages côte à côte, comme Figma. Sur ce téléphone, utilisez l’éditeur simple&nbsp;: il fait tout, en plus simple.</p>
+      <p>Jeere Studio a besoin d’un écran d’au moins 1024&nbsp;px de large : calques, plan de travail et réglages côte à côte. Sur cet écran, utilisez l’éditeur simple&nbsp;: il fait tout, en plus simple.</p>
       <a class="st-guard__btn" href="../creer/">Ouvrir l’éditeur simple</a>
     </div>
   </div>
@@ -150,7 +164,12 @@
       <svg viewBox="0 0 600 446" aria-hidden="true" class="st-modal__cloud"><use href="#cloud"/></svg>
       <span class="st-badge">Formule Avancée</span>
       <h2 id="proTitle">Le Studio fait partie de la formule Avancée</h2>
-      <p>Un éditeur libre, façon Figma ou Webflow&nbsp;: plan de travail infini, calques, raccourcis clavier, deux aperçus en direct. Il modifie la même fiche boutique que l’éditeur simple&nbsp;— vous pouvez passer de l’un à l’autre quand vous voulez.</p>
+      <p>Composez votre boutique avec des <b>sections qui s’adaptent toutes seules à chaque téléphone</b>&nbsp;: vous les insérez, les déplacez, réécrivez leurs textes et changez leurs photos sur un plan de travail infini, avec les aperçus téléphone, tablette et ordinateur côte à côte.</p>
+      <ul class="st-modal__list">
+        <li><b>Impossible de casser l’affichage mobile</b>&nbsp;: pas de pixels à placer, la mise en page suit votre modèle.</li>
+        <li>Les réflexes de Figma&nbsp;: barre d’outils, calques, raccourcis, palette <kbd>Ctrl K</kbd>.</li>
+        <li>La même fiche que l’éditeur simple&nbsp;: passez de l’un à l’autre quand vous voulez.</li>
+      </ul>
       <p class="st-modal__note">Prototype&nbsp;: le Studio est ouvert à tous pour l’essai. Bientôt payant à l’ouverture des abonnements.</p>
       <div class="st-modal__actions">
         <button id="proTry" class="st-primary" type="button">Essayer gratuitement</button>
@@ -194,6 +213,13 @@
     <div id="versionsBody" class="st-panel"></div>
   </div>
 
+
+  <div id="commentsPanel" class="st-drawer" hidden role="dialog" aria-label="Commentaires">
+    <div class="st-drawer__head"><h2>Commentaires</h2><button class="st-modal__close" data-closedrawer type="button" aria-label="Fermer">×</button></div>
+    <div id="commentsBody" class="st-panel"></div>
+  </div>
+
+  <div id="tip" class="st-tip" role="tooltip" hidden></div>
   <div id="toasts" class="st-toasts" aria-live="polite"></div>
   <input type="file" id="importFile" accept="application/json,.json" hidden>
 </body>

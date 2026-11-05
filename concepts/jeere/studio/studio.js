@@ -64,9 +64,10 @@
     config: loadConfig(),
     page: 'home', pageId: null, productId: null,
     sel: null,                      // {kind:'section'|'product'|'page', id, field?}
-    tool: 'select',                 // 'select' | 'hand'
+    tool: 'select',                 // 'select' | 'hand' | 'text' | 'comment'
     zoom: 1, panX: 60, panY: 80,
-    deviceFocus: 'both'             // 'both' | 'phone' | 'desktop'
+    deviceFocus: 'both',            // 'both' | 'phone' | 'desktop'
+    activeAb: null                  // the artboard last clicked (zoom, export, contextual bar)
   };
   var clipboard = null;             // in-app clipboard: {kind:'jeere-section', data}
   var undoStack = [];
@@ -322,6 +323,7 @@
         roots[p.key] = rootEl;
         abEls[p.key] = ab;
         rootEl.addEventListener('jst:navigate', onNavigate);
+        observeRoot(rootEl);
       }
       ab.style.left = x + 'px';
       ab.style.top = '0px';
@@ -330,6 +332,15 @@
     applyDeviceFocusClasses();
     syncAbChips();
   }
+
+  /* photos load after the render and push the sections down: the selection boxes follow */
+  var decorQueued = false;
+  var rootObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(function () {
+    if (decorQueued) return;
+    decorQueued = true;
+    requestAnimationFrame(function () { decorQueued = false; positionTags(); });
+  }) : null;
+  function observeRoot(rootEl) { if (rootObserver) { try { rootObserver.observe(rootEl); } catch (e) { /* old engine */ } } }
 
   function syncAbChips() {
     var box = $('abChips');
@@ -402,6 +413,7 @@
   }
 
   function applyDecor() {
+    if (hovEl && !document.contains(hovEl)) { hovEl = null; drawHoverBox(null); }
     abKeys().forEach(function (dev) {
       var rootEl = roots[dev];
       if (!rootEl) return;
@@ -440,9 +452,91 @@
   /* The Figma-style name tag is a studio-owned element in the artboard layer (a sibling of the
    * frame), never inside the rendered store: .jst clips its overflow, which used to swallow the
    * tag of the first section and paint it over the section above for the others. */
+  /* The selection is drawn by the studio, in the artboard layer, ABOVE the rendered store: an
+   * outline painted on the store node itself vanished under positioned children (the desktop
+   * hero showed no outline at all) and blended into a #3657FF accent. Boxes are world-space
+   * (they follow pan and zoom for free); their stroke is divided by the zoom, so it stays 2 px. */
+  function frameScale(frame) {
+    var w = frame.offsetWidth || 1;
+    var r = frame.getBoundingClientRect();
+    return r.width / w || state.zoom || 1;
+  }
+  function rectInFrame(el, frame) {
+    var fr = frame.getBoundingClientRect();
+    var tr = el.getBoundingClientRect();
+    var k = frameScale(frame);
+    return { x: (tr.left - fr.left) / k, y: (tr.top - fr.top) / k, w: tr.width / k, h: tr.height / k };
+  }
+  function selectionTargets(rootEl) {
+    var sel = state.sel, out = [];
+    if (!sel || !rootEl) return out;
+    if (isMulti(sel)) {
+      sel.ids.forEach(function (id) {
+        var el = rootEl.querySelector('[data-section-id="' + cssEsc(id) + '"]');
+        if (el) out.push({ el: el, sub: false });
+      });
+    } else if (sel.kind === 'section') {
+      var secEl = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
+      if (secEl) {
+        out.push({ el: secEl, sub: false, dim: !!sel.field });
+        if (sel.field) {
+          var f = findFieldEl(secEl, sel.fieldType || '', sel.field);
+          if (f) out.push({ el: f, sub: true });
+        }
+      }
+    } else if (sel.kind === 'product') {
+      rootEl.querySelectorAll('[data-product-id="' + cssEsc(sel.id) + '"]').forEach(function (c) { out.push({ el: c, sub: false }); });
+    }
+    return out;
+  }
+  function drawSelBoxes() {
+    abKeys().forEach(function (dev) {
+      var ab = abEls[dev], rootEl = roots[dev];
+      if (!ab || !rootEl) return;
+      var frame = ab.querySelector('.st-ab__frame');
+      var layer = ab.querySelector('.st-ab__sel');
+      if (!layer) { layer = ce('div', 'st-ab__sel'); ab.appendChild(layer); }
+      layer.innerHTML = '';
+      if (!frame || ab.classList.contains('is-hidden')) return;
+      selectionTargets(rootEl).forEach(function (t) {
+        var r = rectInFrame(t.el, frame);
+        if (!r.w || !r.h) return;
+        var b = ce('div', 'st-selbox' + (t.sub ? ' st-selbox--sub' : '') + (t.dim ? ' st-selbox--dim' : ''));
+        b.style.left = r.x + 'px';
+        b.style.top = r.y + 'px';
+        b.style.width = r.w + 'px';
+        b.style.height = r.h + 'px';
+        layer.appendChild(b);
+      });
+    });
+  }
+  /* the hover box: one, on the artboard under the pointer */
+  function drawHoverBox(secEl) {
+    abKeys().forEach(function (dev) {
+      var ab = abEls[dev];
+      var hb = ab && ab.querySelector('.st-hovbox');
+      if (hb && (!secEl || !ab.contains(secEl))) hb.hidden = true;
+    });
+    if (!secEl) return;
+    var ab = secEl.closest('.st-ab');
+    var frame = ab && ab.querySelector('.st-ab__frame');
+    if (!ab || !frame) return;
+    var hb = ab.querySelector('.st-hovbox');
+    if (!hb) { hb = ce('div', 'st-hovbox'); ab.appendChild(hb); }
+    var r = rectInFrame(secEl, frame);
+    hb.classList.toggle('is-locked', secEl.classList.contains('st-lockhint'));
+    hb.style.left = r.x + 'px';
+    hb.style.top = r.y + 'px';
+    hb.style.width = r.w + 'px';
+    hb.style.height = r.h + 'px';
+    hb.hidden = false;
+  }
+
   function positionTags() {
-    /* like Figma: ONE name label, on the primary (first visible) artboard — with five
-     * artboards at fit zoom, five copies of the label overlapped everything */
+    drawSelBoxes();
+    /* like Figma: ONE name label, on the active artboard (the one last clicked) — with five
+     * artboards at fit zoom, five copies of the label overlapped everything. The contextual
+     * bar (studio-toolbar.js) carries the name when it is shown; the tag is the fallback. */
     var primary = primaryKey();
     abKeys().forEach(function (dev) {
       var ab = abEls[dev], rootEl = roots[dev];
@@ -467,12 +561,15 @@
       tag.hidden = false;
       text = String(text || '');
       tag.textContent = text.length > 28 ? text.slice(0, 27) + '…' : text;
-      var tr = target.getBoundingClientRect();
-      var ar = ab.getBoundingClientRect();
-      var z = state.zoom || 1;
-      tag.style.left = ((tr.left - ar.left) / z) + 'px';
-      tag.style.top = ((tr.top - ar.top) / z) + 'px';
+      var frame = ab.querySelector('.st-ab__frame');
+      var r = frame ? rectInFrame(target, frame) : { x: 0, y: 0 };
+      tag.style.left = r.x + 'px';
+      /* never above the artboard's own name: a section at the very top gets its tag inside */
+      tag.classList.toggle('is-inside', r.y < 22);
+      tag.style.top = (r.y < 22 ? r.y + 4 : r.y) + 'px';
+      if (frame) tag.style.maxWidth = frame.getBoundingClientRect().width + 'px';
     });
+    if (hooks.afterDecor) { try { hooks.afterDecor(); } catch (e) { /* module error */ } }
   }
 
   function cssEsc(s) {
@@ -488,8 +585,28 @@
     stage.style.backgroundPosition = state.panX + 'px ' + state.panY + 'px';
     var d = clamp(24 * state.zoom, 8, 96);
     stage.style.backgroundSize = d + 'px ' + d + 'px';
-    var zb = $('zoomBtn');
+    var zb = $('zoomLabel') || $('zoomBtn');
     if (zb) zb.childNodes[0].nodeValue = Math.round(state.zoom * 100) + ' % ';
+    if (hooks.viewChanged) { try { hooks.viewChanged(); } catch (e) { /* module error */ } }
+  }
+
+  /* camera moves the seller asked for (fit, zoom to selection, follow the selection, zoom menu)
+   * glide for 200 ms; the state is final at once, only the picture eases. Wheel, pinch and
+   * drags stay direct. */
+  var camTimer = null;
+  var reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function camera(fn) {
+    if (!world || reducedMotion) { fn(); return; }
+    world.classList.add('is-cam');
+    stage.classList.add('is-cam');
+    fn();
+    if (camTimer) clearTimeout(camTimer);
+    camTimer = setTimeout(function () {
+      camTimer = null;
+      world.classList.remove('is-cam');
+      stage.classList.remove('is-cam');
+      if (hooks.viewChanged) { try { hooks.viewChanged(); } catch (e) { /* module error */ } }
+    }, 220);
   }
 
   function setZoom(z, cx, cy) {
@@ -515,10 +632,17 @@
   function visibleABs() {
     return visiblePresets().map(function (p) { return abEls[p.key]; }).filter(Boolean);
   }
-  /* the artboard that stands for the selection (zoom/pan/measure): the first visible one */
+  /* the artboard that stands for the selection (zoom/pan/measure/export/contextual bar): the one
+   * the seller last clicked, when it is still shown — else the first visible one */
   function primaryKey() {
     var vis = visiblePresets();
+    if (state.activeAb && vis.some(function (p) { return p.key === state.activeAb; })) return state.activeAb;
     return vis.length ? vis[0].key : (abKeys()[0] || null);
+  }
+  function setActiveAbFrom(target) {
+    var ab = target && target.closest ? target.closest('.st-ab') : null;
+    var k = ab ? ab.getAttribute('data-ab') : null;
+    if (k && k !== state.activeAb) state.activeAb = k;
   }
 
   /* « Ajuster à l'écran » matches the opening framing: the artboard widths fit, the view starts
@@ -580,18 +704,27 @@
     if (!n) return;
     var nr = n.getBoundingClientRect();
     var sr = stage.getBoundingClientRect();
-    var fully = nr.top >= sr.top && nr.bottom <= sr.bottom && nr.left >= sr.left && nr.right <= sr.right;
-    if (fully) return;
-    var wx = (nr.left + nr.width / 2 - sr.left - state.panX) / state.zoom;
-    var wy = (nr.top + nr.height / 2 - sr.top - state.panY) / state.zoom;
-    state.panX = sr.width / 2 - wx * state.zoom;
-    state.panY = sr.height / 2 - wy * state.zoom;
-    applyTransform();
+    /* like Figma: the view only moves when the selection is (nearly) out of sight, and then just
+     * enough to bring it in — no recentring that parks the other artboard off-screen */
+    var visH = Math.min(nr.bottom, sr.bottom - 64) - Math.max(nr.top, sr.top + 8);
+    var visW = Math.min(nr.right, sr.right) - Math.max(nr.left, sr.left);
+    var needY = visH < Math.min(80, nr.height * 0.5);
+    var needX = visW < Math.min(80, nr.width * 0.5);
+    if (!needY && !needX) return;
+    var dx = 0, dy = 0;
+    if (needY) dy = (sr.top + 72) - nr.top;
+    if (needX) dx = (nr.left < sr.left || nr.width > sr.width - 80) ? (sr.left + 40) - nr.left : (sr.right - 40) - nr.right;
+    camera(function () {
+      state.panX += dx;
+      state.panY += dy;
+      applyTransform();
+    });
   }
 
   /* wheel: Ctrl/Cmd (and trackpad pinch) zooms towards the cursor; plain wheel pans */
   function onWheel(e) {
     e.preventDefault();
+    if (onStageUI(e.target) && !(e.ctrlKey || e.metaKey) && e.target.closest('.st-pop, .st-pinlayer')) return;
     closeCtx();
     if (e.ctrlKey || e.metaKey) {
       var factor = Math.exp(-e.deltaY * 0.0022);
@@ -608,13 +741,140 @@
   var spaceHeld = false;
   var suppressClick = false;
 
+  /* the studio's own floating UI inside the stage (tool bar, popovers, contextual bar…) is
+   * chrome, not canvas: no pan, no drag, no selection from there */
+  var STAGE_UI = '.st-ftb, .st-pop, .st-selbar, .st-pinlayer, .st-coach, .st-pin';
+  function onStageUI(t) { return !!(t && t.closest && t.closest(STAGE_UI)); }
+
   function onStagePointerDown(e) {
+    if (onStageUI(e.target)) return;
+    if (insideFrame(e.target)) setActiveAbFrom(e.target);
     if (e.button === 1 || spaceHeld || state.tool === 'hand') {
       pan = { x: e.clientX, y: e.clientY, px: state.panX, py: state.panY, moved: false };
       stage.classList.add('is-panning');
       stage.setPointerCapture && stage.setPointerCapture(e.pointerId);
       e.preventDefault();
+      return;
     }
+    if (e.button === 0 && state.tool === 'select') maybeStartCanvasDrag(e);
+  }
+
+  /* ------------------------------------------------------------------ drag a section on the canvas
+   * Sections are the unit of layout (they stay correct on every phone), so the canvas drag moves
+   * a whole section, with the same blue drop line as the insert drag. Grabbing a sub-element
+   * that is selected explains the model instead of doing nothing. */
+
+  var canvasDrag = null;
+  var hintAt = {};
+  function hintOnce(key, msg, every) {
+    var now = Date.now();
+    if (hintAt[key] && now - hintAt[key] < (every || 8000)) return;
+    hintAt[key] = now;
+    toast(msg, 'info');
+  }
+
+  function dropAt(frame, clientY, skipId) {
+    var secEls = Array.prototype.slice.call(frame.querySelectorAll('[data-section-id]'));
+    var y = null, beforeId = null; // null = at the end
+    for (var i = 0; i < secEls.length; i++) {
+      var r = secEls[i].getBoundingClientRect();
+      if (clientY < r.top + r.height / 2) { beforeId = secEls[i].getAttribute('data-section-id'); y = r.top; break; }
+    }
+    var fr = frame.getBoundingClientRect();
+    if (y === null) y = secEls.length ? secEls[secEls.length - 1].getBoundingClientRect().bottom : fr.top + 40;
+    return { beforeId: beforeId, y: y, fr: fr };
+  }
+  function showDropline(d) {
+    var dropline = $('dropline');
+    var sr = stage.getBoundingClientRect();
+    dropline.style.left = (d.fr.left - sr.left) + 'px';
+    dropline.style.width = d.fr.width + 'px';
+    dropline.style.top = (d.y - sr.top - 1) + 'px';
+    dropline.hidden = false;
+  }
+
+  function maybeStartCanvasDrag(e) {
+    var frame = insideFrame(e.target);
+    if (!frame || state.page !== 'home') return;
+    if (inlineEdit && inlineEdit.el.contains(e.target)) return;
+    var secEl = hitSection(e.target);
+    if (!secEl) return;
+    var id = secEl.getAttribute('data-section-id');
+    if (isLocked(id)) return;
+    var selected = state.sel && state.sel.kind === 'section' && state.sel.id === id;
+    if (e.pointerType === 'touch' && (!selected || touchCount() > 0)) return; // a finger drags the selected section only
+    var subEl = selected && state.sel.field ? secEl.querySelector('.st-sel--sub') : null;
+    canvasDrag = { id: id, x: e.clientX, y: e.clientY, moved: false, pid: e.pointerId, frame: frame,
+      sub: !!(subEl && subEl.contains(e.target)), drop: null };
+    window.addEventListener('pointermove', onCanvasDragMove);
+    window.addEventListener('pointerup', onCanvasDragUp);
+    window.addEventListener('pointercancel', cancelCanvasDrag);
+  }
+  function endCanvasDragListeners() {
+    window.removeEventListener('pointermove', onCanvasDragMove);
+    window.removeEventListener('pointerup', onCanvasDragUp);
+    window.removeEventListener('pointercancel', cancelCanvasDrag);
+  }
+  function cancelCanvasDrag() {
+    endCanvasDragListeners();
+    var d = canvasDrag;
+    canvasDrag = null;
+    if (d && d.moved) {
+      hideGhost();
+      $('dropline').hidden = true;
+      stage.classList.remove('is-dragging');
+      document.querySelectorAll('.st-dragsrc').forEach(function (n) { n.classList.remove('st-dragsrc'); });
+      if (hooks.viewChanged) { try { hooks.viewChanged(); } catch (err) { /* module error */ } }
+    }
+  }
+  function onCanvasDragMove(ev) {
+    var d = canvasDrag;
+    if (!d || ev.pointerId !== d.pid) return;
+    if (!d.moved) {
+      if (Math.abs(ev.clientX - d.x) + Math.abs(ev.clientY - d.y) < 6) return;
+      d.moved = true;
+      if (d.sub) {
+        hintOnce('sub-drag', 'Les éléments suivent leur section : glissez la section entière, ou changez la mise en page avec Boutique › Modèle. C’est ce qui garde la boutique juste sur chaque téléphone.', 6000);
+        return;
+      }
+      clearHover();
+      stage.classList.add('is-dragging');
+      showGhost('↕ ' + sectionName(sectionById(d.id)), ev.clientX, ev.clientY);
+      abKeys().forEach(function (k) {
+        var n = roots[k] && roots[k].querySelector('[data-section-id="' + cssEsc(d.id) + '"]');
+        if (n) n.classList.add('st-dragsrc');
+      });
+      if (hooks.viewChanged) { try { hooks.viewChanged(); } catch (err) { /* module error */ } }
+    }
+    if (d.sub) return;
+    moveGhost(ev.clientX, ev.clientY);
+    var el = document.elementFromPoint(ev.clientX, ev.clientY);
+    var frame = (el && insideFrame(el)) || d.frame;
+    d.drop = dropAt(frame, ev.clientY);
+    showDropline(d.drop);
+  }
+  function onCanvasDragUp(ev) {
+    var d = canvasDrag;
+    if (!d || ev.pointerId !== d.pid) return;
+    var moved = d.moved, drop = d.drop, sub = d.sub;
+    cancelCanvasDrag();
+    if (!moved) return;
+    suppressClick = true;
+    setTimeout(function () { suppressClick = false; }, 0);
+    if (sub || !drop) return;
+    var list = sections();
+    var from = -1, to = list.length;
+    list.forEach(function (s, i) { if (s.id === d.id) from = i; if (drop.beforeId && s.id === drop.beforeId) to = i; });
+    if (from === -1) return;
+    if (to > from) to--;
+    if (to === from) { select({ kind: 'section', id: d.id }); return; }
+    commit('Déplacement de section', function (c) {
+      var arr = c.sections || [];
+      var it = arr.splice(from, 1)[0];
+      arr.splice(clamp(to, 0, arr.length), 0, it);
+    }, { structure: true });
+    select({ kind: 'section', id: d.id });
+    toast('Section déplacée. Ctrl Z pour annuler.', 'ok');
   }
   function onStagePointerMove(e) {
     if (!pan) return;
@@ -648,10 +908,11 @@
   }
 
   function onTouchDown(e) {
-    if (e.pointerType !== 'touch') return;
+    if (e.pointerType !== 'touch' || onStageUI(e.target)) return;
     touchPts[e.pointerId] = { x: e.clientX, y: e.clientY, moved: false };
     if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
     if (touchCount() === 2) {
+      if (canvasDrag) cancelCanvasDrag();
       var pts = touchPair();
       pinchRef = {
         dist: Math.max(10, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)),
@@ -731,7 +992,18 @@
   }
 
   function onStageClickCapture(e) {
+    if (onStageUI(e.target)) return;
     if (suppressClick || pan) { e.stopPropagation(); e.preventDefault(); return; }
+    if (insideFrame(e.target)) setActiveAbFrom(e.target);
+    if (state.tool === 'text') { onTextToolClick(e); return; }
+    if (state.tool === 'comment') {
+      if (insideFrame(e.target)) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (hooks.commentAt) { try { hooks.commentAt(e); } catch (err) { /* module error */ } }
+      }
+      return;
+    }
     if (state.tool !== 'select') return; // hand tool: the store preview stays interactive
     var frame = insideFrame(e.target);
     if (!frame) {
@@ -756,6 +1028,25 @@
     } else {
       select({ kind: 'section', id: id });
     }
+  }
+
+  /* the Texte tool (T): the next click on a text edits it in place, then the tool hands back to
+   * Déplacer, like Figma after a text */
+  function onTextToolClick(e) {
+    var frame = insideFrame(e.target);
+    if (!frame) return;
+    e.stopPropagation();
+    e.preventDefault();
+    if (inlineEdit && inlineEdit.el.contains(e.target)) return;
+    var secEl = hitSection(e.target);
+    var spec = secEl && !isLocked(secEl.getAttribute('data-section-id')) ? inlineSpecFor(e.target, secEl) : null;
+    if (!spec) {
+      hintOnce('text-miss', 'Outil Texte : cliquez sur un titre, un paragraphe, un bouton, ou le nom ou le prix d’un produit.', 4000);
+      return;
+    }
+    clearHover();
+    setTool('select');
+    startInlineEdit(spec);
   }
 
   function drillInto(secEl, target) {
@@ -786,15 +1077,37 @@
     return false;
   }
 
-  var hovEl = null;
+  var hovEl = null, textHovEl = null;
   function onStageOverCapture(e) {
-    if (state.tool !== 'select' || pan) return;
+    if (pan || canvasDrag) return;
     var frame = insideFrame(e.target);
     var secEl = frame ? hitSection(e.target) : null;
-    if (hovEl && hovEl !== secEl) { hovEl.classList.remove('st-hov', 'st-lockhint'); hovEl = null; }
-    if (!secEl || secEl.classList.contains('st-sel')) return;
+    if (state.tool === 'text') {
+      /* the Texte tool: the text under the pointer lights up, a click edits it */
+      var spec = secEl && !isLocked(secEl.getAttribute('data-section-id')) ? inlineSpecFor(e.target, secEl) : null;
+      var n = spec ? spec.el : null;
+      if (textHovEl && textHovEl !== n) { textHovEl.classList.remove('st-texthov'); textHovEl = null; }
+      if (n && !n.isContentEditable) { n.classList.add('st-texthov'); textHovEl = n; }
+      return;
+    }
+    if (state.tool !== 'select') return;
+    if (hovEl && hovEl !== secEl) { hovEl.classList.remove('st-hov', 'st-lockhint'); hovEl = null; drawHoverBox(null); }
+    if (!secEl || secEl.classList.contains('st-sel')) { if (!secEl) drawHoverBox(null); return; }
     hovEl = secEl;
     secEl.classList.add(isLocked(secEl.getAttribute('data-section-id')) ? 'st-lockhint' : 'st-hov');
+    drawHoverBox(secEl);
+  }
+  function clearHover() {
+    if (hovEl) { hovEl.classList.remove('st-hov', 'st-lockhint'); hovEl = null; }
+    if (textHovEl) { textHovEl.classList.remove('st-texthov'); textHovEl = null; }
+    drawHoverBox(null);
+  }
+
+  var lastSelKey = '';
+  function selKey(sel) {
+    if (!sel) return '';
+    if (isMulti(sel)) return 'm:' + sel.ids.join(',');
+    return sel.kind + ':' + sel.id + ':' + (sel.field || '');
   }
 
   function select(sel, opts) {
@@ -809,9 +1122,16 @@
       state.productId = sel.id;
       if (state.page === 'product') scheduleRender();
     }
+    var prevKey = lastSelKey;
+    lastSelKey = selKey(sel);
+    if (hovEl && sel) { clearHover(); }
     applyDecor();
-    buildTree();
+    /* a selection change only re-marks the rows: rebuilding the tree here replaced the row
+     * between the two clicks of a double-click, and « renommer » never opened */
+    if (!syncTree()) buildTree();
     buildInspector();
+    /* a new selection opens its inspector at the top, never mid-panel */
+    if (prevKey !== lastSelKey && $('inspector')) $('inspector').scrollTop = 0;
     if (opts.pan) requestAnimationFrame(panToSelection);
     if (!opts.fromTree) {
       var row = $('layersPanel') && $('layersPanel').querySelector('.st-row.is-sel');
@@ -916,6 +1236,10 @@
     finishInlineEdit(true);
     if (spec.select) select(spec.select);
     var el = spec.el;
+    /* a button edits its label span, never the <button> itself: Space on a focused button is a
+     * click, and « Voir la collection » came out « VOIRLACOLLECTION » */
+    var lbl = el.matches && el.matches('button, a') ? el.querySelector('.jst-btn-label') : null;
+    if (lbl) { el = lbl; spec.el = lbl; }
     inlineEdit = { el: el, orig: el.innerHTML, spec: spec };
     el.textContent = spec.get();
     try { el.contentEditable = 'plaintext-only'; } catch (e) { /* older engine */ }
@@ -923,10 +1247,12 @@
     el.classList.add('st-inline');
     el.spellcheck = false;
     el.addEventListener('keydown', onInlineKey);
+    el.addEventListener('keyup', onInlineKeyUp);
     el.addEventListener('blur', onInlineBlur);
     el.addEventListener('input', onInlineInput);
     el.addEventListener('paste', onInlinePaste);
     el.focus();
+    showInlineCount();
     try {
       var r = document.createRange();
       r.selectNodeContents(el);
@@ -940,17 +1266,62 @@
     e.stopPropagation();
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finishInlineEdit(true); }
     else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finishInlineEdit(false); }
+    else if (e.key === ' ' && inlineEdit && inlineEdit.el.closest && inlineEdit.el.closest('button, a')) {
+      /* inside a button, the browser turns Space into a click: insert the space ourselves */
+      e.preventDefault();
+      try { document.execCommand('insertText', false, ' '); } catch (err) { /* no space then */ }
+    }
+  }
+  function onInlineKeyUp(e) {
+    e.stopPropagation();
+    if (e.key === ' ' || e.key === 'Enter') e.preventDefault(); // no button activation on keyup
   }
   function onInlineBlur() { finishInlineEdit(true); }
   function onInlineInput() {
     var ed = inlineEdit;
-    if (!ed || typeof ed.spec.max !== 'number') return;
+    if (!ed || typeof ed.spec.max !== 'number') { positionInlineCount(); return; }
     var t = ed.el.textContent;
+    var hit = false;
     if (t.length > ed.spec.max) {
       ed.el.textContent = t.slice(0, ed.spec.max);
       placeCaretEnd(ed.el);
+      hit = true;
     }
+    updateInlineCount(hit);
   }
+
+  /* the live counter while typing in place: « 38 / 40 », amber with a small shake at the limit */
+  var inlineCountEl = null;
+  function showInlineCount() {
+    var ed = inlineEdit;
+    if (!ed || typeof ed.spec.max !== 'number') return;
+    if (!inlineCountEl) { inlineCountEl = ce('div', 'st-inlinecount'); stage.appendChild(inlineCountEl); }
+    inlineCountEl.hidden = false;
+    updateInlineCount(false);
+  }
+  function updateInlineCount(hit) {
+    var ed = inlineEdit;
+    if (!inlineCountEl || !ed || typeof ed.spec.max !== 'number') return;
+    var n = ed.el.textContent.length, max = ed.spec.max;
+    inlineCountEl.textContent = n + ' / ' + max + (n >= max ? ' · maximum' : '');
+    inlineCountEl.classList.toggle('is-near', n >= max * 0.85 && n < max);
+    inlineCountEl.classList.toggle('is-max', n >= max);
+    if (hit) {
+      inlineCountEl.classList.remove('is-shake');
+      void inlineCountEl.offsetWidth;
+      inlineCountEl.classList.add('is-shake');
+    }
+    positionInlineCount();
+  }
+  function positionInlineCount() {
+    var ed = inlineEdit;
+    if (!inlineCountEl || inlineCountEl.hidden || !ed) return;
+    var r = ed.el.getBoundingClientRect();
+    var sr = stage.getBoundingClientRect();
+    inlineCountEl.style.left = clamp(r.left - sr.left, 6, sr.width - 140) + 'px';
+    inlineCountEl.style.top = clamp(r.bottom - sr.top + 8, 6, sr.height - 30) + 'px';
+  }
+  function hideInlineCount() { if (inlineCountEl) inlineCountEl.hidden = true; }
   function onInlinePaste(e) {
     e.preventDefault();
     var txt = '';
@@ -965,6 +1336,8 @@
     inlineEdit = null;
     var el = ed.el, spec = ed.spec;
     el.removeEventListener('keydown', onInlineKey);
+    el.removeEventListener('keyup', onInlineKeyUp);
+    hideInlineCount();
     el.removeEventListener('blur', onInlineBlur);
     el.removeEventListener('input', onInlineInput);
     el.removeEventListener('paste', onInlinePaste);
@@ -995,7 +1368,7 @@
   /* double-click on text in the canvas: edit it right there (contenteditable); texts without a
    * fiche field fall back to the old reflex — drill in and focus the inspector field */
   function onStageDblClick(e) {
-    if (state.tool !== 'select' || pan) return;
+    if ((state.tool !== 'select' && state.tool !== 'text') || pan) return;
     var frame = insideFrame(e.target);
     if (!frame) return;
     if (e.preventDefault) e.preventDefault();
@@ -1062,6 +1435,7 @@
   }
 
   function onStageContextMenu(e) {
+    if (onStageUI(e.target)) { if (e.preventDefault) e.preventDefault(); return; }
     if (state.tool !== 'select') return; // hand tool: leave the browser menu alone
     var frame = insideFrame(e.target);
     if (!frame) { closeCtx(); return; }
@@ -1091,27 +1465,53 @@
       return;
     }
     if (!(state.sel && state.sel.kind === 'section' && state.sel.id === id && !state.sel.field)) select({ kind: 'section', id: id });
+    openCtx(e.clientX, e.clientY, sectionMenuItems(id));
+  }
+
+  /* the « ⋯ » of the contextual bar opens the same menu as a right-click, for the selection */
+  function openSelectionMenu(x, y) {
+    var sel = state.sel;
+    if (!sel) return;
+    if (sel.kind === 'product') {
+      openCtx(x, y, [['Dupliquer le produit', 'Ctrl D', duplicateSelection], ['Supprimer le produit', 'Suppr', deleteSelection]]);
+    } else if (isMulti(sel)) {
+      var n = sel.ids.length;
+      openCtx(x, y, [
+        ['Dupliquer les ' + n + ' sections', 'Ctrl D', duplicateSelection],
+        ['Masquer les ' + n + ' sections', 'Ctrl ⇧ H', toggleHideSelected],
+        null,
+        ['Supprimer les ' + n + ' sections', 'Suppr', deleteSelection]
+      ]);
+    } else if (sel.kind === 'section') {
+      openCtx(x, y, sectionMenuItems(sel.id));
+    }
+  }
+
+  function lockSection(id) {
+    /* reachable without hover (touch long-press): the tree's padlock unlocks */
+    ui.locked[id] = true;
+    saveUI();
+    if (state.sel && state.sel.kind === 'section' && state.sel.id === id) select(null);
+    buildTree();
+    toast('Section verrouillée — le cadenas des calques la déverrouille.');
+  }
+
+  function sectionMenuItems(id) {
     var s = sectionById(id);
     var items = [
       ['Copier', 'Ctrl C', copySelection],
       ['Coller', 'Ctrl V', pasteClipboard],
       ['Dupliquer', 'Ctrl D', duplicateSelection],
       null,
-      [s && s.enabled === false ? 'Afficher la section' : 'Masquer la section', '', toggleHideSelected],
-      ['Verrouiller la section', '', function () {
-        /* reachable without hover (touch long-press): the tree's padlock unlocks */
-        ui.locked[id] = true;
-        saveUI();
-        if (state.sel && state.sel.kind === 'section' && state.sel.id === id) select(null);
-        buildTree();
-        toast('Section verrouillée — le cadenas des calques la déverrouille.');
-      }],
+      [s && s.enabled === false ? 'Afficher la section' : 'Masquer la section', 'Ctrl ⇧ H', toggleHideSelected],
+      ['Verrouiller la section', 'Ctrl ⇧ L', function () { lockSection(id); }],
+      ['Renommer', 'F2', renameSelection],
       ['Supprimer', 'Suppr', deleteSelection]
     ];
     if (hooks.sectionCtxItems) {
       try { items = hooks.sectionCtxItems(items, s) || items; } catch (err) { /* module error */ }
     }
-    openCtx(e.clientX, e.clientY, items);
+    return items;
   }
 
   /* ------------------------------------------------------------------ pages */
@@ -1122,7 +1522,7 @@
     if (productId) state.productId = productId;
     if (page === 'product' && !state.productId && products().length) state.productId = products()[0].id;
     scheduleRender();
-    buildTree();
+    if (!syncTree()) buildTree();
   }
 
   function onNavigate(e) {
@@ -1134,7 +1534,7 @@
     state.productId = d.productId || state.productId;
     state.pageId = d.pageId || null;
     scheduleRender(); // re-renders both (the source root is re-rendered identically)
-    buildTree();
+    if (!syncTree()) buildTree();
   }
 
   /* ------------------------------------------------------------------ layers tree */
@@ -1240,6 +1640,40 @@
       var nf = panel.querySelector('[' + focusKey[0] + '="' + cssEsc(focusKey[1]) + '"]');
       if (nf) { nf.tabIndex = 0; nf.focus(); }
     }
+  }
+
+  /* the light path: re-mark the existing rows (selection, active page) without replacing them.
+   * Returns false when there is nothing to re-mark (first build): the caller builds. */
+  function syncTree() {
+    var panel = $('layersPanel');
+    if (!panel) return true;
+    if (panel.querySelector('.st-row__name input')) return true; // a rename is in progress
+    var rows = Array.prototype.slice.call(panel.querySelectorAll('.st-row'));
+    if (!rows.length) return false;
+    var sel = state.sel;
+    var multi = isMulti(sel) ? sel.ids : null;
+    rows.forEach(function (r) {
+      var on = false, isSel = false;
+      if (r.hasAttribute('data-page')) on = state.page === r.getAttribute('data-page');
+      else if (r.hasAttribute('data-page-id')) {
+        var pid = r.getAttribute('data-page-id');
+        on = state.page === 'page' && state.pageId === pid;
+        isSel = !!(sel && sel.kind === 'page' && sel.id === pid);
+      } else if (r.hasAttribute('data-section-row')) {
+        var sid = r.getAttribute('data-section-row');
+        isSel = multi ? multi.indexOf(sid) !== -1 : !!(sel && sel.kind === 'section' && sel.id === sid);
+      } else if (r.hasAttribute('data-product-row')) {
+        isSel = !!(sel && sel.kind === 'product' && sel.id === r.getAttribute('data-product-row'));
+      }
+      if (r.classList.contains('is-page')) r.classList.toggle('is-on', on);
+      r.classList.toggle('is-sel', isSel);
+      r.setAttribute('aria-selected', String(isSel || on));
+    });
+    var active = rows.filter(function (r) { return r.classList.contains('is-sel'); })[0] ||
+      rows.filter(function (r) { return r.classList.contains('is-on'); })[0] || rows[0];
+    if (panel.contains(document.activeElement)) return true; // keep the keyboard user's roving stop
+    rows.forEach(function (r) { r.tabIndex = r === active ? 0 : -1; });
+    return true;
   }
 
   function sectionRow(s) {
@@ -1458,7 +1892,7 @@
   function buildInsertPanel() {
     var panel = $('insertPanel');
     panel.innerHTML = '';
-    panel.appendChild(ce('div', 'st-insert__hint', 'Glissez une section sur un aperçu pour l’insérer à cet endroit, ou cliquez pour l’ajouter après la sélection. Survolez pour voir un aperçu.'));
+    panel.appendChild(ce('div', 'st-insert__hint', '<b>Des sections, pas des pixels.</b> Chaque section s’adapte toute seule de 360 à 1440 px. Glissez-en une sur un aperçu pour l’insérer à cet endroit (ligne bleue), ou cliquez pour l’insérer après la sélection. Raccourci : <kbd>S</kbd>.'));
     var grid = ce('div', 'st-insert__grid');
     var list = [];
     try { D.sectionTypes.forEach(function (t) { list.push(t); }); } catch (e) { /* collection helper missing */ }
@@ -1481,7 +1915,7 @@
     if (hooks.insertPanelBuilt) { try { hooks.insertPanelBuilt(panel); } catch (e) { /* module error */ } }
   }
 
-  function showTypePreview(card, t) {
+  function showTypePreview(card, t, pos) {
     var prev = $('hoverPrev');
     var r = card.getBoundingClientRect();
     prev.innerHTML = '';
@@ -1508,6 +1942,12 @@
     prev.hidden = false;
     /* anchored past the panel's right edge, over the canvas: it never covers the
      * neighbouring type cards you are comparing */
+    if (pos && typeof pos.left === 'number') {
+      /* from the toolbar's insert popover: above it, beside the hovered card */
+      prev.style.left = clamp(pos.left, 8, window.innerWidth - 240) + 'px';
+      prev.style.top = clamp(pos.top - prev.offsetHeight - 10, 8, window.innerHeight - 240) + 'px';
+      return;
+    }
     var aside = document.querySelector('.st-left');
     var ar = aside ? aside.getBoundingClientRect() : r;
     var top = clamp(r.top, 8, window.innerHeight - 240);
@@ -1571,20 +2011,9 @@
       overFrame = frame;
       beforeId = undefined;
       if (!frame) { dropline.hidden = true; return; }
-      var secEls = Array.prototype.slice.call(frame.querySelectorAll('[data-section-id]'));
-      var y = null;
-      beforeId = null; // null = at the end
-      for (var i = 0; i < secEls.length; i++) {
-        var r = secEls[i].getBoundingClientRect();
-        if (ev.clientY < r.top + r.height / 2) { beforeId = secEls[i].getAttribute('data-section-id'); y = r.top; break; }
-      }
-      var fr = frame.getBoundingClientRect();
-      if (y === null) y = secEls.length ? secEls[secEls.length - 1].getBoundingClientRect().bottom : fr.top + 40;
-      var sr = stage.getBoundingClientRect();
-      dropline.style.left = (fr.left - sr.left) + 'px';
-      dropline.style.width = fr.width + 'px';
-      dropline.style.top = (y - sr.top - 1) + 'px';
-      dropline.hidden = false;
+      var d = dropAt(frame, ev.clientY);
+      beforeId = d.beforeId;
+      showDropline(d);
     }
 
     function onUp(ev) {
@@ -1658,15 +2087,15 @@
     });
     g.body.appendChild(list);
     var anyVisible = ids.map(sectionById).filter(Boolean).some(function (s) { return s.enabled !== false; });
-    var hide = ce('button', 'st-addbtn', anyVisible ? 'Masquer les ' + ids.length + ' sections' : 'Afficher les ' + ids.length + ' sections');
+    var hide = ce('button', 'st-secbtn', (anyVisible ? 'Masquer les ' + ids.length + ' sections' : 'Afficher les ' + ids.length + ' sections') + ' <kbd>Ctrl ⇧ H</kbd>');
     hide.type = 'button';
     hide.addEventListener('click', toggleHideSelected);
     g.body.appendChild(hide);
-    var dup = ce('button', 'st-addbtn', 'Dupliquer les ' + ids.length + ' sections — Ctrl D');
+    var dup = ce('button', 'st-secbtn', 'Dupliquer les ' + ids.length + ' sections <kbd>Ctrl D</kbd>');
     dup.type = 'button';
     dup.addEventListener('click', duplicateSelection);
     g.body.appendChild(dup);
-    var del = ce('button', 'st-danger', 'Supprimer les ' + ids.length + ' sections — Suppr');
+    var del = ce('button', 'st-danger', 'Supprimer les ' + ids.length + ' sections <kbd>Suppr</kbd>');
     del.type = 'button';
     del.addEventListener('click', deleteSelection);
     g.body.appendChild(del);
@@ -1840,6 +2269,7 @@
         esc(info.credit.name || 'photographe') + '</a> / <a href="' + esc(info.credit.photoUrl || '#') + '" target="_blank" rel="noopener">Unsplash</a>'));
     }
     var row = ce('div', 'st-imgfield__row');
+    row.className = 'st-imgfield__row';
     var up = ce('button', 'st-ghostbtn', 'Mettre ma photo');
     up.type = 'button';
     up.addEventListener('click', function () {
@@ -1861,19 +2291,7 @@
       var pick = ce('button', 'st-ghostbtn', 'Choisir dans Images');
       pick.type = 'button';
       pick.addEventListener('click', function () {
-        hooks.pickAsset({
-          label: labelText,
-          set: function (v) {
-            // v: { image: dataUrl } (the seller's file) or { photo: id } (a demo photo)
-            commit(setLabel, function (c) {
-              var o = getObj(c);
-              if (!o) return;
-              if (v && v.image) { o.image = v.image; if (hasPhotoField) o.photo = null; }
-              else if (v && v.photo && hasPhotoField) { o.photo = v.photo; o.image = null; }
-              else if (v && v.photo) { o.image = v.src || null; }
-            }, { structure: true });
-          }
-        });
+        hooks.pickAsset({ label: labelText, set: imageSetter(getObj, setLabel, hasPhotoField) });
       });
       row.appendChild(pick);
     }
@@ -1910,21 +2328,54 @@
     if (!fields.length) gc.body.appendChild(ce('div', 'st-insp__empty', 'Cette section n’a pas de réglages.'));
     frag.appendChild(gc);
 
-    var gs = group('Section');
-    gs.body.appendChild(fieldCheck('Visible sur la page d’accueil', s.enabled !== false, function (v) {
+    /* Disposition: what a section CAN do, said plainly. The layout comes from the store's model
+     * (Boutique › Modèle) so it stays correct from 360 to 1440 — the promise, not a missing panel. */
+    var gl = group('Disposition');
+    var idx = -1, all = sections();
+    all.forEach(function (x, i) { if (x.id === s.id) idx = i; });
+    var posRow = ce('div', 'st-insp__row');
+    posRow.appendChild(ce('span', 'st-insp__label', 'Position ' + (idx + 1) + ' sur ' + all.length));
+    var upB = ce('button', 'st-iconbtn st-iconbtn--sq', '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12.5v-9M4.5 7L8 3.5 11.5 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    upB.type = 'button'; upB.setAttribute('data-tip', 'Monter la section'); upB.setAttribute('data-kbd', '↑'); upB.setAttribute('aria-label', 'Monter la section');
+    upB.disabled = idx <= 0;
+    upB.addEventListener('click', function () { moveSelection(-1, true); buildInspector(); });
+    var dnB = ce('button', 'st-iconbtn st-iconbtn--sq', '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M4.5 9L8 12.5 11.5 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    dnB.type = 'button'; dnB.setAttribute('data-tip', 'Descendre la section'); dnB.setAttribute('data-kbd', '↓'); dnB.setAttribute('aria-label', 'Descendre la section');
+    dnB.disabled = idx === -1 || idx >= all.length - 1;
+    dnB.addEventListener('click', function () { moveSelection(1, true); buildInspector(); });
+    posRow.appendChild(upB);
+    posRow.appendChild(dnB);
+    gl.body.appendChild(posRow);
+    gl.body.appendChild(fieldCheck('Visible sur la page d’accueil', s.enabled !== false, function (v) {
       commit(v ? 'Affichage de la section' : 'Masquage de la section', function (c) {
         var t = (c.sections || []).filter(function (x) { return x.id === s.id; })[0];
         if (t) t.enabled = v;
       }, { structure: true });
     }));
-    var dup = ce('button', 'st-addbtn', 'Dupliquer la section — Ctrl D');
+    var tplName = '';
+    try { D.templates.forEach(function (t) { if (t.id === state.config.template) tplName = t.name; }); } catch (e) { /* no templates */ }
+    var promise = ce('div', 'st-promise',
+      '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="3" width="8.5" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="11" y="5" width="3.5" height="7.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>' +
+      '<div><b>Responsive, de 360 à 1440 px</b><span>La mise en page de cette section suit le modèle' + (tplName ? ' « ' + esc(tplName) + ' »' : '') +
+      ' : impossible de casser l’affichage sur téléphone. Pour la changer, choisissez un autre modèle.</span></div>');
+    var tplLink = ce('button', 'st-linkbtn', 'Changer de modèle…');
+    tplLink.type = 'button';
+    tplLink.addEventListener('click', function () { select(null); requestAnimationFrame(function () { var g = $('inspector').querySelector('.st-tplcards'); if (g && g.scrollIntoView) g.scrollIntoView({ block: 'start' }); }); });
+    promise.lastChild.appendChild(tplLink);
+    gl.body.appendChild(promise);
+    frag.appendChild(gl);
+
+    var gs = group('Actions');
+    var actRow = ce('div', 'st-btnrow');
+    var dup = ce('button', 'st-secbtn', 'Dupliquer <kbd>Ctrl D</kbd>');
     dup.type = 'button';
     dup.addEventListener('click', function () { duplicateSelection(); });
-    gs.body.appendChild(dup);
-    var del = ce('button', 'st-danger', 'Supprimer la section — Suppr');
+    actRow.appendChild(dup);
+    var del = ce('button', 'st-danger', 'Supprimer <kbd>Suppr</kbd>');
     del.type = 'button';
     del.addEventListener('click', function () { deleteSelection(); });
-    gs.body.appendChild(del);
+    actRow.appendChild(del);
+    gs.body.appendChild(actRow);
     frag.appendChild(gs);
 
     if (focusField) {
@@ -2041,7 +2492,12 @@
     }
     var frag = document.createDocumentFragment();
     var gc = group('Produit');
-    gc.body.appendChild(fieldText('Nom', p.name, 60, set('Texte modifié (nom du produit)', 'name', 'p:' + p.id + ':name'), false));
+    var setName = set('Texte modifié (nom du produit)', 'name', 'p:' + p.id + ':name');
+    gc.body.appendChild(fieldText('Nom', p.name, 60, function (v) {
+      setName(v);
+      var t = $('inspTitle');
+      if (t) t.textContent = v || 'Produit';
+    }, false));
     gc.body.appendChild(fieldNumber('Prix (FCFA)', p.price, 0, 100000000, set('Prix modifié', 'price', 'p:' + p.id + ':price'), 'p:' + p.id + ':price'));
     gc.body.appendChild(fieldText('Catégorie', p.category, 40, set('Texte modifié (catégorie)', 'category', 'p:' + p.id + ':cat'), false));
     var badgeOpts = [{ value: '', label: 'Aucun' }];
@@ -2086,14 +2542,16 @@
     frag.appendChild(gv);
 
     var ga = group('Actions');
-    var dup = ce('button', 'st-addbtn', 'Dupliquer le produit — Ctrl D');
+    var actRow = ce('div', 'st-btnrow');
+    var dup = ce('button', 'st-secbtn', 'Dupliquer <kbd>Ctrl D</kbd>');
     dup.type = 'button';
     dup.addEventListener('click', duplicateSelection);
-    ga.body.appendChild(dup);
-    var del = ce('button', 'st-danger', 'Supprimer le produit — Suppr');
+    actRow.appendChild(dup);
+    var del = ce('button', 'st-danger', 'Supprimer <kbd>Suppr</kbd>');
     del.type = 'button';
     del.addEventListener('click', deleteSelection);
-    ga.body.appendChild(del);
+    actRow.appendChild(del);
+    ga.body.appendChild(actRow);
     frag.appendChild(ga);
     return frag;
   }
@@ -2239,6 +2697,12 @@
 
     var gb = group('Boutique');
     var store = cfg.store || {};
+    var nicheOpts = nicheList().map(function (n) { return { value: n.id, label: n.label }; });
+    if (nicheOpts.length) {
+      var nf = fieldSelect('Métier (textes et photos d’exemple)', store.niche || '', nicheOpts, function (v) { changeNiche(v); });
+      nf.appendChild(ce('div', 'st-credit', 'Remplace les textes, catégories, produits et photos d’exemple par ceux du métier choisi. Vos couleurs, polices, modèle et pages restent. Ctrl Z annule.'));
+      gb.body.appendChild(nf);
+    }
     gb.body.appendChild(fieldText('Nom', store.name, 40, function (v) {
       commit('Texte modifié (nom de la boutique)', function (c) { c.store = c.store || {}; c.store.name = v; }, { coalesce: 'store:name' });
       syncTopBar();
@@ -2453,6 +2917,178 @@
     }
   }
 
+  /* --- « Changer de métier »: the demo content of another niche, without touching the style --- */
+
+  function nicheList() {
+    var out = [];
+    try { D.niches.forEach(function (n) { if (n && n.id) out.push({ id: n.id, label: n.label || n.id }); }); }
+    catch (e) { if (D.niches) Object.keys(D.niches).forEach(function (k) { var n = D.niches[k]; if (n && n.id) out.push({ id: n.id, label: n.label || n.id }); }); }
+    return out;
+  }
+
+  function changeNiche(nicheId) {
+    var known = nicheList().filter(function (n) { return n.id === nicheId; })[0];
+    if (!known || typeof D.defaultConfig !== 'function') return;
+    var cur = state.config;
+    if (cur.store && cur.store.niche === nicheId) return;
+    var demo;
+    try { demo = D.defaultConfig(cur.template, nicheId); } catch (e) { toast('Ce métier n’a pas pu être chargé.', 'err'); return; }
+    var name = (cur.store && cur.store.name) || '';
+    commit('Métier « ' + known.label + ' »', function (c) {
+      c.store = c.store || {};
+      c.store.niche = nicheId;
+      if (demo.store && demo.store.tagline) c.store.tagline = demo.store.tagline;
+      (c.sections || []).forEach(function (sec) {
+        var fresh = null;
+        try { fresh = D.sectionSettings(sec.type, nicheId, name); } catch (e) { fresh = null; }
+        if (!fresh) return;
+        /* content changes, the seller's layout choices (numbers, selects) stay */
+        defFields(sec.type).forEach(function (f) {
+          if (f && (f.type === 'number' || f.type === 'select') && sec.settings && sec.settings[f.key] != null) fresh[f.key] = sec.settings[f.key];
+        });
+        sec.settings = fresh;
+      });
+      if (Array.isArray(demo.products) && demo.products.length) c.products = clone(demo.products);
+    }, { structure: true });
+    state.productId = null;
+    validateSelection();
+    buildInspector();
+    toast('Contenu d’exemple « ' + known.label + ' » posé. Ctrl Z pour revenir.', 'ok');
+  }
+
+  /* --- Figma muscle memory: rename, cut, lock, siblings, children, panels --- */
+
+  function renameSelection() {
+    var sel = state.sel;
+    if (!sel || isMulti(sel)) { toast('Sélectionnez une section, un produit ou une page à renommer.'); return; }
+    switchLeftTab('layers');
+    var panel = $('layersPanel');
+    var attr = sel.kind === 'section' ? 'data-section-row' : sel.kind === 'product' ? 'data-product-row' : sel.kind === 'page' ? 'data-page-id' : null;
+    var row = attr && panel ? panel.querySelector('[' + attr + '="' + cssEsc(sel.id) + '"]') : null;
+    var name = row && row.querySelector('.st-row__name');
+    if (!name) return;
+    if (row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+    name.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+  }
+
+  function cutSelection() {
+    var sel = state.sel;
+    if (!sel || sel.kind !== 'section') { toast('Sélectionnez une section à couper.'); return; }
+    copySelection();
+    deleteSelection();
+  }
+
+  function toggleLockSelected() {
+    var ids = selectedSectionIds();
+    if (!ids.length) { toast('Sélectionnez une section à verrouiller.'); return; }
+    ids.forEach(function (id) { ui.locked[id] = true; });
+    saveUI();
+    select(null);
+    buildTree();
+    toast(ids.length > 1 ? ids.length + ' sections verrouillées — le cadenas des calques les déverrouille.' : 'Section verrouillée — le cadenas des calques la déverrouille.');
+  }
+
+  /* Tab / Maj+Tab : section suivante / précédente (sans compter les verrouillées) */
+  function selectSibling(delta) {
+    var list = sections().filter(function (s) { return !isLocked(s.id); });
+    if (!list.length) return;
+    var ids = selectedSectionIds();
+    var cur = ids.length ? ids[delta > 0 ? ids.length - 1 : 0] : null;
+    var i = -1;
+    list.forEach(function (s, j) { if (s.id === cur) i = j; });
+    var j = i === -1 ? (delta > 0 ? 0 : list.length - 1) : (i + delta + list.length) % list.length;
+    select({ kind: 'section', id: list[j].id }, { pan: true });
+  }
+
+  /* Entrée : dans la section (premier texte), puis édition de ce texte ; Maj+Entrée : le parent */
+  var CHILD_ORDER = ['kicker', 'title', 'text', 'button'];
+  function enterSelection() {
+    var sel = state.sel;
+    if (!sel || isMulti(sel)) return;
+    var dev = primaryKey();
+    var rootEl = roots[dev];
+    if (sel.kind === 'section' && !sel.field) {
+      var secEl = rootEl && rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
+      var type = secEl ? secEl.getAttribute('data-section-type') || '' : '';
+      for (var i = 0; i < CHILD_ORDER.length; i++) {
+        if (hasField(type, CHILD_ORDER[i]) && secEl && findFieldEl(secEl, type, CHILD_ORDER[i])) {
+          select({ kind: 'section', id: sel.id, field: CHILD_ORDER[i], fieldType: type });
+          return;
+        }
+      }
+      var card = secEl && secEl.querySelector('[data-product-id]');
+      if (card && productById(card.getAttribute('data-product-id'))) { select({ kind: 'product', id: card.getAttribute('data-product-id') }); return; }
+      hintOnce('enter-none', 'Cette section n’a pas de texte à modifier ici : ses réglages sont dans l’inspecteur.', 4000);
+      return;
+    }
+    if (sel.kind === 'section' && sel.field) {
+      var sEl = rootEl && rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
+      var f = sEl ? findFieldEl(sEl, sel.fieldType || '', sel.field) : null;
+      var spec = f ? inlineSpecFor(f, sEl) : null;
+      if (spec) startInlineEdit(spec);
+      return;
+    }
+    if (sel.kind === 'product') {
+      var pc = rootEl && rootEl.querySelector('[data-product-id="' + cssEsc(sel.id) + '"] .jst-card-name');
+      var ps = pc ? inlineSpecFor(pc, pc.closest('[data-section-id]')) : null;
+      if (ps) startInlineEdit(ps);
+    }
+  }
+  function parentSelection() {
+    var sel = state.sel;
+    if (!sel || isMulti(sel)) return;
+    if ((sel.kind === 'section' && sel.field) || sel.kind === 'product') escapeSelection();
+  }
+
+  /* Ctrl+\ : masquer / afficher les panneaux (le plan de travail en grand) */
+  function toggleChrome(force) {
+    var on = typeof force === 'boolean' ? force : !document.body.classList.contains('st-chrome-off');
+    document.body.classList.toggle('st-chrome-off', on);
+    toast(on ? 'Panneaux masqués — Ctrl \\ pour les rétablir.' : 'Panneaux affichés.', 'info');
+    if (hooks.viewChanged) { try { hooks.viewChanged(); } catch (e) { /* module error */ } }
+  }
+
+  /* --- the image slot of the selection (the Image tool, I) --- */
+  function imageSlotForSelection() {
+    var sel = state.sel;
+    if (!sel || isMulti(sel)) return null;
+    if (sel.kind === 'product' && productById(sel.id)) {
+      var pid = sel.id;
+      return { label: 'Photo du produit', setLabel: 'Photo du produit', hasPhoto: true,
+        getObj: function (c) { return (c.products || []).filter(function (x) { return x.id === pid; })[0] || null; } };
+    }
+    if (sel.kind === 'section') {
+      var s = sectionById(sel.id);
+      if (!s || !defFields(s.type).some(function (f) { return f && f.type === 'image'; })) return null;
+      var sid = s.id;
+      return { label: 'Image de la section', setLabel: 'Image de la section', hasPhoto: hasField(s.type, 'photo'),
+        getObj: function (c) { return (c.sections || []).filter(function (x) { return x.id === sid; }).map(function (x) { return x.settings; })[0] || null; } };
+    }
+    return null;
+  }
+  function imageSetter(getObj, setLabel, hasPhotoField) {
+    return function (v) {
+      // v: { image: dataUrl } (the seller's file) or { photo: id } (a demo photo)
+      commit(setLabel, function (c) {
+        var o = getObj(c);
+        if (!o) return;
+        if (v && v.image) { o.image = v.image; if (hasPhotoField) o.photo = null; }
+        else if (v && v.photo && hasPhotoField) { o.photo = v.photo; o.image = null; }
+        else if (v && v.photo) { o.image = v.src || null; }
+      }, { structure: true });
+    };
+  }
+  function pickImageForSelection() {
+    var slot = imageSlotForSelection();
+    if (!slot || !hooks.pickAsset) {
+      switchLeftTab('assets');
+      hintOnce('img-none', 'Images : sélectionnez une section avec photo (ou un produit), puis choisissez une photo. Vous pouvez aussi glisser une photo sur un aperçu.', 4000);
+      return false;
+    }
+    hooks.pickAsset({ label: slot.label, set: imageSetter(slot.getObj, slot.setLabel, slot.hasPhoto) });
+    return true;
+  }
+
   /* ------------------------------------------------------------------ export / import */
 
   function exportJSON() {
@@ -2584,11 +3220,19 @@
   /* ------------------------------------------------------------------ help overlay */
 
   var SHORTCUTS = [
+    ['Outils (barre du bas)', [
+      [['V'], 'Déplacer : sélectionner, glisser une section pour la déplacer'],
+      [['H'], 'Main : déplacer la vue'],
+      [['S'], 'Section : insérer une section (après la sélection)'],
+      [['T'], 'Texte : le prochain clic sur un texte le modifie sur place'],
+      [['I'], 'Image : changer la photo de la sélection'],
+      [['C'], 'Commentaire : poser une note sur un aperçu'],
+      [['Échap'], 'Revenir à l’outil Déplacer']
+    ]],
     ['Essentiels', [
-      [['Ctrl', 'K'], 'Palette de commandes (toutes les actions)'],
+      [['Ctrl', 'K'], 'Palette de commandes (toutes les actions) — aussi Ctrl /'],
       [['Ctrl', 'Z'], 'Annuler'],
-      [['Ctrl', '⇧', 'Z'], 'Rétablir'],
-      [['Ctrl', 'Y'], 'Rétablir (aussi)'],
+      [['Ctrl', '⇧', 'Z'], 'Rétablir (aussi Ctrl Y)'],
       [['Ctrl', 'S'], 'Enregistrer maintenant'],
       [['Ctrl', 'E'], 'Exporter la fiche (JSON)'],
       [['?'], 'Ce panneau'],
@@ -2596,18 +3240,24 @@
     ]],
     ['Édition', [
       [['2 × clic'], 'Modifier le texte directement dans l’aperçu (Entrée valide, Échap annule)'],
-      [['Ctrl', 'C'], 'Copier la section'],
+      [['Glisser'], 'Déplacer une section sur l’aperçu (ligne bleue = point de dépose)'],
+      [['Ctrl', 'C'], 'Copier la section (Ctrl X : couper)'],
       [['Ctrl', 'V'], 'Coller après la sélection'],
       [['Ctrl', 'D'], 'Dupliquer la sélection (sections, produit)'],
       [['Suppr'], 'Supprimer la sélection'],
-      [['↑', '↓'], 'Déplacer la ou les sections'],
+      [['↑', '↓'], 'Déplacer la ou les sections (aussi Ctrl ] et Ctrl [)'],
       [['Alt', '↑/↓'], 'Déplacer sans faire défiler'],
+      [['F2'], 'Renommer (aussi Ctrl R, ou double-clic dans les calques)'],
+      [['Ctrl', '⇧', 'H'], 'Masquer / afficher la section'],
+      [['Ctrl', '⇧', 'L'], 'Verrouiller la section'],
       [['Clic droit'], 'Copier · coller · dupliquer · masquer · supprimer · Mes blocs']
     ]],
-    ['Sélection multiple', [
+    ['Sélection', [
+      [['Tab'], 'Section suivante (Maj Tab : précédente)'],
+      [['Entrée'], 'Entrer dans la section (premier texte), puis le modifier'],
+      [['Maj', 'Entrée'], 'Revenir à la section parente'],
       [['Maj', 'clic'], 'Ajouter / retirer une section (canevas et calques)'],
-      [['Ctrl', 'A'], 'Sélectionner toutes les sections de la page'],
-      [['Échap'], 'Tout désélectionner']
+      [['Ctrl', 'A'], 'Sélectionner toutes les sections de la page']
     ]],
     ['Superpositions', [
       [['Alt', 'survol'], 'Mesures entre la section sélectionnée et la survolée (et sa hauteur)'],
@@ -2616,16 +3266,12 @@
     ['Affichage', [
       [['Ctrl', 'molette'], 'Zoomer vers le curseur (ou pincez le pavé tactile)'],
       [['+', '−'], 'Zoomer, dézoomer (avec ou sans Ctrl)'],
-      [['Ctrl', '0'], 'Ajuster à l’écran'],
-      [['⇧', '1'], 'Ajuster à l’écran (aussi)'],
-      [['⇧', '2'], 'Zoomer sur la sélection'],
-      [['Ctrl', '1'], 'Zoom 100 %'],
+      [['⇧', '0'], 'Zoom 100 % (aussi Ctrl 1)'],
+      [['⇧', '1'], 'Ajuster à l’écran (aussi Ctrl 0)'],
+      [['⇧', '2'], 'Zoomer sur la sélection (sur l’aperçu cliqué)'],
       [['Espace', 'glisser'], 'Déplacer la vue (ou clic molette)'],
-      [['D'], 'Téléphone seul · les deux · ordinateur seul']
-    ]],
-    ['Outils et pages', [
-      [['V'], 'Outil sélection'],
-      [['H'], 'Outil main'],
+      [['Ctrl', '\\'], 'Masquer / afficher les panneaux'],
+      [['D'], 'Téléphone seul · les deux · ordinateur seul'],
       [['1', '…', '5'], 'Accueil · Fiche produit · Panier · Paiement · Confirmation']
     ]]
   ];
@@ -2648,12 +3294,15 @@
   function toast(msg, tone) {
     var box = $('toasts');
     if (!box) return;
-    var t = ce('div', 'st-toast', esc(msg));
+    /* one toast at a time, bottom-left of the canvas: the newest replaces the last (they used
+     * to stack three high over the artboards) */
+    box.innerHTML = '';
+    var t = ce('div', 'st-toast', '<span>' + esc(msg) + '</span>');
     if (tone) t.dataset.tone = tone;
     box.appendChild(t);
-    while (box.children.length > 3) box.firstChild.remove();
-    setTimeout(function () { t.style.opacity = '0'; t.style.transition = 'opacity .25s'; }, 2600);
-    setTimeout(function () { t.remove(); }, 2950);
+    var life = Math.min(6000, 2400 + String(msg).length * 28);
+    setTimeout(function () { t.classList.add('is-out'); }, life);
+    setTimeout(function () { t.remove(); }, life + 260);
   }
 
   /* ------------------------------------------------------------------ keyboard */
@@ -2661,6 +3310,9 @@
   function isTyping(t) {
     return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
   }
+
+  /* Figma drawing keys that have no meaning here: say why, once in a while, instead of silence */
+  var FREE_DRAW_KEYS = { f: 'cadre', r: 'rectangle', o: 'ellipse', p: 'plume', l: 'ligne', k: 'échelle' };
 
   function onKeyDown(e) {
     var k = typeof e.key === 'string' ? e.key : '';
@@ -2671,11 +3323,13 @@
     /* these work even while typing (and with a dialog open) */
     if (mod && low === 's') { e.preventDefault(); saveNow(); toast('Enregistré dans ce navigateur.', 'ok'); return; }
     if (mod && low === 'e') { e.preventDefault(); exportJSON(); return; }
-    if (mod && low === 'k') { e.preventDefault(); if (hooks.commandPalette) hooks.commandPalette(); return; }
+    if (mod && (low === 'k' || k === '/' || e.code === 'Slash')) { e.preventDefault(); if (hooks.commandPalette) hooks.commandPalette(); return; }
     if (k === 'Escape') {
       if (ctxEl) { closeCtx(); return; }
+      if (hooks.escapeOverlay) { try { if (hooks.escapeOverlay()) return; } catch (err) { /* module error */ } }
       if (anyModalOpen()) { closeModals(); return; }
       if (typing) { e.target.blur(); return; }
+      if (state.tool === 'text' || state.tool === 'comment') { setTool('select'); return; }
       escapeSelection();
       return;
     }
@@ -2687,10 +3341,12 @@
     }
     if (typing) return;
 
+    /* keyboard focus on a control of the chrome (button, tab, row): Space / Enter / Tab belong
+     * to that control, never to the canvas */
+    var onControl = !!(e.target && e.target.closest && e.target.closest('button, a, input, select, textarea, [role="button"], [role="tab"], [role="treeitem"], summary, [tabindex]:not(.st-stage)'));
+
     if (k === ' ') {
-      /* Space on a focused button, link or tab activates it (keyboard users): only the
-       * stage/body arm the pan */
-      if (e.target && e.target.closest && e.target.closest('button, a, [role="button"], [role="tab"], [role="treeitem"], summary, [tabindex]:not(.st-stage)')) return;
+      if (onControl) return;
       spaceHeld = true; stage.classList.add('is-hand'); e.preventDefault(); return;
     }
 
@@ -2698,30 +3354,54 @@
     if (mod && low === 'y') { e.preventDefault(); redo(); return; }
     if (mod && low === 'a') { e.preventDefault(); selectAllSections(); return; }
     if (mod && e.shiftKey && low === 'c') { e.preventDefault(); if (hooks.toggleContrast) hooks.toggleContrast(); return; }
+    if (mod && e.shiftKey && low === 'h') { e.preventDefault(); toggleHideSelected(); return; }
+    if (mod && e.shiftKey && low === 'l') { e.preventDefault(); toggleLockSelected(); return; }
+    if (mod && !e.shiftKey && low === 'r') { e.preventDefault(); renameSelection(); return; }
+    if (mod && low === 'x') { e.preventDefault(); cutSelection(); return; }
     if (mod && low === 'c') { copySelection(); return; }
     if (mod && low === 'v') { pasteClipboard(); return; }
     if (mod && low === 'd') { e.preventDefault(); duplicateSelection(); return; }
-    if (mod && (k === '0' || e.code === 'Digit0' || e.code === 'Numpad0')) { e.preventDefault(); fit(); return; }
-    if (mod && (k === '1' || e.code === 'Digit1' || e.code === 'Numpad1')) { e.preventDefault(); setZoom(1); return; }
+    if (mod && low === 'g') { e.preventDefault(); hintOnce('group', 'Pas de groupes dans le Studio : chaque section est déjà un bloc qui s’adapte à chaque écran. Sélection multiple : Maj + clic.'); return; }
+    if (mod && (k === ']' || e.code === 'BracketRight')) { e.preventDefault(); moveSelection(1, false); return; }
+    if (mod && (k === '[' || e.code === 'BracketLeft')) { e.preventDefault(); moveSelection(-1, false); return; }
+    if (mod && (k === '\\' || k === '.' || e.code === 'Backslash' || e.code === 'IntlBackslash')) { e.preventDefault(); toggleChrome(); return; }
+    if (mod && (k === '0' || e.code === 'Digit0' || e.code === 'Numpad0')) { e.preventDefault(); camera(fit); return; }
+    if (mod && (k === '1' || e.code === 'Digit1' || e.code === 'Numpad1')) { e.preventDefault(); camera(function () { setZoom(1); }); return; }
     /* Ctrl + / Ctrl − : the browser's page zoom reflex, captured as canvas zoom (Figma parity) */
     if (mod && (k === '+' || k === '=' || e.code === 'Equal' || e.code === 'NumpadAdd')) { e.preventDefault(); setZoom(state.zoom * 1.25); return; }
     if (mod && (k === '-' || e.code === 'Minus' || e.code === 'NumpadSubtract')) { e.preventDefault(); setZoom(state.zoom / 1.25); return; }
     if (mod) return;
 
+    if (k === 'F2') { e.preventDefault(); renameSelection(); return; }
+    if (k === 'Tab' && !onControl) { e.preventDefault(); selectSibling(e.shiftKey ? -1 : 1); return; }
+    if (k === 'Enter' && !onControl) { e.preventDefault(); if (e.shiftKey) parentSelection(); else enterSelection(); return; }
     if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); deleteSelection(); return; }
     if (k === 'ArrowUp') { e.preventDefault(); moveSelection(-1, e.altKey); return; }
     if (k === 'ArrowDown') { e.preventDefault(); moveSelection(1, e.altKey); return; }
-    if (low === 'v' && !e.shiftKey) { setTool('select'); return; }
-    if (low === 'h' && !e.shiftKey) { setTool('hand'); return; }
-    if (low === 'd' && !e.shiftKey) { cycleDevice(); return; }
+    if (!e.shiftKey && !e.altKey) {
+      if (low === 'v') { setTool('select'); return; }
+      if (low === 'h') { setTool('hand'); return; }
+      if (low === 't') { setTool(state.tool === 'text' ? 'select' : 'text'); return; }
+      if (low === 'c') { setTool(state.tool === 'comment' ? 'select' : 'comment'); return; }
+      if (low === 's') { e.preventDefault(); if (hooks.sectionPopover) hooks.sectionPopover(); else switchLeftTab('insert'); return; }
+      if (low === 'i') { e.preventDefault(); pickImageForSelection(); return; }
+      if (low === 'a') { switchLeftTab('insert'); return; }
+      if (low === 'd') { cycleDevice(); return; }
+      if (FREE_DRAW_KEYS[low]) {
+        hintOnce('freedraw', 'Pas de dessin libre (' + FREE_DRAW_KEYS[low] + ') : le Studio assemble des sections qui restent justes sur chaque téléphone. S pour insérer une section, T pour modifier un texte.');
+        return;
+      }
+    }
     if (k === '?') { toggleHelp(); return; }
     if (k === '+' || k === '=') { setZoom(state.zoom * 1.25); return; }
     if (k === '-') { setZoom(state.zoom / 1.25); return; }
 
-    /* Shift+1 / Shift+2 : fit and zoom-to-selection, like Figma (by physical position, so the
-     * reflex works on QWERTY and the AZERTY shifted digits stop teleporting between pages) */
-    if (e.shiftKey && (e.code === 'Digit1' || e.code === 'Numpad1')) { e.preventDefault(); fit(); return; }
-    if (e.shiftKey && (e.code === 'Digit2' || e.code === 'Numpad2')) { e.preventDefault(); zoomToSelection(); return; }
+    /* Shift+0 / Shift+1 / Shift+2 : 100 %, fit and zoom-to-selection, like Figma (by physical
+     * position, so the reflex works on QWERTY and the AZERTY shifted digits stop teleporting
+     * between pages) */
+    if (e.shiftKey && (e.code === 'Digit0' || e.code === 'Numpad0')) { e.preventDefault(); camera(function () { setZoom(1); }); return; }
+    if (e.shiftKey && (e.code === 'Digit1' || e.code === 'Numpad1')) { e.preventDefault(); camera(fit); return; }
+    if (e.shiftKey && (e.code === 'Digit2' || e.code === 'Numpad2')) { e.preventDefault(); camera(zoomToSelection); return; }
     if (e.shiftKey) return;
 
     /* pages 1..5 — by key when the layout gives a digit, by physical position otherwise (AZERTY);
@@ -2739,13 +3419,23 @@
     if (e.key === ' ') { spaceHeld = false; if (state.tool !== 'hand') stage.classList.remove('is-hand'); }
   }
 
+  var TOOLS = ['select', 'hand', 'text', 'comment'];
   function setTool(t) {
+    if (TOOLS.indexOf(t) === -1) t = 'select';
+    var prev = state.tool;
     state.tool = t;
-    $('toolSelect').classList.toggle('is-on', t === 'select');
-    $('toolSelect').setAttribute('aria-pressed', String(t === 'select'));
-    $('toolHand').classList.toggle('is-on', t === 'hand');
-    $('toolHand').setAttribute('aria-pressed', String(t === 'hand'));
+    document.querySelectorAll('[data-tool]').forEach(function (b) {
+      var on = b.getAttribute('data-tool') === t;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
     stage.classList.toggle('is-hand', t === 'hand');
+    stage.classList.toggle('is-text', t === 'text');
+    stage.classList.toggle('is-comment', t === 'comment');
+    if (t !== 'select') clearHover();
+    if (prev === 'text' && t !== 'text') clearHover();
+    if (t === 'text' && prev !== 'text') hintOnce('tool-text', 'Texte : cliquez sur un texte de l’aperçu pour le modifier sur place. Échap pour revenir.', 20000);
+    if (hooks.toolChanged) { try { hooks.toolChanged(t, prev); } catch (e) { /* module error */ } }
   }
 
   function applyDeviceFocusClasses() {
@@ -2818,6 +3508,7 @@
     stage.addEventListener('dblclick', onStageDblClick, true);
     stage.addEventListener('contextmenu', onStageContextMenu);
     stage.addEventListener('pointerover', onStageOverCapture, true);
+    stage.addEventListener('pointerleave', function () { if (!canvasDrag) clearHover(); });
     stage.addEventListener('dragstart', function (e) { e.preventDefault(); });
     document.addEventListener('pointerdown', function (e) {
       if (ctxEl && !ctxEl.contains(e.target)) closeCtx();
@@ -2853,8 +3544,18 @@
     window.addEventListener('resize', function () { /* keep the view; Ctrl+0 refits */ });
 
     /* top bar */
-    $('toolSelect').addEventListener('click', function () { setTool('select'); });
-    $('toolHand').addEventListener('click', function () { setTool('hand'); });
+    document.querySelectorAll('[data-tool]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var t = b.getAttribute('data-tool');
+        setTool(state.tool === t && t !== 'select' ? 'select' : t);
+      });
+    });
+    document.querySelectorAll('[data-zoomstep]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var f = b.getAttribute('data-zoomstep') === 'in' ? 1.25 : 0.8;
+        camera(function () { setZoom(state.zoom * f); });
+      });
+    });
     $('ficheName').addEventListener('input', function () {
       var v = $('ficheName').value;
       commit('Texte modifié (nom de la boutique)', function (c) { c.store = c.store || {}; c.store.name = v; }, { coalesce: 'store:name' });
@@ -2874,12 +3575,16 @@
     zoomMenu.querySelectorAll('button').forEach(function (b) {
       b.addEventListener('click', function () {
         var z = b.getAttribute('data-zoom');
-        if (z === 'in') setZoom(state.zoom * 1.25);
-        else if (z === 'out') setZoom(state.zoom / 1.25);
-        else if (z === 'fit') fit();
-        else if (z === '100') setZoom(1);
-        else setZoom(parseFloat(z));
+        camera(function () {
+          if (z === 'in') setZoom(state.zoom * 1.25);
+          else if (z === 'out') setZoom(state.zoom / 1.25);
+          else if (z === 'fit') fit();
+          else if (z === 'sel') zoomToSelection();
+          else if (z === '100') setZoom(1);
+          else setZoom(parseFloat(z));
+        });
         zoomMenu.hidden = true;
+        zoomBtn.setAttribute('aria-expanded', 'false');
       });
     });
     $('shareBtn').addEventListener('click', function () { openShare(false); });
@@ -2904,7 +3609,8 @@
       ui.proSeen = true;
       saveUI();
       closeModal($('proModal'));
-      toast('Bienvenue dans le Studio. Appuyez sur ? pour les raccourcis.', 'ok');
+      if (hooks.onboarding) { try { hooks.onboarding(); } catch (e) { /* module error */ } }
+      else toast('Bienvenue dans le Studio. Appuyez sur ? pour les raccourcis.', 'ok');
     });
     if (!ui.proSeen) openModal($('proModal'));
 
@@ -2940,7 +3646,7 @@
         sel: state.sel ? clone(state.sel) : null, tool: state.tool,
         zoom: state.zoom, panX: state.panX, panY: state.panY,
         deviceFocus: state.deviceFocus, undoDepth: undoStack.length, redoDepth: redoStack.length,
-        artboards: ui.artboards.slice()
+        artboards: ui.artboards.slice(), activeAb: primaryKey(), inlineEditing: !!inlineEdit
       };
     },
     select: function (sel) { select(sel || null); },
@@ -2952,6 +3658,8 @@
     save: saveNow,
     exportJSON: exportJSON,
     toggleArtboard: toggleArtboard,
+    setTool: function (t) { setTool(t); },
+    changeNiche: function (n) { changeNiche(n); },
     SHORTCUTS: SHORTCUTS
   };
 
@@ -3044,6 +3752,26 @@
     hideGhost: hideGhost,
     icon: icon,
     group: group,
-    fieldWrap: fieldWrap
+    fieldWrap: fieldWrap,
+    TYPE_GLYPHS: TYPE_GLYPHS,
+    startInsertDrag: startInsertDrag,
+    openSelectionMenu: openSelectionMenu,
+    renameSelection: renameSelection,
+    cutSelection: cutSelection,
+    toggleLockSelected: toggleLockSelected,
+    enterSelection: enterSelection,
+    selectSibling: selectSibling,
+    pickImageForSelection: pickImageForSelection,
+    imageSlotForSelection: imageSlotForSelection,
+    camera: camera,
+    nicheList: nicheList,
+    changeNiche: changeNiche,
+    selectionTargets: selectionTargets,
+    rectInFrame: rectInFrame,
+    toggleChrome: toggleChrome,
+    hintOnce: hintOnce,
+    positionTags: positionTags,
+    isDragging: function () { return !!(canvasDrag && canvasDrag.moved) || !!pan; },
+    isInlineEditing: function () { return !!inlineEdit; }
   };
 })();

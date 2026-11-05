@@ -1,10 +1,21 @@
 # Jeere Studio — l’éditeur avancé (prototype)
 
 L’éditeur « pour les gens avancés », façon **Figma / Framer / Webflow**, au-dessus de la même
-fiche boutique que l’éditeur simple (`../creer/`). Un plan de travail infini, deux aperçus en
-direct (téléphone 390 et ordinateur 1200), un panneau Calques, un inspecteur Réglages, et les
-raccourcis clavier qu’on attend de ces outils (Ctrl Z en tête). Chrome sombre `#1E1E1E` comme
-Figma, les boutiques en couleur sur le canevas clair ; sélection en bleu `#3657FF`.
+fiche boutique que l’éditeur simple (`../creer/`). Un plan de travail infini, des aperçus en
+direct (téléphone 390 et ordinateur 1200 par défaut, 360 / 768 / 1440 en plus), une **barre
+d’outils flottante** en bas façon Figma UI3, une barre contextuelle sur la sélection, un panneau
+Calques, un inspecteur Réglages, et les raccourcis clavier qu’on attend de ces outils (Ctrl Z en
+tête). Chrome sombre `#1E1E1E` en Inter (11 / 12 / 13 / 15 px), les boutiques en couleur sur le
+canevas clair ; sélection en bleu `#3657FF` (magenta quand l’accent du store est ce bleu).
+
+**Le modèle : des sections, pas des pixels.** Le Studio insère, déplace, masque et réécrit des
+*sections* responsives (et leurs textes, photos, produits) — comme les sections de Framer ou de
+Webflow, pas le dessin libre de Figma — parce qu’une boutique doit rester juste sur chaque
+téléphone. C’est présenté comme une promesse, pas comme un manque : la modale d’accueil (« des
+sections qui s’adaptent toutes seules à chaque téléphone », « impossible de casser l’affichage
+mobile »), la carte « trois gestes » au premier lancement, le bloc « Responsive, de 360 à
+1440 px » du groupe Disposition, et les touches de dessin de Figma (F, R, O, P, L, Ctrl G) ou
+le glisser d’un sous-élément, qui expliquent le modèle au lieu de ne rien faire.
 
 Le Studio fait partie de la **formule Avancée** : au premier lancement, une modale le dit et
 propose « Essayer gratuitement » (prototype : pas de facturation, copy honnête — « Bientôt payant
@@ -39,10 +50,11 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 
 | Fichier | Rôle |
 | --- | --- |
-| `index.html` | La coquille : barre du haut (outils, chips d’artboards, jetons/historique/contrastes), panneaux, modales, drawers, palette de commandes, le symbole `#cloud`. Charge `../creer/data.js`, `../creer/render.js`, `../creer/store.css`, puis `studio.js` et `studio-power.js`. |
+| `index.html` | La coquille : barre du haut (nom, chips « Aperçus », jetons/historique/contrastes, Partager/Publier), barre d’outils flottante dans le plan de travail, panneaux, modales, drawers (Jetons, Historique, Commentaires), palette de commandes, infobulle, le symbole `#cloud`. Charge `../creer/data.js`, `../creer/render.js`, `../creer/store.css`, puis `studio.js`, `studio-power.js` et `studio-toolbar.js`. |
 | `studio.css` | Le chrome sombre (scopé `.st-*`), le décor de sélection, les superpositions (mesures, contrastes), les drawers, la palette — jetons d’état (`--ok`, `--warn`, `--err`, `--info`) aux valeurs de la plateforme, sélection `#3657FF`. |
 | `studio.js` | Le cœur : état, historique, canevas (zoom/pan/tactile), sélection (simple **et multiple**), édition en place, calques, insertion, inspecteur, artboards dynamiques, raccourcis, autosave, dialogues. Expose `window.JeereStudio._internals` (le pont) et des `hooks`. |
 | `studio-power.js` | Les fonctions avancées, greffées sur le pont : palette de commandes, Mes blocs, Jetons, Historique (versions), onglet Code, panneau Images, superpositions mesures/contrastes, export PNG. IIFE classique, chargée après `studio.js`. |
+| `studio-toolbar.js` | La couche UI3 : barre d’outils flottante, fenêtre d’insertion (S), barre contextuelle de la sélection, infobulles stylées, commentaires locaux (C), carte d’accueil « trois gestes ». Chaîne les `hooks` (ne les remplace jamais). Expose `window.JeereStudioToolbar` pour les tests. |
 
 ## Les fonctions avancées (`studio-power.js`)
 
@@ -111,8 +123,11 @@ Toutes construites sur le même contrat, feature-détectées, et testées par `p
 - **Export PNG** — « Exporter en image » (palette + dialogue Partager) rend l’artboard sélectionné
   en PNG : l’artboard est sérialisé dans un `<svg><foreignObject>`, les images embarquées en
   data-URL et la `store.css` incluse, rastérisé via une `Image` + canvas (URL `data:`, pas `blob:`,
-  pour éviter la contamination du canvas sous Chromium). Une photo non embarquable (CORS) est
-  laissée de côté avec un toast.
+  pour éviter la contamination du canvas sous Chromium). Les **polices web du store** sont
+  récupérées (`fontPairs[…].googleUrl`, faces latines) et inlinées en `@font-face` data-URL — sans
+  ça, le titre retombait sur une sans-serif générique. Rendu **2x** par défaut (`exportPNG(key,
+  scale)`, borné aux limites des canvas), sur l’**aperçu cliqué**. Une photo non embarquable
+  (CORS) est laissée de côté avec un toast.
 - **Tactile / iPad** (1194×834 paysage) — un doigt sélectionne, double-tap édite en place, deux
   doigts défilent, le pincement zoome vers le point médian, appui long = menu contextuel, le
   glisser des calques marche au doigt. Au premier toucher (ou sur un pointeur grossier),
@@ -129,6 +144,50 @@ ignoré sans casser), ne touche jamais aux clés de fiche qu’il ne connaît pa
 `theme.colors`… survivent à ses écritures, et `normalizeConfig` du runtime fait foi), et
 enveloppe chaque rendu d’artboard dans un try/catch avec une carte d’erreur douce.
 
+## La barre d’outils flottante (`studio-toolbar.js`)
+
+En bas au centre du plan de travail, une pilule sombre comme Figma UI3 : boutons de 38 px
+(44 px au doigt sur iPad), un jeu d’icônes au trait (1,6 px, bouts ronds), l’outil actif en bleu
+`#3657FF`, une **infobulle stylée** après 400 ms (nom + raccourci en `kbd` + une ligne d’aide),
+puis « chaude » (immédiate) quand on glisse le long de la barre. Les boutons de la barre du haut
+ont la même infobulle (les `title=` natifs sont convertis à la volée).
+
+| Outil | Touche | Ce qu’il fait |
+| --- | --- | --- |
+| Déplacer | V | Sélectionner ; **glisser une section sur l’aperçu** pour la déplacer (ligne bleue de dépose, une étape d’annulation). Au doigt : glisser la section déjà sélectionnée. |
+| Main | H | Déplacer la vue ; le store redevient interactif (navigation entre pages). |
+| Section | S | La **fenêtre d’insertion** : les types de section du contrat en cartes, aperçu dans le thème au survol, clic = insérer après la sélection, glisser une carte sur un aperçu = insérer à cet endroit ; flèches + Entrée au clavier ; « Mes blocs et le panneau Insérer → ». |
+| Texte | T | Le prochain clic sur un texte (titre, petit titre, paragraphe, bouton, nom ou prix d’un produit) l’édite sur place ; le texte visé s’allume au survol ; l’outil revient ensuite à Déplacer. |
+| Image | I | Arme le choix de photo pour la sélection (section avec image ou produit) et ouvre le panneau Images ; sans sélection d’image, ouvre le panneau et explique. |
+| Commentaire | C | Un clic sur un aperçu pose une **épingle numérotée** et ouvre la note (Entrée publie). Le drawer « Commentaires » liste les notes (ouverts / résolus, Résoudre, Supprimer, clic = la vue glisse jusqu’à l’épingle). Compteur rouge sur l’outil. **Local** : stocké dans `jeere-studio-ui` (`ui.comments` : `{id, n, ab, x, y, sectionId, text, at, resolved}`), clairement marqué « local — partage avec le backend ». |
+| Zoom | − / % / + | Le menu `%` s’ouvre vers le haut : zoom avant/arrière, ajuster (⇧1), sélection (⇧2), 100 % (⇧0), 25/50/75/200 %. |
+
+Les outils V/H et les trois boutons d’appareil ont quitté la barre du haut (doublons) ; `D`
+fait toujours le tour téléphone / les deux / ordinateur, et les chips « Aperçus » choisissent les
+tailles d’écran. Échap revient à Déplacer depuis Texte ou Commentaire.
+
+**Barre contextuelle.** Une petite barre sombre épinglée 8 px au-dessus de la sélection, sur
+l’aperçu **cliqué** (l’« aperçu actif », aussi utilisé par ⇧2 et l’export PNG) : nom + icône du
+type, ↑ ↓, « + » (insérer dessous), photo, dupliquer, masquer, supprimer, ⋯ (le menu du clic
+droit : verrouiller, renommer, Mes blocs…). Sur un sous-élément : « Modifier » et retour à la
+section ; sur un produit : nom, photo, dupliquer, supprimer ; en sélection multiple : les actions
+groupées. Taille constante quel que soit le zoom, collée au bord haut quand la section le
+dépasse, jamais sur la barre d’outils, masquée pendant un pan, un glisser ou un mouvement de
+caméra.
+
+**Sélection dessinée par le Studio.** Les contours ne sont plus des `outline` sur le store (ils
+disparaissaient sous les enfants positionnés : pas de contour sur le hero ordinateur) : des
+boîtes dans le calque de l’artboard, au-dessus du rendu, 2 px quel que soit le zoom, liseré
+blanc, sur **tous** les aperçus, recalculées quand une photo se charge (`ResizeObserver`). Les
+classes `st-sel` / `st-hov` restent posées sur les nœuds (tests, outils).
+
+**Mouvement.** Un seul jeu de jetons (`--dur-1` 90 ms, `--dur-2` 160 ms, `--ease`) : survol et
+appui (`:active`) de chaque contrôle, menus / palette / dialogues en fondu + échelle 0,975 → 1,
+drawers qui glissent de 8 px, caméra (ajuster, zoom sur la sélection, suivi) qui glisse en
+200 ms — l’état est final tout de suite, seule l’image s’anime. Tout s’éteint sous
+`prefers-reduced-motion`. Les toasts : **un seul à la fois**, en haut au centre du plan de
+travail, le dernier remplace le précédent.
+
 ## Le plan de travail (canevas)
 
 - **Deux artboards en direct**, « Téléphone 390 » et « Ordinateur 1200 », rendus par
@@ -139,14 +198,16 @@ enveloppe chaque rendu d’artboard dans un try/catch avec une carte d’erreur 
 - **Pan** : Espace + glisser (curseur main), clic molette, ou molette seule (Maj = horizontal) ;
   l’outil Main (H) rend en plus le store interactif : les clics naviguent dedans (la page suivie
   via `jst:navigate`, annulé pour éviter le saut de défilement, les deux artboards suivent).
-- **Sélection (V)** : clic sur une section = sélection (contour bleu + étiquette de nom, sur les
-  deux artboards) ; second clic à l’intérieur = sous-élément quand il correspond à un champ de la
+- **Sélection (V)** : clic sur une section = sélection (contour bleu sur tous les aperçus, barre
+  contextuelle sur l’aperçu cliqué) ; second clic à l’intérieur = sous-élément quand il correspond à un champ de la
   fiche (titre du hero, bouton, petit titre, une carte produit → le produit) ; survol = contour
   léger ; Échap remonte (champ → section → rien). Le panneau Calques et le canevas se suivent
   (`scrollIntoView` d’un côté, recentrage du canevas de l’autre). Une section verrouillée ignore
   les clics du canevas.
-- **Appareils** : les trois boutons de la barre (téléphone / les deux / ordinateur), ou `D` qui
-  fait le tour. L’affichage se réajuste.
+- **Appareils** : `D` fait le tour téléphone / les deux / ordinateur (aussi dans la palette) ;
+  les chips « Aperçus » ajoutent ou retirent 360 / 390 / 768 / 1200 / 1440.
+- **Caméra** : la vue ne bouge que si la sélection est (presque) hors de vue, et juste assez pour
+  la ramener ; plus de recentrage qui sortait l’autre aperçu de l’écran.
 
 ## Calques (panneau gauche)
 
@@ -158,9 +219,13 @@ dépôt) ; sous la première section Produits, les **produits** (pastille de cou
 **Vos pages** liste les pages du store (`config.pages`) : cliquer l’affiche (`page: 'page'`),
 l’inspecteur édite titre, texte, menu/pied de page ; « + Ajouter une page ». Double-clic renomme
 là où la fiche le permet : le titre d’une section qui en a un, le nom d’un produit, le titre
-d’une page (le slug suit via `uniqueSlug`).
+d’une page (le slug suit via `uniqueSlug`). Le double-clic marche vraiment (un changement de
+sélection ne reconstruit plus l’arbre entre les deux clics : il re-marque les lignes) ; `F2` ou
+`Ctrl R` renomme la sélection. Sur iPad, cadenas et œil n’apparaissent que sur la ligne
+sélectionnée (ils tronquaient tous les noms).
 
-L’onglet **Ajouter** est le panneau d’insertion : la galerie des types de section du contrat,
+L’onglet **Insérer** est le panneau d’insertion (la fenêtre de l’outil Section en est la version
+rapide) : la galerie des types de section du contrat,
 aperçu vivant au survol (la section rendue seule, dans le thème courant), **glisser sur un
 artboard pour insérer à cet endroit précis** (ligne d’insertion bleue), ou clic pour ajouter
 après la sélection. Les réglages de la nouvelle section viennent de
@@ -172,16 +237,21 @@ Des groupes repliables, comme Figma :
 
 - **Section sélectionnée** : « Contenu » construit depuis les champs du contrat (text, textarea,
   number, select, image, items — les avis, les zones de livraison, avec ajout/suppression et
-  `maxItems`), puis « Section » (visible, dupliquer, supprimer). Le champ image montre l’image de
+  `maxItems`), puis « Disposition » (position n sur N avec ↑ ↓, visible, et le bloc
+  « Responsive, de 360 à 1440 px » : la mise en page suit le modèle, « Changer de modèle… »), puis
+  « Actions » (Dupliquer, Supprimer — de vrais boutons, plus des pointillés). Le champ image montre l’image de
   la vendeuse, sinon la photo d’exemple **créditée** (photographe / Unsplash), « Mettre ma
-  photo » (réduite à 800 px, JPEG) et « Retirer ». Un sous-élément sélectionné au canevas fait
+  photo » (réduite à 800 px, JPEG), « Retirer » et « Choisir dans Images » (sur sa propre ligne,
+  plus jamais rogné). Un sous-élément sélectionné au canevas fait
   défiler et surligne son champ.
 - **Produit sélectionné** : nom, prix, catégorie, badge, description, photo, couleur de tuile
   (`PRODUCT_COLORS`), illustration (`ART_KINDS`), dupliquer/supprimer.
 - **Page sélectionnée** : titre, adresse `<boutique>.jeere.shop/pages/<slug>`, texte, menu,
   pied de page, supprimer.
 - **Rien de sélectionné** : le style du store — modèle (3 cartes), palettes (pastilles),
-  intensité Vives/Douces, polices, angles, boutons ; puis Boutique (nom, slogan, WhatsApp,
+  intensité Vives/Douces, polices, angles, boutons ; puis Boutique (**Métier** — « Changer de
+  métier » remplace textes, produits et photos d’exemple par ceux d’un autre métier sans toucher
+  au style ni aux pages, une étape d’annulation ; aussi dans la palette —, nom, slogan, WhatsApp,
   ville), Paiements (6 cases), Fiche boutique (export / import / éditeur simple).
 - **Champs numériques façon Figma** : la poignée `◂▸` à gauche se **glisse horizontalement**
   pour changer la valeur (bornée par le min/max du contrat).
@@ -199,7 +269,8 @@ une erreur) ; tout le reste se supprime librement, Ctrl Z ramène tout.
 
 | Touches | Action |
 | --- | --- |
-| Ctrl K | Palette de commandes (toutes les actions) |
+| V · H · S · T · I · C | Outils de la barre flottante : Déplacer · Main · Section · Texte · Image · Commentaire |
+| Ctrl K, Ctrl / | Palette de commandes (toutes les actions) |
 | Ctrl A | Sélectionner toutes les sections de la page |
 | Maj + clic | Ajouter / retirer une section (sélection multiple) |
 | Ctrl ⇧ C | Vérification des contrastes |
@@ -210,21 +281,28 @@ une erreur) ; tout le reste se supprime librement, Ctrl Z ramène tout.
 | Ctrl C / Ctrl V | Copier la section / coller après la sélection (presse-papiers interne JSON) |
 | Ctrl D | Dupliquer la section ou le produit |
 | Suppr, ⌫ | Supprimer la sélection (jamais sous les limites de `validate()`) |
-| ↑ / ↓ | Déplacer la section (Alt : sans faire défiler) |
+| ↑ / ↓, Ctrl ] / Ctrl [ | Déplacer la section (Alt : sans faire défiler) |
+| Glisser une section | La déplacer sur l’aperçu (ligne bleue) |
+| Ctrl X | Couper la section |
+| F2, Ctrl R | Renommer la sélection (dans les calques) |
+| Ctrl ⇧ H / Ctrl ⇧ L | Masquer / verrouiller la sélection |
+| Tab / ⇧ Tab | Section suivante / précédente |
+| Entrée / ⇧ Entrée | Entrer dans la section (premier texte, puis édition) / revenir à la section |
+| Ctrl \ (aussi Ctrl .) | Masquer / afficher les panneaux |
+| F, R, O, P, L, Ctrl G | Pas de dessin libre : un toast explique le modèle en sections |
 | Ctrl S | Enregistrer maintenant (« Enregistré ») |
 | Ctrl E | Exporter la fiche (JSON) |
-| V / H | Outil sélection / outil main |
 | Espace + glisser | Déplacer la vue |
 | Ctrl molette, + / − | Zoom (vers le curseur à la molette ; + / − marchent avec ou sans Ctrl) |
 | Ctrl 0, ⇧ 1 | Ajuster à l’écran (le cadrage d’ouverture : largeurs des artboards, haut de page) |
 | ⇧ 2 | Zoomer sur la sélection (comme Figma) |
-| Ctrl 1 | Zoom 100 % |
+| Ctrl 1, ⇧ 0 | Zoom 100 % |
 | 1 … 5 | Accueil · Fiche produit · Panier · Paiement · Confirmation (aussi par position de touche, pour l’AZERTY ; jamais avec ⇧ — ⇧ 1/2 appartiennent au zoom) |
 | D | Téléphone seul · les deux · ordinateur seul |
 | Clic droit | Menu contextuel : copier · coller · dupliquer · masquer · supprimer |
 | Double-clic sur un texte sans champ | Sélectionne le sous-élément et met le curseur dans le champ de l’inspecteur |
 | ? | Le panneau des raccourcis (groupés comme Figma) |
-| Échap | Menu contextuel → dialogues → sous-élément → section → rien ; sort d’un champ |
+| Échap | Menu contextuel → fenêtre d’insertion / note → dialogues → outil Texte/Commentaire → sous-élément → section → rien ; sort d’un champ |
 
 Un dialogue ouvert (`aria-modal`) **bloque les raccourcis d’édition** : Suppr, Ctrl D, les
 flèches et 1…5 ne touchent plus le canevas derrière lui (Ctrl S / Ctrl E restent permis, Échap
@@ -257,6 +335,14 @@ Des suites Playwright dans le scratchpad de la session, contre un serveur local 
 - `studio-test.js` (74 vérifications) : le socle — ouverture, rendu, sélection canevas/calques,
   édition, historique, glisser-déposer, insertion, masquer/verrouiller, chaque raccourci,
   autosave, interop `normalizeConfig`, export, garde petit écran, fiche abîmée.
+- `verdict/toolbar-test.js` (79 vérifications) : la couche UI3 — modale et carte d’accueil,
+  barre flottante (position, tailles, chaque outil au clic et à sa touche, bleu actif),
+  infobulles (délai 400 ms, puis chaudes ; plus de `title=` natif), fenêtre Section (clic, glisser
+  sur un aperçu, Échap), barre contextuelle (position, ↑, ⋯), glisser une section sur l’aperçu,
+  outil Texte + bouton aux espaces conservés + compteur au maximum, outil Image, commentaires
+  (épingles, liste, résoudre, **persistance après rechargement**), réflexes Figma (Ctrl ⇧ H, Tab,
+  Entrée, ⇧ 0, Ctrl \, R, F2, double-clic de renommage), un seul toast, aide, changer de métier,
+  et l’iPad au doigt (barre ≥ 44 px, Texte, Commentaire, Section, barre contextuelle).
 - `power-test.js` (109 vérifications) : les fonctions avancées — palette (floue + exécution),
   édition en place (valider / annuler / maxlength / collage brut), sélection multiple et actions
   groupées (dans les limites), blocs (enregistrer / insérer / garde de taille / cap), jetons
