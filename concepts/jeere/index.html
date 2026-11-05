@@ -98,11 +98,42 @@
 
 <main id="main">
 
-  <!-- 1. Hero: the sign-up card on the left, the editor canvas on the right -->
-  <section class="hero" id="top">
+  <!-- 0. Hero: brush strokes draw a boutique that becomes real (anim/boutique.js) -->
+  <section class="bt bt--hero" id="top" aria-labelledby="bt-title" data-bt>
+    <div class="bt__stage" data-bt-stage>
+      <div class="bt__frame" data-bt-frame data-bt-reveal="img/boutique-960.webp">
+        <picture>
+          <source media="(max-width: 599px)" srcset="img/boutique-960.webp" width="960" height="540">
+          <img class="bt__img" src="img/boutique.webp" srcset="img/boutique.webp 1920w, img/boutique-2400.webp 2400w" sizes="100vw"
+            width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async"
+            alt="Une commerçante souriante, accoudée au comptoir de sa petite boutique, devant des étagères remplies de produits."
+            data-i18n-attr="alt:bt.alt">
+        </picture>
+      </div>
+      <div class="bt__shade" aria-hidden="true"></div>
+      <p class="bt__credit"><span data-i18n="bt.credit">Photo</span>&nbsp;: <a href="https://unsplash.com/photos/a-woman-sitting-at-a-counter-in-a-store-EOkN2pRjFsg" target="_blank" rel="noopener">Ali Mkumbwa / Unsplash</a></p>
+    </div>
+    <div class="bt__copy">
+      <div class="wrap">
+        <div class="bt__text">
+          <svg class="bt__mark" viewBox="0 0 900 479" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg>
+          <p class="eyebrow eyebrow--light" data-i18n="bt.eyebrow">Du comptoir à Internet</p>
+          <h1 class="h2 bt__h1" id="bt-title"><span class="bt__t1" data-i18n="bt.title1">Votre boutique physique,</span> <span class="bt__t2" data-i18n="bt.title2">maintenant en ligne.</span></h1>
+          <p class="lead" data-i18n="bt.lead">Vous avez déjà la boutique et les clients. Jeere la met sur Internet&nbsp;: votre site, les paiements Wave, Orange Money, MTN MoMo et Moov, les livraisons. Gratuitement pour commencer.</p>
+          <div class="bt__acts">
+            <a class="btn bt__cta" href="compte/#inscription"><span data-i18n="bt.cta">Créer ma boutique e-commerce maintenant</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <button class="bt__replay" type="button" data-bt-replay hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v3.6h3.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="bt.replay">Revoir</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. « Créez votre boutique en ligne gratuitement »: the sign-up card on the left, the editor canvas on the right -->
+  <section class="hero" id="creer">
     <div class="wrap hero__grid">
       <div class="hero__copy">
-        <h1 class="hero__title" data-i18n="hero.title">Créez votre boutique en ligne gratuitement</h1>
+        <h2 class="hero__title" data-i18n="hero.title">Créez votre boutique en ligne gratuitement</h2>
         <p class="hero__lead" data-i18n="hero.lead">Jeere est la plateforme tout-en-un pour créer, gérer et développer votre commerce, en ligne et en boutique. Paiement par Wave, Orange Money, MTN MoMo ou à la livraison, prix en FCFA.</p>
 
         <!-- The card sends nothing: site.js copies the number into the waitlist form (#liste).
@@ -211,35 +242,7 @@
   <!-- 1b. From idea to store: on black, the logo's brush strokes draw a boutique, then the drawing
        becomes the real photo and « jeere » is written over the copy (anim/boutique.js).
        Without JS or with reduced motion: the photo. -->
-  <section class="bt" id="idee" aria-labelledby="bt-title" data-bt>
-    <div class="bt__stage" data-bt-stage>
-      <div class="bt__frame" data-bt-frame data-bt-reveal="img/boutique-960.webp">
-        <picture>
-          <source media="(max-width: 599px)" srcset="img/boutique-960.webp" width="960" height="540">
-          <img class="bt__img" src="img/boutique.webp" srcset="img/boutique.webp 1920w, img/boutique-2400.webp 2400w" sizes="100vw"
-            width="1920" height="1080" loading="lazy" decoding="async"
-            alt="Une commerçante souriante, accoudée au comptoir de sa petite boutique, devant des étagères remplies de produits."
-            data-i18n-attr="alt:bt.alt">
-        </picture>
-      </div>
-      <div class="bt__shade" aria-hidden="true"></div>
-      <p class="bt__credit"><span data-i18n="bt.credit">Photo</span>&nbsp;: <a href="https://unsplash.com/photos/a-woman-sitting-at-a-counter-in-a-store-EOkN2pRjFsg" target="_blank" rel="noopener">Ali Mkumbwa / Unsplash</a></p>
-    </div>
-    <div class="bt__copy">
-      <div class="wrap">
-        <div class="bt__text">
-          <svg class="bt__mark" viewBox="0 0 900 479" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg>
-          <p class="eyebrow eyebrow--light" data-i18n="bt.eyebrow">De l’idée à la boutique</p>
-          <h2 class="h2" id="bt-title"><span class="bt__t1" data-i18n="bt.title1">Vous imaginez la boutique.</span> <span class="bt__t2" data-i18n="bt.title2">Jeere la rend réelle.</span></h2>
-          <p class="lead" data-i18n="bt.lead">Vous avez l’idée et les produits. Jeere s’occupe du reste&nbsp;: votre site, les paiements Wave, Orange Money, MTN MoMo et Moov, les livraisons.</p>
-          <div class="bt__acts">
-            <a class="btn bt__cta" href="creer/"><span data-i18n="bt.cta">Créer ma boutique</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-            <button class="bt__replay" type="button" data-bt-replay hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v3.6h3.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="bt.replay">Revoir</span></button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+
 
   <!-- 2. All in one -->
   <section class="section section--paper" id="tout-en-un" aria-labelledby="all-title">
