@@ -454,3 +454,246 @@ kbd {
 .st-field--focus { border-radius: 6px; }
 [hidden] { display: none !important; }
 .st-modal a, .st-guard a, .st-toasts a { text-decoration: none; }
+
+/* ==================================================================== power features
+ * Command palette (Ctrl K), device-preset chips, inline text editing, multi-selection,
+ * Jetons / Historique drawers, Code tab, Images panel, Mes blocs, measure + contrast
+ * overlays, touch. Same chrome vocabulary as above, selection blue #3657FF. */
+
+/* touch: the stage owns its gestures (two-finger pan, pinch); section rows drag with a finger */
+.st-stage { touch-action: none; }
+.st-row--section { touch-action: none; }
+
+/* device-preset chips (artboards) */
+.st-abchips { display: flex; gap: 2px; background: var(--st-chrome-2); border-radius: 8px; padding: 2px; }
+.st-abchips button {
+  border: 0; background: transparent; color: var(--st-ink-dim); cursor: pointer;
+  font: 500 11px var(--st-font); padding: 5px 7px; border-radius: 6px; min-width: 34px;
+}
+.st-abchips button:hover { color: var(--st-ink); background: var(--st-chrome-3); }
+.st-abchips button.is-on { background: var(--st-blue); color: #fff; }
+
+/* top-bar icon buttons (contrast, jetons, historique) */
+.st-iconbtn {
+  display: flex; align-items: center; justify-content: center; width: 30px; height: 28px;
+  background: transparent; border: 0; border-radius: 6px; color: var(--st-ink-dim); cursor: pointer;
+}
+.st-iconbtn svg { width: 16px; height: 16px; }
+.st-iconbtn:hover { color: var(--st-ink); background: var(--st-chrome-3); }
+.st-iconbtn.is-on, .st-iconbtn[aria-pressed="true"] { background: var(--st-blue); color: #fff; }
+
+/* inline text editing in the artboard: a subtle ring, never the heavy selection outline */
+.st-ab [contenteditable].st-inline {
+  outline: 1.5px solid var(--st-blue) !important; outline-offset: 2px; border-radius: 2px;
+  box-shadow: 0 0 0 5px rgba(54, 87, 255, 0.14); cursor: text; min-width: 8px;
+}
+.st-ab [contenteditable].st-inline::selection { background: rgba(54, 87, 255, 0.3); }
+
+/* multi-selection: the inspector list of what is selected */
+.st-multilist { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.st-multilist__row {
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px;
+  background: var(--st-chrome-2); font-size: 12px;
+}
+.st-multilist__row .st-row__icon { width: 15px; height: 15px; }
+
+/* command palette (Ctrl K) */
+.st-cmdk {
+  position: fixed; inset: 0; z-index: 130; background: rgba(10, 10, 10, 0.45);
+  display: flex; align-items: flex-start; justify-content: center; padding-top: 11vh;
+}
+.st-cmdk__card {
+  width: min(560px, 92vw); background: var(--st-chrome); border: 1px solid var(--st-line-d);
+  border-radius: 12px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55); overflow: hidden;
+}
+.st-cmdk__card input {
+  width: 100%; border: 0; border-bottom: 1px solid var(--st-line-d); background: transparent;
+  color: var(--st-ink); font: 400 14px var(--st-font); padding: 14px 16px; outline: none;
+}
+.st-cmdk__list { max-height: 46vh; overflow-y: auto; padding: 6px; scrollbar-width: thin; }
+.st-cmdk__item {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: transparent; border: 0; color: var(--st-ink); cursor: pointer;
+  font: 400 12.5px var(--st-font); padding: 8px 10px; border-radius: 7px;
+}
+.st-cmdk__item .st-cmdk__cat { color: var(--st-ink-dim); font-size: 11px; flex: none; min-width: 74px; }
+.st-cmdk__item .st-cmdk__ttl { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-cmdk__item .st-cmdk__ttl b { font-weight: 600; color: #CFE0FF; }
+.st-cmdk__item kbd { flex: none; }
+.st-cmdk__item.is-active { background: var(--st-blue); color: #fff; }
+.st-cmdk__item.is-active .st-cmdk__cat { color: rgba(255, 255, 255, 0.75); }
+.st-cmdk__item.is-active .st-cmdk__ttl b { color: #fff; }
+.st-cmdk__item.is-active kbd { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.14); border-color: transparent; }
+.st-cmdk__recent { font-size: 10.5px; color: var(--st-ink-dim); text-transform: uppercase; letter-spacing: 0.05em; padding: 7px 10px 3px; }
+.st-cmdk__empty { color: var(--st-ink-dim); padding: 16px 12px; font-size: 12.5px; }
+.st-cmdk__foot {
+  display: flex; gap: 16px; padding: 8px 14px; border-top: 1px solid var(--st-line-d);
+  color: var(--st-ink-dim); font-size: 11px;
+}
+.st-cmdk__foot kbd { margin-right: 3px; }
+
+/* right drawers: Jetons, Historique */
+.st-drawer {
+  position: fixed; top: 48px; right: 0; bottom: 0; width: 300px; z-index: 60;
+  background: var(--st-chrome); border-left: 1px solid #111; display: flex; flex-direction: column;
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.35);
+}
+.st-drawer__head {
+  display: flex; align-items: center; justify-content: space-between; flex: none;
+  padding: 10px 12px; border-bottom: 1px solid var(--st-line-d);
+}
+.st-drawer__head h2 { margin: 0; font-size: 13px; font-weight: 600; }
+.st-drawer__head .st-modal__close { position: static; }
+
+/* Jetons */
+.st-token {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: transparent; border: 0; border-radius: 7px; color: var(--st-ink);
+  font: 400 12px var(--st-font); padding: 7px 8px; cursor: pointer;
+}
+.st-token:hover { background: var(--st-chrome-2); }
+.st-token[disabled] { cursor: default; }
+.st-token__swatch {
+  width: 22px; height: 22px; border-radius: 6px; flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+}
+.st-token__name { flex: 1 1 auto; min-width: 0; }
+.st-token__name small { display: block; color: var(--st-ink-dim); font-size: 10.5px; }
+.st-token__val { color: var(--st-ink-dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+.st-token__soon { font-size: 10px; color: var(--st-ink-dim); border: 1px solid var(--st-line-d); border-radius: 999px; padding: 1px 7px; }
+
+/* Historique (named versions) */
+.st-version { border: 1px solid var(--st-line-d); border-radius: 9px; padding: 8px 10px; margin-bottom: 8px; }
+.st-version__head { display: flex; align-items: center; gap: 8px; }
+.st-version__name { flex: 1 1 auto; min-width: 0; font-weight: 500; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-version__date { color: var(--st-ink-dim); font-size: 11px; white-space: nowrap; }
+.st-version__row { display: flex; gap: 6px; margin-top: 7px; }
+.st-version__row .st-ghostbtn { padding: 3px 9px; font-size: 11px; }
+.st-version__shot {
+  margin-top: 8px; width: 100%; height: 110px; overflow: hidden; border-radius: 6px;
+  background: #fff; position: relative; display: none;
+}
+.st-version.is-open .st-version__shot { display: block; }
+.st-version__shot > .jst { position: absolute; top: 0; left: 0; width: 390px; transform: scale(0.66); transform-origin: 0 0; pointer-events: none; }
+.st-version__auto { color: var(--st-ink-dim); font-size: 10px; border: 1px solid var(--st-line-d); border-radius: 999px; padding: 0 6px; flex: none; }
+
+/* inspector tabs + Code view */
+.st-right__tabs { display: flex; border-bottom: 1px solid var(--st-line-d); flex: none; }
+.st-right__tabs button {
+  flex: 1; background: transparent; border: 0; border-bottom: 2px solid transparent;
+  color: var(--st-ink-dim); font: 500 12px var(--st-font); padding: 7px 0; cursor: pointer;
+}
+.st-right__tabs button.is-on { color: var(--st-ink); border-bottom-color: var(--st-blue); }
+.st-right__tabs button:hover { color: var(--st-ink); }
+.st-code { display: flex; flex-direction: column; gap: 8px; }
+.st-code__bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
+.st-code__bar span { font-size: 11px; color: var(--st-ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-code__bar .st-ghostbtn { padding: 3px 9px; font-size: 11px; flex: none; }
+.st-code pre {
+  margin: 0; flex: 1 1 auto; overflow: auto; background: #161616; border: 1px solid var(--st-line-d);
+  border-radius: 8px; padding: 10px; font: 11px/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  color: #D7E3F4; white-space: pre; scrollbar-width: thin;
+}
+
+/* Images (assets) panel */
+.st-assets__title { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--st-ink-dim); padding: 10px 6px 6px; }
+.st-assets__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 4px; }
+.st-asset {
+  position: relative; border: 1px solid var(--st-line-d); border-radius: 9px; overflow: hidden;
+  background: var(--st-chrome-2); cursor: pointer; padding: 0; text-align: left;
+}
+.st-asset:hover { border-color: var(--st-blue-soft); }
+.st-asset img { display: block; width: 100%; height: 72px; object-fit: cover; background: #fff; }
+.st-asset figcaption { padding: 5px 7px; font-size: 10.5px; color: var(--st-ink-dim); line-height: 1.35; }
+.st-asset figcaption b { display: block; color: var(--st-ink); font-weight: 500; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-asset__kb { position: absolute; top: 5px; right: 5px; font-size: 9.5px; background: rgba(20,20,20,0.78); color: #ddd; border-radius: 5px; padding: 1px 5px; }
+.st-asset__kb.is-heavy { background: var(--err); color: #fff; }
+.st-assets__hint { color: var(--st-ink-dim); font-size: 11px; padding: 6px 8px 8px; line-height: 1.5; }
+.st-assets__pick {
+  margin: 6px 4px; padding: 7px 9px; border-radius: 8px; font-size: 11.5px; line-height: 1.45;
+  background: rgba(54, 87, 255, 0.18); border: 1px solid rgba(94, 125, 255, 0.5); color: #DDE8FF;
+}
+.st-asset__credit a { color: inherit; }
+.st-asset__credit a:hover { color: var(--st-ink); }
+
+/* Mes blocs (saved sections) */
+.st-blocks__title { display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--st-ink-dim); padding: 14px 6px 6px; }
+.st-blocks__title .st-ghostbtn { padding: 1px 7px; font-size: 10px; text-transform: none; letter-spacing: 0; }
+.st-blocks__empty { color: var(--st-ink-dim); font-size: 11.5px; padding: 4px 8px 8px; line-height: 1.5; }
+.st-blockcard b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.st-blockcard small { color: var(--st-ink-dim); font-size: 10px; }
+.st-blockcard__rename {
+  width: 92%; background: var(--st-chrome); color: var(--st-ink); border: 1px solid var(--st-blue);
+  border-radius: 4px; font: 500 11px var(--st-font); padding: 2px 5px;
+}
+.st-blockcard__rename:focus { outline: none; }
+.st-ghostbtn:disabled { opacity: 0.4; cursor: default; }
+.st-ghostbtn:disabled:hover { background: transparent; }
+
+/* measure overlay (Alt + hover): red, like Figma */
+.st-measure { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 30; pointer-events: none; }
+.st-measure__line { position: absolute; background: #F24822; }
+.st-measure__tag {
+  position: absolute; transform: translate(-50%, -50%) scale(var(--inv, 1)); background: #F24822; color: #fff;
+  font: 600 11px var(--st-font); padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+}
+.st-measure__h {
+  position: absolute; transform: scale(var(--inv, 1)); transform-origin: 0 0; background: #F24822; color: #fff;
+  font: 600 11px var(--st-font); padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+}
+
+/* contrast overlay: red outline + ratio tag on texts that do not read */
+.st-contrast-box { position: absolute; z-index: 29; pointer-events: none; outline: 2px solid #F24822; outline-offset: 1px; }
+.st-contrast-tag {
+  position: absolute; z-index: 31; pointer-events: none; transform: scale(var(--inv, 1)); transform-origin: 0 100%;
+  background: #F24822; color: #fff; font: 600 10.5px var(--st-font); padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+}
+
+/* the top bar got denser (chips + 3 icon buttons). Layout: the right cluster never shrinks
+ * below its content (it used to, and slid UNDER the artboard chips at 1440 and 1194), the
+ * center keeps its natural width, the left side (shop name) gives way first; the left/right
+ * equal shares still centre the tools whenever the window is wide enough. */
+.st-abchips button { min-width: 28px; padding: 5px 5px; }
+.st-top__left { overflow: hidden; }
+.st-top__center { flex: none; }
+.st-top__right { min-width: max-content; }
+#saveLabel { display: inline-block; min-width: 96px; }
+@media (max-width: 1600px) {
+  .st-badge { display: none; }
+  .st-name { max-width: 150px; }
+  .st-top { gap: 8px; }
+  .st-top__left, .st-top__center, .st-top__right { gap: 6px; }
+}
+@media (max-width: 1500px) {
+  /* the save state becomes the dot alone (label in its tooltip), so « Enregistrement… »
+   * never pushes the clusters around */
+  .st-save #saveLabel { display: none; }
+  .st-save { padding: 0 4px; }
+}
+@media (max-width: 1360px) {
+  .st-name { max-width: 110px; }
+  .st-ghostbtn { padding: 5px 8px; }
+  .st-brand { display: none; }
+}
+@media (max-width: 1240px) {
+  /* iPad landscape (1194): the logo already leads back to the simple editor */
+  #openSimple { display: none; }
+  .st-top { padding: 0 6px; }
+  .st-zoombtn { min-width: 62px; padding: 6px 4px; }
+}
+
+/* touch (iPad 1194×834): html.st-touch is set on a coarse pointer or at the first finger touch.
+ * Hover-only affordances are shown permanently and the targets grow towards 44 px. */
+.st-touch .st-row { height: 40px; }
+.st-touch .st-row--child { height: 40px; }
+.st-touch .st-row__btn { display: flex; width: 34px; height: 34px; }
+.st-touch .st-row__btn svg { width: 16px; height: 16px; }
+.st-touch .st-left__tabs button { min-height: 42px; }
+.st-touch .st-top { height: 54px; }
+.st-touch .st-tool, .st-touch .st-devices button { height: 38px; width: 36px; }
+.st-touch .st-abchips button { min-height: 38px; }
+.st-touch .st-iconbtn { height: 38px; width: 34px; }
+.st-touch .st-ghostbtn, .st-touch .st-primary { min-height: 38px; }
+.st-touch .st-helpbtn { width: 34px; height: 34px; }
+.st-touch .st-menu button { padding: 11px 12px; }
+.st-touch .st-typecard { min-height: 64px; }

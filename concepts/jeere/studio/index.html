@@ -16,6 +16,7 @@
   <script src="../creer/data.js" defer></script>
   <script src="../creer/render.js" defer></script>
   <script src="studio.js" defer></script>
+  <script src="studio-power.js" defer></script>
 </head>
 <body>
   <svg class="st-defs" aria-hidden="true" focusable="false"><defs>
@@ -73,10 +74,27 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 20h6m-3-3.5V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
           </button>
         </div>
+        <div class="st-abchips" id="abChips" role="group" aria-label="Artboards affichés" title="Artboards : cliquez pour ajouter ou retirer une taille d’écran">
+          <button type="button" data-ab="360" aria-pressed="false">360</button>
+          <button type="button" data-ab="phone" aria-pressed="true">390</button>
+          <button type="button" data-ab="768" aria-pressed="false">768</button>
+          <button type="button" data-ab="desktop" aria-pressed="true">1200</button>
+          <button type="button" data-ab="1440" aria-pressed="false">1440</button>
+        </div>
       </div>
 
       <div class="st-top__right">
         <span id="saveState" class="st-save" data-state="saved"><span class="st-save__dot" aria-hidden="true"></span><span id="saveLabel">Enregistré</span></span>
+        <button id="contrastBtn" class="st-iconbtn" type="button" title="Vérifier les contrastes — Ctrl ⇧ C" aria-pressed="false" aria-label="Vérifier les contrastes">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.3 9.4L14.6 4.7 4.9 14.4a2.6 2.6 0 000 3.7l1 1a2.6 2.6 0 003.7 0z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M13 6.3l4.7 4.7M17.5 3.5l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M20.6 16.2s1.4 1.8 1.4 3a1.4 1.4 0 11-2.8 0c0-1.2 1.4-3 1.4-3z" fill="currentColor"/></svg>
+        </button>
+        <button id="tokensBtn" class="st-iconbtn" type="button" title="Jetons de design (couleurs, polices, angles)" aria-pressed="false" aria-label="Jetons de design">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M14.2 5.2h4.6v4.6M9.8 18.8H5.2v-4.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+        <button id="versionsBtn" class="st-iconbtn" type="button" title="Historique — versions nommées de la fiche" aria-pressed="false" aria-label="Historique des versions">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 101.8-4.9M4.5 4.5v3.2h3.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8.2V12l2.8 1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+        <span class="st-sep" aria-hidden="true"></span>
         <a id="openSimple" class="st-ghostbtn" href="../creer/">Éditeur simple</a>
         <button id="shareBtn" class="st-ghostbtn" type="button">Partager</button>
         <button id="publishBtn" class="st-primary" type="button">Publier</button>
@@ -89,22 +107,15 @@
         <div class="st-left__tabs" role="tablist">
           <button id="tabLayers" role="tab" aria-selected="true" class="is-on">Calques</button>
           <button id="tabInsert" role="tab" aria-selected="false">Ajouter</button>
+          <button id="tabAssets" role="tab" aria-selected="false">Images</button>
         </div>
         <div id="layersPanel" class="st-panel" role="tree" aria-label="Calques"></div>
         <div id="insertPanel" class="st-panel" role="tabpanel" aria-label="Ajouter une section" hidden></div>
+        <div id="assetsPanel" class="st-panel" role="tabpanel" aria-label="Images de la boutique" hidden></div>
       </aside>
 
       <main class="st-stage" id="stage" tabindex="-1" aria-label="Plan de travail">
-        <div class="st-world" id="world">
-          <section class="st-ab" id="abPhone" style="left:0;top:0;">
-            <div class="st-ab__name">Téléphone <span>390</span></div>
-            <div class="st-ab__frame" style="width:390px"><div class="st-ab__root" id="rootPhone"></div></div>
-          </section>
-          <section class="st-ab" id="abDesktop" style="left:470px;top:0;">
-            <div class="st-ab__name">Ordinateur <span>1200</span></div>
-            <div class="st-ab__frame" style="width:1200px"><div class="st-ab__root" id="rootDesktop"></div></div>
-          </section>
-        </div>
+        <div class="st-world" id="world"></div>
         <div id="dropline" class="st-dropline" hidden></div>
         <div id="dragGhost" class="st-ghostchip" hidden></div>
         <div id="hoverPrev" class="st-prevcard" hidden></div>
@@ -112,7 +123,15 @@
 
       <aside class="st-right">
         <div class="st-right__head"><span id="inspTitle">Réglages</span><span id="inspSub" class="st-right__sub"></span></div>
+        <div class="st-right__tabs" role="tablist" aria-label="Inspecteur">
+          <button id="inspTabSettings" role="tab" aria-selected="true" class="is-on" type="button">Réglages</button>
+          <button id="inspTabCode" role="tab" aria-selected="false" type="button">Code</button>
+        </div>
         <div id="inspector" class="st-panel"></div>
+        <div id="inspectorCode" class="st-panel st-code" hidden>
+          <div class="st-code__bar"><span id="inspCodeLabel">Fiche boutique</span><button id="inspCodeCopy" class="st-ghostbtn" type="button">Copier</button></div>
+          <pre id="inspCodePre" tabindex="0" aria-label="JSON de la sélection"></pre>
+        </div>
       </aside>
     </div>
   </div>
@@ -155,6 +174,24 @@
       <p class="st-modal__note">Sur Mac, <kbd>Ctrl</kbd> se lit <kbd>⌘&nbsp;Cmd</kbd>. Les lettres suivent la touche, pas sa position&nbsp;: tout marche en AZERTY.</p>
       <div id="helpBody" class="st-help__grid"></div>
     </div>
+  </div>
+
+  <div id="cmdk" class="st-cmdk" hidden role="dialog" aria-modal="true" aria-label="Palette de commandes">
+    <div class="st-cmdk__card">
+      <input id="cmdkInput" type="text" placeholder="Tapez une commande… (ajouter une section, palette, exporter…)" autocomplete="off" spellcheck="false" aria-label="Rechercher une commande">
+      <div id="cmdkList" class="st-cmdk__list" role="listbox" aria-label="Commandes"></div>
+      <div class="st-cmdk__foot"><span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span><span><kbd>Entrée</kbd> exécuter</span><span><kbd>Échap</kbd> fermer</span></div>
+    </div>
+  </div>
+
+  <div id="tokensPanel" class="st-drawer" hidden role="dialog" aria-label="Jetons de design">
+    <div class="st-drawer__head"><h2>Jetons</h2><button class="st-modal__close" data-closedrawer type="button" aria-label="Fermer">×</button></div>
+    <div id="tokensBody" class="st-panel"></div>
+  </div>
+
+  <div id="versionsPanel" class="st-drawer" hidden role="dialog" aria-label="Historique des versions">
+    <div class="st-drawer__head"><h2>Historique</h2><button class="st-modal__close" data-closedrawer type="button" aria-label="Fermer">×</button></div>
+    <div id="versionsBody" class="st-panel"></div>
   </div>
 
   <div id="toasts" class="st-toasts" aria-live="polite"></div>

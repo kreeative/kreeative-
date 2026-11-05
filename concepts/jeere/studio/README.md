@@ -23,8 +23,13 @@ la barre (et dans le dialogue Partager) ouvre `../creer/` sur la même fiche. Im
 JSON de la fiche : Ctrl E, le dialogue Partager/Publier, ou le groupe « Fiche boutique » de
 l’inspecteur. Fiche absente ou illisible → `defaultConfig('plateau', 'beauty')`.
 
-L’état propre au Studio (drapeau « formule Avancée » vu, sections verrouillées) vit dans sa
-propre clé `localStorage['jeere-studio-ui']` et ne touche jamais la fiche.
+L’état propre au Studio (drapeau « formule Avancée » vu, sections verrouillées, artboards
+affichés, blocs enregistrés, commandes récentes) vit dans sa propre clé
+`localStorage['jeere-studio-ui']` et ne touche jamais la fiche. Les versions nommées vivent
+dans `localStorage['jeere-studio-versions']` (à part, avec garde de quota) ; le compteur
+d’enregistrements de l’instantané automatique a sa propre petite clé
+`jeere-studio-versions-saves`, pour qu’un enregistrement ordinaire ne réécrive jamais les
+instantanés.
 
 ## Fichiers
 
@@ -34,9 +39,86 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 
 | Fichier | Rôle |
 | --- | --- |
-| `index.html` | La coquille : barre du haut, panneaux, artboards, modales, le symbole `#cloud` (copié de `creer/index.html`). Charge `../creer/data.js`, `../creer/render.js`, `../creer/store.css`. |
-| `studio.css` | Le chrome sombre (scopé `.st-*`), le décor de sélection sur les stores (`.st-sel`, `.st-hov`), les jetons d’état (`--ok`, `--warn`, `--err`, `--info`) aux mêmes valeurs que le reste de la plateforme. |
-| `studio.js` | Tout le Studio : état, historique, canevas (zoom/pan), sélection, calques, insertion, inspecteur, raccourcis, autosave, dialogues. |
+| `index.html` | La coquille : barre du haut (outils, chips d’artboards, jetons/historique/contrastes), panneaux, modales, drawers, palette de commandes, le symbole `#cloud`. Charge `../creer/data.js`, `../creer/render.js`, `../creer/store.css`, puis `studio.js` et `studio-power.js`. |
+| `studio.css` | Le chrome sombre (scopé `.st-*`), le décor de sélection, les superpositions (mesures, contrastes), les drawers, la palette — jetons d’état (`--ok`, `--warn`, `--err`, `--info`) aux valeurs de la plateforme, sélection `#3657FF`. |
+| `studio.js` | Le cœur : état, historique, canevas (zoom/pan/tactile), sélection (simple **et multiple**), édition en place, calques, insertion, inspecteur, artboards dynamiques, raccourcis, autosave, dialogues. Expose `window.JeereStudio._internals` (le pont) et des `hooks`. |
+| `studio-power.js` | Les fonctions avancées, greffées sur le pont : palette de commandes, Mes blocs, Jetons, Historique (versions), onglet Code, panneau Images, superpositions mesures/contrastes, export PNG. IIFE classique, chargée après `studio.js`. |
+
+## Les fonctions avancées (`studio-power.js`)
+
+Toutes construites sur le même contrat, feature-détectées, et testées par `power-test.js` :
+
+- **Palette de commandes** — `Ctrl K` / `Cmd K`. Recherche floue sur **toutes** les actions du
+  Studio (ajouter chaque type de section, aller à chaque page, changer modèle/palette/intensité/
+  polices/appareil, basculer un panneau ou une superposition, enregistrer/exporter/importer/
+  publier/partager, exporter en PNG, ouvrir l’aide…). Récentes d’abord, navigation `↑`/`↓`,
+  `Entrée` exécute, le raccourci de chaque commande est affiché à droite (façon Figma / Linear),
+  `Échap` ferme (avant tout tiroir ouvert dessous). Classement : le titre qui **contient** la
+  requête d’abord (bonus en début de mot), puis tous les mots trouvés, puis la catégorie
+  (« aide » → « Raccourcis clavier » avant « Ouvrir l’éditeur simple »), et les sous-séquences
+  éparpillées seulement s’il n’y a rien de mieux (« png » → le seul « Exporter en image »).
+- **Édition de texte en place** — double-clic sur un texte qui correspond à un champ de la fiche
+  (titre / petit titre / texte / bouton du hero, titres de section, nom / prix / description des
+  cartes produit, texte d’annonce, « à propos », titre WhatsApp…) : le texte devient
+  `contenteditable` **dans l’artboard**, avec un anneau de focus discret. `Entrée` ou le blur
+  valident (via le même historique, coalescés) et l’inspecteur se reconstruit aussitôt (son champ
+  n’est jamais périmé), `Échap` annule, les `maxlength` du contrat sont respectées, le collage est
+  aplati en texte brut. Marche dans tous les artboards.
+- **Sélection multiple** — `Maj`+clic (canevas et calques) sélectionne plusieurs sections
+  (contours + badge « 3 sections »). Actions groupées : masquer/afficher, dupliquer, supprimer
+  (dans les limites de `validate()`), déplacer ensemble aux flèches. L’inspecteur montre
+  « 3 sections sélectionnées » avec ces actions ; `Ctrl A` sélectionne toute la page ; le menu
+  contextuel s’adapte.
+- **Mes blocs** — clic droit sur une section → « Enregistrer dans Mes blocs… » : un préréglage
+  nommé (avec ses réglages) dans `jeere-studio-ui` (cap 20, garde de taille — les images data-URL
+  de plus de 100 Ko sont retirées avec un avis). La carte du nouveau bloc s’ouvre aussitôt en
+  mode nom dans l’onglet Ajouter (nom proposé coupé sur un mot, avec « … » ; `Entrée` valide).
+  Aperçu au survol (jamais sous un menu contextuel), insertion comme un type de section ;
+  renommer / supprimer au clic droit ; export (grisé tant qu’il n’y a aucun bloc) / import JSON.
+- **Jetons** — le bouton `⬡` de la barre (ou la palette) ouvre un drawer listant les jetons vivants
+  du store : les 7 couleurs de la palette (pastille + hex), polices, angles, intensité. Cliquer une
+  couleur l’édite **si le contrat le permet** (`D.setColorKey` / `theme.colors`, feature-détecté ;
+  sinon « Modifiable bientôt » en lecture seule) ; le sélecteur natif s’ouvre à côté du tiroir.
+  Les changements passent par l’historique et re-rendent. « Revenir aux couleurs de la palette »
+  n’apparaît que si une des 7 couleurs est personnalisée, et ne retire qu’elles : les couleurs
+  d’éléments réglées dans l’éditeur simple (bandeau, en-tête, pied, badges) sont gardées.
+- **Historique** — le bouton `⟳` ouvre le drawer des versions nommées : bouton Instantané
+  (« avant la promo Tabaski » ; sans nom : « Version du 05/11 à 19:24 »), instantané automatique
+  tous les 20 enregistrements, liste avec
+  dates relatives, aperçu (miniature rendue), restaurer (via l’historique, donc `Ctrl Z` revient),
+  cap 15 avec éviction du plus ancien ; dans `jeere-studio-versions`, garde de quota.
+- **Artboards** — les chips `360 · 390 · 768 · 1200 · 1440` de la barre ajoutent / retirent des
+  artboards (toute combinaison ; au moins un). Disposés de gauche à droite, tous en direct et
+  sélectionnables ; l’ajustement se recalcule. Une seule étiquette de sélection (sur le premier
+  artboard visible), comme Figma. Retirer le dernier artboard de l’appareil affiché seul repasse
+  sur « Les deux aperçus » : le canevas n’est jamais vide.
+- **Mesures** — `Alt` maintenu, une section sélectionnée, survol d’une autre → mesure rouge façon
+  Figma (l’écart vertical en px de l’échelle réelle de l’artboard), plus le badge de hauteur de la
+  section survolée.
+- **Contrastes** — bascule (palette + icône pipette de la barre, `Ctrl ⇧ C`) : balaie les textes
+  visibles des artboards (couleur calculée vs fond effectif), encadre en rouge les échecs
+  (`< 4,5:1`, `3:1` pour le grand texte) avec le ratio ; toast « Aucun problème » quand c’est
+  propre. Sous 60 % de zoom, une étiquette par section (« 7 textes · pire 1,50 : 1 ») ; au-delà,
+  une par texte ; une étiquette qui en chevaucherait une autre y est fusionnée (« +2 »). Le
+  balayage se refait quand le zoom change.
+- **Code** — un onglet « Code » dans l’inspecteur montre le JSON de la fiche sous la sélection
+  (joli, lecture seule, bouton Copier) et, sans sélection, toute la fiche ; mis à jour en direct.
+- **Images** — un onglet « Images » du panneau gauche : la grille de toutes les images de la fiche
+  (logo, photos produits, images de section) + la photothèque de démo (`JeereRender.photoInfo`,
+  créditée). Cliquez « Choisir dans Images » dans l’inspecteur puis une image pour remplir un
+  champ, ou glissez une image sur un élément image d’un artboard ; poids par image, alerte
+  au-delà de 300 Ko.
+- **Export PNG** — « Exporter en image » (palette + dialogue Partager) rend l’artboard sélectionné
+  en PNG : l’artboard est sérialisé dans un `<svg><foreignObject>`, les images embarquées en
+  data-URL et la `store.css` incluse, rastérisé via une `Image` + canvas (URL `data:`, pas `blob:`,
+  pour éviter la contamination du canvas sous Chromium). Une photo non embarquable (CORS) est
+  laissée de côté avec un toast.
+- **Tactile / iPad** (1194×834 paysage) — un doigt sélectionne, double-tap édite en place, deux
+  doigts défilent, le pincement zoome vers le point médian, appui long = menu contextuel, le
+  glisser des calques marche au doigt. Au premier toucher (ou sur un pointeur grossier),
+  `html.st-touch` affiche en permanence l’œil et le cadenas des calques et agrandit les cibles
+  (lignes de 40 px, boutons de 34 à 38 px) ; « Verrouiller la section » est dans le menu de
+  l’appui long.
 
 **Défensif par construction** : un autre agent peut faire évoluer `creer/` pendant que ce dossier
 vit sa vie. Le Studio ne modifie **aucun** fichier existant ; il feature-détecte tout
@@ -117,6 +199,12 @@ une erreur) ; tout le reste se supprime librement, Ctrl Z ramène tout.
 
 | Touches | Action |
 | --- | --- |
+| Ctrl K | Palette de commandes (toutes les actions) |
+| Ctrl A | Sélectionner toutes les sections de la page |
+| Maj + clic | Ajouter / retirer une section (sélection multiple) |
+| Ctrl ⇧ C | Vérification des contrastes |
+| Alt + survol | Mesures entre sections (et hauteur survolée) |
+| Double-clic sur un texte | Modifier le texte directement dans l’aperçu |
 | Ctrl Z | Annuler |
 | Ctrl ⇧ Z, Ctrl Y | Rétablir |
 | Ctrl C / Ctrl V | Copier la section / coller après la sélection (presse-papiers interne JSON) |
@@ -134,7 +222,7 @@ une erreur) ; tout le reste se supprime librement, Ctrl Z ramène tout.
 | 1 … 5 | Accueil · Fiche produit · Panier · Paiement · Confirmation (aussi par position de touche, pour l’AZERTY ; jamais avec ⇧ — ⇧ 1/2 appartiennent au zoom) |
 | D | Téléphone seul · les deux · ordinateur seul |
 | Clic droit | Menu contextuel : copier · coller · dupliquer · masquer · supprimer |
-| Double-clic sur un texte | Sélectionne le sous-élément et met le curseur dans le champ de l’inspecteur, texte sélectionné |
+| Double-clic sur un texte sans champ | Sélectionne le sous-élément et met le curseur dans le champ de l’inspecteur |
 | ? | Le panneau des raccourcis (groupés comme Figma) |
 | Échap | Menu contextuel → dialogues → sous-élément → section → rien ; sort d’un champ |
 
@@ -159,7 +247,20 @@ python3 -m http.server 8000 --directory /path/to/kreeative-
 # http://localhost:8000/concepts/jeere/studio/
 ```
 
-Le test Playwright (74 vérifications : ouverture, rendu, sélection canevas/calques, édition,
-historique, glisser-déposer, insertion, masquer/verrouiller, chaque raccourci, autosave,
-interop `normalizeConfig`, export, garde petit écran, fiche abîmée) vit dans le scratchpad de la
-session (`studio-test.js`) ; il se lance avec `node studio-test.js` contre un serveur local.
+Des suites Playwright dans le scratchpad de la session, contre un serveur local :
+
+- `verify-final.js` (41 vérifications, dans `studio2/`) : les correctifs de la revue — classement
+  de la palette, ordre de `Échap`, inspecteur après édition en place, mesures à l’écran, étape de
+  nommage des blocs, remise à zéro des jetons, nom des versions, écritures `localStorage`,
+  étiquettes de contraste sans chevauchement à 12 / 26 / 100 %, iPad (cibles, barre du haut) ;
+  `topbar-probe.js` vérifie la barre du haut de 1920 à 1194 px (aucun chevauchement).
+- `studio-test.js` (74 vérifications) : le socle — ouverture, rendu, sélection canevas/calques,
+  édition, historique, glisser-déposer, insertion, masquer/verrouiller, chaque raccourci,
+  autosave, interop `normalizeConfig`, export, garde petit écran, fiche abîmée.
+- `power-test.js` (109 vérifications) : les fonctions avancées — palette (floue + exécution),
+  édition en place (valider / annuler / maxlength / collage brut), sélection multiple et actions
+  groupées (dans les limites), blocs (enregistrer / insérer / garde de taille / cap), jetons
+  (édition ou lecture seule), versions (instantané / restaurer / éviction / auto), artboards
+  (ajout / retrait / un minimum), géométrie des mesures, un contraste signalé, JSON conforme à la
+  fiche, remplissage d’un champ image, signature PNG du fichier téléchargé, et les gestes tactiles
+  (émulation iPad : tap, double-tap, deux doigts, pincement, appui long, glisser des calques).

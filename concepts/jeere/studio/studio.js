@@ -96,6 +96,29 @@
 
   function isLocked(id) { return !!ui.locked[id]; }
 
+  /* ------------------------------------------------------------------ device presets (artboards) */
+
+  /* The five artboard presets. 'phone' (390) and 'desktop' (1200) keep their historic keys and
+   * element ids (rootPhone / rootDesktop); render.js only knows 'phone' | 'desktop' layouts. */
+  var DEVICE_PRESETS = [
+    { key: '360', width: 360, device: 'phone', name: 'Petit téléphone' },
+    { key: 'phone', width: 390, device: 'phone', name: 'Téléphone' },
+    { key: '768', width: 768, device: 'desktop', name: 'Tablette' },
+    { key: 'desktop', width: 1200, device: 'desktop', name: 'Ordinateur' },
+    { key: '1440', width: 1440, device: 'desktop', name: 'Grand écran' }
+  ];
+  function presetByKey(k) { return DEVICE_PRESETS.filter(function (p) { return p.key === k; })[0] || null; }
+  if (!Array.isArray(ui.artboards)) ui.artboards = [];
+  ui.artboards = ui.artboards.filter(function (k) { return !!presetByKey(k); });
+  if (!ui.artboards.length) ui.artboards = ['phone', 'desktop'];
+  function activePresets() {
+    return DEVICE_PRESETS.filter(function (p) { return ui.artboards.indexOf(p.key) !== -1; });
+  }
+  function abKeys() { return activePresets().map(function (p) { return p.key; }); }
+
+  /* the extension modules (studio-power.js) plug in here; every hook is optional */
+  var hooks = {};
+
   function sections() { return Array.isArray(state.config.sections) ? state.config.sections : []; }
   function products() { return Array.isArray(state.config.products) ? state.config.products : []; }
   function customPages() { return Array.isArray(state.config.pages) ? state.config.pages : []; }
@@ -110,6 +133,40 @@
     var t = s.settings && typeof s.settings.title === 'string' && s.settings.title.trim() ? s.settings.title.trim() : '';
     if (s.type === 'hero' && s.settings && typeof s.settings.title === 'string' && s.settings.title.trim()) t = s.settings.title.trim();
     return t || base;
+  }
+
+  /* multi-selection ({ kind: 'multi', ids: [...] }): always section ids, in fiche order */
+  function isMulti(sel) { return !!(sel && sel.kind === 'multi' && Array.isArray(sel.ids)); }
+  function selectedSectionIds() {
+    var sel = state.sel;
+    if (isMulti(sel)) return sel.ids.slice();
+    if (sel && sel.kind === 'section') return [sel.id];
+    return [];
+  }
+  function orderIds(ids) {
+    var set = {};
+    ids.forEach(function (id) { set[id] = true; });
+    return sections().map(function (s) { return s.id; }).filter(function (id) { return set[id]; });
+  }
+
+  function toggleMulti(id) {
+    if (isLocked(id) || !sectionById(id)) return;
+    var ids = selectedSectionIds();
+    var at = ids.indexOf(id);
+    if (at === -1) ids.push(id); else ids.splice(at, 1);
+    ids = orderIds(ids);
+    if (!ids.length) select(null);
+    else if (ids.length === 1) select({ kind: 'section', id: ids[0] });
+    else select({ kind: 'multi', ids: ids });
+  }
+
+  function selectAllSections() {
+    var ids = sections().map(function (s) { return s.id; }).filter(function (id) { return !isLocked(id); });
+    if (!ids.length) { toast('Aucune section à sélectionner.'); return; }
+    if (state.page !== 'home') showPage('home');
+    if (ids.length === 1) select({ kind: 'section', id: ids[0] });
+    else select({ kind: 'multi', ids: ids });
+    toast(ids.length + ' sections sélectionnées.', 'info');
   }
 
   /* ------------------------------------------------------------------ history */
@@ -158,6 +215,12 @@
   function validateSelection() {
     var sel = state.sel;
     if (!sel) return;
+    if (isMulti(sel)) {
+      var ids = sel.ids.filter(function (id) { return !!sectionById(id); });
+      state.sel = !ids.length ? null : (ids.length === 1 ? { kind: 'section', id: ids[0] } : { kind: 'multi', ids: ids });
+      sel = state.sel;
+      if (!sel) return;
+    }
     if (sel.kind === 'section' && !sectionById(sel.id)) state.sel = null;
     if (sel.kind === 'product' && !productById(sel.id)) state.sel = null;
     if (sel.kind === 'page' && !pageById(sel.id)) state.sel = null;
@@ -173,6 +236,9 @@
     if (!saveStateEl) return;
     saveStateEl.dataset.state = s;
     saveLabelEl.textContent = label || (s === 'saved' ? 'Enregistré' : s === 'saving' ? 'Enregistrement…' : 'Non enregistré');
+    /* the label collapses to the dot on narrow top bars: the state stays in the tooltip */
+    saveStateEl.title = saveLabelEl.textContent;
+    saveStateEl.setAttribute('aria-label', saveLabelEl.textContent);
   }
 
   function scheduleSave() {
@@ -188,6 +254,7 @@
     try {
       localStorage.setItem(CONFIG_KEY, JSON.stringify(out));
       setSaveState('saved');
+      if (hooks.afterSave) { try { hooks.afterSave(out); } catch (e2) { /* a module failed, not the save */ } }
       return true;
     } catch (e) {
       setSaveState('error', 'Non enregistré');
@@ -208,6 +275,7 @@
     buildTree();
     if (opts.structure) buildInspector();
     syncTopBar();
+    if (hooks.afterChange) { try { hooks.afterChange(opts); } catch (e) { /* module error, not ours */ } }
   }
 
   function scheduleRender() {
@@ -220,12 +288,84 @@
 
   var stage, world, roots = {}, abEls = {};
 
+  /* The artboards are built from ui.artboards (the device-preset chips): any combination of the
+   * five presets, laid out left to right by width. 390 and 1200 keep their historic ids so the
+   * outside world (tests, muscle memory) still finds #rootPhone / #rootDesktop. */
+  function abElId(key) { return key === 'phone' ? 'abPhone' : key === 'desktop' ? 'abDesktop' : 'ab' + key; }
+  function abRootId(key) { return key === 'phone' ? 'rootPhone' : key === 'desktop' ? 'rootDesktop' : 'root' + key; }
+
+  function rebuildArtboards() {
+    if (!world) return;
+    var list = activePresets();
+    Object.keys(abEls).forEach(function (k) {
+      if (list.some(function (p) { return p.key === k; })) return;
+      if (abEls[k] && abEls[k].remove) abEls[k].remove();
+      delete abEls[k];
+      delete roots[k];
+    });
+    var x = 0;
+    list.forEach(function (p) {
+      var ab = abEls[p.key];
+      if (!ab) {
+        ab = ce('section', 'st-ab');
+        ab.id = abElId(p.key);
+        ab.setAttribute('data-ab', p.key);
+        var nm = ce('div', 'st-ab__name', esc(p.name) + ' <span>' + p.width + '</span>');
+        var frame = ce('div', 'st-ab__frame');
+        frame.style.width = p.width + 'px';
+        var rootEl = ce('div', 'st-ab__root');
+        rootEl.id = abRootId(p.key);
+        frame.appendChild(rootEl);
+        ab.appendChild(nm);
+        ab.appendChild(frame);
+        world.appendChild(ab);
+        roots[p.key] = rootEl;
+        abEls[p.key] = ab;
+        rootEl.addEventListener('jst:navigate', onNavigate);
+      }
+      ab.style.left = x + 'px';
+      ab.style.top = '0px';
+      x += p.width + 80;
+    });
+    applyDeviceFocusClasses();
+    syncAbChips();
+  }
+
+  function syncAbChips() {
+    var box = $('abChips');
+    if (!box) return;
+    box.querySelectorAll('button[data-ab]').forEach(function (b) {
+      var on = ui.artboards.indexOf(b.getAttribute('data-ab')) !== -1;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+  }
+
+  function toggleArtboard(key) {
+    var p = presetByKey(key);
+    if (!p) return;
+    var at = ui.artboards.indexOf(key);
+    if (at !== -1 && ui.artboards.length <= 1) { toast('Gardez au moins un artboard.', 'warn'); return; }
+    if (at !== -1) ui.artboards.splice(at, 1);
+    else ui.artboards = DEVICE_PRESETS.map(function (x) { return x.key; }).filter(function (k) {
+      return k === key || ui.artboards.indexOf(k) !== -1;
+    });
+    saveUI();
+    rebuildArtboards();
+    renderArtboards();
+    /* removing the last artboard of the focused device must not leave an empty canvas:
+     * fall back to « les deux aperçus » so something stays visible */
+    if (!visiblePresets().length) setDeviceFocus('both');
+    requestAnimationFrame(fit);
+    toast(at !== -1 ? 'Artboard « ' + p.name + ' ' + p.width + ' » retiré.' : 'Artboard « ' + p.name + ' ' + p.width + ' » ajouté.', 'info');
+  }
+
   function renderArtboards() {
-    ['phone', 'desktop'].forEach(function (dev) {
-      var rootEl = roots[dev];
+    activePresets().forEach(function (p) {
+      var rootEl = roots[p.key];
       if (!rootEl) return;
       try {
-        R.render(state.config, rootEl, { device: dev, page: state.page, productId: state.productId, pageId: state.pageId });
+        R.render(state.config, rootEl, { device: p.device, page: state.page, productId: state.productId, pageId: state.pageId });
       } catch (e) {
         try {
           rootEl.className = '';
@@ -234,6 +374,7 @@
       }
     });
     applyDecor();
+    if (hooks.afterRender) { try { hooks.afterRender(); } catch (e) { /* module error */ } }
   }
 
   /* The selection and hover outlines live on the rendered store nodes, re-applied after every
@@ -261,7 +402,7 @@
   }
 
   function applyDecor() {
-    ['phone', 'desktop'].forEach(function (dev) {
+    abKeys().forEach(function (dev) {
       var rootEl = roots[dev];
       if (!rootEl) return;
       rootEl.querySelectorAll('.st-sel, .st-sel--sub, .st-hov, .st-lockhint').forEach(function (n) {
@@ -270,7 +411,12 @@
       });
       var sel = state.sel;
       if (!sel) return;
-      if (sel.kind === 'section') {
+      if (isMulti(sel)) {
+        sel.ids.forEach(function (id) {
+          var el = rootEl.querySelector('[data-section-id="' + cssEsc(id) + '"]');
+          if (el) el.classList.add('st-sel');
+        });
+      } else if (sel.kind === 'section') {
         var secEl = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
         if (!secEl) return;
         secEl.classList.add('st-sel');
@@ -295,12 +441,20 @@
    * frame), never inside the rendered store: .jst clips its overflow, which used to swallow the
    * tag of the first section and paint it over the section above for the others. */
   function positionTags() {
-    ['phone', 'desktop'].forEach(function (dev) {
+    /* like Figma: ONE name label, on the primary (first visible) artboard — with five
+     * artboards at fit zoom, five copies of the label overlapped everything */
+    var primary = primaryKey();
+    abKeys().forEach(function (dev) {
       var ab = abEls[dev], rootEl = roots[dev];
       if (!ab || !rootEl) return;
       var tag = ab.querySelector('.st-ab__tag');
+      if (dev !== primary) { if (tag) tag.hidden = true; return; }
       var sel = state.sel, target = null, text = '';
-      if (sel && sel.kind === 'section') {
+      if (sel && isMulti(sel)) {
+        /* the Figma-style count badge: « 3 sections », pinned on the first selected section */
+        target = rootEl.querySelector('[data-section-id="' + cssEsc(sel.ids[0]) + '"]');
+        text = sel.ids.length + ' sections';
+      } else if (sel && sel.kind === 'section') {
         target = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
         text = sectionName(sectionById(sel.id));
       } else if (sel && sel.kind === 'product') {
@@ -351,11 +505,20 @@
     applyTransform();
   }
 
+  function visiblePresets() {
+    return activePresets().filter(function (p) {
+      if (state.deviceFocus === 'phone') return p.device === 'phone';
+      if (state.deviceFocus === 'desktop') return p.device === 'desktop';
+      return true;
+    });
+  }
   function visibleABs() {
-    var out = [];
-    if (state.deviceFocus !== 'desktop') out.push(abEls.phone);
-    if (state.deviceFocus !== 'phone') out.push(abEls.desktop);
-    return out;
+    return visiblePresets().map(function (p) { return abEls[p.key]; }).filter(Boolean);
+  }
+  /* the artboard that stands for the selection (zoom/pan/measure): the first visible one */
+  function primaryKey() {
+    var vis = visiblePresets();
+    return vis.length ? vis[0].key : (abKeys()[0] || null);
   }
 
   /* « Ajuster à l'écran » matches the opening framing: the artboard widths fit, the view starts
@@ -367,8 +530,9 @@
   function zoomToSelection() {
     var sel = state.sel;
     if (!sel) { fit(); return; }
-    var dev = state.deviceFocus === 'desktop' ? 'desktop' : 'phone';
+    var dev = primaryKey();
     var rootEl = roots[dev];
+    if (rootEl && isMulti(sel)) sel = { kind: 'section', id: sel.ids[0] };
     var n = null;
     if (rootEl && sel.kind === 'section') n = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
     if (rootEl && sel.kind === 'product') n = rootEl.querySelector('[data-product-id="' + cssEsc(sel.id) + '"]');
@@ -406,8 +570,10 @@
   function panToSelection() {
     var sel = state.sel;
     if (!sel) return;
-    var dev = state.deviceFocus === 'desktop' ? 'desktop' : 'phone';
+    var dev = primaryKey();
     var rootEl = roots[dev];
+    if (!rootEl) return;
+    if (isMulti(sel)) sel = { kind: 'section', id: sel.ids[0] };
     var n = null;
     if (sel.kind === 'section') n = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
     if (sel.kind === 'product') n = rootEl.querySelector('[data-product-id="' + cssEsc(sel.id) + '"]');
@@ -465,6 +631,95 @@
     stage.classList.remove('is-panning');
   }
 
+  /* ------------------------------------------------------------------ touch (iPad)
+   * One finger taps to select (the browser's click) and double-taps to edit the text in place;
+   * two fingers scroll the view and pinch to zoom towards their midpoint; a long press opens the
+   * context menu. The stage is touch-action: none, so nothing fights the browser. */
+
+  var touchPts = {};
+  var pinchRef = null;
+  var lpTimer = null;
+  var lastTap = null;
+
+  function touchCount() { return Object.keys(touchPts).length; }
+  function touchPair() {
+    var keys = Object.keys(touchPts);
+    return [touchPts[keys[0]], touchPts[keys[1]]];
+  }
+
+  function onTouchDown(e) {
+    if (e.pointerType !== 'touch') return;
+    touchPts[e.pointerId] = { x: e.clientX, y: e.clientY, moved: false };
+    if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+    if (touchCount() === 2) {
+      var pts = touchPair();
+      pinchRef = {
+        dist: Math.max(10, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)),
+        midX: (pts[0].x + pts[1].x) / 2, midY: (pts[0].y + pts[1].y) / 2,
+        zoom: state.zoom, panX: state.panX, panY: state.panY
+      };
+      lastTap = null;
+    } else if (touchCount() === 1) {
+      var pid = e.pointerId, x = e.clientX, y = e.clientY;
+      lpTimer = setTimeout(function () {
+        lpTimer = null;
+        var pt = touchPts[pid];
+        if (!pt || pt.moved || touchCount() !== 1 || state.tool !== 'select') return;
+        var t = document.elementFromPoint(x, y);
+        if (!t) return;
+        onStageContextMenu({ target: t, clientX: x, clientY: y, preventDefault: function () {} });
+      }, 550);
+    }
+  }
+
+  function onTouchMove(e) {
+    if (e.pointerType !== 'touch') return;
+    var pt = touchPts[e.pointerId];
+    if (!pt) return;
+    if (Math.abs(e.clientX - pt.x) + Math.abs(e.clientY - pt.y) > 9) pt.moved = true;
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    if (pt.moved && lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+    if (pinchRef && touchCount() === 2) {
+      var pts = touchPair();
+      var dist = Math.max(10, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y));
+      var midX = (pts[0].x + pts[1].x) / 2, midY = (pts[0].y + pts[1].y) / 2;
+      var z = clamp(pinchRef.zoom * dist / pinchRef.dist, 0.03, 4);
+      var r = stage.getBoundingClientRect();
+      /* the world point under the starting midpoint stays glued to the moving midpoint:
+       * same distance = two-finger pan, spreading fingers = zoom to the midpoint */
+      var wx = (pinchRef.midX - r.left - pinchRef.panX) / pinchRef.zoom;
+      var wy = (pinchRef.midY - r.top - pinchRef.panY) / pinchRef.zoom;
+      state.zoom = z;
+      state.panX = (midX - r.left) - wx * z;
+      state.panY = (midY - r.top) - wy * z;
+      applyTransform();
+      suppressClick = true;
+    }
+  }
+
+  function onTouchUp(e) {
+    if (e.pointerType !== 'touch') return;
+    var pt = touchPts[e.pointerId];
+    delete touchPts[e.pointerId];
+    if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+    if (pinchRef) {
+      if (touchCount() < 2) pinchRef = null;
+      setTimeout(function () { suppressClick = false; }, 0);
+      return;
+    }
+    if (pt && !pt.moved && !ctxEl && state.tool === 'select') {
+      var now = Date.now();
+      if (lastTap && now - lastTap.t < 400 && Math.abs(e.clientX - lastTap.x) + Math.abs(e.clientY - lastTap.y) < 40) {
+        lastTap = null;
+        var t = document.elementFromPoint(e.clientX, e.clientY);
+        if (t) onStageDblClick({ target: t, preventDefault: function () {}, stopPropagation: function () {} });
+      } else {
+        lastTap = { t: now, x: e.clientX, y: e.clientY };
+      }
+    }
+  }
+
   /* ------------------------------------------------------------------ canvas selection */
 
   function hitSection(t) {
@@ -489,8 +744,10 @@
     var secEl = hitSection(e.target);
     if (!secEl) { select(null); return; }
     var id = secEl.getAttribute('data-section-id');
-    if (isLocked(id)) { select(null); return; }
+    if (isLocked(id)) { if (!e.shiftKey) select(null); return; }
+    if (e.shiftKey) { toggleMulti(id); return; }
     var sel = state.sel;
+    if (isMulti(sel)) { select({ kind: 'section', id: id }); return; }
     if (sel && sel.kind === 'section' && sel.id === id && !sel.field) {
       drillInto(secEl, e.target);
     } else if (sel && ((sel.kind === 'section' && sel.id === id && sel.field) || sel.kind === 'product')) {
@@ -543,6 +800,7 @@
   function select(sel, opts) {
     opts = opts || {};
     state.sel = sel;
+    if (sel && isMulti(sel) && state.page !== 'home') showPage('home');
     if (sel && sel.kind === 'section' && state.page !== 'home') {
       var s = sectionById(sel.id);
       if (!s || s.type !== 'delivery') showPage('home');
@@ -564,7 +822,8 @@
   function escapeSelection() {
     var sel = state.sel;
     if (!sel) return;
-    if (sel.kind === 'section' && sel.field) select({ kind: 'section', id: sel.id });
+    if (isMulti(sel)) select(null);
+    else if (sel.kind === 'section' && sel.field) select({ kind: 'section', id: sel.id });
     else if (sel.kind === 'product') {
       // the parent of a product: its products section (the first one)
       var sec = sections().filter(function (s) { return s.type === 'products'; })[0];
@@ -572,18 +831,181 @@
     } else select(null);
   }
 
-  /* double-click on text in the canvas: drill into the sub-element AND put the caret in the
-   * matching inspector field, text selected — the Figma/Webflow edit-text reflex */
+  /* ------------------------------------------------------------------ inline text editing
+   * Double-click on a text that maps to a fiche field: contenteditable IN the artboard (subtle
+   * focus ring), Enter/blur commits through the same history (coalesced), Échap cancels, the
+   * contract's maxlength is enforced, pasted text is stripped to plain text. */
+
+  var inlineEdit = null; // { el, orig, spec }
+
+  function fieldMax(type, key) {
+    var m = null;
+    defFields(type).forEach(function (f) { if (f && f.key === key && typeof f.max === 'number') m = f.max; });
+    return m;
+  }
+
+  var INLINE_PAIRS = [
+    ['.jst-hero-title', 'title'], ['.jst-about-title', 'title'], ['.jst-wa-title', 'title'],
+    ['.jst-hero-text', 'text'], ['.jst-wa-text', 'text'], ['.jst-ann-item', 'text'],
+    ['.jst-kicker', 'kicker'], ['.jst-tag', 'kicker'], ['.jst-btn', 'button'],
+    ['h1,h2,h3', 'title'], ['.jst-about-text p', 'text'], ['p', 'text']
+  ];
+
+  function inlineSpecFor(target, secEl) {
+    if (!target || !target.closest) return null;
+    var card = target.closest('[data-product-id]');
+    if (card && (!secEl || secEl.contains(card))) {
+      var pid = card.getAttribute('data-product-id');
+      var p = productById(pid);
+      if (p) {
+        function pSet(key) {
+          return function (c, v) {
+            var t = (c.products || []).filter(function (x) { return x.id === pid; })[0];
+            if (t) t[key] = v;
+          };
+        }
+        var pSel = { kind: 'product', id: pid };
+        var nameEl = target.closest('.jst-card-name, .jst-pdp-name');
+        if (nameEl) return { el: nameEl, label: 'Texte modifié (nom du produit)', max: 60, select: pSel, co: 'p:' + pid + ':name', get: function () { return p.name || ''; }, set: pSet('name') };
+        var catEl = target.closest('.jst-card-cat');
+        if (catEl) return { el: catEl, label: 'Texte modifié (catégorie)', max: 40, select: pSel, co: 'p:' + pid + ':cat', get: function () { return p.category || ''; }, set: pSet('category') };
+        var priceEl = target.closest('.jst-card-price, .jst-pdp-price');
+        if (priceEl) return { el: priceEl, label: 'Prix modifié', numeric: true, min: 0, maxNum: 100000000, select: pSel, co: 'p:' + pid + ':price', get: function () { return p.price == null ? '' : String(p.price); }, set: pSet('price') };
+      }
+    }
+    if (!secEl) return null;
+    var id = secEl.getAttribute('data-section-id');
+    var type = secEl.getAttribute('data-section-type') || '';
+    var s = sectionById(id);
+    if (!s) return null;
+    var el = null, field = null;
+    for (var i = 0; i < INLINE_PAIRS.length; i++) {
+      var n = target.closest(INLINE_PAIRS[i][0]);
+      if (n && secEl.contains(n) && hasField(type, INLINE_PAIRS[i][1])) { el = n; field = INLINE_PAIRS[i][1]; break; }
+    }
+    if (!el) return null;
+    var labels = { title: 'titre', text: 'texte', kicker: 'petit titre', button: 'bouton' };
+    return {
+      el: el,
+      label: 'Texte modifié (' + (labels[field] || field) + ')',
+      max: fieldMax(type, field),
+      select: { kind: 'section', id: id, field: field, fieldType: type },
+      co: 'sec:' + id + ':' + field,
+      get: function () { return s.settings && s.settings[field] != null ? String(s.settings[field]) : ''; },
+      set: function (c, v) {
+        var t = (c.sections || []).filter(function (x) { return x.id === id; })[0];
+        if (t) { t.settings = t.settings || {}; t.settings[field] = v; }
+      }
+    };
+  }
+
+  function placeCaretEnd(el) {
+    try {
+      var r = document.createRange();
+      r.selectNodeContents(el);
+      r.collapse(false);
+      var sl = window.getSelection();
+      sl.removeAllRanges();
+      sl.addRange(r);
+    } catch (e) { /* caret stays where it is */ }
+  }
+
+  function startInlineEdit(spec) {
+    /* a double-tap can arrive twice (our synthetic dblclick + the browser's): keep the session */
+    if (inlineEdit && inlineEdit.spec && inlineEdit.spec.co === spec.co) return;
+    finishInlineEdit(true);
+    if (spec.select) select(spec.select);
+    var el = spec.el;
+    inlineEdit = { el: el, orig: el.innerHTML, spec: spec };
+    el.textContent = spec.get();
+    try { el.contentEditable = 'plaintext-only'; } catch (e) { /* older engine */ }
+    if (el.contentEditable !== 'plaintext-only') el.contentEditable = 'true';
+    el.classList.add('st-inline');
+    el.spellcheck = false;
+    el.addEventListener('keydown', onInlineKey);
+    el.addEventListener('blur', onInlineBlur);
+    el.addEventListener('input', onInlineInput);
+    el.addEventListener('paste', onInlinePaste);
+    el.focus();
+    try {
+      var r = document.createRange();
+      r.selectNodeContents(el);
+      var sl = window.getSelection();
+      sl.removeAllRanges();
+      sl.addRange(r);
+    } catch (e) { /* no selection, still editable */ }
+  }
+
+  function onInlineKey(e) {
+    e.stopPropagation();
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finishInlineEdit(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finishInlineEdit(false); }
+  }
+  function onInlineBlur() { finishInlineEdit(true); }
+  function onInlineInput() {
+    var ed = inlineEdit;
+    if (!ed || typeof ed.spec.max !== 'number') return;
+    var t = ed.el.textContent;
+    if (t.length > ed.spec.max) {
+      ed.el.textContent = t.slice(0, ed.spec.max);
+      placeCaretEnd(ed.el);
+    }
+  }
+  function onInlinePaste(e) {
+    e.preventDefault();
+    var txt = '';
+    try { txt = (e.clipboardData || window.clipboardData).getData('text/plain'); } catch (err) { /* nothing pasted */ }
+    txt = String(txt || '').replace(/\s*[\r\n]+\s*/g, ' ');
+    try { document.execCommand('insertText', false, txt); } catch (err) { /* paste dropped */ }
+  }
+
+  function finishInlineEdit(apply) {
+    var ed = inlineEdit;
+    if (!ed) return;
+    inlineEdit = null;
+    var el = ed.el, spec = ed.spec;
+    el.removeEventListener('keydown', onInlineKey);
+    el.removeEventListener('blur', onInlineBlur);
+    el.removeEventListener('input', onInlineInput);
+    el.removeEventListener('paste', onInlinePaste);
+    var raw = el.textContent;
+    el.removeAttribute('contenteditable');
+    el.classList.remove('st-inline');
+    try { el.blur(); } catch (e) { /* already blurred */ }
+    var v;
+    if (spec.numeric) {
+      var n = parseInt(String(raw).replace(/[^\d]/g, ''), 10);
+      if (!isFinite(n)) apply = false;
+      else v = clamp(n, spec.min == null ? 0 : spec.min, spec.maxNum == null ? 1e15 : spec.maxNum);
+    } else {
+      v = String(raw).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+      if (typeof spec.max === 'number') v = v.slice(0, spec.max);
+    }
+    if (apply && String(v) !== String(spec.get())) {
+      commit(spec.label, function (c) { spec.set(c, spec.numeric ? v : v); }, { coalesce: spec.co });
+      /* the inspector mirrors the fiche: rebuild it, or its stale field would silently
+       * revert this inline edit at the first keystroke typed there */
+      buildInspector();
+    } else {
+      el.innerHTML = ed.orig;
+      scheduleRender();
+    }
+  }
+
+  /* double-click on text in the canvas: edit it right there (contenteditable); texts without a
+   * fiche field fall back to the old reflex — drill in and focus the inspector field */
   function onStageDblClick(e) {
     if (state.tool !== 'select' || pan) return;
     var frame = insideFrame(e.target);
     if (!frame) return;
-    e.preventDefault();
-    e.stopPropagation();
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     var secEl = hitSection(e.target);
     if (!secEl) return;
     var id = secEl.getAttribute('data-section-id');
     if (isLocked(id)) return;
+    var spec = inlineSpecFor(e.target, secEl);
+    if (spec) { startInlineEdit(spec); return; }
     if (!(state.sel && ((state.sel.kind === 'section' && state.sel.id === id) || state.sel.kind === 'product'))) {
       select({ kind: 'section', id: id });
     }
@@ -621,6 +1043,15 @@
 
   function toggleHideSelected() {
     var sel = state.sel;
+    if (isMulti(sel)) {
+      var ids = sel.ids.slice();
+      var all = ids.map(sectionById).filter(Boolean);
+      var hide = all.some(function (s) { return s.enabled !== false; }); // mixed: hide everything
+      commit((hide ? 'Masquage de ' : 'Affichage de ') + ids.length + ' sections', function (c) {
+        (c.sections || []).forEach(function (t) { if (ids.indexOf(t.id) !== -1) t.enabled = !hide; });
+      }, { structure: true });
+      return;
+    }
     if (!sel || sel.kind !== 'section') return;
     var s = sectionById(sel.id);
     if (!s) return;
@@ -648,16 +1079,39 @@
       ]);
       return;
     }
+    /* a right-click on a member of a multi-selection keeps it and offers the bulk actions */
+    if (isMulti(state.sel) && state.sel.ids.indexOf(id) !== -1) {
+      var n = state.sel.ids.length;
+      openCtx(e.clientX, e.clientY, [
+        ['Dupliquer les ' + n + ' sections', 'Ctrl D', duplicateSelection],
+        ['Masquer les ' + n + ' sections', '', toggleHideSelected],
+        null,
+        ['Supprimer les ' + n + ' sections', 'Suppr', deleteSelection]
+      ]);
+      return;
+    }
     if (!(state.sel && state.sel.kind === 'section' && state.sel.id === id && !state.sel.field)) select({ kind: 'section', id: id });
     var s = sectionById(id);
-    openCtx(e.clientX, e.clientY, [
+    var items = [
       ['Copier', 'Ctrl C', copySelection],
       ['Coller', 'Ctrl V', pasteClipboard],
       ['Dupliquer', 'Ctrl D', duplicateSelection],
       null,
       [s && s.enabled === false ? 'Afficher la section' : 'Masquer la section', '', toggleHideSelected],
+      ['Verrouiller la section', '', function () {
+        /* reachable without hover (touch long-press): the tree's padlock unlocks */
+        ui.locked[id] = true;
+        saveUI();
+        if (state.sel && state.sel.kind === 'section' && state.sel.id === id) select(null);
+        buildTree();
+        toast('Section verrouillée — le cadenas des calques la déverrouille.');
+      }],
       ['Supprimer', 'Suppr', deleteSelection]
-    ]);
+    ];
+    if (hooks.sectionCtxItems) {
+      try { items = hooks.sectionCtxItems(items, s) || items; } catch (err) { /* module error */ }
+    }
+    openCtx(e.clientX, e.clientY, items);
   }
 
   /* ------------------------------------------------------------------ pages */
@@ -791,7 +1245,8 @@
   function sectionRow(s) {
     var selOn = state.sel && ((state.sel.kind === 'section' && state.sel.id === s.id) ||
       (state.sel.kind === 'product' && s.type === 'products'));
-    var row = ce('div', 'st-row st-row--child st-row--section' + (selOn && state.sel.kind === 'section' ? ' is-sel' : '') + (s.enabled === false ? ' is-off' : ''));
+    var inMulti = isMulti(state.sel) && state.sel.ids.indexOf(s.id) !== -1;
+    var row = ce('div', 'st-row st-row--child st-row--section' + ((selOn && state.sel.kind === 'section') || inMulti ? ' is-sel' : '') + (s.enabled === false ? ' is-off' : ''));
     row.setAttribute('data-section-row', s.id);
     row.appendChild(ce('span', 'st-row__icon', icon(s.type)));
     var name = ce('span', 'st-row__name', esc(sectionName(s)));
@@ -826,6 +1281,7 @@
 
     row.addEventListener('click', function (e) {
       if (treeDrag && treeDrag.moved) return;
+      if (e.shiftKey) { toggleMulti(s.id); return; }
       select({ kind: 'section', id: s.id }, { fromTree: true, pan: true });
     });
     var canRename = hasField(s.type, 'title');
@@ -1022,6 +1478,7 @@
       grid.appendChild(card);
     });
     panel.appendChild(grid);
+    if (hooks.insertPanelBuilt) { try { hooks.insertPanelBuilt(panel); } catch (e) { /* module error */ } }
   }
 
   function showTypePreview(card, t) {
@@ -1030,16 +1487,17 @@
     prev.innerHTML = '';
     var shot = ce('div', 'st-prevcard__shot');
     /* the cache key carries every style input (template, fonts, radius, buttons…), and
-     * afterChange({structure}) empties the cache besides: no stale previews after a restyle */
+     * afterChange({structure}) empties the cache besides: no stale previews after a restyle.
+     * A saved block (t.settings) carries its own content: keyed by the block, not the type. */
     var th = state.config.theme || {};
-    var key = [t.id, state.config.template, th.palette, th.intensity, th.fonts, th.radius, th.buttons,
+    var key = [t.blockId ? 'blk:' + t.blockId : t.id, state.config.template, th.palette, th.intensity, th.fonts, th.radius, th.buttons,
       state.config.store ? state.config.store.niche : ''].join('|');
     var root = prevCache[key];
     if (!root) {
       root = document.createElement('div');
       try {
         var cfg = clone(state.config);
-        cfg.sections = [{ id: 's1', type: t.id, enabled: true, settings: newSectionSettings(t.id) }];
+        cfg.sections = [{ id: 's1', type: t.id, enabled: true, settings: t.settings ? clone(t.settings) : newSectionSettings(t.id) }];
         R.render(cfg, root, { device: 'phone', page: 'home' });
         prevCache[key] = root;
       } catch (e) { root = null; }
@@ -1068,14 +1526,14 @@
     return def && def.defaults ? clone(def.defaults) : {};
   }
 
-  function insertSection(type, beforeId) {
+  function insertSection(type, beforeId, presetSettings, labelName) {
     var def = sectionDef(type);
     if (!def) return;
     var sec = {
       id: typeof D.newId === 'function' ? D.newId(state.config, 's') : 's' + (sections().length + 101),
-      type: type, enabled: true, settings: newSectionSettings(type)
+      type: type, enabled: true, settings: presetSettings ? clone(presetSettings) : newSectionSettings(type)
     };
-    commit('Ajout de la section « ' + (def.name || type) + ' »', function (c) {
+    commit('Ajout de la section « ' + (labelName || def.name || type) + ' »', function (c) {
       var arr = c.sections || (c.sections = []);
       var at = arr.length;
       if (beforeId) arr.forEach(function (s, i) { if (s.id === beforeId) at = i; });
@@ -1085,7 +1543,8 @@
       arr.splice(at, 0, sec);
     }, { structure: true });
     select({ kind: 'section', id: sec.id }, { pan: true });
-    toast('Section « ' + (def.name || type) + ' » ajoutée.', 'ok');
+    toast('Section « ' + (labelName || def.name || type) + ' » ajoutée.', 'ok');
+    return sec.id;
   }
 
   /* drag a section type from the panel onto an artboard */
@@ -1152,7 +1611,11 @@
     if (!insp) return;
     insp.innerHTML = '';
     var sel = state.sel;
-    if (sel && sel.kind === 'section') {
+    if (sel && isMulti(sel)) {
+      title.textContent = sel.ids.length + ' sections sélectionnées';
+      sub.textContent = '';
+      insp.appendChild(multiInspector(sel.ids));
+    } else if (sel && sel.kind === 'section') {
       var s = sectionById(sel.id);
       if (!s) { state.sel = null; return buildInspector(); }
       var def = sectionDef(s.type);
@@ -1180,6 +1643,36 @@
       sub.textContent = 'rien n’est sélectionné';
       insp.appendChild(styleInspector());
     }
+    if (hooks.inspectorBuilt) { try { hooks.inspectorBuilt(sel); } catch (e) { /* module error */ } }
+  }
+
+  /* --- multi-selection inspector: the bulk actions --- */
+
+  function multiInspector(ids) {
+    var frag = document.createDocumentFragment();
+    var g = group(ids.length + ' sections sélectionnées');
+    var list = ce('div', 'st-multilist');
+    ids.forEach(function (id) {
+      var s = sectionById(id);
+      if (s) list.appendChild(ce('div', 'st-multilist__row', '<span class="st-row__icon">' + icon(s.type) + '</span><span>' + esc(sectionName(s)) + '</span>'));
+    });
+    g.body.appendChild(list);
+    var anyVisible = ids.map(sectionById).filter(Boolean).some(function (s) { return s.enabled !== false; });
+    var hide = ce('button', 'st-addbtn', anyVisible ? 'Masquer les ' + ids.length + ' sections' : 'Afficher les ' + ids.length + ' sections');
+    hide.type = 'button';
+    hide.addEventListener('click', toggleHideSelected);
+    g.body.appendChild(hide);
+    var dup = ce('button', 'st-addbtn', 'Dupliquer les ' + ids.length + ' sections — Ctrl D');
+    dup.type = 'button';
+    dup.addEventListener('click', duplicateSelection);
+    g.body.appendChild(dup);
+    var del = ce('button', 'st-danger', 'Supprimer les ' + ids.length + ' sections — Suppr');
+    del.type = 'button';
+    del.addEventListener('click', deleteSelection);
+    g.body.appendChild(del);
+    g.body.appendChild(ce('p', 'st-insp__empty', '↑ / ↓ déplace les sections ensemble. Maj + clic ajoute ou retire une section.'));
+    frag.appendChild(g);
+    return frag;
   }
 
   function group(titleText, open) {
@@ -1364,6 +1857,26 @@
       fi.click();
     });
     row.appendChild(up);
+    if (hooks.pickAsset) {
+      var pick = ce('button', 'st-ghostbtn', 'Choisir dans Images');
+      pick.type = 'button';
+      pick.addEventListener('click', function () {
+        hooks.pickAsset({
+          label: labelText,
+          set: function (v) {
+            // v: { image: dataUrl } (the seller's file) or { photo: id } (a demo photo)
+            commit(setLabel, function (c) {
+              var o = getObj(c);
+              if (!o) return;
+              if (v && v.image) { o.image = v.image; if (hasPhotoField) o.photo = null; }
+              else if (v && v.photo && hasPhotoField) { o.photo = v.photo; o.image = null; }
+              else if (v && v.photo) { o.image = v.src || null; }
+            }, { structure: true });
+          }
+        });
+      });
+      row.appendChild(pick);
+    }
     if (image || (info && info.src)) {
       var rm = ce('button', 'st-ghostbtn', image ? 'Retirer' : 'Retirer la photo');
       rm.type = 'button';
@@ -1773,6 +2286,27 @@
   function duplicateSelection() {
     var sel = state.sel;
     if (!sel) { toast('Sélectionnez une section ou un produit à dupliquer.'); return; }
+    if (isMulti(sel)) {
+      var ids = orderIds(sel.ids);
+      var copies = [];
+      ids.forEach(function (id) {
+        var s = sectionById(id);
+        if (!s) return;
+        var cp = clone(s);
+        cp.id = typeof D.newId === 'function' ? D.newId({ sections: sections().concat(copies) }, 's') : 'sx' + Date.now() + copies.length;
+        copies.push(cp);
+      });
+      if (!copies.length) return;
+      commit('Duplication de ' + copies.length + ' sections', function (c) {
+        var arr = c.sections || (c.sections = []);
+        var at = -1;
+        arr.forEach(function (x, i) { if (ids.indexOf(x.id) !== -1) at = i; });
+        arr.splice.apply(arr, [at + 1, 0].concat(copies));
+      }, { structure: true });
+      select({ kind: 'multi', ids: copies.map(function (x) { return x.id; }) });
+      toast(copies.length + ' sections dupliquées.', 'ok');
+      return;
+    }
     if (sel.kind === 'section') {
       var s = sectionById(sel.id);
       if (!s) return;
@@ -1806,6 +2340,16 @@
   function deleteSelection() {
     var sel = state.sel;
     if (!sel) return;
+    if (isMulti(sel)) {
+      var ids = sel.ids.slice();
+      commit('Suppression de ' + ids.length + ' sections', function (c) {
+        c.sections = (c.sections || []).filter(function (x) { return ids.indexOf(x.id) === -1; });
+      }, { structure: true });
+      state.sel = null;
+      buildInspector();
+      toast(ids.length + ' sections supprimées. Ctrl Z pour annuler.', 'info');
+      return;
+    }
     if (sel.kind === 'section') {
       var s = sectionById(sel.id);
       if (!s) return;
@@ -1867,6 +2411,28 @@
 
   function moveSelection(delta, alt) {
     var sel = state.sel;
+    if (isMulti(sel)) {
+      /* the selected sections move together, keeping their relative order */
+      var ids = orderIds(sel.ids);
+      var list = sections();
+      var idx = list.map(function (s, i) { return ids.indexOf(s.id) !== -1 ? i : -1; }).filter(function (i) { return i !== -1; });
+      if (!idx.length) return;
+      if (delta < 0 && idx[0] === 0) return;
+      if (delta > 0 && idx[idx.length - 1] === list.length - 1) return;
+      commit('Déplacement de ' + ids.length + ' sections', function (c) {
+        var arr = c.sections || [];
+        var picked = arr.filter(function (s) { return ids.indexOf(s.id) !== -1; });
+        var rest = arr.filter(function (s) { return ids.indexOf(s.id) === -1; });
+        var first = -1;
+        arr.forEach(function (s, i) { if (first === -1 && ids.indexOf(s.id) !== -1) first = i; });
+        var at = clamp(first + delta, 0, rest.length);
+        rest.splice.apply(rest, [at, 0].concat(picked));
+        c.sections = rest;
+      }, { coalesce: 'move:' + ids.join(',') });
+      buildTree();
+      if (!alt) panToSelection();
+      return;
+    }
     if (!sel || sel.kind !== 'section') return;
     var list = sections();
     var from = -1;
@@ -1970,6 +2536,12 @@
     dl.type = 'button';
     dl.addEventListener('click', exportJSON);
     row.appendChild(dl);
+    if (hooks.exportPNG) {
+      var png = ce('button', 'st-ghostbtn', 'Exporter en image (PNG)');
+      png.type = 'button';
+      png.addEventListener('click', function () { hooks.exportPNG(); });
+      row.appendChild(png);
+    }
     var cp = ce('button', 'st-ghostbtn', 'Copier le JSON');
     cp.type = 'button';
     cp.addEventListener('click', function () {
@@ -1997,17 +2569,23 @@
 
   function openModal(m) { m.hidden = false; }
   function closeModal(m) { m.hidden = true; }
+  /* the modules (command palette, Jetons, Historique…) register their overlays here, so the
+   * « a dialog blocks the canvas shortcuts » rule covers them too */
+  var MODAL_IDS = ['proModal', 'shareModal', 'helpOverlay'];
+  function registerOverlay(id) { if (MODAL_IDS.indexOf(id) === -1) MODAL_IDS.push(id); }
   function anyModalOpen() {
-    return ['proModal', 'shareModal', 'helpOverlay'].some(function (id) { var m = $(id); return m && !m.hidden; });
+    return MODAL_IDS.some(function (id) { var m = $(id); return m && !m.hidden; });
   }
   function closeModals() {
-    ['proModal', 'shareModal', 'helpOverlay'].forEach(function (id) { var m = $(id); if (m) m.hidden = true; });
+    MODAL_IDS.forEach(function (id) { var m = $(id); if (m) m.hidden = true; });
+    if (hooks.overlaysClosed) { try { hooks.overlaysClosed(); } catch (e) { /* module error */ } }
   }
 
   /* ------------------------------------------------------------------ help overlay */
 
   var SHORTCUTS = [
     ['Essentiels', [
+      [['Ctrl', 'K'], 'Palette de commandes (toutes les actions)'],
       [['Ctrl', 'Z'], 'Annuler'],
       [['Ctrl', '⇧', 'Z'], 'Rétablir'],
       [['Ctrl', 'Y'], 'Rétablir (aussi)'],
@@ -2017,13 +2595,23 @@
       [['Échap'], 'Élément parent, puis tout désélectionner']
     ]],
     ['Édition', [
+      [['2 × clic'], 'Modifier le texte directement dans l’aperçu (Entrée valide, Échap annule)'],
       [['Ctrl', 'C'], 'Copier la section'],
       [['Ctrl', 'V'], 'Coller après la sélection'],
-      [['Ctrl', 'D'], 'Dupliquer la section ou le produit'],
+      [['Ctrl', 'D'], 'Dupliquer la sélection (sections, produit)'],
       [['Suppr'], 'Supprimer la sélection'],
-      [['↑', '↓'], 'Déplacer la section'],
+      [['↑', '↓'], 'Déplacer la ou les sections'],
       [['Alt', '↑/↓'], 'Déplacer sans faire défiler'],
-      [['Clic droit'], 'Copier · coller · dupliquer · masquer · supprimer']
+      [['Clic droit'], 'Copier · coller · dupliquer · masquer · supprimer · Mes blocs']
+    ]],
+    ['Sélection multiple', [
+      [['Maj', 'clic'], 'Ajouter / retirer une section (canevas et calques)'],
+      [['Ctrl', 'A'], 'Sélectionner toutes les sections de la page'],
+      [['Échap'], 'Tout désélectionner']
+    ]],
+    ['Superpositions', [
+      [['Alt', 'survol'], 'Mesures entre la section sélectionnée et la survolée (et sa hauteur)'],
+      [['Ctrl', '⇧', 'C'], 'Vérification des contrastes (texte illisible encadré en rouge)']
     ]],
     ['Affichage', [
       [['Ctrl', 'molette'], 'Zoomer vers le curseur (ou pincez le pavé tactile)'],
@@ -2083,6 +2671,7 @@
     /* these work even while typing (and with a dialog open) */
     if (mod && low === 's') { e.preventDefault(); saveNow(); toast('Enregistré dans ce navigateur.', 'ok'); return; }
     if (mod && low === 'e') { e.preventDefault(); exportJSON(); return; }
+    if (mod && low === 'k') { e.preventDefault(); if (hooks.commandPalette) hooks.commandPalette(); return; }
     if (k === 'Escape') {
       if (ctxEl) { closeCtx(); return; }
       if (anyModalOpen()) { closeModals(); return; }
@@ -2107,6 +2696,8 @@
 
     if (mod && low === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
     if (mod && low === 'y') { e.preventDefault(); redo(); return; }
+    if (mod && low === 'a') { e.preventDefault(); selectAllSections(); return; }
+    if (mod && e.shiftKey && low === 'c') { e.preventDefault(); if (hooks.toggleContrast) hooks.toggleContrast(); return; }
     if (mod && low === 'c') { copySelection(); return; }
     if (mod && low === 'v') { pasteClipboard(); return; }
     if (mod && low === 'd') { e.preventDefault(); duplicateSelection(); return; }
@@ -2157,10 +2748,18 @@
     stage.classList.toggle('is-hand', t === 'hand');
   }
 
+  function applyDeviceFocusClasses() {
+    var dev = state.deviceFocus;
+    activePresets().forEach(function (p) {
+      var ab = abEls[p.key];
+      if (!ab) return;
+      ab.classList.toggle('is-hidden', (dev === 'desktop' && p.device === 'phone') || (dev === 'phone' && p.device === 'desktop'));
+    });
+  }
+
   function setDeviceFocus(dev) {
     state.deviceFocus = dev;
-    abEls.phone.classList.toggle('is-hidden', dev === 'desktop');
-    abEls.desktop.classList.toggle('is-hidden', dev === 'phone');
+    applyDeviceFocusClasses();
     document.querySelectorAll('.st-devices button').forEach(function (b) {
       b.classList.toggle('is-on', b.getAttribute('data-dev') === dev);
     });
@@ -2194,13 +2793,10 @@
     stage = $('stage');
     world = $('world');
     ghostEl = $('dragGhost');
-    roots.phone = $('rootPhone');
-    roots.desktop = $('rootDesktop');
-    abEls.phone = $('abPhone');
-    abEls.desktop = $('abDesktop');
     saveStateEl = $('saveState');
     saveLabelEl = $('saveLabel');
 
+    rebuildArtboards();
     buildHelp();
     buildInsertPanel();
     buildTree();
@@ -2214,6 +2810,10 @@
     stage.addEventListener('pointermove', onStagePointerMove);
     stage.addEventListener('pointerup', onStagePointerUp);
     stage.addEventListener('pointercancel', onStagePointerUp);
+    stage.addEventListener('pointerdown', onTouchDown);
+    stage.addEventListener('pointermove', onTouchMove);
+    stage.addEventListener('pointerup', onTouchUp);
+    stage.addEventListener('pointercancel', onTouchUp);
     stage.addEventListener('click', onStageClickCapture, true);
     stage.addEventListener('dblclick', onStageDblClick, true);
     stage.addEventListener('contextmenu', onStageContextMenu);
@@ -2241,8 +2841,11 @@
       }
     });
 
-    ['phone', 'desktop'].forEach(function (dev) {
-      roots[dev].addEventListener('jst:navigate', onNavigate);
+    /* jst:navigate is wired per artboard root inside rebuildArtboards() */
+
+    var chips = $('abChips');
+    if (chips) chips.querySelectorAll('button[data-ab]').forEach(function (b) {
+      b.addEventListener('click', function () { toggleArtboard(b.getAttribute('data-ab')); });
     });
 
     window.addEventListener('keydown', onKeyDown);
@@ -2284,6 +2887,7 @@
     $('helpBtn').addEventListener('click', toggleHelp);
     $('tabLayers').addEventListener('click', function () { switchLeftTab('layers'); });
     $('tabInsert').addEventListener('click', function () { switchLeftTab('insert'); });
+    if ($('tabAssets')) $('tabAssets').addEventListener('click', function () { switchLeftTab('assets'); });
     $('importFile').addEventListener('change', function () {
       importJSONFile($('importFile').files && $('importFile').files[0]);
       $('importFile').value = '';
@@ -2310,14 +2914,17 @@
   }
 
   function switchLeftTab(tab) {
-    var layers = tab === 'layers';
-    $('tabLayers').classList.toggle('is-on', layers);
-    $('tabLayers').setAttribute('aria-selected', String(layers));
-    $('tabInsert').classList.toggle('is-on', !layers);
-    $('tabInsert').setAttribute('aria-selected', String(!layers));
-    $('layersPanel').hidden = !layers;
-    $('insertPanel').hidden = layers;
+    var tabs = [['layers', 'tabLayers', 'layersPanel'], ['insert', 'tabInsert', 'insertPanel'], ['assets', 'tabAssets', 'assetsPanel']];
+    tabs.forEach(function (t) {
+      var btn = $(t[1]), panel = $(t[2]);
+      if (!btn || !panel) return;
+      var on = tab === t[0];
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-selected', String(on));
+      panel.hidden = !on;
+    });
     hideTypePreview();
+    if (tab === 'assets' && hooks.assetsShown) { try { hooks.assetsShown(); } catch (e) { /* module error */ } }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
@@ -2332,7 +2939,8 @@
         page: state.page, pageId: state.pageId, productId: state.productId,
         sel: state.sel ? clone(state.sel) : null, tool: state.tool,
         zoom: state.zoom, panX: state.panX, panY: state.panY,
-        deviceFocus: state.deviceFocus, undoDepth: undoStack.length, redoDepth: redoStack.length
+        deviceFocus: state.deviceFocus, undoDepth: undoStack.length, redoDepth: redoStack.length,
+        artboards: ui.artboards.slice()
       };
     },
     select: function (sel) { select(sel || null); },
@@ -2343,6 +2951,99 @@
     setZoom: setZoom,
     save: saveNow,
     exportJSON: exportJSON,
+    toggleArtboard: toggleArtboard,
     SHORTCUTS: SHORTCUTS
+  };
+
+  /* The bridge the extension modules build on (studio-power.js, loaded after this script).
+   * Everything here is the studio's own machinery; the modules add their hooks into `hooks`. */
+  window.JeereStudio._internals = {
+    D: D, R: R, hooks: hooks,
+    state: function () { return state; },
+    ui: function () { return ui; },
+    saveUI: saveUI,
+    stage: function () { return stage; },
+    world: function () { return world; },
+    roots: function () { return roots; },
+    abEls: function () { return abEls; },
+    presets: DEVICE_PRESETS,
+    activePresets: activePresets,
+    visiblePresets: visiblePresets,
+    primaryKey: primaryKey,
+    toggleArtboard: toggleArtboard,
+    PAGES: PAGES,
+    SHORTCUTS: SHORTCUTS,
+    clone: clone,
+    esc: esc,
+    ce: ce,
+    clamp: clamp,
+    cssEsc: cssEsc,
+    toast: toast,
+    commit: commit,
+    undo: undo,
+    redo: redo,
+    select: select,
+    selectAllSections: selectAllSections,
+    toggleMulti: toggleMulti,
+    isMulti: isMulti,
+    selectedSectionIds: selectedSectionIds,
+    sections: sections,
+    products: products,
+    customPages: customPages,
+    sectionById: sectionById,
+    productById: productById,
+    pageById: pageById,
+    sectionName: sectionName,
+    sectionDef: sectionDef,
+    defFields: defFields,
+    hasField: hasField,
+    newSectionSettings: newSectionSettings,
+    insertSection: insertSection,
+    duplicateSelection: duplicateSelection,
+    deleteSelection: deleteSelection,
+    copySelection: copySelection,
+    pasteClipboard: pasteClipboard,
+    moveSelection: moveSelection,
+    toggleHideSelected: toggleHideSelected,
+    isLocked: isLocked,
+    showPage: showPage,
+    setDeviceFocus: setDeviceFocus,
+    cycleDevice: cycleDevice,
+    setTool: setTool,
+    fit: fit,
+    setZoom: setZoom,
+    zoomToSelection: zoomToSelection,
+    applyTransform: applyTransform,
+    openCtx: openCtx,
+    closeCtx: closeCtx,
+    openModal: openModal,
+    closeModal: closeModal,
+    closeModals: closeModals,
+    anyModalOpen: anyModalOpen,
+    registerOverlay: registerOverlay,
+    openShare: openShare,
+    toggleHelp: toggleHelp,
+    buildTree: buildTree,
+    buildInspector: buildInspector,
+    buildInsertPanel: buildInsertPanel,
+    buildHelp: buildHelp,
+    switchLeftTab: switchLeftTab,
+    applyDecor: applyDecor,
+    scheduleRender: scheduleRender,
+    renderArtboards: renderArtboards,
+    saveNow: saveNow,
+    exportJSON: exportJSON,
+    importJSONFile: importJSONFile,
+    readFileAsImage: readFileAsImage,
+    showTypePreview: showTypePreview,
+    hideTypePreview: hideTypePreview,
+    startInlineEdit: startInlineEdit,
+    inlineSpecFor: inlineSpecFor,
+    showGhost: showGhost,
+    moveGhost: moveGhost,
+    hideGhost: hideGhost,
+    icon: icon,
+    group: group,
+    fieldWrap: fieldWrap
   };
 })();
