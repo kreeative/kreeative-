@@ -587,23 +587,30 @@
     return pair && typeof pair.googleUrl === 'string' ? [{ id: 'jst-font-' + id, href: pair.googleUrl }] : [];
   }
 
-  // The local stand-in of a heading font drawn bigger or smaller (JEERE_DATA.typography().faces): a system font
-  // resized by 1 / scale, used until the web font arrives. Only @font-face rules with local() sources pass.
+  // The @font-face rules of JEERE_DATA.typography().faces: the local stand-in of a heading font drawn bigger or
+  // smaller (a system font resized by 1 / scale, used until the web font arrives), and the font files the seller
+  // imported (theme.customFonts: a base64 data URL under a private family 'jeere-u-<hash>', font-display: swap).
+  // Only those two exact shapes pass: local() sources, or one font data URL.
+  const FACE_LOCAL = /^@font-face\{font-family:'[\w-]+';src:(local\('[\w ]+'\),?)+;size-adjust:[\d.]+%\}$/;
+  const FACE_FILE = /^@font-face\{font-family:'jeere-u-[a-z0-9]+';src:url\(data:font\/(woff2|woff|ttf|otf);base64,[A-Za-z0-9+/]+={0,2}\) format\('(woff2|woff|truetype|opentype)'\);font-weight:\d{3}( \d{3})?;font-style:(normal|italic);font-display:swap\}$/;
   function fontFaces(config) {
     const d = DATA();
     if (!d || typeof d.typography !== 'function') return [];
     const ty = safe(() => d.typography(config));
     return ty && Array.isArray(ty.faces) ? ty.faces.filter((f) => isObj(f) && typeof f.id === 'string' && typeof f.css === 'string' &&
-      /^@font-face\{font-family:'[\w-]+';src:(local\('[\w ]+'\),?)+;size-adjust:[\d.]+%\}$/.test(f.css)) : [];
+      (FACE_LOCAL.test(f.css) || FACE_FILE.test(f.css))) : [];
   }
 
-  function ensureFonts(config) {
+  // doc: the document the store is drawn in (render passes its root's); each font is added to its <head> once
+  function ensureFonts(config, doc) {
     try {
-      if (typeof document === 'undefined' || !document.createElement) return;
+      const document = doc && doc.createElement && doc.head ? doc : (typeof window !== 'undefined' ? window.document : null);
+      if (!document || !document.createElement) return;
       const links = fontLinks(config);
-      if (!links.length) return;
+      const faces = fontFaces(config);
+      if (!links.length && !faces.length) return;
       const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
-      fontFaces(config).forEach((f) => {
+      faces.forEach((f) => {
         const fid = f.id.replace(/[^\w-]/g, '');
         if (!fid || document.getElementById(fid)) return;
         const st = document.createElement('style');
@@ -611,7 +618,7 @@
         st.textContent = f.css;
         head.appendChild(st);
       });
-      if (!document.getElementById('jst-font-preconnect')) {
+      if (links.length && !document.getElementById('jst-font-preconnect')) {
         const pre = document.createElement('link');
         pre.rel = 'preconnect';
         pre.href = 'https://fonts.gstatic.com';
@@ -973,6 +980,7 @@
       headingItalic: !(tyFonts && ty.italic === false),
       glyphFallback: !!(tyFonts && ty.fallbacks && ty.fallbacks.length),
       fontsCustom: tyFonts,
+      fontSynth: !!(tyFonts && ty.synth),
       rawName: str(store.name).trim(),
       brand: brandOf(cfg, tpl),
       name: str(store.name).trim() || 'Votre boutique',
@@ -2275,6 +2283,8 @@
         if (m && m.fontsCustom) rootEl.dataset.fonts = 'custom'; else delete rootEl.dataset.fonts;
         if (m && m.fontsCustom && !m.headingItalic) rootEl.dataset.hital = 'none'; else delete rootEl.dataset.hital;
         if (m && m.headingStyle) rootEl.dataset.hstyle = m.headingStyle; else delete rootEl.dataset.hstyle;
+        // Her own text font with no bold of its own (an imported Regular alone): the browser may thicken it
+        if (m && m.fontsCustom && m.fontSynth) rootEl.dataset.fsynth = 'weight'; else delete rootEl.dataset.fsynth;
       }
       const c = m ? m.colors : FALLBACK_COLORS;
       const v = m ? m.v : vividColors(FALLBACK_COLORS, false);
@@ -2336,7 +2346,9 @@
       try { rootEl.textContent = 'Aperçu indisponible.'; } catch (e2) { /* nothing more to do */ }
     }
     bind(rootEl);
-    ensureFonts(config);
+    ensureFonts(config, rootEl.ownerDocument);
+    // Element styles (elstyles.js, the Studio's design layer): a no-op for a fiche without elementStyles
+    if (root.JeereElStyles && typeof root.JeereElStyles.apply === 'function') { try { root.JeereElStyles.apply(config, rootEl); } catch (e) { /* styles are a layer, never a failure */ } }
     return rootEl;
   }
 

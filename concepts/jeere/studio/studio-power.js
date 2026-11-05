@@ -86,9 +86,31 @@
       return { label: 'Fiche boutique complète', obj: whole };
     }
 
+    /* « CSS » (the element styles of the selection, studio-design.js) or « JSON » (the fiche) */
+    function codeMode() { return ui().codeMode === 'css' && hooks.selectionCss ? 'css' : 'json'; }
+    function syncCodeMode() {
+      document.querySelectorAll('#inspCodeMode [data-codemode]').forEach(function (b) {
+        var on = b.getAttribute('data-codemode') === codeMode();
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      var pre = $('inspCodePre');
+      if (pre) pre.setAttribute('aria-label', codeMode() === 'css' ? 'CSS de la sélection' : 'JSON de la sélection');
+    }
+    document.querySelectorAll('#inspCodeMode [data-codemode]').forEach(function (b) {
+      b.addEventListener('click', function () { ui().codeMode = b.getAttribute('data-codemode'); S.saveUI(); syncCodeMode(); renderCode(); });
+    });
     function renderCode() {
       var box = $('inspectorCode');
       if (!box || box.hidden) return;
+      syncCodeMode();
+      if (codeMode() === 'css') {
+        var cs = null;
+        try { cs = hooks.selectionCss(); } catch (e) { cs = null; }
+        if ($('inspCodeLabel')) $('inspCodeLabel').textContent = cs && cs.label ? cs.label : 'CSS';
+        if ($('inspCodePre')) $('inspCodePre').textContent = cs && cs.css ? cs.css : '/* Aucun style d’élément ici.\n   Réglez le design dans l’onglet Design :\n   le CSS généré s’affiche ici, en direct. */';
+        return;
+      }
       var c = selectionForCode();
       var label = $('inspCodeLabel');
       if (label) label.textContent = c.label;
@@ -103,7 +125,7 @@
 
     function switchInspTab(mode) {
       inspMode = mode;
-      var tabs = [['settings', 'inspTabSettings', 'inspector'], ['code', 'inspTabCode', 'inspectorCode']];
+      var tabs = [['settings', 'inspTabSettings', 'inspector'], ['design', 'inspTabDesign', 'inspectorDesign'], ['code', 'inspTabCode', 'inspectorCode']];
       tabs.forEach(function (t) {
         var btn = $(t[1]), panel = $(t[2]);
         if (!btn || !panel) return;
@@ -113,11 +135,22 @@
         panel.hidden = !on;
       });
       if (mode === 'code') renderCode();
+      if (hooks.inspTabChanged) { try { hooks.inspTabChanged(mode); } catch (e) { /* module error */ } }
     }
+    S.switchInspTab = switchInspTab;
+    S.inspMode = function () { return inspMode; };
+    S.renderCode = renderCode;
 
     if ($('inspTabSettings')) $('inspTabSettings').addEventListener('click', function () { switchInspTab('settings'); });
     if ($('inspTabCode')) $('inspTabCode').addEventListener('click', function () { switchInspTab('code'); });
+    if ($('inspTabDesign')) $('inspTabDesign').addEventListener('click', function () { switchInspTab('design'); });
     if ($('inspCodeCopy')) $('inspCodeCopy').addEventListener('click', function () {
+      if (codeMode() === 'css') {
+        var cs = null;
+        try { cs = hooks.selectionCss(); } catch (e) { cs = null; }
+        if (cs && cs.css) copyText(cs.css, 'CSS copié (' + cs.label + ').'); else toast('Aucun style d’élément à copier ici.');
+        return;
+      }
       var c = selectionForCode();
       var json = '';
       try { json = JSON.stringify(c.obj, null, 2); } catch (e) { json = ''; }
@@ -392,28 +425,29 @@
         if (editable) {
           row.title = 'Cliquer pour choisir une autre couleur';
           row.addEventListener('click', function () {
-            var picker = document.createElement('input');
-            picker.type = 'color';
-            picker.value = /^#[0-9a-fA-F]{6}$/.test(val) ? val : '#888888';
-            /* anchored on the clicked row (invisible, not off-screen): the native panel
-             * then opens beside the drawer instead of the window's top-left corner */
-            var rr = row.getBoundingClientRect();
-            picker.style.cssText = 'position:fixed;left:' + Math.max(8, Math.round(rr.left)) + 'px;top:' +
-              Math.round(rr.top + rr.height / 2) + 'px;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none';
-            document.body.appendChild(picker);
-            picker.addEventListener('input', function () {
-              var v = picker.value;
+            /* the Studio's own colour picker (jcolor.js), never the native one */
+            function setToken(v) {
+              var hx = String(v || '').slice(0, 7);
+              if (!/^#[0-9A-Fa-f]{6}$/.test(hx)) return;
               commit('Jeton « ' + label + ' » modifié', function (c) {
                 c.theme = c.theme || {};
-                if (!D.setColorKey(c, 'theme:' + key, v)) {
+                if (!D.setColorKey(c, 'theme:' + key, hx)) {
                   c.theme.colors = c.theme.colors || {};
-                  c.theme.colors[key] = v;
+                  c.theme.colors[key] = hx;
                 }
               }, { coalesce: 'token:' + key, structure: true });
+            }
+            if (!window.JeereColor) return;
+            window.JeereColor.open({
+              anchor: row, title: label, theme: 'dark', value: /^#[0-9a-fA-F]{6}$/.test(val) ? val : '#888888',
+              onChange: function (v) { setToken(v); },
+              place: function (el) {
+                var rr = row.getBoundingClientRect();
+                el.style.left = Math.max(8, rr.left - el.offsetWidth - 8) + 'px';
+                el.style.top = Math.max(56, Math.min(window.innerHeight - el.offsetHeight - 8, rr.top - 40)) + 'px';
+              },
+              toast: toast
             });
-            picker.addEventListener('change', function () { picker.remove(); });
-            try { if (picker.showPicker) picker.showPicker(); else picker.click(); }
-            catch (e) { picker.click(); }
           });
         } else {
           row.disabled = !editable && key !== 'line' ? false : false;
@@ -1595,8 +1629,10 @@
       else if (v && !v.hidden) { v.hidden = true; if ($('versionsBtn')) $('versionsBtn').setAttribute('aria-pressed', 'false'); e.stopPropagation(); }
     }, true);
 
-    hooks.afterChange = function () {
+    hooks.afterChange = function (opts) {
       renderCode();
+      /* a design value scrubbed at 60 fps: only what shows styles follows (not the tokens, the images) */
+      if (opts && opts.styleOnly) { scheduleContrast(); clearMeasure(); return; }
       if (tokensOpen) buildTokens();
       var ap = $('assetsPanel');
       if (ap && !ap.hidden) buildAssets();

@@ -63,6 +63,7 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
 | `tour.js`, `tour.css` | The guided tour shared by the editor and the dashboard: a spotlight on one area, a short bubble with the cloud as the guide, « Suivant » / « Retour » / « Passer », « 2/8 ». See [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas). Styles scoped under `.jt`. | `window.JeereTour` |
+| `fontfile.js`, `brotli-dict.bin` | Reads a font file the seller imports (« Mes polices »): its family name, weight and style from the `name`, `OS/2`, `head`, `fvar` tables, its letters from `cmap`; TTF, OTF, WOFF (zlib through `DecompressionStream`) and WOFF2 (its own Brotli decoder, RFC 7932; `brotli-dict.bin` is Brotli's static dictionary, RFC 7932 Appendix A, 122 784 bytes, MIT, fetched only for a WOFF2 that uses it); packs a TTF / OTF as WOFF (`toWoff`, `CompressionStream`). Pure, no DOM, loads in Node. Editor only. See [Her own fonts](#her-own-fonts-mes-polices-themecustomfonts). | `window.JeereFontFile` |
 | `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jeere assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
 | `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1, `pages` included. | — |
 | `prompts.md` | In French: the single AI assistant of the real product — system prompt, its one tool, the free code around it, the self-improvement loop, the TypeScript orchestration and the cost estimate. The assistant can also adapt the 4 default pages. | — |
@@ -166,7 +167,8 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
 | `theme.intensity` | `vivid` (Vives, the default) or `soft` (Douces) — see [Colour intensity](#colour-intensity) |
 | `theme.colors`, `sections[].settings.bg` / `fg`, hero `buttonBg` / `buttonText` | optional: the seller's own colours over the palette (any of its six colours, the announcement bar, the header, the footer, the badges) and each section's ground and text. A fiche without them renders exactly as before — see [Custom colours](#custom-colours-themecolors-section-colours) |
 | `theme.fonts` | `editorial`, `moderne`, `doux`, `audacieux`, `classique`, `simple`: the font pair, shown as « Suggestions » in the Thème tab |
-| `theme.typography` | optional: the seller's heading font and text font chosen apart (33 fonts), the titles' size `S`/`M`/`L`, weight and capitals. A fiche without it renders exactly as before — see [Fonts](#fonts-themetypography) |
+| `theme.typography` | optional: the seller's heading font and text font chosen apart (33 fonts, or one of hers: `'custom:cf1'`), the titles' size `S`/`M`/`L`, weight and capitals. A fiche without it renders exactly as before — see [Fonts](#fonts-themetypography) |
+| `theme.customFonts` | optional: her own fonts, « Mes polices »: up to 4 imported files (a base64 data URL each, 400 KB at most) and 4 Google Fonts added by name. Never written by the assistant. A fiche without it renders exactly as before — see [Her own fonts](#her-own-fonts-mes-polices-themecustomfonts) |
 | `theme.radius` / `theme.buttons` | `none`, `soft`, `round` / `solid`, `outline` |
 | `payments` | exactly `wave`, `orange`, `mtn`, `moov`, `cod`, `card` (booleans), shown as plain text, never with the operators' logos or colours: in the footer, on the product page and as the checkout's payment options |
 | `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`); `hero` and `about` have `image` and the optional demo `photo`. The zones of the first enabled `delivery` section (else of a hidden one) are also the checkout's commune list |
@@ -982,6 +984,111 @@ key should include `theme.typography`. To offer the
 fonts there: `FONTS`, `FONT_STYLES`, `typography(config)` (the stacks, the weights, the links), `setFontPair(config,
 id)` (a pair, the seller's size and capitals kept), `fontSampleUrl(id)` for a picker in the fonts' own faces.
 
+### Her own fonts (« Mes polices », `theme.customFonts`)
+
+The founder: « ajoute une option pour que chaque personne puisse importer les fonts qu’elle veut directement ». Both
+font lists of Thème › Polices (titles, texts) end with a tab **« Mes polices »**: a font file from the phone or the
+computer, or any Google Font by its name, beyond the 33.
+
+**Contract** — one optional key, never added by `defaultConfig` or `normalizeConfig`: a fiche without it renders **byte
+for byte as before**, and so does a fiche whose `customFonts` no choice uses (`customfonts-test.js`, snap.js). Her
+choice names one with `theme.typography.display` / `.text` = `'custom:<id>'` (for the titles **and** for the texts:
+nothing tells us a font of hers is too decorative for paragraphs).
+
+| Entry | Keys | `normalizeConfig` (never throws) |
+| --- | --- | --- |
+| an imported file (4 at most, `CUSTOM_FONT_LIMITS.files`) | `id` (`cf1`, `cf2`…), `name` (her name for it, 40 characters), `weight` (100…900), `style` (`normal` / `italic`), `format` (`woff2`, `woff`, `ttf`, `otf`), `data` (`data:font/<format>;base64,…`), `size` (bytes, 400 KB at most), and optionally `weightRange` (`[min, max]`, a variable font's weight axis), `glyphs` (has ɛ ɔ ŋ Ɛ Ɔ Ŋ), `accents` (has é è à ç « » ’…), `kind` (`serif` / `sans`: which ɛ ɔ ŋ fallback) | the data URL must be base64 of a known font mime (`font/*`, `application/font-woff`, `application/octet-stream`…), its **first bytes** must be a font (`wOF2`, `wOFF`, `OTTO`, `0x00010000` / `true`: `format` comes from them and the prefix is rewritten `data:font/<format>`), 400 KB decoded at most (`CUSTOM_FONT_LIMITS.chars`), else the entry goes; the name loses control characters and `" ' \` \ < > { } ;`; weights round to the 100s (`'650'` → 700, `9e99` → 400); unknown keys go; duplicate or bad ids are renumbered |
+| a Google font (4 at most) | `id`, `name` (Google's family name: `'Josefin Sans'`), `source: 'google'`, `weights` (`[400, 700]`: the ones Google serves), optionally `italic`, `glyphs`, `kind` | the name must be letters, digits and spaces (`googleFamilyName`), else the entry goes; a name twice: the first stays |
+
+Then `typography.display` / `.text` = `'custom:<id>'` is kept only when that id is in the list (repaired first); otherwise it
+goes (the store gets the suggestion's font back). An empty list is dropped. `schema.json` describes it all (`customFonts`,
+`customFontFile`, `customFontGoogle`, `customFontRef`).
+
+**Families.** Files with the same name (case and spaces aside) are **one font**: a Regular and a Bold of « Josefin Sans » give
+one family with two weights (two `@font-face` of one private family `jeere-u-<hash of the name>`), offered once in the list; a
+choice names any of their ids. `customFamilies(config)` returns them as font objects shaped like `FONTS` entries (`style:
+'mine'`, `custom: true`, `source: 'file' | 'google'`, `ids`, `weights`, `weight` = the nearest to 650, `stack`, `fallback`…);
+`fontOf(config, id)` finds one of the 33 or one of hers. A variable file offers every weight of its axis.
+
+**Render**. `typography()` treats her fonts like the 33: `custom`, the stacks (`'jeere-u-x0l2nd', 'Montserrat', system-ui…` —
+a private family, never her name, so nothing she types reaches the CSS), only the weights used, `--st-fsa` and the
+Montserrat / Noto Serif subset when a font has no ɛ ɔ ŋ (`glyphs` is read from the file's `cmap`; a Google font's is measured when
+it is added). A **Google font** of hers gets its own stylesheet (`css2?family=Josefin+Sans:wght@400;700&display=swap`, only the
+weights used; separate so a weight Google stops serving cannot take the other font down): still at most 2 families + the glyph
+subset. An **imported file** costs no request: `typography().faces` holds one `@font-face{font-family:'jeere-u-…';src:url(data:…)
+format('woff2');font-weight:700;font-style:normal;font-display:swap}` per file of the families used (ids `jst-font-u-<hash>`),
+`own` their names. `JeereRender.ensureFonts(config, doc)` adds them to the `<head>` of the document the store is drawn in (render
+passes its root's), once, so the editor's preview, the dashboard's mini previews and the Studio all draw them; it lets through only
+the two exact `@font-face` shapes (local stand-ins, or one `data:font/…;base64` URL). A text font of hers with no weight of 600 or
+more (an imported Regular alone) sets `data-fsynth="weight"`: `store.css` then allows the browser's bold for prices and buttons
+(`[data-fonts="custom"]` otherwise forbids fake bold).
+
+**Reading a file** (`fontfile.js`, `window.JeereFontFile`): `sniff(bytes)` (the first 4 bytes); `read(bytes, { inflate, dict })`
+→ `{ format, family, subfamily, weight, style, weightRange, kind, glyphs, accents, latin, missing }`: the family is name ID 16, else
+1 (Windows Unicode, else Mac Roman); « Josefin Sans Thin » with style « Bold » at weight 700 — how Google's static cuts of a variable
+font are named — becomes « Josefin Sans »; the weight is `OS/2.usWeightClass` (or the `fvar` default), italic from `fsSelection`,
+`head.macStyle` or the style name; `kind` from the PANOSE serif style, else the name; the letters from the `cmap` (formats 4, 6, 12,
+13). WOFF tables are inflated with `DecompressionStream('deflate')`. **WOFF2** packs every table in one Brotli stream and no browser
+offers Brotli to JavaScript, so `brotliDecode()` implements RFC 7932 (prefix codes, context maps, block switches, the distance ring,
+the 121 dictionary transforms); every WOFF2 we tried uses the static dictionary, so the editor fetches `brotli-dict.bin` (same site,
+122 784 bytes, sha256 `20e42eb1…5c70`) the first time one needs it. Checked against Node's zlib on 486 streams (every quality, window
+and mode, random data, text, fonts) and byte for byte on the WOFF2 streams of 6 real fonts. `toWoff(bytes, deflate)` packs a TTF /
+OTF as WOFF (each table zlib-compressed: Young Serif 104 → 49 KB).
+
+**Editor** (Thème › Polices › « Mes polices », in the titles' list and in the texts' list):
+
+- Her fonts, each written in its own face, « Votre fichier » / « Google Fonts » under it; a click chooses it for that list.
+- **« Importer une police »** (a file button: on a phone the system offers its files; `.woff2,.woff,.ttf,.otf` and their mime types,
+  except on an iPhone or iPad, whose Files app greys out the types it does not know: every file is offered, the first bytes decide).
+  The file is read (a 4 MB file is refused before reading), a TTF / OTF is packed as WOFF, then the browser must load it
+  (`new FontFace(…).load()`: its sanitizer refuses a broken or hostile file). Nothing is added yet: a card shows the font in its
+  own face (« Àà Éé Çç ɛ ɔ ŋ 0123 »), what was read (« Gras (700) · WOFF2, 12 Ko », « TTF, 104 Ko → WOFF, 49 Ko »), **« Nom de la
+  police »** (the name read from the file, which she can change; « Ce fichier ne donne pas son nom » when it has none; « ce fichier
+  s’y ajoute (2 épaisseurs) » when the name is one of hers), « n’a pas tous les accents (é è …) » (orange), « n’a pas les lettres ɛ,
+  ɔ et ŋ : elles seront écrites dans une police proche », the **licence reminder** « Vérifiez que vous avez le droit d’utiliser cette
+  police sur le web : sa licence doit le permettre (c’est le cas des polices Google Fonts et des polices sous licence OFL). » (a note,
+  never an error), « Pour les titres » / « Pour les textes » (the list she came from is on), « Ajouter cette police » / « Annuler ».
+- Refused, in red under the list and in a toast: over 400 KB once packed (« Cette police pèse 457 Ko, même compressée : c’est trop
+  lourd pour une boutique qui s’ouvre sur un téléphone (400 Ko au plus). Importez plutôt sa version WOFF2, bien plus légère. »; a
+  WOFF2 too heavy: « Choisissez une seule épaisseur, ou une police plus légère »), not a font (« Ce fichier n’est pas une police.
+  Choisissez un fichier WOFF2, WOFF, TTF ou OTF. »), a `.ttc` collection, a file with no Latin letters, a broken file, a WOFF2 offline
+  (the dictionary could not be fetched). With 4 files: « Vous avez déjà 4 polices importées : retirez-en une ».
+- **« Ajouter une police Google Fonts »**: her exact name (« josefin sans » works: the name as typed, then in capitals; « IBM plex
+  sans » keeps IBM), « Chercher ». The css2 API answers only for a family it has: the 9 weights are asked in parallel (`text=Aa`, a
+  few hundred bytes each), then the italic, then ɛ ɔ ŋ (a `text=ɛɔƐƆŋŊ` subset under a private name, measured on a canvas over two
+  fallbacks). A name that does not exist: « Aucune police Google Fonts ne s’appelle « … ». Vérifiez l’orthographe sur fonts.google.com »
+  (no connection at all: « Pas de connexion »); one of the 33: « Montserrat est déjà dans nos polices : choisissez-la dans l’onglet
+  Moderne » with « Choisir Montserrat »; letters other than A–Z, digits and spaces are refused. Found: the same card, then « Ajouter ».
+- **« Gérer mes polices »**: each family with « 2 fichiers WOFF2 · 2 épaisseurs · 24 Ko · Titres », **« Renommer »** (her files: every
+  file of the family takes the name; Google fonts keep Google's) and **« Retirer »** (a choice that used it goes back to the suggestion's
+  font; the toast has « Annuler »). Every change is one undo step, saved with the fiche, back after a reload; a template change keeps
+  them; a suggestion replaces her choices but keeps « Mes polices ».
+- **A full browser memory** (`saveNow`): when the fiche no longer fits in `localStorage`, her newest imported files are left out
+  one at a time until it fits — of the fiche she edits too (and of the current undo step), so what she sees is what is saved — with
+  « La mémoire du navigateur est pleine : la police « Sora » n’a pas pu être gardée. Votre boutique est bien enregistrée.
+  Téléchargez la fiche boutique pour tout garder, ou retirez des photos. ». When dropping fonts does not help, the photos go as
+  before (and fonts too, only if even that does not fit). A store is never left unsaved because of a font.
+- **Qualité**: a heavy file in use (over 200 KB, `CUSTOM_FONT_LIMITS.heavy`) → warning « La police « Fraunces » pèse 352 Ko : votre
+  boutique s’ouvrira plus lentement sur un téléphone. Importez plutôt sa version WOFF2… »; a font in use without the French accents →
+  warning; without ɛ ɔ ŋ → a warning when the store writes them, else a tip, both free (no point lost: they are drawn in a close font,
+  like the 23 fonts of the list without them); a file no choice uses → a free tip « … n’est utilisée ni pour les titres ni pour les
+  textes. Retirez-la… ». Each opens Thème › Polices › Mes polices (`target: { kind: 'theme', id: 'fonts', key: 'custom:cf1' }`). An
+  unknown `'custom:…'` reference is the usual « Police des titres inconnue » error. A default fiche still scores 92.
+
+**Dashboard**: « Polices » shows « Josefin Sans · Young Serif »; the mini previews draw her files (they use `JeereRender`); writing
+the fiche keeps them (`normalizeConfig`). Nothing to change there.
+
+**Assistant**: the local assistant never writes `customFonts`. The real one (`prompts.md`) must not either: the rule says so, the tool
+description says so, and `appliquerPatch` strips `theme.customFonts` and any `'custom:…'` from its patches.
+
+**Still to do**: the Studio's PNG export (see above) does not embed her files either. In the real product the files belong in
+Supabase Storage (one URL in the fiche, cached by the CDN), not in the fiche; the 400 KB cap then can grow. A licence cannot be
+checked by code: the reminder is all we can do.
+
+**Tests** (scratchpad `customfonts/`): `customfonts-test.js` (contract and hostile inputs, schema, the 3 templates × phone and
+desktop in her files with the ɛ ɔ ŋ fallback, the editor at 390 and 1440 px, Google Fonts by name, a full memory, the dashboard,
+snap.js) and `fontfile-node.js` (Brotli vs zlib, `read()` vs fontTools); screenshots in `customfonts/shots/`.
+
 **Tests** (scratchpad `fonts/`): `fonts-test.js` — the contract (33 fonts, 5 styles, repairs, the stale pair,
 `setFontPair`, `validate`, schema with Python `jsonschema`), the glyph flags against fontTools, all 528
 combinations within the loading budget, the 33 fonts × 3 templates rendered (each `FontFace` loaded at its weight,
@@ -1498,6 +1605,9 @@ value).
   stock, no promo code, no product variants (size, colour), one delivery fee per commune, and the
   order number is always 1042. The cart is lost when the page reloads.
 - Fonts come from Google Fonts: offline, the store falls back to system fonts.
+- Her imported fonts live inside the fiche (base64), so they weigh in the browser's storage like photos: when it is full, the newest
+  font goes, with a toast, and the store is saved without it. The real product should store them as files (Supabase Storage) and keep
+  only a URL in the fiche.
 - The dashboard's language setting only records `fr` or `en` (a toast says so): every screen
   stays in French for now. The custom domain and the connectors are never really checked.
 - The account's « store name » follows the fiche when the dashboard loads; a seller who renames her

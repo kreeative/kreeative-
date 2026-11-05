@@ -176,10 +176,12 @@
 
   function commit(label, mutate, opts) {
     opts = opts || {};
-    var before = snapshot();
-    try { mutate(state.config); } catch (e) { toast('La modification n’a pas pu être appliquée.', 'err'); return; }
     var now = Date.now();
-    if (opts.coalesce && coalesceKey === opts.coalesce && now - coalesceAt < 1200 && undoStack.length) {
+    /* a burst (typing, scrubbing a value at 60 fps) keeps the first 'before': no snapshot to take */
+    var coalescing = !!(opts.coalesce && coalesceKey === opts.coalesce && now - coalesceAt < 1200 && undoStack.length);
+    var before = coalescing ? null : snapshot();
+    try { mutate(state.config); } catch (e) { toast('La modification n’a pas pu être appliquée.', 'err'); return; }
+    if (coalescing) {
       undoStack[undoStack.length - 1].label = label; // keep the first 'before' of the burst
     } else {
       undoStack.push({ label: label, before: before });
@@ -270,6 +272,15 @@
 
   function afterChange(opts) {
     opts = opts || {};
+    /* element styles (the Design tab): only the scoped <style> of each artboard changes — no
+     * re-render, no tree rebuild — so a value scrubbed at 60 fps stays live in every artboard */
+    if (opts.styleOnly) {
+      applyElStyles();
+      scheduleSave();
+      syncTopBar();
+      if (hooks.afterChange) { try { hooks.afterChange(opts); } catch (e) { /* module error, not ours */ } }
+      return;
+    }
     if (opts.structure) prevCache = {}; // the insert previews render in the current style: drop them when it moves
     scheduleRender();
     scheduleSave();
@@ -277,6 +288,27 @@
     if (opts.structure) buildInspector();
     syncTopBar();
     if (hooks.afterChange) { try { hooks.afterChange(opts); } catch (e) { /* module error, not ours */ } }
+  }
+
+  /* the element styles of the fiche on every artboard (elstyles.js); hooks.elStyleOptions lets the
+   * Design tab show a state being edited (force) and switch transitions off while scrubbing */
+  var styleQueued = false;
+  function applyElStyles(sync) {
+    if (!sync) {
+      if (styleQueued) return;
+      styleQueued = true;
+      requestAnimationFrame(function () { styleQueued = false; applyElStyles(true); });
+      return;
+    }
+    var ES = window.JeereElStyles;
+    if (!ES || typeof ES.apply !== 'function') return;
+    var o = null;
+    if (hooks.elStyleOptions) { try { o = hooks.elStyleOptions(); } catch (e) { o = null; } }
+    activePresets().forEach(function (p) {
+      var rootEl = roots[p.key];
+      if (rootEl) { try { ES.apply(state.config, rootEl, o || undefined); } catch (e) { /* a layer, never a failure */ } }
+    });
+    positionTags();
   }
 
   function scheduleRender() {
@@ -384,6 +416,8 @@
         } catch (e2) { /* nothing more */ }
       }
     });
+    /* render() applied the element styles; the Design tab may want a state shown on top */
+    if (hooks.elStyleOptions) applyElStyles(true);
     applyDecor();
     if (hooks.afterRender) { try { hooks.afterRender(); } catch (e) { /* module error */ } }
   }
@@ -412,6 +446,45 @@
     return null;
   }
 
+  /* design sub-elements (the elstyles.js registry): a selection may carry sel.el, the element key
+   * ('image', 'copy', 'price'…) with or without a fiche field; the header and the footer are the
+   * « chrome » selection { kind: 'chrome', id: '@header' | '@footer', el? } */
+  function esElements(type) {
+    var ES = window.JeereElStyles;
+    try { return ES && ES.elementsFor ? ES.elementsFor(type) : []; } catch (e) { return []; }
+  }
+  function chromeEl(rootEl, id) { return rootEl ? rootEl.querySelector(id === '@footer' ? '.jst-footer' : '.jst-header') : null; }
+  function chromeName(id) { return id === '@footer' ? 'Pied de page' : 'En-tête'; }
+  function isSubSel(sel) {
+    return !!(sel && (sel.kind === 'section' || sel.kind === 'chrome') && (sel.field || sel.el));
+  }
+  function subElOf(scopeEl, sel) {
+    if (!scopeEl || !sel) return null;
+    if (sel.el) {
+      var type = sel.kind === 'chrome' ? sel.id : (scopeEl.getAttribute('data-section-type') || '');
+      var def = esElements(type).filter(function (d) { return d.key === sel.el; })[0];
+      if (def) {
+        if (!def.sel) return scopeEl;
+        try { return scopeEl.querySelector(def.sel); } catch (e) { return null; }
+      }
+    }
+    if (sel.field) return findFieldEl(scopeEl, sel.fieldType || '', sel.field);
+    return null;
+  }
+  /* the deepest design element under the pointer, inside a section (or the header / footer) */
+  function designElAt(scopeEl, type, target) {
+    var best = null, bestNode = null;
+    esElements(type).forEach(function (d) {
+      if (!d.sel) return;
+      var n = null;
+      try { n = target.closest ? target.closest(d.sel) : null; } catch (e) { n = null; }
+      if (!n || !scopeEl.contains(n) || n === scopeEl) return;
+      if (!bestNode || bestNode.contains(n)) { best = d; bestNode = n; }
+    });
+    return best;
+  }
+  function hitChrome(t) { return t && t.closest ? t.closest('.jst-header, .jst-footer') : null; }
+
   function applyDecor() {
     if (hovEl && !document.contains(hovEl)) { hovEl = null; drawHoverBox(null); }
     abKeys().forEach(function (dev) {
@@ -433,9 +506,16 @@
         if (!secEl) return;
         secEl.classList.add('st-sel');
         secEl.setAttribute('data-st-name', sectionName(sectionById(sel.id)));
-        if (sel.field) {
-          var f = findFieldEl(secEl, sel.fieldType || '', sel.field);
+        if (isSubSel(sel)) {
+          var f = subElOf(secEl, sel);
           if (f) f.classList.add('st-sel--sub');
+        }
+      } else if (sel.kind === 'chrome') {
+        var chEl = chromeEl(rootEl, sel.id);
+        if (chEl) {
+          chEl.classList.add('st-sel');
+          var cf = sel.el ? subElOf(chEl, sel) : null;
+          if (cf && cf !== chEl) cf.classList.add('st-sel--sub');
         }
       } else if (sel.kind === 'product') {
         var cards = rootEl.querySelectorAll('[data-product-id="' + cssEsc(sel.id) + '"]');
@@ -478,11 +558,16 @@
     } else if (sel.kind === 'section') {
       var secEl = rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
       if (secEl) {
-        out.push({ el: secEl, sub: false, dim: !!sel.field });
-        if (sel.field) {
-          var f = findFieldEl(secEl, sel.fieldType || '', sel.field);
-          if (f) out.push({ el: f, sub: true });
-        }
+        var sub = isSubSel(sel) ? subElOf(secEl, sel) : null;
+        out.push({ el: secEl, sub: false, dim: !!(sub && sub !== secEl) });
+        if (sub && sub !== secEl) out.push({ el: sub, sub: true });
+      }
+    } else if (sel.kind === 'chrome') {
+      var chEl = chromeEl(rootEl, sel.id);
+      if (chEl) {
+        var csub = sel.el ? subElOf(chEl, sel) : null;
+        out.push({ el: chEl, sub: false, dim: !!(csub && csub !== chEl) });
+        if (csub && csub !== chEl) out.push({ el: csub, sub: true });
       }
     } else if (sel.kind === 'product') {
       rootEl.querySelectorAll('[data-product-id="' + cssEsc(sel.id) + '"]').forEach(function (c) { out.push({ el: c, sub: false }); });
@@ -555,6 +640,9 @@
         target = rootEl.querySelector('[data-product-id="' + cssEsc(sel.id) + '"]');
         var p = productById(sel.id);
         text = p && p.name ? p.name : 'Produit';
+      } else if (sel && sel.kind === 'chrome') {
+        target = chromeEl(rootEl, sel.id);
+        text = chromeName(sel.id);
       }
       if (!target) { if (tag) tag.hidden = true; return; }
       if (!tag) { tag = ce('div', 'st-ab__tag'); ab.appendChild(tag); }
@@ -743,7 +831,7 @@
 
   /* the studio's own floating UI inside the stage (tool bar, popovers, contextual bar…) is
    * chrome, not canvas: no pan, no drag, no selection from there */
-  var STAGE_UI = '.st-ftb, .st-pop, .st-selbar, .st-pinlayer, .st-coach, .st-pin';
+  var STAGE_UI = '.st-ftb, .st-pop, .st-selbar, .st-pinlayer, .st-coach, .st-pin, .dz-qbar, .dz-cropbar, .dz-crop, .dz-ov__rad';
   function onStageUI(t) { return !!(t && t.closest && t.closest(STAGE_UI)); }
 
   function onStagePointerDown(e) {
@@ -803,7 +891,7 @@
     if (isLocked(id)) return;
     var selected = state.sel && state.sel.kind === 'section' && state.sel.id === id;
     if (e.pointerType === 'touch' && (!selected || touchCount() > 0)) return; // a finger drags the selected section only
-    var subEl = selected && state.sel.field ? secEl.querySelector('.st-sel--sub') : null;
+    var subEl = selected && isSubSel(state.sel) ? secEl.querySelector('.st-sel--sub') : null;
     canvasDrag = { id: id, x: e.clientX, y: e.clientY, moved: false, pid: e.pointerId, frame: frame,
       sub: !!(subEl && subEl.contains(e.target)), drop: null };
     window.addEventListener('pointermove', onCanvasDragMove);
@@ -1014,20 +1102,49 @@
     e.stopPropagation();
     e.preventDefault();
     var secEl = hitSection(e.target);
-    if (!secEl) { select(null); return; }
+    if (!secEl) {
+      /* the header and the footer are not sections: selectable for their design (Design tab) */
+      var ch = !e.shiftKey ? hitChrome(e.target) : null;
+      if (ch) { clickChrome(ch, e.target); return; }
+      select(null);
+      return;
+    }
     var id = secEl.getAttribute('data-section-id');
     if (isLocked(id)) { if (!e.shiftKey) select(null); return; }
     if (e.shiftKey) { toggleMulti(id); return; }
     var sel = state.sel;
     if (isMulti(sel)) { select({ kind: 'section', id: id }); return; }
-    if (sel && sel.kind === 'section' && sel.id === id && !sel.field) {
+    if (sel && sel.kind === 'section' && sel.id === id && !isSubSel(sel)) {
       drillInto(secEl, e.target);
-    } else if (sel && ((sel.kind === 'section' && sel.id === id && sel.field) || sel.kind === 'product')) {
+    } else if (sel && ((sel.kind === 'section' && sel.id === id && isSubSel(sel)) || sel.kind === 'product')) {
       // a click inside while a sub-element is selected: try a new sub-element, else keep the section
       drillInto(secEl, e.target) || select({ kind: 'section', id: id });
     } else {
+      /* a button or an icon is selected on the first click, like Framer: its style is what she wants */
+      var direct = designElAt(secEl, secEl.getAttribute('data-section-type') || '', e.target);
+      if (direct && (direct.kind === 'button' || direct.kind === 'icon')) {
+        var dsel = { kind: 'section', id: id, el: direct.key };
+        var dtype = secEl.getAttribute('data-section-type') || '';
+        if (direct.field && hasField(dtype, direct.field)) { dsel.field = direct.field; dsel.fieldType = dtype; }
+        select(dsel);
+        return;
+      }
       select({ kind: 'section', id: id });
     }
+  }
+
+  function clickChrome(chEl, target) {
+    var id = chEl.classList.contains('jst-footer') ? '@footer' : '@header';
+    var sel = state.sel;
+    if (sel && sel.kind === 'chrome' && sel.id === id) {
+      var d = designElAt(chEl, id, target);
+      if (d) { if (d.key !== sel.el) select({ kind: 'chrome', id: id, el: d.key }); return; }
+      if (sel.el) select({ kind: 'chrome', id: id });
+      return;
+    }
+    var dch = designElAt(chEl, id, target);
+    if (dch && (dch.kind === 'icon' || dch.kind === 'button')) { select({ kind: 'chrome', id: id, el: dch.key }); return; }
+    select({ kind: 'chrome', id: id });
   }
 
   /* the Texte tool (T): the next click on a text edits it in place, then the tool hands back to
@@ -1052,10 +1169,31 @@
   function drillInto(secEl, target) {
     var id = secEl.getAttribute('data-section-id');
     var type = secEl.getAttribute('data-section-type') || '';
+    var dB = designElAt(secEl, type, target);
+    if (dB && (dB.kind === 'button' || dB.kind === 'icon')) {
+      var bsel0 = { kind: 'section', id: id, el: dB.key };
+      if (dB.field && hasField(type, dB.field)) { bsel0.field = dB.field; bsel0.fieldType = type; }
+      select(bsel0);
+      return true;
+    }
     var card = target.closest ? target.closest('[data-product-id]') : null;
     if (card && secEl.contains(card)) {
       var pid = card.getAttribute('data-product-id');
+      /* a click inside the selected card: its name, price, photo, badge, button (Design) */
+      if (state.sel && state.sel.kind === 'product' && state.sel.id === pid) {
+        var inCard = designElAt(card, type, target);
+        if (inCard && inCard.key !== 'card') { select({ kind: 'section', id: id, el: inCard.key }); return true; }
+        return true;
+      }
       if (productById(pid)) { select({ kind: 'product', id: pid }); return true; }
+    }
+    var dEl = designElAt(secEl, type, target);
+    /* a button or an icon: straight to it (even inside a product card) */
+    if (dEl && (dEl.kind === 'button' || dEl.kind === 'icon')) {
+      var bsel = { kind: 'section', id: id, el: dEl.key };
+      if (dEl.field && hasField(type, dEl.field)) { bsel.field = dEl.field; bsel.fieldType = type; }
+      select(bsel);
+      return true;
     }
     var pairs = [
       ['.jst-hero-title', 'title'], ['.jst-about-title', 'title'],
@@ -1066,9 +1204,17 @@
     for (var i = 0; i < pairs.length; i++) {
       var n = target.closest ? target.closest(pairs[i][0]) : null;
       if (n && secEl.contains(n) && hasField(type, pairs[i][1])) {
-        select({ kind: 'section', id: id, field: pairs[i][1], fieldType: type });
+        var fsel = { kind: 'section', id: id, field: pairs[i][1], fieldType: type };
+        if (dEl && dEl.field === pairs[i][1]) fsel.el = dEl.key;
+        select(fsel);
         return true;
       }
+    }
+    if (dEl) {
+      var esel = { kind: 'section', id: id, el: dEl.key };
+      if (dEl.field && hasField(type, dEl.field)) { esel.field = dEl.field; esel.fieldType = type; }
+      select(esel);
+      return true;
     }
     var h = target.closest ? target.closest('h1,h2,h3') : null;
     if (h && secEl.contains(h) && hasField(type, 'title')) { select({ kind: 'section', id: id, field: 'title', fieldType: type }); return true; }
@@ -1107,7 +1253,7 @@
   function selKey(sel) {
     if (!sel) return '';
     if (isMulti(sel)) return 'm:' + sel.ids.join(',');
-    return sel.kind + ':' + sel.id + ':' + (sel.field || '');
+    return sel.kind + ':' + sel.id + ':' + (sel.field || '') + ':' + (sel.el || '');
   }
 
   function select(sel, opts) {
@@ -1143,7 +1289,7 @@
     var sel = state.sel;
     if (!sel) return;
     if (isMulti(sel)) select(null);
-    else if (sel.kind === 'section' && sel.field) select({ kind: 'section', id: sel.id });
+    else if (isSubSel(sel)) select({ kind: sel.kind, id: sel.id });
     else if (sel.kind === 'product') {
       // the parent of a product: its products section (the first one)
       var sec = sections().filter(function (s) { return s.type === 'products'; })[0];
@@ -1464,7 +1610,7 @@
       ]);
       return;
     }
-    if (!(state.sel && state.sel.kind === 'section' && state.sel.id === id && !state.sel.field)) select({ kind: 'section', id: id });
+    if (!(state.sel && state.sel.kind === 'section' && state.sel.id === id && !isSubSel(state.sel))) select({ kind: 'section', id: id });
     openCtx(e.clientX, e.clientY, sectionMenuItems(id));
   }
 
@@ -2061,6 +2207,11 @@
       title.textContent = p.name || 'Produit';
       sub.textContent = p.name ? 'Produit' : '';
       insp.appendChild(productInspector(p));
+    } else if (sel && sel.kind === 'chrome') {
+      title.textContent = chromeName(sel.id);
+      var cdef = sel.el ? esElements(sel.id).filter(function (d) { return d.key === sel.el; })[0] : null;
+      sub.textContent = cdef && cdef.sel ? cdef.label : 'toutes les pages';
+      insp.appendChild(chromeInspector(sel));
     } else if (sel && sel.kind === 'page') {
       var pg = pageById(sel.id);
       if (!pg) { state.sel = null; return buildInspector(); }
@@ -2073,6 +2224,32 @@
       insp.appendChild(styleInspector());
     }
     if (hooks.inspectorBuilt) { try { hooks.inspectorBuilt(sel); } catch (e) { /* module error */ } }
+  }
+
+  /* --- header / footer: their content comes from the store; their look is in the Design tab --- */
+  function chromeInspector(sel) {
+    var frag = document.createDocumentFragment();
+    var g = group('Contenu');
+    var footer = sel.id === '@footer';
+    g.body.appendChild(fieldText(footer ? 'Slogan (sous le nom)' : 'Nom de la boutique', footer ? state.config.store.tagline : state.config.store.name,
+      footer ? 120 : 40, function (v) {
+        commit(footer ? 'Slogan modifié' : 'Nom de la boutique modifié', function (c) {
+          if (!c.store) c.store = {};
+          if (footer) c.store.tagline = v; else c.store.name = v;
+        }, { coalesce: footer ? 'store:tagline' : 'store:name' });
+      }));
+    g.body.appendChild(ce('p', 'st-insp__empty', (footer
+      ? 'Le pied de page reprend le nom, le slogan, vos pages et vos moyens de paiement.'
+      : 'L’en-tête reprend le nom (ou le logo), vos pages « dans le menu » et le panier.') +
+      ' Son apparence (fond, typographie, espacements, bordures…) se règle dans l’onglet Design.'));
+    if (hooks.openDesign) {
+      var b = ce('button', 'st-secbtn', 'Régler le design de ' + (footer ? 'ce pied de page' : 'cet en-tête'));
+      b.type = 'button';
+      b.addEventListener('click', function () { hooks.openDesign(); });
+      g.body.appendChild(b);
+    }
+    frag.appendChild(g);
+    return frag;
   }
 
   /* --- multi-selection inspector: the bulk actions --- */
@@ -2747,6 +2924,15 @@
 
   /* ------------------------------------------------------------------ edit actions */
 
+  /* a duplicated section keeps its design: its element styles follow under the new id */
+  function copyElStyles(c, fromId, toId) {
+    var es = c && c.elementStyles;
+    if (!fromId || !toId || !es || typeof es !== 'object') return;
+    Object.keys(es).forEach(function (k) {
+      if (k.indexOf(fromId + '/') === 0) es[toId + '/' + k.slice(fromId.length + 1)] = clone(es[k]);
+    });
+  }
+
   function duplicateSelection() {
     var sel = state.sel;
     if (!sel) { toast('Sélectionnez une section ou un produit à dupliquer.'); return; }
@@ -2766,6 +2952,7 @@
         var at = -1;
         arr.forEach(function (x, i) { if (ids.indexOf(x.id) !== -1) at = i; });
         arr.splice.apply(arr, [at + 1, 0].concat(copies));
+        copies.forEach(function (cp, k) { copyElStyles(c, ids.filter(function (id) { return !!sectionById(id); })[k], cp.id); });
       }, { structure: true });
       select({ kind: 'multi', ids: copies.map(function (x) { return x.id; }) });
       toast(copies.length + ' sections dupliquées.', 'ok');
@@ -2781,6 +2968,7 @@
         var at = arr.length;
         arr.forEach(function (x, i) { if (x.id === sel.id) at = i + 1; });
         arr.splice(at, 0, copy);
+        copyElStyles(c, sel.id, copy.id);
       }, { structure: true });
       select({ kind: 'section', id: copy.id });
       toast('Section dupliquée.', 'ok');
@@ -3007,7 +3195,7 @@
     if (!sel || isMulti(sel)) return;
     var dev = primaryKey();
     var rootEl = roots[dev];
-    if (sel.kind === 'section' && !sel.field) {
+    if (sel.kind === 'section' && !isSubSel(sel)) {
       var secEl = rootEl && rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
       var type = secEl ? secEl.getAttribute('data-section-type') || '' : '';
       for (var i = 0; i < CHILD_ORDER.length; i++) {
@@ -3021,9 +3209,9 @@
       hintOnce('enter-none', 'Cette section n’a pas de texte à modifier ici : ses réglages sont dans l’inspecteur.', 4000);
       return;
     }
-    if (sel.kind === 'section' && sel.field) {
+    if (sel.kind === 'section' && isSubSel(sel)) {
       var sEl = rootEl && rootEl.querySelector('[data-section-id="' + cssEsc(sel.id) + '"]');
-      var f = sEl ? findFieldEl(sEl, sel.fieldType || '', sel.field) : null;
+      var f = sEl ? subElOf(sEl, sel) : null;
       var spec = f ? inlineSpecFor(f, sEl) : null;
       if (spec) startInlineEdit(spec);
       return;
@@ -3037,7 +3225,7 @@
   function parentSelection() {
     var sel = state.sel;
     if (!sel || isMulti(sel)) return;
-    if ((sel.kind === 'section' && sel.field) || sel.kind === 'product') escapeSelection();
+    if (isSubSel(sel) || sel.kind === 'product') escapeSelection();
   }
 
   /* Ctrl+\ : masquer / afficher les panneaux (le plan de travail en grand) */
@@ -3771,6 +3959,14 @@
     toggleChrome: toggleChrome,
     hintOnce: hintOnce,
     positionTags: positionTags,
+    applyElStyles: applyElStyles,
+    esElements: esElements,
+    subElOf: subElOf,
+    chromeEl: chromeEl,
+    chromeName: chromeName,
+    isSubSel: isSubSel,
+    findFieldEl: findFieldEl,
+    frameScale: frameScale,
     isDragging: function () { return !!(canvasDrag && canvasDrag.moved) || !!pan; },
     isInlineEditing: function () { return !!inlineEdit; }
   };

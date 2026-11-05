@@ -121,6 +121,7 @@ Si tu ne comprends pas une réponse, dis-le simplement et propose des réponses 
 - template, theme.palette, theme.intensity, theme.fonts, theme.radius, theme.buttons, store.niche, les types de section, products[].art et products[].badge : seulement les identifiants du <catalogue_jeere>. N’invente jamais un identifiant, une couleur de palette ni une police.
 - Quand tu changes de modèle, ne donne pas les polices : le code applique celles du modèle et garde la palette et l’intensité des couleurs choisies.
 - Polices : theme.fonts est une paire (une « suggestion »). Seulement si la vendeuse le demande (« une police élégante », « une écriture manuscrite », « les titres en majuscules »), ajoute theme.typography avec display (police des titres), text (police des textes, seulement une police marquée « textes aussi » dans le catalogue), size (S, M ou L), upper (vrai ou faux). Jamais de police manuscrite pour les textes, jamais une écriture manuscrite en majuscules (sans upper, elle n’est pas en majuscules, même sur Treichville).
+- Ses propres polices (theme.customFonts, « Mes polices ») : ce sont des fichiers qu’elle importe elle-même ou des polices Google Fonts qu’elle ajoute par leur nom, dans Thème › Polices. N’écris jamais theme.customFonts, n’invente jamais une police hors du catalogue (pas de « Josefin Sans », pas de nom de fichier), et n’écris jamais display ou text en « custom:… ». Si la fiche en contient déjà, garde-les : ne les recopie pas et ne les retire pas. Si elle demande une police précise qui n’est pas dans le catalogue, propose la plus proche du catalogue et dis-lui qu’elle peut importer la sienne dans Thème › Polices › Mes polices (en vérifiant qu’elle a le droit de l’utiliser sur le web).
 - products[].color : une des couleurs de tuile du catalogue, celle qui va le mieux avec le produit.
 - N’écris jamais de champ image : seules les photos de la vendeuse vont dans la fiche, et c’est l’éditeur qui les ajoute.
 - Les champs photo (products[].photo, et settings.photo des sections hero et about) sont les photos d’exemple de Jeere : c’est Jeere qui les remplit. Garde telles quelles les valeurs photo que tu trouves dans la fiche. N’invente jamais d’identifiant de photo : si tu dois écrire un champ photo (un nouveau produit), mets null.
@@ -180,7 +181,7 @@ Une seule définition, à garder identique d’un appel à l’autre (elle fait 
         "properties": {
           "template": { "type": "string", "enum": ["plateau", "cocody", "treichville"] },
           "store": { "type": "object", "description": "Clés possibles : name, tagline, city, niche. Jamais whatsapp : le code s’en charge." },
-          "theme": { "type": "object", "description": "Clés possibles : palette, intensity (vivid ou soft), fonts, radius, buttons, typography (display, text, size, upper : seulement si la vendeuse parle de police)." },
+          "theme": { "type": "object", "description": "Clés possibles : palette, intensity (vivid ou soft), fonts, radius, buttons, typography (display, text, size, upper : seulement si la vendeuse parle de police, et seulement des polices du catalogue). Jamais customFonts : ses propres polices ne viennent que de l'éditeur." },
           "payments": { "type": "object", "description": "Clés possibles : wave, orange, mtn, moov, cod, card (vrai ou faux)." },
           "sections": { "type": "array", "items": { "type": "object" }, "description": "Chaque élément : { id } d’une section existante, ou { type } pour en ajouter une, puis enabled et/ou settings (seulement les réglages qui changent)." },
           "ordre_sections": { "type": "array", "items": { "type": "string" }, "description": "Nouvel ordre des sections, par id." },
@@ -855,7 +856,15 @@ function appliquerPatch(base: Fiche, patch: any): Fiche {
     // Les polices, les angles et les boutons suivent le modèle ; la palette et l'intensité (vivid/soft) restent.
     Object.assign(f.theme, { fonts: t.defaults.fonts, radius: t.defaults.radius, buttons: t.defaults.buttons });
   }
-  if (patch.theme) Object.assign(f.theme, patch.theme);
+  if (patch.theme) {
+    // Ses propres polices (theme.customFonts, « Mes polices ») ne viennent que de l'éditeur : l'IA ne les écrit
+    // ni ne les retire, et ne choisit que des polices du catalogue (jamais « custom:… »).
+    const { customFonts: _jamais, ...theme } = patch.theme;
+    if (theme.typography && typeof theme.typography === "object") {
+      for (const k of ["display", "text"]) if (typeof theme.typography[k] === "string" && /^custom:/.test(theme.typography[k])) delete theme.typography[k];
+    }
+    Object.assign(f.theme, theme);
+  }
   if (patch.payments) Object.assign(f.payments, patch.payments);
 
   // Les pages encore d'origine suivent le nom et la ville (normalizeConfig les réécrit) ; celles de la vendeuse ne bougent pas.

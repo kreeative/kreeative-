@@ -44,8 +44,13 @@
       more: SVG16('<circle cx="3.5" cy="8" r=".9"/><circle cx="8" cy="8" r=".9"/><circle cx="12.5" cy="8" r=".9"/>'),
       text: SVG16('<path d="M3.5 4.8V3.2h9v1.6M8 3.2v9.6M6 12.8h4"/>'),
       parent: SVG16('<path d="M6 9.5L2.8 6.3 6 3.1M3 6.3h6.2a3.8 3.8 0 010 7.6H7"/>'),
-      image: SVG16('<rect x="2" y="2.8" width="12" height="10.4" rx="1.6"/><circle cx="6" cy="6.6" r="1.2"/><path d="M2.4 11.6l3.4-3 2.4 2 2.1-1.8 3.3 2.9"/>')
+      image: SVG16('<rect x="2" y="2.8" width="12" height="10.4" rx="1.6"/><circle cx="6" cy="6.6" r="1.2"/><path d="M2.4 11.6l3.4-3 2.4 2 2.1-1.8 3.3 2.9"/>'),
+      design: SVG16('<path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/>')
     };
+    /* « Design » on every single selection: the Design tab of the inspector (studio-design.js) */
+    function designBtn() {
+      return btn(I.design, 'Design de la sélection', '', function () { if (hooks.openDesign) hooks.openDesign(); });
+    }
 
     /* ================================================================ tooltips
      * Every control with data-tip (and the old title= ones, converted on the fly) gets a dark
@@ -233,7 +238,7 @@
       var extra = '';
       if (sel.kind === 'section') { var s = S.sectionById(sel.id); extra = s ? (s.enabled === false ? 'off' : 'on') + ':' + S.sectionName(s) : ''; }
       if (sel.kind === 'product') { var p = S.productById(sel.id); extra = p ? p.name : ''; }
-      return sel.kind + ':' + sel.id + ':' + (sel.field || '') + ':' + extra + ':' + S.sections().map(function (x) { return x.id; }).join(',');
+      return sel.kind + ':' + sel.id + ':' + (sel.field || '') + ':' + (sel.el || '') + ':' + extra + ':' + S.sections().map(function (x) { return x.id; }).join(',');
     }
     function btn(icon, tip, kbdTxt, fn, cls, label) {
       var b = ce('button', cls || '', icon + (label ? '<span>' + esc(label) + '</span>' : ''));
@@ -269,10 +274,13 @@
         var def = S.sectionDef(s.type);
         var typeName = def && def.name ? def.name : s.type;
         var ico = S.icon(s.type);
-        if (sel.field) {
-          bar.appendChild(ce('span', 'st-selbar__name', ico + '<span>' + esc(S.sectionName(s)) + '</span><small>› ' + esc(FIELD_LABELS[sel.field] || sel.field) + '</small>'));
+        if (sel.field || sel.el) {
+          var edef = sel.el && S.esElements ? S.esElements(s.type).filter(function (d) { return d.key === sel.el; })[0] : null;
+          var subLabel = edef ? edef.label : (FIELD_LABELS[sel.field] || sel.field);
+          bar.appendChild(ce('span', 'st-selbar__name', ico + '<span>' + esc(S.sectionName(s)) + '</span><small>› ' + esc(subLabel) + '</small>'));
           bar.appendChild(sep());
-          bar.appendChild(btn(I.text, 'Modifier le texte sur place', 'Entrée', function () { S.enterSelection(); }, '', 'Modifier'));
+          if (sel.field) bar.appendChild(btn(I.text, 'Modifier le texte sur place', 'Entrée', function () { S.enterSelection(); }, '', 'Modifier'));
+          bar.appendChild(designBtn());
           bar.appendChild(btn(I.parent, 'Sélectionner la section', '⇧ Entrée', function () { S.select({ kind: 'section', id: s.id }); }));
           bar.appendChild(sep());
           bar.appendChild(btn(I.more, 'Plus d’actions', '', function (e, b) { var r = b.getBoundingClientRect(); S.openSelectionMenu(r.left, r.bottom + 6); }));
@@ -291,6 +299,7 @@
         bar.appendChild(dn);
         bar.appendChild(btn(I.plus, 'Insérer une section dessous', 'S', function () { openPop(); }));
         bar.appendChild(sep());
+        bar.appendChild(designBtn());
         if (S.imageSlotForSelection()) bar.appendChild(btn(I.image, 'Changer la photo', 'I', function () { S.pickImageForSelection(); }));
         bar.appendChild(btn(I.dup, 'Dupliquer', 'Ctrl D', function () { S.duplicateSelection(); }));
         bar.appendChild(btn(s.enabled === false ? I.eyeOff : I.eye, s.enabled === false ? 'Afficher la section' : 'Masquer la section', 'Ctrl ⇧ H', function () { S.toggleHideSelected(); }));
@@ -304,6 +313,7 @@
         bar.appendChild(ce('span', 'st-selbar__name', S.icon('product') + '<span>' + esc(p.name || 'Produit') + '</span>'));
         bar.appendChild(sep());
         bar.appendChild(btn(I.text, 'Modifier le nom sur place', 'Entrée', function () { S.enterSelection(); }));
+        bar.appendChild(designBtn());
         bar.appendChild(btn(I.image, 'Changer la photo', 'I', function () { S.pickImageForSelection(); }));
         bar.appendChild(btn(I.dup, 'Dupliquer', 'Ctrl D', function () { S.duplicateSelection(); }));
         bar.appendChild(btn(I.trash, 'Supprimer', 'Suppr', function () { S.deleteSelection(); }, 'is-danger'));
@@ -311,6 +321,13 @@
           var sec = S.sections().filter(function (x) { return x.type === 'products'; })[0];
           if (sec) S.select({ kind: 'section', id: sec.id });
         }));
+      }
+      if (sel.kind === 'chrome') {
+        var cdef = sel.el && S.esElements ? S.esElements(sel.id).filter(function (d) { return d.key === sel.el; })[0] : null;
+        bar.appendChild(ce('span', 'st-selbar__name', S.icon('page') + '<span>' + esc(S.chromeName ? S.chromeName(sel.id) : '') + '</span>' + (cdef && cdef.sel ? '<small>› ' + esc(cdef.label) + '</small>' : '')));
+        bar.appendChild(sep());
+        bar.appendChild(designBtn());
+        if (cdef && cdef.sel) bar.appendChild(btn(I.parent, 'Sélectionner le bloc entier', 'Échap', function () { S.select({ kind: 'chrome', id: sel.id }); }));
       }
     }
     function barAnchor() {

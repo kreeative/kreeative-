@@ -13,11 +13,16 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
   <link rel="stylesheet" href="../creer/store.css">
   <link rel="stylesheet" href="studio.css">
+  <link rel="stylesheet" href="studio-design.css">
+  <link rel="stylesheet" href="../creer/jcolor.css">
   <script src="../creer/data.js" defer></script>
   <script src="../creer/render.js" defer></script>
+  <script src="../creer/elstyles.js" defer></script>
+  <script src="../creer/jcolor.js" defer></script>
   <script src="studio.js" defer></script>
   <script src="studio-power.js" defer></script>
   <script src="studio-toolbar.js" defer></script>
+  <script src="studio-design.js" defer></script>
 </head>
 <body>
   <svg class="st-defs" aria-hidden="true" focusable="false"><defs>
@@ -139,11 +144,13 @@
         <div class="st-right__head"><span id="inspTitle">Réglages</span><span id="inspSub" class="st-right__sub"></span></div>
         <div class="st-right__tabs" role="tablist" aria-label="Inspecteur">
           <button id="inspTabSettings" role="tab" aria-selected="true" class="is-on" type="button">Réglages</button>
+          <button id="inspTabDesign" role="tab" aria-selected="false" type="button">Design</button>
           <button id="inspTabCode" role="tab" aria-selected="false" type="button">Code</button>
         </div>
         <div id="inspector" class="st-panel"></div>
+        <div id="inspectorDesign" class="st-panel dz" hidden role="tabpanel" aria-label="Design de la sélection"></div>
         <div id="inspectorCode" class="st-panel st-code" hidden>
-          <div class="st-code__bar"><span id="inspCodeLabel">Fiche boutique</span><button id="inspCodeCopy" class="st-ghostbtn" type="button">Copier</button></div>
+          <div class="st-code__bar"><span id="inspCodeLabel">Fiche boutique</span><span class="st-seg st-code__mode" id="inspCodeMode" role="group" aria-label="Format"><button type="button" data-codemode="css">CSS</button><button type="button" data-codemode="json" class="is-on">JSON</button></span><button id="inspCodeCopy" class="st-ghostbtn" type="button">Copier</button></div>
           <pre id="inspCodePre" tabindex="0" aria-label="JSON de la sélection"></pre>
         </div>
       </aside>

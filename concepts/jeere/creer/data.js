@@ -884,22 +884,36 @@
   // theme.typography, repaired (normalizeConfig). Never throws; null when nothing is left.
   // pair: the suggestion the fonts were chosen over. A tool that only knows theme.fonts (the Studio) changes the
   // pair: the old choices then no longer apply (render ignores them, normalizeConfig drops them).
-  function normTypography(src, pairId) {
+  // customFonts: the fiche's theme.customFonts (normalized), so 'custom:<id>' is kept only when that font exists.
+  // Not passed at all (an older caller): a well-formed 'custom:<id>' is kept as written.
+  function normTypography(src, pairId, customFonts) {
     if (!isObj(src)) return null;
     var out = {};
     var pair = typeof src.pair === 'string' && inColl(fontPairs, src.pair) ? src.pair : null;
     var stale = pair !== null && pair !== pairId;
-    var display = fontId(src.display);
-    var text = fontId(src.text);
-    if (text && !FONTS[text].text) text = null;
+    var fams = customFonts === undefined ? null : customFamilies(customFonts);
+    var own = {};
+    function ref(v) {
+      var id = fontId(v);
+      if (id) return id;
+      var m = typeof v === 'string' ? /^custom:(cf[1-9]\d*)$/.exec(v.trim()) : null;
+      if (!m) return null;
+      if (!fams) return 'custom:' + m[1];
+      var f = customRef(v, fams);
+      if (f) own['custom:' + m[1]] = f;
+      return f ? 'custom:' + m[1] : null;
+    }
+    var display = ref(src.display);
+    var text = ref(src.text);
+    if (text && !own[text] && FONTS[text] && !FONTS[text].text) text = null;
     var hasWeight = isFinite(weightNum(src.weight));
     if (!stale && (display || text || hasWeight)) {
       out.pair = pairId;
       if (display) out.display = display;
       if (text) out.text = text;
       if (hasWeight) {
-        var dfont = FONTS[display || (inColl(fontPairs, pairId) ? fontPairs[pairId].displayFont : 'playfair')];
-        out.weight = nearestWeight(src.weight, dfont.weights);
+        var dfont = own[display] || FONTS[display] || (display ? null : FONTS[inColl(fontPairs, pairId) ? fontPairs[pairId].displayFont : 'playfair']);
+        out.weight = dfont ? nearestWeight(src.weight, dfont.weights) : roundWeight(src.weight);
       }
     }
     var size = typeof src.size === 'string' ? src.size.trim().toUpperCase() : null;
@@ -923,10 +937,14 @@
     var pair = fontPairs[pairId];
     var t = isObj(theme.typography) ? theme.typography : {};
     var stale = typeof t.pair === 'string' && t.pair !== pairId;
-    var dId = !stale && fontId(t.display) ? fontId(t.display) : pair.displayFont;
-    var tId = !stale && fontId(t.text) && FONTS[fontId(t.text)].text ? fontId(t.text) : pair.textFont;
-    var display = FONTS[dId];
-    var text = FONTS[tId];
+    // Her own fonts (theme.customFonts) are named 'custom:<id>'; any of them may be used for the texts
+    var ownFams = Array.isArray(theme.customFonts) && (/^custom:/.test(t.display) || /^custom:/.test(t.text)) ? customFamilies(theme.customFonts) : [];
+    var dOwn = stale ? null : customRef(t.display, ownFams);
+    var tOwn = stale ? null : customRef(t.text, ownFams);
+    var dId = dOwn ? dOwn.id : (!stale && fontId(t.display) ? fontId(t.display) : pair.displayFont);
+    var tId = tOwn ? tOwn.id : (!stale && fontId(t.text) && FONTS[fontId(t.text)].text ? fontId(t.text) : pair.textFont);
+    var display = dOwn || FONTS[dId];
+    var text = tOwn || FONTS[tId];
     var wSet = !stale && isFinite(weightNum(t.weight));
     var weight = wSet ? nearestWeight(t.weight, display.weights) : (dId === pair.displayFont ? pair.display.weight : display.weight);
     var custom = dId !== pair.displayFont || tId !== pair.textFont || weight !== pair.display.weight;
@@ -963,15 +981,30 @@
     // Plateau's signature is in italic 400 in the heading font: its real italic, when it has one
     var ital = tpl === 'plateau' && display.italic ? [400] : null;
     var fams = [];
+    var files = [];
     var fb = {};
     [display, text].forEach(function (f) {
-      if (fams.indexOf(f) !== -1) return;
-      fams.push(f);
+      if (fams.indexOf(f) !== -1 || files.indexOf(f) !== -1) return;
+      // her imported files are inline @font-face rules (faces), every other font comes from Google Fonts
+      if (f.source === 'file') files.push(f); else fams.push(f);
       if (f.fallback) { fb[f.fallback] = fb[f.fallback] || []; want[f.id].forEach(function (w) { if (fb[f.fallback].indexOf(w) === -1) fb[f.fallback].push(w); }); }
     });
-    var href = 'https://fonts.googleapis.com/css2?' + fams.map(function (f) { return 'family=' + familyParam(f, want[f.id], f === display ? ital : null); }).join('&') + '&display=swap';
-    out.links.push({ id: 'jst-font-c-' + hashStr(href), href: href });
+    // One stylesheet for the fonts of the list; a Google font she added by name gets its own, so a weight Google
+    // no longer serves (the stylesheet then fails as a whole) never takes the other font down with it
+    var listed = fams.filter(function (f) { return !f.custom; });
+    [listed].concat(fams.filter(function (f) { return f.custom; }).map(function (f) { return [f]; })).forEach(function (group) {
+      if (!group.length) return;
+      var href = 'https://fonts.googleapis.com/css2?' + group.map(function (f) { return 'family=' + familyParam(f, want[f.id], f === display ? ital : null); }).join('&') + '&display=swap';
+      out.links.push({ id: 'jst-font-c-' + hashStr(href), href: href });
+    });
     out.families = fams.map(function (f) { return f.family; });
+    // Her files: one @font-face per file of the family (font-display: swap), the names she reads in own
+    if (files.length) {
+      out.faces = out.faces.concat(customFontFaces(null, files));
+      out.own = files.map(function (f) { return f.name; });
+    }
+    // A text font of hers with no bold of its own: the browser may thicken it (render: data-fsynth)
+    if (text.custom && !text.weights.some(function (w) { return w >= 600; })) out.synth = true;
     // A family that already has the letters is loaded anyway (Montserrat as the text font): no subset of it
     var fbNames = Object.keys(fb).filter(function (n) { return out.families.indexOf(n) === -1; });
     if (fbNames.length) {
@@ -1030,6 +1063,214 @@
       if (!Object.keys(t).length) delete config.theme.typography;
     }
     return true;
+  }
+
+  /* ------------------------------------------------------------------ her own fonts (theme.customFonts)
+   * « Mes polices »: font files she imports (WOFF2, WOFF, TTF, OTF; the editor reads their name, weight, style and
+   * letters with fontfile.js) and Google Fonts she adds by name, beyond the 33. Optional, never added by
+   * defaultConfig or normalizeConfig. theme.typography.display / .text name one with 'custom:<id>'.
+   *  - a file: { id: 'cf1', name, weight, style: 'normal' | 'italic', format: 'woff2' | 'woff' | 'ttf' | 'otf',
+   *    data: 'data:font/<format>;base64,…', size (bytes), weightRange?: [min, max] (a variable font),
+   *    glyphs?: has ɛ ɔ ŋ Ɛ Ɔ Ŋ, accents?: has the French accents, kind?: 'serif' | 'sans' (the ɛ ɔ ŋ fallback) }
+   *    Files with the same name are one family (a Regular and a Bold): one 'jeere-u-<hash>' @font-face family.
+   *  - a Google font: { id, name: 'Josefin Sans', source: 'google', weights: [400, 700], italic?, glyphs?, kind? }
+   */
+  var CUSTOM_FONT_LIMITS = { files: 4, google: 4, bytes: 400 * 1024, heavy: 200 * 1024, name: 40, read: 4 * 1024 * 1024 };
+  CUSTOM_FONT_LIMITS.chars = 'data:font/woff2;base64,'.length + Math.ceil(CUSTOM_FONT_LIMITS.bytes / 3) * 4;
+  var FONT_FORMAT_CSS = { woff2: 'woff2', woff: 'woff', ttf: 'truetype', otf: 'opentype' };
+  var FONT_DATA_RE = /^data:(?:font\/(?:woff2|woff|ttf|otf|sfnt)|application\/(?:font-woff2?|x-font-woff2?|x-font-ttf|x-font-truetype|x-font-otf|x-font-opentype|font-sfnt|vnd\.ms-opentype|octet-stream));base64,([A-Za-z0-9+/]+={0,2})$/;
+  var CUSTOM_ID_RE = /^cf[1-9]\d*$/;
+  var B64_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  // The format a font data URL really holds, from its first bytes (never from its mime type)
+  function fontDataFormat(url) {
+    if (typeof url !== 'string' || url.length > CUSTOM_FONT_LIMITS.chars + 64) return null;
+    var i = url.indexOf(';base64,');
+    if (i < 0 || i > 48) return null;
+    var head = url.substr(i + 8, 8);
+    if (head.length < 8) return null;
+    var bytes = [];
+    for (var k = 0; k < 8; k += 4) {
+      var n = 0;
+      for (var j = 0; j < 4; j++) { var v = B64_ALPHA.indexOf(head.charAt(k + j)); if (v < 0) return null; n = n * 64 + v; }
+      bytes.push((n >> 16) & 255, (n >> 8) & 255, n & 255);
+    }
+    var tag = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]);
+    if (tag === 'wOF2') return 'woff2';
+    if (tag === 'wOFF') return 'woff';
+    if (tag === 'OTTO') return 'otf';
+    if (tag === '\u0000\u0001\u0000\u0000' || tag === 'true') return 'ttf';
+    return null;
+  }
+  // { data (canonical 'data:font/<format>;base64,…'), format, size } or null (not a font, too heavy, broken)
+  function normFontData(v) {
+    if (typeof v !== 'string' || v.length > CUSTOM_FONT_LIMITS.chars + 64) return null;
+    var m = FONT_DATA_RE.exec(v);
+    if (!m) return null;
+    var format = fontDataFormat(v);
+    if (!format) return null;
+    var b64 = m[1];
+    if (b64.length % 4) return null;
+    var size = b64.length / 4 * 3 - (b64.charAt(b64.length - 1) === '=' ? (b64.charAt(b64.length - 2) === '=' ? 2 : 1) : 0);
+    if (size > CUSTOM_FONT_LIMITS.bytes || size < 12) return null;
+    var prefix = 'data:font/' + format + ';base64,';
+    return { data: v.lastIndexOf(prefix, 0) === 0 ? v : prefix + b64, format: format, size: size };
+  }
+  // A name as she reads it (« Ma police »): no control characters, no quotes or brackets, at most 40 characters
+  function cleanFontName(v) {
+    if (typeof v !== 'string') return '';
+    var s = v.replace(/[\u0000-\u001F\u007F-\u009F"'`\\<>{};]/g, '').replace(/\s+/g, ' ').trim();
+    return s.length > CUSTOM_FONT_LIMITS.name ? clip(s, CUSTOM_FONT_LIMITS.name).trim() : s;
+  }
+  // A Google Fonts family name as Google writes it (letters, digits, spaces): 'Josefin Sans', 'M PLUS 1p'
+  function googleFamilyName(v) {
+    if (typeof v !== 'string') return null;
+    var s = v.replace(/\s+/g, ' ').trim();
+    return /^[A-Za-z0-9][A-Za-z0-9 ]{0,59}$/.test(s) ? s : null;
+  }
+  // A weight on the 100 … 900 scale the store uses (350 → 400, a tie goes up), else null
+  function roundWeight(w) {
+    var n = weightNum(w);
+    if (!isFinite(n)) return null;
+    return Math.min(900, Math.max(100, Math.floor(n / 100 + 0.5) * 100));
+  }
+  // theme.customFonts, repaired (normalizeConfig). Never throws; null when nothing is left.
+  function normCustomFonts(list) {
+    if (!Array.isArray(list)) return null;
+    var out = [];
+    var files = 0, google = 0, seenG = {};
+    list.forEach(function (e) {
+      if (!isObj(e)) return;
+      var item;
+      if (e.source === 'google') {
+        var gname = googleFamilyName(e.name);
+        if (!gname || seenG[gname.toLowerCase()] || google >= CUSTOM_FONT_LIMITS.google) return;
+        var ws = [];
+        (Array.isArray(e.weights) ? e.weights : []).forEach(function (w) { var r = roundWeight(w); if (r && ws.indexOf(r) === -1) ws.push(r); });
+        ws.sort(function (a, b) { return a - b; });
+        item = { id: e.id, name: gname, source: 'google', weights: ws.length ? ws : [400] };
+        if (e.italic === true) item.italic = true;
+        google++;
+        seenG[gname.toLowerCase()] = true;
+      } else {
+        if (files >= CUSTOM_FONT_LIMITS.files) return;
+        var fd = normFontData(e.data);
+        if (!fd) return;
+        var w0 = roundWeight(e.weight) || 400;
+        item = {
+          id: e.id, name: cleanFontName(e.name) || 'Ma police', weight: w0,
+          style: e.style === 'italic' || e.style === 'oblique' ? 'italic' : 'normal', format: fd.format, data: fd.data, size: fd.size
+        };
+        if (Array.isArray(e.weightRange) && e.weightRange.length === 2) {
+          var lo = roundWeight(e.weightRange[0]), hi = roundWeight(e.weightRange[1]);
+          if (lo && hi && lo < hi) { item.weightRange = [lo, hi]; item.weight = Math.min(hi, Math.max(lo, w0)); }
+        }
+        if (typeof e.accents === 'boolean') item.accents = e.accents;
+        files++;
+      }
+      if (typeof e.glyphs === 'boolean') item.glyphs = e.glyphs;
+      if (e.kind === 'serif' || e.kind === 'sans') item.kind = e.kind;
+      out.push(item);
+    });
+    assignIds(out, 'cf');
+    return out.length ? out : null;
+  }
+  function fontKey(name) { return String(name).toLowerCase().replace(/\s+/g, ' ').trim(); }
+  // Her fonts as families (font objects shaped like FONTS entries, style 'mine'): the files of one name together
+  // (a Regular and a Bold of one font), each Google font alone. id: 'custom:<id of its first file>'; ids: all.
+  function customFamilies(src) {
+    var list = isObj(src) && isObj(src.theme) ? src.theme.customFonts : src;
+    if (!Array.isArray(list)) return [];
+    var fams = [];
+    var byKey = {};
+    list.forEach(function (e) {
+      if (!isObj(e) || typeof e.id !== 'string' || !CUSTOM_ID_RE.test(e.id) || typeof e.name !== 'string' || !e.name.trim()) return;
+      var google = e.source === 'google';
+      if (google ? !googleFamilyName(e.name) : !normFontData(e.data)) return;
+      var key = (google ? 'g:' : 'u:') + fontKey(e.name);
+      var f = byKey[key];
+      if (!f) { f = byKey[key] = { key: key, source: google ? 'google' : 'file', ids: [], entries: [] }; fams.push(f); }
+      f.ids.push(e.id);
+      f.entries.push(e);
+    });
+    return fams.map(customFontDef);
+  }
+  function customFontDef(f) {
+    var google = f.source === 'google';
+    var e0 = f.entries[0];
+    var kind = f.entries.some(function (e) { return e.kind === 'serif'; }) ? 'serif' : 'sans';
+    var glyphs = f.entries.every(function (e) { return e.glyphs === true; });
+    var weights = [];
+    var addW = function (w) { var r = roundWeight(w); if (r && weights.indexOf(r) === -1) weights.push(r); };
+    if (google) (Array.isArray(e0.weights) ? e0.weights : [400]).forEach(addW);
+    else {
+      var upright = f.entries.filter(function (e) { return e.style !== 'italic'; });
+      (upright.length ? upright : f.entries).forEach(function (e) {
+        if (Array.isArray(e.weightRange)) W_ALL.forEach(function (w) { if (w >= e.weightRange[0] && w <= e.weightRange[1]) addW(w); });
+        addW(e.weight);
+      });
+    }
+    if (!weights.length) weights.push(400);
+    weights.sort(function (a, b) { return a - b; });
+    var family = google ? googleFamilyName(e0.name) : 'jeere-u-' + hashStr(f.key);
+    var tail = kind === 'serif' ? SERIF : SANS;
+    var stack = "'" + family + "', " + (glyphs ? '' : "'" + GLYPH_FALLBACKS[kind] + "', ") + tail;
+    var size = 0;
+    f.entries.forEach(function (e) { if (typeof e.size === 'number') size += e.size; });
+    return {
+      id: 'custom:' + f.ids[0], ids: f.ids.slice(), key: f.key, name: google ? family : cleanFontName(e0.name) || 'Ma police',
+      family: family, style: 'mine', kind: kind, stack: stack, displayStack: stack, localFb: null,
+      weights: weights, weight: nearestWeight(650, weights), text: true, glyphs: glyphs,
+      accents: google ? true : f.entries.every(function (e) { return e.accents !== false; }),
+      scale: 1, opsz: null, italic: google ? e0.italic === true : f.entries.some(function (e) { return e.style === 'italic'; }),
+      fallback: glyphs ? null : GLYPH_FALLBACKS[kind], custom: true, source: f.source, entries: f.entries.slice(), size: size
+    };
+  }
+  // 'custom:cf2' → its family, or null
+  function customRef(v, fams) {
+    var m = typeof v === 'string' ? /^custom:(cf[1-9]\d*)$/.exec(v.trim()) : null;
+    if (!m) return null;
+    for (var i = 0; i < fams.length; i++) if (fams[i].ids.indexOf(m[1]) !== -1) return fams[i];
+    return null;
+  }
+  // A font of the store by id: one of the 33 ('bodoni-moda') or one of hers ('custom:cf1'); null when unknown
+  function fontOf(config, v) {
+    var id = fontId(v);
+    if (id) return FONTS[id];
+    return customRef(v, customFamilies(config));
+  }
+  // The @font-face rules of her imported files (one per file, font-display: swap). Only the families given
+  // (font objects of customFamilies), else every file: the editor's « Mes polices » list shows them all.
+  function customFontFaces(config, only) {
+    var fams = only || customFamilies(config);
+    var out = [];
+    fams.forEach(function (f) {
+      if (!f || f.source !== 'file') return;
+      f.entries.forEach(function (e) {
+        var fd = normFontData(e.data);
+        if (!fd) return;
+        var w = roundWeight(e.weight) || 400;
+        var wr = Array.isArray(e.weightRange) && roundWeight(e.weightRange[0]) && roundWeight(e.weightRange[1]) ? roundWeight(e.weightRange[0]) + ' ' + roundWeight(e.weightRange[1]) : String(w);
+        var style = e.style === 'italic' ? 'italic' : 'normal';
+        // the id changes with the file: a sample of the data (hashing all of it on every render would cost)
+        var d = fd.data;
+        var sample = d.length + ':' + d.slice(-96);
+        for (var k = 64; k < d.length; k += Math.max(1, Math.floor(d.length / 512))) sample += d.charAt(k);
+        out.push({
+          id: 'jst-font-u-' + hashStr(f.family + '|' + e.id + '|' + wr + '|' + style + '|' + sample),
+          css: "@font-face{font-family:'" + f.family + "';src:url(" + d + ") format('" + FONT_FORMAT_CSS[fd.format] + "');font-weight:" + wr +
+            ';font-style:' + style + ';font-display:swap}'
+        });
+      });
+    });
+    return out;
+  }
+  // The editor's picker shows a Google font she adds in its own face: only the letters of its name
+  function googleSampleUrl(name, weight, sample) {
+    var fam = googleFamilyName(name);
+    if (!fam) return null;
+    var w = roundWeight(weight) || 400;
+    return 'https://fonts.googleapis.com/css2?family=' + fam.replace(/ /g, '+') + ':wght@' + w +
+      (sample ? '&text=' + encodeURIComponent(String(sample)) : '') + '&display=swap';
   }
 
   /* ------------------------------------------------------------------ communes */
@@ -2651,11 +2892,15 @@
       var ownColors = colorOverrides(srcTheme.colors);
       if (ownColors) theme.colors = ownColors;
     }
-    // The seller's fonts are optional too: kept (repaired) when the fiche has them, never added
+    // The seller's fonts are optional too: kept (repaired) when the fiche has them, never added. Her imported
+    // fonts first (a 'custom:<id>' choice is kept only when that font is there), written after typography.
+    var ownFonts = null;
+    if (has(srcTheme, 'customFonts')) { try { ownFonts = normCustomFonts(srcTheme.customFonts); } catch (e) { ownFonts = null; } }
     if (has(srcTheme, 'typography')) {
-      var ownType = normTypography(srcTheme.typography, theme.fonts);
+      var ownType = normTypography(srcTheme.typography, theme.fonts, ownFonts);
       if (ownType) theme.typography = ownType;
     }
+    if (ownFonts) theme.customFonts = ownFonts;
 
     var srcPay = isObj(src.payments) ? src.payments : {};
     var payments = {};
@@ -2695,10 +2940,18 @@
     });
     assignIds(products, 'p');
 
-    return {
+    var outCfg = {
       version: 1, template: tpl, store: store, theme: theme, payments: payments, sections: sections, products: products,
       pages: normPages(src.pages, store)
     };
+    // Element styles (the Studio's design inspector): optional, never added; sanitised by elstyles.js
+    // (JeereElStyles.sanitize: whitelisted props, ranges, colours, images; entries of missing sections dropped)
+    if (has(src, 'elementStyles')) {
+      var ES = root.JeereElStyles;
+      var es = ES && typeof ES.sanitize === 'function' ? ES.sanitize(src.elementStyles, { sections: sections }) : null;
+      if (es) outCfg.elementStyles = es;
+    }
+    return outCfg;
   }
 
   // A fiche saved before pages existed (no array) gets the 4 default pages; an array is the
@@ -2819,10 +3072,10 @@
       // The seller's own fonts (theme.typography): known ids, and a text font that reads in paragraphs
       if (isObj(theme.typography)) {
         var ty = theme.typography;
-        if (ty.display !== undefined && ty.display !== null && !fontId(ty.display)) {
+        if (ty.display !== undefined && ty.display !== null && !fontOf(config, ty.display)) {
           add('error', 'Police des titres inconnue. Choisissez-en une dans Thème › Polices.', 'theme', 'fonts');
         }
-        if (ty.text !== undefined && ty.text !== null && !(fontId(ty.text) && FONTS[fontId(ty.text)].text)) {
+        if (ty.text !== undefined && ty.text !== null && !(fontId(ty.text) ? FONTS[fontId(ty.text)].text : fontOf(config, ty.text))) {
           add('error', 'Police des textes inconnue, ou trop décorative pour des paragraphes. Choisissez-en une dans Thème › Polices.', 'theme', 'fonts');
         }
         var tyNow = null;
@@ -2830,6 +3083,55 @@
         if (tyNow && tyNow.display.style === 'manuscrit' && tyNow.upper && tyNow.display.id !== 'amatic-sc') {
           add('warning', 'Une écriture manuscrite se lit mal en majuscules : décochez ' + q('Titres en majuscules') + ' dans Thème › Polices.', 'theme', 'fonts');
           issues[issues.length - 1].target.key = 'upper';
+        }
+      }
+      // Her own fonts (theme.customFonts, « Mes polices »): heavy files, missing letters, a file she does not use
+      if (theme.customFonts !== undefined) {
+        if (!Array.isArray(theme.customFonts)) {
+          add('error', 'Vos polices importées sont illisibles. Importez-les à nouveau dans Thème › Polices › Mes polices.', 'theme', 'fonts');
+        } else {
+          var ownFams = customFamilies(theme.customFonts);
+          var tyUsed = null;
+          try { tyUsed = typography(config); } catch (e) { tyUsed = null; }
+          var usedIds = tyUsed && tyUsed.custom ? [tyUsed.display.id, tyUsed.text.id] : [];
+          var storeText = null;
+          var hasLetters = function () {
+            if (storeText === null) {
+              var parts = [textOf(store.name), textOf(store.tagline)];
+              products.forEach(function (p) { parts.push(textOf(p.name), textOf(p.description), textOf(p.category)); });
+              sections.forEach(function (s) { var st = settingsOf(s); Object.keys(st).forEach(function (k) { if (typeof st[k] === 'string') parts.push(st[k]); }); });
+              (Array.isArray(config.pages) ? config.pages : []).forEach(function (pg) { if (isObj(pg)) parts.push(textOf(pg.title), textOf(pg.body)); });
+              storeText = parts.join(' ');
+            }
+            return /[ɛɔŋƐƆŊ]/.test(storeText);
+          };
+          ownFams.forEach(function (f) {
+            var used = usedIds.indexOf(f.id) !== -1;
+            var role = used ? (tyUsed.display.id === f.id ? (tyUsed.text.id === f.id ? 'les titres et les textes' : 'les titres') : 'les textes') : '';
+            var key = f.id;
+            if (f.source === 'file' && used && f.size > CUSTOM_FONT_LIMITS.heavy) {
+              add('warning', 'La police ' + q(f.name) + ' pèse ' + Math.round(f.size / 1024) + ' Ko : votre boutique s’ouvrira plus lentement sur un téléphone. ' +
+                (f.entries.every(function (e) { return e.format === 'woff2'; }) ? 'Gardez moins d’épaisseurs, ou choisissez une police plus légère.' : 'Importez plutôt sa version WOFF2, bien plus légère.'), 'theme', 'fonts');
+              issues[issues.length - 1].target.key = key;
+            }
+            if (used && f.source === 'file' && !f.accents) {
+              add('warning', 'La police ' + q(f.name) + ' n’a pas tous les accents (é, è, à, ç…) : certaines lettres de ' + role + ' s’affichent dans une autre police. Choisissez une police plus complète.', 'theme', 'fonts');
+              issues[issues.length - 1].target.key = key;
+            }
+            if (used && f.glyphs === false && (f.source === 'file' || f.entries[0].glyphs === false)) {
+              // ɛ ɔ ŋ are drawn from a close font (Montserrat / Noto Serif), as for the 23 fonts of the list without
+              // them: a warning when the store writes them, else a tip; free either way (it reads well)
+              add(hasLetters() ? 'warning' : 'tip', 'La police ' + q(f.name) + ' n’a pas les lettres ɛ, ɔ et ŋ : dans ' + role + ', elles sont écrites dans une police proche.' +
+                (hasLetters() ? ' Vos noms en dioula ou en baoulé restent lisibles, mais ces lettres ont un autre dessin.' : ''), 'theme', 'fonts');
+              issues[issues.length - 1].target.key = key;
+              issues[issues.length - 1].free = true;
+            }
+            if (!used && f.source === 'file') {
+              add('tip', 'Votre police ' + q(f.name) + ' n’est utilisée ni pour les titres ni pour les textes. Retirez-la si vous n’en avez plus besoin : la fiche sera plus légère.', 'theme', 'fonts');
+              issues[issues.length - 1].target.key = key;
+              issues[issues.length - 1].free = true;
+            }
+          });
         }
       }
       // A missing intensity is read as vivid (normalizeConfig fills it); a value that is set must be known.
@@ -3584,6 +3886,18 @@
     nearestWeight: nearestWeight,
     fontSampleUrl: fontSampleUrl,
     setFontPair: setFontPair,
+    // her own fonts (optional theme.customFonts, « Mes polices »): imported files and Google Fonts by name
+    CUSTOM_FONT_LIMITS: CUSTOM_FONT_LIMITS,
+    FONT_FORMAT_CSS: FONT_FORMAT_CSS,
+    normCustomFonts: normCustomFonts,
+    customFamilies: customFamilies,
+    customFontFaces: customFontFaces,
+    fontOf: fontOf,
+    fontDataFormat: fontDataFormat,
+    cleanFontName: cleanFontName,
+    googleFamilyName: googleFamilyName,
+    googleSampleUrl: googleSampleUrl,
+    roundWeight: roundWeight,
     radii: radii,
     sectionTypes: sectionTypes,
     niches: niches,

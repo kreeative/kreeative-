@@ -123,6 +123,8 @@
     site: null, // the address chosen in the dashboard ('jeere-admin'), or null: derived from the store's name
     openSection: null, openProduct: null, openItem: {}, reorder: { sections: false, produits: false },
     openColor: null, // the colour row whose picker is open ('theme:text', 'section:s2:bg')
+    // « Mes polices »: a font read but not added yet, a family being renamed, the Google Fonts search, the last error
+    fontPending: null, fontRename: null, fontSearch: { text: '', busy: false, error: '', info: '' }, fontError: '',
     scale: 1, previewDirty: true, pendingReveal: null, hoverNode: null, pick: null,
     scrollY: { edit: 0, preview: 0 },
     saveState: 'ok', warned: {},
@@ -382,6 +384,9 @@
       return;
     } catch (e) {
       if (isQuota(e)) {
+        // Her imported fonts are the heaviest thing a fiche holds: when one makes the memory overflow, the newest
+        // goes (with a toast), so the store itself is always saved, and what she sees is what is saved
+        if (S.saveState !== 'partial' && saveWithoutFonts(false)) return;
         try {
           const lite = JSON.stringify(stripImages(S.config));
           window.localStorage.setItem(STORE_KEY, lite);
@@ -390,6 +395,7 @@
           setSaved('partial');
           return;
         } catch (e2) { /* still full */ }
+        if (saveWithoutFonts(true)) return;
         if (S.saveState !== 'fail') toast(`La mémoire du navigateur est pleine${NB}: vos changements ne sont plus enregistrés. Téléchargez la fiche boutique pour les garder.`, 6000);
         setSaved('fail');
       } else {
@@ -397,6 +403,50 @@
         setSaved('blocked');
       }
     }
+  }
+  // Saves without her newest imported font files, one more at a time (lite: without the photos too). On success
+  // the fonts are taken out of the fiche she edits as well (and of the current undo step), with a toast.
+  function saveWithoutFonts(lite) {
+    const files = (S.config.theme && Array.isArray(S.config.theme.customFonts) ? S.config.theme.customFonts : []).filter((e) => e && e.source !== 'google');
+    for (let k = 1; k <= files.length; k++) {
+      const gone = files.slice(files.length - k);
+      const cfg = withoutFonts(copy(S.config), gone.map((e) => e.id));
+      let json;
+      try { json = JSON.stringify(lite ? stripImages(cfg) : cfg); window.localStorage.setItem(STORE_KEY, json); } catch (e) { if (isQuota(e)) continue; return false; }
+      S.config = cfg;
+      if (S.history[S.index]) S.history[S.index] = copy(cfg);
+      S.lastSaved = json;
+      setSaved(lite ? 'partial' : 'ok');
+      const names = gone.map((e) => `«${NB}${e.name}${NB}»`).filter((n, i, a) => a.indexOf(n) === i);
+      toast(`La mémoire du navigateur est pleine${NB}: ${names.length > 1 ? 'les polices ' + names.join(' et ') + ' n’ont' : 'la police ' + names[0] + ' n’a'} pas pu être gardée${names.length > 1 ? 's' : ''}. ` +
+        `Votre boutique est bien enregistrée${lite ? ', sans les photos' : ''}. Téléchargez la fiche boutique pour tout garder, ou retirez des photos.`, 9000, 'warn');
+      renderPreviewNow();
+      renderTab();
+      refreshMeta();
+      return true;
+    }
+    return false;
+  }
+  // The fiche without these imported fonts: her font choices that named them go back to the suggestion's
+  function withoutFonts(cfg, ids) {
+    const th = cfg.theme;
+    if (!th || !Array.isArray(th.customFonts)) return cfg;
+    const before = D.fontOf ? { display: D.fontOf(cfg, th.typography && th.typography.display), text: D.fontOf(cfg, th.typography && th.typography.text) } : {};
+    th.customFonts = th.customFonts.filter((e) => ids.indexOf(e && e.id) === -1);
+    const t = th.typography;
+    if (t && typeof t === 'object') {
+      ['display', 'text'].forEach((k) => {
+        if (typeof t[k] !== 'string' || !/^custom:/.test(t[k]) || (D.fontOf && D.fontOf(cfg, t[k]))) return;
+        // another file of the same family is still there (the Bold went, the Regular stays): it takes over
+        const rest = before[k] && before[k].ids ? before[k].ids.filter((id) => ids.indexOf(id) === -1) : [];
+        if (rest.length) t[k] = 'custom:' + rest[0];
+        else { delete t[k]; if (k === 'display') delete t.weight; }
+      });
+      if (!t.display && !t.text && t.weight === undefined) delete t.pair;
+      if (!Object.keys(t).length) delete th.typography;
+    }
+    if (!th.customFonts.length) delete th.customFonts;
+    return cfg;
   }
   function setSaved(state) {
     S.saveState = state;
@@ -1610,18 +1660,25 @@
   // instance (no optical size, one weight): it is loaded under a private family name (jeere-s-<id>) so it never
   // joins the store's own family and never replaces those letters in the preview. The picker's stacks name the
   // private family first, then the real one (shown as soon as the store loads it, or if the sample fails).
-  const sampleFamily = (f) => 'jeere-s-' + f.id;
-  const sampleStack = (f) => `'${sampleFamily(f)}', '${f.family}', ${f.kind === 'serif' ? 'serif' : 'sans-serif'}`;
+  // Her Google fonts (« Mes polices », f.custom) get the same treatment under 'jeere-s-g-<name>'; her imported
+  // files are drawn from their own @font-face (ensureOwnFaces), already private ('jeere-u-<hash>').
+  const sampleFamily = (f) => (f.custom ? 'jeere-s-g-' + String(f.family).toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'jeere-s-' + f.id);
+  const sampleStack = (f) => (f.custom && f.source === 'file' ? `'${f.family}', ${f.kind === 'serif' ? 'serif' : 'sans-serif'}`
+    : `'${sampleFamily(f)}', '${f.family}', ${f.kind === 'serif' ? 'serif' : 'sans-serif'}`);
   function fontSampleLink(f) {
-    if (!f || !D.fontSampleUrl || !/^[\w-]+$/.test(f.id)) return;
-    const id = 'jst-font-s-' + f.id;
+    if (!f) return;
+    if (f.custom && f.source === 'file') { ensureOwnFaces(); return; }
+    const url = f.custom ? (D.googleSampleUrl ? D.googleSampleUrl(f.family, f.weight, f.name + FONT_SAMPLE) : null)
+      : (D.fontSampleUrl && /^[\w-]+$/.test(f.id) ? D.fontSampleUrl(f.id, f.name + FONT_SAMPLE) : null);
+    if (!url) return;
+    const id = 'jst-font-s-' + (f.custom ? sampleFamily(f) : f.id);
     if (document.getElementById(id)) return;
     const st = el('style', { id });
     document.head.append(st);
     if (typeof fetch !== 'function') return;
     // A fetch that fails is tried once more after a moment (patchy mobile data); failing again takes the
     // element away, so the next time the list is drawn tries again
-    const load = (tries) => fetch(D.fontSampleUrl(f.id, f.name + FONT_SAMPLE)).then((r) => (r.ok ? r.text() : '')).then((css) => {
+    const load = (tries) => fetch(url).then((r) => (r.ok ? r.text() : '')).then((css) => {
       // Only Google's @font-face rules, renamed: the family, nothing else, changes
       if (!/^[\s\S]*@font-face/.test(css) || /[<]|@import|expression\(/i.test(css)) throw new Error('no @font-face');
       st.textContent = css.replace(/font-family:\s*'[^']*'/g, `font-family: '${sampleFamily(f)}'`);
@@ -1633,13 +1690,18 @@
   }
   // The current heading font with all its weights (the « Épaisseur » chips are drawn in it)
   function fontWeightsLink(f) {
-    if (!f) return;
-    const id = 'jst-font-w-' + f.id;
+    if (!f || (f.custom && f.source === 'file')) return;
+    const id = 'jst-font-w-' + String(f.id).replace(/[^\w-]/g, '-');
     if (document.getElementById(id)) return;
     const ws = f.weights.join(';');
     const fam = f.family.replace(/ /g, '+');
     const q = f.opsz ? `${fam}:opsz,wght@${f.weights.map((w) => f.opsz + ',' + w).join(';')}` : `${fam}:wght@${ws}`;
     document.head.append(el('link', { rel: 'stylesheet', id, href: `https://fonts.googleapis.com/css2?family=${q}&display=swap` }));
+  }
+  // A font by id: one of the 33 or one of hers ('custom:cf1')
+  function fontById(id) {
+    try { if (D.fontOf) return D.fontOf(S.config, id); } catch (e) { /* older data.js */ }
+    return D.FONTS && D.FONTS[id] ? D.FONTS[id] : null;
   }
   function cleanTypo() {
     const th = S.config.theme;
@@ -1648,9 +1710,12 @@
     const pair = D.fontPairs[th.fonts] || D.fontPairs[0];
     if (t.display === pair.displayFont) delete t.display;
     if (t.text === pair.textFont) delete t.text;
+    // a choice of hers that no longer exists (a font she removed) goes back to the suggestion's
+    if (t.display && !fontById(t.display)) { delete t.display; delete t.weight; }
+    if (t.text && !fontById(t.text)) delete t.text;
     if (t.weight !== undefined) {
-      const f = D.FONTS[t.display || pair.displayFont];
-      const def = (t.display || pair.displayFont) === pair.displayFont ? pair.display.weight : f.weight;
+      const f = fontById(t.display || pair.displayFont);
+      const def = (t.display || pair.displayFont) === pair.displayFont ? pair.display.weight : (f ? f.weight : t.weight);
       if (t.weight === def) delete t.weight;
     }
     if (t.size === 'M') delete t.size;
@@ -1767,7 +1832,7 @@
     const open = S.fontPick && S.fontPick.which === which;
     const label = which === 'display' ? 'Police des titres' : 'Police des textes';
     fontSampleLink(cur);
-    const styleOf = (id) => (D.FONT_STYLES.find((x) => x.id === id) || {}).label || '';
+    const styleOf = (id) => (id === 'mine' ? MINE_STYLE.label : (D.FONT_STYLES.find((x) => x.id === id) || {}).label || '');
     const btn = el('button', {
       type: 'button', class: 'b-fontpick', 'aria-expanded': String(!!open), 'aria-controls': 'b-fl-' + which, 'data-fk': 'fontpick-' + which,
       'aria-label': `${label}${NB}: ${cur.name}, ${styleOf(cur.style).toLowerCase()}. ${open ? 'Fermer la liste' : 'Changer'}`,
@@ -1779,7 +1844,8 @@
       icon(open ? 'i-up' : 'i-down', 'b-fontpick__chev'));
     if (!open) return el('div', { class: 'b-field b-field--tight' }, btn);
     const list = D.FONTS.filter((f) => which === 'display' || f.text);
-    const styles = D.FONT_STYLES.filter((st) => list.some((f) => f.style === st.id));
+    // the styles of the list, then « Mes polices »: her imported files and the Google fonts she added by name
+    const styles = D.FONT_STYLES.filter((st) => list.some((f) => f.style === st.id)).concat(D.customFamilies ? [MINE_STYLE] : []);
     const style = styles.some((st) => st.id === S.fontPick.style) ? S.fontPick.style : styles[0].id;
     const st = styles.find((x) => x.id === style);
     const tabs = el('div', { class: 'b-fstyles', role: 'group', 'aria-label': 'Styles de police' }, styles.map((x) => el('button', {
@@ -1787,6 +1853,10 @@
       'aria-label': x.label,
       on: { click: () => { S.fontPick = { which, style: x.id }; renderTab({ focus: `fstyle-${which}-${x.id}` }); } }
     }, x.short || x.label)));
+    if (style === 'mine') {
+      return el('div', { class: 'b-field b-field--tight' }, btn,
+        el('div', { class: 'b-fontlist', id: 'b-fl-' + which }, tabs, el('p', { class: 'b-fontlist__hint', text: st.hint }), ownFontsPanel(which, cur)));
+    }
     const opts = el('div', { class: 'b-fontopts', role: 'group', 'aria-label': `Polices ${st.label.toLowerCase()}` }, list.filter((f) => f.style === style).map((f) => {
       fontSampleLink(f);
       const fk = (which === 'display' ? 'fd-' : 'ft-') + f.id;
@@ -1799,6 +1869,416 @@
     }));
     return el('div', { class: 'b-field b-field--tight' }, btn,
       el('div', { class: 'b-fontlist', id: 'b-fl-' + which }, tabs, el('p', { class: 'b-fontlist__hint', text: st.hint }), opts));
+  }
+
+  /* ---------- Thème › Polices › « Mes polices » (theme.customFonts) ----------
+   * Her own fonts: a file from the phone or the computer (WOFF2, WOFF, TTF, OTF; fontfile.js reads its name,
+   * weight, style and letters; a TTF / OTF is packed as WOFF), or a Google font added by its exact name. A font
+   * is read first (S.fontPending: a card with its name, which she can change, what it has, the licence
+   * reminder), then added in one undo step, for the titles and / or the texts. README « Fonts ». */
+  const MINE_STYLE = { id: 'mine', label: 'Mes polices', short: 'Mes polices', hint: 'Vos propres polices : un fichier de votre téléphone ou de votre ordinateur, ou une police Google Fonts ajoutée par son nom.' };
+  // The file types offered by the picker. Not on an iPhone or an iPad: their Files app greys out the types it does not
+  // know (WOFF2), so every file is offered there and the first bytes say whether it is a font.
+  const IOS = typeof navigator !== 'undefined' && (/iPhone|iPad|iPod/.test(navigator.userAgent || '') || (/Macintosh/.test(navigator.userAgent || '') && navigator.maxTouchPoints > 1));
+  const FONT_ACCEPT = IOS ? null : '.woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf,font/sfnt,application/font-woff,application/x-font-ttf,application/x-font-otf,application/vnd.ms-opentype';
+  const CFL = () => D.CUSTOM_FONT_LIMITS || { files: 4, google: 4, bytes: 409600, read: 4194304, name: 40 };
+  const ko = (n) => Math.max(1, Math.round(n / 1024)).toLocaleString('fr-FR');
+  function ownFamilies() {
+    try { return D.customFamilies ? D.customFamilies(S.config) : []; } catch (e) { return []; }
+  }
+  function ownList() { return S.config.theme && Array.isArray(S.config.theme.customFonts) ? S.config.theme.customFonts : []; }
+  // Every imported file as an @font-face of its private family, so the list shows each font in its own face
+  // (the same ids as the store's: render.js never adds them twice)
+  function ensureOwnFaces() {
+    if (!D.customFontFaces) return;
+    try {
+      D.customFontFaces(S.config).forEach((f) => { if (!document.getElementById(f.id)) document.head.append(el('style', { id: f.id, text: f.css })); });
+    } catch (e) { /* a face is a nicety */ }
+  }
+  function fontErr(code, extra) { const e = new Error(code); e.code = code; Object.assign(e, extra || {}); return e; }
+  // bytes through the browser's own zlib (WOFF tables)
+  function streamBytes(bytes, Stream) {
+    const s = new Blob([bytes]).stream().pipeThrough(new Stream('deflate'));
+    return new Response(s).arrayBuffer().then((b) => new Uint8Array(b));
+  }
+  const inflate = (b) => streamBytes(b, DecompressionStream);
+  const deflate = (b) => streamBytes(b, CompressionStream);
+  // Brotli's static dictionary (RFC 7932, 122 784 bytes): fetched once, only for a WOFF2 that uses it
+  let brotliDict = null;
+  function loadBrotliDict() {
+    if (!brotliDict) {
+      brotliDict = fetch('brotli-dict.bin').then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('dict'))))
+        .then((b) => new Uint8Array(b)).catch(() => { brotliDict = null; throw fontErr('offline'); });
+    }
+    return brotliDict;
+  }
+  function bytesToDataUrl(bytes, format) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).replace(/^data:[^;,]*;base64,/, `data:font/${format};base64,`));
+      r.onerror = () => reject(fontErr('broken'));
+      r.readAsDataURL(new Blob([bytes]));
+    });
+  }
+  // « Josefin_Sans-Bold.woff2 » → « Josefin Sans » (only when the file has no readable name)
+  function nameFromFile(fn) {
+    return String(fn || '').replace(/\.[a-z0-9]+$/i, '').replace(/[-_](thin|extralight|light|regular|medium|semibold|bold|extrabold|black|italic|variable|vf)+$/i, '')
+      .replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+  }
+  // A font file → the pending font: { source: 'file', name, weight, style, weightRange, format, data, size, glyphs,
+  // accents, kind, fileFormat, fileSize, missing }. Errors: fontErr('heavy' | 'type' | 'collection' | 'broken' |
+  // 'latin' | 'offline' | 'old')
+  async function readFontFile(file) {
+    const F = window.JeereFontFile;
+    const L = CFL();
+    if (!F || typeof FileReader !== 'function') throw fontErr('old');
+    if (file.size > L.read) throw fontErr('heavy', { size: file.size, format: null });
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const fmt = F.sniff(bytes);
+    if (fmt === 'collection') throw fontErr('collection');
+    if (!fmt) throw fontErr('type');
+    const canInflate = typeof DecompressionStream === 'function';
+    let info;
+    try { info = await F.read(bytes, { inflate: canInflate ? inflate : null }); } catch (e) {
+      if (e && e.code === 'brotli-dict') info = await F.read(bytes, { dict: await loadBrotliDict() });
+      else if (e && e.code === 'inflate') throw fontErr('old');
+      else throw fontErr(e && e.code === 'collection' ? 'collection' : 'broken');
+    }
+    if (info.latin === false) throw fontErr('latin');
+    // A TTF or an OTF travels as WOFF: the same font, usually 40 % lighter (each table zlib-compressed)
+    let packed = bytes;
+    let format = fmt;
+    if ((fmt === 'ttf' || fmt === 'otf') && typeof CompressionStream === 'function') {
+      try { const w = await F.toWoff(bytes, deflate); if (w.length < bytes.length) { packed = w; format = 'woff'; } } catch (e) { /* keep the file as it is */ }
+    }
+    if (packed.length > L.bytes) throw fontErr('heavy', { size: packed.length, format: fmt, packed: packed !== bytes });
+    // The browser must be able to draw it (its sanitizer refuses a broken or hostile file)
+    if (typeof FontFace === 'function') {
+      try { await new FontFace('jeere-check', packed.slice().buffer).load(); } catch (e) { throw fontErr('broken'); }
+    }
+    const data = await bytesToDataUrl(packed, format);
+    const rw = (w) => (D.roundWeight ? D.roundWeight(w) : w) || 400;
+    const out = {
+      source: 'file', name: (D.cleanFontName ? D.cleanFontName(info.family || nameFromFile(file.name)) : info.family) || 'Ma police',
+      weight: rw(info.weight), style: info.style === 'italic' ? 'italic' : 'normal', format, data, size: packed.length,
+      glyphs: info.glyphs === true, accents: info.accents !== false, kind: info.kind === 'serif' ? 'serif' : 'sans',
+      fileFormat: fmt, fileSize: bytes.length, missing: info.missing || [], nameFromFile: !info.family
+    };
+    if (info.weightRange) { const lo = rw(info.weightRange[0]), hi = rw(info.weightRange[1]); if (lo < hi) { out.weightRange = [lo, hi]; out.weight = Math.min(hi, Math.max(lo, out.weight)); } }
+    return out;
+  }
+  function fontErrMessage(e) {
+    const c = e && e.code;
+    const L = CFL();
+    if (c === 'heavy') {
+      const max = ko(L.bytes);
+      if (!e.format) return `Ce fichier pèse ${ko(e.size)}${NB}Ko${NB}: c’est bien trop lourd pour une police (${max}${NB}Ko au plus). Importez la version WOFF2 de la police, bien plus légère.`;
+      return `Cette police pèse ${ko(e.size)}${NB}Ko${e.packed ? ', même compressée' : ''}${NB}: c’est trop lourd pour une boutique qui s’ouvre sur un téléphone (${max}${NB}Ko au plus). ` +
+        (e.format === 'woff2' ? 'Choisissez une seule épaisseur, ou une police plus légère.' : 'Importez plutôt sa version WOFF2, bien plus légère.');
+    }
+    if (c === 'type') return 'Ce fichier n’est pas une police. Choisissez un fichier WOFF2, WOFF, TTF ou OTF.';
+    if (c === 'collection') return 'Ce fichier regroupe plusieurs polices (.ttc). Importez-les une par une, en WOFF2, WOFF, TTF ou OTF.';
+    if (c === 'latin') return `Cette police n’a pas les lettres de l’alphabet latin${NB}: elle ne peut pas écrire vos textes.`;
+    if (c === 'offline') return 'Ce fichier WOFF2 n’a pas pu être lu sans connexion. Réessayez une fois connectée, ou importez la version TTF de la police.';
+    if (c === 'old') return 'Ce navigateur ne sait pas lire les fichiers de police. Mettez-le à jour, ou importez la police depuis un autre appareil.';
+    if (c === 'full') return `Vous avez déjà ${L.files} polices importées${NB}: retirez-en une pour en ajouter une autre.`;
+    return `Ce fichier de police est abîmé ou incomplet${NB}: il n’a pas pu être lu. Téléchargez-le à nouveau, ou essayez une autre version (WOFF2, TTF).`;
+  }
+  async function onFontFile(file, which) {
+    S.fontError = '';
+    if (ownList().filter((e) => e && e.source !== 'google').length >= CFL().files) throw fontErr('full');
+    const p = await readFontFile(file);
+    p.forDisplay = which !== 'text';
+    p.forText = which === 'text';
+    S.fontPending = p;
+    S.fontRename = null;
+    S.fontPick = { which, style: 'mine' };
+    renderTab({ focus: 'cf-pend-name' });
+  }
+  function onFontError(e) {
+    S.fontError = fontErrMessage(e);
+    renderTab({ focus: 'cf-err' });
+    toast(S.fontError, 6000, 'err');
+  }
+
+  // Google Fonts by name: the css2 API answers only for a family it has, with each weight it serves
+  const GF = 'https://fonts.googleapis.com/css2?family=';
+  function gfAnswers(url) {
+    return fetch(url).then((r) => (r.ok ? r.text() : '')).then((css) => /@font-face/.test(css), () => false);
+  }
+  // 'space mono' → 'Space Mono'; words written in capitals stay ('IBM plex sans' → 'IBM Plex Sans')
+  function titleCase(s) { return s.split(' ').map((w) => (/^[A-Z0-9]+$/.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())).join(' '); }
+  // Does the font have ɛ ɔ ŋ Ɛ Ɔ Ŋ? Google's subset of just those letters, drawn on a canvas over two different
+  // fallbacks: a letter the font has is as wide over both.
+  async function gfGlyphs(name, w) {
+    try {
+      const css = await fetch(`${GF}${name.replace(/ /g, '+')}:wght@${w}&text=${encodeURIComponent('ɛɔƐƆŋŊ')}&display=swap`).then((r) => (r.ok ? r.text() : ''));
+      if (!/@font-face/.test(css) || /[<]|@import/.test(css)) return false;
+      const fam = 'jeere-gl-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      if (!document.getElementById('jst-font-' + fam)) document.head.append(el('style', { id: 'jst-font-' + fam, text: css.replace(/font-family:\s*'[^']*'/g, `font-family: '${fam}'`) }));
+      await Promise.race([document.fonts.load(`${w} 40px '${fam}'`, 'ɛɔƐƆŋŊ'), new Promise((r) => setTimeout(r, 4000))]);
+      const ctx = document.createElement('canvas').getContext('2d');
+      return [...'ɛɔƐƆŋŊ'].every((ch) => {
+        ctx.font = `${w} 40px '${fam}', monospace`; const a = ctx.measureText(ch).width;
+        ctx.font = `${w} 40px '${fam}', serif`; const b = ctx.measureText(ch).width;
+        return Math.abs(a - b) < 0.01;
+      });
+    } catch (e) { return false; }
+  }
+  async function findGoogleFont(raw) {
+    const typed = String(raw || '').replace(/\s+/g, ' ').trim();
+    if (!typed) throw fontErr('gf-empty');
+    if (!D.googleFamilyName(typed)) throw fontErr('gf-chars');
+    const lower = typed.toLowerCase();
+    const listed = D.FONTS.find((f) => f.family.toLowerCase() === lower || f.name.toLowerCase() === lower);
+    if (listed) throw fontErr('gf-listed', { font: listed });
+    const mine = ownFamilies().find((f) => f.source === 'google' && f.name.toLowerCase() === lower);
+    if (mine) throw fontErr('gf-mine', { font: mine });
+    if (ownList().filter((e) => e && e.source === 'google').length >= CFL().google) throw fontErr('gf-full');
+    const cands = [typed, titleCase(typed)].filter((c, i, a) => a.indexOf(c) === i);
+    for (const name of cands) {
+      const fam = name.replace(/ /g, '+');
+      const ws = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+      const ok = await Promise.all(ws.map((w) => gfAnswers(`${GF}${fam}:wght@${w}&text=Aa&display=swap`)));
+      const weights = ws.filter((w, i) => ok[i]);
+      if (!weights.length) continue;
+      const w0 = D.nearestWeight(400, weights);
+      const [italic, glyphs] = await Promise.all([gfAnswers(`${GF}${fam}:ital,wght@1,${w0}&text=Aa&display=swap`), gfGlyphs(name, w0)]);
+      const kind = /serif|garamond|baskerville|bodoni|didot|caslon|slab/i.test(name) && !/sans/i.test(name) ? 'serif' : 'sans';
+      return { source: 'google', name, weights, italic, glyphs, kind, weight: D.nearestWeight(650, weights) };
+    }
+    // Nothing answered: no such font, or no connection at all?
+    const online = await gfAnswers(`${GF}Inter:wght@400&text=a&display=swap`);
+    throw fontErr(online ? 'gf-none' : 'gf-offline', { name: typed });
+  }
+  function gfMessage(e) {
+    const c = e && e.code;
+    if (c === 'gf-empty') return `Écrivez le nom d’une police Google Fonts, par exemple Josefin Sans.`;
+    if (c === 'gf-chars') return `Un nom de police Google Fonts ne contient que des lettres, des chiffres et des espaces, par exemple Space Mono.`;
+    if (c === 'gf-listed') return `${e.font.name} est déjà dans nos polices${NB}: choisissez-la dans l’onglet ${(D.FONT_STYLES.find((x) => x.id === e.font.style) || {}).short || ''}.`;
+    if (c === 'gf-mine') return `${e.font.name} est déjà dans vos polices.`;
+    if (c === 'gf-full') return `Vous avez déjà ${CFL().google} polices Google Fonts${NB}: retirez-en une pour en ajouter une autre.`;
+    if (c === 'gf-offline') return 'Pas de connexion pour le moment. Réessayez dans un instant.';
+    return `Aucune police Google Fonts ne s’appelle «${NB}${e && e.name ? e.name : ''}${NB}». Vérifiez l’orthographe sur fonts.google.com (par exemple Josefin Sans, Space Mono).`;
+  }
+  function searchGoogleFont(which) {
+    const q = S.fontSearch.text;
+    S.fontSearch = { text: q, busy: true, error: '', info: '' };
+    renderTab({ focus: 'cf-g-input' });
+    findGoogleFont(q).then((p) => {
+      p.forDisplay = which !== 'text';
+      p.forText = which === 'text';
+      S.fontPending = p;
+      S.fontRename = null;
+      S.fontSearch = { text: '', busy: false, error: '', info: '' };
+      renderTab({ focus: 'cf-pend-add' });
+    }, (e) => {
+      S.fontSearch = { text: q, busy: false, error: gfMessage(e), info: '' };
+      if (e && e.code === 'gf-listed') S.fontSearch.listed = e.font.id;
+      renderTab({ focus: 'cf-g-input' });
+    });
+  }
+
+  // The pending font, drawn in its own face before it is added (a private family, never the store's)
+  function pendingFace(p) {
+    if (p.source === 'file') {
+      const css = `@font-face{font-family:'jeere-pend';src:url(${p.data}) format('${(D.FONT_FORMAT_CSS || {})[p.format] || p.format}');font-weight:${p.weightRange ? p.weightRange.join(' ') : p.weight};font-style:${p.style};font-display:swap}`;
+      let st = document.getElementById('jst-font-pend');
+      if (!st) { st = el('style', { id: 'jst-font-pend' }); document.head.append(st); }
+      if (st.textContent !== css) st.textContent = css;
+      // ɛ ɔ ŋ from the same close font as in the store (Montserrat, Noto Serif), when the file has none
+      const fb = p.glyphs ? '' : `'${(D.GLYPH_FALLBACKS || {})[p.kind === 'serif' ? 'serif' : 'sans'] || 'Montserrat'}', `;
+      return `'jeere-pend', ${fb}${p.kind === 'serif' ? 'serif' : 'sans-serif'}`;
+    }
+    const f = { custom: true, source: 'google', id: 'pend', family: p.name, name: p.name, weight: p.weight, kind: p.kind };
+    fontSampleLink(f);
+    return sampleStack(f);
+  }
+  const weightLabel = (w) => `${(D.WEIGHT_LABELS || {})[w] || w} (${w})`;
+  function pendingCard(which) {
+    const p = S.fontPending;
+    const file = p.source === 'file';
+    const stack = pendingFace(p);
+    const fam = file ? ownFamilies().find((f) => f.source === 'file' && f.name.toLowerCase() === String(p.name).trim().toLowerCase()) : null;
+    const meta = file
+      ? [p.weightRange ? `Épaisseurs ${p.weightRange[0]} à ${p.weightRange[1]}` : weightLabel(p.weight), p.style === 'italic' ? 'italique' : null,
+        `${(window.JeereFontFile && window.JeereFontFile.FORMATS[p.fileFormat] || {}).label || p.fileFormat}, ${ko(p.fileSize)}${NB}Ko` + (p.format !== p.fileFormat ? ` → WOFF, ${ko(p.size)}${NB}Ko` : '')].filter(Boolean).join(' · ')
+      : `Google Fonts · ${p.weights.length > 1 ? p.weights.length + ' épaisseurs' : '1 épaisseur'}${p.italic ? ' · italique' : ''}`;
+    const sw = (key, label) => el('button', {
+      type: 'button', class: 'b-switch', 'aria-pressed': String(!!p[key]), 'data-fk': 'cf-pend-' + key,
+      on: { click: () => { p[key] = !p[key]; renderTab({ focus: 'cf-pend-' + key }); } }
+    }, el('span', { class: 'b-switch__txt' }, el('span', { class: 'b-switch__lbl', text: label })), el('span', { class: 'b-switch__ui', 'aria-hidden': 'true' }));
+    return el('div', { class: 'b-cfpend', role: 'group', 'aria-labelledby': 'b-cfpend-t' },
+      el('p', { class: 'b-cfpend__t', id: 'b-cfpend-t', text: file ? 'Police lue dans votre fichier' : 'Police trouvée sur Google Fonts' }),
+      el('div', { class: 'b-cfpend__prev', 'aria-hidden': 'true', style: `font-family:${stack};font-weight:${p.weight};font-style:${p.style || 'normal'}` },
+        el('span', { class: 'b-cfpend__name', text: String(p.name || 'Ma police') }),
+        el('span', { class: 'b-cfpend__sample', text: 'Àà Éé Çç ɛ ɔ ŋ 0123' })),
+      el('p', { class: 'b-cfpend__meta', text: meta }),
+      file ? el('div', { class: 'b-field b-field--tight' },
+        el('label', { class: 'b-label', for: 'b-cf-pend-name', text: 'Nom de la police' }),
+        el('input', {
+          class: 'b-input', id: 'b-cf-pend-name', type: 'text', 'data-fk': 'cf-pend-name', value: p.name, maxlength: String(CFL().name), autocomplete: 'off',
+          on: { input: (e) => { p.name = e.target.value; } }
+        }),
+        p.nameFromFile ? el('p', { class: 'b-hint', text: 'Ce fichier ne donne pas son nom : il vient du nom du fichier. Vérifiez-le.' }) : null,
+        fam ? el('p', { class: 'b-hint', text: `Même nom que votre police ${fam.name}${NB}: ce fichier s’y ajoute (${fam.weights.concat(p.weight).filter((w, i, a) => a.indexOf(w) === i).length} épaisseurs).` }) : null) : null,
+      !p.accents ? el('p', { class: 'b-note b-tone--warn' }, icon('i-warn'), `Cette police n’a pas tous les accents (${(p.missing || []).filter((c) => 'ɛɔƐƆŋŊ'.indexOf(c) === -1).slice(0, 6).join(' ')})${NB}: ces lettres s’afficheront dans une autre police.`) : null,
+      !p.glyphs ? el('p', { class: 'b-note' }, icon('i-info'), `Cette police n’a pas les lettres ɛ, ɔ et ŋ${NB}: elles seront écrites dans une police proche, pour que les noms en dioula ou en baoulé s’affichent bien.`) : null,
+      el('p', { class: 'b-note b-cfpend__lic', 'data-fk': 'cf-licence' }, icon('i-info'), file
+        ? `Vérifiez que vous avez le droit d’utiliser cette police sur le web${NB}: sa licence doit le permettre (c’est le cas des polices Google Fonts et des polices sous licence OFL).`
+        : 'Les polices Google Fonts sont libres : vous pouvez les utiliser sur votre boutique.'),
+      el('div', { class: 'b-switches' }, sw('forDisplay', 'Pour les titres'), sw('forText', 'Pour les textes')),
+      el('div', { class: 'b-cfpend__acts' },
+        el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--sm', 'data-fk': 'cf-pend-add', on: { click: () => addPending(which) } }, icon('i-check'), 'Ajouter cette police'),
+        el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--sm', 'data-fk': 'cf-pend-cancel', on: { click: () => { S.fontPending = null; renderTab({ focus: 'fontpick-' + which }); } } }, 'Annuler')));
+  }
+  function nextFontId() {
+    const used = {};
+    ownList().forEach((e) => { if (e && typeof e.id === 'string') used[e.id] = true; });
+    let i = 1;
+    while (used['cf' + i]) i++;
+    return 'cf' + i;
+  }
+  function addPending(which) {
+    const p = S.fontPending;
+    if (!p) return;
+    const th = S.config.theme;
+    const list = Array.isArray(th.customFonts) ? th.customFonts : (th.customFonts = []);
+    const id = nextFontId();
+    let entry;
+    if (p.source === 'file') {
+      entry = { id, name: (D.cleanFontName ? D.cleanFontName(p.name) : String(p.name).trim()) || 'Ma police', weight: p.weight, style: p.style, format: p.format, data: p.data, size: p.size };
+      if (p.weightRange) entry.weightRange = p.weightRange.slice();
+      entry.glyphs = !!p.glyphs;
+      entry.accents = p.accents !== false;
+      entry.kind = p.kind;
+    } else {
+      entry = { id, name: p.name, source: 'google', weights: p.weights.slice() };
+      if (p.italic) entry.italic = true;
+      entry.glyphs = !!p.glyphs;
+      entry.kind = p.kind;
+    }
+    list.push(entry);
+    // the family it belongs to (a Bold next to her Regular of the same name): that family is the one chosen
+    const fam = ownFamilies().find((f) => f.ids.indexOf(id) !== -1);
+    const ref = fam ? fam.id : 'custom:' + id;
+    const t = th.typography && typeof th.typography === 'object' ? th.typography : (th.typography = {});
+    if (p.forDisplay) { t.display = ref; delete t.weight; delete t.upper; }
+    if (p.forText) t.text = ref;
+    cleanTypo();
+    S.fontPending = null;
+    S.fontError = '';
+    const pend = document.getElementById('jst-font-pend');
+    if (pend) pend.remove();
+    change({ now: true });
+    saveNow();
+    // the save may have had to drop it (a full memory): saveWithoutFonts said so
+    if (!ownList().some((e) => e && e.id === id)) return;
+    renderTab({ focus: 'cf-opt-' + which + '-' + ref.replace(/^custom:/, '') });
+    const where = [p.forDisplay ? 'les titres' : null, p.forText ? 'les textes' : null].filter(Boolean).join(' et ');
+    toast(`Police ${entry.name} ajoutée${where ? ' pour ' + where : ''}`, 2400, 'ok');
+  }
+  function removeOwnFont(f) {
+    const ids = f.ids;
+    const before = JSON.stringify(S.config.theme);
+    withoutFonts(S.config, ids);
+    cleanTypo();
+    if (S.fontRename === f.key) S.fontRename = null;
+    if (JSON.stringify(S.config.theme) === before) return;
+    change({ now: true });
+    renderTab({ focus: 'cf-import' });
+    toast(`Police ${f.name} retirée`, 7000, 'info', { label: 'Annuler', run: () => { if (canUndo()) undo(); } });
+  }
+  function renameOwnFont(f, value) {
+    const name = D.cleanFontName ? D.cleanFontName(value) : String(value || '').trim();
+    S.fontRename = null;
+    if (!name || name === f.name) { renderTab({ focus: 'cf-ren-' + f.ids[0] }); return; }
+    ownList().forEach((e) => { if (e && f.ids.indexOf(e.id) !== -1) e.name = name; });
+    change({ now: true });
+    renderTab({ focus: 'cf-ren-' + f.ids[0] });
+    toast(`Police renommée${NB}: ${name}`, 2400, 'ok');
+  }
+  // What a family is: « Fichier WOFF2 · Gras (700) · 23 Ko », « Google Fonts · 3 épaisseurs »
+  function ownMeta(f) {
+    if (f.source === 'google') return `Google Fonts · ${f.weights.length > 1 ? f.weights.length + ' épaisseurs' : '1 épaisseur'}`;
+    const fmts = f.entries.map((e) => String(e.format).toUpperCase()).filter((x, i, a) => a.indexOf(x) === i).join(', ');
+    return `${f.entries.length > 1 ? f.entries.length + ' fichiers' : 'Fichier'} ${fmts} · ${f.weights.length > 1 ? f.weights.length + ' épaisseurs' : weightLabel(f.weights[0])} · ${ko(f.size)}${NB}Ko`;
+  }
+  function ownFontsPanel(which, cur) {
+    const fams = ownFamilies();
+    ensureOwnFaces();
+    const ty = typoNow();
+    const kids = [];
+    // her fonts, each in its own face: a click chooses it for this slot
+    if (fams.length) {
+      kids.push(el('div', { class: 'b-fontopts', role: 'group', 'aria-label': 'Mes polices' }, fams.map((f) => {
+        fontSampleLink(f);
+        const fk = 'cf-opt-' + which + '-' + f.ids[0];
+        return el('button', {
+          type: 'button', class: 'b-fontopt b-fontopt--mine', 'aria-pressed': String(!!(cur.custom && cur.key === f.key)), 'data-fk': fk,
+          'aria-label': `${f.name}, ${ownMeta(f)}`,
+          on: { click: () => setTypo(which, f.id, `${which === 'display' ? 'Titres' : 'Textes'} en ${f.name}`, fk) }
+        }, el('span', { class: 'b-fontopt__v', style: `font-family:${sampleStack(f)};font-weight:${f.weight}`, text: f.name }),
+        el('span', { class: 'b-fontopt__s', text: f.source === 'google' ? 'Google Fonts' : 'Votre fichier' }));
+      })));
+    } else if (!S.fontPending) kids.push(el('p', { class: 'b-empty', text: 'Vous n’avez pas encore de police à vous.' }));
+    if (S.fontPending) kids.push(pendingCard(which));
+    if (S.fontError) kids.push(el('p', { class: 'b-note b-tone--err b-cferr', role: 'alert', tabindex: '-1', 'data-fk': 'cf-err' }, icon('i-alert'), S.fontError));
+    // import a file
+    const files = ownList().filter((e) => e && e.source !== 'google').length;
+    kids.push(el('h4', { class: 'b-cfhead', text: 'Importer un fichier' }));
+    if (files < CFL().files) {
+      kids.push(el('div', { class: 'b-cfimport' },
+        fileBtn('cf-import', 'Importer une police', FONT_ACCEPT, (file) => onFontFile(file, which), 'b-btn--ghost', onFontError),
+        el('p', { class: 'b-hint', text: `WOFF2, WOFF, TTF ou OTF, ${ko(CFL().bytes)}${NB}Ko au plus (une TTF est allégée en WOFF). ${CFL().files - files} sur ${CFL().files} encore possible${CFL().files - files > 1 ? 's' : ''}.` })));
+    } else kids.push(el('p', { class: 'b-note' }, icon('i-info'), fontErrMessage({ code: 'full' })));
+    // add a Google font by its name
+    const fs = S.fontSearch;
+    const gid = 'b-cf-g-' + which;
+    kids.push(el('h4', { class: 'b-cfhead', text: 'Ajouter une police Google Fonts' }),
+      el('form', { class: 'b-cfsearch', role: 'search', on: { submit: (e) => { e.preventDefault(); if (!S.fontSearch.busy) searchGoogleFont(which); } } },
+        el('label', { class: 'b-sr', for: gid, text: 'Nom exact de la police Google Fonts' }),
+        el('input', {
+          class: 'b-input', id: gid, type: 'text', 'data-fk': 'cf-g-input', value: fs.text, placeholder: 'Ex. : Josefin Sans', autocomplete: 'off',
+          autocapitalize: 'words', spellcheck: 'false', maxlength: '60', 'aria-describedby': gid + '-st',
+          on: { input: (e) => { S.fontSearch.text = e.target.value; } }
+        }),
+        el('button', { type: 'submit', class: 'b-btn b-btn--primary b-btn--sm', 'data-fk': 'cf-g-go', disabled: fs.busy }, fs.busy ? 'Recherche…' : 'Chercher')),
+      el('p', { class: 'b-hint' + (fs.error ? ' b-cferr' : ''), id: gid + '-st', role: 'status', 'aria-live': 'polite', 'data-fk': 'cf-g-status' },
+        fs.busy ? 'Recherche sur Google Fonts…' : (fs.error || 'Le nom exact, comme sur fonts.google.com. Elle se charge depuis Google Fonts, comme nos polices.')),
+      fs.listed && D.FONTS[fs.listed] ? el('button', {
+        type: 'button', class: 'b-btn b-btn--ghost b-btn--sm', 'data-fk': 'cf-g-listed',
+        on: { click: () => { const f = D.FONTS[fs.listed]; S.fontSearch = { text: '', busy: false, error: '', info: '' }; S.fontPick = { which, style: f.style }; if (which === 'display' || f.text) setTypo(which, f.id, `${which === 'display' ? 'Titres' : 'Textes'} en ${f.name}`, 'fontpick-' + which); else renderTab({ focus: 'fontpick-' + which }); } }
+      }, `Choisir ${D.FONTS[fs.listed].name}`) : null);
+    // manage: rename (her files), remove
+    if (fams.length) {
+      kids.push(el('h4', { class: 'b-cfhead', text: 'Gérer mes polices' }));
+      kids.push(el('ul', { class: 'b-cflist' }, fams.map((f) => {
+        const uses = ty && ty.custom ? [ty.display.id === f.id ? 'Titres' : null, ty.text.id === f.id ? 'Textes' : null].filter(Boolean) : [];
+        const renaming = S.fontRename === f.key;
+        const rid = 'b-cf-ren-' + f.ids[0];
+        return el('li', { class: 'b-cfrow' },
+          renaming
+            ? el('form', { class: 'b-cfren', on: { submit: (e) => { e.preventDefault(); renameOwnFont(f, e.target.querySelector('input').value); } } },
+              el('label', { class: 'b-sr', for: rid, text: `Nouveau nom pour ${f.name}` }),
+              el('input', { class: 'b-input', id: rid, type: 'text', value: f.name, maxlength: String(CFL().name), 'data-fk': 'cf-ren-in-' + f.ids[0], autocomplete: 'off' }),
+              el('button', { type: 'submit', class: 'b-btn b-btn--primary b-btn--sm', 'data-fk': 'cf-ren-ok-' + f.ids[0] }, 'Renommer'),
+              el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--sm', on: { click: () => { S.fontRename = null; renderTab({ focus: 'cf-ren-' + f.ids[0] }); } } }, 'Annuler'))
+            : el('div', { class: 'b-cfrow__main' },
+              el('span', { class: 'b-cfrow__name', style: `font-family:${sampleStack(f)};font-weight:${f.weight}`, text: f.name }),
+              el('span', { class: 'b-cfrow__meta', text: ownMeta(f) + (uses.length ? ' · ' + uses.join(' et ') : '') })),
+          renaming ? null : el('div', { class: 'b-cfrow__acts' },
+            f.source === 'file' ? el('button', {
+              type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'cf-ren-' + f.ids[0], 'aria-label': `Renommer ${f.name}`,
+              on: { click: () => { S.fontRename = f.key; renderTab({ focus: 'cf-ren-in-' + f.ids[0] }); } }
+            }, icon('i-edit'), 'Renommer') : null,
+            el('button', {
+              type: 'button', class: 'b-btn b-btn--quiet b-btn--sm b-btn--danger', 'data-fk': 'cf-del-' + f.ids[0], 'aria-label': `Retirer ${f.name}`,
+              on: { click: () => removeOwnFont(f) }
+            }, icon('i-trash'), 'Retirer')));
+      })));
+    }
+    return el('div', { class: 'b-cfpanel' }, kids);
   }
 
   function setTheme(key, value, msg) {
@@ -2516,7 +2996,8 @@
   }
 
   // One file button (a <label> around a hidden input, so the phone offers the camera and the gallery)
-  function fileBtn(id, label, accept, onFile, cls) {
+  // onError(e): what to say when the file cannot be used (default: the logo's message)
+  function fileBtn(id, label, accept, onFile, cls, onError) {
     const file = el('input', { class: 'b-sr', type: 'file', accept, id, 'data-fk': id });
     const txt = el('span', { text: label });
     const btn = el('label', { class: 'b-btn b-btn--sm b-filebtn ' + (cls || 'b-btn--ghost') }, icon('i-upload'), txt, file);
@@ -2531,6 +3012,7 @@
       }, (e) => {
         btn.classList.remove('is-busy');
         txt.textContent = label;
+        if (onError) { onError(e); return; }
         toast(e && e.message === 'heavy' ? 'Ce logo est trop lourd, même réduit. Essayez une image plus simple (PNG ou JPEG).' : 'Cette image n’a pas pu être lue. Essayez un fichier PNG, JPEG, WebP ou SVG.', 4200, 'err');
       }).then(() => { file.value = ''; });
     });
@@ -2927,6 +3409,12 @@
       case 'theme':
         setTab('theme');
         if (t.id === 'colors' && t.key) { openColor('theme:' + t.key); break; }
+        // one of her own fonts (« Mes polices »): the list of the slot it is used in, else the titles'
+        if (t.id === 'fonts' && t.key && /^custom:/.test(t.key)) {
+          const ty = typoNow();
+          S.fontPick = { which: ty && ty.custom && ty.text.id === t.key && ty.display.id !== t.key ? 'text' : 'display', style: 'mine' };
+          renderTab();
+        }
         focusGroup(t.id && document.getElementById('b-g-theme-' + t.id) ? 'b-g-theme-' + t.id : 'b-g-theme-template');
         break;
       case 'section':
@@ -3649,9 +4137,11 @@
         selectTarget({ kind: 'brand' });
         return;
       }
-      if (storeControl(e.target)) return;
+      if (storeControl(e.target) && !(window.JeereQuickStyle && window.JeereQuickStyle.wants(e.target))) return;
       if (e.target.closest('a, button, form, summary')) e.preventDefault();
       if (S.storeView && !isMobile()) return;
+      // Quick style (quickstyle.js): a tap on a button, a title, a text, an image or an icon opens its style sheet
+      if (window.JeereQuickStyle && window.JeereQuickStyle.tap(e)) { e.stopPropagation(); return; }
       const node = e.target.closest('[data-product-id], [data-section-id], .jst-header');
       const t = targetOf(node);
       if (!t) return;
@@ -3892,6 +4382,12 @@
   }
 
   window.JeereBuilder = { openEditor, getConfig, showStart, showPage: (page, id) => { if (S.open) showPage(page, id); }, getPage, startTour };
+  // The bridge for quickstyle.js (element styles from the phone preview): the live fiche, the one change path
+  window.JeereBuilder.quick = {
+    config: () => S.config, open: () => !!S.open, store: () => els.store, screen: () => els.screen, isMobile,
+    change: (opts) => change(opts || {}), applyStyles: () => { if (window.JeereElStyles && els.store && S.config) window.JeereElStyles.apply(S.config, els.store); },
+    editTarget: (t) => { if (isMobile()) { setView('edit'); } selectTarget(t); }, toast: (m) => toast(m)
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

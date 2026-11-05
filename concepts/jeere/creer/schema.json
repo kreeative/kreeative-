@@ -27,9 +27,36 @@
       "maxItems": 20,
       "description": "The store's custom pages, in order (the dashboard's « Pages »). A fiche saved before pages existed has no such key: normalizeConfig adds the 4 default pages of its niche (À propos, Livraison et retours, Contact, Conditions de vente); an empty list is kept. Ids 'pg1', 'pg2'... and slugs must be unique (checked by code).",
       "items": { "$ref": "#/$defs/page" }
-    }
+    },
+    "elementStyles": { "$ref": "#/$defs/elementStyles" }
   },
   "$defs": {
+    "elementStyles": {
+      "type": "object",
+      "description": "Optional, never added: the Studio's design layer (Design tab), applied by elstyles.js. Keys are '<sectionId>/<elementKey>' ('s2/button', 's4/card', 's4/card~p3' for one product card, '@header/logo', '@footer/link'); elementKey comes from JeereElStyles.REGISTRY[sectionType]. Each entry has optional layers: base (every screen), desktop (computer only), tablet (tablet and phone), phone, hover, pressed, focus. normalizeConfig sanitises everything (JeereElStyles.sanitize): whitelisted props only (JeereElStyles.PROPS), numbers clamped, colours #RRGGBB / #RRGGBBAA or a palette token ('@accent', '@accent/40'), images 'demo:<photoId>' or a base64 data:image, entries of missing sections dropped. A fiche without it renders byte-identically.",
+      "maxProperties": 400,
+      "propertyNames": { "pattern": "^(s[1-9][0-9]{0,5}|@header|@footer)/[a-z][A-Za-z0-9]{0,23}(~[A-Za-z0-9_-]{1,40})?$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "base": { "$ref": "#/$defs/elementStyleProps" },
+          "desktop": { "$ref": "#/$defs/elementStyleProps" },
+          "tablet": { "$ref": "#/$defs/elementStyleProps" },
+          "phone": { "$ref": "#/$defs/elementStyleProps" },
+          "hover": { "$ref": "#/$defs/elementStyleProps" },
+          "pressed": { "$ref": "#/$defs/elementStyleProps" },
+          "focus": { "$ref": "#/$defs/elementStyleProps" }
+        }
+      }
+    },
+    "elementStyleProps": {
+      "type": "object",
+      "description": "Design properties (px unless noted). Layout: wMode/hMode hug|fill|fixed, w, h, wUnit px|%|vw, hUnit px|%|vh, minW, maxW, minH, maxH, pt pr pb pl (padding), mt mr mb ml (margin), gap, stack col|row, alignX, alignY, wrap, textAlign, contentW (sections), pos relative|absolute, top right bottom left, z, overflow. Radius: rTL rTR rBR rBL, smooth (0–100 %, corner-shape superellipse). Fill: fillType solid|linear|radial|image|none, fill, gradAngle, gradStops [{c,p}], gradShape, gradX, gradY, bgImage, bgFit cover|contain|fill|tile, bgPosX, bgPosY, bgTint, opacity (%), blend. Border: bW, bWT bWR bWB bWL, bStyle solid|dashed|dotted, bColor, bAlign inside|center|outside. Shadow: shadows [{x,y,blur,spread,c,inset}]. Effects: blur, bblur, rotate (deg), scale (%), skewX, skewY, tx, ty. Typography: font (a FONTS id, '@display' or '@text'), fontSize, fontWeight, italic, lh (× size), ls (% of size), textCase, deco, color. Image: fit, focusX, focusY, brightness, contrast, saturate, grayscale, sepia (%), hue (deg). Transition (base only): tDur (ms), tEase ease|ease-out|ease-in-out|expo|linear|spring|bounce.",
+      "maxProperties": 80,
+      "propertyNames": { "pattern": "^[a-zA-Z]{1,12}$" },
+      "additionalProperties": { "type": ["number", "string", "boolean", "array"] }
+    },
     "templateId": {
       "description": "Plateau (Éditorial), Cocody (Doux), Treichville (Audacieux).",
       "enum": ["plateau", "cocody", "treichville"]
@@ -137,12 +164,58 @@
         "buttons": { "enum": ["solid", "outline"], "description": "Plein (accent background) or Contour (1.5 px accent border)." },
         "intensity": { "$ref": "#/$defs/intensity" },
         "colors": { "$ref": "#/$defs/themeColors" },
-        "typography": { "$ref": "#/$defs/typography" }
+        "typography": { "$ref": "#/$defs/typography" },
+        "customFonts": { "$ref": "#/$defs/customFonts" }
       }
     },
     "fontId": {
       "description": "One of the 33 Google Fonts of JEERE_DATA.FONTS, by style. Élégant (serif): playfair, cormorant-garamond, eb-garamond, bodoni-moda, dm-serif-display, libre-baskerville, lora, fraunces, marcellus. Moderne: inter, montserrat, poppins, dm-sans, manrope, space-grotesk, fira-sans, onest. Doux et arrondi: nunito, quicksand, comfortaa, baloo-2, fredoka. Audacieux: unbounded, anton, bebas-neue, archivo-black, oswald, bricolage-grotesque. Manuscrit (titles only): pacifico, dancing-script, caveat, great-vibes, amatic-sc.",
       "enum": ["playfair", "cormorant-garamond", "eb-garamond", "bodoni-moda", "dm-serif-display", "libre-baskerville", "lora", "fraunces", "marcellus", "inter", "montserrat", "poppins", "dm-sans", "manrope", "space-grotesk", "fira-sans", "onest", "nunito", "quicksand", "comfortaa", "baloo-2", "fredoka", "unbounded", "anton", "bebas-neue", "archivo-black", "oswald", "bricolage-grotesque", "pacifico", "dancing-script", "caveat", "great-vibes", "amatic-sc"]
+    },
+    "customFontRef": {
+      "type": "string",
+      "description": "One of her own fonts (theme.customFonts, « Mes polices »): 'custom:' then its id. A file of a family (the files with the same name) names the whole family. normalizeConfig drops a reference to a font that is not in theme.customFonts. Usable for the titles and for the texts.",
+      "pattern": "^custom:cf[1-9][0-9]*$"
+    },
+    "customFonts": {
+      "type": "array",
+      "description": "Optional: her own fonts (Thème › Polices › « Mes polices »), never added by defaultConfig or normalizeConfig. At most 4 imported files (JEERE_DATA.CUSTOM_FONT_LIMITS.files) and 4 Google fonts added by name. A file is stored whole in the fiche as a base64 data URL of at most 400 KB (the editor packs a TTF / OTF as WOFF first); the store draws it with an @font-face (font-display: swap) under a private family name, never its own. Files with the same name form one family (a Regular and a Bold). The real AI assistant never writes this key.",
+      "maxItems": 8,
+      "items": { "oneOf": [{ "$ref": "#/$defs/customFontFile" }, { "$ref": "#/$defs/customFontGoogle" }] }
+    },
+    "customFontFile": {
+      "type": "object",
+      "description": "An imported font file. name: the family name read from the file's name table (she can rename it); weight, style: from its OS/2 table (weightRange: a variable font's weight axis); format: what its first bytes say; size: its bytes; glyphs: it has ɛ ɔ ŋ Ɛ Ɔ Ŋ (else they are drawn from Montserrat or Noto Serif, by kind); accents: it has the French accents.",
+      "required": ["id", "name", "weight", "style", "format", "data", "size"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^cf[1-9][0-9]*$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 40, "pattern": "^[^\\u0000-\\u001F\"'`\\\\<>{};]+$" },
+        "weight": { "type": "integer", "enum": [100, 200, 300, 400, 500, 600, 700, 800, 900] },
+        "weightRange": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "enum": [100, 200, 300, 400, 500, 600, 700, 800, 900] } },
+        "style": { "enum": ["normal", "italic"] },
+        "format": { "enum": ["woff2", "woff", "ttf", "otf"] },
+        "data": { "type": "string", "maxLength": 546160, "pattern": "^data:font/(woff2|woff|ttf|otf);base64,[A-Za-z0-9+/]+={0,2}$" },
+        "size": { "type": "integer", "minimum": 12, "maximum": 409600 },
+        "glyphs": { "type": "boolean" },
+        "accents": { "type": "boolean" },
+        "kind": { "enum": ["serif", "sans"] }
+      }
+    },
+    "customFontGoogle": {
+      "type": "object",
+      "description": "A Google Fonts family she added by its exact name (checked against fonts.googleapis.com/css2 when she adds it). weights: the weights Google serves for it; italic: it has an italic; glyphs: it has ɛ ɔ ŋ (measured when added). The store loads it from Google Fonts like the 33, only the weights it uses.",
+      "required": ["id", "name", "source", "weights"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^cf[1-9][0-9]*$" },
+        "name": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9 ]{0,59}$" },
+        "source": { "const": "google" },
+        "weights": { "type": "array", "minItems": 1, "maxItems": 9, "uniqueItems": true, "items": { "type": "integer", "enum": [100, 200, 300, 400, 500, 600, 700, 800, 900] } },
+        "italic": { "type": "boolean" },
+        "glyphs": { "type": "boolean" },
+        "kind": { "enum": ["serif", "sans"] }
+      }
     },
     "textFontId": {
       "description": "The fonts of JEERE_DATA.FONTS that read well in paragraphs (FONTS[].text, JEERE_DATA.TEXT_FONT_IDS): no display or handwritten font for the texts, and an x-height of at least 0.48 em (so not EB Garamond or Baloo 2, titles only).",
@@ -150,12 +223,12 @@
     },
     "typography": {
       "type": "object",
-      "description": "Optional: the seller's fonts (Thème › « Polices »), over the suggestion theme.fonts. Absent (the default, never added by defaultConfig or normalizeConfig): the pair exactly as before. display / text: the heading and the text font; weight: the headings' weight (one the heading font has, normalizeConfig moves another value to the nearest); pair: the suggestion they were chosen over (normalizeConfig fills it; when theme.fonts no longer matches, a tool that only knows the pairs changed them, and display, text and weight no longer apply and are dropped); size: the titles' size S (× 0.86) / M / L (× 1.16); upper: titles (and the name in the header) in capitals or not, absent = the template's (Treichville: capitals), except under a handwriting heading font (never in capitals unless upper is true). A store loads at most 2 font families with only the weights it uses, plus a subset of a few letters for ɛ ɔ ŋ when a font lacks them.",
+      "description": "Optional: the seller's fonts (Thème › « Polices »), over the suggestion theme.fonts. Absent (the default, never added by defaultConfig or normalizeConfig): the pair exactly as before. display / text: the heading and the text font, one of the 33 or one of her own ('custom:<id>', theme.customFonts); weight: the headings' weight (one the heading font has, normalizeConfig moves another value to the nearest); pair: the suggestion they were chosen over (normalizeConfig fills it; when theme.fonts no longer matches, a tool that only knows the pairs changed them, and display, text and weight no longer apply and are dropped); size: the titles' size S (× 0.86) / M / L (× 1.16); upper: titles (and the name in the header) in capitals or not, absent = the template's (Treichville: capitals), except under a handwriting heading font (never in capitals unless upper is true). A store loads at most 2 font families with only the weights it uses, plus a subset of a few letters for ɛ ɔ ŋ when a font lacks them.",
       "additionalProperties": false,
       "properties": {
         "pair": { "$ref": "#/$defs/fontPairId" },
-        "display": { "$ref": "#/$defs/fontId" },
-        "text": { "$ref": "#/$defs/textFontId" },
+        "display": { "anyOf": [{ "$ref": "#/$defs/fontId" }, { "$ref": "#/$defs/customFontRef" }] },
+        "text": { "anyOf": [{ "$ref": "#/$defs/textFontId" }, { "$ref": "#/$defs/customFontRef" }] },
         "weight": { "type": "integer", "enum": [100, 200, 300, 400, 500, 600, 700, 800, 900] },
         "size": { "enum": ["S", "M", "L"] },
         "upper": { "type": "boolean" }

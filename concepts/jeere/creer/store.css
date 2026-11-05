@@ -2048,6 +2048,9 @@
 /* Her own fonts (data-fonts="custom"): every weight the store uses is loaded on purpose, so a font with a single
    weight (Anton, Great Vibes…) stays as drawn instead of a smeared fake bold (the checkout's step numbers at 700) */
 .jst[data-fonts="custom"] { font-synthesis-weight: none; }
+/* …except an imported text font with no bold of its own (data-fsynth, theme.customFonts: a Regular alone): the
+   prices and buttons then get the browser's bold rather than none at all */
+.jst[data-fonts="custom"][data-fsynth] { font-synthesis-weight: auto; }
 /* A heading font without a real italic (data-hital="none"): Plateau's signature upright rather than slanted by the browser */
 .jst[data-hital="none"][data-tpl] .jst-sign { font-style: normal; }
 /* A handwriting heading font (data-hstyle="manuscrit") is for titles: the prices, figures, badges and paragraphs
