@@ -112,6 +112,11 @@ Numbers are personal data: keep the table private, and delete a row when someone
 9. Pricing by sales volume, not features: every plan (even Gratuit) has every feature, human
    support on WhatsApp, import/export and one-tap pause. Plans differ only by orders a month
    (20, 150, 600, unlimited) and Jeere’s fee per online sale (3 %, 1 %, 0 %, 0 %).
+9b. « Le Studio · formule Avancée » (`#studio`, on black): the Studio's own subscriptions (Découverte free,
+   Solo, Pro, Agence) with a monthly / yearly toggle (`site.js`), « Essayer le Studio 14 jours »
+   (`studio/?essai=1`) and « Comparer les formules » (`abonnements/`, the pricing page with its comparison
+   table, FAQ and demo checkout). The prices are those of `studio/plans.js`; see `studio/README.md`,
+   « Abonnements Studio ».
 10. FAQ.
 11. Waitlist form (seller or diaspora buyer), with a WhatsApp share button after sign-up.
 
@@ -123,6 +128,7 @@ i18n.js      English strings, the photos' alt texts included (French stays in th
 style.css    tokens, layout, responsive rules (360 px first)
 site.js      language, delivery demo, template tabs, waitlist form, hero canvas, hidden fallback
              for a photo that cannot load, scroll-in
+abonnements/  the Studio's pricing page and checkout (« Abonnements Studio », see studio/README.md)
 anim/boutique.js  the hero animation: the traced stall lines, the brush-stroke builder, the burst, play and
              replay (the motion itself is CSS in style.css, « Physical to online »)
 img/boutique.webp, img/boutique-720.webp  the stall photo (portrait), 1080×1350 and 720×900 (phones)

@@ -120,3 +120,6 @@
   .st-plan__for { min-height: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .st-switch__knob { transition: none; } }
+
+/* the « sur ordinateur » screen, reached from « Essayer le Studio » on a phone */
+.st-guard__trial a { color: #AFC0FF; text-decoration: underline; text-underline-offset: 3px; }

@@ -745,7 +745,8 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .bt__cover { background: #000; }
 .bt__shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, #000 0, rgba(0, 0, 0, .55) 14%, rgba(0, 0, 0, 0) 38%); }
 .bt__credit { position: absolute; right: 12px; bottom: 8px; margin: 0; font-size: 11.5px; color: rgba(255, 255, 255, .66); }
-.bt__credit a { color: inherit; font-weight: 400; }
+.bt__credit a { display: inline-flex; align-items: center; gap: 5px; color: inherit; font-weight: 400; }
+.bt__ig { width: 13px; height: 13px; flex: none; }
 .bt__credit a:hover { color: var(--white); opacity: 1; }
 .bt__copy { position: relative; padding: 4px 0 64px; }
 @media (min-width: 900px) { .bt__copy { padding-top: 28px; } }
@@ -754,6 +755,8 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .bt__mark { display: block; height: clamp(34px, 3.6vw, 50px); width: auto; aspect-ratio: 900 / 479; margin: 0 0 18px -2px; fill: var(--cream); clip-path: inset(-12% -3% -12% -3%); transition: clip-path .75s cubic-bezier(.45, .1, .5, 1); }
 .bt .h2 { color: var(--white); }
 .bt .h2 span { display: block; }
+.bt .eyebrow { padding-left: 0; }   /* no bar before « Du comptoir à Internet » */
+.bt .eyebrow::before { content: none; }
 .bt .bt__h1 { font-size: clamp(34px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -.03em; }
 .bt .lead { color: rgba(255, 255, 255, .8); }
 .bt__acts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 28px; }
@@ -772,7 +775,9 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 @media (min-width: 1280px) {
   /* Wide screens: the text sits on solid black at the left, the photo in the right-hand column */
   .bt__shade { display: none; }
-  .bt__copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 0 clamp(40px, 5vw, 76px); pointer-events: none; }
+  /* the copy is centred on the stage's height too, so it lines up with the store */
+  .bt__copy { position: absolute; inset: 0; display: flex; align-items: center; padding: 0; pointer-events: none; }
+  .bt__copy > .wrap { width: 100%; }
   .bt__text { pointer-events: auto; max-width: min(520px, 38vw); }
   .bt .lead { max-width: 24em; }
   .bt__credit { right: 16px; bottom: 12px; }
@@ -802,7 +807,10 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 @media (min-width: 900px) { .bt__frame, .bt__shop, .bt__burst { inset: 7% 14%; } }
 @media (min-width: 1280px) {
   /* beside the copy, in the column the photo's shelves filled */
-  .bt__frame, .bt__shop, .bt__burst { top: 8%; bottom: 9%; right: max(var(--gutter), (100% - var(--max)) / 2); left: calc(max(var(--gutter), (100% - var(--max)) / 2) + min(520px, 38vw) + 56px); }
+  /* beside the copy: at most 600 × 700 px, centred on the stage's height, so big screens do not stretch it */
+  .bt__stage { --colL: calc(max(var(--gutter), (100% - var(--max)) / 2) + min(520px, 38vw) + 56px); --colR: max(var(--gutter), (100% - var(--max)) / 2); }
+  .bt__frame, .bt__shop, .bt__burst { left: var(--colL); right: auto; width: min(600px, calc(100% - var(--colL) - var(--colR)));
+    top: calc((100% - min(84%, 700px)) / 2); bottom: auto; height: min(84%, 700px); }
 }
 .bt__burst { visibility: hidden; }
 .is-boom .bt__burst { visibility: visible; }
@@ -820,6 +828,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .is-slow .bt__burst { display: none; }
 .is-slow.is-boom .bt__frame { animation: none; }
 .bt__stage.is-done .bt__svg, .bt__stage.is-done .bt__burst { display: none; }
+.bt__stage.is-done .bt__frame { visibility: hidden; }   /* the photo's card, all black by now, leaves with the drawing */
 .bt__stage.is-reset, .bt__stage.is-reset *, .bt__stage.is-reset ~ .bt__copy * { transition: none !important; animation: none !important; }
 
 /* The boutique, online, laid out like the Tabouret concept but in black and white: a plain white window, black type

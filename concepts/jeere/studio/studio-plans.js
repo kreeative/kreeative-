@@ -333,6 +333,19 @@
       var q = '';
       try { q = window.location.search || ''; } catch (e) { q = ''; }
       if (!/[?&]essai=1(?:&|$)/.test(q)) return;
+      /* a phone or a small tablet sees the « sur ordinateur » screen: the trial waits for a
+       * computer (its 14 days would otherwise run while she cannot use it) */
+      if (window.matchMedia && window.matchMedia('(max-width: 1023px)').matches) {
+        var card = document.querySelector('.st-guard__card');
+        if (card && !card.querySelector('.st-guard__trial')) {
+          var note = ce('p', 'st-guard__trial', 'Votre essai de 14 jours démarrera quand vous ouvrirez le Studio sur un ordinateur ou un iPad. En attendant, voyez les formules : ');
+          var a = ce('a', '', 'Abonnements Studio');
+          a.href = '../abonnements/';
+          note.appendChild(a);
+          card.insertBefore(note, card.querySelector('.st-guard__btn'));
+        }
+        return;
+      }
       try { window.history.replaceState(window.history.state, '', window.location.pathname + window.location.hash); } catch (e) { /* ignore */ }
       if (s.unlocked) { leaveWelcome(); toast('Votre Studio est déjà débloqué (' + s.label + ').', 'info'); return; }
       if (s.trialAvailable) { startTrial(); return; }

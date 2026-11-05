@@ -16,7 +16,7 @@
  *
  * Hash routes (the Back button works): #accueil, #commandes[/1055][?statut=a-preparer], #produits[/p3|/nouveau],
  * #clients, #boutique, #pages[/pg2|/nouvelle], #paiements, #livraison, #connecteurs, #parametres[/boutique|domaine|
- * equipe|abonnement|notifications|pages-legales|donnees].
+ * equipe|abonnement|studio|notifications|pages-legales|donnees].
  */
 (function () {
   'use strict';

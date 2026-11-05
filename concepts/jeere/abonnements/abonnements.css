@@ -90,7 +90,9 @@
   .ab-tablewrap [data-col] { display: none; }
   .ab-tablewrap[data-col="decouverte"] [data-col="decouverte"], .ab-tablewrap[data-col="solo"] [data-col="solo"],
   .ab-tablewrap[data-col="pro"] [data-col="pro"], .ab-tablewrap[data-col="agence"] [data-col="agence"] { display: table-cell; }
-  .ab-table .ab-table__feat { width: 60%; }
+  .ab-table { table-layout: auto; }
+  .ab-table .ab-table__feat { width: 62%; }
+  .ab-table thead th { position: static; }
   .ab-table th, .ab-table td { padding: 12px 12px; font-size: 14.5px; }
 }
 

@@ -35,7 +35,7 @@ window.JEERE_EN = {
   'bt.lead': 'You already have the shop and the customers. Jeere puts it online: your website, Wave, Orange Money, MTN MoMo and Moov payments, deliveries. Free to start.',
   'bt.cta': 'Create my online store now',
   'bt.replay': 'Watch again',
-  'bt.credit': 'Photo',
+  'bt.credit': 'Photo: @prince_edja on Instagram',
   'bt.shop.h2': 'New this week',
   'bt.shop.c1': 'All', 'bt.shop.c2': 'Jewellery', 'bt.shop.c3': 'Basketry', 'bt.shop.c4': 'Cloth', 'bt.shop.c5': 'Decor',
   'bt.shop.p1': 'Woven basket', 'bt.shop.d1': 'Hand-woven rattan', 'bt.shop.p2': 'Bead bracelets', 'bt.shop.d2': 'Wood and stone, set of 3',
