@@ -120,6 +120,7 @@ Si tu ne comprends pas une réponse, dis-le simplement et propose des réponses 
 # Les choix : uniquement dans le catalogue
 - template, theme.palette, theme.intensity, theme.fonts, theme.radius, theme.buttons, store.niche, les types de section, products[].art et products[].badge : seulement les identifiants du <catalogue_jeere>. N’invente jamais un identifiant, une couleur de palette ni une police.
 - Quand tu changes de modèle, ne donne pas les polices : le code applique celles du modèle et garde la palette et l’intensité des couleurs choisies.
+- Polices : theme.fonts est une paire (une « suggestion »). Seulement si la vendeuse le demande (« une police élégante », « une écriture manuscrite », « les titres en majuscules »), ajoute theme.typography avec display (police des titres), text (police des textes, seulement une police marquée « textes aussi » dans le catalogue), size (S, M ou L), upper (vrai ou faux). Jamais de police manuscrite pour les textes, jamais une écriture manuscrite en majuscules (sans upper, elle n’est pas en majuscules, même sur Treichville).
 - products[].color : une des couleurs de tuile du catalogue, celle qui va le mieux avec le produit.
 - N’écris jamais de champ image : seules les photos de la vendeuse vont dans la fiche, et c’est l’éditeur qui les ajoute.
 - Les champs photo (products[].photo, et settings.photo des sections hero et about) sont les photos d’exemple de Jeere : c’est Jeere qui les remplit. Garde telles quelles les valeurs photo que tu trouves dans la fiche. N’invente jamais d’identifiant de photo : si tu dois écrire un champ photo (un nouveau produit), mets null.
@@ -179,7 +180,7 @@ Une seule définition, à garder identique d’un appel à l’autre (elle fait 
         "properties": {
           "template": { "type": "string", "enum": ["plateau", "cocody", "treichville"] },
           "store": { "type": "object", "description": "Clés possibles : name, tagline, city, niche. Jamais whatsapp : le code s’en charge." },
-          "theme": { "type": "object", "description": "Clés possibles : palette, intensity (vivid ou soft), fonts, radius, buttons." },
+          "theme": { "type": "object", "description": "Clés possibles : palette, intensity (vivid ou soft), fonts, radius, buttons, typography (display, text, size, upper : seulement si la vendeuse parle de police)." },
           "payments": { "type": "object", "description": "Clés possibles : wave, orange, mtn, moov, cod, card (vrai ou faux)." },
           "sections": { "type": "array", "items": { "type": "object" }, "description": "Chaque élément : { id } d’une section existante, ou { type } pour en ajouter une, puis enabled et/ou settings (seulement les réglages qui changent)." },
           "ordre_sections": { "type": "array", "items": { "type": "string" }, "description": "Nouvel ordre des sections, par id." },
@@ -978,6 +979,8 @@ export function catalogueForPrompt(): string {
   L.push(`COULEURS (theme.intensity) : ${couleurs}. Un style doux (cocody) n’est pas la même chose que des couleurs douces.`);
   // deno-lint-ignore no-explicit-any
   L.push("POLICES (theme.fonts) : " + D.fontPairs.map((f: any) => `${f.id} (${f.name})`).join(", "));
+  // deno-lint-ignore no-explicit-any
+  L.push("POLICES AU CHOIX (theme.typography.display et text) : " + D.FONT_STYLES.map((st: any) => `${st.label} : ` + D.FONTS.filter((f: any) => f.style === st.id).map((f: any) => `${f.id}${f.text ? " (textes aussi)" : ""}`).join(", ")).join(" ; "));
   L.push("ANGLES (theme.radius) : none (Droit), soft (Doux), round (Rond). BOUTONS (theme.buttons) : solid (Plein), outline (Contour).");
   // deno-lint-ignore no-explicit-any
   L.push("PAIEMENTS (payments, booléens) : " + D.PAYMENTS.map((p: any) => `${p.key} = ${p.label}`).join(", "));

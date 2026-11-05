@@ -3,7 +3,7 @@
  * Turns a fiche boutique (store config v1) into a store page, with one of three tested templates:
  * Plateau (editorial), Cocody (soft) and Treichville (bold).
  *
- * Global: window.JeereRender = { render, ensureFonts, artSVG, pages, PAGES, photoSrc, photoInfo, PHOTO_BASE }
+ * Global: window.JeereRender = { render, ensureFonts, fontLinks, artSVG, pages, PAGES, photoSrc, photoInfo, PHOTO_BASE }
  *
  * photoSrc(id) / photoInfo(id): the URL (or the catalogue entry with its src) of a demo photo of
  *   JEERE_DATA.DEMO_PHOTOS, null for an unknown id. Demo photos live in img/demo/ next to this
@@ -572,15 +572,45 @@
     return d.templates[tpl].defaults.fonts;
   }
 
+  // The stylesheets of the store's fonts: the pair's (theme.fonts) as before, or, with the seller's own fonts
+  // (theme.typography), at most 2 families with only the weights used, plus a tiny subset for ɛ ɔ ŋ when a font
+  // lacks them (JEERE_DATA.typography builds the links). Each link is added once per page (by id).
+  function fontLinks(config) {
+    const d = DATA();
+    if (!d) return [];
+    if (typeof d.typography === 'function') {
+      const ty = safe(() => d.typography(config));
+      if (ty && Array.isArray(ty.links)) return ty.links.filter((l) => isObj(l) && typeof l.href === 'string' && /^https:\/\/fonts\.googleapis\.com\//.test(l.href));
+    }
+    const id = fontPairId(config);
+    const pair = id ? d.fontPairs[id] : null;
+    return pair && typeof pair.googleUrl === 'string' ? [{ id: 'jst-font-' + id, href: pair.googleUrl }] : [];
+  }
+
+  // The local stand-in of a heading font drawn bigger or smaller (JEERE_DATA.typography().faces): a system font
+  // resized by 1 / scale, used until the web font arrives. Only @font-face rules with local() sources pass.
+  function fontFaces(config) {
+    const d = DATA();
+    if (!d || typeof d.typography !== 'function') return [];
+    const ty = safe(() => d.typography(config));
+    return ty && Array.isArray(ty.faces) ? ty.faces.filter((f) => isObj(f) && typeof f.id === 'string' && typeof f.css === 'string' &&
+      /^@font-face\{font-family:'[\w-]+';src:(local\('[\w ]+'\),?)+;size-adjust:[\d.]+%\}$/.test(f.css)) : [];
+  }
+
   function ensureFonts(config) {
     try {
       if (typeof document === 'undefined' || !document.createElement) return;
-      const d = DATA();
-      const id = fontPairId(config);
-      if (!d || !id) return;
-      const pair = d.fontPairs[id];
-      if (!pair || typeof pair.googleUrl !== 'string') return;
+      const links = fontLinks(config);
+      if (!links.length) return;
       const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+      fontFaces(config).forEach((f) => {
+        const fid = f.id.replace(/[^\w-]/g, '');
+        if (!fid || document.getElementById(fid)) return;
+        const st = document.createElement('style');
+        st.id = fid;
+        st.textContent = f.css;
+        head.appendChild(st);
+      });
       if (!document.getElementById('jst-font-preconnect')) {
         const pre = document.createElement('link');
         pre.rel = 'preconnect';
@@ -589,12 +619,15 @@
         pre.id = 'jst-font-preconnect';
         head.appendChild(pre);
       }
-      if (document.getElementById('jst-font-' + id)) return;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.id = 'jst-font-' + id;
-      link.href = pair.googleUrl;
-      head.appendChild(link);
+      links.forEach((l) => {
+        const lid = String(l.id || '').replace(/[^\w-]/g, '');
+        if (!lid || document.getElementById(lid)) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.id = lid;
+        link.href = l.href;
+        head.appendChild(link);
+      });
     } catch (e) { /* fonts are a nicety, never a failure */ }
   }
 
@@ -755,6 +788,11 @@
 
     const pair = d.fontPairs[fontsId] || {};
     const fontStack = (f, fb) => (isObj(f) && typeof f.family === 'string' && !/[;{}<>]/.test(f.family) ? f.family : fb);
+    // The seller's fonts (optional theme.typography), read through JEERE_DATA.typography: the heading and the
+    // text font apart, the headings' weight, size and capitals. Without the key: the pair, exactly as before.
+    const ty = isObj(theme.typography) && typeof d.typography === 'function' ? safe(() => d.typography(cfg)) : null;
+    const tyFonts = !!(ty && ty.custom);
+    const cleanStack = (v) => (typeof v === 'string' && !/[;{}<>]/.test(v) ? v : null);
 
     const store = isObj(cfg.store) ? cfg.store : {};
     const niche = inColl(d.niches, store.niche) ? d.niches[store.niche] : null;
@@ -920,9 +958,21 @@
       paletteCustom: paletteCustom,
       colors: colors, accentInk: accentInk, accentSoft: accentSoft, errorInk: errorInk, textSoft: textSoft,
       radius: clamp(num(radii[radiusId]) || 0, 0, 40),
-      fontDisplay: fontStack(pair.display, "Georgia, 'Times New Roman', serif"),
-      fontText: fontStack(pair.text, "system-ui, -apple-system, 'Segoe UI', sans-serif"),
-      displayWeight: clamp(Math.round(num(isObj(pair.display) ? pair.display.weight : 600) || 600), 100, 900),
+      fontDisplay: (tyFonts && cleanStack(ty.displayStack)) || fontStack(pair.display, "Georgia, 'Times New Roman', serif"),
+      fontText: (tyFonts && cleanStack(ty.textStack)) || fontStack(pair.text, "system-ui, -apple-system, 'Segoe UI', sans-serif"),
+      displayWeight: clamp(Math.round(num(tyFonts ? ty.weight : (isObj(pair.display) ? pair.display.weight : 600)) || 600), 100, 900),
+      // Heading scale (size × the font's own scale) and the text logo's scale; 1 = as before (no variable set)
+      headingScale: ty && num(ty.hs) > 0 ? clamp(num(ty.hs), 0.5, 2) : 1,
+      logoScale: ty && num(ty.hf) > 0 ? clamp(num(ty.hf), 0.5, 2) : 1,
+      // Capitals: 'upper' or 'none' when they differ from the template's own (her choice, theme.typography.upper,
+      // or a handwriting heading font, never in capitals unless she asks), else null: the template's own
+      headingCase: ty ? (ty.hcase !== undefined ? ty.hcase : (ty.upperSet ? (ty.upper ? 'upper' : 'none') : null)) : null,
+      // Her own fonts: a handwriting heading font is for titles only (store.css writes the prices and figures the
+      // templates draw in the heading font in the text font); no fake italic, no fake bold
+      headingStyle: tyFonts && ty.display && ty.display.style === 'manuscrit' ? 'manuscrit' : null,
+      headingItalic: !(tyFonts && ty.italic === false),
+      glyphFallback: !!(tyFonts && ty.fallbacks && ty.fallbacks.length),
+      fontsCustom: tyFonts,
       rawName: str(store.name).trim(),
       brand: brandOf(cfg, tpl),
       name: str(store.name).trim() || 'Votre boutique',
@@ -2218,6 +2268,13 @@
         if (m && m.paletteCustom) rootEl.dataset.colors = 'custom'; else delete rootEl.dataset.colors;
         // Badges and promos with their own colours (theme.colors.badgeBg / badgeText)
         if (m && m.colorZones && m.colorZones.badge) rootEl.dataset.cBadge = ''; else delete rootEl.dataset.cBadge;
+        // Titles in capitals or not (theme.typography.upper); absent: the template's choice
+        if (m && m.headingCase) rootEl.dataset.hcase = m.headingCase; else delete rootEl.dataset.hcase;
+        // Her own fonts (theme.typography): every weight used is loaded, so no fake bold (font-synthesis-weight);
+        // a heading font without italic writes Plateau's signature upright; a handwriting is for titles only
+        if (m && m.fontsCustom) rootEl.dataset.fonts = 'custom'; else delete rootEl.dataset.fonts;
+        if (m && m.fontsCustom && !m.headingItalic) rootEl.dataset.hital = 'none'; else delete rootEl.dataset.hital;
+        if (m && m.headingStyle) rootEl.dataset.hstyle = m.headingStyle; else delete rootEl.dataset.hstyle;
       }
       const c = m ? m.colors : FALLBACK_COLORS;
       const v = m ? m.v : vividColors(FALLBACK_COLORS, false);
@@ -2257,6 +2314,14 @@
         const bz = m && m.colorZones ? m.colorZones.badge : null;
         if (bz && validHex(bz.bg) && validHex(bz.fg)) setVars(rootEl, { '--st-badge-bg': validHex(bz.bg), '--st-badge-fg': validHex(bz.fg) });
         else ['--st-badge-bg', '--st-badge-fg'].forEach((k) => { try { rootEl.style.removeProperty(k); } catch (e) { /* ignore */ } });
+        // Heading size (theme.typography.size and the font's scale): store.css multiplies the titles by --st-hs
+        // and the name in the header by --st-hf. Not set at 1, so a fiche without them is unchanged.
+        const hs = m ? m.headingScale : 1;
+        const hf = m ? m.logoScale : 1;
+        if (hs !== 1) setVars(rootEl, { '--st-hs': String(hs) }); else { try { rootEl.style.removeProperty('--st-hs'); } catch (e) { /* ignore */ } }
+        if (hf !== 1) setVars(rootEl, { '--st-hf': String(hf) }); else { try { rootEl.style.removeProperty('--st-hf'); } catch (e) { /* ignore */ } }
+        // ɛ ɔ ŋ drawn from the fallback (a font without them): sized to the font's own x-height (font-size-adjust)
+        if (m && m.glyphFallback) setVars(rootEl, { '--st-fsa': 'from-font' }); else { try { rootEl.style.removeProperty('--st-fsa'); } catch (e) { /* ignore */ } }
       }
       rootEl.innerHTML = html;
       if (device === 'desktop') {
@@ -2290,7 +2355,7 @@
   }
 
   root.JeereRender = {
-    render: render, ensureFonts: ensureFonts, artSVG: artSVG, pages: pagesList, PAGES: PAGES_FALLBACK,
+    render: render, ensureFonts: ensureFonts, fontLinks: fontLinks, artSVG: artSVG, pages: pagesList, PAGES: PAGES_FALLBACK,
     photoSrc: photoSrc, photoInfo: photoInfo, PHOTO_BASE: PHOTO_BASE, brand: brandInfo
   };
 })();

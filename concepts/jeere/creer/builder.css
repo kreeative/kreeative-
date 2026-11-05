@@ -600,6 +600,59 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-font__name { font-size: 12.5px; font-weight: 500; }
 .b-font__pair { overflow: hidden; font-size: 10.5px; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
 
+/* « Polices »: live preview, suggestions, then the heading font and the text font apart (theme.typography) */
+.b-subhead { margin: 22px 0 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.b-group > .b-subhead + .b-fonts { margin-top: 10px; }
+.b-typo {
+  display: grid; gap: 6px; margin-top: 12px; padding: 16px 16px 15px; border-radius: 14px; overflow: hidden;
+  background: var(--tb, #FFFFFF); color: var(--tt, #111111); box-shadow: inset 0 0 0 1px var(--line);
+}
+.b-typo__h { display: block; min-width: 0; line-height: 1.12; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.b-typo__p { display: block; font-size: 14px; line-height: 1.5; color: var(--tm, #555555); }
+.b-field--tight { margin-top: 12px; }
+.b-fontpick {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'k chev' 'v chev' 's chev'; align-items: center; column-gap: 10px;
+  width: 100%; min-height: 64px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 13px;
+  background: var(--white); color: var(--ink); text-align: left; font-family: var(--b-font); cursor: pointer;
+}
+.b-fontpick:hover { border-color: rgba(17, 17, 17, .4); }
+.b-fontpick[aria-expanded="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.b-fontpick__k { grid-area: k; font-size: 12px; color: var(--muted); line-height: 1.3; }
+.b-fontpick__v { grid-area: v; overflow: hidden; font-size: 22px; line-height: 1.3; white-space: nowrap; text-overflow: ellipsis; }
+.b-fontpick__s { grid-area: s; font-size: 12px; color: var(--muted); line-height: 1.3; }
+.b-fontpick__chev { grid-area: chev; width: 20px; height: 20px; }
+.b-fontlist { display: grid; gap: 10px; margin-top: 8px; padding: 12px; border-radius: 14px; background: var(--grey-1); }
+.b-fstyles { display: flex; flex-wrap: wrap; gap: 6px; }
+.b-fstyle {
+  min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--white);
+  color: var(--ink); font: 400 13.5px/1.2 var(--b-font); cursor: pointer;
+}
+.b-fstyle:hover { border-color: rgba(17, 17, 17, .4); }
+.b-fstyle[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--white); font-weight: 500; }
+.b-fontlist__hint { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.b-fontopts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.b-fontopt {
+  position: relative; display: flex; align-items: center; min-width: 0; min-height: 56px;
+  padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--white); color: var(--ink); text-align: left; cursor: pointer;
+}
+.b-fontopt:hover { border-color: rgba(17, 17, 17, .4); }
+.b-fontopt[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.b-fontopt__v { min-width: 0; font-size: 19px; line-height: 1.2; overflow-wrap: break-word; }
+.b-wchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.b-wchip {
+  min-width: 44px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--white);
+  color: var(--ink); font-size: 16px; line-height: 1.2; cursor: pointer;
+}
+.b-wchip:hover { border-color: rgba(17, 17, 17, .4); }
+.b-wchip[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.b-sizeprev { flex: none; font-weight: 600; line-height: 1; }
+.b-sizeprev--S { font-size: 12px; }
+.b-sizeprev--M { font-size: 15px; }
+.b-sizeprev--L { font-size: 19px; }
+.b-group > .b-switches { margin-top: 12px; }
+.b-group > .b-note { margin-top: 12px; font-size: 12.5px; line-height: 1.45; }
+.b-field > .b-note { margin: 0; font-size: 12.5px; }
+
 .b-segopts { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 4px; padding: 4px; border-radius: 14px; background: var(--grey-1); }
 .b-segopt {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 6px;

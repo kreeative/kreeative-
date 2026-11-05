@@ -957,6 +957,8 @@
       if (['palette', 'fonts', 'radius', 'buttons', 'intensity'].some((k) => cfg.theme[k] !== d.theme[k])) return true;
       // her own colours (theme.colors), on top of the palette
       if (D.colorOverrides ? D.colorOverrides(cfg.theme.colors) : (isObj(cfg.theme.colors) && Object.keys(cfg.theme.colors).length)) return true;
+      // her own fonts (theme.typography), on top of the suggestion
+      if (D.normTypography ? D.normTypography(cfg.theme.typography, cfg.theme.fonts) : isObj(cfg.theme.typography)) return true;
       const old = str(d.store.name);
       const name = str(cfg.store.name);
       const sig = (c, mine) => JSON.stringify(arr(c.sections).map((x) => {
@@ -2472,6 +2474,10 @@
     const shown = tcol && tcol.base ? tcol.base : (pal ? pal.colors : null);
     const ownColors = !!(tcol && tcol.custom);
     const fonts = D.fontPairs && D.fontPairs[cfg.theme.fonts];
+    // Her own fonts (theme.typography): « Bodoni Moda · Manrope » instead of the suggestion's name
+    let ty = null;
+    try { ty = D.typography && isObj(cfg.theme.typography) ? D.typography(cfg) : null; } catch (e) { ty = null; }
+    const fontsName = ty && ty.custom ? ty.display.name + ' · ' + ty.text.name : (fonts ? fonts.name : cfg.theme.fonts);
     const intens = arr(D.INTENSITY_OPTIONS).length ? D.INTENSITY_OPTIONS : [{ value: 'vivid', label: 'Vives' }, { value: 'soft', label: 'Douces' }];
     const pages = arr(cfg.pages);
     const v = validateFiche();
@@ -2487,7 +2493,7 @@
               <div><dl class="a-dl">
                 <div><dt>Modèle</dt><dd>${esc(tpl ? tpl.name + ' · ' + tpl.style : cfg.template)}</dd></div>
                 <div><dt>Palette</dt><dd>${shown ? H`<span class="a-pal" aria-hidden="true">${sw(shown.bg)}${sw(shown.surface)}${sw(shown.accent)}${sw(shown.text)}</span> ` : ''}${esc(pal ? pal.name : cfg.theme.palette)}${ownColors ? ', avec vos couleurs' : ''}</dd></div>
-                <div><dt>Polices</dt><dd>${esc(fonts ? fonts.name : cfg.theme.fonts)}</dd></div>
+                <div><dt>Polices</dt><dd>${esc(fontsName)}</dd></div>
                 <div><dt>Logo</dt><dd>${storeLogo() ? H`<span class="a-logothumb"><img src="${esc(storeLogo())}" alt="${esc(fr('Logo de ' + (st.name || 'la boutique')))}"></span> ` : 'Le nom, écrit avec la police du thème · '}<a class="a-link" href="${EDITOR_URL}" data-act="open-editor" data-page="home" data-focus="logo">${storeLogo() ? 'Modifier' : 'Ajouter un logo'}</a></dd></div></dl>
                 <div class="a-field"><span class="a-label" id="l-int">Couleurs</span><div class="a-seg" role="group" aria-labelledby="l-int">${intens.map((o) => H`<button class="a-seg__btn" type="button" data-act="intensity" data-v="${esc(o.value)}" aria-pressed="${cfg.theme.intensity === o.value ? 'true' : 'false'}">${esc(o.label)}</button>`)}</div>
                   <p class="a-hint">${esc(fr((intens.find((o) => o.value === cfg.theme.intensity) || intens[0]).hint || ''))}</p></div>

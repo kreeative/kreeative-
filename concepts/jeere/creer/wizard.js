@@ -788,6 +788,31 @@
     return { colors: Object.keys(out).length ? out : null, rest: rest.replace(/\s+/g, ' ').trim() };
   }
 
+  // « une police élégante », « une écriture manuscrite », « les titres en majuscules » (on norm() text): the
+  // headings' font style and capitals, kept in answers.fonts, then theme.typography in generate()
+  const FONT_WORD = '(?:polices?|ecritures?|typos?|typographies?|caracteres|lettres|titres|fonts?)';
+  const FONT_LINK = '(?:\\s+(?:de|du|des|d\'ecriture|de caracteres|en|tres|plutot|style|genre|un peu|bien|plus|assez|avec|aux?|qui|soit|soient|sont|est|fait|font|l\'air|a))*';
+  const FONT_STYLE_WORDS = [
+    ['manuscrit', 'manuscrite?s?|a la main|ecrite?s? a la main|faite?s? a la main|calligraphi[a-z]*|cursive?s?|attachee?s?|scripts?|comme ecrite?s? a la main'],
+    ['elegant', 'elegante?s?|chics?|raffinee?s?|classe|classy|luxe|luxueuse?s?|avec empattements?|serif|classiques?|fines?|haut de gamme'],
+    ['doux', 'arrondie?s?|rondes?|douces?|doux|mignonne?s?|enfantine?s?|ludiques?|toute?s? ronde?s?'],
+    ['audacieux', 'audacieuse?s?|audacieux|gras|grasses?|epaisses?|grosses?|imposantes?|impactantes?|qui claquent?|fortes?|street|en gras'],
+    ['moderne', 'modernes?|simples?|epuree?s?|sobres?|nettes?|droites?|sans empattements?|minimalistes?|lisibles?']
+  ];
+  const FONT_STYLE_RES = FONT_STYLE_WORDS.map((w) => [w[0], new RegExp('(?:^|\\s)(?:une?\\s+|des\\s+|la\\s+|les\\s+|le\\s+)?' + FONT_WORD + FONT_LINK + '\\s+(?:' + w[1] + ')(?=\\s|$)', 'g')]);
+  const FONT_UPPER_RE = new RegExp('(?:^|\\s)(?:(?:les\\s+|le\\s+|des\\s+)?(?:' + FONT_WORD + '|nom)|tout)(?:\\s+[a-z]+){0,2}?\\s+(?:tout\\s+)?en\\s+(?:majuscules?|capitales?)(?=\\s|$)', 'g');
+  const FONT_LOWER_RE = new RegExp('(?:^|\\s)(?:(?:(?:les\\s+|le\\s+)?(?:' + FONT_WORD + '|nom)|tout)(?:\\s+[a-z]+){0,2}?\\s+(?:en\\s+minuscules?|sans\\s+(?:les\\s+)?majuscules?|pas\\s+en\\s+(?:majuscules?|capitales?))|pas\\s+de\\s+majuscules?)(?=\\s|$)', 'g');
+  function fontRequests(t) {
+    const out = {};
+    let rest = String(t || '');
+    rest = rest.replace(FONT_LOWER_RE, () => { out.upper = false; return ' '; });
+    rest = rest.replace(FONT_UPPER_RE, () => { if (out.upper === undefined) out.upper = true; return ' '; });
+    FONT_STYLE_RES.forEach((fr) => {
+      rest = rest.replace(fr[1], () => { if (!out.style) out.style = fr[0]; return ' '; });
+    });
+    return { fonts: Object.keys(out).length ? out : null, rest: rest.replace(/\s+/g, ' ').trim() };
+  }
+
   function understandInner(text, stepIn, ctx) {
     const step = normStep(stepIn);
     const raw = String(text == null ? '' : text).replace(/\s+/g, ' ').trim().slice(0, 400);
@@ -846,11 +871,20 @@
     }
     if (nd.unsupported && step === 'niche') res.info.unsupported = nd.unsupported;
 
-    // 4. style
-    const sd = t ? detectStyle(t, step === 'template' || summary, step === 'template') : { value: null, excluded: [] };
+    // 4. fonts (« une police élégante », « une écriture manuscrite », « titres en majuscules »): read at the style
+    // question, in the summary, or when she asks for it (« mets… », « je veux… »); never in her name nor in what
+    // she sells (« des cartes écrites à la main » are products). Taken out before the style is read, so « une police
+    // élégante » does not choose the Plateau template.
+    const askFont = step === 'template' || summary || (step !== 'niche' && step !== 'name' && !sales && COLOR_VERB_RE.test(t));
+    const fq = t && askFont ? fontRequests(t) : { fonts: null, rest: t };
+    if (fq.fonts) { res.values.fonts = fq.fonts; res.info.fonts = fq.fonts; }
+    const ts = fq.fonts ? fq.rest : t;
+
+    // 5. style
+    const sd = ts ? detectStyle(ts, step === 'template' || summary, step === 'template') : { value: null, excluded: [] };
     if (sd.value) {
       res.values.template = sd.value;
-      res.explicit.template = correction || STYLE_FIELD_RE.test(t) || summary;
+      res.explicit.template = correction || STYLE_FIELD_RE.test(ts) || summary;
       res.strong.template = sd.strong || res.explicit.template;
     }
     if (sd.excluded.length) res.info.excludedTemplates = sd.excluded;
@@ -917,6 +951,12 @@
         break;
       case 'template':
         if (res.values.template && !helpFirst) { res.value = res.values.template; res.confidence = sd.conf; }
+        else if (res.values.fonts && !helpFirst) {
+          // « une écriture manuscrite » alone: the recommended style, with that font for the titles
+          res.intent = 'auto';
+          res.confidence = 0.8;
+          return res;
+        }
         break;
       case 'palette':
         if (res.values.palette !== undefined && !helpFirst) {
@@ -988,6 +1028,14 @@
     return cap(tail).slice(0, 70);
   }
 
+  // The heading font for a style word, by niche (FONTS ids in data.js)
+  const FONT_PICK = {
+    elegant: { any: 'cormorant-garamond', fashion: 'bodoni-moda', beauty: 'playfair', food: 'fraunces' },
+    moderne: { any: 'montserrat', shoes: 'dm-sans' },
+    doux: { any: 'quicksand', food: 'baloo-2', beauty: 'nunito' },
+    audacieux: { any: 'anton', fashion: 'bebas-neue', food: 'archivo-black' },
+    manuscrit: { any: 'caveat', fashion: 'dancing-script', jewellery: 'great-vibes', beauty: 'dancing-script', food: 'pacifico' }
+  };
   function generate(answers) {
     const d = D();
     const a = isObj(answers) ? answers : {};
@@ -1018,6 +1066,18 @@
       const own = {};
       Object.keys(a.colors).forEach((k) => { const h = typeof a.colors[k] === 'string' ? a.colors[k].toUpperCase() : null; if (h && /^#[0-9A-F]{6}$/.test(h) && h !== String(pc[k] || '').toUpperCase()) own[k] = h; });
       if (Object.keys(own).length) cfg.theme.colors = own;
+    }
+    // « une police élégante », « une écriture manuscrite »: the headings' font (theme.typography); none when not asked
+    if (isObj(a.fonts)) {
+      const ty = {};
+      const pick = FONT_PICK[a.fonts.style];
+      const fid = pick ? (pick[nicheId] || pick.any) : null;
+      if (fid && d.FONTS && d.FONTS[fid] && fid !== d.fontPairs[cfg.theme.fonts].displayFont) ty.display = fid;
+      // Capitals only when they differ from the default: the template's, and never for a handwriting
+      // (JEERE_DATA.upperDefault: a handwriting reads badly in capitals, even on Treichville)
+      const upDef = d.upperDefault ? d.upperDefault(tplId, ty.display || d.fontPairs[cfg.theme.fonts].displayFont) : !!(d.HEADING_UPPER_DEFAULT || {})[tplId];
+      if (typeof a.fonts.upper === 'boolean' && a.fonts.upper !== upDef) ty.upper = a.fonts.upper;
+      if (Object.keys(ty).length) cfg.theme.typography = ty;
     }
     // Vivid colours: the seller's colour carries the whole store (the founder found the soft look pale)
     cfg.theme.intensity = 'vivid';
@@ -1293,10 +1353,21 @@
     return 'Je note aussi ' + (parts.length > 1 ? parts.slice(0, -1).join(', ') + ' et ' + parts[parts.length - 1] : parts[0]) + ' à votre couleur. Vous pourrez tout ajuster dans Thème › Personnaliser les couleurs.';
   }
 
+  // « une police élégante »: kept in the answers (answers.fonts), said back in a short note
+  const FONT_STYLE_PHRASE = { elegant: 'une police élégante', moderne: 'une police moderne', doux: 'une police arrondie', audacieux: 'une police audacieuse', manuscrit: 'une écriture manuscrite' };
+  function fontsNote(fonts) {
+    S.answers.fonts = Object.assign({}, isObj(S.answers.fonts) ? S.answers.fonts : {}, fonts);
+    const f = S.answers.fonts;
+    const what = f.style ? FONT_STYLE_PHRASE[f.style] + ' pour les titres' + (f.upper === true ? ', en majuscules' : f.upper === false ? ', sans majuscules' : '')
+      : (f.upper ? 'les titres en majuscules' : 'les titres sans majuscules');
+    return 'Je note aussi ' + what + '. Vous pourrez changer les polices dans Thème › Polices.';
+  }
+
   // Values for the other questions: corrections of earlier answers, or answers given ahead of time
   function applyOthers(u, step, notes) {
     let any = false;
     if (step !== 'palette' && u.values && u.values.colors) { notes.push(partColorsNote(u.values.colors)); any = true; }
+    if (step !== 'template' && u.values && u.values.fonts) { notes.push(fontsNote(u.values.fonts)); any = true; }
     ['name', 'niche', 'template', 'palette', 'needs', 'city', 'whatsapp'].forEach((f) => {
       if (fieldStep(f) === step || u.values[f] === undefined) return;
       const filled = step === 'summary' || (f === 'city' ? (isFilled('contact') || !!S.contactCity) : f === 'whatsapp' ? (isFilled('contact') || !!S.contactPhone) : isFilled(f));
@@ -1389,10 +1460,12 @@
         if (u.intent === 'auto' || u.value === undefined) {
           A.template = recTemplate(); S.filled.template = true;
           out.push('Je choisis pour vous : le style ' + STYLE[A.template].low + ', celui que je conseille pour ' + nicheShort() + '.');
+          if (u.values && u.values.fonts) out.push(fontsNote(u.values.fonts));
           return true;
         }
         A.template = u.value; S.filled.template = true;
         out.push(templateNote('answer'));
+        if (u.values && u.values.fonts) out.push(fontsNote(u.values.fonts));
         return true;
       }
       case 'palette': {
@@ -1974,7 +2047,8 @@
     fact('Modèle', tpl.name + ' · ' + (STYLE[tpl.id] ? STYLE[tpl.id].label : tpl.style));
     const vivid = cfg.theme.intensity !== 'soft';
     fact('Couleurs', pal.name + ' · ' + (vivid ? 'vives' : 'douces'), swatch(pal.id));
-    fact('Polices', fp.name);
+    const ty = d.typography ? d.typography(cfg) : null;
+    fact('Polices', ty && ty.custom ? ty.display.name + ' · ' + ty.text.name : fp.name);
     fact('Sections', on === total ? on + ' sections' : on + ' sur ' + total);
     fact('Produits', cfg.products.length + ' exemples');
     const q2 = el('span', 'jwz-score');
@@ -2228,7 +2302,7 @@
 
   function reset() { resetState(); }
 
-  root.JeereWizard = { open: open, close: () => close(), reset: reset, understand: understand, generate: generate, colorRequests: colorRequests, STEPS: STEPS.slice() };
+  root.JeereWizard = { open: open, close: () => close(), reset: reset, understand: understand, generate: generate, colorRequests: colorRequests, fontRequests: fontRequests, STEPS: STEPS.slice() };
 
   // A link to …/creer/#assistant opens the assistant directly
   if (typeof document !== 'undefined' && document.addEventListener) {

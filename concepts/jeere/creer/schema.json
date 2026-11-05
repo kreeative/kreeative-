@@ -48,7 +48,7 @@
       "default": "vivid"
     },
     "fontPairId": {
-      "description": "Éditorial (Playfair + Inter), Moderne (Montserrat + Inter), Doux (Onest), Audacieux (Unbounded + Inter), Classique (EB Garamond + Fira Sans), Simple (Poppins).",
+      "description": "Éditorial (Playfair + Inter), Moderne (Montserrat + Inter), Doux (Onest), Audacieux (Unbounded + Inter), Classique (EB Garamond + Fira Sans), Simple (Poppins). The « Suggestions » of the Thème tab: the seller can then choose the heading and the text font apart (theme.typography).",
       "enum": ["editorial", "moderne", "doux", "audacieux", "classique", "simple"]
     },
     "artKind": {
@@ -136,7 +136,29 @@
         "radius": { "enum": ["none", "soft", "round"], "description": "Droit (0 px), Doux (10 px), Rond (22 px)." },
         "buttons": { "enum": ["solid", "outline"], "description": "Plein (accent background) or Contour (1.5 px accent border)." },
         "intensity": { "$ref": "#/$defs/intensity" },
-        "colors": { "$ref": "#/$defs/themeColors" }
+        "colors": { "$ref": "#/$defs/themeColors" },
+        "typography": { "$ref": "#/$defs/typography" }
+      }
+    },
+    "fontId": {
+      "description": "One of the 33 Google Fonts of JEERE_DATA.FONTS, by style. Élégant (serif): playfair, cormorant-garamond, eb-garamond, bodoni-moda, dm-serif-display, libre-baskerville, lora, fraunces, marcellus. Moderne: inter, montserrat, poppins, dm-sans, manrope, space-grotesk, fira-sans, onest. Doux et arrondi: nunito, quicksand, comfortaa, baloo-2, fredoka. Audacieux: unbounded, anton, bebas-neue, archivo-black, oswald, bricolage-grotesque. Manuscrit (titles only): pacifico, dancing-script, caveat, great-vibes, amatic-sc.",
+      "enum": ["playfair", "cormorant-garamond", "eb-garamond", "bodoni-moda", "dm-serif-display", "libre-baskerville", "lora", "fraunces", "marcellus", "inter", "montserrat", "poppins", "dm-sans", "manrope", "space-grotesk", "fira-sans", "onest", "nunito", "quicksand", "comfortaa", "baloo-2", "fredoka", "unbounded", "anton", "bebas-neue", "archivo-black", "oswald", "bricolage-grotesque", "pacifico", "dancing-script", "caveat", "great-vibes", "amatic-sc"]
+    },
+    "textFontId": {
+      "description": "The fonts of JEERE_DATA.FONTS that read well in paragraphs (FONTS[].text, JEERE_DATA.TEXT_FONT_IDS): no display or handwritten font for the texts, and an x-height of at least 0.48 em (so not EB Garamond or Baloo 2, titles only).",
+      "enum": ["libre-baskerville", "lora", "fraunces", "inter", "montserrat", "poppins", "dm-sans", "manrope", "space-grotesk", "fira-sans", "onest", "nunito", "quicksand", "bricolage-grotesque"]
+    },
+    "typography": {
+      "type": "object",
+      "description": "Optional: the seller's fonts (Thème › « Polices »), over the suggestion theme.fonts. Absent (the default, never added by defaultConfig or normalizeConfig): the pair exactly as before. display / text: the heading and the text font; weight: the headings' weight (one the heading font has, normalizeConfig moves another value to the nearest); pair: the suggestion they were chosen over (normalizeConfig fills it; when theme.fonts no longer matches, a tool that only knows the pairs changed them, and display, text and weight no longer apply and are dropped); size: the titles' size S (× 0.86) / M / L (× 1.16); upper: titles (and the name in the header) in capitals or not, absent = the template's (Treichville: capitals), except under a handwriting heading font (never in capitals unless upper is true). A store loads at most 2 font families with only the weights it uses, plus a subset of a few letters for ɛ ɔ ŋ when a font lacks them.",
+      "additionalProperties": false,
+      "properties": {
+        "pair": { "$ref": "#/$defs/fontPairId" },
+        "display": { "$ref": "#/$defs/fontId" },
+        "text": { "$ref": "#/$defs/textFontId" },
+        "weight": { "type": "integer", "enum": [100, 200, 300, 400, 500, 600, 700, 800, 900] },
+        "size": { "enum": ["S", "M", "L"] },
+        "upper": { "type": "boolean" }
       }
     },
     "themeColors": {

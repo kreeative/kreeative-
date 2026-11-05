@@ -58,7 +58,7 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 
 | File | Role | Global |
 | --- | --- | --- |
-| `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, the custom colours (`COLOR_GROUPS`, `themeColors`, `sectionColors`, `colorChecks`, `fixColors`), 6 font pairs, the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
+| `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, the custom colours (`COLOR_GROUPS`, `themeColors`, `sectionColors`, `colorChecks`, `fixColors`), 6 font pairs (the « Suggestions ») and 33 Google Fonts in 5 styles (`FONTS`, `typography`: see [Fonts](#fonts-themetypography)), the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
 | `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, shows the seller's photo, else the demo photo, else draws the product illustration in SVG, never makes a network request to another site. Store CSS is scoped under `.jst`. | `window.JeereRender` |
 | `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
@@ -165,7 +165,8 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
 | `theme.palette` | `sable`, `karite`, `lagune`, `hibiscus`, `indigo`, `mangue`, `menthe`, `nuit` (the fiche names a palette; the colours live in `data.js`) |
 | `theme.intensity` | `vivid` (Vives, the default) or `soft` (Douces) — see [Colour intensity](#colour-intensity) |
 | `theme.colors`, `sections[].settings.bg` / `fg`, hero `buttonBg` / `buttonText` | optional: the seller's own colours over the palette (any of its six colours, the announcement bar, the header, the footer, the badges) and each section's ground and text. A fiche without them renders exactly as before — see [Custom colours](#custom-colours-themecolors-section-colours) |
-| `theme.fonts` | `editorial`, `moderne`, `doux`, `audacieux`, `classique`, `simple` |
+| `theme.fonts` | `editorial`, `moderne`, `doux`, `audacieux`, `classique`, `simple`: the font pair, shown as « Suggestions » in the Thème tab |
+| `theme.typography` | optional: the seller's heading font and text font chosen apart (33 fonts), the titles' size `S`/`M`/`L`, weight and capitals. A fiche without it renders exactly as before — see [Fonts](#fonts-themetypography) |
 | `theme.radius` / `theme.buttons` | `none`, `soft`, `round` / `solid`, `outline` |
 | `payments` | exactly `wave`, `orange`, `mtn`, `moov`, `cod`, `card` (booleans), shown as plain text, never with the operators' logos or colours: in the footer, on the product page and as the checkout's payment options |
 | `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`); `hero` and `about` have `image` and the optional demo `photo`. The zones of the first enabled `delivery` section (else of a hidden one) are also the checkout's commune list |
@@ -845,6 +846,152 @@ and « des robes en wax rouge » are unchanged. The assistant says « Je note au
 **Dashboard**: « Boutique en ligne › Thème » shows the store's colours (the seller's included) and
 « Karité, avec vos couleurs »; its mini previews use `JeereRender`, so they show everything.
 
+## Fonts (`theme.typography`)
+
+The founder: « la police aussi, on devrait avoir plus de choix ». The 6 pairs stay, as « Suggestions » (one click
+sets both fonts); after that the seller chooses the heading font and the text font apart, among 33 Google Fonts
+in 5 styles, each shown in its own face, with the titles' size, weight and capitals.
+
+**Contract** — one optional key, never added by `defaultConfig` or `normalizeConfig`: a fiche without it renders
+**byte for byte as before** (snap.js: 1 440 renders, and the same pixels with the new `store.css`; `fonts-test.js`).
+It holds only what differs from the suggestion (`theme.fonts`, still required):
+
+| Key | Values | `normalizeConfig` (never throws) |
+| --- | --- | --- |
+| `display` | a font id of `FONTS` (`'bodoni-moda'`): the titles, the name in the header without a logo, prices and big numbers in Treichville… everything the pair's heading font drew | trimmed, lower case; unknown → dropped |
+| `text` | a font id with `text: true` (`TEXT_FONT_IDS`, 14 fonts): paragraphs, buttons, forms | a display or handwritten font (`'caveat'`), or one too small for paragraphs (`'eb-garamond'`) → dropped |
+| `weight` | the titles' weight, one the heading font has (`FONTS[].weights`) | a number from 1 to 1000 or 3 digits (`'650'`) → the nearest the font has (a tie goes up: 700); anything else (`'gras'`, `'700px'`, `'9e99'`, `[700]`, `-5`) → dropped |
+| `pair` | the suggestion the fonts were chosen over (filled by `normalizeConfig` when `display`, `text` or `weight` is set) | when `theme.fonts` no longer matches it, a tool that only knows the pairs (the Studio today) changed the pair: `display`, `text`, `weight` no longer apply (render ignores them) and are dropped |
+| `size` | `'S'` (× 0.86), `'M'`, `'L'` (× 1.16): every title of the store, not the texts nor the name in the header | `'l'`, `'grand'` → `'L'` |
+| `upper` | `true` / `false`: titles, the name in the header and the checkout's step titles in capitals or not. Absent: `upperDefault(template, display)`, the template's (`HEADING_UPPER_DEFAULT`: Treichville in capitals), except under a handwriting heading font: never in capitals unless `upper: true` | read as a boolean |
+
+An empty object, or one with nothing valid left, is dropped. `schema.json` describes it (`fontId`, `textFontId`).
+
+**The 33 fonts** (`JEERE_DATA.FONTS`, a collection like the palettes; `FONT_STYLES` gives the 5 styles with a
+label, a short label for the chips and a hint). Each has `family`, `stack`, `style`, `kind` (`serif`/`sans`),
+`weights` (the ones offered for titles, all in the font), `weight` (its default), `text`, `glyphs`, `fallback`,
+`scale`, `opsz`, `italic` (a real italic on Google Fonts), `displayStack` / `localFb` (see Loading). ★ = also
+offered for texts (an x-height of at least 0.48 em: EB Garamond, 0.40, and Baloo 2, 0.46, read too small in
+paragraphs at 15 px, so they are for titles only); † = no ɛ ɔ, drawn with the fallback (‡: no ŋ either).
+
+| Style | Fonts | For |
+| --- | --- | --- |
+| Élégant (serif) | Playfair, Cormorant Garamond †, EB Garamond, Bodoni Moda †, DM Serif Display † ‡, Libre Baskerville ★, Lora ★ †, Fraunces ★ †, Marcellus † | fashion, jewellery, upscale beauty |
+| Moderne | Inter ★, Montserrat ★, Poppins ★ † ‡, DM Sans ★ †, Manrope ★ †, Space Grotesk ★ †, Fira Sans ★, Onest ★ | any store |
+| Doux et arrondi (« Arrondi ») | Nunito ★ †, Quicksand ★ †, Comfortaa †, Baloo 2 †, Fredoka † ‡ | beauty, kids, sweets |
+| Audacieux | Unbounded, Anton, Bebas Neue †, Archivo Black †, Oswald †, Bricolage Grotesque ★ † | sneakers, street, food |
+| Manuscrit (titles only) | Pacifico †, Dancing Script †, Caveat †, Great Vibes, Amatic SC † | crafts, pastry, gifts |
+
+The pairs' fonts are in the list with the very same stacks and weights (`fontPairs[].displayFont` / `.textFont`),
+so choosing the pair's own font is no change at all. Space Grotesk took the place of Plus Jakarta Sans, which
+could not be told from Inter and Manrope on a phone (x-heights within 2 %): Moderne keeps a quirkier grotesk.
+
+**French accents and ɛ ɔ ŋ.** Checked on 5 November 2026 with fontTools on the files Google serves
+(`fonts/coverage.py` in the scratchpad; `fonts-test.js` compares its `coverage.json` with the `glyphs` flags):
+all 33 have every French accent, « » ’ œ æ. Only 10 have ɛ ɔ ŋ Ɛ Ɔ Ŋ (Playfair, EB Garamond, Libre Baskerville,
+Inter, Montserrat, Fira Sans, Onest, Unbounded, Anton, Great Vibes). The 23 others lack ɛ ɔ Ɛ Ɔ, but 20 of them
+have their own ŋ Ŋ (the browser uses it, the subset only brings ɛ ɔ Ɛ Ɔ); only DM Serif Display, Poppins and
+Fredoka lack ŋ too. For those 23, the landing page's trick: the six letters alone from Montserrat
+(sans, display, script) or Noto Serif (serifs), `css2?family=…&text=ɛɔƐƆŋŊ` (a few KB, its `@font-face` has
+`unicode-range` for those six code points only), named right after the font in its stack (`'Bodoni Moda', 'Noto
+Serif', Georgia, …`), so a Dioula or Baoulé name (« Kɔnan Bɛnɛ ») is drawn whole, in a close face, never as boxes.
+A fallback family that is already the store's other font (Montserrat as the text font) is not loaded twice.
+
+**Loading** — `JEERE_DATA.typography(config)` → `{ pair, custom, display, text, weight, weights, size, scale, hs,
+hf, upper, upperSet, upperDefault, hcase, italic, displayStack, textStack, links: [{ id, href, fallback? }],
+families, fallbacks, faces: [{ id, css }] }`.
+`custom: false` (no own font, or the pair's own ones): `links` is the pair's `googleUrl`, as before. Otherwise one
+stylesheet with **at most 2 families** and **only the weights used** (the heading font: its weight and 400, for
+Plateau's quotes and signatures; the text font: 400, 500, 600, 700, or the nearest it has; one family when both
+are the same font; the optical-size axis for Playfair, Bodoni Moda, Fraunces, Bricolage Grotesque; on Plateau,
+the heading font's real italic 400 too, for the signature, when it has one), plus at most one glyph-subset
+stylesheet; every URL ends with `&display=swap`. `JeereRender.fontLinks(config)` returns them and `ensureFonts`
+adds each once per page (ids `jst-font-<pair>`, `jst-font-c-<hash>`, `jst-font-fb-<hash>`).
+A heading font drawn bigger or smaller (`scale` ≠ 1: the handwritings, Bebas Neue, Cormorant…) has a local
+stand-in in its `displayStack`, right before the system font: `faces` holds its `@font-face` (`local('Arial')`,
+`local('Roboto')`… or Georgia for serifs, `size-adjust: 1 / scale`), which `ensureFonts` adds as a `<style
+id="jst-font-l-<id>">`. Nothing is downloaded; until the web font arrives (or if it never does on slow mobile
+data) the titles keep the size the pairs' titles have instead of a system font blown up by the scale.
+`fonts-test.js` checks the budget on all 528 heading × text combinations, and counts what a page that renders one
+store really requests.
+
+**Render** (`render.js`, `store.css` « the seller's fonts »): `--st-font-display`, `--st-font-text` and
+`--st-display-weight` carry her fonts like the pair's. The 119 title `font-size` rules of `store.css` are
+`calc(<px> * var(--st-hs, 1))` and the 14 rules of the name in the header `calc(<px> * var(--st-hf, 1))`;
+render.js sets `--st-hs` (size × the font's `scale`) and `--st-hf` (the font's `scale`: a handwriting with a small
+x-height, Caveat, is drawn × 1.24) only when they are not 1, and `data-hcase="upper" | "none"` only when the
+capitals differ from what the template writes (her choice, or a handwriting on Treichville: `none`). With her own
+fonts (`custom`) it also sets `data-fonts="custom"` (`font-synthesis-weight: none`: every weight used is loaded, so
+no smeared fake bold of Anton or Great Vibes), `data-hital="none"` when the heading font has no italic (Plateau's
+signature upright, not slanted by the browser), and `data-hstyle="manuscrit"` for a handwriting: the prices,
+figures, badges and paragraphs the templates draw in the heading font (Treichville's prices, Plateau's review
+quotes and cart lines…) then use the text font. When one of the two fonts takes ɛ ɔ ŋ from the fallback, render.js also sets `--st-fsa: from-font` and
+`store.css` gives every element `font-size-adjust: var(--st-fsa, none)`: those letters take the x-height of the
+font they sit in (a Montserrat ɛ inside Caveat no longer looks like a capital), the font's own letters do not move.
+Without the key nothing is set, and `calc(34px * 1)` is 34 px: same HTML, same pixels.
+
+**Editor** (Thème › « Polices », `#b-g-theme-fonts`):
+
+- An « Aperçu » card: the store's name in the heading font (weight, size, capitals) and a line of text in the
+  text font, on the store's own colours.
+- « Suggestions »: the 6 pairs (`data-fk="font-<id>"`); pressed only while she has no font of her own. Choosing
+  one replaces her fonts (`setFontPair`: size and capitals stay); the toast says so for 7 s with « Annuler ».
+- « Titres »: « Police des titres », a field in the font's own face that opens the list: chips Élégant / Moderne /
+  Arrondi / Audacieux / Manuscrit (44 px), the style's hint, and the style's fonts, each written in its own face
+  (`fd-<id>`; the editor loads only the letters of each name, `fontSampleUrl`, a few KB per font). « Taille des
+  titres » Petits / Moyens / Grands; « Épaisseur des titres »: the weights the font has, each chip written at its
+  weight (Fin, Normal, Moyen, Semi-gras, Gras, Très gras, Noir; « n’existe qu’en une épaisseur » for Anton,
+  Pacifico…); « Titres en majuscules » (a switch). A new heading font brings its own default weight, and a
+  handwriting comes without capitals (she can turn them back on). The picker's samples are loaded under a private
+  family (`jeere-s-<id>`, the stylesheet fetched and renamed): a static subset never mixes with the store's own
+  family in the preview (an optical-size font would otherwise get a few letters at the wrong size).
+- « Textes »: « Police des textes », the same list with the 14 text fonts only (no Manuscrit tab).
+- A note when a font lacks ɛ ɔ ŋ: « quand une police ne les a pas, ils sont écrits dans une police proche ».
+- A choice equal to the suggestion's is deleted (and an empty `typography`): the fiche is the pair's again.
+  Every change is one undo step, saved with the fiche, back after a reload. Choosing a **template keeps her
+  fonts** over its suggestion (`pair` follows; « Vos polices sont gardées »); her capitals choice stays only when it
+  differs from the new template's. The logo chips and the text logo use her heading font.
+- **Qualité**: an unknown heading font, or a text font that is not for paragraphs → error (target `{ kind: 'theme',
+  id: 'fonts' }`); a handwriting in capitals → warning « Une écriture manuscrite se lit mal en majuscules »
+  (`key: 'upper'`). A default fiche still scores 92, and so does one with her own fonts.
+
+**Assistant** (`wizard.js`, `fontRequests(text)`): « une police élégante », « une écriture manuscrite », « des
+lettres écrites à la main », « une typo moderne », « une police arrondie », « une police audacieuse », « les
+titres en majuscules », « pas de majuscules » are read at the style question, in the summary, or with a verb
+(« mets », « je veux »…), never in her name nor in what she sells (« des cartes écrites à la main » is a
+product). The phrase is taken out before the style is read: « je veux une police élégante » keeps the
+recommended template (it does not pick Plateau), « style audacieux avec une police manuscrite » gives both. The
+assistant says « Je note aussi une écriture manuscrite pour les titres. Vous pourrez changer les polices dans
+Thème › Polices. »; `generate()` writes `theme.typography.display` by style and niche (`FONT_PICK`: élégant →
+Bodoni Moda for fashion, Playfair for beauty, Fraunces for food, else Cormorant Garamond; manuscrit → Great Vibes
+for jewellery, Dancing Script for fashion and beauty, Pacifico for food, else Caveat; moderne → Montserrat;
+arrondi → Quicksand; audacieux → Anton…), and `upper` when it differs from `upperDefault` (a handwriting is not
+in capitals, on Treichville too, unless she asks). The
+summary card says « Polices : Caveat · Onest ».
+
+**Dashboard**: « Boutique en ligne › Thème › Polices » shows « Quicksand · Nunito » instead of the pair's name;
+`customised()` counts her fonts; the mini previews use `JeereRender`, so they show them.
+
+**The Studio** (`../studio/`) only knows the pairs today and keeps working: it reads `fontPairs` and sets
+`theme.fonts`; a fiche with her own fonts renders with them, and when the Studio changes the pair, `pair` no
+longer matches, so its choice wins (render ignores the stale fonts, `normalizeConfig` drops them). Still to
+do there (not in `creer/`): its PNG export embeds only `fontPairs[theme.fonts].googleUrl`, so a store with her own
+fonts exports with system fonts (it should fetch every `typography(config).links[].href`, the `text=` subset
+included); its font field and token row show the pair, not `typography(config).families`; its thumbnail cache
+key should include `theme.typography`. To offer the
+fonts there: `FONTS`, `FONT_STYLES`, `typography(config)` (the stacks, the weights, the links), `setFontPair(config,
+id)` (a pair, the seller's size and capitals kept), `fontSampleUrl(id)` for a picker in the fonts' own faces.
+
+**Tests** (scratchpad `fonts/`): `fonts-test.js` — the contract (33 fonts, 5 styles, repairs, the stale pair,
+`setFontPair`, `validate`, schema with Python `jsonschema`), the glyph flags against fontTools, all 528
+combinations within the loading budget, the 33 fonts × 3 templates rendered (each `FontFace` loaded at its weight,
+titles and texts in their fonts), heading and text independent, size S/M/L, weight, capitals on and off (header
+name and checkout included), ɛ ɔ ŋ in a store name (Bodoni Moda → Noto Serif) and a product name (Poppins →
+Montserrat) drawn with the fallback, what one store requests, the editor at 390 and 1440 px (every font of the
+picker in its own face, choices, undo / redo, reload, suggestions, template change, Qualité), the assistant's
+words, the dashboard, and the old fiches byte for byte (snap.js) and pixel for pixel. Screenshots in
+`fonts/shots/`.
+
 ## Seller accounts (`../compte/`)
 
 How a seller signs up to manage her store: **phone number first, no e-mail, no password**, like
@@ -1228,6 +1375,10 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
    colours stay). Boutique › Logo: import a logo with a dark word, then set « Fond de l’en-tête » to navy: the
    note under the logo, in the picker and in Qualité. Automated: `colours-test.js`, `logo-test.js` and
    `fx/review-test.js` (scratchpad `brand/`), see [Custom colours](#custom-colours-themecolors-section-colours).
+   « Polices »: pick a suggestion, then « Police des titres » › Manuscrit › Caveat, « Grands », capitals on
+   (Qualité warns) and off, « Police des textes » › Lora; name the store « Kɔnan Bɛnɛ » (ɛ ɔ drawn whole); switch
+   the template (your fonts stay), pick a suggestion (« Annuler » brings them back). Automated: `fonts-test.js`
+   (scratchpad `fonts/`), see [Fonts](#fonts-themetypography).
 4. Page selector: go through Accueil, Fiche produit, Panier, Paiement, Confirmation on both
    devices and the three templates. Select a product in the Produits tab: « Fiche produit » shows it.
 5. Inside the preview: click a product card, « Ajouter au panier », change quantities (1 to 20),

@@ -5,7 +5,7 @@
  * Everything a store is made of lives in one "fiche boutique" (store config JSON, version 1).
  * The AI never writes code: it fills this fiche, our tested templates render it, and the
  * editor edits the same fiche. This file holds the catalogue (templates, palettes, colour
- * intensities, font pairs, section types, niches, communes, payment methods, store pages, demo
+ * intensities, font pairs and the 33 fonts, section types, niches, communes, payment methods, store pages, demo
  * photos), the example content in French (including the 4 default custom pages of each niche: À propos,
  * Livraison et retours, Contact, Conditions de vente), and the pure helpers (defaultConfig,
  * normalizeConfig, validate, formatPrice, slugify...).
@@ -710,6 +710,8 @@
 
   /* ------------------------------------------------------------------ font pairs
    * All of these fonts include ɛ ɔ ŋ except Poppins, hence the Montserrat fallback in "simple".
+   * theme.fonts names a pair: the Thème tab's « Suggestions ». The seller can then choose the heading font
+   * and the text font apart (theme.typography, see FONTS below); a fiche without it renders the pair as before.
    */
 
   var INTER = "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif";
@@ -752,6 +754,283 @@
       googleUrl: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Montserrat:wght@400;600&display=swap'
     }
   ]);
+  // The fonts of each pair in the catalogue below (FONTS): the pairs are the « Suggestions » of the Thème tab
+  var PAIR_FONTS = {
+    editorial: ['playfair', 'inter'], moderne: ['montserrat', 'inter'], doux: ['onest', 'onest'],
+    audacieux: ['unbounded', 'inter'], classique: ['eb-garamond', 'fira-sans'], simple: ['poppins', 'poppins']
+  };
+  fontPairs.forEach(function (p) { p.displayFont = PAIR_FONTS[p.id][0]; p.textFont = PAIR_FONTS[p.id][1]; });
+
+  /* ------------------------------------------------------------------ fonts (theme.typography)
+   * 33 Google Fonts in 5 styles: the heading font and the text font are chosen apart
+   * (theme.typography.display / .text), the pairs above stay as « Suggestions ».
+   *  - weights: the weights offered for the headings (all exist in the font); weight: the default one
+   *  - text: true when the font reads well in paragraphs at 15 px (only those are offered for the texts)
+   *  - glyphs: true when the font itself has ɛ ɔ ŋ Ɛ Ɔ Ŋ (Dioula, Baoulé, Bambara names). Checked on
+   *    5 November 2026 with fontTools on the files Google serves (README « Fonts »): every font has the French
+   *    accents and « » ’ œ; the ones with glyphs: false get these six letters from a tiny subset of Montserrat
+   *    (sans, display, script) or Noto Serif (serif), exactly like the landing page's Poppins + Montserrat.
+   *  - scale: how big the font looks next to the others at the same font-size (a script with a small
+   *    x-height needs more room); headings and the text logo are multiplied by it (1 for the pairs' fonts)
+   *  - opsz: the optical-size axis requested with the weights (the font then adapts its contrast to the size)
+   *  - italic: the font has a real italic on Google Fonts (checked: ital,wght@1,400 answers 200). Plateau's
+   *    signature (.jst-sign) is in italic: it is loaded for those fonts, the others write it upright (no fake slant)
+   *  - text fonts need an x-height of at least 0.48 em (Inter 0.546), else paragraphs at 15 px read too small:
+   *    EB Garamond (0.40) and Baloo 2 (0.46) are for titles only
+   */
+  var SANS = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+  var SERIF = "Georgia, 'Times New Roman', serif";
+  var GLYPH_TEXT = 'ɛɔƐƆŋŊ'; // ɛ ɔ Ɛ Ɔ ŋ Ŋ
+  var GLYPH_FALLBACKS = { sans: 'Montserrat', serif: 'Noto Serif' };
+  var FONT_STYLES = [
+    { id: 'elegant', label: 'Élégant', short: 'Élégant', hint: 'Avec empattements, raffiné : mode, bijoux, beauté haut de gamme.' },
+    { id: 'moderne', label: 'Moderne', short: 'Moderne', hint: 'Net et lisible : tout type de boutique.' },
+    { id: 'doux', label: 'Doux et arrondi', short: 'Arrondi', hint: 'Rond et tendre : beauté, enfants, douceurs.' },
+    { id: 'audacieux', label: 'Audacieux', short: 'Audacieux', hint: 'Gros titres qui claquent : sneakers, street, food.' },
+    { id: 'manuscrit', label: 'Manuscrit', short: 'Manuscrit', hint: 'Écrit à la main : artisanat, pâtisserie, cadeaux. Pour les titres seulement.' }
+  ];
+  function fontDef(id, name, style, o) {
+    var kind = style === 'elegant' ? 'serif' : 'sans';
+    var head = "'" + name + "', " + (o.glyphs ? '' : "'" + GLYPH_FALLBACKS[kind] + "', ");
+    var tail = kind === 'serif' ? SERIF : SANS;
+    var stack = o.stack || (head + tail);
+    var scale = o.scale || 1;
+    // A font drawn bigger or smaller (scale ≠ 1): until it arrives (or if it never does on slow data), the titles
+    // use a local font resized by 1 / scale (@font-face size-adjust, see typography().faces), so they keep the
+    // size the pairs' titles have instead of a system font blown up by the scale. Headings only (displayStack).
+    var localFb = scale !== 1 && !o.stack ? 'jeere-fb-' + id : null;
+    return {
+      id: id, name: name, family: name, style: style, kind: kind, stack: stack,
+      displayStack: localFb ? head + "'" + localFb + "', " + tail : stack, localFb: localFb,
+      weights: o.weights, weight: o.weight || (o.weights.indexOf(600) !== -1 ? 600 : o.weights[o.weights.length - 1]),
+      text: !!o.text, glyphs: !!o.glyphs, scale: scale, opsz: o.opsz || null, italic: !!o.italic,
+      fallback: o.glyphs ? null : GLYPH_FALLBACKS[kind]
+    };
+  }
+  var W_ALL = [300, 400, 500, 600, 700, 800, 900];
+  var FONTS = collection([
+    // Élégant (serif)
+    fontDef('playfair', 'Playfair', 'elegant', { stack: "'Playfair', 'Playfair Display', " + SERIF, weights: [400, 500, 600, 700, 800, 900], weight: 600, glyphs: true, opsz: '5..1200', italic: true }),
+    fontDef('cormorant-garamond', 'Cormorant Garamond', 'elegant', { weights: [300, 400, 500, 600, 700], weight: 600, scale: 1.14, italic: true }),
+    fontDef('eb-garamond', 'EB Garamond', 'elegant', { stack: "'EB Garamond', Garamond, " + SERIF, weights: [400, 500, 600, 700, 800], weight: 600, glyphs: true, italic: true }),
+    fontDef('bodoni-moda', 'Bodoni Moda', 'elegant', { weights: [400, 500, 600, 700, 800, 900], weight: 600, opsz: '6..96', italic: true }),
+    fontDef('dm-serif-display', 'DM Serif Display', 'elegant', { weights: [400], weight: 400, italic: true }),
+    fontDef('libre-baskerville', 'Libre Baskerville', 'elegant', { weights: [400, 500, 600, 700], weight: 600, glyphs: true, text: true, scale: 0.92, italic: true }),
+    fontDef('lora', 'Lora', 'elegant', { weights: [400, 500, 600, 700], weight: 600, text: true, italic: true }),
+    fontDef('fraunces', 'Fraunces', 'elegant', { weights: W_ALL, weight: 600, text: true, opsz: '9..144', italic: true }),
+    fontDef('marcellus', 'Marcellus', 'elegant', { weights: [400], weight: 400 }),
+    // Moderne (sans)
+    fontDef('inter', 'Inter', 'moderne', { stack: INTER, weights: W_ALL, weight: 700, glyphs: true, text: true, italic: true }),
+    fontDef('montserrat', 'Montserrat', 'moderne', { stack: "'Montserrat', " + SANS, weights: W_ALL, weight: 700, glyphs: true, text: true, italic: true }),
+    fontDef('poppins', 'Poppins', 'moderne', { stack: "'Poppins', 'Montserrat', sans-serif", weights: W_ALL, weight: 600, text: true, italic: true }),
+    fontDef('dm-sans', 'DM Sans', 'moderne', { weights: W_ALL, weight: 700, text: true, italic: true }),
+    fontDef('manrope', 'Manrope', 'moderne', { weights: [300, 400, 500, 600, 700, 800], weight: 700, text: true }),
+    fontDef('space-grotesk', 'Space Grotesk', 'moderne', { weights: [300, 400, 500, 600, 700], weight: 700, text: true }),
+    fontDef('fira-sans', 'Fira Sans', 'moderne', { stack: "'Fira Sans', " + SANS, weights: W_ALL, weight: 600, glyphs: true, text: true, italic: true }),
+    fontDef('onest', 'Onest', 'moderne', { stack: "'Onest', " + SANS, weights: W_ALL, weight: 600, glyphs: true, text: true }),
+    // Doux et arrondi
+    fontDef('nunito', 'Nunito', 'doux', { weights: W_ALL, weight: 700, text: true, italic: true }),
+    fontDef('quicksand', 'Quicksand', 'doux', { weights: [300, 400, 500, 600, 700], weight: 700, text: true }),
+    fontDef('comfortaa', 'Comfortaa', 'doux', { weights: [300, 400, 500, 600, 700], weight: 700, scale: 0.94 }),
+    fontDef('baloo-2', 'Baloo 2', 'doux', { weights: [400, 500, 600, 700, 800], weight: 700 }),
+    fontDef('fredoka', 'Fredoka', 'doux', { weights: [300, 400, 500, 600, 700], weight: 600 }),
+    // Audacieux (display)
+    fontDef('unbounded', 'Unbounded', 'audacieux', { stack: "'Unbounded', " + SANS, weights: W_ALL, weight: 600, glyphs: true }),
+    fontDef('anton', 'Anton', 'audacieux', { weights: [400], weight: 400, glyphs: true, scale: 1.06 }),
+    fontDef('bebas-neue', 'Bebas Neue', 'audacieux', { weights: [400], weight: 400, scale: 1.16 }),
+    fontDef('archivo-black', 'Archivo Black', 'audacieux', { weights: [400], weight: 400, scale: 0.94 }),
+    fontDef('oswald', 'Oswald', 'audacieux', { weights: [300, 400, 500, 600, 700], weight: 600, scale: 1.04 }),
+    fontDef('bricolage-grotesque', 'Bricolage Grotesque', 'audacieux', { weights: [300, 400, 500, 600, 700, 800], weight: 700, text: true, opsz: '12..96' }),
+    // Manuscrit (headings only)
+    fontDef('pacifico', 'Pacifico', 'manuscrit', { weights: [400], weight: 400, scale: 0.94 }),
+    fontDef('dancing-script', 'Dancing Script', 'manuscrit', { weights: [400, 500, 600, 700], weight: 700, scale: 1.14 }),
+    fontDef('caveat', 'Caveat', 'manuscrit', { weights: [400, 500, 600, 700], weight: 700, scale: 1.24 }),
+    fontDef('great-vibes', 'Great Vibes', 'manuscrit', { weights: [400], weight: 400, glyphs: true, scale: 1.28 }),
+    fontDef('amatic-sc', 'Amatic SC', 'manuscrit', { weights: [400, 700], weight: 700, scale: 1.3 })
+  ]);
+  var TEXT_FONT_IDS = FONTS.filter(function (f) { return f.text; }).map(function (f) { return f.id; });
+  // Weights the store's texts use (store.css: 400 body, 500 / 600 labels and buttons, 700 prices and bold)
+  var TEXT_WEIGHTS = [400, 500, 600, 700];
+  var WEIGHT_LABELS = { 100: 'Très fin', 200: 'Très fin', 300: 'Fin', 400: 'Normal', 500: 'Moyen', 600: 'Semi-gras', 700: 'Gras', 800: 'Très gras', 900: 'Noir' };
+  // Heading size (« Taille des titres »): multiplies every title of the store (not the texts, not the header name)
+  var HEADING_SIZES = { S: 0.86, M: 1, L: 1.16 };
+  var HEADING_SIZE_OPTIONS = [{ value: 'S', label: 'Petits' }, { value: 'M', label: 'Moyens' }, { value: 'L', label: 'Grands' }];
+  // Titles in capitals by default (Treichville writes its titles and its name in capitals)
+  var HEADING_UPPER_DEFAULT = { plateau: false, cocody: false, treichville: true };
+  var TYPO_KEYS = ['pair', 'display', 'text', 'size', 'weight', 'upper'];
+
+  // A weight as she (or a tool) wrote it: a finite number from 1 to 1000, or a string of 3 digits ('650').
+  // Anything else ('9e99', '700px', [700], -5) is NaN: not a weight.
+  function weightNum(w) {
+    var n = typeof w === 'number' ? w : (typeof w === 'string' && /^\s*\d{3}\s*$/.test(w) ? Number(w) : NaN);
+    return isFinite(n) && n >= 1 && n <= 1000 ? n : NaN;
+  }
+  // Capitals by default: the template's choice (Treichville: capitals), except under a handwriting heading font,
+  // which reads badly in capitals (all its titles, the name and, on Treichville, the checkout's step titles)
+  function upperDefault(tpl, displayId) {
+    var f = fontId(displayId) ? FONTS[fontId(displayId)] : null;
+    if (f && f.style === 'manuscrit') return false;
+    return !!HEADING_UPPER_DEFAULT[tpl];
+  }
+  function nearestWeight(w, list) {
+    var n = weightNum(w);
+    if (!isFinite(n) || !list || !list.length) return list && list.length ? list[0] : 400;
+    var best = list[0];
+    list.forEach(function (x) { if (Math.abs(x - n) < Math.abs(best - n) || (Math.abs(x - n) === Math.abs(best - n) && x > best)) best = x; });
+    return best;
+  }
+  function fontId(v) { return typeof v === 'string' && inColl(FONTS, v.trim().toLowerCase()) ? v.trim().toLowerCase() : null; }
+
+  // theme.typography, repaired (normalizeConfig). Never throws; null when nothing is left.
+  // pair: the suggestion the fonts were chosen over. A tool that only knows theme.fonts (the Studio) changes the
+  // pair: the old choices then no longer apply (render ignores them, normalizeConfig drops them).
+  function normTypography(src, pairId) {
+    if (!isObj(src)) return null;
+    var out = {};
+    var pair = typeof src.pair === 'string' && inColl(fontPairs, src.pair) ? src.pair : null;
+    var stale = pair !== null && pair !== pairId;
+    var display = fontId(src.display);
+    var text = fontId(src.text);
+    if (text && !FONTS[text].text) text = null;
+    var hasWeight = isFinite(weightNum(src.weight));
+    if (!stale && (display || text || hasWeight)) {
+      out.pair = pairId;
+      if (display) out.display = display;
+      if (text) out.text = text;
+      if (hasWeight) {
+        var dfont = FONTS[display || (inColl(fontPairs, pairId) ? fontPairs[pairId].displayFont : 'playfair')];
+        out.weight = nearestWeight(src.weight, dfont.weights);
+      }
+    }
+    var size = typeof src.size === 'string' ? src.size.trim().toUpperCase() : null;
+    if (size === 'PETIT' || size === 'PETITS') size = 'S';
+    if (size === 'GRAND' || size === 'GRANDS') size = 'L';
+    if (size === 'MOYEN' || size === 'MOYENS') size = 'M';
+    if (size && has(HEADING_SIZES, size)) out.size = size;
+    if (has(src, 'upper') && src.upper !== null && src.upper !== undefined) out.upper = toBool(src.upper, false);
+    return Object.keys(out).length ? out : null;
+  }
+
+  // The store's fonts as they render: the suggestion (theme.fonts) with the seller's choices over it.
+  // { pair, custom, display, text (FONTS entries), weight, weights, size, scale, hs, hf, upper, upperSet,
+  //   displayStack, textStack, links: [{ id, href }], families: ['Bodoni Moda', 'Inter'], fallbacks }
+  // custom is false without theme.typography's fonts: render then uses the pair exactly as before.
+  function typography(config) {
+    var cfg = isObj(config) ? config : {};
+    var theme = isObj(cfg.theme) ? cfg.theme : {};
+    var tpl = typeof cfg.template === 'string' && inColl(templates, cfg.template) ? cfg.template : 'plateau';
+    var pairId = typeof theme.fonts === 'string' && inColl(fontPairs, theme.fonts) ? theme.fonts : templates[tpl].defaults.fonts;
+    var pair = fontPairs[pairId];
+    var t = isObj(theme.typography) ? theme.typography : {};
+    var stale = typeof t.pair === 'string' && t.pair !== pairId;
+    var dId = !stale && fontId(t.display) ? fontId(t.display) : pair.displayFont;
+    var tId = !stale && fontId(t.text) && FONTS[fontId(t.text)].text ? fontId(t.text) : pair.textFont;
+    var display = FONTS[dId];
+    var text = FONTS[tId];
+    var wSet = !stale && isFinite(weightNum(t.weight));
+    var weight = wSet ? nearestWeight(t.weight, display.weights) : (dId === pair.displayFont ? pair.display.weight : display.weight);
+    var custom = dId !== pair.displayFont || tId !== pair.textFont || weight !== pair.display.weight;
+    var size = typeof t.size === 'string' && has(HEADING_SIZES, t.size.toUpperCase()) ? t.size.toUpperCase() : 'M';
+    var upperSet = typeof t.upper === 'boolean';
+    var upperDef = upperDefault(tpl, dId);
+    var upper = upperSet ? t.upper : upperDef;
+    var scale = display.scale || 1;
+    var out = {
+      pair: pairId, custom: custom, display: display, text: text, weight: weight, weights: display.weights.slice(),
+      size: size, scale: scale, hs: Math.round(HEADING_SIZES[size] * scale * 1000) / 1000, hf: scale,
+      upper: upper, upperSet: upperSet, upperDefault: upperDef,
+      // data-hcase on the store: 'upper' / 'none' when it differs from what the template writes, else null
+      hcase: upperSet || upper !== !!HEADING_UPPER_DEFAULT[tpl] ? (upper ? 'upper' : 'none') : null,
+      // A real italic for Plateau's signature (.jst-sign), else render writes it upright (data-hital="none")
+      italic: custom ? display.italic : true,
+      displayStack: custom ? display.displayStack : pair.display.family,
+      textStack: custom ? text.stack : pair.text.family,
+      links: [], families: [], fallbacks: [], faces: []
+    };
+    if (!custom) {
+      out.links.push({ id: 'jst-font-' + pairId, href: pair.googleUrl });
+      out.families = [display.family, text.family].filter(function (f, i, a) { return a.indexOf(f) === i; });
+      return out;
+    }
+    // Only the weights used: the headings' weight (+ 400, the plateau quotes and signatures), the texts' 400–700
+    var want = {};
+    function need(font, ws) {
+      var list = want[font.id] || (want[font.id] = []);
+      ws.forEach(function (w) { var n = nearestWeight(w, font.weights); if (list.indexOf(n) === -1) list.push(n); });
+    }
+    need(display, [weight, 400]);
+    need(text, TEXT_WEIGHTS);
+    // Plateau's signature is in italic 400 in the heading font: its real italic, when it has one
+    var ital = tpl === 'plateau' && display.italic ? [400] : null;
+    var fams = [];
+    var fb = {};
+    [display, text].forEach(function (f) {
+      if (fams.indexOf(f) !== -1) return;
+      fams.push(f);
+      if (f.fallback) { fb[f.fallback] = fb[f.fallback] || []; want[f.id].forEach(function (w) { if (fb[f.fallback].indexOf(w) === -1) fb[f.fallback].push(w); }); }
+    });
+    var href = 'https://fonts.googleapis.com/css2?' + fams.map(function (f) { return 'family=' + familyParam(f, want[f.id], f === display ? ital : null); }).join('&') + '&display=swap';
+    out.links.push({ id: 'jst-font-c-' + hashStr(href), href: href });
+    out.families = fams.map(function (f) { return f.family; });
+    // A family that already has the letters is loaded anyway (Montserrat as the text font): no subset of it
+    var fbNames = Object.keys(fb).filter(function (n) { return out.families.indexOf(n) === -1; });
+    if (fbNames.length) {
+      var fhref = 'https://fonts.googleapis.com/css2?' + fbNames.map(function (n) {
+        return 'family=' + n.replace(/ /g, '+') + ':wght@' + fb[n].sort(function (a, b) { return a - b; }).join(';');
+      }).join('&') + '&text=' + encodeURIComponent(GLYPH_TEXT) + '&display=swap';
+      out.links.push({ id: 'jst-font-fb-' + hashStr(fhref), href: fhref, fallback: true });
+      out.fallbacks = fbNames;
+    }
+    // The local stand-in of a heading font drawn bigger or smaller (see fontDef): no download, a system font
+    // resized by 1 / scale, so the titles keep their usual size until the web font arrives
+    if (display.localFb) {
+      var locals = display.kind === 'serif'
+        ? ['Georgia', 'Times New Roman', 'Noto Serif', 'Liberation Serif', 'DejaVu Serif']
+        : ['Arial', 'Helvetica', 'Roboto', 'Liberation Sans', 'DejaVu Sans'];
+      out.faces.push({
+        id: 'jst-font-l-' + display.id,
+        css: "@font-face{font-family:'" + display.localFb + "';src:" + locals.map(function (n) { return "local('" + n + "')"; }).join(',') +
+          ';size-adjust:' + (Math.round(10000 / display.scale) / 100) + '%}'
+      });
+    }
+    return out;
+  }
+  // family=Name:wght@400;600, with the optical-size axis when the font has one, and the italic weights (ital)
+  function familyParam(font, ws, ital) {
+    var list = ws.slice().sort(function (a, b) { return a - b; });
+    var fam = font.family.replace(/ /g, '+');
+    var o = font.opsz ? font.opsz + ',' : '';
+    var axes = (font.opsz ? 'opsz,' : '') + 'wght';
+    if (ital && ital.length) {
+      var it = ital.slice().sort(function (a, b) { return a - b; });
+      return fam + ':ital,' + axes + '@' + list.map(function (w) { return '0,' + o + w; }).concat(it.map(function (w) { return '1,' + o + w; })).join(';');
+    }
+    return fam + ':' + axes + '@' + list.map(function (w) { return o + w; }).join(';');
+  }
+  function hashStr(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul ? Math.imul(h, 16777619) : (h * 16777619) | 0; }
+    return (h >>> 0).toString(36);
+  }
+  // The editor's picker shows each font in its own face: only the letters of its name (a few KB each)
+  function fontSampleUrl(id, sample) {
+    var f = FONTS[fontId(id) || 'inter'];
+    var txt = String(sample == null ? f.name : sample);
+    return 'https://fonts.googleapis.com/css2?family=' + f.family.replace(/ /g, '+') + ':wght@' + f.weight +
+      '&text=' + encodeURIComponent(txt) + '&display=swap';
+  }
+  // Choosing a suggestion (a pair) in any tool: the pair's fonts and weight, the seller's size and capitals kept
+  function setFontPair(config, pairId) {
+    if (!isObj(config) || !inColl(fontPairs, pairId)) return false;
+    if (!isObj(config.theme)) config.theme = {};
+    config.theme.fonts = pairId;
+    var t = config.theme.typography;
+    if (isObj(t)) {
+      delete t.display; delete t.text; delete t.weight; delete t.pair;
+      if (!Object.keys(t).length) delete config.theme.typography;
+    }
+    return true;
+  }
 
   /* ------------------------------------------------------------------ communes */
 
@@ -2372,6 +2651,11 @@
       var ownColors = colorOverrides(srcTheme.colors);
       if (ownColors) theme.colors = ownColors;
     }
+    // The seller's fonts are optional too: kept (repaired) when the fiche has them, never added
+    if (has(srcTheme, 'typography')) {
+      var ownType = normTypography(srcTheme.typography, theme.fonts);
+      if (ownType) theme.typography = ownType;
+    }
 
     var srcPay = isObj(src.payments) ? src.payments : {};
     var payments = {};
@@ -2531,6 +2815,22 @@
       }
       if (!(typeof theme.fonts === 'string' && inColl(fontPairs, theme.fonts))) {
         add('error', 'Polices inconnues. Choisissez une paire de polices dans l’onglet Thème.', 'theme', 'fonts');
+      }
+      // The seller's own fonts (theme.typography): known ids, and a text font that reads in paragraphs
+      if (isObj(theme.typography)) {
+        var ty = theme.typography;
+        if (ty.display !== undefined && ty.display !== null && !fontId(ty.display)) {
+          add('error', 'Police des titres inconnue. Choisissez-en une dans Thème › Polices.', 'theme', 'fonts');
+        }
+        if (ty.text !== undefined && ty.text !== null && !(fontId(ty.text) && FONTS[fontId(ty.text)].text)) {
+          add('error', 'Police des textes inconnue, ou trop décorative pour des paragraphes. Choisissez-en une dans Thème › Polices.', 'theme', 'fonts');
+        }
+        var tyNow = null;
+        try { tyNow = typography(config); } catch (e) { tyNow = null; }
+        if (tyNow && tyNow.display.style === 'manuscrit' && tyNow.upper && tyNow.display.id !== 'amatic-sc') {
+          add('warning', 'Une écriture manuscrite se lit mal en majuscules : décochez ' + q('Titres en majuscules') + ' dans Thème › Polices.', 'theme', 'fonts');
+          issues[issues.length - 1].target.key = 'upper';
+        }
       }
       // A missing intensity is read as vivid (normalizeConfig fills it); a value that is set must be known.
       if (theme.intensity !== undefined && !isIntensity(theme.intensity)) {
@@ -3266,6 +3566,24 @@
     templates: templates,
     palettes: palettes,
     fontPairs: fontPairs,
+    // the seller's fonts (optional theme.typography): 33 Google Fonts in 5 styles, see the comment above FONTS
+    FONTS: FONTS,
+    FONT_STYLES: FONT_STYLES,
+    TEXT_FONT_IDS: TEXT_FONT_IDS,
+    TEXT_WEIGHTS: TEXT_WEIGHTS,
+    WEIGHT_LABELS: WEIGHT_LABELS,
+    HEADING_SIZES: HEADING_SIZES,
+    HEADING_SIZE_OPTIONS: HEADING_SIZE_OPTIONS,
+    HEADING_UPPER_DEFAULT: HEADING_UPPER_DEFAULT,
+    upperDefault: upperDefault,
+    TYPO_KEYS: TYPO_KEYS,
+    GLYPH_TEXT: GLYPH_TEXT,
+    GLYPH_FALLBACKS: GLYPH_FALLBACKS,
+    typography: typography,
+    normTypography: normTypography,
+    nearestWeight: nearestWeight,
+    fontSampleUrl: fontSampleUrl,
+    setFontPair: setFontPair,
     radii: radii,
     sectionTypes: sectionTypes,
     niches: niches,

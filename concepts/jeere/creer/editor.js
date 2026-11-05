@@ -1597,6 +1597,210 @@
     document.head.append(link);
     return link;
   }
+  /* ---------- Thème › « Polices »: suggestions (the pairs), the heading font and the text font apart ----------
+   * theme.typography holds only what differs from the suggestion (theme.fonts): display, text, weight (with pair,
+   * the suggestion they were chosen over), size ('S' / 'L'), upper (when it differs from the template's). A choice
+   * equal to the suggestion's is deleted, and so is an empty typography: the fiche is then exactly the pair's. */
+  const FONT_SAMPLE = 'Aa';
+  function typoNow() {
+    try { if (D.typography) return D.typography(S.config); } catch (e) { /* older data.js */ }
+    return null;
+  }
+  // Each name in the picker is drawn in its own face, from a subset of just its letters. The subset is a static
+  // instance (no optical size, one weight): it is loaded under a private family name (jeere-s-<id>) so it never
+  // joins the store's own family and never replaces those letters in the preview. The picker's stacks name the
+  // private family first, then the real one (shown as soon as the store loads it, or if the sample fails).
+  const sampleFamily = (f) => 'jeere-s-' + f.id;
+  const sampleStack = (f) => `'${sampleFamily(f)}', '${f.family}', ${f.kind === 'serif' ? 'serif' : 'sans-serif'}`;
+  function fontSampleLink(f) {
+    if (!f || !D.fontSampleUrl || !/^[\w-]+$/.test(f.id)) return;
+    const id = 'jst-font-s-' + f.id;
+    if (document.getElementById(id)) return;
+    const st = el('style', { id });
+    document.head.append(st);
+    if (typeof fetch !== 'function') return;
+    // A fetch that fails is tried once more after a moment (patchy mobile data); failing again takes the
+    // element away, so the next time the list is drawn tries again
+    const load = (tries) => fetch(D.fontSampleUrl(f.id, f.name + FONT_SAMPLE)).then((r) => (r.ok ? r.text() : '')).then((css) => {
+      // Only Google's @font-face rules, renamed: the family, nothing else, changes
+      if (!/^[\s\S]*@font-face/.test(css) || /[<]|@import|expression\(/i.test(css)) throw new Error('no @font-face');
+      st.textContent = css.replace(/font-family:\s*'[^']*'/g, `font-family: '${sampleFamily(f)}'`);
+    }).catch(() => {
+      if (tries > 0 && st.isConnected) setTimeout(() => load(tries - 1), 1200);
+      else st.remove(); /* offline: the real family, or the system font, until the next try */
+    });
+    load(1);
+  }
+  // The current heading font with all its weights (the « Épaisseur » chips are drawn in it)
+  function fontWeightsLink(f) {
+    if (!f) return;
+    const id = 'jst-font-w-' + f.id;
+    if (document.getElementById(id)) return;
+    const ws = f.weights.join(';');
+    const fam = f.family.replace(/ /g, '+');
+    const q = f.opsz ? `${fam}:opsz,wght@${f.weights.map((w) => f.opsz + ',' + w).join(';')}` : `${fam}:wght@${ws}`;
+    document.head.append(el('link', { rel: 'stylesheet', id, href: `https://fonts.googleapis.com/css2?family=${q}&display=swap` }));
+  }
+  function cleanTypo() {
+    const th = S.config.theme;
+    const t = th.typography;
+    if (!t || typeof t !== 'object') { delete th.typography; return; }
+    const pair = D.fontPairs[th.fonts] || D.fontPairs[0];
+    if (t.display === pair.displayFont) delete t.display;
+    if (t.text === pair.textFont) delete t.text;
+    if (t.weight !== undefined) {
+      const f = D.FONTS[t.display || pair.displayFont];
+      const def = (t.display || pair.displayFont) === pair.displayFont ? pair.display.weight : f.weight;
+      if (t.weight === def) delete t.weight;
+    }
+    if (t.size === 'M') delete t.size;
+    // Capitals: kept only when they differ from the default (the template's, and never for a handwriting)
+    const upDef = D.upperDefault ? D.upperDefault(S.config.template, t.display || pair.displayFont) : !!(D.HEADING_UPPER_DEFAULT || {})[S.config.template];
+    if (t.upper !== undefined && t.upper === upDef) delete t.upper;
+    if (t.display || t.text || t.weight !== undefined) t.pair = th.fonts; else delete t.pair;
+    if (!Object.keys(t).length) delete th.typography;
+  }
+  function setTypo(key, value, msg, fk) {
+    const th = S.config.theme;
+    const before = JSON.stringify(th.typography || null);
+    const t = th.typography && typeof th.typography === 'object' ? th.typography : (th.typography = {});
+    if (value === null || value === undefined) delete t[key]; else t[key] = value;
+    // A new heading font brings its own default weight; a handwriting comes without capitals (her earlier
+    // capitals choice was made for another font: she can turn them back on, Qualité then warns)
+    if (key === 'display') {
+      delete t.weight;
+      if (D.FONTS && D.FONTS[value] && D.FONTS[value].style === 'manuscrit') delete t.upper;
+    }
+    cleanTypo();
+    if (JSON.stringify(th.typography || null) === before) { renderTab({ focus: fk }); return; }
+    change({ now: true });
+    renderTab({ focus: fk });
+    if (msg) toast(msg, 1600);
+  }
+  function setPairFonts(fp) {
+    const t = S.config.theme.typography;
+    const had = !!(t && (t.display || t.text || t.weight !== undefined));
+    if (S.config.theme.fonts === fp.id && !had) return;
+    if (D.setFontPair) D.setFontPair(S.config, fp.id); else S.config.theme.fonts = fp.id;
+    cleanTypo();
+    S.fontPick = null;
+    change({ now: true });
+    renderTab({ focus: 'font-' + fp.id });
+    if (had) toast(`Polices ${fp.name}${NB}: vos polices choisies sont remplacées.`, 7000, 'info', { label: 'Annuler', run: () => { if (canUndo()) undo(); } });
+    else toast(`Polices ${fp.name}`, 1600);
+  }
+  function fontsGroup() {
+    const th = S.config.theme;
+    const ty = typoNow();
+    const t = th.typography && typeof th.typography === 'object' ? th.typography : {};
+    const custom = !!(ty && ty.custom);
+    const kids = [];
+    if (ty) {
+      // Live preview: the store's name and a line of text in the store's colours and fonts
+      fontSampleLink(ty.display);
+      fontSampleLink(ty.text);
+      try { if (window.JeereRender && window.JeereRender.ensureFonts) window.JeereRender.ensureFonts(S.config); } catch (e) { /* ignore */ }
+      const c = themeCols().base || {};
+      const name = String(S.config.store.name || '').trim() || 'Votre boutique';
+      kids.push(el('div', {
+        class: 'b-typo', 'aria-label': `Aperçu${NB}: titres en ${ty.display.name}, textes en ${ty.text.name}`, role: 'img',
+        style: `--tb:${c.bg || '#FFFFFF'};--tt:${c.text || '#111111'};--tm:${c.muted || '#555555'}`
+      },
+        el('span', {
+          class: 'b-typo__h', 'aria-hidden': 'true', text: name,
+          style: `font-family:${ty.displayStack};font-weight:${ty.weight};font-size:${Math.round(26 * ty.hs * 10) / 10}px;text-transform:${ty.upper ? 'uppercase' : 'none'}`
+        }),
+        el('span', { class: 'b-typo__p', 'aria-hidden': 'true', style: `font-family:${ty.textStack}`, text: 'Livraison à Cocody en 24 h. Payez par Wave, Orange Money ou à la livraison.' })));
+    }
+
+    // Suggestions: the 6 pairs
+    const pairs = el('div', { class: 'b-fonts' });
+    D.fontPairs.forEach((fp) => {
+      ensureFontLink(fp);
+      pairs.append(el('button', {
+        type: 'button', class: 'b-font', 'aria-pressed': String(th.fonts === fp.id && !custom), 'data-fk': 'font-' + fp.id, 'aria-label': `Polices ${fp.name}`,
+        on: { click: () => setPairFonts(fp) }
+      },
+        el('span', { class: 'b-font__aa', style: `font-family:${fp.display.family};font-weight:${fp.display.weight}`, text: 'Aa' }),
+        el('span', { class: 'b-font__name', text: fp.name }),
+        el('span', { class: 'b-font__pair', text: `${famName(fp.display.family)} · ${famName(fp.text.family)}` })));
+    });
+    kids.push(el('h4', { class: 'b-subhead', text: 'Suggestions' }), pairs);
+    if (!ty || !D.FONTS) return group('b-g-theme-fonts', 'Polices', 'Une police pour les titres, une pour les textes.', kids);
+
+    // Titles: font, size, weight, capitals
+    kids.push(el('h4', { class: 'b-subhead', text: 'Titres' }));
+    kids.push(fontPicker('display', ty.display));
+    const sizes = D.HEADING_SIZE_OPTIONS || [];
+    kids.push(el('div', { class: 'b-field b-field--tight' }, el('span', { class: 'b-label', id: 'b-hsize-l', text: 'Taille des titres' }),
+      el('div', { class: 'b-segopts', role: 'group', 'aria-labelledby': 'b-hsize-l' }, sizes.map((o) => el('button', {
+        type: 'button', class: 'b-segopt', 'aria-pressed': String(ty.size === o.value), 'data-fk': 'hsize-' + o.value,
+        on: { click: () => setTypo('size', o.value, `Titres${NB}: ${o.label.toLowerCase()}`, 'hsize-' + o.value) }
+      }, el('span', { class: 'b-sizeprev b-sizeprev--' + o.value, 'aria-hidden': 'true', text: 'A' }), el('span', { text: o.label }))))));
+    fontWeightsLink(ty.display);
+    const wl = D.WEIGHT_LABELS || {};
+    kids.push(el('div', { class: 'b-field b-field--tight' }, el('span', { class: 'b-label', id: 'b-hweight-l', text: 'Épaisseur des titres' }),
+      ty.weights.length > 1
+        ? el('div', { class: 'b-wchips', role: 'group', 'aria-labelledby': 'b-hweight-l' }, ty.weights.map((w) => el('button', {
+          type: 'button', class: 'b-wchip', 'aria-pressed': String(ty.weight === w), 'data-fk': 'hweight-' + w, 'aria-label': `${wl[w] || w} (${w})`,
+          style: `font-family:${ty.displayStack};font-weight:${w}`,
+          on: { click: () => setTypo('weight', w, `Épaisseur${NB}: ${(wl[w] || String(w)).toLowerCase()}`, 'hweight-' + w) }
+        }, wl[w] || String(w))))
+        : el('p', { class: 'b-note', text: `${ty.display.name} n’existe qu’en une épaisseur.` })));
+    kids.push(el('div', { class: 'b-switches' }, el('button', {
+      type: 'button', class: 'b-switch', 'aria-pressed': String(!!ty.upper), 'data-fk': 'hupper',
+      on: { click: () => setTypo('upper', !ty.upper, ty.upper ? 'Titres en minuscules' : 'Titres en majuscules', 'hupper') }
+    }, el('span', { class: 'b-switch__txt' }, el('span', { class: 'b-switch__lbl', text: 'Titres en majuscules' }),
+      el('span', { class: 'b-switch__note', text: 'Les titres, et le nom de la boutique quand il n’y a pas de logo.' })),
+    el('span', { class: 'b-switch__ui', 'aria-hidden': 'true' }))));
+
+    // Texts
+    kids.push(el('h4', { class: 'b-subhead', text: 'Textes' }));
+    kids.push(fontPicker('text', ty.text));
+    if (!ty.display.glyphs || !ty.text.glyphs) {
+      kids.push(el('p', { class: 'b-note' }, icon('i-info'), `Toutes ces polices ont les accents. ɛ, ɔ et ŋ${NB}: quand une police ne les a pas, ils sont écrits dans une police proche, pour que les noms en dioula ou en baoulé s’affichent bien.`));
+    }
+    return group('b-g-theme-fonts', 'Polices', 'Une suggestion règle les deux d’un coup. Vous pouvez ensuite choisir la police des titres et celle des textes à part.', kids);
+  }
+  // A field that shows the current font in its own face; it opens the list of fonts by style
+  function fontPicker(which, cur) {
+    const open = S.fontPick && S.fontPick.which === which;
+    const label = which === 'display' ? 'Police des titres' : 'Police des textes';
+    fontSampleLink(cur);
+    const styleOf = (id) => (D.FONT_STYLES.find((x) => x.id === id) || {}).label || '';
+    const btn = el('button', {
+      type: 'button', class: 'b-fontpick', 'aria-expanded': String(!!open), 'aria-controls': 'b-fl-' + which, 'data-fk': 'fontpick-' + which,
+      'aria-label': `${label}${NB}: ${cur.name}, ${styleOf(cur.style).toLowerCase()}. ${open ? 'Fermer la liste' : 'Changer'}`,
+      on: { click: () => { S.fontPick = open ? null : { which, style: cur.style }; renderTab({ focus: 'fontpick-' + which }); } }
+    },
+      el('span', { class: 'b-fontpick__k', text: label }),
+      el('span', { class: 'b-fontpick__v', style: `font-family:${sampleStack(cur)};font-weight:${cur.weight}`, text: cur.name }),
+      el('span', { class: 'b-fontpick__s', text: styleOf(cur.style) }),
+      icon(open ? 'i-up' : 'i-down', 'b-fontpick__chev'));
+    if (!open) return el('div', { class: 'b-field b-field--tight' }, btn);
+    const list = D.FONTS.filter((f) => which === 'display' || f.text);
+    const styles = D.FONT_STYLES.filter((st) => list.some((f) => f.style === st.id));
+    const style = styles.some((st) => st.id === S.fontPick.style) ? S.fontPick.style : styles[0].id;
+    const st = styles.find((x) => x.id === style);
+    const tabs = el('div', { class: 'b-fstyles', role: 'group', 'aria-label': 'Styles de police' }, styles.map((x) => el('button', {
+      type: 'button', class: 'b-fstyle', 'aria-pressed': String(x.id === style), 'data-fk': `fstyle-${which}-${x.id}`,
+      'aria-label': x.label,
+      on: { click: () => { S.fontPick = { which, style: x.id }; renderTab({ focus: `fstyle-${which}-${x.id}` }); } }
+    }, x.short || x.label)));
+    const opts = el('div', { class: 'b-fontopts', role: 'group', 'aria-label': `Polices ${st.label.toLowerCase()}` }, list.filter((f) => f.style === style).map((f) => {
+      fontSampleLink(f);
+      const fk = (which === 'display' ? 'fd-' : 'ft-') + f.id;
+      return el('button', {
+        type: 'button', class: 'b-fontopt', 'aria-pressed': String(f.id === cur.id), 'data-fk': fk,
+        'aria-label': `${f.name}${f.text && which === 'display' ? ', aussi pour les textes' : ''}`,
+        on: { click: () => setTypo(which, f.id, `${which === 'display' ? 'Titres' : 'Textes'} en ${f.name}`, fk) }
+      },
+        el('span', { class: 'b-fontopt__v', style: `font-family:${sampleStack(f)};font-weight:${f.weight}`, text: f.name }));
+    }));
+    return el('div', { class: 'b-field b-field--tight' }, btn,
+      el('div', { class: 'b-fontlist', id: 'b-fl-' + which }, tabs, el('p', { class: 'b-fontlist__hint', text: st.hint }), opts));
+  }
+
   function setTheme(key, value, msg) {
     if (S.config.theme[key] === value) return;
     S.config.theme[key] = value;
@@ -1613,11 +1817,16 @@
     S.config.theme.radius = t.defaults.radius;
     S.config.theme.buttons = t.defaults.buttons;
     // The seller's own colours (theme.colors) stay: a template changes the layout, the palette under
-    // them, the fonts and the corners, never the colours she picked herself
+    // them, the fonts and the corners, never the colours she picked herself. Her own fonts (theme.typography)
+    // stay too, over the template's suggestion; her capitals choice is kept only when it differs from the new template's.
     const hadColors = !!(S.config.theme.colors && Object.keys(S.config.theme.colors).length);
+    const ty = S.config.theme.typography;
+    const hadFonts = !!(ty && typeof ty === 'object' && (ty.display || ty.text || ty.weight !== undefined));
+    if (ty && typeof ty === 'object') { if (hadFonts) ty.pair = t.defaults.fonts; cleanTypo(); }
     change({ now: true });
     renderTab();
-    toast(hadColors ? `Modèle ${t.name} appliqué. Vos couleurs personnalisées sont gardées.` : `Modèle ${t.name} appliqué`, hadColors ? 3600 : 2800);
+    const kept = [hadColors ? 'couleurs personnalisées' : null, hadFonts ? 'polices' : null].filter(Boolean);
+    toast(kept.length ? `Modèle ${t.name} appliqué. Vos ${kept.join(' et vos ')} sont gardées.` : `Modèle ${t.name} appliqué`, kept.length ? 3600 : 2800);
   }
   // A palette sets every colour at once: the seller's own colours (theme.colors) give way, Annuler brings them back.
   // Section colours stay: Page / Cartes / Principale follow the new palette, a custom colour is kept.
@@ -1705,18 +1914,7 @@
     tp.append(group('b-g-theme-intensity', 'Intensité des couleurs', `Vives${NB}: votre couleur principale habille toute la boutique. Douces${NB}: des fonds clairs, la couleur en touches.`, ints));
     tp.append(colorsGroup());
 
-    const fonts = el('div', { class: 'b-fonts' });
-    D.fontPairs.forEach((fp) => {
-      ensureFontLink(fp);
-      fonts.append(el('button', {
-        type: 'button', class: 'b-font', 'aria-pressed': String(th.fonts === fp.id), 'data-fk': 'font-' + fp.id, 'aria-label': `Polices ${fp.name}`,
-        on: { click: () => setTheme('fonts', fp.id, `Polices ${fp.name}`) }
-      },
-        el('span', { class: 'b-font__aa', style: `font-family:${fp.display.family};font-weight:${fp.display.weight}`, text: 'Aa' }),
-        el('span', { class: 'b-font__name', text: fp.name }),
-        el('span', { class: 'b-font__pair', text: `${famName(fp.display.family)} · ${famName(fp.text.family)}` })));
-    });
-    tp.append(group('b-g-theme-fonts', 'Polices', 'Une police pour les titres, une pour les textes.', fonts));
+    tp.append(fontsGroup());
 
     tp.append(group('b-g-theme-radius', 'Arrondis', 'Pour les cartes, les images et les boutons.',
       segmented(D.RADIUS_OPTIONS, th.radius, (v, l) => setTheme('radius', v, `Arrondis${NB}: ${l}`), 'rad',
@@ -2341,9 +2539,11 @@
   // The logo (or the name in the store's font) on a light and on a dark chip: does it read on both?
   function logoChips(b) {
     const fp = inColl(D.fontPairs, S.config.theme.fonts) ? D.fontPairs[S.config.theme.fonts] : null;
+    // Without a logo the name is written in the store's heading font (the seller's own, theme.typography, included)
+    const tyl = S.config.theme.typography ? typoNow() : null;
     const chip = (tone, label) => el('span', { class: 'b-logochip b-logochip--' + tone },
       b.logo ? el('img', { src: b.logo, alt: '' })
-        : el('span', { class: 'b-logochip__name', style: fp ? `font-family:${fp.display.family};font-weight:${fp.display.weight}` : null, text: b.name || 'Votre boutique' }),
+        : el('span', { class: 'b-logochip__name', style: tyl ? `font-family:${tyl.displayStack};font-weight:${tyl.weight};text-transform:${tyl.upper ? 'uppercase' : 'none'}` : (fp ? `font-family:${fp.display.family};font-weight:${fp.display.weight}` : null), text: b.name || 'Votre boutique' }),
       el('span', { class: 'b-logochip__tag', text: label }));
     return el('div', { class: 'b-logochipsbox' },
       el('div', { class: 'b-logochips', role: 'img', 'aria-label': b.logo ? 'Votre logo sur un fond clair et sur un fond foncé' : 'Sans logo, le nom de votre boutique est écrit avec la police du thème' },
