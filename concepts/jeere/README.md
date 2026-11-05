@@ -86,10 +86,11 @@ Numbers are personal data: keep the table private, and delete a row when someone
    line a bundle of 2 to 5 opaque strands that drift and cross, a comb of loose strands ending in round drops, her eyes
    as two solid drops like the cloud's) trace it while the photo sinks into black, until only the drawing is left; «
    jeere » is written over the copy. Then a burst (a flash, streaks and drops of ink in the store's colours, the frame
-   shakes) and the same stall comes back online: « Chez Awa », a pastel glass store window in the manner of the
-   Tabouret concept, with cut-out products standing out of their cards in a scrolling row, a « Coup de cœur » card
-   (the Katiola clay jar) half out of the window, the cart, a « Payé avec Wave » notice and the dock breaking out of
-   its frame. The copy follows: « Votre boutique physique, » with the photo, « maintenant en ligne. », the line and «
+   shakes) and the same stall comes back online: « Chez Awa » (its own basket mark, its name in Fraunces italic), a
+   plain white store window laid out like the Tabouret concept, in black and white, with cut-out products in colour
+   standing out of their cards in a scrolling row, a black « Coup de cœur » card (the Katiola clay jar) half out of the
+   window, a raffia basket and a straw tote floating over its edges, the cart, a « Payé avec Wave » notice and the
+   dock breaking out of its frame. The copy follows: « Votre boutique physique, » with the photo, « maintenant en ligne. », the line and «
    Créer ma boutique e-commerce maintenant » (to sign-up) with the store; then « Revoir ».
    See [Idea to store](#idea-to-store-animation).
 2. Tout-en-un: online store, payments, orders and stock, sell everywhere, everything included.
@@ -210,7 +211,7 @@ line at a time) when the section is within a screen of the viewport, and plays i
   then all the way down, an animation whose duration the script sets to the drawing's). **is-sign**: « jeere » is
   written over the copy as the last strokes land.
 - **is-boom** (after a 0.35 s `HOLD`): the ink layers fly apart (scale and fade), a flash, about 34 streaks and drops
-  in cream and the store's colours flung out from the store's centre (`.bt__burst`, built once), the frame shakes.
+  in cream, white and grey flung out from the store's centre (`.bt__burst`, built once), the frame shakes.
 - **is-shop** (+0.17 s): the store window pops in, then the cart, the « Coup de cœur » card, the dock and the Wave
   notice land one by one; the row of products scrolls (the script writes each card twice, the row slides by one copy's
   width, 34 s a lap). « maintenant en ligne. », the line and the button come in. **is-done** (+1.1 s, `BOOM`).
@@ -225,7 +226,7 @@ line at a time) when the section is within a screen of the viewport, and plays i
   Each strand is a single dash (`pathLength="1"`) slid in with `stroke-dashoffset`. Phones get one strand fewer.
 - **The store** (`.bt__shop`, in the HTML, decorative, `aria-hidden`) sits beside the copy from 1280 px and fills the
   stage below. Its sizes follow its box (container queries, `cq` units); under 560 px of box the « Coup de cœur » card
-  stays home. Everything is in Poppins. Product cut-outs are WebP with alpha and a CSS `drop-shadow`.
+  stays home. Everything is in Poppins except the store's name (Fraunces italic, loaded for those 7 letters only). Product cut-outs are WebP with alpha and a CSS `drop-shadow`.
 - **LCP**: the `<img>` is visible from the start (eager, high priority): the cover only darkens it during the drawing.
 - **Speed**: about 250 paths; the ink is split over three stacked SVG layers plus one for the eyes, so a finished
   layer is not repainted; the cover, the burst and the store only use opacity and transforms. If the median frame of

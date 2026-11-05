@@ -689,7 +689,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 
 /* ---------- Physical to online (« Votre boutique physique, maintenant en ligne », the hero) ----------
    The photo of a real boutique; the logo's brush strokes trace it while it sinks into black; a burst; the same
-   boutique online, in colour, its products scrolling. anim/boutique.js builds the strokes and the burst
+   boutique online, in black and white (the products in colour), its products scrolling. anim/boutique.js builds the strokes and the burst
    and sets the classes on .bt__stage:
    is-armed → is-real (the photo alone, the copy's first half) → is-draw (strokes draw in, the black cover rises over the photo) → is-sign (« jeere » is written over
    the copy) → is-boom (the drawing bursts) → is-shop (the store window pops in, its rows scroll) → is-done.
@@ -788,79 +788,75 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .bt__stage.is-done .bt__svg, .bt__stage.is-done .bt__burst { display: none; }
 .bt__stage.is-reset, .bt__stage.is-reset *, .bt__stage.is-reset ~ .bt__copy * { transition: none !important; animation: none !important; }
 
-/* The boutique, online, in the manner of the Tabouret concept: a frosted pastel window, glass cards with cut-out
-   objects that stand out of them, black pills, and pieces that break out of the window (the cart, the « Coup de
-   cœur » card, the Wave payment, the dock). One row of products scrolls. Sizes follow the store's box (cq units). */
-.bt__shop { visibility: hidden; container-type: size; color: #16120F; font-family: var(--f-text);
-  --glass: rgba(255, 255, 255, .62); }
+/* The boutique, online, laid out like the Tabouret concept but in black and white: a plain white window, black type
+   and pills, light grey cards with cut-out objects standing out of them, and pieces that break out of the window
+   (the cart, the « Coup de cœur » card, two floating products, the Wave notice, the dock). One row of products
+   scrolls. Sizes follow the store's box (cq units). « Chez Awa » has its own mark (a basket seen from above) and face. */
+.bt__shop { visibility: hidden; container-type: size; color: #0C0C0C; font-family: var(--f-text); --mute: #6B6B6B; --line: rgba(12, 12, 12, .12); }
 .bt__win { position: absolute; inset: 3% 24% 15% 0; display: flex; flex-direction: column; container-type: size;
-  border-radius: 30px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .7);
-  background:
-    radial-gradient(120% 70% at 0% 0%, #FFD9C7 0, rgba(255, 217, 199, 0) 60%),
-    radial-gradient(90% 60% at 100% 100%, #D7EDDF 0, rgba(215, 237, 223, 0) 65%),
-    radial-gradient(70% 50% at 100% 0%, #FBE7F3 0, rgba(251, 231, 243, 0) 70%), #FFF6EE;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 50px 100px -20px rgba(0, 0, 0, .55);
+  border-radius: 30px; overflow: hidden; background: #fff; box-shadow: 0 50px 100px -20px rgba(0, 0, 0, .8);
   opacity: 0; transform: translateY(24px) scale(.6) rotate(-3deg); }
 .bt__top { display: flex; align-items: center; gap: 9px; padding: clamp(14px, 4cqw, 26px) clamp(16px, 5cqw, 32px) 0; }
-.bt__logo { display: grid; place-items: center; width: clamp(24px, 6cqw, 34px); aspect-ratio: 1; border-radius: 50%; background: #16120F; color: #FFF6EE;
-  font: 700 clamp(12px, 3cqw, 16px)/1 var(--f-display); }
-.bt__brand { font: 700 clamp(13px, 3.2cqw, 18px)/1.2 var(--f-display); letter-spacing: -.02em; }
+.bt__logo { flex: none; width: clamp(26px, 6.4cqw, 36px); height: auto; aspect-ratio: 1; }
+.bt__brand { font: italic 600 clamp(16px, 4.2cqw, 24px)/1 'Fraunces', Georgia, 'Times New Roman', serif; letter-spacing: -.02em; }
 .bt__url { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: clamp(40px, 12cqw, 70px); padding: 5px 11px; border-radius: 99px;
-  background: var(--glass); font: 500 clamp(10px, 2.1cqw, 12.5px)/1 var(--f-text); color: #5A514B; }
+  border: 1px solid var(--line); font: 500 clamp(10px, 2.1cqw, 12.5px)/1 var(--f-text); color: var(--mute); }
 .bt__url svg { width: 9px; height: 11px; }
 .bt__open { display: inline-flex; align-self: flex-start; align-items: center; gap: 7px; margin: clamp(12px, 3.4cqw, 22px) clamp(16px, 5cqw, 32px) 0; padding: 5px 11px 5px 9px;
-  border-radius: 99px; background: var(--glass); font-size: clamp(10px, 2.1cqw, 12.5px); font-weight: 500; color: #3E3833; }
-.bt__open i { width: 7px; height: 7px; border-radius: 50%; background: #1FB36B; box-shadow: 0 0 0 3px rgba(31, 179, 107, .18); }
+  border-radius: 99px; background: #F2F2F0; font-size: clamp(10px, 2.1cqw, 12.5px); font-weight: 500; color: #3A3A3A; }
+.bt__open i { width: 7px; height: 7px; border-radius: 50%; background: #0C0C0C; box-shadow: 0 0 0 3px rgba(12, 12, 12, .1); }
 .bt__h { margin: clamp(8px, 2.4cqw, 14px) clamp(16px, 5cqw, 32px) 0; font: 700 clamp(24px, 7.4cqw, 44px)/1 var(--f-display); letter-spacing: -.035em; }
 .bt__h span { display: block; }
-.bt__h em { display: block; margin-top: .1em; font: 500 .62em/1.1 var(--f-display); font-style: normal; letter-spacing: -.02em; color: #C2410C; }
+.bt__h em { display: block; margin-top: .1em; font: 500 .62em/1.1 var(--f-display); font-style: normal; letter-spacing: -.02em; color: var(--mute); }
 .bt__chips { display: flex; gap: 6px; margin: clamp(10px, 3cqw, 18px) clamp(16px, 5cqw, 32px) 0; overflow: hidden; }
-.bt__chips span { flex: none; padding: 7px 13px; border-radius: 99px; background: var(--glass); font-size: clamp(10.5px, 2.2cqw, 13px); font-weight: 500; }
-.bt__chips .is-on { background: #16120F; color: #fff; }
-/* The row: room above the cards for the round photos that spill out of them */
+.bt__chips span { flex: none; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); font-size: clamp(10.5px, 2.2cqw, 13px); font-weight: 500; color: #3A3A3A; }
+.bt__chips .is-on { background: #0C0C0C; border-color: #0C0C0C; color: #fff; }
+/* The row: room above the cards for the objects that stand out of them */
 .bt__rail { flex: 1 1 0; min-height: 0; overflow: hidden; padding: 0 0 clamp(30px, 8cqw, 54px);
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
 .bt__track { display: flex; align-items: center; gap: clamp(10px, 2.6cqw, 16px); height: 100%; width: max-content; padding-left: clamp(16px, 5cqw, 32px);
   animation: bt-roll 34s linear infinite paused; }
 @keyframes bt-roll { to { transform: translateX(calc(-50% - clamp(5px, 1.3cqw, 8px))); } }
-.bt__p { position: relative; flex: none; margin: 0; width: clamp(112px, min(42cqw, 34cqh), 230px); padding: 0 12px 12px; border-radius: 22px; background: var(--glass);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 12px 24px -14px rgba(60, 30, 10, .35); }
+.bt__p { position: relative; flex: none; margin: 0; width: clamp(112px, min(42cqw, 34cqh), 230px); padding: 0 12px 12px; border-radius: 22px; background: #F2F2F0; }
 .bt__p img { display: block; width: 100%; height: auto; aspect-ratio: 1.15; margin: -34% 0 6px; object-fit: contain; object-position: 50% 100%;
-  filter: drop-shadow(0 14px 10px rgba(60, 30, 10, .28)); }   /* cut-out objects standing out of their card */
+  filter: drop-shadow(0 14px 10px rgba(0, 0, 0, .22)); }   /* cut-out objects standing out of their card */
 .bt__p figcaption { display: flex; flex-direction: column; gap: 2px; }
 .bt__p b { font-size: clamp(11.5px, 2.5cqw, 14px); font-weight: 600; line-height: 1.2; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bt__p small { font-size: clamp(9.5px, 2cqw, 11.5px); color: #7A6F67; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bt__p small { font-size: clamp(9.5px, 2cqw, 11.5px); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bt__price { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-size: clamp(12px, 2.6cqw, 15px); font-weight: 700; letter-spacing: -.01em; }
-.bt__price i { display: grid; place-items: center; width: clamp(22px, 5cqw, 28px); aspect-ratio: 1; border-radius: 50%; background: #16120F; color: #fff; }
+.bt__price i { display: grid; place-items: center; width: clamp(22px, 5cqw, 28px); aspect-ratio: 1; border-radius: 50%; background: #0C0C0C; color: #fff; }
 .bt__price i svg { width: 42%; height: 42%; }
 /* Out of the window: the cart on its top edge */
 .bt__cart { position: absolute; top: 0; right: calc(24% + clamp(16px, 4cqw, 30px)); display: flex; align-items: center; gap: 6px;
-  padding: 0 14px; height: clamp(38px, 7cqh, 50px); border-radius: 16px; background: #16120F; color: #fff; box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .6); }
+  padding: 0 14px; height: clamp(38px, 7cqh, 50px); border-radius: 16px; background: #0C0C0C; color: #fff; border: 1.5px solid #fff; box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .7); }
 .bt__cart svg { width: 20px; height: 20px; }
-.bt__cart b { display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: 99px; background: #FF7A45; font-size: 11.5px; }
-/* …the « Coup de cœur » card, half outside on the right, its photo spilling over its top */
+.bt__cart b { display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: 99px; background: #fff; color: #0C0C0C; font-size: 11.5px; }
+/* …the « Coup de cœur » card, half outside on the right, in black, its jar spilling over its top */
 .bt__feat { position: absolute; right: 0; top: 23%; width: 42%; padding: 0 clamp(14px, 3cqw, 20px) clamp(14px, 3cqw, 20px); border-radius: 26px;
-  background: rgba(255, 255, 255, .78); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, .8);
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .55); }
-.bt__feat img { display: block; width: 78%; height: auto; aspect-ratio: 375 / 560; margin: -58% auto 8px; object-fit: contain; filter: drop-shadow(0 24px 18px rgba(40, 20, 5, .4)); }
-.bt__tag { margin: 0; font-size: clamp(9.5px, 1.8cqw, 11px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #C2410C; }
+  background: #0C0C0C; color: #fff; border: 1px solid rgba(255, 255, 255, .28); box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .8); }
+.bt__feat img { display: block; width: 78%; height: auto; aspect-ratio: 375 / 560; margin: -58% auto 8px; object-fit: contain; filter: drop-shadow(0 24px 18px rgba(0, 0, 0, .55)); }
+.bt__tag { margin: 0; font-size: clamp(9.5px, 1.8cqw, 11px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255, 255, 255, .6); }
 .bt__fname { margin: 4px 0 0; font: 700 clamp(14px, 3.1cqw, 20px)/1.15 var(--f-display); letter-spacing: -.02em; }
-.bt__fdesc { margin: 3px 0 0; font-size: clamp(10px, 2cqw, 12.5px); color: #7A6F67; }
+.bt__fdesc { margin: 3px 0 0; font-size: clamp(10px, 2cqw, 12.5px); color: rgba(255, 255, 255, .62); }
 .bt__fbuy { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
 .bt__fbuy .bt__price { margin: 0; font-size: clamp(13px, 2.8cqw, 17px); }
-.bt__add { padding: 8px 14px; border-radius: 99px; background: #16120F; color: #fff; font-size: clamp(10.5px, 2.1cqw, 13px); font-weight: 600; }
-/* …the Wave payment, over the bottom-left corner */
+.bt__add { padding: 8px 14px; border-radius: 99px; background: #fff; color: #0C0C0C; font-size: clamp(10.5px, 2.1cqw, 13px); font-weight: 600; }
+/* …products floating over the window's edges, like the jar */
+.bt__float { position: absolute; height: auto; object-fit: contain; filter: drop-shadow(0 22px 16px rgba(0, 0, 0, .5)); }
+.bt__float--a { left: -9%; top: 38%; width: 17%; --r: -14deg; }
+.bt__float--b { right: 21%; bottom: 20%; width: 15%; --r: 8deg; }
+/* …the Wave payment, over the bottom edge */
 .bt__toast { position: absolute; left: 45%; bottom: 9.5%; display: flex; align-items: center; gap: 10px; padding: 10px 16px 10px 10px; border-radius: 18px;
-  background: #fff; box-shadow: 0 22px 44px -16px rgba(0, 0, 0, .6); }
-.bt__toast i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #1DC8F2; color: #fff; }
+  background: #fff; color: #0C0C0C; border: 1px solid var(--line); box-shadow: 0 22px 44px -16px rgba(0, 0, 0, .8); }
+.bt__toast i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #0C0C0C; color: #fff; }
 .bt__toast i svg { width: 13px; height: 13px; }
 .bt__toast b { display: block; font-size: 13px; font-weight: 600; }
-.bt__toast small { display: block; font-size: 11px; color: #7A6F67; }
+.bt__toast small { display: block; font-size: 11px; color: var(--mute); }
 /* …and the dock, astride the bottom edge */
 .bt__dock { position: absolute; bottom: 9%; left: 25%; width: max-content; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 99px;
-  background: #16120F; color: rgba(255, 255, 255, .62); box-shadow: 0 18px 36px -12px rgba(0, 0, 0, .6); }
+  background: #0C0C0C; border: 1px solid rgba(255, 255, 255, .3); color: rgba(255, 255, 255, .62); box-shadow: 0 18px 36px -12px rgba(0, 0, 0, .7); }
 .bt__dock > span { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; border-radius: 99px; font-size: 12px; font-weight: 600; }
-.bt__dock > .is-on { background: rgba(255, 255, 255, .14); color: #fff; }
+.bt__dock > .is-on { background: #fff; color: #0C0C0C; }
 .bt__dock svg { flex: none; width: 17px; height: 17px; }
 /* A narrow store box (phones, tablets): the window takes the width, the « Coup de cœur » card stays home */
 @container (max-width: 560px) {
@@ -870,18 +866,25 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
   .bt__url { margin-right: clamp(50px, 16cqw, 76px); }
   .bt__toast { left: auto; right: -3%; bottom: 17%; }
   .bt__dock { left: 50%; bottom: 2%; }
+  .bt__float--a { left: auto; right: -4%; top: 21%; width: 26%; }
+  .bt__float--b { right: auto; left: -4%; bottom: 3%; width: 20%; }
 }
 @container (max-width: 380px) { .bt__url { display: none; } }
-/* In: the window pops, then the pieces outside it land one by one */
-.bt__cart, .bt__feat, .bt__toast, .bt__dock { opacity: 0; }
+/* In: the window pops, then the pieces outside it land one by one; the floating products then drift gently */
+.bt__cart, .bt__feat, .bt__toast, .bt__dock, .bt__float { opacity: 0; }
 .bt__cart { transform: translateY(-30px) scale(.8); }
 .bt__feat { transform: translateX(40px) rotate(4deg) scale(.9); }
 .bt__toast { transform: translateY(16px) scale(.85); }
 .bt__dock { transform: translate(-50%, 30px); }
+.bt__float { transform: rotate(var(--r)) scale(.3); }
 .bt__stage.is-shop .bt__shop, .bt__stage.is-static .bt__shop { visibility: visible; }
 .bt__stage.is-shop .bt__win { opacity: 1; transform: none; transition: transform .8s cubic-bezier(.18, 1.3, .4, 1), opacity .22s ease; }
 .bt__stage.is-shop :is(.bt__cart, .bt__feat, .bt__toast) { opacity: 1; transform: none; transition: transform .7s cubic-bezier(.2, 1.4, .4, 1), opacity .3s ease; }
 .bt__stage.is-shop .bt__dock { opacity: 1; transform: translateX(-50%); transition: transform .7s cubic-bezier(.2, 1.4, .4, 1) .3s, opacity .3s ease .3s; }
+.bt__stage.is-shop .bt__float { opacity: 1; transform: rotate(var(--r)); transition: transform .8s cubic-bezier(.2, 1.5, .4, 1) .25s, opacity .3s ease .25s;
+  animation: bt-bob 5.5s ease-in-out 1.4s infinite; }
+.bt__stage.is-shop .bt__float--b { transition-delay: .45s; animation-delay: 2.2s; }
+@keyframes bt-bob { 50% { transform: rotate(var(--r)) translateY(-8px); } }
 .bt__stage.is-shop .bt__cart { transition-delay: .2s; }
 .bt__stage.is-shop .bt__feat { transition-delay: .35s; }
 .bt__stage.is-shop .bt__toast { transition-delay: 1.4s; }
@@ -892,6 +895,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .bt__stage.is-static .bt__frame { opacity: .2; }
 .bt__stage.is-static :is(.bt__win, .bt__cart, .bt__feat, .bt__toast) { opacity: 1; transform: none; }
 .bt__stage.is-static .bt__dock { opacity: 1; transform: translateX(-50%); }
+.bt__stage.is-static .bt__float { opacity: 1; transform: rotate(var(--r)); }
 
 /* « jeere » is written from left to right as the drawing ends */
 .bt__stage.is-armed:not(.is-sign) ~ .bt__copy .bt__mark { clip-path: inset(-12% 100% -12% -3%); }

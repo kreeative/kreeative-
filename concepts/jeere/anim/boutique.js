@@ -3,7 +3,7 @@
    line is a bundle of 2 to 5 opaque, equal strands that drift and sometimes cross, with a comb of loose strands
    ending in round drops where the brush lifts (like the cloud and the « jeere » wordmark). As the drawing grows
    the photo sinks into black, until only the drawing is left. Then a burst, and the same boutique comes back
-   online, in colour: a store window whose products scroll, with pieces that break out of its frame.
+   online, in black and white: a store window whose products scroll, with pieces that break out of its frame.
    No library: this script builds the strokes (seeded, so they are the same on every visit) in idle time and
    switches classes; the CSS transitions in style.css (« Physical to online ») do the motion.
    Without JS the section shows the photo; with reduced motion it shows the store over the dimmed photo, still. */
@@ -294,8 +294,8 @@
     burst = document.createElement('div');
     burst.className = 'bt__burst';
     burst.setAttribute('aria-hidden', 'true');
-    // in the ink's cream and the store's colours: the colour arrives with the store
-    var html = '<b class="bt__flash"></b>', N = LITE ? 22 : 34, COL = ['#F3EEE4', '#F3EEE4', '#FF7A45', '#1DC8F2', '#FFD23F', '#FF8FC8', '#3657FF', '#1FB36B'];
+    // in the ink's cream, white and grey, like the drawing
+    var html = '<b class="bt__flash"></b>', N = LITE ? 22 : 34, COL = ['#F3EEE4', '#FFFFFF', '#BDBDBD'];
     for (var i = 0; i < N; i++) {
       var a = i / N * 360 + rr(-6, 6), drop = rnd() < .38, r0 = rr(10, 40), r1 = rr(150, 420) * (drop ? 1.15 : 1);
       var w = drop ? rr(7, 15) : rr(50, 150), h = drop ? w : rr(4, 10);
