@@ -54,6 +54,7 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 | `studio.css` | Le chrome sombre (scopé `.st-*`), le décor de sélection, les superpositions (mesures, contrastes), les drawers, la palette — jetons d’état (`--ok`, `--warn`, `--err`, `--info`) aux valeurs de la plateforme, sélection `#3657FF`. |
 | `studio.js` | Le cœur : état, historique, canevas (zoom/pan/tactile), sélection (simple **et multiple**), édition en place, calques, insertion, inspecteur, artboards dynamiques, raccourcis, autosave, dialogues. Expose `window.JeereStudio._internals` (le pont) et des `hooks`. |
 | `studio-power.js` | Les fonctions avancées, greffées sur le pont : palette de commandes, Mes blocs, Jetons, Historique (versions), onglet Code, panneau Images, superpositions mesures/contrastes, export PNG. IIFE classique, chargée après `studio.js`. |
+| `studio-design.js`, `studio-design.css` | L’onglet **Design** : l’inspecteur élément par élément (voir plus bas), la barre de style rapide et le recadrage sur le canevas, l’aperçu de la page. Écrit `elementStyles` (`../creer/elstyles.js`) par l’historique unique. Expose `window.JeereStudioDesign` pour les tests. |
 | `studio-toolbar.js` | La couche UI3 : barre d’outils flottante, fenêtre d’insertion (S), barre contextuelle de la sélection, infobulles stylées, commentaires locaux (C), carte d’accueil « trois gestes ». Chaîne les `hooks` (ne les remplace jamais). Expose `window.JeereStudioToolbar` pour les tests. |
 
 ## Les fonctions avancées (`studio-power.js`)
@@ -256,6 +257,60 @@ Des groupes repliables, comme Figma :
 - **Champs numériques façon Figma** : la poignée `◂▸` à gauche se **glisse horizontalement**
   pour changer la valeur (bornée par le min/max du contrat).
 
+## Design (`studio-design.js`) — l’inspecteur élément par élément
+
+Un onglet **Design** entre Réglages et Code, contextuel comme Framer : il montre **seulement ce
+qui appartient à l’élément sélectionné**, en détail. Le contrat est `elementStyles` (voir
+`../creer/README.md`, « Element styles ») : chaque valeur est exacte (px, %, °), passe par
+l’historique unique (`commit`, fusionné par propriété ; chemin rapide `styleOnly` : seul le
+`<style>` de chaque artboard change, sans re-rendu, 60 i/s au glisser) et vaut aussi dans l’éditeur
+simple, le tableau de bord et la boutique.
+
+- **Sélection** : un seul clic sur un **bouton** ou une **icône** les sélectionne directement ; un
+  second clic dans une section choisit son élément le plus profond (titre, petit titre, texte, image,
+  bloc texte, zone du bouton, grille, carte, prix, badge…) ; l’en-tête et le pied de page se
+  sélectionnent (« chrome ») avec leurs icônes (menu, recherche, panier). Un élément sélectionné ouvre
+  **Design** tout seul ; remonter à la section rend l’onglet d’avant.
+- **En-tête du panneau** : fil d’Ariane (Accueil › section › élément, chaque niveau remonte), titre
+  typé (« Bouton · Découvrir », « Icône · Panier », « Image · Grande bannière », « Section · Catégories »,
+  « Carte produit »), menu des éléments du bloc, Copier / Coller le style (`Ctrl Alt C` / `Ctrl Alt V`),
+  Réinitialiser (tout, ou seulement l’écran / l’état affiché).
+- **Tailles d’écran** : Toutes / Ordinateur / Tablette / Téléphone (cascade SPEC §1.5 : la tablette
+  vaut aussi pour le téléphone) ; une valeur propre à un écran porte une **pastille bleue** (clic :
+  retour à la valeur plus large), un anneau signale l’héritage de la tablette ; compteurs sur les
+  boutons ; les artboards non concernés sont atténués.
+- **États** : Normal / Survol / Pressé (/ Focus pour les boutons) — l’état édité est montré sur les
+  aperçus ; transition : durée + courbe (douce, rapide, symétrique, linéaire, **ressort**, rebond — en
+  `linear()` CSS), bouton « rejouer ».
+- **Panneaux par type** : bouton (Essentiel : fond, texte, rayon, taille S/M/L, gras, bordure, fond au
+  survol ; Contenu : libellé, lien ; Disposition ; Rayon ; Remplissage ; Bordure ; Typographie ; Icône
+  du bouton : aucune / gauche / droite, choix, taille, écart ; Ombre ; Effets) · texte (Essentiel,
+  Contenu, Typographie : police du catalogue ou de la boutique, taille, graisse, interligne,
+  espacement, casse, italique, souligné / barré, couleur, alignement ; Disposition…) · image (Image et
+  recadrage : vignette à glisser, zoom, format Libre / Orig. / 1:1 / 4:5 / 3:4 / 16:9, ajustement,
+  filtres ; Contenu : remplacer…) · icône (grille d’icônes avec recherche, taille, trait, couleur,
+  rotation ; fond : cercle / arrondi / carré, couleur, marge) · carte produit (champs affichés : prix,
+  badge, bouton, catégorie ; format des photos ; marges, rayon, ombre, survol) · section (disposition
+  du modèle, visibilité par écran, padding, largeur du contenu, fond couleur / dégradé / image avec voile
+  et cadrage, couleur des textes).
+- **Champs** de 24 px en Inter 11 à chiffres tabulaires : glisser l’étiquette (Maj ×10, Alt ×0,1),
+  ↑ ↓ (±1, Maj ±10, Alt ±0,1), calculs (« 24*2 »), Entrée / Échap ; l’indication montre la valeur réelle.
+  Liens / déliés pour padding, marges, coins, bordures ; grille d’alignement 3 × 3 ; contrôle de coins
+  visuel ; cadran d’angle ; segments à icônes.
+- **Couleur** : `../creer/jcolor.js` (jamais le sélecteur natif, aussi dans « Jetons ») — carré
+  saturation / luminosité, teinte, alpha sur damier, Hex / RGB / HSL, pipette (EyeDropper), palette de
+  la boutique en **jetons vivants** et couleurs récentes, onglet **Dégradé** (arrêts sur une barre,
+  linéaire / radial, cadran), tout au clavier.
+- **Sur le canevas** : barre de **style rapide** sous l’élément (fond, texte, rayon, S/M/L, gras,
+  recadrer…) ; padding teinté au survol du champ ou du padding de la sélection ; poignées de rayon aux
+  coins ; **recadrage** (double-clic sur l’image ou Entrée) : la photo entière en transparence autour du
+  cadre, glisser pour repositionner, molette pour zoomer, formats, « Terminé » / Entrée / Échap.
+- **Rien de sélectionné** : l’aperçu de la page — sa structure (sections, en-tête, pied de page),
+  ses réglages (fond, couleur des textes, largeur du contenu, polices des titres et des textes, palette),
+  référencement (titre, description, adresse), chiffres.
+- **Code** : l’onglet Code a un mode **CSS** (le CSS exact de la sélection, sinon de toute la boutique)
+  à côté du JSON ; le groupe CSS du panneau le montre aussi, en direct.
+
 ## Historique
 
 **Une seule pile** pour toutes les mutations : contenu, réordonner, ajouter/supprimer/coller,
@@ -343,7 +398,14 @@ Des suites Playwright dans le scratchpad de la session, contre un serveur local 
   (épingles, liste, résoudre, **persistance après rechargement**), réflexes Figma (Ctrl ⇧ H, Tab,
   Entrée, ⇧ 0, Ctrl \, R, F2, double-clic de renommage), un seul toast, aide, changer de métier,
   et l’iPad au doigt (barre ≥ 44 px, Texte, Commentaire, Section, barre contextuelle).
-- `power-test.js` (109 vérifications) : les fonctions avancées — palette (floue + exécution),
+- `elstyles/elstyles-test.js` (188 vérifications) : le contrat et l’assainisseur (valeurs hostiles),
+  le rendu identique des fiches sans styles, chaque groupe de propriétés (rayon, remplissage, dégradé,
+  bordure intérieure / centrée / extérieure / tirets / par côté, ombres, effets, typographie,
+  disposition, image), les états, la cascade des écrans + pastille + retour, Ctrl Z / Ctrl ⇧ Z (un geste =
+  une étape), copier / coller le style, le recadrage, les icônes, les champs des cartes, la visibilité
+  par écran, l’aperçu de la page, la barre rapide, le sélecteur de couleur (dégradé, clavier), le
+  rechargement, l’éditeur simple, le tableau de bord, et la feuille de style rapide à 390 px.
+- `power-test.js` (110 vérifications) : les fonctions avancées — palette (floue + exécution),
   édition en place (valider / annuler / maxlength / collage brut), sélection multiple et actions
   groupées (dans les limites), blocs (enregistrer / insérer / garde de taille / cap), jetons
   (édition ou lecture seule), versions (instantané / restaurer / éviction / auto), artboards

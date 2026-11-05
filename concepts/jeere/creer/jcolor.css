@@ -111,3 +111,4 @@
 .jc--touch .jc-aw { flex-basis: 76px; }
 .jc--touch .jc-field span { width: 34px; font-size: 11px; }
 .jc--touch .jc-field.is-hex span { width: 38px; }
+.jc-field.is-hex span { width: 30px; }

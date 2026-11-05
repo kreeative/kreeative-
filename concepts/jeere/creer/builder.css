@@ -1296,7 +1296,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .qs-foot .qs-edit { background: var(--ink); color: #fff !important; border-color: var(--ink); }
 .qs .jc--inline { padding-bottom: 4px; }
 .qs-seg button:focus-visible, .qs-chip:focus-visible, .qs-switch:focus-visible, .qs-foot button:focus-visible, .qs-x:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
-.jst .qs-target { outline: 2px solid #3657FF !important; outline-offset: 2px; }
+.jst .qs-target { outline: 2px solid #3657FF !important; outline-offset: -2px; }
 .jst.qs-dragging img { cursor: grabbing; }
 html.qs-open .b-pick { display: none; }
 @media (prefers-reduced-motion: reduce) { .qs { animation: none; } .qs-switch i { transition: none; } }

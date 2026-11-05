@@ -585,3 +585,8 @@ body.dz-cropping .st-ab__sel, body.dz-cropping .dz-ov, body.dz-cropping #selbar,
 .dz-cropbar__ok:hover { background: #4A69FF; }
 /* decorative layers never take a click: the photo or text under them is selected */
 .st-ab__root .jst-hero-scrim, .st-ab__root .jst-blob, .st-ab__root .jst-wa-deco, .st-ab__root .jst-about-deco { pointer-events: none; }
+.dz-seg--modes { flex: none; }
+.dz-seg--modes button { min-width: 26px; padding: 0 3px; }
+.dz-seg--sml { flex: none; }
+.dz-seg--sml button { min-width: 24px; padding: 0 4px; }
+.dz-flex--nowrap > .dz-num { min-width: 72px; }

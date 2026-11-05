@@ -89,7 +89,7 @@
     M: { pt: 12, pb: 12, pl: 22, pr: 22, fontSize: 14, minH: 44 },
     L: { pt: 16, pb: 16, pl: 32, pr: 32, fontSize: 16, minH: 56 }
   };
-  var RATIOS = [[null, 'Libre'], [1, '1:1'], [0.8, '4:5'], [1.7778, '16:9']];
+  var RATIOS = [[null, 'Libre'], [1, '1:1'], [0.8, '4:5'], [1.78, '16:9']];
   var I = {
     x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>',
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>',
@@ -357,6 +357,7 @@
     sheet.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); if (sub) buildMain(); else close(); } });
     markTarget();
     buildMain();
+    reveal();
     // the preview re-renders after each change: the target keeps its outline
     var store = Q().store();
     if (store && typeof MutationObserver === 'function') {
@@ -367,6 +368,22 @@
     return true;
   }
 
+  /* the element stays in sight above the sheet (a phone: the sheet covers the lower half) */
+  function reveal() {
+    if (!cur || !cur.node || !sheet || !Q().isMobile()) return;
+    var r = cur.node.getBoundingClientRect();
+    var top = sheet.getBoundingClientRect().top;
+    var want = Math.max(150, Math.min(top - r.height - 16, 260));
+    var delta = r.top - want;
+    if (Math.abs(delta) < 8 && r.bottom <= top) return;
+    var sc = cur.node.parentElement;
+    while (sc && sc !== document.body) {
+      var cs = getComputedStyle(sc);
+      if (/(auto|scroll)/.test(cs.overflowY) && sc.scrollHeight > sc.clientHeight + 4) break;
+      sc = sc.parentElement;
+    }
+    if (sc && sc !== document.body) sc.scrollTop += delta; else window.scrollBy(0, delta);
+  }
   function tap(e) {
     if (Date.now() < suppressUntil) return true;
     var f = find(e.target);

@@ -71,6 +71,7 @@
     var p = current;
     current = null;
     try { document.removeEventListener('pointerdown', p.outside, true); } catch (e) { /* ok */ }
+    try { if (p.esc) window.removeEventListener('keydown', p.esc, true); } catch (e) { /* ok */ }
     if (p.el && p.el.parentNode) p.el.parentNode.removeChild(p.el);
     if (p.opts.onClose) { try { p.opts.onClose(p.last); } catch (e) { /* the host */ } }
     return true;
@@ -465,6 +466,9 @@ if (e.key === 'Escape') return;       if (e.key === 'Enter') { e.preventDefault(
         close();
       };
       document.addEventListener('pointerdown', p.outside, true);
+      // Échap closes the picker first, whatever has the focus (a drawer's own Échap may run too)
+      p.esc = function (e) { if (e.key === 'Escape' && current === p) { e.preventDefault(); close(); } };
+      window.addEventListener('keydown', p.esc, true);
     }
     current = p;
     return { el: el, close: close, isOpen: function () { return current === p; } };

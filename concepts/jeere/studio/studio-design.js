@@ -798,7 +798,11 @@
           var st = val(t, 'gradStops');
           return st ? { type: val(t, 'fillType') === 'radial' ? 'radial' : 'linear', angle: val(t, 'gradAngle') === undefined ? 180 : val(t, 'gradAngle'), stops: st } : null;
         },
-        set: function (g) { setProps(t, { fillType: g.type, gradStops: g.stops, gradAngle: g.angle }, 'Dégradé modifié', 'grad'); }
+        set: function (g) {
+          var was = val(t, 'fillType');
+          setProps(t, { fillType: g.type, gradStops: g.stops, gradAngle: g.angle }, 'Dégradé modifié', 'grad');
+          if (was !== g.type) render();
+        }
       };
     }
 
@@ -915,7 +919,8 @@
         positionRows(t, b);
       }
       b.appendChild(row('Débord', [seg({ t: t, prop: 'overflow', labelText: 'Débord', toggle: true, options: [
-        { v: 'visible', html: 'Visible', tip: 'Le contenu peut dépasser' }, { v: 'hidden', html: 'Rogner', tip: 'Rogner ce qui dépasse (et les coins arrondis)' }] })], t, ['overflow']));
+        { v: 'visible', html: svg('<rect x="3.5" y="3.5" width="9" height="9" rx="1.5" stroke-dasharray="2 1.6"/><path d="M8 1v14"/>'), tip: 'Visible : le contenu peut dépasser' },
+        { v: 'hidden', html: svg('<rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/><path d="M8 3.5v9"/>'), tip: 'Rogner ce qui dépasse (et les coins arrondis)' }] })], t, ['overflow']));
       return g;
     }
     function sizeRows(t, b, k) {
@@ -923,10 +928,11 @@
       ['w', 'h'].forEach(function (ax) {
         var modeP = ax + 'Mode', unitP = ax + 'Unit';
         var axUnits = ax === 'w' ? units : ['px', '%', 'vh'];
-        var modeSeg = seg({ t: t, prop: modeP, labelText: ax === 'w' ? 'Largeur' : 'Hauteur', toggle: true, cls: 'dz-seg--txt', options: [
-          { v: 'hug', html: 'Auto', tip: ax === 'w' ? 'Largeur du contenu (hug)' : 'Hauteur du contenu' },
-          { v: 'fill', html: 'Plein', tip: ax === 'w' ? 'Toute la largeur disponible' : 'Toute la hauteur du parent' },
-          { v: 'fixed', html: 'Fixe', tip: 'Une valeur précise' }] });
+        var rot = ax === 'h' ? ' style="transform:rotate(90deg)"' : '';
+        var modeSeg = seg({ t: t, prop: modeP, labelText: ax === 'w' ? 'Largeur' : 'Hauteur', toggle: true, cls: 'dz-seg--modes', options: [
+          { v: 'hug', html: svg('<path d="M2.5 4v8M13.5 4v8M5 8h6M6.6 6.4L5 8l1.6 1.6M9.4 6.4L11 8 9.4 9.6"/>', rot), tip: ax === 'w' ? 'Auto : la largeur du contenu' : 'Auto : la hauteur du contenu' },
+          { v: 'fill', html: svg('<path d="M2.5 4v8M13.5 4v8M4.6 8h6.8M6.2 6.4L4.6 8l1.6 1.6M9.8 6.4L11.4 8 9.8 9.6"/>', rot), tip: ax === 'w' ? 'Plein : toute la largeur disponible' : 'Plein : toute la hauteur du parent' },
+          { v: 'fixed', html: svg('<rect x="2" y="5.5" width="12" height="5" rx="1"/><path d="M5 5.5v2M8 5.5v2.5M11 5.5v2"/>', rot), tip: 'Fixe : une valeur précise' }] });
         var nf = num({ t: t, letter: ax === 'w' ? 'L' : 'H', min: 0, max: 4000, labelText: ax === 'w' ? 'Largeur' : 'Hauteur', co: ax,
           unit: function () { var u = val(t, unitP); return u || 'px'; },
           onUnit: function () {
@@ -989,8 +995,9 @@
     }
     function positionRows(t, b) {
       var pos = val(t, 'pos');
-      b.appendChild(row('Position', [seg({ t: t, prop: 'pos', labelText: 'Position', toggle: true, structural: true, cls: 'dz-seg--txt', options: [
-        { v: 'relative', html: 'Relative', tip: 'Décalée de sa place dans le flux' }, { v: 'absolute', html: 'Absolue', tip: 'Posée librement dans son bloc' }] }),
+      b.appendChild(row('Position', [seg({ t: t, prop: 'pos', labelText: 'Position', toggle: true, structural: true, options: [
+        { v: 'relative', html: svg('<rect x="2.5" y="5.5" width="7" height="7" rx="1" stroke-dasharray="1.6 1.4"/><rect x="6.5" y="3" width="7" height="7" rx="1"/>'), tip: 'Relative : décalée de sa place dans le flux' },
+        { v: 'absolute', html: svg('<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="8" y="4" width="4" height="4" rx=".6" fill="currentColor"/>'), tip: 'Absolue : posée librement dans son bloc' }] }),
         num({ t: t, prop: 'z', letter: 'Z', min: -10, max: 100, dec: 0, labelText: 'Plan', title: 'Plan (z-index) : plus haut = devant' })], t, ['pos', 'z']));
       if (!pos) return;
       var gq = ce('div', 'dz-grid2');
@@ -1088,7 +1095,9 @@
           setProps(t, p, 'Remplissage : ' + (v ? FILL_OPTS.filter(function (o) { return o.v === v; })[0].tip.toLowerCase() : 'modèle'), null);
           render();
         } })], t, ['fillType']));
-      if (ft === 'solid') b.appendChild(row('Couleur', [colorField({ t: t, prop: 'fill', label: 'Fond', ph: function () { return live(t, 'fill'); } })], t, ['fill']));
+      if (ft === 'solid') b.appendChild(row('Couleur', [colorField({ t: t, label: 'Fond', ph: function () { return live(t, 'fill'); }, gradient: function () { return fillGradient(t); },
+        get: function () { return val(t, 'fill'); },
+        set: function (v) { setProps(t, { fillType: 'solid', fill: v }, 'Fond modifié', 'fill'); } })], t, ['fill']));
       if (ft === 'linear' || ft === 'radial') gradientRows(t, b, ft);
       if (ft === 'image') imageFillRows(t, b);
       b.appendChild(row('Opacité', [slider({ t: t, prop: 'opacity', min: 0, max: 100, neutral: 100, unit: '%', labelText: 'Opacité', title: 'Opacité de l’élément' })], t, ['opacity']));
@@ -1342,9 +1351,10 @@
         { v: 'dotted', html: '<i class="dz-ln dz-ln--dotted"></i>', tip: 'Pointillés' }] })], t, ['bStyle']));
       var perSide = ['bWT', 'bWR', 'bWB', 'bWL'].some(function (p) { return val(t, p) !== undefined; });
       var dashed = (val(t, 'bStyle') || 'solid') !== 'solid';
-      var alRow = row('Position', [seg({ t: t, prop: 'bAlign', labelText: 'Position de la bordure', dflt: 'inside', cls: 'dz-seg--txt', options: [
-        { v: 'inside', html: 'Intérieur', tip: 'Dans la boîte (ne déplace rien)' }, { v: 'center', html: 'Centre', tip: 'À cheval sur le bord' },
-        { v: 'outside', html: 'Extérieur', tip: 'Autour de la boîte (ne déplace rien)' }] })], t, ['bAlign']);
+      var alRow = row('Position', [seg({ t: t, prop: 'bAlign', labelText: 'Position de la bordure', dflt: 'inside', options: [
+        { v: 'inside', html: svg('<rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke-dasharray="1.4 1.4"/><rect x="4.5" y="4.5" width="7" height="7" rx=".5" stroke-width="2"/>'), tip: 'Intérieure : dans la boîte (ne déplace rien)' },
+        { v: 'center', html: svg('<rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke-width="2.2"/>'), tip: 'Centrée : à cheval sur le bord' },
+        { v: 'outside', html: svg('<rect x="5" y="5" width="6" height="6" rx=".5" stroke-dasharray="1.4 1.4"/><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke-width="2"/>'), tip: 'Extérieure : autour de la boîte (ne déplace rien)' }] })], t, ['bAlign']);
       if (perSide || dashed) { alRow.classList.add('is-soft'); tip(alRow.lab, 'Une bordure en tirets, en pointillés ou par côté est toujours intérieure.'); }
       b.appendChild(alRow);
       return g;
@@ -1730,7 +1740,7 @@
           get: function () { var v = ['rTL', 'rTR', 'rBR', 'rBL'].map(function (p) { return val(t, p); }); return v.every(function (x) { return x === v[0]; }) ? v[0] : undefined; },
           ph: function () { return live(t, 'rTL'); },
           set: function (v) { setProps(t, { rTL: v, rTR: v, rBR: v, rBL: v }, 'Rayon modifié', 'rad'); } }));
-        if (k === 'button') r.appendChild(seg({ t: t, cls: 'dz-seg--txt', toggle: true, options: [{ v: 'S', html: 'S', tip: 'Petit' }, { v: 'M', html: 'M', tip: 'Moyen' }, { v: 'L', html: 'L', tip: 'Grand' }],
+        if (k === 'button') r.appendChild(seg({ t: t, cls: 'dz-seg--txt dz-seg--sml', toggle: true, options: [{ v: 'S', html: 'S', tip: 'Petit' }, { v: 'M', html: 'M', tip: 'Moyen' }, { v: 'L', html: 'L', tip: 'Grand' }],
           get: function () { return sizeOf(t); },
           set: function (v) {
             var p = {};
@@ -1932,7 +1942,7 @@
       return g;
     }
     var RATIOS = [{ v: null, html: 'Libre', tip: 'La forme du modèle' }, { v: 'orig', html: 'Orig.', tip: 'Le format de la photo' }, { v: 1, html: '1:1', tip: 'Carré' },
-      { v: 0.8, html: '4:5', tip: 'Portrait 4:5' }, { v: 0.75, html: '3:4', tip: 'Portrait 3:4' }, { v: 1.7778, html: '16:9', tip: 'Paysage 16:9' }];
+      { v: 0.8, html: '4:5', tip: 'Portrait 4:5' }, { v: 0.75, html: '3:4', tip: 'Portrait 3:4' }, { v: 1.78, html: '16:9', tip: 'Paysage 16:9' }];
     function cardFieldsGroup(t) {
       var g = group('cardFields', t);
       g.mark(anySet(t, ['hidePrice', 'hideBadge', 'hideButton', 'hideCat', 'mediaRatio']));
@@ -1978,7 +1988,7 @@
       b.appendChild(row('Cadrer', [th], t, ['focusX', 'focusY'], 'dz-row--top'));
       b.appendChild(row('Zoom', [slider({ t: t, prop: 'zoom', min: 100, max: 400, neutral: 100, unit: '%', labelText: 'Zoom', title: 'Zoom dans le cadre' })], t, ['zoom']));
       b.appendChild(row('Format', [seg({ t: t, cls: 'dz-seg--txt dz-seg--ratio', options: RATIOS,
-        get: function () { var r = val(t, 'ratio'); if (r === undefined) return null; var nat = natRatio(t); return nat && Math.abs(nat - r) < 0.005 && [1, 0.8, 0.75, 1.7778].indexOf(r) === -1 ? 'orig' : r; },
+        get: function () { var r = val(t, 'ratio'); if (r === undefined) return null; var nat = natRatio(t); return nat && Math.abs(nat - r) < 0.005 && [1, 0.8, 0.75, 1.78].indexOf(r) === -1 ? 'orig' : r; },
         set: function (v) { setProps(t, { ratio: v === 'orig' ? (natRatio(t) || null) : v }, 'Format de l’image', null); } })], t, ['ratio']));
       b.appendChild(row('Ajuster', [seg({ t: t, prop: 'fit', labelText: 'Ajustement', toggle: true, cls: 'dz-seg--txt', options: [
         { v: 'cover', html: 'Remplir', tip: 'Remplir le cadre (recadrée)' }, { v: 'contain', html: 'Entière', tip: 'Image entière dans le cadre' },
@@ -2004,7 +2014,7 @@
     }
     function natRatio(t) {
       var img = liveImg(t);
-      return img && img.naturalWidth && img.naturalHeight ? round(img.naturalWidth / img.naturalHeight, 4) : null;
+      return img && img.naturalWidth && img.naturalHeight ? round(img.naturalWidth / img.naturalHeight, 2) : null;
     }
 
     /* ================================================================ crop mode on the canvas */
@@ -2118,7 +2128,7 @@
           zl.appendChild(slider({ t: t, prop: 'zoom', min: 100, max: 400, neutral: 100, unit: '%', labelText: 'Zoom', title: 'Zoom' }));
           crop.bar.appendChild(zl);
           crop.bar.appendChild(seg({ t: t, cls: 'dz-seg--txt dz-seg--ratio', options: RATIOS,
-            get: function () { var r = val(t, 'ratio'); if (r === undefined) return null; var nat = natRatio(t); return nat && Math.abs(nat - r) < 0.005 && [1, 0.8, 0.75, 1.7778].indexOf(r) === -1 ? 'orig' : r; },
+            get: function () { var r = val(t, 'ratio'); if (r === undefined) return null; var nat = natRatio(t); return nat && Math.abs(nat - r) < 0.005 && [1, 0.8, 0.75, 1.78].indexOf(r) === -1 ? 'orig' : r; },
             set: function (v) { setProps(t, { ratio: v === 'orig' ? (natRatio(t) || null) : v }, 'Format de l’image', null); requestAnimationFrame(drawCrop); } }));
         } else {
           crop.bar.appendChild(seg({ t: t, prop: 'bgFit', cls: 'dz-seg--txt', dflt: 'cover', options: [{ v: 'cover', html: 'Remplir' }, { v: 'contain', html: 'Entière' }],
@@ -2636,6 +2646,7 @@
         overlay();
         return;
       }
+      if (renderedFor !== t.key) panel.scrollTop = 0; // a new element opens its panel at the top
       renderedFor = t.key;
       var states = ['normal'].concat(t.kind.states || []);
       if (states.indexOf(ds.st) === -1) ds.st = 'normal';

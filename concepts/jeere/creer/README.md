@@ -60,6 +60,9 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | --- | --- | --- |
 | `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, the custom colours (`COLOR_GROUPS`, `themeColors`, `sectionColors`, `colorChecks`, `fixColors`), 6 font pairs (the « Suggestions ») and 33 Google Fonts in 5 styles (`FONTS`, `typography`: see [Fonts](#fonts-themetypography)), the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
 | `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, shows the seller's photo, else the demo photo, else draws the product illustration in SVG, never makes a network request to another site. Store CSS is scoped under `.jst`. | `window.JeereRender` |
+| `elstyles.js` | Element styles, the design layer of the Studio's Design tab and of the quick-style sheet: the element registry, the property whitelist and sanitiser (used by `normalizeConfig`), the breakpoint / state cascade, the CSS generator and `apply(config, root)` (called at the end of `render()`; a no-op without `elementStyles`). Loaded right after `render.js` on every page that reads the fiche (`creer/`, `admin/`, `studio/`, `compte/`). See [Element styles](#element-styles-elementstyles). | `window.JeereElStyles` |
+| `jcolor.js`, `jcolor.css` | The colour picker of the Studio and of the editor (never a native `<input type="color">`): HSV square, hue, alpha, Hex / RGB / HSL, pipette, palette and recent chips, a « Dégradé » tab; popover or inline, dark or light, mouse or finger. | `window.JeereColor` |
+| `quickstyle.js` | The editor's quick-style bottom sheet: a tap on a button, a title, a text, an image or an icon of the phone preview (see [Element styles](#element-styles-elementstyles)). | `window.JeereQuickStyle` |
 | `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
 | `tour.js`, `tour.css` | The guided tour shared by the editor and the dashboard: a spotlight on one area, a short bubble with the cloud as the guide, « Suivant » / « Retour » / « Passer », « 2/8 ». See [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas). Styles scoped under `.jt`. | `window.JeereTour` |
@@ -1098,6 +1101,82 @@ Montserrat) drawn with the fallback, what one store requests, the editor at 390 
 picker in its own face, choices, undo / redo, reload, suggestions, template change, Qualité), the assistant's
 words, the dashboard, and the old fiches byte for byte (snap.js) and pixel for pixel. Screenshots in
 `fonts/shots/`.
+
+## Element styles (`elementStyles`)
+
+The design of each element of the store, set in the Studio's **Design** tab (`../studio/`) or, more
+simply, in the editor's quick-style sheet. An optional top-level key of the fiche, **never added**: a
+fiche without it renders byte-identically (`render()` calls `JeereElStyles.apply`, which returns at once).
+
+```json
+"elementStyles": {
+  "s2/button":   { "base": { "rTL": 24, "rTR": 24, "rBR": 24, "rBL": 24, "smooth": 60, "fillType": "linear",
+                             "gradAngle": 135, "gradStops": [{ "c": "#FF6A3D", "p": 0 }, { "c": "#B5179E", "p": 100 }],
+                             "shadows": [{ "x": 0, "y": 6, "blur": 16, "spread": -4, "c": "#0000001F", "inset": false }],
+                             "tDur": 320, "tEase": "spring" },
+                   "phone": { "pt": 22, "pb": 22 },
+                   "hover": { "scale": 106, "fillType": "solid", "fill": "#1F1A17" } },
+  "s3/section":  { "base": { "fillType": "image", "bgImage": "demo:beauty-about", "bgTint": "#FFF7F0CC", "pt": 96 } },
+  "s2/image":    { "base": { "zoom": 140, "focusX": 30, "focusY": 40, "ratio": 0.8 } },
+  "s4/card~p3":  { "base": { "bW": 2, "bColor": "@accent/40", "bAlign": "outside" } },
+  "@header/bag": { "base": { "icon": "basket", "shape": "circle", "fillType": "solid", "fill": "@accent/15", "pt": 8, "pr": 8, "pb": 8, "pl": 8 } },
+  "@page/page":  { "base": { "contentW": 1040, "fontDisplay": "montserrat" } }
+}
+```
+
+- **Keys** `"<sectionId>/<elementKey>"`: a section id of the fiche, or `@header`, `@footer`, `@page`;
+  `elementKey` from `JeereElStyles.REGISTRY[type]`; `card~<productId>` styles one product card.
+- **Layers** (all optional): `base` (every screen), `desktop` (computer only, ≥ 1024 px),
+  `tablet` (tablet **and** phone: the phone inherits it), `phone`, then the states `hover`
+  (`:hover`, under `@media (hover: hover)`), `pressed` (`:active`), `focus` (`:focus-visible`).
+  Cascade (SPEC-DUALENGINE §1.5, §4.3): base → desktop; base → tablet → phone; a state wins over the
+  screen it is shown on. `hide` (visibility per screen) is never cascaded: each screen says itself.
+- **The registry** (selector inside `[data-section-id]`, kind): hero `section`, `copy`, `kicker`,
+  `title`, `text`, `actions`, `button`, `image`; announcement `section`, `text`; categories `section`,
+  `title`, `card`, `cardImage`, `cardName`, `arrow`; products `section`, `title`, `grid`, `card` (kind
+  card), `cardImage`, `badge`, `fav`, `category`, `name`, `price`, `cardButton`; about `section`,
+  `image`, `kicker`, `title`, `text`, `sign`; reviews `section`, `title`, `rating`, `card`, `stars`,
+  `quote`, `author`; delivery `section`, `icon`, `title`, `text`, `zones`, `zone`, `price`; whatsapp
+  `section`, `panel`, `icon`, `title`, `text`, `button`; `@header` `header`, `logo`, `nav`, `menu`,
+  `search`, `bag`; `@footer` `footer`, `name`, `heading`, `link`, `bottom`; `@page` `page`. The kind
+  (section, container, text, button, image, badge, icon, card, page) decides which groups apply.
+- **Properties** (whitelist `JeereElStyles.PROPS`, px unless noted): layout `wMode`/`hMode`
+  (hug, fill, fixed), `w`, `h`, `wUnit` (px, %, vw), `hUnit`, `minW`, `maxW`, `minH`, `maxH`,
+  `pt pr pb pl`, `mt mr mb ml`, `gap`, `stack` (col, row), `alignX`, `alignY`, `wrap`, `textAlign`,
+  `contentW`, `pos`, `top right bottom left`, `z`, `overflow`, `hide`; radius `rTL rTR rBR rBL`,
+  `smooth` (%, `corner-shape: superellipse()`); fill `fillType` (solid, linear, radial, image, none),
+  `fill`, `gradAngle`, `gradStops`, `gradShape`, `gradX`, `gradY`, `bgImage`, `bgFit`, `bgPosX`,
+  `bgPosY`, `bgTint`, `opacity` (%), `blend`; border `bW`, `bWT bWR bWB bWL`, `bStyle`, `bColor`,
+  `bAlign` (inside, center, outside — a uniform solid stroke is a `box-shadow`, so nothing moves);
+  `shadows`; effects `blur`, `bblur`, `rotate`, `scale` (%), `skewX`, `skewY`, `tx`, `ty`;
+  typography `font` (a `FONTS` id, `@display`, `@text`), `fontSize`, `fontWeight`, `italic`,
+  `lh` (× size), `ls` (% of size), `textCase`, `deco`, `color`; image `fit`, `focusX`, `focusY`,
+  `zoom` (100–400 %, about the focal point, clipped back to the frame), `ratio`, `brightness`,
+  `contrast`, `saturate`, `grayscale`, `sepia`, `hue`; icons `icon` (an id of `JeereElStyles.ICONS`,
+  drawn by a CSS mask in the element's colour), `iconSize`, `iconStroke`, `shape`, `btnIcon`,
+  `btnIconPos`; cards `hidePrice`, `hideBadge`, `hideButton`, `hideCat`, `mediaRatio`; page
+  `fontDisplay`, `fontText`; transition (base only) `tDur`, `tEase` (ease, ease-out, ease-in-out,
+  expo, linear, spring, bounce — the springs as CSS `linear()` with a cubic-bezier fallback).
+- **Sanitised** by `normalizeConfig` (`JeereElStyles.sanitize`): unknown keys, layers and props are
+  dropped, numbers clamped to their range, colours are `#RRGGBB`, `#RRGGBBAA` or a palette token
+  (`@accent`, `@accent/40`, which follow a palette change), images a demo photo (`demo:<id>`) or a
+  base64 `data:image/…` (≤ 1.6 MB) — never raw CSS, never `url()` or `expression()`; entries of a
+  missing section are dropped; never throws. Duplicating a section in the Studio copies its styles.
+- **Applied** by `JeereElStyles.apply(config, root)`: one `<style data-jst-es>` at the end of the
+  store root, scoped by `data-jst-es="<n>"` on the root, every declaration `!important` (the
+  designer's choice beats the template, its states and inline styles). The breakpoint is on the
+  root too: `data-jst-bp` = `desktop` | `tablet` | `tablet phone`, from the layout
+  (`data-device`) and the root's width (< 1024 px = tablet), kept fresh by a `ResizeObserver` —
+  the store never reads the window, so the Studio's artboards, the editor's preview, the dashboard
+  and the real store agree. `JeereElStyles.css(config, { scope: '.jst', only: key })` gives the same
+  CSS for reading (the Studio's « CSS » tab).
+
+**In the editor** (`quickstyle.js`): a tap on a button, a title, a text, an image or an icon of the
+phone preview opens a bottom sheet — colours (the picker of `jcolor.js`, made for the finger), corner
+rounding, size S / M / L, border on / off + colour, bold, alignment; for a photo, its crop: drag it
+in the preview, pinch or the slider to zoom, a format (1:1, 4:5, 16:9). It writes the same
+`elementStyles` (`base` layer) through the editor's one change path (undo, autosave). The store's
+own controls (add to cart, menu, links: `data-jst-action`) and the product cards keep working.
 
 ## Seller accounts (`../compte/`)
 
