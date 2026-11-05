@@ -247,6 +247,467 @@
     { id: 'nuit', name: 'Nuit', colors: { bg: '#0F100F', surface: '#1C1E1C', text: '#F4F5EF', muted: '#A6AB9F', accent: '#CCFF33', onAccent: '#0F100F', line: 'rgba(244,245,239,0.14)' } }
   ]);
 
+  /* ------------------------------------------------------------------ custom colours
+   * The 8 palettes are starting points. Two optional keys let a seller change any colour:
+   *   theme.colors              partial overrides of the palette's six colours (bg, surface, text,
+   *                             muted, accent, onAccent) and colours of four parts of the store
+   *                             (announcementBg/Text, headerBg/Text, footerBg/Text, badgeBg/Text);
+   *   sections[].settings.bg    'page' | 'surface' | 'accent' | '#RRGGBB' (absent: the template's
+   *                             colour, which depends on vivid / soft), settings.fg its text colour
+   *                             (absent: chosen for readability), and on the hero buttonBg / buttonText.
+   * Nothing here is ever added to a fiche: without these keys a store renders byte for byte as
+   * before. render.js reads the colours through themeColors() and sectionColors(), so what the
+   * editor and validate() check is exactly what the store shows. Colours the seller did not pick
+   * are derived so they read (text 4.5:1 on its ground); colours she picked are kept as they are,
+   * and validate() reports the pairs that do not read, with the nearest readable shade as the fix.
+   */
+
+  var PALETTE_COLOR_KEYS = ['bg', 'surface', 'text', 'muted', 'accent', 'onAccent'];
+  // The parts of the store with colours of their own: [ground, text]
+  var ELEMENT_ZONES = {
+    announcement: ['announcementBg', 'announcementText'],
+    header: ['headerBg', 'headerText'],
+    footer: ['footerBg', 'footerText'],
+    badge: ['badgeBg', 'badgeText']
+  };
+  var ELEMENT_COLOR_KEYS = ['announcementBg', 'announcementText', 'headerBg', 'headerText', 'footerBg', 'footerText', 'badgeBg', 'badgeText'];
+  var COLOR_KEYS = PALETTE_COLOR_KEYS.concat(ELEMENT_COLOR_KEYS);
+  // The editor's « Personnaliser les couleurs », in this order. kind 'bg': a ground; 'fg': text on it.
+  var COLOR_GROUPS = [
+    { id: 'page', label: 'La page', fields: [
+      { key: 'bg', label: 'Fond de la page', kind: 'bg' },
+      { key: 'surface', label: 'Fond des cartes et des blocs', kind: 'bg' },
+      { key: 'text', label: 'Texte', kind: 'fg' },
+      { key: 'muted', label: 'Texte secondaire', kind: 'fg' }
+    ] },
+    { id: 'accent', label: 'Couleur principale', hint: 'Boutons, liens et prix.', fields: [
+      { key: 'accent', label: 'Couleur principale', kind: 'bg' },
+      { key: 'onAccent', label: 'Texte des boutons', kind: 'fg' }
+    ] },
+    { id: 'announcement', label: 'Bandeau d’annonce', fields: [
+      { key: 'announcementBg', label: 'Fond du bandeau', kind: 'bg' },
+      { key: 'announcementText', label: 'Texte du bandeau', kind: 'fg' }
+    ] },
+    { id: 'header', label: 'En-tête', fields: [
+      { key: 'headerBg', label: 'Fond de l’en-tête', kind: 'bg' },
+      { key: 'headerText', label: 'Texte de l’en-tête', kind: 'fg' }
+    ] },
+    { id: 'footer', label: 'Pied de page', fields: [
+      { key: 'footerBg', label: 'Fond du pied de page', kind: 'bg' },
+      { key: 'footerText', label: 'Texte du pied de page', kind: 'fg' }
+    ] },
+    { id: 'badge', label: 'Badges et promos', hint: 'Nouveau, Best-seller, Promo sur les produits.', fields: [
+      { key: 'badgeBg', label: 'Fond des badges', kind: 'bg' },
+      { key: 'badgeText', label: 'Texte des badges', kind: 'fg' }
+    ] }
+  ];
+  var COLOR_LABELS = {};
+  COLOR_GROUPS.forEach(function (g) { g.fields.forEach(function (f) { COLOR_LABELS[f.key] = f.label; }); });
+
+  // sections[].settings: bg and fg on every section, buttonBg and buttonText on the hero only
+  var SECTION_COLOR_KEYS = ['bg', 'fg', 'buttonBg', 'buttonText'];
+  var SECTION_BG_OPTIONS = [
+    { value: 'auto', label: 'Automatique', hint: 'Comme le modèle : dépend de Vives ou Douces.' },
+    { value: 'page', label: 'Couleur de la page' },
+    { value: 'surface', label: 'Couleur des cartes' },
+    { value: 'accent', label: 'Couleur principale' },
+    { value: 'custom', label: 'Personnalisée' }
+  ];
+  // WCAG: text 4.5:1, large text (24 px, or 18.7 px bold) 3:1. Every coloured part carries normal text.
+  // fill: what an accent fill (a button, the announcement bar, a badge) needs against the page and the
+  // cards to be seen at all. The palettes go down to 1.7:1 (Mangue's yellow on cream), and yellow
+  // buttons on white (1.3:1) still show; the same colour as the page (1:1), white on cream or lime
+  // on white (1.1:1) do not.
+  var CONTRAST_MIN = { text: 4.5, large: 3, fill: 1.25 };
+  // Pop presets offered next to the palette's own colours in the colour pickers
+  var POP_COLORS = ['#FFFFFF', '#111111', '#FFE03D', '#FFB000', '#FF7A1A', '#E63946', '#DE0F7B', '#FF8FC7', '#8E44EF', '#3657FF', '#00BFCB', '#14C46C', '#CCFF33', '#0C1342', '#5A2D0C', '#F5EBDD'];
+  var INK_DARK = '#15120E';
+  var INK_LIGHT = '#FFFFFF';
+
+  function hexRgb(h) {
+    var s = normColor(h, null);
+    if (!s) return null;
+    var n = parseInt(s.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgbHex(rgb) {
+    return '#' + rgb.map(function (v) {
+      var x = Math.max(0, Math.min(255, Math.round(v))).toString(16);
+      return x.length < 2 ? '0' + x : x;
+    }).join('').toUpperCase();
+  }
+  function mixHex(a, b, t) {
+    var A = hexRgb(a) || [0, 0, 0];
+    var B = hexRgb(b) || [255, 255, 255];
+    return rgbHex(A.map(function (v, i) { return v + (B[i] - v) * t; }));
+  }
+  function toHsl(rgb) {
+    var r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var l = (max + min) / 2;
+    if (max === min) return [0, 0, l];
+    var dd = max - min;
+    var s = l > 0.5 ? dd / (2 - max - min) : dd / (max + min);
+    var h;
+    if (max === r) h = (g - b) / dd + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / dd + 2;
+    else h = (r - g) / dd + 4;
+    return [h / 6, s, l];
+  }
+  function fromHsl(h, s, l) {
+    if (s === 0) return [l * 255, l * 255, l * 255];
+    function hue(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    }
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    return [hue(p, q, h + 1 / 3) * 255, hue(p, q, h) * 255, hue(p, q, h - 1 / 3) * 255];
+  }
+  function luminance(hex) {
+    var c = hexRgb(hex) || [0, 0, 0];
+    function f(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+  }
+  // WCAG contrast ratio, 1 to 21
+  function contrastRatio(a, b) {
+    var x = luminance(a), y = luminance(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+  function isDarkColor(hex) { return luminance(hex) < 0.18; }
+  // render.js's readable(): moves the lightness one way (deeper, or lighter on a dark ground) until
+  // the colour reads at `min` on every ground
+  function readableShade(fg, grounds, min, lighten) {
+    var hsl = toHsl(hexRgb(fg) || [0, 0, 0]);
+    var out = normColor(fg, '#000000');
+    for (var i = 0; i < 48; i++) {
+      if (grounds.every(function (b) { return contrastRatio(out, b) >= min; })) return out;
+      hsl[2] = Math.max(0, Math.min(1, hsl[2] + (lighten ? 0.02 : -0.02)));
+      out = rgbHex(fromHsl(hsl[0], hsl[1], hsl[2]));
+    }
+    return out;
+  }
+  // « Corriger »: the nearest shade of the same hue (lighter or deeper, whichever is closer) that
+  // reads at `min` on every colour of `others`; null when no shade can (a pale and a dark ground).
+  function nearestReadable(color, others, min) {
+    var c = normColor(color, null);
+    var list = (Array.isArray(others) ? others : [others]).map(function (o) { return normColor(o, null); }).filter(Boolean);
+    var need = typeof min === 'number' ? min : CONTRAST_MIN.text;
+    if (!c) return null;
+    function ok(x) { return list.every(function (o) { return contrastRatio(x, o) >= need; }); }
+    if (ok(c)) return c;
+    var hsl = toHsl(hexRgb(c));
+    for (var step = 1; step <= 100; step++) {
+      var d = step / 100;
+      var cands = [];
+      if (hsl[2] - d >= 0) cands.push(rgbHex(fromHsl(hsl[0], hsl[1], hsl[2] - d)));
+      if (hsl[2] + d <= 1) cands.push(rgbHex(fromHsl(hsl[0], hsl[1], hsl[2] + d)));
+      for (var i = 0; i < cands.length; i++) if (ok(cands[i])) return cands[i];
+    }
+    // A narrow readable window (between a pale and a dark ground) can fall between two 1 % steps:
+    // walk the lightness by 0.1 %, then the grey channels by one unit, before giving up
+    for (var fine = 1; fine <= 1000; fine++) {
+      var df = fine / 1000;
+      var fc = [];
+      if (hsl[2] - df >= 0) fc.push(rgbHex(fromHsl(hsl[0], hsl[1], hsl[2] - df)));
+      if (hsl[2] + df <= 1) fc.push(rgbHex(fromHsl(hsl[0], hsl[1], hsl[2] + df)));
+      for (var j = 0; j < fc.length; j++) if (ok(fc[j])) return fc[j];
+    }
+    var base3 = hexRgb(c);
+    for (var u = 1; u <= 255; u++) {
+      var dn = rgbHex(base3.map(function (v) { return v - u; }));
+      var up = rgbHex(base3.map(function (v) { return v + u; }));
+      if (ok(dn)) return dn;
+      if (ok(up)) return up;
+    }
+    if (ok('#000000')) return '#000000';
+    if (ok('#FFFFFF')) return '#FFFFFF';
+    return null;
+  }
+  // Text for a ground nobody chose a text colour for: the best of the store's own text colours if it
+  // reads, else near-black or white
+  function autoText(ground, prefs) {
+    var best = null, bestC = 0;
+    (prefs || []).forEach(function (p) {
+      var h = normColor(p, null);
+      if (!h) return;
+      var c = contrastRatio(h, ground);
+      if (c > bestC) { best = h; bestC = c; }
+    });
+    if (best && bestC >= CONTRAST_MIN.text) return best;
+    var ink = contrastRatio(INK_LIGHT, ground) > contrastRatio(INK_DARK, ground) ? INK_LIGHT : INK_DARK;
+    if (contrastRatio(ink, ground) >= CONTRAST_MIN.text) return ink;
+    // a mid-tone ground: pure black or white, one of them always reads (at least 4.58:1)
+    return contrastRatio('#000000', ground) > contrastRatio(INK_LIGHT, ground) ? '#000000' : INK_LIGHT;
+  }
+  function lineOf(text, dark) {
+    var c = hexRgb(text) || [17, 17, 17];
+    return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (dark ? '0.14' : '0.13') + ')';
+  }
+
+  // theme.colors, cleaned: only the known keys, each as #RRGGBB; null when nothing is left
+  function colorOverrides(v) {
+    if (!isObj(v)) return null;
+    var out = {};
+    var n = 0;
+    COLOR_KEYS.forEach(function (k) {
+      var h = has(v, k) ? normColor(v[k], null) : null;
+      if (h) { out[k] = h; n++; }
+    });
+    return n ? out : null;
+  }
+  // settings.bg: 'page', 'surface', 'accent' or #RRGGBB; anything else (or 'auto') is no choice
+  function sectionBgValue(v) {
+    if (v === 'page' || v === 'surface' || v === 'accent') return v;
+    return normColor(v, null);
+  }
+
+  // The palette's six colours with the seller's on top. A ground she changed without choosing what
+  // sits on it gets texts that read there (her palette's own text when it still reads).
+  function mergeColors(pal, o) {
+    var c = {};
+    PALETTE_COLOR_KEYS.forEach(function (k) { c[k] = o[k] || normColor(pal[k], '#111111'); });
+    var dark = isDarkColor(c.bg);
+    if (o.bg && !o.surface && isDarkColor(pal.surface) !== dark) {
+      // A raised card on a dark ground, a white one on a light ground; a mid-tone ground gets cards
+      // a little deeper, so the text that reads on the ground still reads on them
+      var ink = autoText(c.bg, [o.text || pal.text]);
+      var up = dark ? mixHex(c.bg, INK_LIGHT, 0.07) : INK_LIGHT;
+      c.surface = contrastRatio(ink, up) >= CONTRAST_MIN.text ? up : mixHex(c.bg, '#000000', 0.12);
+    }
+    if (!o.text && (o.bg || o.surface)) {
+      if (!(contrastRatio(pal.text, c.bg) >= CONTRAST_MIN.text && contrastRatio(pal.text, c.surface) >= CONTRAST_MIN.text)) {
+        // near-black, white, else pure black (a mid-tone ground next to white cards)
+        var score = function (x) { return Math.min(contrastRatio(x, c.bg), contrastRatio(x, c.surface)); };
+        var inks = [INK_DARK, INK_LIGHT, '#000000'];
+        c.text = inks.filter(function (x) { return score(x) >= CONTRAST_MIN.text; })[0] || inks.sort(function (a, b) { return score(b) - score(a); })[0];
+      }
+    }
+    // The palette's secondary text stays while it still reads (a text colour she changed does not discard it)
+    if (!o.muted && (o.bg || o.surface || o.text)) {
+      if (!(contrastRatio(c.muted, c.bg) >= CONTRAST_MIN.text && contrastRatio(c.muted, c.surface) >= CONTRAST_MIN.text)) {
+        c.muted = readableShade(mixHex(c.text, c.bg, 0.36), [c.bg, c.surface], CONTRAST_MIN.text, dark);
+      }
+    }
+    // A new page or card colour the palette's accent melts into (black buttons on a black page, lime on
+    // white): an accent she did not pick moves until it stands out again, a grey one takes the text colour
+    if (!o.accent && (o.bg || o.surface) && Math.min(contrastRatio(c.accent, c.bg), contrastRatio(c.accent, c.surface)) < CONTRAST_MIN.fill) {
+      var own0 = Math.min(contrastRatio(pal.accent, pal.bg), contrastRatio(pal.accent, pal.surface));
+      var want = Math.min(CONTRAST_MIN.large, Math.max(2, own0));
+      var ahsl = toHsl(hexRgb(c.accent) || [0, 0, 0]);
+      var fromText = ahsl[1] < 0.2 && Math.min(contrastRatio(c.text, c.bg), contrastRatio(c.text, c.surface)) >= want;
+      c.accent = fromText ? c.text : (nearestReadable(c.accent, [c.bg, c.surface], want) || nearestReadable(c.accent, [c.bg, c.surface], CONTRAST_MIN.fill) || c.text);
+      if (contrastRatio(c.onAccent, c.accent) < CONTRAST_MIN.text) c.onAccent = autoText(c.accent, [pal.onAccent, c.text, c.bg]);
+    }
+    if (o.accent && !o.onAccent && contrastRatio(c.onAccent, c.accent) < CONTRAST_MIN.text) c.onAccent = autoText(c.accent, [pal.onAccent, c.text]);
+    c.line = (o.bg || o.text) ? lineOf(c.text, dark) : (typeof pal.line === 'string' ? pal.line : lineOf(c.text, dark));
+    return c;
+  }
+
+  // The colours of a part of the store with its own ground: the text (the seller's, else one that
+  // reads), a secondary text, two light tints, a line, the accent as text, and the accent fill (the
+  // text colour when the accent would vanish on this ground, e.g. a section on the accent colour).
+  function zoneColors(ground, fg, base) {
+    var bg = normColor(ground, null) || base.bg;
+    var dark = isDarkColor(bg);
+    var own = normColor(fg, null);
+    var text = own || autoText(bg, [base.text, base.onAccent]);
+    // A shade of the ground towards the text (or away from it when that would make the text fade)
+    var away = contrastRatio(INK_LIGHT, text) > contrastRatio(INK_DARK, text) ? INK_LIGHT : '#000000';
+    function raise(t) {
+      var a = mixHex(bg, text, t);
+      if (own || contrastRatio(text, a) >= CONTRAST_MIN.text) return a;
+      var b = mixHex(bg, away, t);
+      return contrastRatio(text, b) >= CONTRAST_MIN.text ? b : bg;
+    }
+    var tint = raise(0.06);
+    var tint2 = raise(0.12);
+    // Cards inside keep the store's surface while the text still reads on it, else they are a raised
+    // shade of this ground (white text on a purple band: purple cards, not white ones)
+    var surface = contrastRatio(text, base.surface) >= CONTRAST_MIN.text ? base.surface : raise(0.1);
+    var muted = (text === base.text && [bg, tint, tint2, surface].every(function (x) { return contrastRatio(base.muted, x) >= CONTRAST_MIN.text; }))
+      ? base.muted
+      : readableShade(mixHex(text, bg, 0.3), [bg, tint, tint2, surface], CONTRAST_MIN.text, dark);
+    var visible = contrastRatio(base.accent, bg) >= 1.5;
+    var acc = visible ? base.accent : text;
+    var onAcc = visible ? base.onAccent : bg;
+    var accSoft = mixHex(bg, acc, 0.14);
+    // the accent as text (prices, links, the current menu link): on the ground, the cards, the tints
+    var inkOn = [bg, surface, tint, tint2, accSoft];
+    var ink = readableShade(base.accent, inkOn, CONTRAST_MIN.text, dark);
+    if (inkOn.some(function (x) { return contrastRatio(ink, x) < CONTRAST_MIN.text; })) ink = text;
+    // the accent's light tint (chips, the current menu link) under that text: the plain tint if it would fade
+    if (contrastRatio(ink, accSoft) < CONTRAST_MIN.text + 0.05) accSoft = tint;
+    var soft = mixHex(acc, onAcc, 0.84);
+    return {
+      bg: bg, fg: text, auto: !own, dark: dark, surface: surface, muted: muted, tint: tint, tint2: tint2,
+      line: mixHex(bg, text, 0.18), soft: mixHex(bg, text, 0.82), ink: ink,
+      acc: acc, onAcc: onAcc, onAccSoft: contrastRatio(soft, acc) >= CONTRAST_MIN.text ? soft : onAcc, accSoft: accSoft
+    };
+  }
+
+  // render.js's vivid tints (vividColors), for the footer's own ground
+  function tintsOf(c, dark) {
+    var ahsl = toHsl(hexRgb(c.accent) || [0, 0, 0]);
+    var neutral = ahsl[1] < 0.25 || ahsl[2] < 0.13 || ahsl[2] > 0.92;
+    function shade(hex, dl, ds) {
+      var hsl = toHsl(hexRgb(hex) || [200, 200, 200]);
+      return rgbHex(fromHsl(hsl[0], Math.max(0, Math.min(1, hsl[1] + (ds || 0))), Math.max(0.07, Math.min(0.97, hsl[2] + dl))));
+    }
+    if (neutral) return { tint: shade(c.bg, dark ? 0.07 : -0.055, 0.1), tintStrong: shade(c.bg, dark ? 0.13 : -0.11, 0.16) };
+    if (dark) return { tint: c.surface, tintStrong: mixHex(c.surface, c.text, 0.07) };
+    return { tint: mixHex(c.bg, c.accent, 0.13), tintStrong: mixHex(c.bg, c.accent, 0.3) };
+  }
+
+  // Every colour the store uses, the seller's on top of her palette:
+  // { palette, base: { bg, surface, text, muted, accent, onAccent, line }, set: her theme.colors (clean),
+  //   custom: true when she changed at least one colour, dark, vivid, defaults: the template's ground and
+  //   text of each part, zones: { announcement, header, footer, badge }: zoneColors() or null }
+  function themeColors(config) {
+    var cfg = isObj(config) ? config : {};
+    var theme = isObj(cfg.theme) ? cfg.theme : {};
+    var tpl = typeof cfg.template === 'string' && inColl(templates, cfg.template) ? cfg.template : 'plateau';
+    var palId = typeof theme.palette === 'string' && inColl(palettes, theme.palette) ? theme.palette : templates[tpl].defaults.palette;
+    var pal = palettes[palId].colors;
+    var o = colorOverrides(theme.colors) || {};
+    // One of the six palette colours set to the palette's own value changes nothing
+    PALETTE_COLOR_KEYS.forEach(function (k) { if (o[k] && o[k] === normColor(pal[k], null)) delete o[k]; });
+    var paletteSet = PALETTE_COLOR_KEYS.some(function (k) { return !!o[k]; });
+    var base = mergeColors(pal, o);
+    var dark = isDarkColor(base.bg);
+    var vivid = theme.intensity !== 'soft';
+    var t = tintsOf(base, dark);
+    // render.js (custom path): a tint her text does not read on becomes a shade of the page that it reads on
+    if (paletteSet) {
+      var away = contrastRatio(INK_LIGHT, base.text) > contrastRatio('#000000', base.text) ? INK_LIGHT : '#000000';
+      var shadeFor = function (x) {
+        var a = mixHex(base.bg, base.text, x);
+        if (contrastRatio(base.text, a) >= CONTRAST_MIN.text) return a;
+        var bb = mixHex(base.bg, away, x);
+        return contrastRatio(base.text, bb) >= CONTRAST_MIN.text ? bb : base.bg;
+      };
+      if (contrastRatio(base.text, t.tint) < CONTRAST_MIN.text) t.tint = shadeFor(0.08);
+      if (contrastRatio(base.text, t.tintStrong) < CONTRAST_MIN.text) t.tintStrong = shadeFor(0.16);
+    }
+    var defaults = {
+      announcement: { bg: base.accent, fg: base.onAccent },
+      header: { bg: base.bg, fg: base.text },
+      footer: { bg: vivid ? t.tintStrong : (tpl === 'plateau' ? base.bg : base.surface), fg: base.text },
+      badge: { bg: base.accent, fg: base.onAccent }
+    };
+    var zones = {};
+    Object.keys(ELEMENT_ZONES).forEach(function (z) {
+      var keys = ELEMENT_ZONES[z];
+      zones[z] = (o[keys[0]] || o[keys[1]]) ? zoneColors(o[keys[0]] || defaults[z].bg, o[keys[1]] || null, base) : null;
+    });
+    return { palette: palId, base: base, set: o, custom: Object.keys(o).length > 0, paletteSet: paletteSet, dark: dark, vivid: vivid, defaults: defaults, zones: zones };
+  }
+
+  // One section's own colours: { choice: 'page'|'surface'|'accent'|'custom'|null, zone: zoneColors() or
+  // null, button: { bg, fg, auto } or null (the hero's button) }. base: themeColors(config).base.
+  function sectionColors(section, base) {
+    var st = isObj(section) && isObj(section.settings) ? section.settings : {};
+    var b = isObj(base) ? base : palettes.sable.colors;
+    var v = sectionBgValue(st.bg);
+    var out = { choice: null, zone: null, button: null };
+    if (v) {
+      var ground = v === 'page' ? b.bg : (v === 'surface' ? b.surface : (v === 'accent' ? b.accent : v));
+      out.choice = v.charAt(0) === '#' ? 'custom' : v;
+      out.zone = zoneColors(ground, st.fg, b);
+    }
+    if (isObj(section) && section.type === 'hero') {
+      var bb = normColor(st.buttonBg, null);
+      var bt = normColor(st.buttonText, null);
+      if (bb || bt) {
+        var g = bb || b.accent;
+        out.button = { bg: g, fg: bt || autoText(g, [b.onAccent, b.text]), auto: !bt };
+      }
+    }
+    return out;
+  }
+
+  // The colour pairs the seller set (or changed the ground of) that do not read. Each one:
+  // { id, label, fg, grounds, ratio, min, fgKey, groundKeys, fix, section? } where keys are
+  // 'theme:<key>' or 'section:<id>:<key>' and fix the nearest readable shade of the text (null if none).
+  function colorChecks(config) {
+    var out = [];
+    var cfg = isObj(config) ? config : {};
+    var tc = themeColors(cfg);
+    var o = tc.set;
+    var b = tc.base;
+    // severe: the main text, the buttons' text, under 3:1: the store cannot be read (Qualité holds back
+    // « APPROUVÉ » until it is fixed). fill: a colour fill (not a text) that needs to be seen, at 1.5:1.
+    function check(id, label, fg, grounds, fgKey, groundKeys, extra) {
+      var ratio = Math.min.apply(null, grounds.map(function (g) { return contrastRatio(fg, g); }));
+      var fill = !!(extra && extra.kind === 'fill');
+      var min = fill ? CONTRAST_MIN.fill : CONTRAST_MIN.text;
+      if (ratio >= min) return;
+      var fix = fill ? (nearestReadable(fg, grounds, CONTRAST_MIN.large) || nearestReadable(fg, grounds, min)) : nearestReadable(fg, grounds, min);
+      var item = { id: id, label: label, fg: fg, grounds: grounds, ratio: Math.round(ratio * 100) / 100, min: min, fgKey: fgKey, groundKeys: groundKeys, fix: fix,
+        kind: fill ? 'fill' : 'text', severe: !fill && ratio < CONTRAST_MIN.large && (id === 'text' || id === 'onAccent' || id.indexOf('button-') === 0) };
+      if (extra) Object.keys(extra).forEach(function (k) { if (k !== 'kind') item[k] = extra[k]; });
+      out.push(item);
+    }
+    if (o.text || o.bg || o.surface) check('text', 'le texte sur le fond de la page et des cartes', b.text, [b.bg, b.surface], 'theme:text', ['theme:bg', 'theme:surface']);
+    if (o.muted || o.bg || o.surface || o.text) check('muted', 'le texte secondaire sur le fond de la page et des cartes', b.muted, [b.bg, b.surface], 'theme:muted', ['theme:bg', 'theme:surface']);
+    if (o.accent || o.onAccent) check('onAccent', 'le texte des boutons sur la couleur principale', b.onAccent, [b.accent], 'theme:onAccent', ['theme:accent']);
+    // The accent as a fill (buttons, the announcement bar, badges) on the page and the cards: only when she
+    // picked it (an accent she did not pick is moved by mergeColors)
+    if (o.accent) check('accent', 'les boutons, le bandeau et les badges se confondent avec le fond de la page', b.accent, [b.bg, b.surface], 'theme:accent', ['theme:bg', 'theme:surface'], { kind: 'fill' });
+    var zoneLabels = { announcement: 'le texte du bandeau d’annonce', header: 'le texte de l’en-tête', footer: 'le texte du pied de page', badge: 'le texte des badges' };
+    Object.keys(ELEMENT_ZONES).forEach(function (z) {
+      var zc = tc.zones[z];
+      if (!zc) return;
+      var keys = ELEMENT_ZONES[z];
+      check(z, zoneLabels[z], zc.fg, [zc.bg], 'theme:' + keys[1], ['theme:' + keys[0]]);
+    });
+    (Array.isArray(cfg.sections) ? cfg.sections : []).forEach(function (s) {
+      if (!isObj(s) || !inColl(sectionTypes, s.type) || s.enabled === false) return;
+      var sc = sectionColors(s, b);
+      var name = sectionTypes[s.type].name;
+      if (sc.zone) check('section-' + s.id, 'le texte de la section ' + q(name), sc.zone.fg, [sc.zone.bg], 'section:' + s.id + ':fg', ['section:' + s.id + ':bg'], { section: s.id });
+      if (sc.button) check('button-' + s.id, 'le texte du bouton de la section ' + q(name), sc.button.fg, [sc.button.bg], 'section:' + s.id + ':buttonText', ['section:' + s.id + ':buttonBg'], { section: s.id });
+    });
+    return out;
+  }
+
+  // Writes a colour key ('theme:text', 'section:s2:fg') into a fiche
+  function setColorKey(config, key, value) {
+    var parts = String(key).split(':');
+    if (!isObj(config)) return false;
+    if (parts[0] === 'theme' && COLOR_KEYS.indexOf(parts[1]) !== -1) {
+      if (!isObj(config.theme)) config.theme = {};
+      if (!isObj(config.theme.colors)) config.theme.colors = {};
+      config.theme.colors[parts[1]] = value;
+      return true;
+    }
+    if (parts[0] === 'section' && Array.isArray(config.sections)) {
+      var s = config.sections.filter(function (x) { return isObj(x) && x.id === parts[1]; })[0];
+      if (!s || SECTION_COLOR_KEYS.indexOf(parts[2]) === -1) return false;
+      if (!isObj(s.settings)) s.settings = {};
+      s.settings[parts[2]] = value;
+      return true;
+    }
+    return false;
+  }
+  // « Corriger tout »: every text that does not read becomes the nearest readable shade of its colour.
+  // Changes the fiche in place; returns the number of colours changed.
+  function fixColors(config) {
+    if (!isObj(config) || !isObj(config.theme)) return 0;
+    var n = 0;
+    for (var pass = 0; pass < 3; pass++) {
+      var list = colorChecks(config).filter(function (c) { return c.fix; });
+      if (!list.length) break;
+      list.forEach(function (c) { if (setColorKey(config, c.fgKey, c.fix)) n++; });
+    }
+    return n;
+  }
+  function fmtRatio(r) { return (Math.floor(r * 10) / 10).toFixed(1).replace('.', ',') + ':1'; }
+
   /* ------------------------------------------------------------------ font pairs
    * All of these fonts include ɛ ɔ ŋ except Poppins, hence the Montserrat fallback in "simple".
    */
@@ -1505,6 +1966,260 @@
     return true;
   }
 
+  /* ------------------------------------------------------------------ brand: the store's logo */
+
+  // Optional keys of store (a fiche without them shows its name as text, as before):
+  //   logo          null or a data URL image (PNG, JPEG or WebP; the editor makes it at most 600 px on the long side)
+  //   logoSize      'S' | 'M' | 'L' (default 'M') or a height in px, 24 to 72 (desktop; phones show 80 % of it)
+  //   logoPosition  'left' | 'center' | null (null: the template's place, LOGO_DEFAULT_POSITION)
+  //   showName      true: the store name next to the logo (default false: the logo alone)
+  //   icon          null or a square data URL image for the browser tab (else the logo, else the initial)
+  var LOGO_SIZES = {
+    S: { label: 'Petit', phone: 28, desktop: 34 },
+    M: { label: 'Moyen', phone: 36, desktop: 46 },
+    L: { label: 'Grand', phone: 46, desktop: 60 }
+  };
+  var LOGO_SIZE_OPTIONS = ['S', 'M', 'L'].map(function (k) { return { value: k, label: LOGO_SIZES[k].label }; });
+  var LOGO_POSITIONS = [{ value: 'left', label: 'À gauche' }, { value: 'center', label: 'Au centre' }];
+  var LOGO_DEFAULT_POSITION = { plateau: 'center', cocody: 'left', treichville: 'left' };
+  // side: long side of an uploaded logo; icon: side of the tab icon; chars: longest data URL kept;
+  // px: the range of a height in px; wide / small: when validate() warns about the logo's shape.
+  var LOGO_LIMITS = { side: 600, icon: 192, chars: 2000000, px: { min: 24, max: 72 }, wide: 6, smallSide: 120, smallHeight: 40, tone: 1.6, faded: 0.15, iconWide: 1.5 };
+  var BRAND_KEYS = ['logo', 'logoSize', 'logoPosition', 'showName', 'icon'];
+
+  function isLogoImage(v) { return isImage(v) && v.length <= LOGO_LIMITS.chars; }
+
+  function normLogoSize(v) {
+    if (typeof v === 'string') {
+      var s = v.trim().toUpperCase();
+      if (has(LOGO_SIZES, s)) return s;
+      if (!/^\d+(\s*px)?$/i.test(s)) return 'M';
+      v = parseInt(s, 10);
+    }
+    if (typeof v !== 'number' || !isFinite(v)) return 'M';
+    return Math.min(LOGO_LIMITS.px.max, Math.max(LOGO_LIMITS.px.min, Math.round(v)));
+  }
+  function normLogoPosition(v) { return v === 'left' || v === 'center' ? v : null; }
+
+  function normBrand(key, v) {
+    switch (key) {
+      case 'logo':
+      case 'icon': return isLogoImage(v) ? v.replace(/\s+/g, '') : null;
+      case 'logoSize': return normLogoSize(v);
+      case 'logoPosition': return normLogoPosition(v);
+      case 'showName': return toBool(v, false);
+    }
+    return null;
+  }
+
+  // Height of the logo in px for a device ('phone' or 'desktop'), from store.logoSize.
+  function logoHeight(size, device) {
+    var s = normLogoSize(size === undefined || size === null ? 'M' : size);
+    var phone = device !== 'desktop';
+    if (typeof s === 'string') return LOGO_SIZES[s][phone ? 'phone' : 'desktop'];
+    return phone ? Math.max(LOGO_LIMITS.px.min, Math.round(s * 0.8)) : s;
+  }
+
+  /* Width and height of a data URL image, read from its header (PNG, JPEG, WebP, GIF), without a
+   * DOM: { width, height, type } or null. Results are kept for the last few images. */
+  var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  var B64_INDEX = {};
+  for (var bi = 0; bi < B64.length; bi++) B64_INDEX[B64.charAt(bi)] = bi;
+  function b64Bytes(s, n) {
+    var out = [];
+    var buf = 0;
+    var bits = 0;
+    for (var i = 0; i < s.length && out.length < n; i++) {
+      var v = B64_INDEX[s.charAt(i)];
+      if (v === undefined) { if (s.charAt(i) === '=') break; continue; }
+      buf = (buf << 6) | v; bits += 6;
+      if (bits >= 8) { bits -= 8; out.push((buf >> bits) & 255); }
+    }
+    return out;
+  }
+  var sizeCache = [];
+  function imageSize(url) {
+    if (!isImage(url)) return null;
+    for (var c = 0; c < sizeCache.length; c++) if (sizeCache[c].url === url) return sizeCache[c].size;
+    var size = null;
+    try { size = readImageSize(url); } catch (e) { size = null; }
+    sizeCache.unshift({ url: url, size: size });
+    if (sizeCache.length > 8) sizeCache.length = 8;
+    return size;
+  }
+  function readImageSize(url) {
+    var comma = url.indexOf(',');
+    var type = url.slice(11, url.indexOf(';')).toLowerCase();
+    var data = url.slice(comma + 1);
+    var b;
+    var u16 = function (i) { return (b[i] << 8) | b[i + 1]; };
+    var u16le = function (i) { return b[i] | (b[i + 1] << 8); };
+    var u24le = function (i) { return b[i] | (b[i + 1] << 8) | (b[i + 2] << 16); };
+    var u32 = function (i) { return ((b[i] << 24) >>> 0) + ((b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]); };
+    var ok = function (w, h, t) { return w > 0 && h > 0 ? { width: w, height: h, type: t } : null; };
+    if (type === 'png') {
+      b = b64Bytes(data, 24);
+      if (b.length < 24 || b[0] !== 0x89 || b[1] !== 0x50) return null;
+      return ok(u32(16), u32(20), 'png');
+    }
+    if (type === 'gif') {
+      b = b64Bytes(data, 10);
+      return b.length < 10 ? null : ok(u16le(6), u16le(8), 'gif');
+    }
+    if (type === 'webp') {
+      b = b64Bytes(data, 30);
+      if (b.length < 30) return null;
+      var fmt = String.fromCharCode(b[12], b[13], b[14], b[15]);
+      if (fmt === 'VP8 ') return ok(u16le(26) & 0x3FFF, u16le(28) & 0x3FFF, 'webp');
+      if (fmt === 'VP8L') {
+        var bits = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24);
+        return ok((bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1, 'webp');
+      }
+      if (fmt === 'VP8X') return ok(u24le(24) + 1, u24le(27) + 1, 'webp');
+      return null;
+    }
+    if (type === 'jpeg' || type === 'jpg') {
+      // Walk the markers to the first SOF (frame header); EXIF can push it far, so read up to 256 KB
+      b = b64Bytes(data, 262144);
+      if (b[0] !== 0xFF || b[1] !== 0xD8) return null;
+      var i = 2;
+      while (i + 9 < b.length) {
+        if (b[i] !== 0xFF) { i++; continue; }
+        var mk = b[i + 1];
+        if (mk === 0xFF) { i++; continue; }
+        if (mk === 0xD8 || mk === 0x01 || (mk >= 0xD0 && mk <= 0xD7)) { i += 2; continue; }
+        if (mk >= 0xC0 && mk <= 0xCF && mk !== 0xC4 && mk !== 0xC8 && mk !== 0xCC) return ok(u16(i + 7), u16(i + 5), 'jpeg');
+        i += 2 + u16(i + 2);
+      }
+      return null;
+    }
+    return null;
+  }
+
+  /* The brand of a fiche, for the renderer, the editor and the dashboard (never throws):
+   *   { name, initial, logo, size, position, positionSet, showName, icon, iconFrom: 'icon'|'logo'|'initial', logoBox }
+   * logo is null when there is none (the name shows as text). logoBox(device, maxW) gives the
+   * display size { width, height } of the logo in px, never stretched, or null when unknown. */
+  function brand(config, tplId) {
+    var cfg = isObj(config) ? config : {};
+    var st = isObj(cfg.store) ? cfg.store : {};
+    var tpl = typeof tplId === 'string' ? tplId : (typeof cfg.template === 'string' ? cfg.template : 'plateau');
+    var name = (typeof st.name === 'string' ? st.name : '').trim();
+    var logo = isLogoImage(st.logo) ? st.logo.replace(/\s+/g, '') : null;
+    var icon = isLogoImage(st.icon) ? st.icon.replace(/\s+/g, '') : null;
+    var pos = normLogoPosition(st.logoPosition);
+    var initial = '';
+    // The first letter or digit, any script (Œ, ɔ, ŋ…): Unicode classes where the engine has them
+    var lead = /^[^0-9A-Za-zÀ-ÖØ-öø-ÿ]+/;
+    try { lead = new RegExp('^[^\\p{L}\\p{N}]+', 'u'); } catch (e) { /* an engine without \p{…} */ }
+    try { initial = Array.from(name.replace(lead, ''))[0] || ''; } catch (e) { initial = name.charAt(0); }
+    var dims = logo ? imageSize(logo) : null;
+    // A wide logo shrunk into a 16 px square cannot be read: the tab then shows the initial
+    var squareish = !!(logo && (!dims || dims.width / dims.height <= LOGO_LIMITS.iconWide));
+    return {
+      name: name,
+      initial: (initial || 'B').toLocaleUpperCase('fr'),
+      logo: logo,
+      dims: dims,
+      size: has(st, 'logoSize') ? normLogoSize(st.logoSize) : 'M',
+      position: pos || LOGO_DEFAULT_POSITION[tpl] || 'left',
+      positionSet: !!pos,
+      showName: !!logo && st.showName === true,
+      icon: icon || (squareish ? logo : null),
+      iconFrom: icon ? 'icon' : (squareish ? 'logo' : 'initial'),
+      logoBox: function (device, maxW) {
+        if (!dims) return null;
+        var h = logoHeight(has(st, 'logoSize') ? st.logoSize : 'M', device);
+        var w = h * dims.width / dims.height;
+        if (maxW && w > maxW) { w = maxW; h = maxW * dims.height / dims.width; }
+        return { width: Math.max(1, Math.round(w)), height: Math.max(1, Math.round(h)) };
+      }
+    };
+  }
+
+  /* The logo's ink, to tell whether it can be seen on the grounds it sits on. logoTone(url) measures it
+   * in a browser (a canvas; Node resolves null) and keeps it: { lum: the luminance of its average
+   * opaque pixel, bins: how its opaque pixels spread over TONE_BINS luminance bins }, or null for an
+   * opaque logo (it brings its own background). logoToneOf(url) is that value once measured (undefined
+   * before). logoGrounds(config): the grounds the logo is drawn on, the header (every page, the
+   * checkout too) and the footer. logoChecks(config): the grounds where 15 % of the logo or more
+   * (LOGO_LIMITS.faded) reads under LOGO_LIMITS.tone (1.6:1): a dark word next to an orange mark
+   * vanishes on a navy header even when the mark still shows. */
+  var TONE_BINS = 64;
+  var toneCache = [];
+  function binLum(i) { var x = (i + 0.5) / TONE_BINS; return x * x; }
+  function logoToneOf(url) {
+    if (typeof url !== 'string') return undefined;
+    for (var i = 0; i < toneCache.length; i++) if (toneCache[i].url === url) return toneCache[i].tone;
+    return undefined;
+  }
+  function keepTone(url, tone) {
+    toneCache = toneCache.filter(function (x) { return x.url !== url; });
+    toneCache.unshift({ url: url, tone: tone });
+    if (toneCache.length > 6) toneCache.length = 6;
+    return tone;
+  }
+  function logoTone(url) {
+    var known = logoToneOf(url);
+    if (known !== undefined) return Promise.resolve(known);
+    if (typeof document === 'undefined' || typeof Image === 'undefined' || !isImage(url)) return Promise.resolve(null);
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = function () {
+        var tone = null;
+        try {
+          var k = Math.min(1, 160 / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+          var w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+          var c = document.createElement('canvas'); c.width = w; c.height = h;
+          var x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+          var d = x.getImageData(0, 0, w, h).data;
+          var r = 0, g = 0, b = 0, n = 0, clear = 0;
+          var bins = [];
+          for (var z = 0; z < TONE_BINS; z++) bins.push(0);
+          for (var i = 0; i < d.length; i += 4) {
+            if (d[i + 3] < 128) { clear++; continue; }
+            r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+            var L = luminance(rgbHex([d[i], d[i + 1], d[i + 2]]));
+            bins[Math.min(TONE_BINS - 1, Math.floor(Math.sqrt(L) * TONE_BINS))]++;
+          }
+          tone = (!n || clear / (d.length / 4) < 0.08) ? null : { lum: luminance(rgbHex([r / n, g / n, b / n])), bins: bins.map(function (v) { return v / n; }) };
+        } catch (e) { tone = null; }
+        resolve(keepTone(url, tone));
+      };
+      img.onerror = function () { resolve(keepTone(url, null)); };
+      img.src = url;
+    });
+  }
+  function logoGrounds(config) {
+    var tc = themeColors(config);
+    var zg = function (z) { return tc.zones[z] ? tc.zones[z].bg : tc.defaults[z].bg; };
+    return [
+      { id: 'header', label: 'de l’en-tête', bg: zg('header'), key: 'theme:headerBg' },
+      { id: 'footer', label: 'du pied de page', bg: zg('footer'), key: 'theme:footerBg' }
+    ];
+  }
+  function lumRatio(a, b) { return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }
+  // { faded: the share of the logo under 1.6:1 on this ground, light: those pixels are light (a light logo) }
+  function toneOn(tone, groundLum) {
+    var faded = 0, fl = 0;
+    tone.bins.forEach(function (v, i) {
+      if (!v) return;
+      var L = binLum(i);
+      if (lumRatio(L, groundLum) < LOGO_LIMITS.tone) { faded += v; fl += v * L; }
+    });
+    return { faded: faded, light: faded ? (fl / faded) > 0.18 : tone.lum > 0.18 };
+  }
+  function logoChecks(config) {
+    var b = brand(config);
+    if (!b.logo) return [];
+    var tone = logoToneOf(b.logo);
+    if (!tone || !Array.isArray(tone.bins)) return [];
+    return logoGrounds(config).map(function (g) {
+      var t = toneOn(tone, luminance(g.bg));
+      return { id: g.id, label: g.label, bg: g.bg, key: g.key, faded: Math.round(t.faded * 100) / 100, light: t.light };
+    }).filter(function (g) { return g.faded >= LOGO_LIMITS.faded; });
+  }
+
   // Integer from a number or a string such as "12 500", "12 500 FCFA", "6500.4". Null if none.
   function toInt(v) {
     if (typeof v === 'number') return isFinite(v) ? Math.round(v) : null;
@@ -1589,6 +2304,23 @@
     return out;
   }
 
+  // A section's own colours (optional, never added): bg 'page' | 'surface' | 'accent' | #RRGGBB, fg
+  // #RRGGBB (only with a bg), and on the hero buttonBg / buttonText. 'auto' or anything else: dropped.
+  function normSectionColors(type, src, out) {
+    var bg = has(src, 'bg') ? sectionBgValue(src.bg) : null;
+    if (bg) {
+      out.bg = bg;
+      var fg = has(src, 'fg') ? normColor(src.fg, null) : null;
+      if (fg) out.fg = fg;
+    }
+    if (type === 'hero') {
+      ['buttonBg', 'buttonText'].forEach(function (k) {
+        var h = has(src, k) ? normColor(src[k], null) : null;
+        if (h) out[k] = h;
+      });
+    }
+  }
+
   function assignIds(list, prefix) {
     var re = new RegExp('^' + prefix + '[1-9]\\d*$');
     var used = {};
@@ -1623,6 +2355,8 @@
       city: str(srcStore.city, base.store.city),
       niche: has(srcStore, 'niche') ? nicheKnown : base.store.niche
     };
+    // The brand keys are optional: kept (repaired) when the fiche has them, never added
+    BRAND_KEYS.forEach(function (k) { if (has(srcStore, k)) store[k] = normBrand(k, srcStore[k]); });
 
     var srcTheme = isObj(src.theme) ? src.theme : {};
     var theme = {
@@ -1633,6 +2367,11 @@
       // Missing (a fiche saved before intensity existed) or unknown: vivid.
       intensity: normIntensity(srcTheme.intensity)
     };
+    // Custom colours are optional: kept (only known keys, #RRGGBB) when the fiche has them, never added
+    if (has(srcTheme, 'colors')) {
+      var ownColors = colorOverrides(srcTheme.colors);
+      if (ownColors) theme.colors = ownColors;
+    }
 
     var srcPay = isObj(src.payments) ? src.payments : {};
     var payments = {};
@@ -1642,11 +2381,13 @@
     (Array.isArray(src.sections) ? src.sections : base.sections).forEach(function (s) {
       if (!isObj(s) || typeof s.type !== 'string' || !inColl(sectionTypes, s.type)) return;
       var def = sectionTypes[s.type];
+      var settings = normSettings(def.fields, s.settings, def.defaults);
+      if (isObj(s.settings)) normSectionColors(s.type, s.settings, settings);
       sections.push({
         id: s.id,
         type: s.type,
         enabled: toBool(s.enabled, true),
-        settings: normSettings(def.fields, s.settings, def.defaults)
+        settings: settings
       });
     });
     assignIds(sections, 's');
@@ -1743,6 +2484,21 @@
       var name = textOf(store.name).trim();
       if (!name) add('error', 'Donnez un nom à votre boutique.', 'store', 'name');
 
+      // The logo: a tip when there is none (free: it costs no point, a name written in the store's
+      // font is a fine start), a warning when its shape will not read in a header.
+      var logo = isLogoImage(store.logo) ? store.logo : null;
+      if (!logo) {
+        add('tip', 'Ajoutez votre logo : il s’affiche en haut de chaque page. Pas de logo ? Le Studio en crée un simple avec le nom de votre boutique.', 'store', 'logo');
+        issues[issues.length - 1].free = true;
+      } else {
+        var dim = imageSize(logo);
+        if (dim && dim.width / dim.height > LOGO_LIMITS.wide) {
+          add('warning', 'Votre logo est très allongé (' + dim.width + ' × ' + dim.height + ' px) : sur téléphone, il sera tout petit. Préférez une version plus compacte, ou affichez le nom à la place.', 'store', 'logo');
+        } else if (dim && (Math.max(dim.width, dim.height) < LOGO_LIMITS.smallSide || dim.height < LOGO_LIMITS.smallHeight)) {
+          add('warning', 'Votre logo est petit (' + dim.width + ' × ' + dim.height + ' px) : il risque d’être flou. Importez une image d’au moins 300 px de large.', 'store', 'logo');
+        }
+      }
+
       if (!enabled.length) add('error', 'Activez au moins une section pour que votre boutique ne soit pas vide.', 'section');
 
       var productsShown = false;
@@ -1782,6 +2538,37 @@
       }
 
       /* warnings */
+      // Colours the seller chose that make a text hard to read (« Corriger » applies issue.fix)
+      var checks = [];
+      try { checks = colorChecks(config); } catch (e) { checks = []; }
+      checks.forEach(function (c) {
+        var parts = c.fgKey.split(':');
+        var fill = c.kind === 'fill';
+        add('warning', (fill ? 'Peu visible : ' + c.label : 'Peu lisible : vos clients auront du mal à lire ' + c.label) +
+          ' (contraste ' + fmtRatio(c.ratio) + ', il faut au moins ' + fmtRatio(c.min) + ').' +
+          (c.fix ? ' ' + q('Corriger') + ' choisit une teinte proche' + (fill ? ' qui ressort.' : ' qui se lit bien.') : ' Changez la couleur du fond.'),
+          parts[0] === 'section' ? 'section' : 'theme', parts[0] === 'section' ? parts[1] : 'colors');
+        var last = issues[issues.length - 1];
+        last.target.key = parts[0] === 'section' ? parts[2] : parts[1];
+        last.contrast = true;
+        if (c.severe) last.severe = true;
+        if (c.fix) last.fix = { key: c.fgKey, value: c.fix };
+      });
+
+      // A transparent logo that vanishes on the header's or the footer's ground (its ink measured by
+      // logoTone(), in a browser; nothing is said before that, nor in Node)
+      if (logo) {
+        var lc = [];
+        try { lc = logoChecks(config); } catch (e) { lc = []; }
+        if (lc.length) {
+          var where = lc.map(function (x) { return x.label; });
+          var lightLogo = lc[0].light;
+          add('warning', 'Votre logo se voit mal sur le fond ' + (where.length > 1 ? where.slice(0, -1).join(', ') + ' et ' + where[where.length - 1] : where[0]) +
+            ' : importez une version ' + (lightLogo ? 'foncée' : 'claire') + ' de votre logo, ou changez la couleur ' + (where.length > 1 ? 'de ces fonds' : 'de ce fond') + ' dans Thème.', 'store', 'logo');
+          issues[issues.length - 1].logoTone = lc.map(function (x) { return x.id; });
+        }
+      }
+
       var whatsapp = textOf(store.whatsapp).trim();
       var waSection = enabled.some(function (s) { return s.type === 'whatsapp'; });
       if (!whatsapp && (waSection || productsShown)) {
@@ -1881,11 +2668,16 @@
     }
 
     var count = { error: 0, warning: 0, tip: 0 };
-    issues.forEach(function (i) { count[i.level]++; });
+    issues.forEach(function (i) { if (!i.free) count[i.level]++; });
     var score = Math.max(0, 100 - 20 * count.error - 6 * count.warning - 2 * Math.min(count.tip, 5));
     var order = { error: 0, warning: 1, tip: 2 };
     issues.sort(function (a, b) { return order[a.level] - order[b.level]; });
-    return { score: score, status: (count.error === 0 && score >= 80) ? 'APPROUVÉ' : 'À CORRIGER', issues: issues };
+    // A main text or a button text under 3:1 (issue.severe): the store cannot be read, so it is not
+    // « APPROUVÉ » whatever the score; unreadable says why (the editor's verdict: « Presque prête »)
+    var unreadable = issues.filter(function (i) { return i.severe; }).length;
+    var out = { score: score, status: (count.error === 0 && score >= 80 && !unreadable) ? 'APPROUVÉ' : 'À CORRIGER', issues: issues };
+    if (unreadable) out.unreadable = unreadable;
+    return out;
   }
 
   function validate(config) {
@@ -2446,6 +3238,31 @@
     BUTTON_OPTIONS: BUTTON_OPTIONS,
     INTENSITY_OPTIONS: INTENSITY_OPTIONS,
     DEFAULT_INTENSITY: DEFAULT_INTENSITY,
+    // custom colours (optional theme.colors and sections[].settings.bg / fg / buttonBg / buttonText)
+    PALETTE_COLOR_KEYS: PALETTE_COLOR_KEYS,
+    ELEMENT_COLOR_KEYS: ELEMENT_COLOR_KEYS,
+    ELEMENT_ZONES: ELEMENT_ZONES,
+    COLOR_KEYS: COLOR_KEYS,
+    COLOR_GROUPS: COLOR_GROUPS,
+    COLOR_LABELS: COLOR_LABELS,
+    SECTION_COLOR_KEYS: SECTION_COLOR_KEYS,
+    SECTION_BG_OPTIONS: SECTION_BG_OPTIONS,
+    CONTRAST_MIN: CONTRAST_MIN,
+    POP_COLORS: POP_COLORS,
+    themeColors: themeColors,
+    sectionColors: sectionColors,
+    zoneColors: zoneColors,
+    colorOverrides: colorOverrides,
+    colorChecks: colorChecks,
+    logoTone: logoTone,
+    logoToneOf: logoToneOf,
+    logoGrounds: logoGrounds,
+    logoChecks: logoChecks,
+    fixColors: fixColors,
+    setColorKey: setColorKey,
+    nearestReadable: nearestReadable,
+    contrastRatio: contrastRatio,
+    mixColors: mixHex,
     templates: templates,
     palettes: palettes,
     fontPairs: fontPairs,
@@ -2476,6 +3293,16 @@
     uniqueSlug: uniqueSlug,
     defaultPages: defaultPages,
     pageKind: pageKind,
+    // the store's logo (optional store keys logo, logoSize, logoPosition, showName, icon)
+    LOGO_SIZES: LOGO_SIZES,
+    LOGO_SIZE_OPTIONS: LOGO_SIZE_OPTIONS,
+    LOGO_POSITIONS: LOGO_POSITIONS,
+    LOGO_DEFAULT_POSITION: LOGO_DEFAULT_POSITION,
+    LOGO_LIMITS: LOGO_LIMITS,
+    BRAND_KEYS: BRAND_KEYS,
+    logoHeight: logoHeight,
+    imageSize: imageSize,
+    brand: brand,
     // the seller side: account, dashboard, connectors, plans, demo orders
     STORAGE_KEYS: STORAGE_KEYS,
     DOMAIN_SUFFIX: DOMAIN_SUFFIX,

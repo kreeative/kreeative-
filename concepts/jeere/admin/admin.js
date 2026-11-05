@@ -346,7 +346,14 @@
     while (used.has('p' + n)) n++;
     return 'p' + n;
   }
-  function validateFiche() { try { return D.validate(S.config); } catch (e) { return { score: 0, status: '', issues: [] }; } }
+  // The logo's ink is measured once in the browser (JEERE_DATA.logoTone): validate then says, as in the
+  // Studio, when the logo vanishes on the header or the footer; the screen is drawn again once it is known
+  function warmLogoTone() {
+    const logo = S.config && isObj(S.config.store) ? S.config.store.logo : null;
+    if (!logo || !D.logoTone || !D.logoToneOf || D.logoToneOf(logo) !== undefined) return;
+    D.logoTone(logo).then((tone) => { if (typeof tone === 'number' && S.config && S.config.store && S.config.store.logo === logo) refresh(); });
+  }
+  function validateFiche() { try { warmLogoTone(); return D.validate(S.config); } catch (e) { return { score: 0, status: '', issues: [] }; } }
   // The zones the seller set (a delivery section), or [] when the checkout falls back to the default communes
   function ownZones() {
     const secs = arr(S.config && S.config.sections).filter((s) => s.type === 'delivery');
@@ -530,6 +537,7 @@
     if (ins.pageId) o.pageId = ins.pageId;
     if (ins.productId) o.productId = ins.productId;
     if (ins.view) o.view = ins.view;
+    if (ins.focus === 'logo') o.focus = 'logo';
     lsSet(KEYS.open, JSON.stringify(o));
     window.location.href = EDITOR_URL;
   }
@@ -691,11 +699,26 @@
 
   /* ------------------------------------------------------------------ shell */
 
+  function storeLogo() {
+    try { const b = D && typeof D.brand === 'function' && S.config ? D.brand(S.config) : null; return b && b.logo ? b.logo : null; } catch (e) { return null; }
+  }
   function todoCount() { return S.admin ? S.admin.orders.filter((o) => o.status === 'new' || o.status === 'paid').length : 0; }
   function updateShell() {
     const name = storeName();
     $$('[data-bind="store-name"]').forEach((n) => { n.textContent = name; });
-    $$('[data-bind="store-initial"]').forEach((n) => { n.textContent = initials(name).charAt(0) || 'J'; });
+    // The store's avatar: her logo (store.logo) when she has one, else the initial of the store name
+    const logo = storeLogo();
+    $$('[data-bind="store-initial"]').forEach((n) => {
+      n.classList.toggle('has-img', !!logo);
+      if (logo) {
+        const img = n.querySelector('img');
+        if (img && img.getAttribute('src') === logo) return;
+        n.textContent = '';
+        const i = document.createElement('img');
+        i.src = logo; i.alt = '';
+        n.append(i);
+      } else n.textContent = initials(name).charAt(0) || 'J';
+    });
     $$('[data-bind="store-url"]').forEach((n) => { n.textContent = subdomain(); });
     const acc = S.account || {};
     $$('[data-bind="user-name"]').forEach((n) => { n.textContent = acc.firstName || 'Mon compte'; });
@@ -932,6 +955,8 @@
     try {
       const d = D.normalizeConfig(D.defaultConfig(cfg.template, cfg.store.niche));
       if (['palette', 'fonts', 'radius', 'buttons', 'intensity'].some((k) => cfg.theme[k] !== d.theme[k])) return true;
+      // her own colours (theme.colors), on top of the palette
+      if (D.colorOverrides ? D.colorOverrides(cfg.theme.colors) : (isObj(cfg.theme.colors) && Object.keys(cfg.theme.colors).length)) return true;
       const old = str(d.store.name);
       const name = str(cfg.store.name);
       const sig = (c, mine) => JSON.stringify(arr(c.sections).map((x) => {
@@ -961,6 +986,7 @@
         quick: S.account && phoneOk(S.account.phone) ? { act: 'use-my-wa', icon: 'chat', label: 'Utiliser mon numéro ' + phoneFmt(S.account.phone) } : null },
       { id: 'delivery', done: ownZones().length > 0, title: 'Choisissez vos communes de livraison', hint: 'Les communes où vous livrez, avec leurs frais.', href: '#livraison' },
       { id: 'studio', done: customised(cfg), title: 'Personnalisez votre boutique', hint: 'Vos couleurs, votre grand titre, vos textes : dans le Studio, avec l’aperçu sous les yeux.', act: 'open-editor' },
+      { id: 'logo', done: !!storeLogo(), title: 'Ajoutez votre logo', hint: 'En haut de chaque page de votre boutique. Pas encore de logo ? Le Studio en crée un simple avec votre nom.', act: 'open-editor', focus: 'logo' },
       { id: 'share', done: shared, title: 'Partagez le lien sur WhatsApp', hint: 'Sur votre statut et à vos clients : c’est comme ça qu’arrivent les premières commandes.', act: 'share-store', button: true },
       { id: 'pages', done: ps.ok, title: 'Relisez vos pages', hint: ps.hint, href: ps.pageId ? '#pages/' + ps.pageId : '#pages' },
       { id: 'score', done: v.score >= 80, title: 'Atteignez un score qualité de 80', hint: 'Score actuel : ' + v.score + ' sur 100. Le Studio vous dit quoi corriger.', act: 'open-editor' },
@@ -974,7 +1000,7 @@
     const link = s.button
       ? H`<button class="${cls}" type="button" data-act="${s.act}"${data}>${inner}</button>`
       : s.act
-        ? H`<a class="${cls}" href="${EDITOR_URL}" data-act="${s.act}" data-page="home"${data}>${inner}</a>`
+        ? H`<a class="${cls}" href="${EDITOR_URL}" data-act="${s.act}" data-page="home"${s.focus ? H` data-focus="${esc(s.focus)}"` : ''}${data}>${inner}</a>`
         : H`<a class="${cls}" href="${s.href}"${data}>${inner}</a>`;
     // A one-tap action under the step (« Utiliser mon numéro »): done without leaving the home page
     const quick = s.quick && !s.done ? H`<div class="a-step__quick"><button class="a-btn a-btn--soft a-btn--sm" type="button" data-act="${s.quick.act}">${ico(s.quick.icon || 'check')}${esc(fr(s.quick.label))}</button></div>` : '';
@@ -2440,6 +2466,11 @@
     const cfg = S.config;
     const tpl = D.templates && D.templates[cfg.template];
     const pal = D.palettes && D.palettes[cfg.theme.palette];
+    // The colours the store shows: the palette's, with the seller's own on top (theme.colors)
+    let tcol = null;
+    try { tcol = D.themeColors ? D.themeColors(cfg) : null; } catch (e) { tcol = null; }
+    const shown = tcol && tcol.base ? tcol.base : (pal ? pal.colors : null);
+    const ownColors = !!(tcol && tcol.custom);
     const fonts = D.fontPairs && D.fontPairs[cfg.theme.fonts];
     const intens = arr(D.INTENSITY_OPTIONS).length ? D.INTENSITY_OPTIONS : [{ value: 'vivid', label: 'Vives' }, { value: 'soft', label: 'Douces' }];
     const pages = arr(cfg.pages);
@@ -2455,8 +2486,9 @@
             <div class="a-theme">${miniStage('Aperçu de votre boutique')}
               <div><dl class="a-dl">
                 <div><dt>Modèle</dt><dd>${esc(tpl ? tpl.name + ' · ' + tpl.style : cfg.template)}</dd></div>
-                <div><dt>Palette</dt><dd>${pal ? H`<span class="a-pal" aria-hidden="true">${sw(pal.colors.bg)}${sw(pal.colors.surface)}${sw(pal.colors.accent)}${sw(pal.colors.text)}</span> ` : ''}${esc(pal ? pal.name : cfg.theme.palette)}</dd></div>
-                <div><dt>Polices</dt><dd>${esc(fonts ? fonts.name : cfg.theme.fonts)}</dd></div></dl>
+                <div><dt>Palette</dt><dd>${shown ? H`<span class="a-pal" aria-hidden="true">${sw(shown.bg)}${sw(shown.surface)}${sw(shown.accent)}${sw(shown.text)}</span> ` : ''}${esc(pal ? pal.name : cfg.theme.palette)}${ownColors ? ', avec vos couleurs' : ''}</dd></div>
+                <div><dt>Polices</dt><dd>${esc(fonts ? fonts.name : cfg.theme.fonts)}</dd></div>
+                <div><dt>Logo</dt><dd>${storeLogo() ? H`<span class="a-logothumb"><img src="${esc(storeLogo())}" alt="${esc(fr('Logo de ' + (st.name || 'la boutique')))}"></span> ` : 'Le nom, écrit avec la police du thème · '}<a class="a-link" href="${EDITOR_URL}" data-act="open-editor" data-page="home" data-focus="logo">${storeLogo() ? 'Modifier' : 'Ajouter un logo'}</a></dd></div></dl>
                 <div class="a-field"><span class="a-label" id="l-int">Couleurs</span><div class="a-seg" role="group" aria-labelledby="l-int">${intens.map((o) => H`<button class="a-seg__btn" type="button" data-act="intensity" data-v="${esc(o.value)}" aria-pressed="${cfg.theme.intensity === o.value ? 'true' : 'false'}">${esc(o.label)}</button>`)}</div>
                   <p class="a-hint">${esc(fr((intens.find((o) => o.value === cfg.theme.intensity) || intens[0]).hint || ''))}</p></div>
                 <div class="a-card__foot"><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('palette')}Personnaliser le thème</button></div></div></div>
@@ -3596,7 +3628,7 @@
     'more': () => { const m = $('#a-more'); if (!m) return; dlgReturn = document.activeElement; try { m.showModal(); } catch (e) { m.setAttribute('open', ''); } document.documentElement.classList.add('a-locked'); },
     'logout': () => logout(),
     'view-store': () => openEditor({ page: 'home', view: 'preview' }),
-    'open-editor': (el, e) => { e.preventDefault(); openEditor({ page: el.getAttribute('data-page') || 'home', pageId: el.getAttribute('data-page-id'), productId: el.getAttribute('data-product-id') }); },
+    'open-editor': (el, e) => { e.preventDefault(); openEditor({ page: el.getAttribute('data-page') || 'home', pageId: el.getAttribute('data-page-id'), productId: el.getAttribute('data-product-id'), focus: el.getAttribute('data-focus') }); },
     'discard': () => { const h = S.hash; clearDirty(); if (S.drafts[h]) delete S.drafts[h]; refresh(); focusMain(); toast('Modifications ignorées.'); },
     'save': () => { const f = dirtyForm(); if (f) { if (typeof f.requestSubmit === 'function') f.requestSubmit(); else f.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); } },
     'start-example': () => startExample(),

@@ -602,6 +602,9 @@
    * Everything the templates need, read defensively from the config.
    */
 
+  const SECTION_COLOR_KEYS = ['bg', 'fg', 'buttonBg', 'buttonText'];
+  function safe(fn) { try { return fn(); } catch (e) { return null; } }
+
   const FALLBACK_COLORS = { bg: '#F6F2EA', surface: '#FFFFFF', text: '#1B1814', muted: '#655C52', accent: '#1F1B16', onAccent: '#FFFFFF', line: 'rgba(27,24,20,0.14)' };
 
   // The pages of the customer journey. JEERE_DATA.PAGES is the contract; this is its fallback.
@@ -736,6 +739,19 @@
     const colors = {};
     ['bg', 'surface', 'text', 'muted', 'accent', 'onAccent'].forEach((k) => { colors[k] = validHex(pal[k]) || FALLBACK_COLORS[k]; });
     colors.line = typeof pal.line === 'string' && /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\))$/i.test(pal.line.trim()) ? pal.line.trim() : FALLBACK_COLORS.line;
+    // Custom colours (optional theme.colors): the seller's colours over the palette, read through
+    // JEERE_DATA.themeColors so the editor's checks see the very colours the store shows. Every
+    // derived colour below (tints, readable accent, muted on tints…) then comes from the merged set.
+    // Without the key: the palette, exactly as before.
+    const tc = paletteId && isObj(theme.colors) && typeof d.themeColors === 'function' ? safe(() => d.themeColors(cfg)) : null;
+    const custom = !!(tc && tc.custom && isObj(tc.base));
+    // Only a page, card, text or accent colour changes the store as a whole (the readability fallbacks
+    // below, data-colors="custom"); a header, footer, bar or badge colour stays in its own part.
+    const paletteCustom = custom && (tc.paletteSet === undefined ? true : !!tc.paletteSet);
+    if (paletteCustom) {
+      ['bg', 'surface', 'text', 'muted', 'accent', 'onAccent'].forEach((k) => { colors[k] = validHex(tc.base[k]) || colors[k]; });
+      if (typeof tc.base.line === 'string' && /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\))$/i.test(tc.base.line.trim())) colors.line = tc.base.line.trim();
+    }
 
     const pair = d.fontPairs[fontsId] || {};
     const fontStack = (f, fb) => (isObj(f) && typeof f.family === 'string' && !/[;{}<>]/.test(f.family) ? f.family : fb);
@@ -754,7 +770,15 @@
       let id = str(s.id) || 's' + (i + 1);
       if (usedIds[id]) id = id + '-' + i;
       usedIds[id] = true;
-      sections.push({ id: id, type: s.type, settings: mergeSettings(d.sectionTypes[s.type].defaults, s.settings) });
+      const sec = { id: id, type: s.type, settings: mergeSettings(d.sectionTypes[s.type].defaults, s.settings) };
+      if (isObj(s.settings) && SECTION_COLOR_KEYS.some((k) => s.settings[k] != null) && typeof d.sectionColors === 'function') {
+        const sc = safe(() => d.sectionColors(s, colors));
+        if (sc && sc.zone) sec.zone = sc.zone;
+        if (sc && sc.button) sec.button = sc.button;
+      }
+      // The announcement colours of theme.colors, for the bars without colours of their own
+      if (!sec.zone && s.type === 'announcement' && custom && tc.zones && tc.zones.announcement) sec.zone = tc.zones.announcement;
+      sections.push(sec);
     });
 
     // Enabled payment methods, in the contract's order, each with its checkout hint.
@@ -845,10 +869,42 @@
     // Soft keeps the palette's accent for text only where it reads on the background; vivid uses
     // the accent everywhere, deepened just enough to stay readable.
     // Tint for chips, avatars and icon discs. They sit on cards, so it is mixed from the surface.
-    const accentSoft = mix(colors.surface, colors.accent, dark ? 0.2 : 0.14);
-    const accentInk = vivid
+    let accentSoft = mix(colors.surface, colors.accent, dark ? 0.2 : 0.14);
+    let accentInk = vivid
       ? readable(v.accentText, [accentSoft], 4.5, dark)
       : (contrast(colors.accent, colors.bg) >= 4.5 ? readable(colors.accent, [colors.bg, colors.surface, accentSoft], 4.5, dark) : colors.text);
+    // The palettes are contrast-checked; the seller's colours may not leave room (a mid-tone page next
+    // to white cards): whatever no longer reads falls back on a shade that does, or on the text colour.
+    let errorInk = dark ? '#FF8A80' : '#B3261E';
+    let textSoft = mix(colors.bg, colors.text, 0.82);
+    if (paletteCustom) {
+      const reads = (fg, bgs) => bgs.every((b) => contrast(fg, b) >= 4.5);
+      const away = contrast('#FFFFFF', colors.text) > contrast('#000000', colors.text) ? '#FFFFFF' : '#000000';
+      const shadeFor = (t) => {
+        const a = mix(colors.bg, colors.text, t);
+        if (contrast(colors.text, a) >= 4.5) return a;
+        const b = mix(colors.bg, away, t);
+        return contrast(colors.text, b) >= 4.5 ? b : colors.bg;
+      };
+      if (!reads(colors.text, [v.tint])) v.tint = shadeFor(0.08);
+      if (!reads(colors.text, [v.tintStrong])) v.tintStrong = shadeFor(0.16);
+      const grounds = [colors.bg, colors.surface, v.tint, v.tintStrong];
+      if (!reads(v.accentText, grounds)) v.accentText = colors.text;
+      if (!reads(v.mutedTint, [v.tint, colors.surface, colors.bg])) v.mutedTint = reads(colors.muted, [v.tint, colors.surface, colors.bg]) ? colors.muted : colors.text;
+      if (!reads(v.mutedStrong, [v.tintStrong])) v.mutedStrong = colors.text;
+      if (!reads(v.onAccentSoft, [colors.accent])) v.onAccentSoft = colors.onAccent;
+      // secondary text also sits on the tints (a selected payment option), text on the accent's light tint
+      // (a colour she chose herself is left alone: the editor and Qualité tell her when it does not read)
+      const mGrounds = [colors.bg, colors.surface, v.tint, mix(colors.surface, colors.accent, dark ? 0.035 : 0.05)];
+      if (!tc.set.muted && !reads(colors.muted, mGrounds)) { const mu = readable(colors.muted, mGrounds, 4.5, dark); colors.muted = reads(mu, mGrounds) ? mu : colors.text; }
+      if (!reads(colors.text, [accentSoft])) accentSoft = v.tint;
+      if (!reads(textSoft, [colors.bg, colors.surface, v.tint])) textSoft = colors.text;
+      if (!reads(accentInk, [colors.bg, colors.surface, accentSoft])) accentInk = colors.text;
+      if (!reads(errorInk, grounds)) {
+        const e = readable(errorInk, grounds, 4.5, dark);
+        errorInk = reads(e, grounds) ? e : colors.text;
+      }
+    }
 
     // Fallback visual when there is no product yet: the niche art, or a box in a soft accent tint.
     const leadFallback = {
@@ -860,12 +916,15 @@
     return {
       d: d, tpl: tpl, device: device, buttons: buttons, dark: dark,
       intensity: intensity, vivid: vivid, v: v, zones: zones,
-      colors: colors, accentInk: accentInk, accentSoft: accentSoft,
+      colorZones: custom && isObj(tc.zones) ? tc.zones : null,
+      paletteCustom: paletteCustom,
+      colors: colors, accentInk: accentInk, accentSoft: accentSoft, errorInk: errorInk, textSoft: textSoft,
       radius: clamp(num(radii[radiusId]) || 0, 0, 40),
       fontDisplay: fontStack(pair.display, "Georgia, 'Times New Roman', serif"),
       fontText: fontStack(pair.text, "system-ui, -apple-system, 'Segoe UI', sans-serif"),
       displayWeight: clamp(Math.round(num(isObj(pair.display) ? pair.display.weight : 600) || 600), 100, 900),
       rawName: str(store.name).trim(),
+      brand: brandOf(cfg, tpl),
       name: str(store.name).trim() || 'Votre boutique',
       tagline: str(store.tagline).trim(),
       city: str(store.city).trim(),
@@ -934,8 +993,29 @@
     return '<span class="jst-badge jst-badge--' + esc(b) + '">' + esc(d.BADGES[b]) + '</span>';
   }
 
+  // A part of the store with colours of its own (theme.colors, sections[].settings.bg): its colours as
+  // --sc-* variables on the element; store.css « CUSTOM COLOURS » puts them in place of the store's.
+  const ZONE_VARS = [['bg', 'bg'], ['fg', 'fg'], ['surface', 'surface'], ['muted', 'muted'], ['tint', 'tint'], ['tint2', 'tint2'], ['line', 'line'], ['soft', 'soft'],
+    ['ink', 'ink'], ['acc', 'acc'], ['onacc', 'onAcc'], ['onacc-soft', 'onAccSoft'], ['accsoft', 'accSoft']];
+  function zoneVars(z) {
+    if (!isObj(z) || !validHex(z.bg) || !validHex(z.fg)) return '';
+    return ZONE_VARS.map((p) => '--sc-' + p[0] + ':' + (validHex(z[p[1]]) || validHex(z.fg))).join(';');
+  }
   function sectionOpen(s, extraCls) {
-    return '<section class="jst-sec jst-sec--' + s.type + (s.tint ? ' jst-sec--tint' : '') + (extraCls ? ' ' + extraCls : '') + '" data-section-id="' + esc(s.id) + '" data-section-type="' + s.type + '">';
+    const zv = s.zone ? zoneVars(s.zone) : '';
+    const bt = s.button && validHex(s.button.bg) && validHex(s.button.fg) ? '--sc-hbtn-bg:' + validHex(s.button.bg) + ';--sc-hbtn-fg:' + validHex(s.button.fg) : '';
+    if (!zv && !bt) {
+      return '<section class="jst-sec jst-sec--' + s.type + (s.tint ? ' jst-sec--tint' : '') + (extraCls ? ' ' + extraCls : '') + '" data-section-id="' + esc(s.id) + '" data-section-type="' + s.type + '">';
+    }
+    return '<section class="jst-sec jst-sec--' + s.type + (s.tint ? ' jst-sec--tint' : '') + (extraCls ? ' ' + extraCls : '') +
+      (zv ? ' jst-sec--cbg jst-cz' + (s.zone.dark ? ' jst-cz--dark' : '') : '') + (bt ? ' jst-sec--cbtn' : '') +
+      '" data-section-id="' + esc(s.id) + '" data-section-type="' + s.type + '" style="' + [zv, bt].filter(Boolean).join(';') + '">';
+  }
+  // The header's and the footer's own colours: ' jst-cz" style="…' to close their class attribute
+  function zoneCls(m, which) {
+    const z = m.colorZones ? m.colorZones[which] : null;
+    const zv = z ? zoneVars(z) : '';
+    return zv ? ' jst-cz' + (z.dark ? ' jst-cz--dark' : '') + '" style="' + zv : '';
   }
 
   function head(title, aside, cls) {
@@ -965,6 +1045,58 @@
 
   const fmtRating = (avg) => (Math.round(avg * 10) / 10).toFixed(1).replace('.', ',').replace(',0', '');
   const titleLen = (t) => { const n = str(t).length; return n <= 24 ? 's' : (n <= 44 ? 'm' : 'l'); };
+
+  /* ------------------------------------------------------------------ the store's logo (store.logo…) */
+
+  // The brand of the fiche (JEERE_DATA.brand), or null when it has neither a logo nor a place of its
+  // own for it: the header, the footer and the checkout then draw the name exactly as before.
+  function brandOf(cfg, tpl) {
+    const d = DATA();
+    if (!d || typeof d.brand !== 'function') return null;
+    try {
+      const b = d.brand(cfg, tpl);
+      return b && (b.logo || b.positionSet) ? b : null;
+    } catch (e) { return null; }
+  }
+  // The widest and tallest logo, by place and device (px): it never pushes the menu or the bag out.
+  const LOGO_MAX_W = {
+    header: { phone: 200, desktop: 360 }, headerName: { phone: 120, desktop: 220 },
+    checkout: { phone: 150, desktop: 260 }, footer: { phone: 220, desktop: 260 }
+  };
+  const LOGO_MAX_H = { checkout: { phone: 36, desktop: 48 }, footer: { phone: 48, desktop: 56 } };
+  // The logo's <img>, at its size for the place, never stretched. alt: the store name, unless it is written next to it.
+  function logoImg(m, where, withName) {
+    const b = m.brand;
+    const dev = m.device === 'desktop' ? 'desktop' : 'phone';
+    const maxW = LOGO_MAX_W[withName && where === 'header' ? 'headerName' : where][dev];
+    const capH = LOGO_MAX_H[where] ? LOGO_MAX_H[where][dev] : 0;
+    let box = typeof b.logoBox === 'function' ? b.logoBox(dev, maxW) : null;
+    if (box && capH && box.height > capH) box = { width: Math.max(1, Math.round(box.width * capH / box.height)), height: capH };
+    const d = DATA();
+    const h = Math.min(capH || 999, d && typeof d.logoHeight === 'function' ? d.logoHeight(b.size, dev) : 40);
+    const style = box ? 'width:' + box.width + 'px;height:' + box.height + 'px' : 'height:' + h + 'px;max-width:' + maxW + 'px';
+    return '<img class="jst-logo-img" src="' + esc(b.logo) + '" alt="' + (withName ? '' : esc(m.name)) + '"' +
+      (box ? ' width="' + box.width + '" height="' + box.height + '"' : '') + ' style="' + style + '" decoding="async">';
+  }
+  // What the logo link holds: the name (as before), or the logo, with the name next to it when asked.
+  function logoInner(m, where) {
+    const b = m.brand;
+    if (!b || !b.logo) return esc(m.name);
+    return logoImg(m, where, b.showName) + (b.showName ? '<span class="jst-logo-name">' + esc(m.name) + '</span>' : '');
+  }
+  function logoCls(m) {
+    const b = m.brand;
+    if (b && b.logo) return ' has-img' + (b.showName ? ' has-name' : '');
+    return m.rawName ? '' : ' is-placeholder';
+  }
+  // A place chosen by the seller that differs from the template's: a class on the header
+  function posCls(m) {
+    const b = m.brand;
+    if (!b || !b.positionSet) return '';
+    const d = DATA();
+    const def = d && d.LOGO_DEFAULT_POSITION ? d.LOGO_DEFAULT_POSITION[m.tpl] : null;
+    return b.position !== def ? ' jst-header--logo-' + b.position : '';
+  }
 
   /* ------------------------------------------------------------------ header and footer */
 
@@ -1010,8 +1142,8 @@
     const menuBtn = phone
       ? '<button type="button" class="jst-icon-btn jst-menu' + (open ? ' is-open' : '') + '" aria-label="' + (open ? 'Fermer le menu' : 'Menu') + '" aria-expanded="' + open + '" aria-controls="' + menuId + '" tabindex="-1"' + act('menu') + '>' + icon(open ? 'close' : 'menu') + '</button>'
       : '<button type="button" class="jst-icon-btn jst-menu" aria-label="Menu" tabindex="-1">' + icon('menu') + '</button>';
-    return '<header class="jst-header' + (open ? ' is-menu-open' : '') + '"><div class="jst-wrap jst-header-in">' + menuBtn +
-      '<a class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '"' + go('home') + '>' + esc(m.name) + '</a>' + nav +
+    return '<header class="jst-header' + posCls(m) + (open ? ' is-menu-open' : '') + zoneCls(m, 'header') + '"><div class="jst-wrap jst-header-in">' + menuBtn +
+      '<a class="jst-logo' + logoCls(m) + '"' + go('home') + '>' + logoInner(m, 'header') + '</a>' + nav +
       '<div class="jst-header-actions">' +
       '<button type="button" class="jst-icon-btn jst-search" aria-label="Rechercher" tabindex="-1">' + icon('search') + '</button>' +
       '<button type="button" class="jst-icon-btn jst-bag' + (j && j.page === 'cart' ? ' is-current' : '') + '" aria-label="' + esc(bagLabel) + '" tabindex="-1"' + go('cart', j && j.page === 'product' ? j.productId : null) + '>' + icon('bag') +
@@ -1037,9 +1169,9 @@
 
   // Checkout: logo, « Paiement sécurisé » and a way back to the cart, nothing to wander off to.
   function headerCheckout(m) {
-    return '<header class="jst-header jst-header--co"><div class="jst-wrap jst-co-head">' +
+    return '<header class="jst-header jst-header--co' + zoneCls(m, 'header') + '"><div class="jst-wrap jst-co-head">' +
       '<a class="jst-co-back"' + go('cart') + ' aria-label="Retour au panier">' + icon('back') + '<span>Panier</span></a>' +
-      '<a class="jst-logo' + (m.rawName ? '' : ' is-placeholder') + '"' + go('home') + '>' + esc(m.name) + '</a>' +
+      '<a class="jst-logo' + logoCls(m) + '"' + go('home') + '>' + logoInner(m, 'checkout') + '</a>' +
       '<span class="jst-secure">' + icon('lock') + '<span>Paiement sécurisé</span></span>' +
       '</div></header>';
   }
@@ -1067,9 +1199,11 @@
         icon('chat') + '<span>WhatsApp · ' + esc(prettyPhone(m.whatsapp)) + '</span></a>');
     }
     if (!contact.length) contact.push('<p class="jst-footer-muted">Ajoutez votre ville et votre numéro WhatsApp.</p>');
-    return '<footer class="jst-footer"><div class="jst-wrap">' +
+    return '<footer class="jst-footer' + zoneCls(m, 'footer') + '"><div class="jst-wrap">' +
       '<div class="jst-footer-top" data-cols="' + (pagesCol ? 4 : 3) + '">' +
-      '<div class="jst-footer-brand"><p class="jst-h jst-footer-name">' + esc(m.name) + '</p>' +
+      '<div class="jst-footer-brand">' + (m.brand && m.brand.logo
+        ? '<p class="jst-footer-logo">' + logoImg(m, 'footer', m.brand.showName) + '</p>' + (m.brand.showName ? '<p class="jst-h jst-footer-name">' + esc(m.name) + '</p>' : '')
+        : '<p class="jst-h jst-footer-name">' + esc(m.name) + '</p>') +
       (m.tagline ? '<p class="jst-footer-tag">' + line(m.tagline) + '</p>' : '') + '</div>' +
       pagesCol +
       '<div class="jst-footer-col"><h3 class="jst-footer-h">Moyens de paiement</h3>' + chips + '</div>' +
@@ -1492,7 +1626,7 @@
     let endTint = false;
     for (; i < m.sections.length; i++) {
       const s = m.sections[i];
-      if (m.vivid && PLAIN[s.type]) { s.tint = plain % 2 === 0; plain++; }
+      if (m.vivid && PLAIN[s.type]) { s.tint = !s.zone && plain % 2 === 0; plain++; }
       body.push(renderSection(m, s));
       endTint = !!s.tint;
     }
@@ -2080,6 +2214,10 @@
         rootEl.dataset.tone = m && m.dark ? 'dark' : 'light';
         rootEl.dataset.intensity = m ? m.intensity : 'vivid';
         rootEl.dataset.page = page;
+        // The seller's own colours (theme.colors): store.css drops the text's see-through effects
+        if (m && m.paletteCustom) rootEl.dataset.colors = 'custom'; else delete rootEl.dataset.colors;
+        // Badges and promos with their own colours (theme.colors.badgeBg / badgeText)
+        if (m && m.colorZones && m.colorZones.badge) rootEl.dataset.cBadge = ''; else delete rootEl.dataset.cBadge;
       }
       const c = m ? m.colors : FALLBACK_COLORS;
       const v = m ? m.v : vividColors(FALLBACK_COLORS, false);
@@ -2099,7 +2237,7 @@
           '--st-accent-ink': m ? m.accentInk : c.text,
           '--st-accent-soft': m ? m.accentSoft : mix(c.bg, c.accent, 0.1),
           '--st-surface-2': mix(c.surface, c.accent, m && m.dark ? 0.035 : 0.05),
-          '--st-text-soft': mix(c.bg, c.text, 0.82),
+          '--st-text-soft': m ? m.textSoft : mix(c.bg, c.text, 0.82),
           // Buttons set over a photo: the accent when it stands out on a dark scrim, else white.
           '--st-photo-btn-bg': lum(c.accent) < 0.2 ? '#FFFFFF' : c.accent,
           '--st-photo-btn-fg': lum(c.accent) < 0.2 ? '#15120E' : c.onAccent,
@@ -2112,8 +2250,13 @@
           '--st-on-accent-soft': v.onAccentSoft,
           '--st-field-line': v.fieldLine,
           // Form errors: a red that reads at 4.5:1 on the store's light (or dark) surfaces
-          '--st-error': m && m.dark ? '#FF8A80' : '#B3261E'
+          '--st-error': m ? m.errorInk : '#B3261E'
         });
+      }
+      if (rootEl.style) {
+        const bz = m && m.colorZones ? m.colorZones.badge : null;
+        if (bz && validHex(bz.bg) && validHex(bz.fg)) setVars(rootEl, { '--st-badge-bg': validHex(bz.bg), '--st-badge-fg': validHex(bz.fg) });
+        else ['--st-badge-bg', '--st-badge-fg'].forEach((k) => { try { rootEl.style.removeProperty(k); } catch (e) { /* ignore */ } });
       }
       rootEl.innerHTML = html;
       if (device === 'desktop') {
@@ -2132,8 +2275,22 @@
     return rootEl;
   }
 
+  // For the host page (the editor's address bar, the dashboard, a published store's <link rel="icon">):
+  // the tab icon (the seller's icon, else her logo) or her initial on the accent colour. Never throws.
+  function brandInfo(config) {
+    try {
+      const d = DATA();
+      const b = d && typeof d.brand === 'function' ? d.brand(config) : null;
+      const m = buildModel(config, 'phone');
+      return {
+        name: m.name, logo: b ? b.logo : null, icon: b ? b.icon : null, iconFrom: b ? b.iconFrom : 'initial',
+        initial: b ? b.initial : (m.name.charAt(0) || 'B').toUpperCase(), accent: m.colors.accent, onAccent: m.colors.onAccent
+      };
+    } catch (e) { return { name: '', logo: null, icon: null, iconFrom: 'initial', initial: 'B', accent: '#111111', onAccent: '#FFFFFF' }; }
+  }
+
   root.JeereRender = {
     render: render, ensureFonts: ensureFonts, artSVG: artSVG, pages: pagesList, PAGES: PAGES_FALLBACK,
-    photoSrc: photoSrc, photoInfo: photoInfo, PHOTO_BASE: PHOTO_BASE
+    photoSrc: photoSrc, photoInfo: photoInfo, PHOTO_BASE: PHOTO_BASE, brand: brandInfo
   };
 })();

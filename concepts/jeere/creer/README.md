@@ -58,7 +58,7 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 
 | File | Role | Global |
 | --- | --- | --- |
-| `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, 6 font pairs, the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
+| `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, the custom colours (`COLOR_GROUPS`, `themeColors`, `sectionColors`, `colorChecks`, `fixColors`), 6 font pairs, the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
 | `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, shows the seller's photo, else the demo photo, else draws the product illustration in SVG, never makes a network request to another site. Store CSS is scoped under `.jst`. | `window.JeereRender` |
 | `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
 | `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
@@ -161,8 +161,10 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
 | `template` | `plateau` (Éditorial), `cocody` (Doux), `treichville` (Audacieux) |
 | `store.niche` | `fashion`, `hair`, `beauty`, `jewellery`, `shoes`, `food`, `home`, `crafts`, or `null` |
 | `store.whatsapp` | `""` or an international number (`+2250707123456`); the editor and the assistant normalise what the seller types |
+| `store.logo`, `store.logoSize`, `store.logoPosition`, `store.showName`, `store.icon` | optional: the seller's logo (data URL), its size (`S`/`M`/`L` or 24–72 px), its place (`left`/`center`, `null` = the template's), the name next to it, the tab icon. A fiche without them shows its name as text, exactly as before — see [The store's logo](#the-stores-logo-storelogo) |
 | `theme.palette` | `sable`, `karite`, `lagune`, `hibiscus`, `indigo`, `mangue`, `menthe`, `nuit` (the fiche names a palette; the colours live in `data.js`) |
 | `theme.intensity` | `vivid` (Vives, the default) or `soft` (Douces) — see [Colour intensity](#colour-intensity) |
+| `theme.colors`, `sections[].settings.bg` / `fg`, hero `buttonBg` / `buttonText` | optional: the seller's own colours over the palette (any of its six colours, the announcement bar, the header, the footer, the badges) and each section's ground and text. A fiche without them renders exactly as before — see [Custom colours](#custom-colours-themecolors-section-colours) |
 | `theme.fonts` | `editorial`, `moderne`, `doux`, `audacieux`, `classique`, `simple` |
 | `theme.radius` / `theme.buttons` | `none`, `soft`, `round` / `solid`, `outline` |
 | `payments` | exactly `wave`, `orange`, `mtn`, `moov`, `cod`, `card` (booleans), shown as plain text, never with the operators' logos or colours: in the footer, on the product page and as the checkout's payment options |
@@ -183,7 +185,8 @@ Three layers check a fiche:
    (`APPROUVÉ` or `À CORRIGER`): empty store name, no payment method, products section with no
    product, unknown template, palette, fonts or colour intensity, missing WhatsApp number, fewer
    than 3 products, products without a photo, a page without a title… The editor's Qualité tab
-   shows them. A default fiche scores 92. Each issue has a `target` (`{ kind: 'theme', id:
+   shows them. A default fiche scores 92 (the « Ajoutez votre logo » tip is `free: true`: shown, never
+   counted in the score). Each issue has a `target` (`{ kind: 'theme', id:
    'intensity' }`, `{ kind: 'page', id: 'pg2' }`…) that the Qualité tab uses to open the right
    control.
 3. **`JEERE_DATA.normalizeConfig(anything)`** — repairs: fills missing keys, drops unknown types,
@@ -536,7 +539,7 @@ JeereRender.render(config, rootEl, { device, page: 'page', pageId: 'pg3' });
 ## Colour intensity
 
 The founder felt the stores looked pale. A fiche now says how much of the page its colour covers,
-with the Thème tab's control « Couleurs : Vives / Douces »:
+with the Thème tab's control « Intensité des couleurs : Vives / Douces »:
 
 ```js
 JEERE_DATA.INTENSITY_OPTIONS = [
@@ -555,7 +558,8 @@ JEERE_DATA.DEFAULT_INTENSITY = 'vivid';
   (the product colour pushed towards more saturation, never washed out); badges and prices in
   accent; solid accent buttons.
 - **How**: `render` sets `data-intensity="vivid|soft"` on the store root and `store.css` switches
-  CSS variables under `.jst[data-intensity="vivid"]`. The palettes in `data.js` never change.
+  CSS variables under `.jst[data-intensity="vivid"]`. The palettes in `data.js` never change (the seller's own colours
+  are `theme.colors`, see [Custom colours](#custom-colours-themecolors-section-colours)).
 - **Vivid is the default everywhere**: `defaultConfig`, `normalizeConfig` (a fiche saved before
   this key existed, or with an unknown value, becomes `vivid`), the local assistant's
   `generate()`, and the real AI assistant (it keeps `vivid` unless the seller asks for softer,
@@ -643,6 +647,204 @@ font, no image request).
 - **The brand word** is written « Jeere » in the UI copy (« l'assistant Jeere », « Retour à
   Jeere »). Code identifiers keep their names: `JEERE_DATA`, `jeere-studio-config`, `.jst`, `.jwz`.
 
+## The store's logo (`store.logo`)
+
+The founder: « les gens ne peuvent même pas ajouter leur logo ». Now they can, in the editor (Boutique ›
+« Logo et icône », also opened by a click on the header in the preview), and the dashboard shows it.
+
+**Contract** — five optional keys of `store`, all described in `schema.json`. They are never added by
+`defaultConfig` or `normalizeConfig`: a fiche without them is unchanged and renders **byte for byte as
+before** (checked on every niche × template × page × device, vivid and soft, with and without the keys at
+their default values; see `logo-test.js` below).
+
+| Key | Values | `normalizeConfig` (never throws) |
+| --- | --- | --- |
+| `logo` | `null` or a data URL image: PNG or WebP (transparency kept) or JPEG; the editor makes it at most **600 px on the long side** and trims empty margins; an SVG is drawn to PNG | anything else, or longer than `LOGO_LIMITS.chars` (2 000 000 characters, about 1.5 MB), → `null` |
+| `logoSize` | `'S'`, `'M'` (default), `'L'` — 34 / 46 / 60 px tall on a computer, 28 / 36 / 46 on a phone (`LOGO_SIZES`) — or a height in px, **24 to 72** (a phone shows 80 % of it, at least 24) | `'m'` → `'M'`, `'40px'` → `40`, numbers clamped to 24..72, anything else → `'M'` |
+| `logoPosition` | `'left'`, `'center'`, or `null`: the template's place (`LOGO_DEFAULT_POSITION`: Plateau `center`, Cocody and Treichville `left`) | anything else → `null` |
+| `showName` | `true`: the store name written next to the logo (the image's `alt` is then empty); default `false`, the logo alone | any value read as a boolean |
+| `icon` | `null` or a square image for the browser tab and the phone's home screen (the editor makes a 192 × 192 PNG) | like `logo` |
+
+Helpers in `data.js` (no DOM, so they also run in Node): `brand(config)` → `{ name, initial, logo, dims,
+size, position, positionSet, showName, icon, iconFrom: 'icon' | 'logo' | 'initial', logoBox(device, maxW) }`
+(`initial`: the first letter or digit of the name in any script, Œ, ɔ, ŋ included; `iconFrom` is `'logo'` only
+for a logo at most 1.5 times wider than tall, `LOGO_LIMITS.iconWide`: a wider one shrunk into a 16 px square
+cannot be read, so the tab shows the initial on the accent colour);
+`imageSize(dataUrl)` reads the width and height from the header of a PNG, JPEG, WebP or GIF data URL;
+`logoHeight(size, device)`; `LOGO_SIZES`, `LOGO_SIZE_OPTIONS`, `LOGO_POSITIONS`, `LOGO_DEFAULT_POSITION`,
+`LOGO_LIMITS`, `BRAND_KEYS`. `JeereRender.brand(config)` adds the palette's accent for the initial.
+
+**Render** (`render.js`, `store.css` « the seller's logo »): with a logo, the header of the three
+templates (phone and desktop, the phone menu open too), the checkout header (« Paiement sécurisé »; the
+confirmation uses the normal header) and the footer's brand column show
+`<img class="jst-logo-img" alt="{store name}" width height>` instead of the name; « Propulsé par Jeere »
+stays. render.js computes the display size from the image's own proportions: the height of
+`logoSize`, narrowed (never stretched, `object-fit: contain` as a safety) to fit 200 px on a phone header and
+360 px on a computer (120 / 220 px when the name is next to it), at most 36 / 48 px tall at the checkout
+and 48 / 56 px in the footer. A `logoPosition` that differs from the template's puts
+`.jst-header--logo-left` (Plateau: beside the menu on a phone; logo, links, bag on a computer) or
+`.jst-header--logo-center` (Cocody, Treichville: menu, logo, bag on a phone; links, logo, bag on a computer)
+on the header; it also moves the name when there is no logo.
+
+**Editor** (Boutique tab, group `#b-g-brand` « Logo et icône », right after « Informations »):
+
+- « Logo »: the logo on a light and on a dark chip (does it read on both?), its size in px, « Importer mon
+  logo » (a file input: on a phone the system offers the camera and the gallery; PNG, JPEG, WebP, SVG, GIF),
+  « Changer le logo », « Retirer ». The upload is drawn to a canvas: at most 600 px on the long side, the
+  transparent margins (or a plain background, when the four corners are alike) trimmed, PNG (WebP when the
+  PNG passes 700 KB and the browser can make WebP), a JPEG stays a JPEG; an SVG gets a size first.
+- « Pas de logo ? Créez-en un simple » (only without a logo): the store name (editable), one of the 6 store
+  fonts, a colour (« Principale », « Texte », black, white: the store's own colours; until she picks one, the
+  first that reads at 3:1 on the header and the footer), « En majuscules », a live preview, « Utiliser ce
+  logo » (a transparent PNG drawn with canvas; `showName` stays `false`). A long name goes on two centred
+  lines (split at the space nearest the middle) so the logo stays under 4.5:1 and never gets Qualité's « très
+  allongé »; a single very long word gets a little room above and below.
+- « Taille » Petit / Moyen / Grand, « Place du logo » (« Place du nom » without a logo) À gauche / Au centre
+  — choosing the template's own place removes `logoPosition`, so a later template change brings its own —,
+  « Afficher le nom à côté du logo » (a switch).
+- « Icône de l’onglet »: a browser tab drawn with the icon, the icon at 48 px, « Importer une icône »,
+  « Créer depuis le logo » (the logo trimmed and centred in a 192 px square; a logo wider than 1.5:1 gives
+  the square on its left, where most wordmarks have their mark or first letter), « Retirer ». Without one the
+  preview's address bar (`#b-device-fav`) shows the logo when it is square-ish, else the initial on the accent
+  colour. The file buttons go back to their label once the file is read (the same file twice too).
+- Uploads are never drawn above their own pixels: a small mark inside a big transparent file stays its real
+  size after trimming, so Qualité's « petit » warning still sees it.
+- Thème starts with a « Votre logo » / « Ajouter votre logo » row that opens Boutique › Logo et icône.
+- Every change is one undo step (Ctrl/Cmd+Z), saved with the fiche (`jeere-studio-config`). A click on the
+  logo in the preview while it shows the home page (elsewhere the logo still leads home), or on the header
+  outside its links and buttons (« Modifier le logo » on a phone), opens the group; so do
+  the Qualité issues about the logo (target `{ kind: 'store', id: 'logo' }`) and `'jeere-studio-open'` with
+  `focus: 'logo'` (no guided tour then). The tour's targets did not move.
+
+**Qualité** (`validate`): no logo → tip « Ajoutez votre logo : il s’affiche en haut de chaque page. Pas de
+logo ? Le Studio en crée un simple avec le nom de votre boutique. » (`free: true`, 0 point); a logo more than 6
+times wider than tall → warning « très allongé »; a logo under 120 px on its long side or 40 px tall → warning
+« petit … risque d’être flou ». **The logo on her colours**: `JEERE_DATA.logoTone(url)` measures a transparent
+logo once in the browser (a canvas: its average ink and how its opaque pixels spread over 64 luminance bins;
+an opaque logo brings its own background, `null`; Node resolves `null`) and keeps it (`logoToneOf(url)`).
+`logoGrounds(config)` gives the grounds the logo is drawn on: the header (every page, the checkout included,
+`headerBg` or the template's) and the footer (`footerBg` or the template's). `logoChecks(config)` lists those
+where 15 % or more of the logo reads under 1.6:1 (`LOGO_LIMITS.faded`, `LOGO_LIMITS.tone`): a dark word next to
+an orange mark vanishes on a navy header even while the mark shows. Once the tone is known, `validate()` adds
+the warning « Votre logo se voit mal sur le fond de l’en-tête et du pied de page : importez une version claire de
+votre logo, ou changez la couleur de ces fonds dans Thème. » (`issue.logoTone: ['header', 'footer']`). The
+editor and the dashboard measure the logo when they show it, so both scores agree. In the editor the same
+note sits under the chips, with buttons « Couleur de l’en-tête » / « Couleur du pied de page » that open those
+pickers, and inside the En-tête and Pied de page ground pickers (« Votre logo se voit mal sur ce fond »,
+updated while the colour moves). The dark chip is captioned « Si votre logo disparaît sur l’un de ces fonds… ».
+
+**Dashboard**: the store's avatar (sidebar store card, top bar) shows the logo on white instead of the
+initial; « Boutique en ligne › Thème » has a « Logo » line (« Ajouter un logo » / « Modifier », to the Studio);
+the mini previews draw it (they use `JeereRender`); « Premiers pas » has the step « Ajoutez votre logo ».
+
+## Custom colours (`theme.colors`, section colours)
+
+The founder: « pourquoi on ne peut pas changer les couleurs pour chaque truc ? pourquoi être coincé avec un
+thème ? ». The 8 palettes stay as starting points (« Choisir une palette » sets every colour at once); after
+that the seller can change any colour of the store, and the colour of each section.
+
+**Contract** — two optional keys, never added by `defaultConfig` or `normalizeConfig`: a fiche without them
+(or with `theme.colors: {}`) renders **byte for byte as before** (`colours-test.js` and `snap.js`, below).
+
+| Key | Values | `normalizeConfig` (never throws) |
+| --- | --- | --- |
+| `theme.colors` | an object of `#RRGGBB`, any of: `bg` (Fond de la page), `surface` (Fond des cartes et des blocs), `text` (Texte), `muted` (Texte secondaire), `accent` (Couleur principale: boutons, liens, prix), `onAccent` (Texte des boutons), and the parts `announcementBg` / `announcementText` (Bandeau d’annonce), `headerBg` / `headerText` (En-tête, every page and the checkout), `footerBg` / `footerText` (Pied de page), `badgeBg` / `badgeText` (Badges et promos: every product badge) | known keys kept in upper case (`#abc` → `#AABBCC`), unknown keys and invalid values dropped, an empty object dropped |
+| `sections[].settings.bg` | `'page'` (the page's colour), `'surface'` (the cards' colour), `'accent'`, or `#RRGGBB`. Absent: « Automatique », the template's colour, which depends on Vives / Douces. Hero: Plateau's stage, Cocody's banner card, Treichville's band; announcement and WhatsApp: their panel; the others: the band | `'auto'` or anything else dropped |
+| `sections[].settings.fg` | `#RRGGBB`, the section's text; absent: chosen to read on `bg` | dropped without a `bg` |
+| hero `settings.buttonBg` / `settings.buttonText` | `#RRGGBB`: the hero button, always drawn **filled** with these two colours, outline buttons too (so the pair Qualité checks is the pair the customer sees); `buttonText` absent: chosen to read on it | dropped on other types |
+
+`'page'`, `'surface'` and `'accent'` follow the palette and `theme.colors`: change the palette and those
+sections change with it. Choosing a palette **removes `theme.colors`**: the toast says so for 7 s with an
+**« Annuler »** button that brings them back (so does the undo arrow). Choosing a **template keeps
+`theme.colors`** (it changes the layout, the palette under them, the fonts and the corners; the toast says
+« Vos couleurs personnalisées sont gardées »). Section colours always stay. A palette colour set to the
+palette's own value is no colour of hers: `themeColors` ignores it and the editor deletes the key.
+
+**Derived colours** (`data.js`, no DOM): `themeColors(config)` → `{ palette, base: { bg, surface, text, muted,
+accent, onAccent, line }, set, custom, dark, vivid, defaults, zones: { announcement, header, footer, badge } }`;
+`zoneColors(ground, fg, base)` → the colours of a part with its own ground (`fg`, `surface`, `muted`, two tints,
+`line`, `ink` = the accent as text, `acc` / `onAcc` = the accent fill, or the text colour when the accent would
+vanish on that ground); `sectionColors(section, base)`. A colour the seller did not pick is derived so it reads:
+a dark `bg` gets a light text, a raised surface; the palette's muted stays while it still reads, else a
+lighter one; an `accent` gets an `onAccent` that reads at 4.5:1 (near-black, white, else pure black, which
+always reaches 4.58:1); a new `bg` / `surface` the palette's accent melts into (under 1.25:1,
+`CONTRAST_MIN.fill`: black buttons on a black page, lime on white) moves that accent to the nearest shade that
+stands out (a grey accent takes the text colour); part and section texts are chosen the same way. **A colour
+she picked is kept as she picked it.** `themeColors().paletteSet` says whether one of the six palette colours is
+set; `defaults.footer` is the footer as render.js draws it (its tint fallback included), so the editor's rows
+show the colours the store really uses. render.js reads everything through these helpers,
+then recomputes the vivid set (tints, readable accent, muted on tints, onAccentSoft, field lines) from the
+merged colours, so Vives / Douces work unchanged and a dark page switches `data-tone="dark"`. When one of the
+six palette colours is set (`paletteSet`) it also makes sure the derived colours still read on mid-tone
+grounds (tints, the accent's light tint, soft text, the form error red fall back on a shade that reads, or on
+the text colour) and puts `data-colors="custom"` on the root (texts the templates soften with opacity are drawn
+solid). A header, footer, bar or badge colour alone changes only that part (inside a `.jst-cz` part the
+softened texts are solid too). `data-c-badge` marks badges with colours. On Cocody, payment chips on a coloured
+footer take a raised shade of it and a fine line.
+
+**Render**: the header, the footer and each coloured section get `class="… jst-cz"` and their colours as
+`--sc-*` variables in a `style` attribute (`jst-sec--cbg` on a section, `jst-sec--cbtn` on a hero with button
+colours); `store.css` « CUSTOM COLOURS » redefines the store's variables inside them, so every template rule
+keeps working, with selectors that start with the five root attributes so they win over the template and vivid
+rules. A coloured section is not tinted by the vivid alternation, and the others keep theirs.
+
+**Readability.** Automated: `colours-test.js` runs the contrast audit of `agents2/fix/audit.js` on 504 renders
+of customised stores (dark page, neon accent with coloured parts, every section on a different ground, a light
+page on Nuit, three seeded random stores where every ground is random) × 3 templates × 2 devices × 2
+intensities × 6 pages, texts automatic: no text under 4.5:1 (3:1 large). Seller's choices:
+`colorChecks(config)` lists the pairs she set (or changed the ground of) that read under 4.5:1, each with
+`fix`, the nearest shade of the same hue that reads (`nearestReadable(color, grounds, min)`);
+`validate()` turns them into warnings « Peu lisible : vos clients auront du mal à lire le texte … (contraste
+1,1:1, il faut au moins 4,5:1). » (6 points each, target `{ kind: 'theme', id: 'colors', key }` or
+`{ kind: 'section', id, key }`, `issue.fix = { key: 'theme:text' | 'section:s2:fg', value }`); `fixColors(config)`
+applies all of them (« Corriger tout »). An accent she picked that melts into her page or cards (under 1.25:1;
+yellow on white, 1.3:1, still shows) is a check of `kind: 'fill'`: « Peu visible : les boutons, le bandeau et les
+badges se confondent avec le fond de la page », its fix a shade at 3:1. **Severe**: the main text, the buttons'
+text or the hero button's text under 3:1 (`check.severe`, `issue.severe`): `validate()` then returns
+`status: 'À CORRIGER'` whatever the score, with `unreadable: n`, and the editor's verdict reads « Presque prête :
+une couleur se lit très mal… » until « Corriger »; milder pairs (a secondary text at 4,4:1) stay plain warnings.
+`nearestReadable` searches in 1 % lightness steps, then 0.1 %, then one RGB unit, so a narrow readable window
+(#777777 between white and black → #767676) is found. `setColorKey` works on a fiche without `theme`.
+A default fiche has no check (still 92) and the contrast audit of the default fiches stays empty.
+
+**Editor**:
+
+- Thème › « Choisir une palette » (was « Palette ») then, after « Intensité des couleurs : Vives / Douces »,
+  **« Personnaliser les couleurs »** (`#b-g-theme-colors`): 14 rows in 6 groups (La page, Couleur principale,
+  Bandeau d’annonce, En-tête, Pied de page, Badges et promos; `COLOR_GROUPS`). A row shows the colour the store
+  uses, its code and « Palette », « Auto » (differs from the untouched palette's: it follows a colour she
+  picked, e.g. the bar follows her accent) or « Modifiée »; it opens a picker: the native `<input
+  type="color">` (with a rainbow dot and « Plus de couleurs »), a `#RRGGBB` field (Enter confirms), « Vos
+  couleurs » (the colours the store uses now), « Couleurs de la palette Karité » (the palette's own, when she
+  changed some), the 16 « Couleurs pop » (`POP_COLORS`), all 44 × 44 px; « Réinitialiser » (back to the palette:
+  the key is deleted, and `theme.colors` with its last key). « Réinitialiser toutes les couleurs » at the bottom.
+  « Choisir une palette » has a « Personnaliser les couleurs » button that brings the group into view; the
+  Vives / Douces group is « Intensité des couleurs ».
+- On a phone, « Aperçu » with a colour row open scrolls the preview to the part it paints (bar, header, footer,
+  the first badge, the first button, the section) and outlines it.
+- Each section's settings: **« Couleur de fond »** Automatique / Couleur de la page / Couleur des cartes /
+  Couleur principale / Personnalisée (a picker), then « Couleur du texte » (Automatique, or a picker), and on the
+  hero « Couleurs du bouton » (fond, texte). Automatique deletes `bg` and `fg`.
+- Under any picker whose colour makes a text read under 4.5:1: **« Peu lisible »** (« vos clients auront du
+  mal à lire… », the ratio in smaller text) and
+  **« Corriger »** (the text gets the nearest readable shade; a ground, the nearest shade on which its texts
+  read). The row shows « Peu lisible » too. Qualité lists the problems with « Corriger » on each and
+  **« Corriger tout »**; a click on the issue opens its picker.
+- Every change is one undo step (dragging the native picker is one), saved with the fiche. The logo's
+  contrast note and the text-logo colours use the store's colours, the seller's included.
+
+**Assistant** (`wizard.js`): colour phrases are read at the palette question, and elsewhere only with a verb
+(« mets », « je veux », « change »…), never in the answer about what she sells nor in her name (« je vends des
+boutons rouges », « un bandeau rouge pour les cheveux » are products). `colorRequests(text)` reads « mets les boutons en rose », « le texte en bleu
+marine », « l’en-tête en noir », « pied de page vert », « badges jaunes », « fond rose » (a light pink): those
+become `answers.colors`, then `theme.colors` in `generate()` (only the ones that differ from the palette). The
+phrase is taken out before the palette is chosen, so « les boutons en rose » keeps the recommended palette with
+pink buttons; « fond noir » still picks Nuit (black and white grounds are left to the palettes); « rose » alone
+and « des robes en wax rouge » are unchanged. The assistant says « Je note aussi les boutons à votre couleur ».
+
+**Dashboard**: « Boutique en ligne › Thème » shows the store's colours (the seller's included) and
+« Karité, avec vos couleurs »; its mini previews use `JeereRender`, so they show everything.
+
 ## Seller accounts (`../compte/`)
 
 How a seller signs up to manage her store: **phone number first, no e-mail, no password**, like
@@ -708,7 +910,7 @@ is there for tests.
 
 | Route | What it does |
 | --- | --- |
-| `#accueil` | Greeting; an « Aujourd'hui » strip (orders to prepare, cash to collect, « Nouvelle commande »); the « Premiers pas » checklist with its progress bar, computed from the real state (see [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas): 3 products with photos, Wave / mobile money connected, WhatsApp number, delivery communes, the store customised in the Studio, the link shared on WhatsApp, pages complete, quality score ≥ 80 from `validate`, domain chosen), showing the next 3 steps (« Voir les 9 étapes »), a one-tap « Utiliser mon numéro » for the WhatsApp step, « Masquer », and « Publier ma boutique » (the editor's honest publish dialog) when all is done; KPI cards over the last 10 days (Ventes split into Encaissé / À encaisser, « dont … chez vos livreurs » / En attente; Commandes, Panier moyen, Commandes à préparer; « Données d'exemple » while example orders are there); a small live preview of the store (`JeereRender`) with « Personnaliser », « Voir », « Partager »; recent orders; the plan card warns from 80 % of the monthly order limit |
+| `#accueil` | Greeting; an « Aujourd'hui » strip (orders to prepare, cash to collect, « Nouvelle commande »); the « Premiers pas » checklist with its progress bar, computed from the real state (see [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas): 3 products with photos, Wave / mobile money connected, WhatsApp number, delivery communes, the store customised in the Studio, a logo, the link shared on WhatsApp, pages complete, quality score ≥ 80 from `validate`, domain chosen), showing the next 3 steps (« Voir les 10 étapes »), a one-tap « Utiliser mon numéro » for the WhatsApp step, « Masquer », and « Publier ma boutique » (the editor's honest publish dialog) when all is done; KPI cards over the last 10 days (Ventes split into Encaissé / À encaisser, « dont … chez vos livreurs » / En attente; Commandes, Panier moyen, Commandes à préparer; « Données d'exemple » while example orders are there); a small live preview of the store (`JeereRender`) with « Personnaliser », « Voir », « Partager »; recent orders; the plan card warns from 80 % of the monthly order limit |
 | `#commandes` | Orders with status filters (À préparer, À encaisser…), counts and search (a table on desktop, cards on the phone, each with how it is paid: « À encaisser », « Payée · Wave », « Paiement en attente »); opens on « À préparer » when there is something to prepare. « Nouvelle commande » records an order received on WhatsApp or by phone (customer, number, commune and its fee, products with a quantity stepper, payment, channel, note; `manual: true`), then offers to send the customer a recap. The detail is its own page, `#commandes/1055`: items, a Livraison card (where, what the courier collects, the courier: her own couriers or Yango / Gozem, « Envoyer au livreur sur WhatsApp »), customer, payment, channel, timeline. Cash on delivery: « Demander la confirmation » (a `wa.me` message, « Répondez OUI ») → « Le client a confirmé » → « Confier au livreur » (the courier's WhatsApp message, status Expédiée) → « Livrée, argent reçu »; « Livraison échouée » (absent, injoignable, a refusé → Annulée with the reason; à relivrer → Nouvelle); a deposit by mobile money from 20 000 FCFA. « Écrire sur WhatsApp » and « Appeler » for the customer; « Plus d'actions »: « Imprimer le bon » (print stylesheet; the browser's own Print on an order page prints that slip), send the slip on WhatsApp, cancel. « Rétablir la commande » brings back the status it had. « Retirer les commandes d'exemple » once she has her own |
 | `#produits` | The fiche's products: add, edit, duplicate, delete, photo (downscaled like the editor: ≤ 800 px, JPEG 0.8); an optional stock kept outside the fiche in `'jeere-admin'.stock[productId]`; « Voir dans la boutique » opens the editor on that product page |
 | `#clients` | Customers aggregated from the orders (orders, total spent), a WhatsApp button on each row |
@@ -949,7 +1151,7 @@ in or « Voir la démo »); going to another page ends it. A toast on screen («
 cleared when it starts, so nothing shows through the spotlight. « ? Aide » (top bar) › « Revoir la visite guidée »
 replays it (from any page: it goes back to Accueil first); `JeereAdmin.startTour()` too.
 
-**« Premiers pas »** (the home page's checklist, `checklist()` in `admin.js`): a progress bar (« 3 sur 9 »,
+**« Premiers pas »** (the home page's checklist, `checklist()` in `admin.js`): a progress bar (« 3 sur 10 »,
 a `progressbar` with `aria-valuenow`) and steps that tick themselves from the real state; nothing is ticked
 by hand. Each step opens the screen where it is done:
 
@@ -959,14 +1161,15 @@ by hand. Each step opens the screen where it is done:
 | Connectez Wave et le mobile money | the `mobile-money` connector is connected (payout number and operator, e.g. Wave) | `#paiements` |
 | Ajoutez votre numéro WhatsApp | `store.whatsapp` is a valid number (« Utiliser mon numéro » does it in one tap) | `#parametres/boutique` |
 | Choisissez vos communes de livraison | the delivery section has zones | `#livraison` |
-| Personnalisez votre boutique | the theme or a section differs from the template she started from (the hero title carrying her store name does not count) | the Studio |
+| Personnalisez votre boutique | the theme (her own colours, `theme.colors`, included) or a section differs from the template she started from (the hero title carrying her store name does not count) | the Studio |
+| Ajoutez votre logo | `store.logo` is set (an upload or the Studio's text logo) | the Studio, Boutique › « Logo et icône » (`'jeere-studio-open'` `focus: 'logo'`) |
 | Partagez le lien sur WhatsApp | she shared from the share sheet: « Envoyer sur WhatsApp », « Copier le lien » (copied) or « Autres applications » (the system share completed) (`'jeere-admin'.onboarding.sharedAt`) | the share sheet |
 | Relisez vos pages | the pages are written and checked | `#pages` |
 | Atteignez un score qualité de 80 | `validate(fiche).score >= 80` | the Studio |
 | Choisissez l’adresse de votre boutique | an address confirmed or a custom domain | `#parametres/domaine` |
 
-The first steps are the five the founder asked for (with the WhatsApp number among them); the last three
-lead to the launch. The card shows the next 3 steps to do (« Voir les 9 étapes » for all). « Masquer »
+The first steps are the five the founder asked for (with the WhatsApp number among them), then the logo;
+the last three lead to the launch. The card shows the next 3 steps to do (« Voir les 10 étapes » for all). « Masquer »
 hides the card (`'jeere-admin'.onboarding.checklistHidden`); « ? Aide » › « Afficher les premiers pas »
 brings it back. When every step is done the card becomes « Votre boutique est prête » with « Publier ma
 boutique ».
@@ -1016,9 +1219,15 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
    Téléphone / Ordinateur, edit a section, add a product with a photo, change the palette and the
    template (the intensity stays), undo and redo (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z), check the Qualité
    tab.
-3. Thème tab, « Couleurs »: switch Vives / Douces with every template and a few palettes (try
+3. Thème tab, « Intensité des couleurs »: switch Vives / Douces with every template and a few palettes (try
    Sable, Mangue and Nuit): vivid fills the announcement bar, the hero and alternate sections with
-   the accent; soft is the light look. All text stays readable.
+   the accent; soft is the light look. All text stays readable. « Personnaliser les couleurs »: open « Fond de
+   la page », pick a dark colour (the text turns light by itself), then pick a dark « Texte »: « Peu lisible »
+   and « Corriger »; open a section and try each « Couleur de fond »; Qualité › « Corriger tout »; pick a
+   palette (your colours give way, « Annuler » in the toast brings them back); switch the template (your
+   colours stay). Boutique › Logo: import a logo with a dark word, then set « Fond de l’en-tête » to navy: the
+   note under the logo, in the picker and in Qualité. Automated: `colours-test.js`, `logo-test.js` and
+   `fx/review-test.js` (scratchpad `brand/`), see [Custom colours](#custom-colours-themecolors-section-colours).
 4. Page selector: go through Accueil, Fiche produit, Panier, Paiement, Confirmation on both
    devices and the three templates. Select a product in the Produits tab: « Fiche produit » shows it.
 5. Inside the preview: click a product card, « Ajouter au panier », change quantities (1 to 20),

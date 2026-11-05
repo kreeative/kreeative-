@@ -86,7 +86,7 @@
       "required": ["name", "tagline", "whatsapp", "city", "niche"],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "maxLength": 40, "description": "Store name, shown as the text logo. validate() reports an error when it is empty." },
+        "name": { "type": "string", "maxLength": 40, "description": "Store name, shown as the text logo when there is no logo (and as the logo's alt text). validate() reports an error when it is empty." },
         "tagline": { "type": "string", "maxLength": 80, "description": "Slogan, shown in the footer." },
         "whatsapp": {
           "type": "string",
@@ -97,6 +97,32 @@
         "niche": {
           "description": "What the store sells, or null.",
           "anyOf": [{ "$ref": "#/$defs/nicheId" }, { "type": "null" }]
+        },
+        "logo": {
+          "description": "Optional. null, or the seller's logo as a base64 data URL: PNG or WebP (transparency kept) or JPEG, at most 600 px on its long side (the editor resizes and trims it; an SVG is drawn to PNG). Shown in place of the name in the header of every page, the checkout and the footer, alt = the store name. Absent or null: the name is written in the store's display font, as before. normalizeConfig turns anything else, or a data URL longer than JEERE_DATA.LOGO_LIMITS.chars (2 000 000 characters), into null. The assistant never sets it.",
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "maxLength": 2000000, "pattern": "^data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=\\s]+$" }
+          ]
+        },
+        "logoSize": {
+          "description": "Optional, read only with a logo. 'S', 'M' (default) or 'L' (JEERE_DATA.LOGO_SIZES: 34, 46, 60 px tall on a computer, 28, 36, 46 on a phone), or a height in px from 24 to 72 (a phone shows 80 % of it, at least 24). The logo is never stretched: a wide logo is narrowed to fit, keeping its shape. normalizeConfig reads 'm' as 'M' and '40px' as 40, clamps numbers to 24..72 and turns anything else into 'M'.",
+          "anyOf": [{ "enum": ["S", "M", "L"] }, { "type": "integer", "minimum": 24, "maximum": 72 }]
+        },
+        "logoPosition": {
+          "description": "Optional. Where the logo (or the name) sits in the header: 'left' or 'center'; null or absent: the template's place (JEERE_DATA.LOGO_DEFAULT_POSITION: Plateau center, Cocody and Treichville left). normalizeConfig turns anything else into null.",
+          "anyOf": [{ "enum": ["left", "center"] }, { "type": "null" }]
+        },
+        "showName": {
+          "description": "Optional, read only with a logo: true writes the store name next to the logo (then the image's alt is empty). Default false: the logo alone.",
+          "type": "boolean"
+        },
+        "icon": {
+          "description": "Optional. null, or a square image (data URL, 192 x 192 PNG from the editor) for the browser tab and the phone's home screen. Absent or null: the logo, else the store's initial on its accent colour (JEERE_DATA.brand(config).iconFrom).",
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "maxLength": 2000000, "pattern": "^data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=\\s]+$" }
+          ]
         }
       }
     },
@@ -109,9 +135,36 @@
         "fonts": { "$ref": "#/$defs/fontPairId" },
         "radius": { "enum": ["none", "soft", "round"], "description": "Droit (0 px), Doux (10 px), Rond (22 px)." },
         "buttons": { "enum": ["solid", "outline"], "description": "Plein (accent background) or Contour (1.5 px accent border)." },
-        "intensity": { "$ref": "#/$defs/intensity" }
+        "intensity": { "$ref": "#/$defs/intensity" },
+        "colors": { "$ref": "#/$defs/themeColors" }
       }
     },
+    "themeColors": {
+      "type": "object",
+      "description": "Optional custom colours (Thème › « Personnaliser les couleurs »): partial overrides of the palette's six colours, and colours of four parts of the store. Absent (the default, never added by defaultConfig or normalizeConfig): the palette exactly as before. A colour the seller did not set is derived from the ones she did so it reads (a dark bg gets a light text); the ones she set are kept as they are and validate() warns about text under 4.5:1 (issue.fix holds the nearest readable shade). Setting only a part's text keeps that part's usual ground (announcement and badges: the accent). normalizeConfig keeps the known keys as upper-case #RRGGBB, drops the rest, and drops an empty object. Choosing a palette (or a template) in the editor removes the key.",
+      "additionalProperties": false,
+      "properties": {
+        "bg": { "$ref": "#/$defs/hexColor", "description": "Fond de la page" },
+        "surface": { "$ref": "#/$defs/hexColor", "description": "Fond des cartes et des blocs" },
+        "text": { "$ref": "#/$defs/hexColor", "description": "Texte" },
+        "muted": { "$ref": "#/$defs/hexColor", "description": "Texte secondaire" },
+        "accent": { "$ref": "#/$defs/hexColor", "description": "Couleur principale: boutons, liens, prix (drawn as text, it is deepened until it reads at 4.5:1)" },
+        "onAccent": { "$ref": "#/$defs/hexColor", "description": "Texte des boutons (on the accent)" },
+        "announcementBg": { "$ref": "#/$defs/hexColor", "description": "Bandeau d’annonce: fond" },
+        "announcementText": { "$ref": "#/$defs/hexColor", "description": "Bandeau d’annonce: texte" },
+        "headerBg": { "$ref": "#/$defs/hexColor", "description": "En-tête: fond (every page, the checkout included)" },
+        "headerText": { "$ref": "#/$defs/hexColor", "description": "En-tête: texte" },
+        "footerBg": { "$ref": "#/$defs/hexColor", "description": "Pied de page: fond" },
+        "footerText": { "$ref": "#/$defs/hexColor", "description": "Pied de page: texte" },
+        "badgeBg": { "$ref": "#/$defs/hexColor", "description": "Badges et promos: fond (every product badge)" },
+        "badgeText": { "$ref": "#/$defs/hexColor", "description": "Badges et promos: texte" }
+      }
+    },
+    "sectionBg": {
+      "description": "Optional (every section type): the section's own ground. 'page' (theme bg), 'surface' (the cards' colour), 'accent', or #RRGGBB. Absent: automatic, the template's colour (in vivid, every other plain section is tinted). Hero: Plateau's stage, Cocody's banner card, Treichville's band; announcement and WhatsApp: their panel. The text on it is chosen to read (fg overrides it). normalizeConfig drops 'auto' and anything else.",
+      "anyOf": [{ "enum": ["page", "surface", "accent"] }, { "$ref": "#/$defs/hexColor" }]
+    },
+    "sectionFg": { "$ref": "#/$defs/hexColor", "description": "Optional, read only with bg: the section's text colour (absent: chosen for readability). normalizeConfig drops it without a bg." },
     "payments": {
       "type": "object",
       "description": "Payment methods the store accepts, shown as plain text (never the operators' logos or colours): in the footer, on the product page and as the payment options of the checkout page, in this order. Labels and checkout hints in JEERE_DATA.PAYMENTS. validate() reports an error when none is true.",
@@ -193,7 +246,9 @@
       "required": ["text"],
       "additionalProperties": false,
       "properties": {
-        "text": { "type": "string", "maxLength": 90 }
+        "text": { "type": "string", "maxLength": 90 },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" }
       }
     },
     "settings_hero": {
@@ -207,7 +262,11 @@
         "text": { "type": "string", "maxLength": 220 },
         "button": { "type": "string", "maxLength": 24 },
         "image": { "$ref": "#/$defs/image" },
-        "photo": { "$ref": "#/$defs/photo" }
+        "photo": { "$ref": "#/$defs/photo" },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" },
+        "buttonBg": { "$ref": "#/$defs/hexColor", "description": "Optional: the hero button's colour (solid: its fill; outline: its text and border). Absent: the template's." },
+        "buttonText": { "$ref": "#/$defs/hexColor", "description": "Optional: the hero button's text (solid buttons). Absent: chosen to read on buttonBg (or on the accent)." }
       }
     },
     "settings_categories": {
@@ -216,7 +275,9 @@
       "required": ["title"],
       "additionalProperties": false,
       "properties": {
-        "title": { "type": "string", "maxLength": 50 }
+        "title": { "type": "string", "maxLength": 50 },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" }
       }
     },
     "settings_products": {
@@ -227,7 +288,9 @@
       "properties": {
         "title": { "type": "string", "maxLength": 50 },
         "limit": { "type": "integer", "minimum": 2, "maximum": 24, "default": 8, "description": "Maximum number of products shown." },
-        "columns": { "enum": [2, 3, 4], "default": 3, "description": "Columns on desktop (a number, not a string)." }
+        "columns": { "enum": [2, 3, 4], "default": 3, "description": "Columns on desktop (a number, not a string)." },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" }
       }
     },
     "settings_about": {
@@ -239,7 +302,9 @@
         "title": { "type": "string", "maxLength": 50 },
         "text": { "type": "string", "maxLength": 600 },
         "image": { "$ref": "#/$defs/image" },
-        "photo": { "$ref": "#/$defs/photo" }
+        "photo": { "$ref": "#/$defs/photo" },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" }
       }
     },
     "settings_reviews": {
@@ -262,7 +327,9 @@
               "rating": { "enum": [1, 2, 3, 4, 5], "description": "Stars out of 5 (a number)." }
             }
           }
-        }
+        },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" }
       }
     },
     "settings_delivery": {
@@ -285,7 +352,9 @@
               "fee": { "type": "integer", "minimum": 0, "maximum": 100000, "description": "Delivery fee in whole FCFA (1500, not '1 500 FCFA')." }
             }
           }
-        }
+        },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" }
       }
     },
     "settings_whatsapp": {
@@ -296,7 +365,9 @@
       "properties": {
         "title": { "type": "string", "maxLength": 60 },
         "text": { "type": "string", "maxLength": 200 },
-        "button": { "type": "string", "maxLength": 30 }
+        "button": { "type": "string", "maxLength": 30 },
+        "bg": { "$ref": "#/$defs/sectionBg" },
+        "fg": { "$ref": "#/$defs/sectionFg" }
       }
     }
   }

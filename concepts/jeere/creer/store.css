@@ -1893,6 +1893,128 @@
 .jst[data-tpl="treichville"][data-intensity="vivid"] .jst-cp-head .jst-tag { background: var(--st-on-accent); color: var(--st-accent); }
 .jst[data-tpl="treichville"][data-intensity="vivid"] .jst-cp-h2 { border-left-color: var(--st-accent); }
 
+/* ===================================================================== the seller's logo
+   store.logo (render.js logoImg): an image in place of the name, sized by render.js from
+   store.logoSize and never stretched; store.showName writes the name next to it. A fiche without
+   a logo never gets these classes. store.logoPosition, when it differs from the template's place,
+   puts .jst-header--logo-left / --logo-center on the header. */
+
+.jst .jst-logo.has-img { display: flex; align-items: center; gap: 10px; text-overflow: clip; line-height: 1; }
+.jst .jst-logo-img { display: block; flex: none; max-width: 100%; object-fit: contain; object-position: left center; }
+.jst .jst-logo.has-name .jst-logo-img { max-width: 60%; }
+.jst .jst-logo-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
+.jst[data-tpl="plateau"] .jst-logo.has-img,
+.jst .jst-header--co .jst-logo.has-img { justify-content: center; }
+.jst[data-tpl="plateau"] .jst-logo.has-img .jst-logo-img,
+.jst .jst-header--co .jst-logo.has-img .jst-logo-img { object-position: center; }
+.jst .jst-footer-logo { display: block; margin: 0; line-height: 0; }
+.jst .jst-footer-logo + .jst-footer-name { margin-top: 12px; }
+
+/* Plateau, logo on the left: beside the menu on a phone; logo, links, then the bag on a computer */
+.jst[data-tpl="plateau"] .jst-header--logo-left .jst-logo { text-align: left; }
+.jst[data-tpl="plateau"] .jst-header--logo-left .jst-logo.has-img { justify-content: flex-start; }
+.jst[data-tpl="plateau"] .jst-header--logo-left .jst-logo.has-img .jst-logo-img { object-position: left center; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-header--logo-left .jst-header-in { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "logo nav actions"; }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-header--logo-left .jst-nav { justify-content: center; }
+/* Cocody and Treichville, logo in the centre: the menu on the left, the bag on the right (phone);
+   the links on the left, the logo in the middle (computer) */
+.jst[data-tpl="cocody"] .jst-header--logo-center .jst-header-in,
+.jst[data-tpl="treichville"] .jst-header--logo-center .jst-header-in { grid-template-columns: 44px minmax(0, 1fr) 44px; grid-template-areas: "menu logo actions"; }
+.jst[data-tpl="cocody"] .jst-header--logo-center .jst-logo,
+.jst[data-tpl="treichville"] .jst-header--logo-center .jst-logo { text-align: center; }
+.jst[data-tpl="cocody"] .jst-header--logo-center .jst-logo.has-img,
+.jst[data-tpl="treichville"] .jst-header--logo-center .jst-logo.has-img { justify-content: center; }
+.jst[data-tpl="cocody"] .jst-header--logo-center .jst-logo-img,
+.jst[data-tpl="treichville"] .jst-header--logo-center .jst-logo-img { object-position: center; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-header--logo-center .jst-header-in,
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-header--logo-center .jst-header-in { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "nav logo actions"; }
+.jst[data-tpl="cocody"][data-device="desktop"] .jst-header--logo-center .jst-nav { justify-self: start; }
+.jst[data-tpl="treichville"][data-device="desktop"] .jst-header--logo-center .jst-nav { justify-content: flex-start; }
+
+/* =====================================================================
+   CUSTOM COLOURS — a part of the store with colours of its own: the header, the footer and the
+   announcement bar (theme.colors), a section (sections[].settings.bg / fg). render.js writes the
+   part's colours on its element as --sc-* (computed by JEERE_DATA.zoneColors: the text reads at
+   4.5:1 unless the seller chose it, then Qualité checks it) and marks it .jst-cz; the store's
+   colours are replaced inside it, so every template rule keeps working. Each rule starts with the
+   five root attributes the renderer always sets, so it wins over the template and vivid rules.
+   Without theme.colors or a section colour, nothing here applies (no .jst-cz, no data-c-badge).
+   ===================================================================== */
+
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-cz {
+  --st-bg: var(--sc-bg); --st-surface: var(--sc-surface); --st-text: var(--sc-fg); --st-text-soft: var(--sc-soft);
+  --st-muted: var(--sc-muted); --st-muted-tint: var(--sc-muted); --st-muted-strong: var(--sc-muted);
+  --st-line: var(--sc-line); --st-tint: var(--sc-tint); --st-tint-strong: var(--sc-tint2); --st-surface-2: var(--sc-tint);
+  --st-accent: var(--sc-acc); --st-on-accent: var(--sc-onacc); --st-on-accent-soft: var(--sc-onacc-soft);
+  --st-accent-ink: var(--sc-ink); --st-accent-text: var(--sc-ink); --st-accent-soft: var(--sc-accsoft);
+  --tv-line: 1.5px solid var(--sc-fg);
+  color: var(--sc-fg);
+}
+
+/* Header and footer: their ground */
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-header.jst-cz,
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-footer.jst-cz { background: var(--sc-bg); }
+.jst[data-tpl="treichville"][data-device][data-intensity][data-tone][data-buttons] .jst-header.jst-cz .jst-bag-n { background: var(--sc-fg); color: var(--sc-bg); }
+/* Cocody's payment chips are pills of the page colour: on a footer of her colour they take a raised
+   shade of it and a fine line, so they still read as chips */
+.jst[data-tpl="cocody"][data-device][data-intensity][data-tone][data-buttons] .jst-footer.jst-cz .jst-chip { background: var(--sc-tint2); box-shadow: inset 0 0 0 1px var(--sc-line); color: var(--sc-fg); }
+
+/* A section on its own ground (categories, products, about, reviews, delivery): a band with the
+   padding of a tinted section */
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--cbg:not(.jst-sec--announcement):not(.jst-sec--whatsapp):not(.jst-sec--hero) { padding: calc(var(--st-sec) * .62) 0; background: var(--sc-bg); }
+
+/* Panels drawn on the accent (the announcement bar, « Commander sur WhatsApp »): the panel takes the
+   chosen ground, what sat on the accent takes its text colour */
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--cbg .jst-ann,
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--cbg .jst-wa {
+  --st-accent: var(--sc-bg); --st-on-accent: var(--sc-fg); --st-on-accent-soft: var(--sc-muted);
+  background: var(--sc-bg); color: var(--sc-fg);
+}
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--cbg .jst-ann .jst-muted-inline { color: var(--sc-muted); }
+
+/* The hero on its own ground. Plateau: the stage (with a photo, the ground beside or under it);
+   Cocody: the banner card; Treichville: the whole band. The template's accent slab, tile or dark
+   ground gives way; the button keeps the accent (or the text colour when the accent would vanish). */
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-stage { background: var(--sc-bg); color: var(--sc-fg); }
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-copy { background: transparent; color: var(--sc-fg); box-shadow: none; }
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-title { color: var(--sc-fg); }
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-text { color: var(--sc-muted); opacity: 1; }
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-cap { color: var(--sc-fg); }
+.jst[data-tpl="plateau"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-stage.has-img::after { border-color: var(--sc-acc); }
+.jst[data-tpl="plateau"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-scrim { background: linear-gradient(to bottom, transparent 76%, color-mix(in srgb, var(--sc-bg) 70%, transparent) 92%, var(--sc-bg) 100%); }
+.jst[data-tpl="plateau"][data-device="desktop"][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-scrim { background: linear-gradient(90deg, var(--sc-bg) 0%, var(--sc-bg) 6%, color-mix(in srgb, var(--sc-bg) 55%, transparent) 18%, transparent 34%); }
+.jst[data-tpl="cocody"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-card { background: var(--sc-bg); }
+.jst[data-tpl="treichville"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg { background: var(--sc-bg); color: var(--sc-fg); }
+.jst[data-tpl="treichville"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-tag,
+.jst[data-tpl="treichville"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-sticker { background: var(--sc-acc); color: var(--sc-onacc); }
+.jst[data-tpl="treichville"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-strip { border-color: var(--sc-fg); background: var(--sc-fg); color: var(--sc-bg); }
+.jst[data-tpl="treichville"][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-block { box-shadow: 12px 12px 0 var(--sc-acc); }
+.jst[data-tpl="treichville"][data-device="desktop"][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbg .jst-hero-block { box-shadow: 18px 18px 0 var(--sc-acc); }
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons="solid"] .jst-sec--hero.jst-sec--cbg .jst-btn { background: var(--sc-acc); color: var(--sc-onacc); border-color: var(--sc-acc); }
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons="outline"] .jst-sec--hero.jst-sec--cbg .jst-btn { background: transparent; color: var(--sc-ink); border-color: var(--sc-ink); }
+
+/* The hero's button colours (settings.buttonBg / buttonText), over everything above. A button the
+   seller coloured herself is drawn filled with her two colours, with outline buttons too: the pair
+   Qualité checks (her text on her background) is then the pair the customer sees. */
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons] .jst-sec--hero.jst-sec--cbtn .jst-hero-actions .jst-btn { background: var(--sc-hbtn-bg); color: var(--sc-hbtn-fg); border-color: var(--sc-hbtn-bg); }
+
+/* A store with the seller's own colours (data-colors="custom"): her grounds can be mid-tones, where white
+   or black text reads at 5:1, not 15:1. Texts the templates soften with opacity are drawn solid, and the
+   dark stores' accent titles use the readable accent. */
+.jst[data-colors="custom"] .jst-about-text,
+.jst[data-colors="custom"] .jst-hero-text,
+.jst[data-colors="custom"] .jst-hero-cap,
+.jst[data-colors="custom"] .jst-muted-inline,
+.jst .jst-cz .jst-about-text,
+.jst .jst-cz .jst-hero-text,
+.jst .jst-cz .jst-hero-cap,
+.jst .jst-cz .jst-muted-inline { opacity: 1; }
+.jst[data-colors="custom"][data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"][data-device] .jst-cp-title,
+.jst[data-colors="custom"][data-tpl="plateau"][data-intensity="vivid"][data-tone="dark"][data-device] .jst-hero-stage:not(.has-img) .jst-hero-title { color: var(--st-accent-text); }
+
+/* Badges and promos with their own colours (theme.colors.badgeBg / badgeText): every badge */
+.jst[data-tpl][data-device][data-intensity][data-tone][data-buttons][data-c-badge] .jst-badge { background: var(--st-badge-bg); color: var(--st-badge-fg); }
+
 /* ===================================================================== touch
    Phone: every control of the journey is at least 44 px tall (cheap Android, a thumb). Links keep
    their place in the text: the hit area grows, not the layout. */

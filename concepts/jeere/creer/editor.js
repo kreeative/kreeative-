@@ -122,6 +122,7 @@
     lastSaved: null, // the exact JSON last read from or written to localStorage: anything else there was written elsewhere
     site: null, // the address chosen in the dashboard ('jeere-admin'), or null: derived from the store's name
     openSection: null, openProduct: null, openItem: {}, reorder: { sections: false, produits: false },
+    openColor: null, // the colour row whose picker is open ('theme:text', 'section:s2:bg')
     scale: 1, previewDirty: true, pendingReveal: null, hoverNode: null, pick: null,
     scrollY: { edit: 0, preview: 0 },
     saveState: 'ok', warned: {},
@@ -335,7 +336,9 @@
     const id = (v) => (typeof v === 'string' && v.length < 64 ? v : null);
     // view (optional, not in the contract): 'preview' or 'edit', what a phone shows first
     const view = o.view === 'preview' || o.view === 'edit' ? o.view : null;
-    return { page: typeof o.page === 'string' ? o.page : 'home', pageId: id(o.pageId), productId: id(o.productId), view };
+    // focus (optional): 'logo' opens Boutique › « Logo et icône » (the dashboard's « Ajoutez votre logo »)
+    const focus = o.focus === 'logo' ? 'logo' : null;
+    return { page: typeof o.page === 'string' ? o.page : 'home', pageId: id(o.pageId), productId: id(o.productId), view, focus };
   }
   // A template chosen by a signed-in seller carries her store name and WhatsApp number from sign-up
   function personalize(cfg) {
@@ -591,6 +594,20 @@
       if (pg && typeof pg.slug === 'string' && pg.slug) path = '/pages/' + pg.slug;
     }
     els.url.textContent = (S.site || (typeof D.subdomainFor === 'function' ? D.subdomainFor(storeName()) : slug(storeName()) + '.jeere.shop')) + path;
+    updateFav();
+  }
+  // The tab icon in the address bar: the seller's icon, else her logo, else her initial on her colour
+  function updateFav() {
+    const n = els.fav;
+    const R = window.JeereRender;
+    if (!n || !R || typeof R.brand !== 'function') return;
+    const b = R.brand(S.config);
+    const key = [b.icon ? b.icon.length + b.icon.slice(-24) : '', b.initial, b.accent, b.onAccent].join('|');
+    if (n.__key === key) return;
+    n.__key = key;
+    n.hidden = false;
+    n.style.cssText = b.icon ? '' : `--fa:${b.accent};--fo:${b.onAccent}`;
+    n.replaceChildren(b.icon ? el('img', { src: b.icon, alt: '' }) : document.createTextNode(b.initial));
   }
   // « Vos pages » in the Boutique tab: mark the page shown in the preview
   function updatePageRows() {
@@ -696,6 +713,7 @@
 
   function findPreviewNode(t) {
     if (!t || !els.store) return null;
+    if (t.kind === 'brand') return els.store.querySelector('.jst-header');
     if (t.kind === 'product') {
       return els.store.querySelector(`[data-product-id="${CSS.escape(t.id)}"]`);
     }
@@ -703,10 +721,15 @@
   }
   function labelFor(t) {
     if (!t) return '';
+    if (t.kind === 'brand') return 'En-tête · Logo';
     if (t.kind === 'product') { const p = findProduct(t.id); return 'Produit · ' + shorten(p ? p.name : '', 30); }
     const s = findSection(t.id);
     const def = s && typeDef(s.type);
     return def ? def.name : 'Section';
+  }
+  // The logo (or the name) in the header of the home page: a click there edits it
+  function logoOnHome(n) {
+    return !!n && !!els.store && els.store.contains(n) && S.page === 'home' && !!n.closest('.jst-header a.jst-logo');
   }
   // A button, link or field of the store itself (render.js handles it): not a click to edit
   function storeControl(n) {
@@ -715,6 +738,7 @@
   }
   function targetOf(node) {
     if (!node) return null;
+    if (node.classList && node.classList.contains('jst-header')) return { kind: 'brand' };
     if (node.hasAttribute('data-product-id')) return { kind: 'product', id: node.getAttribute('data-product-id') };
     return { kind: 'section', id: node.getAttribute('data-section-id') };
   }
@@ -817,6 +841,7 @@
     if (!opts.focus && fk && isTextField(active)) { try { sel = [active.selectionStart, active.selectionEnd]; } catch (e) { sel = null; } }
     tp.textContent = '';
     RENDER[S.tab](tp);
+    watchLogoTone();
     if (opts.top) {
       if (isMobile()) { if (window.scrollY > 0) window.scrollTo(0, 0); } else els.panelScroll.scrollTop = 0;
     } else setPanelScroll(y);
@@ -1240,6 +1265,7 @@
       const node = buildField(f, sectionAcc(sec.id, f.key), `b-f-${sec.id}-${f.key}`, opts);
       if (node) body.append(node);
     });
+    if (D.SECTION_BG_OPTIONS) body.append(sectionColorsField(sec));
     body.append(el('div', { class: 'b-item__foot' },
       el('div', { class: 'b-item__moves' }, moveBtns(i, n, `Monter la section ${guil(def.name)}`, `Descendre la section ${guil(def.name)}`,
         (d) => moveSection(sec.id, d, 'sf'), 'sfu-' + sec.id, 'sfd-' + sec.id, true)),
@@ -1565,8 +1591,11 @@
   function ensureFontLink(fp) {
     if (!fp || !fp.googleUrl) return;
     const id = 'jst-font-' + fp.id;
-    if (document.getElementById(id)) return;
-    document.head.append(el('link', { rel: 'stylesheet', id, href: fp.googleUrl }));
+    const had = document.getElementById(id);
+    if (had) return had;
+    const link = el('link', { rel: 'stylesheet', id, href: fp.googleUrl });
+    document.head.append(link);
+    return link;
   }
   function setTheme(key, value, msg) {
     if (S.config.theme[key] === value) return;
@@ -1583,9 +1612,25 @@
     S.config.theme.fonts = t.defaults.fonts;
     S.config.theme.radius = t.defaults.radius;
     S.config.theme.buttons = t.defaults.buttons;
+    // The seller's own colours (theme.colors) stay: a template changes the layout, the palette under
+    // them, the fonts and the corners, never the colours she picked herself
+    const hadColors = !!(S.config.theme.colors && Object.keys(S.config.theme.colors).length);
     change({ now: true });
     renderTab();
-    toast(`Modèle ${t.name} appliqué`);
+    toast(hadColors ? `Modèle ${t.name} appliqué. Vos couleurs personnalisées sont gardées.` : `Modèle ${t.name} appliqué`, hadColors ? 3600 : 2800);
+  }
+  // A palette sets every colour at once: the seller's own colours (theme.colors) give way, Annuler brings them back.
+  // Section colours stay: Page / Cartes / Principale follow the new palette, a custom colour is kept.
+  function setPalette(id, name) {
+    const had = !!(S.config.theme.colors && Object.keys(S.config.theme.colors).length);
+    if (S.config.theme.palette === id && !had) return;
+    S.config.theme.palette = id;
+    delete S.config.theme.colors;
+    S.openColor = null;
+    change({ now: true });
+    renderTab();
+    if (had) toast(`Couleurs ${name}${NB}: vos couleurs personnalisées sont remplacées.`, 7000, 'info', { label: 'Annuler', run: () => { if (canUndo()) undo(); } });
+    else toast(`Couleurs ${name}`, 1600);
   }
   function segmented(options, current, onPick, fk, visual) {
     return el('div', { class: 'b-segopts', role: 'group' }, options.map((o) => el('button', {
@@ -1597,6 +1642,17 @@
   function renderTheme(tp) {
     const th = S.config.theme;
     tp.append(tabHead('Thème', 'Le modèle, les couleurs et les polices. Vos sections et vos produits ne bougent pas.'));
+    // The logo lives in Boutique: a row here leads to it (the logo and the colours go together)
+    const lb = brandNow();
+    tp.append(el('button', {
+      type: 'button', class: 'b-logorow', 'data-fk': 'theme-logo',
+      on: { click: () => { setTab('boutique', { top: true }); requestAnimationFrame(() => focusBrand()); } }
+    },
+      el('span', { class: 'b-logorow__pic' + (lb.logo ? '' : ' is-empty'), 'aria-hidden': 'true' }, lb.logo ? el('img', { src: lb.logo, alt: '' }) : el('span', { text: lb.initial })),
+      el('span', { class: 'b-logorow__txt' },
+        el('span', { class: 'b-logorow__t', text: lb.logo ? 'Votre logo' : 'Ajouter votre logo' }),
+        el('span', { class: 'b-logorow__s', text: 'Dans Boutique › Logo et icône' })),
+      icon('i-arrow', 'b-logorow__go')));
 
     const tpls = el('div', { class: 'b-tplopts' });
     D.templates.forEach((t) => {
@@ -1614,20 +1670,24 @@
       const c = p.colors;
       pals.append(el('button', {
         type: 'button', class: 'b-pal', 'aria-pressed': String(th.palette === p.id), 'data-fk': 'pal-' + p.id, 'aria-label': `Couleurs ${p.name}`,
-        on: { click: () => setTheme('palette', p.id, `Couleurs ${p.name}`) }
+        on: { click: () => setPalette(p.id, p.name) }
       },
         // The strong colour fills the chip (« Aa » in its text colour), the page background below
         el('span', { class: 'b-pal__sw', style: `--pa:${c.accent};--po:${c.onAccent};--pb:${c.bg}` },
           el('span', { class: 'b-pal__aa', text: 'Aa' })),
         el('span', { class: 'b-pal__name', text: p.name })));
     });
-    tp.append(group('b-g-theme-palette', 'Palette', 'Une couleur de fond, une couleur forte pour les boutons et les blocs.', pals));
+    tp.append(group('b-g-theme-palette', 'Choisir une palette', 'Elle règle toutes les couleurs d’un coup. Vous pourrez ensuite changer chaque couleur.', pals,
+      el('button', {
+        type: 'button', class: 'b-btn b-btn--ghost b-btn--sm b-jump', 'data-fk': 'jump-colors',
+        on: { click: () => focusGroup('b-g-theme-colors') }
+      }, icon('i-down'), 'Personnaliser les couleurs')));
 
     // « Couleurs : Vives / Douces » (theme.intensity), drawn with the current palette
-    const pal = (inColl(D.palettes, th.palette) ? D.palettes[th.palette] : D.palettes[0] || D.palettes.sable || { colors: {} }).colors || {};
+    const pal = themeCols().base || {};
     const opts = intensityOptions();
     const cur = opts.some((o) => o.value === th.intensity) ? th.intensity : (D.DEFAULT_INTENSITY || 'vivid');
-    const ints = el('div', { class: 'b-intopts', role: 'group', 'aria-label': 'Couleurs' });
+    const ints = el('div', { class: 'b-intopts', role: 'group', 'aria-label': 'Intensité des couleurs' });
     opts.forEach((o) => {
       ints.append(el('button', {
         type: 'button', class: 'b-intopt', 'aria-pressed': String(o.value === cur), 'data-fk': 'int-' + o.value,
@@ -1642,7 +1702,8 @@
           el('i', { class: 'b-intprev__tiles' }, el('b'), el('b'), el('b'))),
         el('span', { class: 'b-intopt__name', text: o.label })));
     });
-    tp.append(group('b-g-theme-intensity', 'Couleurs', `Vives${NB}: votre couleur habille toute la boutique. Douces${NB}: des fonds clairs, la couleur en touches.`, ints));
+    tp.append(group('b-g-theme-intensity', 'Intensité des couleurs', `Vives${NB}: votre couleur principale habille toute la boutique. Douces${NB}: des fonds clairs, la couleur en touches.`, ints));
+    tp.append(colorsGroup());
 
     const fonts = el('div', { class: 'b-fonts' });
     D.fontPairs.forEach((fp) => {
@@ -1664,6 +1725,818 @@
     tp.append(group('b-g-theme-buttons', 'Boutons', null,
       segmented(D.BUTTON_OPTIONS, th.buttons, (v, l) => setTheme('buttons', v, `Boutons${NB}: ${l}`), 'btn',
         (o) => el('span', { class: 'b-btnprev b-btnprev--' + o.value, 'aria-hidden': 'true' }))));
+  }
+
+  /* ---------- Custom colours: Thème › « Personnaliser les couleurs » and each section's « Couleurs » ----------
+   * A colour key is 'theme:<key>' (theme.colors) or 'section:<id>:<key>' (sections[].settings). Unset keys
+   * show the colour the store uses now (the palette's, or one derived to read well). « Réinitialiser » (or
+   * « Automatique ») deletes the key, and an empty theme.colors is deleted too: the fiche is then exactly the
+   * palette's again. Under each picker, « Peu lisible » (text under 4.5:1) with « Corriger »: the nearest
+   * readable shade of the same hue. Every change is one undo step (dragging the native picker is one). */
+
+  function hexOf(v) {
+    const s = String(v == null ? '' : v).trim().replace(/^#/, '');
+    if (/^[0-9a-f]{3}$/i.test(s)) return ('#' + s.split('').map((c) => c + c).join('')).toUpperCase();
+    return /^[0-9a-f]{6}$/i.test(s) ? ('#' + s).toUpperCase() : null;
+  }
+  function themeCols() {
+    try { if (D.themeColors) return D.themeColors(S.config); } catch (e) { /* older data.js */ }
+    const c = pal();
+    return { base: c, set: {}, custom: false, zones: {}, defaults: {} };
+  }
+  function checksNow() { try { return D.colorChecks ? D.colorChecks(S.config) : []; } catch (e) { return []; } }
+  function ratioText(r) { return (Math.floor(r * 10) / 10).toFixed(1).replace('.', ',') + ':1'; }
+  function contrastOf(a, b) { return D.contrastRatio ? D.contrastRatio(a, b) : 21; }
+  function zoneOfKey(k) {
+    const z = D.ELEMENT_ZONES || {};
+    return Object.keys(z).find((n) => z[n].indexOf(k) !== -1) || null;
+  }
+  function sectionOfKey(key) { const p = String(key).split(':'); return p[0] === 'section' ? findSection(p[1]) : null; }
+  // What the key holds in the fiche (null when unset)
+  function colorKeyGet(key) {
+    const p = String(key).split(':');
+    if (p[0] === 'theme') { const c = S.config.theme.colors; return c && typeof c === 'object' && c[p[1]] != null ? c[p[1]] : null; }
+    const s = sectionOfKey(key);
+    return s && s.settings && s.settings[p[2]] != null ? s.settings[p[2]] : null;
+  }
+  // The colour the store shows for the key now
+  function colorKeyShown(key) {
+    const p = String(key).split(':');
+    const tc = themeCols();
+    if (p[0] === 'theme') {
+      if (tc.base[p[1]]) return tc.base[p[1]];
+      const z = zoneOfKey(p[1]);
+      if (!z) return '#111111';
+      const i = D.ELEMENT_ZONES[z].indexOf(p[1]);
+      const zc = tc.zones && tc.zones[z];
+      if (zc) return i === 0 ? zc.bg : zc.fg;
+      const df = tc.defaults && tc.defaults[z];
+      return df ? (i === 0 ? df.bg : df.fg) : '#111111';
+    }
+    const s = sectionOfKey(key);
+    if (!s || !D.sectionColors) return tc.base.bg;
+    const sc = D.sectionColors(s, tc.base);
+    if (p[2] === 'bg') return sc.zone ? sc.zone.bg : tc.base.bg;
+    if (p[2] === 'fg') return sc.zone ? sc.zone.fg : tc.base.text;
+    if (p[2] === 'buttonBg') return sc.button ? sc.button.bg : tc.base.accent;
+    if (p[2] === 'buttonText') return sc.button ? sc.button.fg : tc.base.onAccent;
+    return tc.base.bg;
+  }
+  function colorKeySet(key, value, o) {
+    const hex = hexOf(value);
+    if (!hex && !/^(page|surface|accent)$/.test(String(value))) return;
+    const p = String(key).split(':');
+    if (p[0] === 'theme') {
+      // One of the six palette colours set back to the palette's own: no colour of hers, the row says « Palette »
+      const raw = rawPalette();
+      if ((D.PALETTE_COLOR_KEYS || []).indexOf(p[1]) !== -1 && hexOf(raw[p[1]]) === hex) {
+        const c = S.config.theme.colors;
+        if (c && typeof c === 'object' && p[1] in c) {
+          delete c[p[1]];
+          if (!Object.keys(c).length) delete S.config.theme.colors;
+          change(o);
+        } else if (o && o.now) change(o);
+        return;
+      }
+      if (!S.config.theme.colors || typeof S.config.theme.colors !== 'object') S.config.theme.colors = {};
+      // the same value again (Enter after typing it): no edit, but the typing becomes its own undo step
+      if (S.config.theme.colors[p[1]] === hex) { if (o && o.now) change(o); return; }
+      S.config.theme.colors[p[1]] = hex;
+    } else {
+      const s = sectionOfKey(key);
+      if (!s) return;
+      if (!s.settings) s.settings = {};
+      const v = hex || value;
+      if (s.settings[p[2]] === v) { if (o && o.now) change(o); return; }
+      s.settings[p[2]] = v;
+    }
+    change(o);
+  }
+  // Back to the palette (theme) or to automatic (section); the bg of a section takes its text colour along
+  function colorKeyClear(key, o) {
+    const p = String(key).split(':');
+    if (p[0] === 'theme') {
+      const c = S.config.theme.colors;
+      if (!c || typeof c !== 'object' || !(p[1] in c)) return false;
+      delete c[p[1]];
+      if (!Object.keys(c).length) delete S.config.theme.colors;
+    } else {
+      const s = sectionOfKey(key);
+      if (!s || !s.settings) return false;
+      const keys = p[2] === 'bg' ? ['bg', 'fg'] : [p[2]];
+      if (!keys.some((k) => k in s.settings)) return false;
+      keys.forEach((k) => { delete s.settings[k]; });
+    }
+    change(o);
+    return true;
+  }
+  // The checks a key takes part in, as the text (fg) or as one of its grounds
+  function problemsOf(key, list) {
+    return (list || checksNow()).filter((c) => c.fgKey === key || (c.groundKeys || []).indexOf(key) !== -1);
+  }
+  // « Corriger » under a picker: the text gets the nearest readable shade; a ground, the nearest shade on
+  // which all its texts read
+  function fixFor(key, probs) {
+    if (!probs.length) return null;
+    const own = probs.find((c) => c.fgKey === key);
+    if (own) return own.fix;
+    const texts = probs.filter((c) => c.kind !== 'fill');
+    if (!texts.length) return null;
+    const fgs = texts.map((c) => c.fg);
+    return D.nearestReadable ? D.nearestReadable(colorKeyShown(key), fgs, D.CONTRAST_MIN ? D.CONTRAST_MIN.text : 4.5) : null;
+  }
+  function rawPalette() { return (inColl(D.palettes, S.config.theme.palette) ? D.palettes[S.config.theme.palette].colors : null) || {}; }
+  function swatchList() {
+    const b = themeCols().base;
+    const keys = ['bg', 'surface', 'text', 'muted', 'accent', 'onAccent'];
+    const uniq = (l) => { const seen = {}; return l.filter((h) => { if (!h || seen[h]) return false; seen[h] = true; return true; }); };
+    const mine = uniq(keys.map((k) => hexOf(b[k])));
+    const orig = uniq(keys.map((k) => hexOf(rawPalette()[k])));
+    const pop = uniq((D.POP_COLORS || []).map(hexOf));
+    // « Couleurs de la palette »: only when she changed some (else it is the row above)
+    return { mine, orig: orig.join() === mine.join() ? [] : orig, pop };
+  }
+
+  // « Peu lisible » + « Corriger »: filled from the current fiche, updated live while a picker moves
+  function readNote(key) {
+    const n = el('div', { class: 'b-readnote b-tone--warn', 'data-read-key': key, 'aria-live': 'polite' });
+    fillReadNote(n, key);
+    return n;
+  }
+  function fillReadNote(n, key) {
+    const probs = problemsOf(key);
+    n.replaceChildren();
+    n.hidden = !probs.length;
+    if (!probs.length) return;
+    const worst = probs.reduce((a, c) => (c.ratio < a.ratio ? c : a), probs[0]);
+    const fix = fixFor(key, probs);
+    const fill = worst.kind === 'fill';
+    n.append(icon('i-alert'), el('span', { class: 'b-readnote__txt' },
+      el('strong', { text: fill ? 'Peu visible' : 'Peu lisible' }),
+      fill ? `${NB}: ${worst.label}.` : `${NB}: vos clients auront du mal à lire ${worst.label}.`,
+      el('small', { class: 'b-readnote__ratio', text: ` Contraste ${ratioText(worst.ratio)}, il faut au moins ${ratioText(worst.min || 4.5)}.` })));
+    if (fix) {
+      n.append(el('button', {
+        type: 'button', class: 'b-btn b-btn--sm b-readnote__fix', 'data-fk': 'fix-' + key,
+        on: { click: () => { colorKeySet(key, fix, { now: true }); renderTab({ focus: 'fix-' + key }); toast(`Couleur corrigée${NB}: ${fix}`, 1800, 'ok'); afterFixFocus(key); } }
+      }, icon('i-check'), 'Corriger'));
+    }
+  }
+  function afterFixFocus(key) {
+    const n = els.tp[S.tab].querySelector(`[data-fk="${CSS.escape('cr-' + key)}"]`) || els.tp[S.tab].querySelector(`[data-fk="${CSS.escape('hex-' + key)}"]`);
+    if (n) focusEl(n);
+  }
+  function refreshReadNotes() {
+    const list = checksNow();
+    els.tp[S.tab].querySelectorAll('[data-logo-note]').forEach((n) => { const k = n.getAttribute('data-logo-note'); const f = logoGroundNote(k); if (f) n.replaceWith(f); });
+    els.tp[S.tab].querySelectorAll('[data-read-key]').forEach((n) => fillReadNote(n, n.getAttribute('data-read-key')));
+    els.tp[S.tab].querySelectorAll('[data-row-key]').forEach((r) => {
+      const k = r.getAttribute('data-row-key');
+      const bad = problemsOf(k, list).length > 0;
+      const t = r.querySelector('.b-crow__warn');
+      if (t) t.hidden = !bad;
+      const chip = r.querySelector('.b-crow__chip');
+      if (chip) chip.style.setProperty('--c', colorKeyShown(k));
+      const hx = r.querySelector('.b-crow__hex');
+      if (hx) hx.textContent = colorKeyShown(k);
+    });
+  }
+
+  // The picker: native colour input + hex field + swatches (the palette's colours, then pop colours)
+  function colorPicker(key, label, opts = {}) {
+    const shown = colorKeyShown(key);
+    const id = 'b-cp-' + key.replace(/[^a-z0-9]+/gi, '-');
+    const native = el('input', { type: 'color', class: 'b-cpick__native', id: id + '-n', value: shown.toLowerCase(), 'aria-label': `${label}${NB}: choisir une couleur`, 'data-fk': 'nat-' + key });
+    const hex = el('input', {
+      class: 'b-input b-cpick__hex', id: id + '-h', type: 'text', value: shown, maxlength: 7, autocomplete: 'off', spellcheck: 'false',
+      'aria-label': `${label}${NB}: code couleur`, 'data-fk': 'hex-' + key, inputmode: 'text'
+    });
+    const live = (v) => { refreshReadNotes(); if (opts.onLive) opts.onLive(v); };
+    native.addEventListener('input', () => { const v = hexOf(native.value); if (!v) return; hex.value = v; colorKeySet(key, v); live(v); });
+    native.addEventListener('change', () => { const v = hexOf(native.value); if (!v) return; colorKeySet(key, v, { now: true }); renderTab({ focus: 'nat-' + key }); });
+    hex.addEventListener('input', () => { const v = hexOf(hex.value); hex.classList.toggle('is-bad', !v && hex.value.trim().length >= 4); if (!v || hex.value.replace('#', '').length < 6) return; native.value = v.toLowerCase(); colorKeySet(key, v); live(v); });
+    // Enter confirms the code at once (one undo step), like leaving the field
+    hex.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); hex.dispatchEvent(new Event('change')); } });
+    hex.addEventListener('change', () => { const v = hexOf(hex.value); if (!v) { hex.value = colorKeyShown(key); hex.classList.remove('is-bad'); return; } colorKeySet(key, v, { now: true }); renderTab({ focus: 'hex-' + key }); });
+    const sw = swatchList();
+    const cur = hexOf(colorKeyGet(key));
+    const swBtn = (h) => el('button', {
+      type: 'button', class: 'b-swatch b-swatch--sm', style: `--c:${h}`, 'aria-pressed': String(cur === h), 'aria-label': h, title: h, 'data-fk': `sw-${key}-${h.slice(1)}`,
+      on: { click: () => { colorKeySet(key, h, { now: true }); renderTab({ focus: `sw-${key}-${h.slice(1)}` }); } }
+    });
+    const palName = inColl(D.palettes, S.config.theme.palette) ? D.palettes[S.config.theme.palette].name : '';
+    return el('div', { class: 'b-cpick', id },
+      el('div', { class: 'b-cpick__top' },
+        el('span', { class: 'b-cpick__wellbox' },
+          el('label', { class: 'b-cpick__well', title: 'Plus de couleurs' }, native),
+          el('span', { class: 'b-cpick__more', 'aria-hidden': 'true', text: 'Plus de couleurs' })),
+        hex,
+        opts.reset || null),
+      opts.note || null,
+      el('p', { class: 'b-cpick__cap', text: 'Vos couleurs' }),
+      el('div', { class: 'b-swatches b-swatches--sm' }, sw.mine.map(swBtn)),
+      sw.orig.length ? el('p', { class: 'b-cpick__cap', text: `Couleurs de la palette ${palName}` }) : null,
+      sw.orig.length ? el('div', { class: 'b-swatches b-swatches--sm' }, sw.orig.map(swBtn)) : null,
+      el('p', { class: 'b-cpick__cap', text: 'Couleurs pop' }),
+      el('div', { class: 'b-swatches b-swatches--sm' }, sw.pop.map(swBtn)),
+      readNote(key));
+  }
+
+  // One colour as a row that opens its picker. opts: { hint, resetLabel, auto (text shown while unset) }
+  function colorRow(key, label, opts = {}) {
+    const set = colorKeyGet(key) != null;
+    const open = S.openColor === key;
+    const shown = colorKeyShown(key);
+    const bodyId = 'b-crow-' + key.replace(/[^a-z0-9]+/gi, '-');
+    const bad = problemsOf(key).length > 0;
+    const row = el('div', { class: 'b-crow' + (open ? ' is-open' : '') + (set ? ' is-set' : ''), 'data-row-key': key });
+    row.append(el('button', {
+      type: 'button', class: 'b-crow__main', 'aria-expanded': String(open), 'aria-controls': open ? bodyId : null, 'data-fk': 'cr-' + key,
+      on: { click: () => { S.openColor = open ? null : key; renderTab({ focus: 'cr-' + key }); } }
+    },
+      el('span', { class: 'b-crow__chip', style: `--c:${shown}`, 'aria-hidden': 'true' }),
+      el('span', { class: 'b-crow__txt' },
+        el('span', { class: 'b-crow__label', text: label }),
+        el('span', { class: 'b-crow__meta' },
+          el('span', { class: 'b-crow__hex', text: shown }),
+          el('span', { class: 'b-crow__state', text: set ? 'Modifiée' : (opts.auto || 'Palette') }),
+          el('span', { class: 'b-crow__warn b-tone--warn', hidden: bad ? null : '' }, icon('i-alert'), 'Peu lisible'))),
+      icon('i-down', 'b-chev')));
+    if (open) {
+      const reset = set ? el('button', {
+        type: 'button', class: 'b-btn b-btn--quiet b-btn--sm b-cpick__reset', 'data-fk': 'rs-' + key,
+        on: { click: () => { colorKeyClear(key, { now: true }); renderTab({ focus: 'cr-' + key }); toast(opts.resetMsg || 'Couleur de la palette remise', 1600); } }
+      }, icon('i-refresh'), opts.resetLabel || 'Réinitialiser') : null;
+      row.append(el('div', { class: 'b-crow__body', id: bodyId },
+        opts.hint ? el('p', { class: 'b-hint', text: opts.hint }) : null,
+        colorPicker(key, label, { reset, note: logoGroundNote(key) })));
+    }
+    return row;
+  }
+
+  // Thème: the six palette colours and the four parts, in groups
+  // What a colour key shows on the untouched palette (no theme.colors): the reference for « Palette » / « Auto »
+  function paletteShown(key) {
+    const k = String(key).split(':')[1];
+    const raw = rawPalette();
+    if (raw[k]) return hexOf(raw[k]);
+    const z = zoneOfKey(k);
+    if (!z || !D.themeColors) return null;
+    try {
+      const plain = D.clone(S.config);
+      delete plain.theme.colors;
+      const df = D.themeColors(plain).defaults[z];
+      return hexOf(D.ELEMENT_ZONES[z].indexOf(k) === 0 ? df.bg : df.fg);
+    } catch (e) { return null; }
+  }
+  function colorsGroup() {
+    const groups = D.COLOR_GROUPS || [];
+    const any = !!(S.config.theme.colors && Object.keys(S.config.theme.colors).length);
+    const wrap = el('div', { class: 'b-colors' });
+    groups.forEach((g) => {
+      wrap.append(el('div', { class: 'b-cgroup', 'data-cgroup': g.id },
+        el('p', { class: 'b-cgroup__t', text: g.label }),
+        g.hint ? el('p', { class: 'b-hint', text: g.hint }) : null,
+        // « Auto »: a colour the seller did not pick that moved to go with one she picked (a part that follows
+        // her accent or her text, a text that turned light on her dark page)
+        g.fields.map((f) => {
+          const k = 'theme:' + f.key;
+          const ref = paletteShown(k);
+          return colorRow(k, f.label, { auto: ref && ref !== hexOf(colorKeyShown(k)) ? 'Auto' : 'Palette' });
+        })));
+    });
+    if (any) {
+      wrap.append(el('button', {
+        type: 'button', class: 'b-btn b-btn--ghost b-btn--sm b-colors__reset', 'data-fk': 'colors-reset',
+        on: {
+          click: () => {
+            delete S.config.theme.colors;
+            S.openColor = null;
+            change({ now: true });
+            renderTab({ focus: 'colors-reset' });
+            toast('Toutes les couleurs de la palette sont revenues', 2000);
+          }
+        }
+      }, icon('i-refresh'), 'Réinitialiser toutes les couleurs'));
+    }
+    return group('b-g-theme-colors', 'Personnaliser les couleurs',
+      `Changez la couleur de chaque partie de la boutique. ${guil('Réinitialiser')} remet celle de la palette.`, wrap);
+  }
+
+  // A section's « Couleurs »: its ground (Automatique / page / cartes / principale / personnalisée), its text,
+  // and on the hero its button
+  function sectionColorsField(sec) {
+    const sid = sec.id;
+    const st = sec.settings || {};
+    const tc = themeCols();
+    const b = tc.base;
+    const v = st.bg == null ? 'auto' : (/^(page|surface|accent)$/.test(st.bg) ? st.bg : 'custom');
+    const opts = D.SECTION_BG_OPTIONS || [];
+    const sample = { page: b.bg, surface: b.surface, accent: b.accent };
+    const pick = (val) => {
+      if (val === v && val !== 'custom') return;
+      if (val === 'auto') colorKeyClear(`section:${sid}:bg`, { now: true });
+      else if (val === 'custom') {
+        if (v !== 'custom') colorKeySet(`section:${sid}:bg`, colorKeyShown(`section:${sid}:bg`) === b.bg ? (D.mixColors ? D.mixColors(b.bg, b.accent, 0.35) : b.accent) : colorKeyShown(`section:${sid}:bg`), { now: true });
+        S.openColor = `section:${sid}:bg`;
+      } else colorKeySet(`section:${sid}:bg`, val, { now: true });
+      if (val !== 'custom' && S.openColor === `section:${sid}:bg`) S.openColor = null;
+      renderTab({ focus: `scb-${sid}-${val}` });
+      updateSectionRow(sid);
+    };
+    const chips = el('div', { class: 'b-bgopts', role: 'group', 'aria-label': 'Couleur de fond' }, opts.map((o) => el('button', {
+      type: 'button', class: 'b-bgopt', 'aria-pressed': String(o.value === v), 'data-fk': `scb-${sid}-${o.value}`,
+      on: { click: () => pick(o.value) }
+    },
+      el('span', { class: 'b-bgopt__sw b-bgopt__sw--' + o.value, style: sample[o.value] ? `--c:${sample[o.value]}` : (o.value === 'custom' && v === 'custom' ? `--c:${hexOf(st.bg)}` : null), 'aria-hidden': 'true' }),
+      el('span', { text: o.label }))));
+    const out = el('div', { class: 'b-field b-scolors', role: 'group', 'aria-labelledby': `b-scl-${sid}` },
+      el('div', { class: 'b-label-row' }, el('span', { class: 'b-label', id: `b-scl-${sid}`, text: 'Couleur de fond' })),
+      chips,
+      el('p', { class: 'b-hint', text: v === 'auto' ? `Automatique${NB}: comme le modèle (avec ${guil('Vives')}, une section sur deux est teintée).` : 'Le texte prend une couleur qui se lit bien sur ce fond. Vous pouvez la changer.' }));
+    if (v === 'custom') out.append(el('div', { class: 'b-scolors__pick' }, colorPicker(`section:${sid}:bg`, 'Couleur de fond')));
+    if (v !== 'auto') out.append(colorRow(`section:${sid}:fg`, 'Couleur du texte', { auto: 'Automatique', resetLabel: 'Automatique', resetMsg: 'Couleur du texte automatique' }));
+    else out.append(readNote(`section:${sid}:bg`));
+    if (sec.type === 'hero') {
+      out.append(el('div', { class: 'b-label-row b-scolors__h' }, el('span', { class: 'b-label', text: 'Couleurs du bouton' })),
+        el('p', { class: 'b-hint', text: 'Un bouton à vos couleurs est toujours plein, même avec des boutons à contour.' }),
+        colorRow(`section:${sid}:buttonBg`, 'Fond du bouton', { auto: 'Automatique', resetLabel: 'Automatique', resetMsg: 'Bouton aux couleurs du modèle' }),
+        colorRow(`section:${sid}:buttonText`, 'Texte du bouton', { auto: 'Automatique', resetLabel: 'Automatique', resetMsg: 'Texte du bouton automatique' }));
+    }
+    return out;
+  }
+
+  // Qualité › « Corriger tout »: every text that does not read takes the nearest readable shade
+  function fixAllColors() {
+    const n = D.fixColors ? D.fixColors(S.config) : 0;
+    if (!n) return;
+    change({ now: true });
+    renderTab({ focus: 'fix-all' });
+    toast(n > 1 ? `${n} couleurs corrigées` : '1 couleur corrigée', 2000, 'ok');
+  }
+  // Opens the colour of a Qualité issue (target { kind: 'theme', id: 'colors', key } or { kind: 'section', id, key })
+  function openColor(key) {
+    S.openColor = key;
+    renderTab();
+    const n = els.tp[S.tab].querySelector(`[data-fk="${CSS.escape('cr-' + key)}"]`) || els.tp[S.tab].querySelector(`[data-fk="${CSS.escape('hex-' + key)}"]`) ||
+      els.tp[S.tab].querySelector(`[data-read-key="${CSS.escape(key)}"]`);
+    if (!n) return;
+    n.scrollIntoView({ block: 'center', behavior: scrollBehavior() });
+    focusEl(n);
+    pulse(n.closest('.b-crow, .b-cpick, .b-field') || n);
+  }
+
+  /* ---------- Logo (Boutique tab): store.logo, logoSize, logoPosition, showName, icon ---------- */
+
+  const LOGO_ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml,image/gif,.svg';
+  const LOGO_LIM = () => D.LOGO_LIMITS || { side: 600, icon: 192, chars: 2000000 };
+  function brandNow() { return D.brand ? D.brand(S.config) : { name: S.config.store.name || '', initial: 'B', logo: null, icon: null, iconFrom: 'initial', size: 'M', position: 'left', positionSet: false, showName: false }; }
+  function storeSet(key, value, msg) {
+    const st = S.config.store;
+    if (value === undefined) { if (!Object.prototype.hasOwnProperty.call(st, key)) return; delete st[key]; }
+    else if (st[key] === value) return;
+    else st[key] = value;
+    change({ now: true });
+    renderTab({ focus: S.brandFocus || null });
+    S.brandFocus = null;
+    if (msg) toast(msg, 1800);
+  }
+
+  // An SVG file gets a size of 600 px on its long side before it is drawn (a file with only a viewBox has none)
+  function svgWithSize(text) {
+    const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+    const svg = doc.documentElement;
+    if (!svg || svg.nodeName.toLowerCase() !== 'svg' || doc.getElementsByTagName('parsererror').length) throw new Error('svg');
+    const num = (v) => { const s = String(v || '').trim(); const n = parseFloat(s); return isFinite(n) && n > 0 && !/%$/.test(s) ? n : 0; };
+    let w = num(svg.getAttribute('width'));
+    let h = num(svg.getAttribute('height'));
+    const vb = String(svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    const vw = vb.length === 4 && vb[2] > 0 ? vb[2] : 0;
+    const vh = vb.length === 4 && vb[3] > 0 ? vb[3] : 0;
+    if (!w || !h) {
+      const r = vw && vh ? vw / vh : (w && h ? w / h : 1);
+      if (w) h = w / r; else if (h) w = h * r; else { w = vw || 300; h = vh || w / r; }
+    }
+    if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    const s = LOGO_LIM().side / Math.max(w, h);
+    svg.setAttribute('width', String(Math.max(1, Math.round(w * s))));
+    svg.setAttribute('height', String(Math.max(1, Math.round(h * s))));
+    return new XMLSerializer().serializeToString(svg);
+  }
+  function loadImg(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => (img.naturalWidth && img.naturalHeight ? resolve(img) : reject(new Error('size')));
+      img.onerror = () => reject(new Error('decode'));
+      img.src = src;
+    });
+  }
+  // The box around what is drawn: transparent margins, or a plain background (the four corners alike) trimmed
+  function trimBox(ctx, w, h) {
+    let d;
+    try { d = ctx.getImageData(0, 0, w, h).data; } catch (e) { return null; }
+    const px = (x, y) => { const i = (y * w + x) * 4; return [d[i], d[i + 1], d[i + 2], d[i + 3]]; };
+    const corners = [px(0, 0), px(w - 1, 0), px(0, h - 1), px(w - 1, h - 1)];
+    const near = (a, b, t) => Math.abs(a[0] - b[0]) <= t && Math.abs(a[1] - b[1]) <= t && Math.abs(a[2] - b[2]) <= t && Math.abs(a[3] - b[3]) <= t;
+    const bg = corners.every((c) => near(c, corners[0], 10)) ? corners[0] : null;
+    const empty = bg && bg[3] < 8
+      ? (i) => d[i + 3] < 8
+      : bg ? (i) => Math.abs(d[i] - bg[0]) <= 14 && Math.abs(d[i + 1] - bg[1]) <= 14 && Math.abs(d[i + 2] - bg[2]) <= 14 && Math.abs(d[i + 3] - bg[3]) <= 14
+        : null;
+    if (!empty) return null;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (empty((y * w + x) * 4)) continue;
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+    if (x1 < 0) return null; // nothing drawn at all: keep the image as it is
+    const pad = Math.round(Math.max(x1 - x0, y1 - y0) * 0.02);
+    x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
+    if (x0 === 0 && y0 === 0 && x1 === w - 1 && y1 === h - 1) return null;
+    return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  }
+  // Draw an image at most `side` px on its long side, trimmed; opaque: a JPEG source stays a JPEG
+  function drawLogo(img, side, opaque) {
+    const s0 = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight));
+    let w = Math.max(1, Math.round(img.naturalWidth * s0));
+    let h = Math.max(1, Math.round(img.naturalHeight * s0));
+    let c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    let ctx = c.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, w, h);
+    const box = trimBox(ctx, w, h);
+    if (box) {
+      // Draw again from the source, trimmed, so the logo keeps its 600 px of detail
+      // never above the source's own pixels: a small mark stays its real size (and Qualité can say it is small)
+      const sw = box.w / s0, sh = box.h / s0;
+      const k = Math.min(side / Math.max(sw, sh), 1);
+      w = Math.max(1, Math.round(sw * k)); h = Math.max(1, Math.round(sh * k));
+      c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      ctx = c.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, box.x / s0, box.y / s0, sw, sh, 0, 0, w, h);
+    }
+    if (opaque) {
+      const o = document.createElement('canvas');
+      o.width = w; o.height = h;
+      const octx = o.getContext('2d');
+      octx.fillStyle = '#FFFFFF';
+      octx.fillRect(0, 0, w, h);
+      octx.drawImage(c, 0, 0);
+      return o.toDataURL('image/jpeg', 0.9);
+    }
+    let url = c.toDataURL('image/png');
+    // A heavy PNG (a photo-like logo): WebP keeps the transparency at a fraction of the weight
+    if (url.length > 700000) {
+      const webp = c.toDataURL('image/webp', 0.9);
+      if (/^data:image\/webp/.test(webp) && webp.length < url.length) url = webp;
+    }
+    return url;
+  }
+  async function fileSource(file) {
+    const isSvg = /svg/i.test(file.type || '') || /\.svg$/i.test(file.name || '');
+    if (isSvg) {
+      const text = await file.text();
+      return { src: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgWithSize(text)), opaque: false, revoke: null };
+    }
+    if (file.type && !/^image\//.test(file.type)) throw new Error('type');
+    const url = URL.createObjectURL(file);
+    return { src: url, opaque: /jpe?g/i.test(file.type || ''), revoke: url };
+  }
+  // A logo file → a data URL (PNG with its transparency, or JPEG): see the contract in README « Le logo de la boutique »
+  async function readLogo(file) {
+    if (!file) throw new Error('none');
+    const src = await fileSource(file);
+    try {
+      const img = await loadImg(src.src);
+      let url = drawLogo(img, LOGO_LIM().side, src.opaque);
+      if (url.length > LOGO_LIM().chars) url = drawLogo(img, 360, src.opaque);
+      if (url.length > LOGO_LIM().chars) throw new Error('heavy');
+      return url;
+    } finally { if (src.revoke) URL.revokeObjectURL(src.revoke); }
+  }
+  // A square tab icon (192 px, PNG): the image trimmed and centred, transparent around it
+  // opts.crop: a logo wider than LOGO_LIMITS.iconWide (1.5:1) gives the square on its left (most wordmarks
+  // start with their mark or their first letter), trimmed again; a square-ish one is shrunk whole
+  async function squareIcon(source, opts = {}) {
+    const img = await loadImg(source);
+    const side = LOGO_LIM().icon || 192;
+    let trimmed = await loadImg(drawLogo(img, 600, false));
+    const wide = (LOGO_LIM().iconWide || 1.5);
+    if (opts.crop && trimmed.naturalWidth / trimmed.naturalHeight > wide) {
+      const hh = trimmed.naturalHeight;
+      const cc = document.createElement('canvas');
+      cc.width = hh; cc.height = hh;
+      cc.getContext('2d').drawImage(trimmed, 0, 0, hh, hh, 0, 0, hh, hh);
+      trimmed = await loadImg(drawLogo(await loadImg(cc.toDataURL('image/png')), 600, false));
+    }
+    const c = document.createElement('canvas');
+    c.width = side; c.height = side;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    // a little room around it, so it does not touch the edges of the square
+    const k = side * 0.9 / Math.max(trimmed.naturalWidth, trimmed.naturalHeight);
+    const w = trimmed.naturalWidth * k, h = trimmed.naturalHeight * k;
+    ctx.drawImage(trimmed, (side - w) / 2, (side - h) / 2, w, h);
+    return c.toDataURL('image/png');
+  }
+  async function readIcon(file) {
+    const src = await fileSource(file);
+    try { return await squareIcon(src.src); } finally { if (src.revoke) URL.revokeObjectURL(src.revoke); }
+  }
+
+  // « Pas de logo ? Créez-en un simple »: the store name written in one of the store fonts and a colour, drawn to a PNG
+  function makerColors() {
+    const pal = themeCols().base || {};
+    const list = [
+      { id: 'accent', label: 'Principale', hex: pal.accent || '#111111' },
+      { id: 'text', label: 'Texte', hex: pal.text || '#111111' },
+      { id: 'black', label: 'Noir', hex: '#111111' },
+      { id: 'white', label: 'Blanc', hex: '#FFFFFF' }
+    ];
+    // The palette's text and black can be the same: keep one
+    return list.filter((c, i) => list.findIndex((x) => x.hex.toUpperCase() === c.hex.toUpperCase()) === i);
+  }
+  function fontReady(fp, text) {
+    const link = ensureFontLink(fp);
+    const css = `${fp.display.weight} 120px ${fp.display.family}`;
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const loaded = link && !link.sheet ? new Promise((r) => { link.addEventListener('load', r, { once: true }); link.addEventListener('error', r, { once: true }); }) : Promise.resolve();
+    return Promise.race([loaded.then(() => (document.fonts && document.fonts.load ? document.fonts.load(css, text) : null)).catch(() => null), wait(2500)]);
+  }
+  async function textLogo(o) {
+    const fp = (inColl(D.fontPairs, o.font) ? D.fontPairs[o.font] : D.fontPairs[0]);
+    const text = (o.upper ? o.text.toLocaleUpperCase('fr') : o.text).trim();
+    if (!text) throw new Error('empty');
+    await fontReady(fp, text);
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    let size = 120;
+    const font = (px) => `${fp.display.weight} ${px}px ${fp.display.family}`;
+    ctx.font = font(size);
+    const room = LOGO_LIM().side - 24;
+    // One line while the logo stays under 4.5:1 (Qualité flags 6:1), else two lines split at the space
+    // nearest the middle (« Les Délices / de Mariam »), centred
+    const oneW = ctx.measureText(text).width;
+    let lines = [text];
+    const words = text.split(/\s+/);
+    if (words.length > 1 && oneW / (size * 1.15) > 4.5) {
+      let best = null;
+      for (let i = 1; i < words.length; i++) {
+        const a = words.slice(0, i).join(' '), b = words.slice(i).join(' ');
+        const w = Math.max(ctx.measureText(a).width, ctx.measureText(b).width);
+        if (!best || w < best.w) best = { w, l: [a, b] };
+      }
+      lines = best.l;
+    }
+    const widest = () => Math.max.apply(null, lines.map((l) => ctx.measureText(l).width));
+    if (widest() > room) { size = Math.max(24, Math.floor(size * room / widest())); ctx.font = font(size); }
+    const ms = lines.map((l) => ctx.measureText(l));
+    const asc = Math.max.apply(null, ms.map((m) => m.actualBoundingBoxAscent || size * 0.8));
+    const desc = Math.max.apply(null, ms.map((m) => m.actualBoundingBoxDescent || size * 0.25));
+    const gap = Math.round(size * 0.08);
+    const lineH = asc + desc;
+    const pad = Math.round(size * 0.12);
+    const textW = Math.max.apply(null, ms.map((m) => m.width));
+    c.width = Math.ceil(Math.min(LOGO_LIM().side, textW + pad * 2));
+    c.height = Math.ceil(lineH * lines.length + gap * (lines.length - 1) + pad * 2);
+    // a single word too long for 6:1 (« Kouassibijouterie »): a little more room above and below
+    const maxRatio = (D.LOGO_LIMITS && D.LOGO_LIMITS.wide) || 6;
+    let top = pad;
+    if (c.width / c.height > maxRatio - 0.5) { const hh = Math.ceil(c.width / (maxRatio - 0.5)); top += Math.floor((hh - c.height) / 2); c.height = hh; }
+    const ctx2 = c.getContext('2d');
+    ctx2.font = font(size);
+    ctx2.fillStyle = o.color;
+    ctx2.textBaseline = 'alphabetic';
+    ctx2.textAlign = lines.length > 1 ? 'center' : 'left';
+    lines.forEach((l, i) => ctx2.fillText(l, lines.length > 1 ? c.width / 2 : pad, top + asc + i * (lineH + gap)));
+    return c.toDataURL('image/png');
+  }
+
+  // One file button (a <label> around a hidden input, so the phone offers the camera and the gallery)
+  function fileBtn(id, label, accept, onFile, cls) {
+    const file = el('input', { class: 'b-sr', type: 'file', accept, id, 'data-fk': id });
+    const txt = el('span', { text: label });
+    const btn = el('label', { class: 'b-btn b-btn--sm b-filebtn ' + (cls || 'b-btn--ghost') }, icon('i-upload'), txt, file);
+    file.addEventListener('change', () => {
+      const f = file.files && file.files[0];
+      if (!f) return;
+      btn.classList.add('is-busy');
+      txt.textContent = 'Préparation…';
+      Promise.resolve().then(() => onFile(f)).then(() => {
+        btn.classList.remove('is-busy');
+        txt.textContent = label;
+      }, (e) => {
+        btn.classList.remove('is-busy');
+        txt.textContent = label;
+        toast(e && e.message === 'heavy' ? 'Ce logo est trop lourd, même réduit. Essayez une image plus simple (PNG ou JPEG).' : 'Cette image n’a pas pu être lue. Essayez un fichier PNG, JPEG, WebP ou SVG.', 4200, 'err');
+      }).then(() => { file.value = ''; });
+    });
+    return btn;
+  }
+  // The logo (or the name in the store's font) on a light and on a dark chip: does it read on both?
+  function logoChips(b) {
+    const fp = inColl(D.fontPairs, S.config.theme.fonts) ? D.fontPairs[S.config.theme.fonts] : null;
+    const chip = (tone, label) => el('span', { class: 'b-logochip b-logochip--' + tone },
+      b.logo ? el('img', { src: b.logo, alt: '' })
+        : el('span', { class: 'b-logochip__name', style: fp ? `font-family:${fp.display.family};font-weight:${fp.display.weight}` : null, text: b.name || 'Votre boutique' }),
+      el('span', { class: 'b-logochip__tag', text: label }));
+    return el('div', { class: 'b-logochipsbox' },
+      el('div', { class: 'b-logochips', role: 'img', 'aria-label': b.logo ? 'Votre logo sur un fond clair et sur un fond foncé' : 'Sans logo, le nom de votre boutique est écrit avec la police du thème' },
+        chip('light', 'Fond clair'), chip('dark', 'Fond foncé')),
+      b.logo ? el('p', { class: 'b-hint b-logochips__cap', text: 'Si votre logo disparaît sur l’un de ces fonds, il se verra mal sur un fond de cette couleur.' }) : null);
+  }
+  function logoMaker() {
+    const st = S.config.store;
+    const mk = S.logoMaker || (S.logoMaker = { open: false, text: '', font: S.config.theme.fonts, color: null, upper: false });
+    if (!mk.text) mk.text = String(st.name || '').trim().slice(0, 40);
+    const colors = makerColors();
+    // Until she picks one: the first colour that shows on the header and the footer of her store (3:1),
+    // else the one that shows best (an accent text on Treichville's accent-tinted footer would fade)
+    if (!colors.some((c) => c.id === mk.color)) {
+      let grounds = [];
+      try { grounds = D.logoGrounds ? D.logoGrounds(S.config).map((g) => g.bg) : []; } catch (e) { grounds = []; }
+      const score = (hex) => (grounds.length ? Math.min.apply(null, grounds.map((g) => contrastOf(hex, g))) : 21);
+      const good = colors.find((c) => score(c.hex) >= 3);
+      mk.color = (good || colors.slice().sort((a, b) => score(b.hex) - score(a.hex))[0]).id;
+    }
+    const prev = el('div', { class: 'b-maker__prev' + (mk.color === 'white' ? ' is-dark' : ''), 'aria-live': 'polite' });
+    const draw = () => {
+      const hex = (colors.find((c) => c.id === mk.color) || colors[0]).hex;
+      prev.classList.toggle('is-dark', mk.color === 'white');
+      const token = (S.makerToken = (S.makerToken || 0) + 1);
+      textLogo({ text: mk.text || 'Ma boutique', font: mk.font, color: hex, upper: mk.upper }).then((url) => {
+        if (token !== S.makerToken) return;
+        prev.replaceChildren(el('img', { src: url, alt: `Aperçu${NB}: ${mk.text || 'Ma boutique'}` }));
+        mk.url = url;
+      }).catch(() => { prev.replaceChildren(el('span', { class: 'b-hint', text: 'Écrivez le nom à afficher.' })); mk.url = null; });
+    };
+    const input = el('input', { class: 'b-input', id: 'b-f-maker-text', type: 'text', maxlength: 40, value: mk.text, autocomplete: 'off', 'data-fk': 'b-f-maker-text' });
+    input.addEventListener('input', () => { mk.text = input.value; later('maker', draw, 180); });
+    const fonts = el('div', { class: 'b-maker__fonts', role: 'group', 'aria-label': 'Police' }, D.fontPairs.map((fp) => {
+      ensureFontLink(fp);
+      return el('button', {
+        type: 'button', class: 'b-maker__font', 'aria-pressed': String(mk.font === fp.id), 'data-fk': 'maker-font-' + fp.id, 'aria-label': `Police ${fp.name}`,
+        style: `font-family:${fp.display.family};font-weight:${fp.display.weight}`,
+        on: { click: (e) => { mk.font = fp.id; fonts.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === e.currentTarget))); draw(); } }
+      }, 'Aa');
+    }));
+    const cols = el('div', { class: 'b-maker__cols', role: 'group', 'aria-label': 'Couleur' }, colors.map((c) => el('button', {
+      type: 'button', class: 'b-maker__col', 'aria-pressed': String(mk.color === c.id), 'data-fk': 'maker-col-' + c.id, title: c.label,
+      on: { click: (e) => { mk.color = c.id; cols.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === e.currentTarget))); draw(); } }
+    }, el('span', { class: 'b-maker__sw', style: `background:${c.hex}`, 'aria-hidden': 'true' }), el('span', { text: c.label }))));
+    const upper = el('button', {
+      type: 'button', class: 'b-switch b-switch--flat', 'aria-pressed': String(!!mk.upper), 'data-fk': 'maker-upper',
+      on: { click: (e) => { mk.upper = !mk.upper; e.currentTarget.setAttribute('aria-pressed', String(mk.upper)); draw(); } }
+    }, el('span', { class: 'b-switch__txt' }, el('span', { class: 'b-switch__lbl', text: 'En majuscules' })), el('span', { class: 'b-switch__ui', 'aria-hidden': 'true' }));
+    const use = el('button', {
+      type: 'button', class: 'b-btn b-btn--primary b-btn--sm', 'data-fk': 'maker-use',
+      on: { click: () => {
+        if (!mk.url) { toast('Écrivez d’abord le nom à afficher.', 2400, 'warn'); return; }
+        S.config.store.logo = mk.url;
+        // A text logo already says the name: the logo alone
+        S.config.store.showName = false;
+        mk.open = false;
+        change({ now: true });
+        renderTab({ focus: 'b-f-logo' });
+        toast('Logo créé et ajouté');
+      } }
+    }, icon('i-check'), 'Utiliser ce logo');
+    const det = el('details', { class: 'b-maker', id: 'b-maker', open: mk.open ? '' : null },
+      el('summary', { class: 'b-maker__sum', 'data-fk': 'maker-open' }, icon('i-sparkle'), el('span', { text: 'Pas de logo' + NB + '? Créez-en un simple' }), icon('i-down', 'b-maker__chev')),
+      el('div', { class: 'b-maker__body' },
+        el('div', { class: 'b-field' }, el('div', { class: 'b-label-row' }, el('label', { class: 'b-label', for: 'b-f-maker-text', text: 'Texte du logo' })), input),
+        el('div', { class: 'b-field' }, el('span', { class: 'b-label', text: 'Police' }), fonts),
+        el('div', { class: 'b-field' }, el('span', { class: 'b-label', text: 'Couleur' }), cols),
+        upper, prev, use));
+    det.addEventListener('toggle', () => { mk.open = det.open; if (det.open && !mk.url) draw(); });
+    if (mk.open) draw();
+    return det;
+  }
+  function iconField(b) {
+    const st = S.config.store;
+    const own = !!(D.brand && st.icon && b.iconFrom === 'icon');
+    const pic = (px) => el('span', { class: 'b-fav b-fav--' + px, style: b.iconFrom === 'initial' ? `--fa:${pal().accent || '#111111'};--fo:${pal().onAccent || '#FFFFFF'}` : null },
+      b.icon ? el('img', { src: b.icon, alt: '' }) : el('span', { text: b.initial }));
+    const from = { icon: 'votre icône.', logo: 'votre logo, réduit dans un carré.', initial: b.logo ? `l’initiale de votre boutique, dans votre couleur principale (votre logo est trop large pour un si petit carré${NB}: ${guil('Créer depuis le logo')} en garde le début).` : 'l’initiale de votre boutique, dans votre couleur principale.' }[b.iconFrom];
+    return el('div', { class: 'b-field', role: 'group', 'aria-labelledby': 'b-f-icon-l' },
+      el('div', { class: 'b-label-row' }, el('span', { class: 'b-label', id: 'b-f-icon-l', text: 'Icône de l’onglet' })),
+      el('div', { class: 'b-favrow' },
+        el('span', { class: 'b-favtab', 'aria-hidden': 'true' }, pic(16), el('span', { class: 'b-favtab__name', text: b.name || 'Ma boutique' })),
+        pic(48)),
+      el('div', { class: 'b-img__actions b-img__actions--row' },
+        fileBtn('b-f-icon', own ? 'Changer l’icône' : 'Importer une icône', LOGO_ACCEPT, (f) => readIcon(f).then((url) => { S.brandFocus = 'b-f-icon'; storeSet('icon', url, 'Icône ajoutée'); })),
+        !own && b.logo ? el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'b-f-icon-make',
+          on: { click: () => squareIcon(b.logo, { crop: true }).then((url) => { S.brandFocus = 'b-f-icon-rm'; storeSet('icon', url, 'Icône créée depuis le logo'); }).catch(() => toast('L’icône n’a pas pu être créée.', 3000, 'err')) } }, icon('i-sparkle'), 'Créer depuis le logo') : null,
+        own ? el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'b-f-icon-rm', on: { click: () => { S.brandFocus = 'b-f-icon'; storeSet('icon', null, 'Icône retirée'); } } }, icon('i-trash'), 'Retirer') : null),
+      el('p', { class: 'b-hint', text: `Le petit carré dans l’onglet du navigateur et sur l’écran d’accueil du téléphone. Maintenant${NB}: ${from}` }));
+  }
+  // Does a transparent logo show on the grounds it is drawn on (the header, every page and the checkout;
+  // the footer)? JEERE_DATA.logoTone measures its ink once (async, cached); logoChecks lists the grounds
+  // under 1.6:1. The note shows under the logo chips, inside the En-tête / Pied de page pickers, and
+  // Qualité has the same warning (validate reads the measured tone).
+  function pal() {
+    try { if (D.themeColors) return D.themeColors(S.config).base; } catch (e) { /* older data.js */ }
+    return ((inColl(D.palettes, S.config.theme.palette) ? D.palettes[S.config.theme.palette] : D.palettes[0]) || {}).colors || {};
+  }
+  function logoProblems() { try { return D.logoChecks ? D.logoChecks(S.config) : []; } catch (e) { return []; } }
+  // Measures the logo once; when the answer comes, the open tab is drawn again (notes, Qualité)
+  function watchLogoTone() {
+    const b = brandNow();
+    if (!b.logo || !D.logoTone || (D.logoToneOf && D.logoToneOf(b.logo) !== undefined)) return;
+    D.logoTone(b.logo).then(() => {
+      // nothing to say (the usual case): nothing is drawn again
+      if (!S.open || brandNow().logo !== b.logo || !logoProblems().length) return;
+      if (S.tab !== 'qualite') renderTab();
+      refreshMeta();
+    });
+  }
+  function toneText(list) {
+    const where = list.map((x) => x.label);
+    const light = list[0].light;
+    return `Votre logo se voit mal sur le fond ${where.length > 1 ? where.join(' et ') : where[0]}. Importez une version ${light ? 'foncée' : 'claire'} de votre logo, ou changez ${where.length > 1 ? 'ces couleurs' : 'cette couleur'} dans Thème.`;
+  }
+  // « Votre logo se voit mal… »: under the chips, empty until the logo has been measured
+  function toneNote() {
+    const n = el('div', { class: 'b-lognote b-tone--warn', id: 'b-logo-tone', hidden: '' });
+    const list = logoProblems();
+    if (list.length) {
+      n.append(icon('i-alert'), el('span', { text: toneText(list) }));
+      const keys = list.map((x) => x.key);
+      n.append(el('span', { class: 'b-lognote__acts' }, keys.map((k) => el('button', {
+        type: 'button', class: 'b-btn b-btn--sm b-btn--ghost', 'data-fk': 'logo-ground-' + k.split(':')[1],
+        on: { click: () => { setTab('theme', { top: true }); requestAnimationFrame(() => openColor(k)); } }
+      }, k === 'theme:headerBg' ? 'Couleur de l’en-tête' : 'Couleur du pied de page'))));
+      n.hidden = false;
+    }
+    return n;
+  }
+  // Inside the En-tête / Pied de page ground pickers: the same warning for that ground
+  function logoGroundNote(key) {
+    if (key !== 'theme:headerBg' && key !== 'theme:footerBg') return null;
+    const hit = logoProblems().filter((x) => x.key === key);
+    const n = el('p', { class: 'b-lognote b-tone--warn', 'data-logo-note': key, hidden: hit.length ? null : '' });
+    if (hit.length) n.append(icon('i-alert'), el('span', { text: `Votre logo se voit mal sur ce fond. Choisissez une couleur ${hit[0].light ? 'plus foncée' : 'plus claire'}, ou importez une version ${hit[0].light ? 'foncée' : 'claire'} de votre logo.` }));
+    return n;
+  }
+  function brandGroup() {
+    const b = brandNow();
+    const st = S.config.store;
+    const has = !!b.logo;
+    const dims = has && D.imageSize ? D.imageSize(b.logo) : null;
+    const logoField = el('div', { class: 'b-field', role: 'group', 'aria-labelledby': 'b-f-logo-l' },
+      el('div', { class: 'b-label-row' }, el('span', { class: 'b-label', id: 'b-f-logo-l', text: 'Logo' }),
+        dims ? el('span', { class: 'b-count', text: `${dims.width} × ${dims.height} px` }) : null),
+      logoChips(b),
+      el('div', { class: 'b-img__actions b-img__actions--row' },
+        fileBtn('b-f-logo', has ? 'Changer le logo' : 'Importer mon logo', LOGO_ACCEPT, (f) => readLogo(f).then((url) => {
+          const first = !st.logo;
+          S.brandFocus = 'b-f-logo';
+          st.logo = url;
+          // A first logo shows alone (most logos already say the name)
+          if (first && !Object.prototype.hasOwnProperty.call(st, 'showName')) st.showName = false;
+          change({ now: true });
+          renderTab({ focus: 'b-f-logo' });
+          toast('Logo ajouté');
+        }), has ? 'b-btn--ghost' : 'b-btn--primary'),
+        has ? el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'b-f-logo-rm', on: { click: () => { S.brandFocus = 'b-f-logo'; storeSet('logo', null, 'Logo retiré : le nom de la boutique est affiché'); } } }, icon('i-trash'), 'Retirer') : null),
+      has ? toneNote() : null,
+      el('p', { class: 'b-hint', text: has
+        ? 'Il remplace le nom en haut de chaque page, au paiement et en bas de la boutique.'
+        : `Une image de votre logo, idéalement sur fond transparent${NB}: nous la réduisons et retirons les bords vides.` }));
+
+    const posCur = b.position;
+    const parts = [logoField];
+    if (!has) parts.push(logoMaker());
+    if (has) {
+      const sizes = D.LOGO_SIZE_OPTIONS || [{ value: 'S', label: 'Petit' }, { value: 'M', label: 'Moyen' }, { value: 'L', label: 'Grand' }];
+      parts.push(el('div', { class: 'b-field' }, el('span', { class: 'b-label', id: 'b-f-logo-size-l', text: 'Taille' }),
+        el('div', { 'aria-labelledby': 'b-f-logo-size-l', role: 'group' },
+          segmented(sizes, typeof b.size === 'string' ? b.size : null, (v, l) => storeSet('logoSize', v, `Logo${NB}: ${l.toLowerCase()}`), 'logo-size'))));
+    }
+    const positions = D.LOGO_POSITIONS || [{ value: 'left', label: 'À gauche' }, { value: 'center', label: 'Au centre' }];
+    parts.push(el('div', { class: 'b-field' }, el('span', { class: 'b-label', id: 'b-f-logo-pos-l', text: has ? 'Place du logo' : 'Place du nom' }),
+      el('div', { 'aria-labelledby': 'b-f-logo-pos-l', role: 'group' },
+        segmented(positions, posCur, (v, l) => {
+          const def = D.LOGO_DEFAULT_POSITION && D.LOGO_DEFAULT_POSITION[S.config.template];
+          // The template's own place is no choice to keep: a later template change brings its own
+          storeSet('logoPosition', v === def ? undefined : v, `${has ? 'Logo' : 'Nom'}${NB}: ${l.toLowerCase()}`);
+        }, 'logo-pos')),
+      el('p', { class: 'b-hint', text: 'Dans l’en-tête de votre boutique, sur téléphone et sur ordinateur.' })));
+    if (has) {
+      parts.push(el('div', { class: 'b-switches' }, el('button', {
+        type: 'button', class: 'b-switch', 'aria-pressed': String(!!b.showName), 'data-fk': 'logo-name',
+        on: { click: () => storeSet('showName', !b.showName, b.showName ? 'Le logo seul' : 'Le nom à côté du logo') }
+      }, el('span', { class: 'b-switch__txt' }, el('span', { class: 'b-switch__lbl', text: 'Afficher le nom à côté du logo' }),
+        el('span', { class: 'b-switch__note', text: 'Si votre logo est un dessin, sans le nom écrit dedans.' })),
+      el('span', { class: 'b-switch__ui', 'aria-hidden': 'true' }))));
+    }
+    parts.push(iconField(b));
+    return group('b-g-brand', 'Logo et icône', null, parts);
   }
 
   /* ---------- Boutique tab ---------- */
@@ -1702,6 +2575,8 @@
         el('div', { class: 'b-label-row' }, el('label', { class: 'b-label', for: waId, text: 'Numéro WhatsApp' })),
         wa, waHint),
       textField({ key: 'city', label: 'Ville', type: 'text', max: 40, placeholder: 'Abidjan' }, storeAcc('city'), 'b-f-store-city')));
+
+    tp.append(brandGroup());
 
     const pays = el('div', { class: 'b-switches' });
     D.PAYMENTS.forEach((pm) => {
@@ -1782,7 +2657,10 @@
         el('p', { class: 'b-score__num' }, el('strong', { text: String(v.score) }), el('span', { text: '/100' })),
         el('span', { class: 'b-status b-tone--' + tone + (ok ? ' b-status--ok' : '') }, icon(ok ? 'i-check' : (tone === 'err' ? 'i-x' : 'i-alert'), 'b-status__ico'), v.status)),
       el('div', { class: 'b-meter', role: 'img', 'aria-label': `Score${NB}: ${v.score} sur 100` }, el('i', { style: `width:${v.score}%` })),
-      el('p', { class: 'b-score__text', text: ok ? `Votre fiche est prête${NB}: elle pourrait être publiée telle quelle.` : 'Corrigez les points ci-dessous avant de publier.' })));
+      el('p', { class: 'b-score__text', text: ok ? `Votre fiche est prête${NB}: elle pourrait être publiée telle quelle.`
+        : (v.unreadable && !(v.issues || []).some((i) => i.level === 'error')
+          ? `Presque prête${NB}: ${v.unreadable > 1 ? 'des couleurs se lisent' : 'une couleur se lit'} très mal. Vos clients ne pourraient pas lire votre boutique${NB}: ${guil('Corriger')} choisit une teinte proche qui se lit bien.`
+          : 'Corrigez les points ci-dessous avant de publier.') })));
 
     if (!v.issues.length) {
       tp.append(el('p', { class: 'b-empty b-empty--box', text: 'Rien à signaler. Votre boutique est prête.' }));
@@ -1794,11 +2672,20 @@
       const ul = el('ul', { class: 'b-issues' });
       items.forEach((iss) => {
         const fk = 'iss-' + (k++);
-        ul.append(el('li', null, el('button', { type: 'button', class: 'b-issue b-issue--' + g.level, 'data-fk': fk, on: { click: () => jumpTo(iss.target) } },
-          icon(g.icon, 'b-issue__ico'), el('span', { class: 'b-issue__msg', text: iss.message }), icon('i-arrow', 'b-issue__go'))));
+        const fix = iss.fix && iss.fix.key ? el('button', {
+          type: 'button', class: 'b-btn b-btn--sm b-issue__fix', 'data-fk': fk + '-fix', 'aria-label': `Corriger${NB}: ${iss.message}`,
+          on: { click: () => { colorKeySet(iss.fix.key, iss.fix.value, { now: true }); renderTab({ focus: 'fix-all' }); toast(`Couleur corrigée${NB}: ${iss.fix.value}`, 1800, 'ok'); } }
+        }, icon('i-check'), 'Corriger') : null;
+        ul.append(el('li', { class: fix ? 'has-fix' : null }, el('button', { type: 'button', class: 'b-issue b-issue--' + g.level, 'data-fk': fk, on: { click: () => jumpTo(iss.target) } },
+          icon(g.icon, 'b-issue__ico'), el('span', { class: 'b-issue__msg', text: iss.message }), icon('i-arrow', 'b-issue__go')), fix));
       });
+      const fixes = items.filter((i) => i.fix && i.fix.key).length;
       tp.append(el('section', { class: 'b-issgroup', 'aria-label': g.title },
-        el('h3', { class: 'b-group__title' }, g.title, el('span', { class: 'b-issgroup__n b-tone--' + ISSUE_TONE[g.level], text: String(items.length) })), ul));
+        el('h3', { class: 'b-group__title' }, g.title, el('span', { class: 'b-issgroup__n b-tone--' + ISSUE_TONE[g.level], text: String(items.length) })),
+        fixes ? el('div', { class: 'b-fixall' },
+          el('p', { class: 'b-hint', text: fixes > 1 ? `${fixes} couleurs se lisent mal.` : 'Une couleur se lit mal.' }),
+          el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--sm', 'data-fk': 'fix-all', on: { click: fixAllColors } }, icon('i-check'), fixes > 1 ? 'Corriger tout' : 'Corriger')) : null,
+        ul));
     });
     tp.append(el('p', { class: 'b-foot-note' }, icon('i-info'), el('span', { text: `Cette relecture est faite par du code simple, sans IA${NB}: elle est instantanée et ne coûte rien.` })));
   }
@@ -1817,12 +2704,21 @@
     focusEl(g.querySelector('[aria-pressed="true"]') || g.querySelector('button, input, select') || g);
     pulse(g);
   }
+  // « Logo et icône »: the group in view, the focus on its file button
+  function focusBrand() {
+    const g = document.getElementById('b-g-brand');
+    if (!g) return;
+    g.scrollIntoView({ block: 'start', behavior: scrollBehavior() });
+    focusEl(document.getElementById('b-f-logo') || g);
+    pulse(g);
+  }
   function jumpTo(target) {
     const t = target || { kind: 'store' };
     switch (t.kind) {
       case 'store':
         setTab('boutique');
-        focusField(t.id === 'whatsapp' ? 'b-f-store-whatsapp' : 'b-f-store-name');
+        if (t.id === 'logo') focusBrand();
+        else focusField(t.id === 'whatsapp' ? 'b-f-store-whatsapp' : 'b-f-store-name');
         break;
       case 'payments':
         setTab('boutique');
@@ -1830,11 +2726,14 @@
         break;
       case 'theme':
         setTab('theme');
+        if (t.id === 'colors' && t.key) { openColor('theme:' + t.key); break; }
         focusGroup(t.id && document.getElementById('b-g-theme-' + t.id) ? 'b-g-theme-' + t.id : 'b-g-theme-template');
         break;
       case 'section':
-        if (t.id && findSection(t.id)) selectTarget({ kind: 'section', id: t.id }, { reveal: true });
-        else { setTab('sections'); focusEl(document.getElementById('b-sec-add')); }
+        if (t.id && findSection(t.id)) {
+          selectTarget({ kind: 'section', id: t.id }, { reveal: true });
+          if (t.key) openColor(t.key === 'buttonText' || t.key === 'buttonBg' || t.key === 'fg' ? `section:${t.id}:${t.key}` : `section:${t.id}:bg`);
+        } else { setTab('sections'); focusEl(document.getElementById('b-sec-add')); }
         break;
       case 'product':
         if (t.id && findProduct(t.id)) selectTarget({ kind: 'product', id: t.id }, { reveal: true });
@@ -1857,6 +2756,11 @@
     if (!t) return;
     S.reorder.sections = false;
     S.reorder.produits = false;
+    if (t.kind === 'brand') {
+      setTab('boutique');
+      focusBrand();
+      return;
+    }
     if (t.kind === 'product') {
       if (!findProduct(t.id)) return;
       S.openProduct = t.id;
@@ -1909,7 +2813,36 @@
       const t = S.pendingReveal;
       S.pendingReveal = null;
       requestAnimationFrame(() => revealInPreview(t));
+    } else if (v === 'preview' && S.openColor && (S.tab === 'theme' || S.tab === 'sections')) {
+      // « Aperçu » with a colour open: the part it colours, in view and outlined (the footer is screens away)
+      const key = S.openColor;
+      requestAnimationFrame(() => revealColorPart(key));
     }
+  }
+  // The part of the store a colour key paints: { node, label } in the preview, or null (the page itself)
+  function colorPart(key) {
+    if (!els.store) return null;
+    const p = String(key).split(':');
+    if (p[0] === 'section') { const n = findPreviewNode({ kind: 'section', id: p[1] }); return n ? { node: n, label: labelFor({ kind: 'section', id: p[1] }) } : null; }
+    const k = p[1];
+    const q = (sel) => els.store.querySelector(sel);
+    const z = zoneOfKey(k);
+    if (z === 'announcement') { const n = q('.jst-sec--announcement'); return n ? { node: n, label: 'Bandeau d’annonce' } : null; }
+    if (z === 'header') { const n = q('.jst-header'); return n ? { node: n, label: 'En-tête' } : null; }
+    if (z === 'footer') { const n = q('.jst-footer'); return n ? { node: n, label: 'Pied de page' } : null; }
+    if (z === 'badge') { const b = q('.jst-badge'); const n = b && (b.closest('[data-product-id]') || b); return n ? { node: n, label: 'Badges et promos' } : null; }
+    if (k === 'accent' || k === 'onAccent') { const b = q('.jst-main .jst-btn, .jst-sec .jst-btn, .jst-btn'); const n = b && (b.closest('[data-section-id]') || b); return n ? { node: n, label: 'Couleur principale' } : null; }
+    return null;
+  }
+  function revealColorPart(key) {
+    if (!previewVisible()) return;
+    if (S.previewDirty) renderPreviewNow();
+    // a part that is on the home page only (the bar, the badges of the product grid): show the home page
+    let part = colorPart(key);
+    if (!part && S.page !== 'home') { showPage('home'); part = colorPart(key); }
+    if (!part) return;
+    scrollPreviewTo(part.node);
+    flashNode(part.node, part.label);
   }
   function updateViewButtons() {
     els.viewBtns.forEach((b) => {
@@ -1921,7 +2854,8 @@
   function showPick(t) {
     S.pick = t;
     let label;
-    if (t.kind === 'product') {
+    if (t.kind === 'brand') label = 'Modifier le logo';
+    else if (t.kind === 'product') {
       const p = findProduct(t.id);
       label = `Modifier ${guil(shorten(p ? p.name : 'le produit', 26))}`;
     } else {
@@ -2111,17 +3045,25 @@
     if (/ajouté|appliqué|copiée|téléchargée|affichée|retirée|Supprimé|supprimée|à votre nom|enregistr/i.test(m)) return 'ok';
     return '';
   }
-  function toast(msg, ms = 2800, tone) {
+  // action: { label, run } adds a button to the toast (« Annuler » after a palette replaced her colours)
+  function toast(msg, ms = 2800, tone, action) {
     const t = els.toast;
     if (!t) return;
     const tn = ['ok', 'warn', 'err', 'info'].indexOf(tone) >= 0 ? tone : toastTone(msg);
     if (tn) t.setAttribute('data-tone', tn); else t.removeAttribute('data-tone');
     clearTimeout(S.timers.toast);
     clearTimeout(S.timers.toastClear);
-    t.classList.remove('is-on');
+    t.classList.remove('is-on', 'has-action');
     t.textContent = '';
     requestAnimationFrame(() => {
       t.textContent = msg;
+      if (action && action.label && typeof action.run === 'function') {
+        t.classList.add('has-action');
+        t.append(el('button', {
+          type: 'button', class: 'b-toast__act', 'data-fk': 'toast-act',
+          on: { click: () => { clearTimeout(S.timers.toast); t.classList.remove('is-on', 'has-action'); action.run(); } }
+        }, action.label));
+      }
       t.classList.add('is-on');
       S.timers.toast = setTimeout(() => {
         t.classList.remove('is-on');
@@ -2270,6 +3212,7 @@
       const pg = findCustomPage(o.pageId) || customPages()[0] || null;
       if (pg) { S.page = 'page'; S.pageId = pg.id; tab = 'boutique'; focus = 'pg-' + pg.id; }
     } else S.page = want;
+    if (o.focus === 'logo') tab = 'boutique';
     S.pagesSig = null;
     syncPagePicks();
     S.previewDirty = true;
@@ -2294,6 +3237,7 @@
     // except for « Voir la boutique » (view 'preview'): the storefront alone
     setStoreView(!isMobile() && o.view === 'preview');
     if (S.storeView) focusEl(els.storeEdit);
+    else if (o.focus === 'logo') focusBrand();
     else if (isMobile() && (o.view === 'preview' || (o.view !== 'edit' && S.page !== 'home'))) { setView('preview'); window.scrollTo(0, 0); focusEl(els.viewBtns[1]); }
     else if (focus && document.querySelector(`[data-fk="${CSS.escape(focus)}"]`)) {
       const n = document.querySelector(`[data-fk="${CSS.escape(focus)}"]`);
@@ -2301,7 +3245,7 @@
     } else focusEl(els.tabBtns[TABS.indexOf(tab)] || els.tabBtns[0]);
     // The tour starts on a first use (a template, the assistant, « Reprendre », « Personnaliser » in the dashboard),
     // not when the dashboard sent her to a precise place (a product, one of her pages, « Voir la boutique »)
-    const deep = (typeof o.page === 'string' && o.page !== 'home') || o.productId || o.pageId || o.view;
+    const deep = (typeof o.page === 'string' && o.page !== 'home') || o.productId || o.pageId || o.view || o.focus;
     const restored = o.replace && o.page === undefined; // back to the editor with the Back button: not a first use
     if (!deep && !restored) maybeAutoTour();
   }
@@ -2351,7 +3295,7 @@
         text: `Il donne l’allure de votre boutique. Changez-en quand vous voulez, dans Thème${NB}: vos textes et vos produits restent.`,
         prepare: () => tourTab('theme') },
       { target: '#b-g-theme-palette', title: 'Vos couleurs',
-        text: `Choisissez une palette${NB}: un fond et une couleur forte pour les boutons. L’aperçu change tout de suite.`,
+        text: `Choisissez une palette${NB}: un fond et une couleur principale pour les boutons. L’aperçu change tout de suite.`,
         prepare: () => tourTab('theme') },
       { target: '#b-g-theme-intensity', title: 'Vives ou Douces',
         text: `Vives${NB}: votre couleur habille toute la boutique. Douces${NB}: des fonds clairs, la couleur en touches.`,
@@ -2430,7 +3374,7 @@
       panelScroll: $('b-panel-scroll'), tablist: document.querySelector('.b-tabs'),
       tabBtns: Array.from(document.querySelectorAll('.b-tab')), tabScore: $('b-tab-score'),
       stage: $('b-stage'), stageBar: document.querySelector('.b-stage__bar'), stageHint: $('b-stage-hint'), stageInner: $('b-stage-inner'),
-      dwrap: $('b-dwrap'), device: $('b-device'), screen: $('b-screen'), store: $('b-store'), url: $('b-device-url'),
+      dwrap: $('b-dwrap'), device: $('b-device'), screen: $('b-screen'), store: $('b-store'), url: $('b-device-url'), fav: $('b-device-fav'),
       hlHover: $('b-hl-hover'), hlFlash: $('b-hl-flash'),
       pick: $('b-pick'), pickBtn: $('b-pick-btn'), pickLabel: $('b-pick-label'), pickClose: $('b-pick-close'),
       mnav: document.querySelector('.b-mnav'), viewBtns: Array.from(document.querySelectorAll('.b-mnav__btn')),
@@ -2495,10 +3439,20 @@
     // anywhere else in a section or a product opens it in the panel. Links never leave the preview.
     els.screen.addEventListener('click', (e) => {
       if (!(e.target instanceof Element)) return;
+      // The store's logo leads home; on the home page itself a click on it edits the logo instead
+      if (logoOnHome(e.target) && !(S.storeView && !isMobile())) {
+        e.preventDefault();
+        e.stopPropagation();
+        const hd = e.target.closest('.jst-header');
+        if (isMobile()) { showPick({ kind: 'brand' }); return; }
+        flashNode(hd, labelFor({ kind: 'brand' }));
+        selectTarget({ kind: 'brand' });
+        return;
+      }
       if (storeControl(e.target)) return;
       if (e.target.closest('a, button, form, summary')) e.preventDefault();
       if (S.storeView && !isMobile()) return;
-      const node = e.target.closest('[data-product-id], [data-section-id]');
+      const node = e.target.closest('[data-product-id], [data-section-id], .jst-header');
       const t = targetOf(node);
       if (!t) return;
       if (isMobile()) { showPick(t); return; }
@@ -2509,7 +3463,7 @@
     els.screen.addEventListener('mousemove', (e) => {
       if (!mqHover.matches || isMobile() || S.storeView || !(e.target instanceof Element)) return;
       // The outline shows what a click edits: none over the store's own buttons and fields
-      const node = storeControl(e.target) ? null : e.target.closest('[data-product-id], [data-section-id]');
+      const node = logoOnHome(e.target) ? e.target.closest('.jst-header') : (storeControl(e.target) ? null : e.target.closest('[data-product-id], [data-section-id], .jst-header'));
       if (node === S.hoverNode) return;
       S.hoverNode = node;
       if (!node) { els.hlHover.classList.remove('is-on'); return; }
@@ -2650,7 +3604,7 @@
     if (!ins) return false;
     const cfg = S.open && S.config ? S.config : readSaved();
     if (!cfg) return false;
-    openEditor(cfg, { page: ins.page, pageId: ins.pageId, productId: ins.productId, view: ins.view, replace: true });
+    openEditor(cfg, { page: ins.page, pageId: ins.pageId, productId: ins.productId, view: ins.view, focus: ins.focus, replace: true });
     return true;
   }
 

@@ -750,6 +750,44 @@
     return i >= 0 ? raw.substr(i, w.length) : w;
   }
 
+  // « mets les boutons en rose », « le texte en bleu marine », « l’en-tête en noir », « fond rose »: a colour
+  // for one part of the store (theme.colors), on top of the palette. Pure, on norm() text. Returns
+  // { colors: { key: '#RRGGBB' } | null, rest: the text without the phrases (so « boutons en rose »
+  // does not also pick the pink palette) }. « fond » keeps its words for the palette too: « fond noir »
+  // still picks Nuit (its own dark set), and black or white grounds are left to the palette.
+  const PART_COLOR_HEX = [
+    ['bleu marine|bleu nuit|marine', '#0C1342', '#E8EAF6'], ['bleu ciel|bleu clair', '#7DD3FC', '#E6F6FF'], ['turquoises?', '#00BFCB', '#E0FAFB'],
+    ['bleus?|bleues?', '#3657FF', '#EAF0FF'], ['vert fluo|vert citron|citron vert', '#CCFF33', '#F4FFD6'], ['verts?|vertes?', '#14C46C', '#E6FAEF'],
+    ['roses?|fuchsia', '#DE0F7B', '#FFE4F1'], ['rouges?', '#E63946', '#FDE8E9'], ['bordeaux', '#7A1F2B', '#F8E7E9'], ['oranges?', '#FF7A1A', '#FFF0E3'],
+    ['jaunes?', '#FFE03D', '#FFF9D6'], ['dorees?|dores?|or', '#C9A227', '#FBF5E1'], ['violets?|violettes?|mauves?', '#8E44EF', '#F1E8FD'],
+    ['marrons?|bruns?|brunes?|chocolat', '#5A2D0C', '#F5EBDD'], ['beiges?|cremes?', '#E8D5B5', '#F7F0E4'],
+    ['noirs?|noires?', '#111111', null], ['blancs?|blanches?', '#FFFFFF', null], ['gris|grises?', '#6B6B6B', '#F0F0F0']
+  ];
+  const PART_WORDS = [
+    ['accent', 'boutons?|couleur principale|couleur forte'], ['text', 'textes?|ecritures?'], ['headerBg', 'en tete|entete|en-tete'],
+    ['footerBg', 'pied de page|pieds de page'], ['announcementBg', 'bandeau|bandeau d\'annonce'], ['badgeBg', 'badges?|etiquettes? promo'],
+    ['bg', 'fond|fond de (?:la )?page|arriere plan']
+  ];
+  const PART_RES = PART_WORDS.map((p) => [p[0], new RegExp('(?:^|\\s)(?:l\')?(?:' + p[1] + ')(?:\\s+(?:du site|de la boutique|de la page))?\\s+(?:(?:en|de couleur|couleur|tout en|plutot)\\s+)?(' +
+    PART_COLOR_HEX.map((c) => c[0]).join('|') + ')(?:\\s+(?:fonce|foncee|clair|claire|pastel|vif|vive))?(?=\\s|$)', 'g')]);
+  // « mets les boutons en rose », « je veux l’en-tête en noir », « change le fond en rose » (on norm() text)
+  const COLOR_VERB_RE = /(?:^|\s)(?:mets|met|mettez|mettre|je veux|je voudrais|j aimerais|j'aimerais|veux|voudrais|change|changez|changer|fais|faites|peins|colore|colorie|passe|passez)(?=\s|$)/;
+  function colorRequests(t) {
+    const out = {};
+    let rest = String(t || '');
+    PART_RES.forEach((pr) => {
+      const key = pr[0];
+      rest = rest.replace(pr[1], (m, word) => {
+        const c = PART_COLOR_HEX.find((x) => new RegExp('^(?:' + x[0] + ')$').test(word));
+        if (!c) return m;
+        if (key === 'bg') { if (c[2]) out.bg = c[2]; return m; }
+        out[key] = c[1];
+        return ' ';
+      });
+    });
+    return { colors: Object.keys(out).length ? out : null, rest: rest.replace(/\s+/g, ' ').trim() };
+  }
+
   function understandInner(text, stepIn, ctx) {
     const step = normStep(stepIn);
     const raw = String(text == null ? '' : text).replace(/\s+/g, ' ').trim().slice(0, 400);
@@ -817,8 +855,15 @@
     }
     if (sd.excluded.length) res.info.excludedTemplates = sd.excluded;
 
-    // 5. colours
-    const pd = t ? detectPalette(t, step === 'palette' || summary, step === 'palette', ctx) : { value: undefined, excluded: [] };
+    // 5. colours (a part named with its colour first: « les boutons en rose »). Read where the seller talks
+    // about colours (the palette question), or when she asks for it (« mets… », « je veux… »). Never in the
+    // answer about what she sells, nor her name: « je vends des boutons rouges », « un bandeau rouge pour
+    // les cheveux » and « des badges noirs » are products there, not parts of the store.
+    const askColor = step === 'palette' || (step !== 'niche' && step !== 'name' && !sales && (COLOR_VERB_RE.test(t) || (summary && !nd.value)));
+    const cr = t && askColor ? colorRequests(t) : { colors: null, rest: t };
+    if (cr.colors) { res.values.colors = cr.colors; res.info.colors = cr.colors; }
+    const pt = cr.colors ? cr.rest : t;
+    const pd = pt ? detectPalette(pt, step === 'palette' || summary, step === 'palette', ctx) : { value: undefined, excluded: [] };
     if (pd.value !== undefined && !(pd.auto && step !== 'palette')) {
       res.values.palette = pd.value;
       res.explicit.palette = correction || PALETTE_FIELD_RE.test(t) || summary || step === 'palette';
@@ -878,6 +923,10 @@
           res.value = res.values.palette;
           res.confidence = pd.auto ? 0.7 : (pd.mood ? 0.6 : 0.9);
           if (pd.auto) res.intent = 'auto';
+        } else if (res.values.colors && !helpFirst) {
+          // « les boutons en rose » alone: the recommended palette, with pink buttons
+          res.value = null;
+          res.confidence = 0.8;
         }
         break;
       case 'needs':
@@ -963,6 +1012,13 @@
     cfg.store.whatsapp = d.normalizeWhatsapp(typeof a.whatsapp === 'string' ? a.whatsapp : '');
     cfg.store.tagline = local(cfg.store.tagline, 80);
     cfg.theme.palette = known(d.palettes, a.palette) ? a.palette : niche.palette;
+    // « les boutons en rose »: theme.colors (normalizeConfig keeps the known keys); none when not asked
+    if (isObj(a.colors)) {
+      const pc = d.palettes[cfg.theme.palette].colors;
+      const own = {};
+      Object.keys(a.colors).forEach((k) => { const h = typeof a.colors[k] === 'string' ? a.colors[k].toUpperCase() : null; if (h && /^#[0-9A-F]{6}$/.test(h) && h !== String(pc[k] || '').toUpperCase()) own[k] = h; });
+      if (Object.keys(own).length) cfg.theme.colors = own;
+    }
     // Vivid colours: the seller's colour carries the whole store (the founder found the soft look pale)
     cfg.theme.intensity = 'vivid';
     cfg.payments.cod = needs.cod;
@@ -1229,9 +1285,18 @@
     return before;
   }
 
+  // « les boutons en rose »: kept in the answers (answers.colors), said back in a short note
+  const PART_LABEL = { accent: 'les boutons', text: 'le texte', headerBg: 'l’en-tête', footerBg: 'le pied de page', announcementBg: 'le bandeau', badgeBg: 'les badges', bg: 'le fond' };
+  function partColorsNote(colors) {
+    S.answers.colors = Object.assign({}, isObj(S.answers.colors) ? S.answers.colors : {}, colors);
+    const parts = Object.keys(colors).map((k) => PART_LABEL[k]).filter(Boolean);
+    return 'Je note aussi ' + (parts.length > 1 ? parts.slice(0, -1).join(', ') + ' et ' + parts[parts.length - 1] : parts[0]) + ' à votre couleur. Vous pourrez tout ajuster dans Thème › Personnaliser les couleurs.';
+  }
+
   // Values for the other questions: corrections of earlier answers, or answers given ahead of time
   function applyOthers(u, step, notes) {
     let any = false;
+    if (step !== 'palette' && u.values && u.values.colors) { notes.push(partColorsNote(u.values.colors)); any = true; }
     ['name', 'niche', 'template', 'palette', 'needs', 'city', 'whatsapp'].forEach((f) => {
       if (fieldStep(f) === step || u.values[f] === undefined) return;
       const filled = step === 'summary' || (f === 'city' ? (isFilled('contact') || !!S.contactCity) : f === 'whatsapp' ? (isFilled('contact') || !!S.contactPhone) : isFilled(f));
@@ -1333,6 +1398,7 @@
       case 'palette': {
         A.palette = u.value === undefined ? null : u.value; S.filled.palette = true;
         out.push(paletteNote('answer', u.info.colorWord));
+        if (u.values && u.values.colors) out.push(partColorsNote(u.values.colors));
         return true;
       }
       case 'needs': {
@@ -2162,7 +2228,7 @@
 
   function reset() { resetState(); }
 
-  root.JeereWizard = { open: open, close: () => close(), reset: reset, understand: understand, generate: generate, STEPS: STEPS.slice() };
+  root.JeereWizard = { open: open, close: () => close(), reset: reset, understand: understand, generate: generate, colorRequests: colorRequests, STEPS: STEPS.slice() };
 
   // A link to …/creer/#assistant opens the assistant directly
   if (typeof document !== 'undefined' && document.addEventListener) {
