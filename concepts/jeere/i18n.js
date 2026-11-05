@@ -36,7 +36,7 @@ window.JEERE_EN = {
   'bt.cta': 'Create my online store now',
   'bt.replay': 'Watch again',
   'bt.credit': 'Photo',
-  'bt.shop.open': 'Open · delivery anywhere in Abidjan', 'bt.shop.h1': 'Handmade,', 'bt.shop.h2': 'new this week',
+  'bt.shop.h1': 'Handmade,', 'bt.shop.h2': 'new this week',
   'bt.shop.c1': 'All', 'bt.shop.c2': 'Jewellery', 'bt.shop.c3': 'Basketry', 'bt.shop.c4': 'Cloth', 'bt.shop.c5': 'Decor',
   'bt.shop.p1': 'Hammered hoops', 'bt.shop.d1': 'Gold-tone brass', 'bt.shop.p2': 'Bead bracelets', 'bt.shop.d2': 'Wood and stone, set of 3',
   'bt.shop.p3': 'Korhogo clutch', 'bt.shop.d3': 'Hand-painted cloth', 'bt.shop.p4': 'Raffia basket', 'bt.shop.d4': 'Woven by hand',
