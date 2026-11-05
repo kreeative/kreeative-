@@ -389,6 +389,15 @@
   Array.prototype.forEach.call(stage.querySelectorAll('.bt__track'), function (t) {
     Array.prototype.slice.call(t.children).forEach(function (c) { t.appendChild(c.cloneNode(true)); });
   });
+  // Only the objects go over the window's edges: a copy of the row on top, wider than the window, shows just them
+  Array.prototype.forEach.call(stage.querySelectorAll('.bt__row'), function (row) {
+    var rail = row.querySelector('.bt__rail');
+    if (!rail) return;
+    var ov = rail.cloneNode(true);
+    ov.classList.add('bt__rail--objects');
+    row.appendChild(ov);
+    row.classList.add('has-objects');
+  });
   // The black that rises over the photo while the drawing grows (transparent until then)
   cover = document.createElement('div');
   cover.className = 'bt__cover';
