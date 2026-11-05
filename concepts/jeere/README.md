@@ -189,9 +189,8 @@ Unsplash, also credited in `creer/img/demo/CREDITS.md`), referenced from here wi
 The stall in the hero is its own file, `img/boutique.webp` (1080×1350, portrait) and `img/boutique-720.webp` (720×900,
 up to 599 px wide through `<picture>`), loaded eagerly (it is the page's first paint). It is shown as a rounded card in
 the same box as the online store that replaces it (the right-hand column from 1280 px, the stage below). Photo by Tuke
-(@prince_edja on Instagram), credited on the photo with a link to his post. **Temporary file**: it was made from a
-399×501 copy, upscaled, so it is soft; replace both files with the 1080×1350 original (same framing, so `LINES` stays
-valid).
+(@prince_edja on Instagram), credited on the photo (an Instagram icon and @prince_edja) with a link to his post.
+Made from a 1179×1466 copy, cropped to the framing `LINES` was traced on (x 2–1168, y 2–1466) and resized.
 
 | File | Size | Photographer | Photo |
 | --- | --- | --- | --- |
