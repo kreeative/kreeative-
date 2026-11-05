@@ -4004,3 +4004,14 @@
     isInlineEditing: function () { return !!inlineEdit; }
   };
 })();
+
+/* Ctrl/⌘ + Alt + P: back to the simple editor on the same fiche (the shortcut that opens the Studio from it).
+   The Studio saves the fiche as it goes; e.code, so it works on AZERTY too. */
+(function () {
+  'use strict';
+  document.addEventListener('keydown', function (e) {
+    if (!(e.ctrlKey || e.metaKey) || !e.altKey || e.shiftKey || e.code !== 'KeyP') return;
+    e.preventDefault();
+    window.location.href = '../creer/';
+  });
+})();

@@ -4313,6 +4313,12 @@
       return;
     }
     if (!S.open) return;
+    // Ctrl/⌘ + Alt + P: the same fiche in the Studio Pro (laptop and iPad); e.code, so it works on AZERTY too
+    if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === 'KeyP') {
+      const pro = document.getElementById('b-pro-link');
+      if (pro && getComputedStyle(pro).display !== 'none') { e.preventDefault(); flush(); window.location.href = pro.href; }
+      return;
+    }
     if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
     const k = String(e.key || '').toLowerCase();
     if (k !== 'z' && k !== 'y') return;
