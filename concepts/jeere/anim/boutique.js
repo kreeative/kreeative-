@@ -1,129 +1,98 @@
-/* Jeere — « De l’idée à la boutique ».
-   On black, brush strokes in the logo's hand draw a real boutique: every line is a bundle of 2 to 5 opaque,
-   equal strands about two widths apart that drift and sometimes cross, with a comb of loose strands ending in
-   round drops where the brush lifts (like the cloud and the « jeere » wordmark). Then the drawing becomes the
-   photo: the strands turn into windows onto it, the seller and then the rest of the room are painted in with
-   wide bristly strokes, and the black lifts off the photo. « jeere » is written in the copy as the drawing ends.
-   No library: this script builds the strokes (seeded, so they are the same on every visit) in idle time before
-   the section arrives, and switches classes; the CSS transitions in style.css (« Idea to store ») do the motion.
-   Without JS, or with reduced motion, nothing here runs and the section simply shows the photo. */
+/* Jeere — « Votre boutique physique, maintenant en ligne ».
+   The real boutique is there first (the photo). Brush strokes in the logo's hand trace it, line by line: every
+   line is a bundle of 2 to 5 opaque, equal strands that drift and sometimes cross, with a comb of loose strands
+   ending in round drops where the brush lifts (like the cloud and the « jeere » wordmark). As the drawing grows
+   the photo sinks into black, until only the drawing is left. Then a burst, and the same boutique comes back
+   online, in colour: a store window whose products scroll, with pieces that break out of its frame.
+   No library: this script builds the strokes (seeded, so they are the same on every visit) in idle time and
+   switches classes; the CSS transitions in style.css (« Physical to online ») do the motion.
+   Without JS the section shows the photo; with reduced motion it shows the store over the dimmed photo, still. */
 (function () {
   'use strict';
 
   var sec = document.querySelector('[data-bt]');
-  if (!sec || !('IntersectionObserver' in window)) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
+  if (!sec) return;
   var stage = sec.querySelector('[data-bt-stage]');
+  if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    stage.classList.add('is-static');   // the end of the story, without the motion
+    return;
+  }
   var frame = sec.querySelector('[data-bt-frame]');
   var img = stage.querySelector('img');
   var replay = sec.querySelector('[data-bt-replay]');
   var NS = 'http://www.w3.org/2000/svg';
   var W = 1920, H = 1080;          // the drawing lives in the photo's own pixels
-  var FACE = [935, 420];           // the photo is painted in from her face outwards
 
-  /* ---------- The boutique, traced on the photo (img/boutique.webp, 1920×1080) ----------
+  /* ---------- The stall, traced on the photo (img/boutique.webp, 1920×1080) ----------
+     A basket weaver at her stall: the big round basket on her knees, her, the raffia straws, the pots and the cloths.
      p: points of one line (x, y, x, y…), smoothed into curves. e: an ellipse (cx, cy, rx, ry), drawn as loose
-     loops. row: a row of products standing on a shelf edge (x0, y0, x1, y1, min height, max height).
-     t: start (s), d: duration (s), w: weight (how many strands), n: strands, lin: straight segments,
-     fill: a solid drop (her eyes, like the cloud's; not part of the reveal).
+     loops. t: start (s), d: duration (s), w: weight (how many strands), n: strands, lin: straight segments,
+     fill: a solid drop (her eyes, like the cloud's).
      Order = the order a hand would draw it. */
   var LINES = [
-    // 1. The room: ceiling line, the uprights, the counter
-    { p: [790, 268, 1080, 262, 1400, 262, 1700, 266], t: 0, d: .8, w: 1.25, n: 4 },
-    { p: [455, 68, 600, 166, 712, 246, 790, 268], t: .12, d: .55, w: 1.1, n: 3 },
-    { p: [1700, 266, 1762, 226, 1836, 180], t: .45, d: .4, w: 1, n: 3 },
-    { p: [421, 0, 419, 340, 417, 700], t: .05, d: .7, w: 1.35, n: 4 },
-    { p: [446, 0, 445, 350, 443, 705], t: .15, d: .7, w: .9, n: 2 },
-    { p: [1834, 186, 1838, 440, 1841, 700], t: .2, d: .65, w: 1.2, n: 4 },
-    { p: [1880, 196, 1884, 450, 1887, 706], t: .32, d: .6, w: .9, n: 2 },
-    { p: [520, 942, 900, 946, 1300, 938, 1920, 946], t: .3, d: .95, w: 1.6, n: 5 },
-    { p: [1118, 948, 1114, 1080], t: 1, d: .3, w: .8, n: 2 },
+    // 1. The basket on her knees: its rim and the coils of the weave
+    { e: [1030, 900, 250, 220], t: 0, d: .9, w: 1.5, n: 4 },
+    { e: [1030, 905, 172, 150], t: .35, d: .6, w: .9, n: 2 },
+    { e: [1030, 910, 95, 82], t: .55, d: .45, w: .8, n: 2 },
+    { e: [1030, 912, 32, 28], t: .7, d: .3, w: .7, n: 2 },
 
-    // 2. Shelves: the back wall grid, the left wall, the right wall
-    { p: [1040, 360, 1350, 359, 1662, 362], t: .6, d: .6, w: 1.2, n: 3 },
-    { p: [1044, 498, 1350, 497, 1660, 501], t: .75, d: .6, w: 1, n: 3 },
-    { p: [1240, 644, 1450, 645, 1660, 649], t: .9, d: .5, w: 1, n: 3 },
-    { p: [1250, 780, 1500, 782], t: 1.02, d: .35, w: .9, n: 2 },
-    { p: [1075, 362, 1076, 540], t: .85, d: .3, w: .9, n: 2 },
-    { p: [1213, 362, 1214, 600, 1215, 790], t: .9, d: .4, w: 1, n: 3 },
-    { p: [1363, 362, 1364, 600, 1365, 792], t: .96, d: .4, w: 1, n: 3 },
-    { p: [1508, 362, 1509, 600, 1510, 792], t: 1.02, d: .4, w: 1, n: 3 },
-    { p: [1656, 362, 1657, 520, 1657, 662], t: 1.08, d: .35, w: .9, n: 2 },
-    { p: [1656, 358, 1730, 325, 1806, 292], t: 1.15, d: .3, w: .9, n: 2 },
-    { p: [1656, 506, 1730, 494, 1806, 482], t: 1.2, d: .3, w: .9, n: 2 },
-    { p: [1656, 650, 1806, 652], t: 1.25, d: .3, w: .9, n: 2 },
-    { p: [1806, 292, 1808, 480, 1810, 680], t: 1.1, d: .4, w: 1, n: 3 },
-    { p: [200, 64, 330, 106, 440, 150], t: .5, d: .4, w: .9, n: 2 },
-    { p: [0, 150, 210, 205, 420, 262], t: .55, d: .5, w: 1.1, n: 3 },
-    { p: [18, 322, 220, 362, 420, 402], t: .68, d: .5, w: 1.1, n: 3 },
-    { p: [18, 452, 220, 476, 420, 498], t: .8, d: .5, w: 1.1, n: 3 },
-    { p: [0, 594, 210, 606, 420, 616], t: .92, d: .5, w: 1.1, n: 3 },
-    { p: [572, 196, 571, 420, 570, 626], t: .8, d: .45, w: .9, n: 2 },
-    { p: [712, 250, 711, 450, 710, 662], t: .9, d: .45, w: .9, n: 2 },
-    { p: [450, 382, 575, 402, 710, 428], t: 1, d: .4, w: .9, n: 2 },
-    { p: [448, 620, 575, 617, 708, 614], t: 1.1, d: .4, w: .9, n: 2 },
+    // 2. Her: the headscarf and its tail down her back, the face, the dress, the arms, the hands
+    { p: [1150, 300, 1158, 232, 1190, 172, 1250, 133, 1310, 160, 1366, 230, 1430, 300, 1500, 380, 1548, 480, 1570, 600, 1580, 720, 1592, 830], t: .3, d: .8, w: 1.4, n: 4 },
+    { p: [1592, 830, 1572, 930, 1556, 1010, 1550, 1080], t: 1.05, d: .3, w: 1.1, n: 3 },
+    { p: [1150, 300, 1250, 318, 1367, 342], t: .55, d: .35, w: 1, n: 3 },
+    { p: [1152, 335, 1154, 400, 1174, 452, 1225, 492, 1276, 484, 1326, 442, 1352, 380, 1365, 345], t: .7, d: .55, w: 1.2, n: 3 },
+    { e: [1182, 376, 9, 6], fill: 1, t: 1.15, d: .2 },
+    { e: [1268, 372, 9, 6], fill: 1, t: 1.2, d: .2 },
+    { p: [1207, 452, 1228, 462, 1250, 456], t: 1.25, d: .2, w: .7, n: 2 },
+    { p: [1150, 494, 1100, 466, 1062, 476, 1033, 517, 1017, 567, 1010, 600], t: .9, d: .45, w: 1.1, n: 3 },
+    { p: [1258, 500, 1300, 500, 1350, 474, 1400, 470], t: 1, d: .35, w: .9, n: 2 },
+    { p: [1150, 683, 1220, 730, 1310, 800, 1410, 875, 1490, 930], t: 1.15, d: .45, w: 1.2, n: 3 },
+    { p: [1158, 700, 1250, 790, 1350, 880, 1430, 930, 1500, 952], t: 1.2, d: .4, w: .9, n: 2 },
+    { p: [1158, 658, 1215, 668, 1275, 683], t: 1.3, d: .25, w: .8, n: 2 },
+    { p: [1475, 767, 1530, 790, 1592, 833], t: 1.3, d: .3, w: .9, n: 2 },
+    { p: [1267, 850, 1300, 900, 1333, 935, 1380, 1000, 1420, 1080], t: 1.4, d: .35, w: 1, n: 2 },
+    { p: [948, 616, 975, 640, 1000, 676, 1010, 700], t: 1.35, d: .3, w: .9, n: 2 },
+    { p: [1008, 583, 1060, 596, 1108, 600, 1150, 633, 1140, 690], t: 1.4, d: .35, w: .9, n: 2 },
+    { p: [1030, 640, 1060, 670, 1090, 700], t: 1.5, d: .2, w: .7, n: 2 },
 
-    // 3. The seller: hair and head, jaw, eyes (two solid drops, nothing else on her face), earrings, braids,
-    //    T-shirt, arms on the counter
-    { p: [846, 430, 842, 360, 872, 306, 938, 284, 1000, 296, 1030, 336, 1036, 400, 1032, 448], t: 1.4, d: .7, w: 1.3, n: 4 },
-    { p: [860, 392, 860, 462, 884, 512, 930, 532, 978, 520, 1010, 478, 1018, 410], t: 1.6, d: .6, w: 1.05, n: 3 },
-    { e: [891, 403, 8, 10], fill: 1, t: 1.95, d: .2 },
-    { e: [971, 403, 8, 10], fill: 1, t: 2, d: .2 },
-    { e: [840, 505, 30, 40], t: 1.85, d: .35, w: .8, n: 2 },
-    { e: [1024, 505, 19, 38], t: 1.9, d: .35, w: .8, n: 2 },
-    { p: [852, 450, 842, 560, 815, 662, 792, 760], t: 1.95, d: .5, w: .9, n: 3 },
-    { p: [872, 480, 868, 580, 852, 680, 830, 752], t: 2, d: .5, w: .8, n: 2 },
-    { p: [1030, 452, 1036, 560, 1030, 650, 1010, 716], t: 2, d: .45, w: .9, n: 3 },
-    { p: [1012, 482, 1012, 580, 1002, 690], t: 2.05, d: .4, w: .8, n: 2 },
-    { p: [884, 548, 930, 598, 986, 560], t: 2.1, d: .35, w: .9, n: 2 },
-    { p: [880, 544, 800, 548, 736, 562, 700, 600, 675, 660, 658, 712, 710, 736, 768, 752], t: 2.1, d: .6, w: 1.2, n: 3 },
-    { p: [988, 544, 1080, 550, 1140, 576, 1186, 630, 1215, 682, 1236, 728, 1186, 756, 1132, 770], t: 2.15, d: .6, w: 1.2, n: 3 },
-    { p: [768, 752, 774, 810, 780, 862], t: 2.5, d: .3, w: .9, n: 2 },
-    { p: [1236, 728, 1255, 800, 1262, 860, 1255, 916, 1150, 944, 1000, 948, 900, 940], t: 2.4, d: .6, w: 1.2, n: 3 },
-    { p: [1132, 770, 1140, 820, 1060, 850, 950, 858, 876, 862], t: 2.5, d: .45, w: 1, n: 2 },
-    { p: [876, 862, 800, 880, 720, 905, 640, 935, 602, 955, 622, 968, 700, 962, 800, 955, 880, 945], t: 2.65, d: .55, w: 1, n: 3 },
-    { e: [866, 872, 10, 44], t: 2.9, d: .3, w: .8, n: 2 },
-    { p: [662, 716, 620, 782, 576, 860, 540, 910, 470, 975, 380, 1030, 250, 1062], t: 2.4, d: .6, w: 1.2, n: 3 },
-    { p: [772, 772, 752, 848, 692, 905, 604, 965, 556, 1030, 536, 1080], t: 2.5, d: .5, w: 1, n: 2 },
+    // 3. The raffia: the loop she is weaving, the straw across, the long strands to the left
+    { p: [983, 667, 975, 600, 962, 492, 950, 430, 958, 414, 975, 418, 1025, 458, 1067, 517, 1079, 583], t: 1.55, d: .45, w: .9, n: 2 },
+    { p: [1200, 525, 1150, 562, 1100, 600], t: 1.65, d: .25, w: .8, n: 2 },
+    { p: [990, 666, 800, 646, 640, 632, 478, 626], t: 1.7, d: .45, w: .9, n: 2 },
+    { p: [992, 684, 780, 686, 600, 692, 452, 702], t: 1.78, d: .45, w: .9, n: 2 },
+    { p: [960, 650, 860, 620, 760, 598, 712, 582], t: 1.85, d: .35, w: .7, n: 2 },
+    { p: [510, 690, 460, 722, 400, 760], t: 2, d: .25, w: .7, n: 2 },
 
-    // 4. Details: jerrycans, the lamp, the hanging opener, products, the phone, the foreground
-    { p: [1244, 356, 1240, 300, 1262, 288, 1290, 296, 1292, 356], t: 2.6, d: .3, w: .8, n: 2 },
-    { p: [1310, 356, 1308, 300, 1330, 288, 1356, 296, 1360, 356], t: 2.68, d: .3, w: .8, n: 2 },
-    { p: [1390, 356, 1388, 296, 1415, 286, 1440, 292, 1442, 356], t: 2.76, d: .3, w: .8, n: 2 },
-    { p: [1460, 356, 1462, 296, 1488, 286, 1512, 294, 1515, 356], t: 2.84, d: .3, w: .8, n: 2 },
-    { p: [1536, 356, 1535, 300, 1560, 292, 1585, 298, 1588, 356], t: 2.92, d: .3, w: .8, n: 2 },
-    { p: [1005, 356, 1006, 306, 1030, 298, 1050, 306, 1052, 356], t: 2.54, d: .28, w: .7, n: 2 },
-    { p: [1062, 356, 1062, 306, 1085, 298, 1105, 306, 1106, 356], t: 2.6, d: .28, w: .7, n: 2 },
-    { e: [1219, 236, 18, 16], t: 2.3, d: .3, w: 1, n: 3 },
-    { p: [801, 0, 799, 80, 804, 156], t: 2.2, d: .3, w: .8, n: 2 },
-    { e: [812, 190, 32, 34], t: 2.45, d: .3, w: 1, n: 3 },
-    { p: [806, 222, 786, 265, 764, 306, 756, 322, 772, 326, 792, 290, 816, 226], t: 2.65, d: .35, w: .9, n: 2 },
-    { row: [1082, 432, 1650, 434, 34, 58], t: 2.9, d: .7 },
-    { row: [1082, 496, 1650, 498, 40, 62], t: 3, d: .7 },
-    { row: [1242, 642, 1650, 646, 80, 120], t: 3.1, d: .6 },
-    { row: [22, 452, 412, 496, 70, 100], t: 2.85, d: .6 },
-    { row: [20, 594, 412, 614, 60, 95], t: 2.95, d: .6 },
-    { row: [140, 206, 412, 260, 50, 75], t: 3.05, d: .5 },
-    { p: [842, 962, 975, 972, 940, 1062, 800, 1052, 842, 962], t: 3, d: .4, w: .9, n: 2, lin: 1 },
-    { p: [684, 1006, 668, 1080], t: 3.15, d: .2, w: .8, n: 2 },
-    { p: [0, 792, 120, 870, 552, 832], t: 3.1, d: .45, w: 1, n: 3 },
-    { p: [120, 870, 124, 1010], t: 3.25, d: .25, w: .9, n: 2 },
-    { p: [168, 900, 172, 800, 262, 760, 400, 730, 520, 760, 568, 802, 546, 880], t: 3.2, d: .45, w: .9, n: 2 },
-    { p: [0, 612, 186, 612, 186, 690, 0, 700], t: 3.3, d: .35, w: .8, n: 2, lin: 1 },
-    { p: [1760, 975, 1756, 792, 1772, 760, 1776, 742, 1796, 742, 1800, 760, 1815, 792, 1815, 975], t: 3.25, d: .4, w: .9, n: 2 },
-    { p: [1818, 975, 1816, 800, 1832, 768, 1836, 752, 1856, 752, 1860, 768, 1872, 800, 1872, 975], t: 3.32, d: .4, w: .9, n: 2 },
-    { p: [1506, 750, 1710, 748, 1700, 860, 1520, 862, 1506, 750], t: 3.3, d: .4, w: .9, n: 2, lin: 1 },
-    { p: [1512, 792, 1706, 790], t: 3.45, d: .2, w: .7, n: 2 },
-    { p: [996, 24, 1060, 60, 1150, 70, 1226, 40], t: 3.2, d: .35, w: .8, n: 2 },
-    { p: [1226, 0, 1240, 90, 1262, 182, 1300, 132, 1380, 92, 1470, 56, 1492, 18], t: 3.28, d: .45, w: .8, n: 2 }
+    // 4. Her stall: the gourd, the black basin, the clay jar, the blue pot and bowl, the cloths on the wall
+    { p: [105, 505, 128, 425, 200, 372, 290, 356, 380, 370, 440, 410, 460, 470, 456, 505], t: 1.6, d: .5, w: 1.2, n: 3 },
+    { e: [312, 518, 172, 17], t: 1.8, d: .4, w: 1.1, n: 3 },
+    { p: [140, 528, 160, 600, 178, 652, 192, 686], t: 1.9, d: .3, w: 1, n: 2 },
+    { p: [484, 522, 476, 600, 468, 666], t: 1.95, d: .3, w: 1, n: 2 },
+    { p: [192, 686, 330, 678, 468, 668], t: 2.05, d: .3, w: .9, n: 2 },
+    { p: [180, 690, 166, 760, 166, 850, 186, 930, 240, 990, 320, 1014, 400, 1002, 470, 952, 508, 862, 514, 762, 498, 696], t: 2.1, d: .6, w: 1.4, n: 4 },
+    { p: [0, 668, 60, 652, 150, 656, 186, 676], t: 2.2, d: .3, w: 1, n: 3 },
+    { p: [194, 700, 200, 790, 205, 870, 210, 982], t: 2.3, d: .35, w: 1, n: 2 },
+    { p: [0, 790, 100, 792, 200, 790], t: 2.4, d: .25, w: .8, n: 2 },
+    { p: [0, 850, 100, 852, 204, 850], t: 2.45, d: .25, w: .8, n: 2 },
+    { p: [0, 978, 60, 974, 76, 1004, 70, 1080], t: 2.5, d: .25, w: .9, n: 2 },
+    { p: [0, 300, 40, 282, 92, 290, 122, 312, 136, 382, 130, 500, 110, 560, 90, 640, 40, 680, 0, 690], t: 2.3, d: .5, w: 1, n: 3 },
+    { p: [546, 0, 540, 120, 556, 222, 600, 232, 606, 120, 600, 0], t: 2.45, d: .4, w: 1, n: 2 },
+    { p: [606, 0, 612, 150, 640, 258, 690, 300, 702, 250, 734, 120, 742, 20], t: 2.55, d: .4, w: 1, n: 2 },
+    { p: [452, 975, 520, 888, 620, 848, 700, 790, 742, 778, 772, 840, 790, 960, 784, 1078], t: 2.7, d: .45, w: .9, n: 2 },
+
+    // 5. The wall: a few cracks in the earth plaster, and the ground
+    { p: [60, 60, 120, 92, 200, 128], t: 2.9, d: .3, w: .7, n: 2 },
+    { p: [850, 300, 900, 318, 952, 330], t: 2.95, d: .25, w: .7, n: 2 },
+    { p: [1640, 160, 1668, 210, 1700, 262, 1690, 330], t: 3, d: .3, w: .7, n: 2 },
+    { p: [1760, 520, 1800, 560, 1860, 580], t: 3.05, d: .25, w: .7, n: 2 },
+    { p: [1700, 860, 1760, 900, 1840, 920, 1920, 912], t: 3.1, d: .3, w: .8, n: 2 },
+    { p: [515, 1012, 470, 1040, 380, 1060, 260, 1072], t: 3.1, d: .3, w: .8, n: 2 }
   ];
-  // Her head and shoulders, filled: painted in first, as one patch, so her face never shows through on its own
-  var SILHOUETTE = { head: [938, 405, 112, 150], body: [702, 548, 1180, 548, 1250, 740, 1266, 952, 600, 962, 650, 700] };
 
-  var PACE = .72;    // one knob for the whole drawing's speed (the drawing takes about 3 s)
-  var HOLD = .7;     // the finished drawing, and « jeere » written in the copy, stay this long before the photo
-  var REVEAL = 1300; // ms, the drawing turning into the photo
+  var LEAD = .6;     // s, the real stall alone, before the first stroke
+  var PACE = .95;    // one knob for the whole drawing's speed (the drawing takes about 3.2 s)
+  var HOLD = .35;    // the finished drawing, alone on black, rests this long before the burst
+  var BOOM = 1100;   // ms, from the burst to the store standing still (its products keep scrolling)
 
   /* ---------- Seeded randomness ---------- */
   var seed = 7;
@@ -213,7 +182,6 @@
   }
   function poly(pts) { return 'M' + pts.map(function (q) { return f(q[0]) + ' ' + f(q[1]); }).join('L'); }
   function f(v) { return Math.round(v * 10) / 10; }
-  function centroid(pts) { var x = 0, y = 0; pts.forEach(function (q) { x += q[0]; y += q[1]; }); return [x / pts.length, y / pts.length]; }
 
   /* ---------- SVG ---------- */
   function el(name, attrs, parent) {
@@ -232,7 +200,7 @@
 
   /* ---------- Build: in idle slices, before the section arrives ---------- */
   var U = 1, LITE = false, built = false, building = false, queue = [], drawEnd = 0, builtW = 0, timers = [];
-  var cover, inks, eyes, reveals, winD, bands;
+  var cover, inks, eyes, burst;
 
   function begin() {
     building = true;
@@ -247,9 +215,7 @@
     inks = [svgLayer('bt__svg--ink'), svgLayer('bt__svg--ink'), svgLayer('bt__svg--ink')].map(function (svg) {
       return el('g', { fill: 'none', stroke: 'currentColor', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
     });
-    winD = [];
-    bands = [0, 1, 2].map(function () { return { core: [[], [], []], fringe: [[], []] }; });   // wide strands by width, fine hairs by width
-    // her eyes on a layer of their own: they leave first when her real face comes in
+    // her eyes: two solid drops, on a layer of their own
     eyes = el('g', { fill: 'currentColor', stroke: 'none' }, svgLayer('bt__svg--ink bt__svg--eyes'));
     inks.concat(eyes).forEach(function (g) { frame.appendChild(g.parentNode); });
     queue = LINES.slice();
@@ -263,7 +229,7 @@
     if (LITE && n > 2) n--;
     var sw = (small ? rr(1.8, 2.4) : rr(2.2, 3)) * (LITE ? .9 : 1) * U;    // all strands about the same weight
     var heavy = !L0.row && !L0.e && w >= 1;
-    var base, outline, lin = L0.lin || L0.row;
+    var base, lin = L0.lin || L0.row;
 
     if (L0.fill) {   // a solid drop, like the cloud's eyes
       var drop = el('path', { d: smooth(ellipse(L0.e, 0, 1.02, rr(0, 6), .03)) + 'Z', class: 'bt__dot' }, eyes);
@@ -272,14 +238,12 @@
       return;
     }
     if (L0.e) {
-      outline = ellipse(L0.e, 0, 1, 0, 0);
       for (var k = 0; k < n; k++) {
         var lp = ellipse(L0.e, (k - (n - 1) / 2) * sw * rr(1.4, 1.9) + gauss(sw * .3), rr(1.04, 1.2), rr(0, 6.28), .035);
-        addStrand(ink, smooth(lp), sw * rr(.85, 1.15), t0 + k * rr(.03, .06), d0 * rr(.9, 1.1), lp);
+        addStrand(ink, smooth(lp), sw * rr(.85, 1.15), t0 + k * rr(.03, .06), d0 * rr(.9, 1.1));
       }
     } else {
       base = L0.row ? row(L0.row) : subdivide(pairs(L0.p), 60, lin ? .6 : 1.4);
-      outline = base;
       var nrm = normals(base), cum = cumul(base), T = cum[cum.length - 1];
       var sp = sw * rr(1.45, 1.9);                          // centre to centre: the strands stay apart…
       var lam = rr(240, 560), drift = sp * rr(.45, .8);     // …but drift, so neighbours touch and cross now and then
@@ -296,14 +260,14 @@
           if (rnd() < .65) dots.push([tip, sw * rr(1.35, 1.75)]);
           if (rnd() < .35) { var tip0 = extend(pts, false, by * .5, -turn); if (rnd() < .5) dots.push([tip0, sw * rr(1.3, 1.6), true]); }
         }
-        addStrand(ink, lin ? poly(pts) : smooth(pts), sw * rr(.82, 1.18), t0 + k * rr(.03, .07), d0 * rr(.88, 1.12), pts);
+        addStrand(ink, lin ? poly(pts) : smooth(pts), sw * rr(.82, 1.18), t0 + k * rr(.03, .07), d0 * rr(.88, 1.12));
       }
       // a couple of loose hairs out of the end of the bundle on the strongest lines
       if (heavy && w >= 1.2 && !LITE) {
         for (var h = 0; h < 2; h++) {
           var hp = trim(strand(base, nrm, cum, gauss(sp * .9), drift * .5, lam, rr(0, 6.28), .5), rr(.82, .9), 1);
           var htip = extend(hp, true, rr(14, 34) * U, gauss(.12));
-          addStrand(ink, smooth(hp), sw * .75, t0 + d0 * .8, d0 * .35, null);
+          addStrand(ink, smooth(hp), sw * .75, t0 + d0 * .8, d0 * .35);
           if (rnd() < .7) dots.push([htip, sw * 1.3]);
         }
       }
@@ -319,58 +283,28 @@
       }
     }
     drawEnd = Math.max(drawEnd, t0 + d0 * 1.12 + n * .07);
-
-    // The reveal: the same line, wide and bristly, in one of three bands by its distance from her face
-    {
-      var c = L0.e ? [L0.e[0], L0.e[1]] : centroid(outline), dist = Math.hypot(c[0] - FACE[0], c[1] - FACE[1]);
-      var b = bands[dist < 430 ? 0 : dist < 860 ? 1 : 2];
-      // a big brush made of wide strands side by side: solid in the middle, combed and broken at the edges
-      var half = L0.e ? 60 : rr(85, 130), m = LITE ? 4 : 6, mk = lin ? poly : smooth;
-      var mo = L0.e ? null : subdivide(outline, 120, 0), onr = mo && normals(mo), ocum = mo && cumul(mo);
-      for (var j = 0; j < m + (LITE ? 2 : 3); j++) {
-        var edge = j >= m, side = j % 2 ? 1 : -1;
-        var o = edge ? side * half * rr(1, 1.3) : (j / (m - 1) * 2 - 1) * half * .82 + gauss(10);
-        var cl = edge ? (rnd() < .5 ? 0 : 1) : Math.floor(rnd() * 3);
-        var md = L0.e ? smooth(ellipse(L0.e, o * .5, 1.05, rr(0, 6.28), .02))
-          : mk(trim(strand(mo, onr, ocum, o, rr(6, 18), rr(200, 500), rr(0, 6.28), 1.5), edge ? rr(0, .25) : rr(0, .08), edge ? rr(.75, 1) : rr(.92, 1)));
-        (edge ? b.fringe : b.core)[cl].push(md);
-      }
-    }
   }
-  function addStrand(ink, d, swU, t, dur, win) {
+  function addStrand(ink, d, swU, t, dur) {
     var p = el('path', { d: d, pathLength: 1, class: 'bt__s', 'stroke-width': f(swU * 10) / 10 }, ink);
     timing(p, t, dur);
-    if (win) winD.push(d);   // the same strand, later, is a window onto the photo
   }
 
   function end() {
-    // The photo layers of the reveal, built last: each is static, painted once during the hold, then only faded
-    function photoLayer(cls, id, fill) {
-      var svg = svgLayer('bt__svg--photo ' + cls);
-      var mask = el('mask', { id: id, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: W, height: H, style: 'mask-type: alpha' }, el('defs', {}, svg));
-      el('image', { width: W, height: H, preserveAspectRatio: 'xMidYMid slice', mask: 'url(#' + id + ')' }, svg);
-      fill(el('g', { fill: 'none', stroke: '#fff', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, mask));
-      return svg;
+    // The burst: brush streaks and drops flung out from the middle of the store window, and a flash
+    burst = document.createElement('div');
+    burst.className = 'bt__burst';
+    burst.setAttribute('aria-hidden', 'true');
+    // in the ink's cream and the store's colours: the colour arrives with the store
+    var html = '<b class="bt__flash"></b>', N = LITE ? 22 : 34, COL = ['#F3EEE4', '#F3EEE4', '#FF7A45', '#1DC8F2', '#FFD23F', '#FF8FC8', '#3657FF', '#1FB36B'];
+    for (var i = 0; i < N; i++) {
+      var a = i / N * 360 + rr(-6, 6), drop = rnd() < .38, r0 = rr(10, 40), r1 = rr(150, 420) * (drop ? 1.15 : 1);
+      var w = drop ? rr(7, 15) : rr(50, 150), h = drop ? w : rr(4, 10);
+      html += '<i class="' + (drop ? 'd' : 's') + '" style="--a:' + f(a) + 'deg;--r0:' + f(r0) + 'px;--r1:' + f(r1) +
+        'px;--w:' + f(w) + 'px;--h:' + f(h) + 'px;--t:' + Math.round(rr(0, 90)) + 'ms;--c:' + COL[Math.floor(rnd() * COL.length)] + '"></i>';
     }
-    reveals = [];
-    // 1. windows: the strands themselves turn into photo
-    reveals.push(photoLayer('bt__svg--win', 'bt-win', function (g) {
-      el('path', { d: winD.join(''), 'stroke-width': f(Math.max(3.4 * U, 4)) }, g);
-    }));
-    // 2. three bands of wide strokes with combed, bristly edges, from her face outwards; the first one also
-    //    paints her head and shoulders in as one patch
-    bands.forEach(function (b, i) {
-      reveals.push(photoLayer('bt__svg--band bt__svg--b' + i, 'bt-band' + i, function (g) {
-        if (i === 0) {
-          var s = SILHOUETTE;
-          el('ellipse', { cx: s.head[0], cy: s.head[1], rx: s.head[2], ry: s.head[3], fill: '#fff', stroke: 'none' }, g);
-          el('path', { d: poly(pairs(s.body)) + 'Z', fill: '#fff', 'stroke-width': 60 }, g);
-        }
-        b.core.forEach(function (ds, k) { if (ds.length) el('path', { d: ds.join(''), 'stroke-width': [30, 44, 62][k] }, g); });
-        b.fringe.forEach(function (ds, k) { if (ds.length) el('path', { d: ds.join(''), 'stroke-width': [8, 15][k] }, g); });
-      }));
-    });
-    reveals.slice().reverse().forEach(function (svg) { frame.insertBefore(svg, cover.nextSibling); });
+    burst.innerHTML = html;
+    var shop = stage.querySelector('.bt__shop');
+    stage.insertBefore(burst, shop ? shop.nextSibling : null);   // over the window as it pops in
     stage.classList.add('is-built');
     built = true; building = false;
   }
@@ -381,19 +315,20 @@
       else if (!built) end();
     } catch (err) { disarm(); }
   }
-  // If anything goes wrong, give the section back its photo
+  // If anything goes wrong, show the end of the story, still
   function disarm() {
     timers.forEach(clearTimeout); timers = [];
     queue = []; built = true;
-    stage.classList.remove('is-armed', 'is-draw', 'is-sign', 'is-prep', 'is-reveal', 'is-lift');
-    stage.classList.add('is-done');
+    stage.classList.remove('is-armed', 'is-real', 'is-draw', 'is-sign', 'is-boom', 'is-shop', 'is-done');
+    stage.classList.add('is-static');
+    Array.prototype.forEach.call(stage.querySelectorAll('.bt__svg, .bt__burst'), function (e) { e.remove(); });
     if (cover) cover.remove();
   }
   var idle = window.requestIdleCallback ? function (fn) { window.requestIdleCallback(fn, { timeout: 400 }); } : function (fn) { setTimeout(function () { fn({ timeRemaining: function () { return 8; } }); }, 16); };
   function prepare() { if (!built && !building) { begin(); idle(step); } }
   function buildNow() { if (!built) { if (!building) begin(); step(null); } }
   function rebuild() {
-    Array.prototype.forEach.call(frame.querySelectorAll('.bt__svg'), function (e) { e.remove(); });
+    Array.prototype.forEach.call(stage.querySelectorAll('.bt__svg, .bt__burst'), function (e) { e.remove(); });
     built = building = false;
     buildNow();
   }
@@ -401,48 +336,26 @@
   /* ---------- Play ---------- */
   var played = false;
   function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
-  function photoReady() {
-    if (img.complete && img.naturalWidth) return Promise.resolve(true);
-    return new Promise(function (res) {
-      img.addEventListener('load', function () { res(true); }, { once: true });
-      img.addEventListener('error', function () { res(false); }, { once: true });
-      setTimeout(function () { res(img.complete && img.naturalWidth > 0); }, 6000);
-    });
-  }
   function play() {
     played = true;
     buildNow();
     if (!stage.classList.contains('is-armed')) return;   // disarmed after an error
-    if (img.loading === 'lazy') img.loading = 'eager';   // the photo must be here before the drawing ends
     void frame.getBoundingClientRect();                  // the strokes take their start state before they move
-    stage.classList.add('is-draw');
+    // The photo sinks into black at the pace of the drawing: slowly at first, all black as the last line lands
+    cover.style.animationDuration = Math.round(drawEnd * 1000) + 'ms';
+    stage.classList.add('is-real');                      // the copy's first half, with the photo
     watchSpeed();
+    later(draw, LEAD * 1000);
+  }
+  function draw() {
+    stage.classList.add('is-draw');
     // « jeere » is written in the copy as the last strokes land
     later(function () { stage.classList.add('is-sign'); }, Math.max(0, drawEnd - .8) * 1000);
-    // The hold: the photo layers get their image and are painted (nearly transparent) while the drawing rests
+    // Paf: the drawing bursts, and the boutique is back, online
     later(function () {
-      photoReady().then(function (ok) {
-        if (!ok) { stage.classList.add('is-done', 'no-photo'); finish(); return; }
-        // The reveal paints the small photo (960 px): it is soft for a second, under moving strokes, and being
-        // smaller than the page's <img> it never replaces it as the page's largest paint. The real photo is
-        // uncovered under it, and the reveal layers lift off it to finish.
-        // One layer per step through the hold, so their first paint is spread out.
-        var href = frame.getAttribute('data-bt-reveal') || img.currentSrc || img.src;
-        reveals.forEach(function (svg, i) {
-          later(function () {
-            svg.querySelector('image').setAttribute('href', href);
-            svg.classList.add('is-ready');
-            if (i === reveals.length - 1) stage.classList.add('is-prep');
-          }, i * HOLD * 1000 / (reveals.length + .5));
-        });
-      });
-    }, drawEnd * 1000);
-    later(function reveal() {
-      if (stage.classList.contains('is-done')) return;
-      if (!stage.classList.contains('is-prep')) { later(reveal, 100); return; }   // the photo is still loading
-      stage.classList.add('is-reveal');
-      later(function () { stage.classList.add('is-lift'); }, REVEAL - 380);
-      later(function () { stage.classList.add('is-done'); finish(); }, REVEAL);
+      stage.classList.add('is-boom');
+      later(function () { stage.classList.add('is-shop'); }, 170);
+      later(function () { stage.classList.add('is-done'); finish(); }, BOOM);
     }, (drawEnd + HOLD) * 1000);
   }
   // A slow machine (a median frame over 21 ms, measured after the first 10 frames so the start-up is not
@@ -455,30 +368,34 @@
       last = t;
       if (d.length < 40) { requestAnimationFrame(tick); return; }
       d.sort(function (a, b) { return a - b; });
-      if (d[d.length >> 1] > 21) stage.classList.add('is-slow');   // the median: one slow frame (a scroll, a decode) does not count
+      if (d[d.length >> 1] > 21) stage.classList.add('is-slow');   // the median: one slow frame (a scroll, a decode) does not count; a slow machine gets a plain fade instead of the burst
     }
     requestAnimationFrame(tick);
   }
   function finish() {
     stage.setAttribute('data-bt-state', 'done');
-    if (replay) replay.hidden = false;
+    if (replay) { replay.classList.remove('is-off'); replay.removeAttribute('tabindex'); }
   }
   function reset() {
     timers.forEach(clearTimeout); timers = [];
     stage.classList.add('is-reset');
-    stage.classList.remove('is-draw', 'is-sign', 'is-prep', 'is-reveal', 'is-lift', 'is-done', 'no-photo');
-    if (reveals) reveals.forEach(function (svg) { svg.classList.remove('is-ready'); });
+    stage.classList.remove('is-real', 'is-draw', 'is-sign', 'is-boom', 'is-shop', 'is-done');
     stage.removeAttribute('data-bt-state');
     void stage.offsetWidth;
     stage.classList.remove('is-reset');
   }
 
-  // Black over the photo until the drawing turns into it. The photo itself stays painted under it (so it counts
-  // for the page's largest paint right away) and is only uncovered at the end.
+  // The products scroll in a loop: each row is written twice, side by side, and slides by one copy's width
+  Array.prototype.forEach.call(stage.querySelectorAll('.bt__track'), function (t) {
+    Array.prototype.slice.call(t.children).forEach(function (c) { t.appendChild(c.cloneNode(true)); });
+  });
+  // The black that rises over the photo while the drawing grows (transparent until then)
   cover = document.createElement('div');
   cover.className = 'bt__cover';
   img.parentNode.parentNode.insertBefore(cover, img.parentNode.nextSibling);
   stage.classList.add('is-armed');
+  // « Revoir » keeps its place while it waits (the global [hidden] would take it out of the flow and the copy would jump)
+  if (replay) { replay.hidden = false; replay.classList.add('is-off'); replay.setAttribute('tabindex', '-1'); }
   // Keyboard: tabbing to the button shows the text at once, even mid-drawing
   sec.addEventListener('focusin', function () { sec.classList.add('is-focus'); });
   // Build well before the section arrives (a screen away), in idle time
@@ -498,10 +415,10 @@
 
   if (replay) replay.addEventListener('click', function () {
     reset();
-    replay.hidden = true;
+    replay.classList.add('is-off'); replay.setAttribute('tabindex', '-1');
     if (Math.abs(frame.getBoundingClientRect().width - builtW) > builtW * .25) rebuild();   // the window was resized a lot
     requestAnimationFrame(function () { requestAnimationFrame(play); });
   });
-  // Printing: show the photo
-  window.addEventListener('beforeprint', function () { stage.classList.add('is-done'); });
+  // Printing: the store, still
+  window.addEventListener('beforeprint', function () { stage.classList.add('is-static'); });
 })();

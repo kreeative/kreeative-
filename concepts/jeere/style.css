@@ -687,14 +687,13 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .js [data-reveal].is-in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .js [data-reveal] { opacity: 1; transform: none; transition: none; } }
 
-/* ---------- Idea to store (« De l’idée à la boutique », after the hero) ----------
-   On black, the logo's brush strokes draw a boutique, then the drawing becomes the photo of that boutique.
-   anim/boutique.js builds the strokes and sets the classes on .bt__stage:
-   is-armed (a black cover over the photo) → is-draw (strokes draw in) → is-sign (« jeere » is written over the
-   copy) → is-prep (the photo layers, each marked is-ready in turn, are painted nearly transparent) → is-reveal (strands turn into photo, the
-   room is painted in from her face outwards, the cover lifts) → is-lift (the reveal layers fade off the photo)
-   → is-done (the plain photo).
-   Without JS or with reduced motion: the photo. */
+/* ---------- Physical to online (« Votre boutique physique, maintenant en ligne », the hero) ----------
+   The photo of a real boutique; the logo's brush strokes trace it while it sinks into black; a burst; the same
+   boutique online, in colour, its products scrolling. anim/boutique.js builds the strokes and the burst
+   and sets the classes on .bt__stage:
+   is-armed → is-real (the photo alone, the copy's first half) → is-draw (strokes draw in, the black cover rises over the photo) → is-sign (« jeere » is written over
+   the copy) → is-boom (the drawing bursts) → is-shop (the store window pops in, its rows scroll) → is-done.
+   Without JS: the photo. With reduced motion (is-static): the store, still, over the dimmed photo. */
 .bt { position: relative; background: #000; color: var(--white); --focus: #fff; --cream: #F3EEE4; }
 .bt__stage { position: relative; overflow: hidden; aspect-ratio: 4 / 5; background: #000; }
 @media (min-width: 600px) { .bt__stage { aspect-ratio: 4 / 3; } }
@@ -731,6 +730,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .bt__replay:hover { color: var(--white); }
 .bt__replay .ico { width: 18px; height: 18px; }
 .bt__replay[hidden] { display: none; }
+.bt__replay.is-off { visibility: hidden; }   /* keeps its place: the copy does not jump when it appears */
 @media (min-width: 1280px) {
   /* Wide screens: the photo moves right (its right edge is cropped), the text sits on solid black at the left
      and on a strong gradient, clear of the seller */
@@ -747,49 +747,165 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 }
 
 /* The animation (only once the script has armed the stage) */
-.bt__stage.is-armed .bt__shade, .bt__stage.is-armed .bt__credit { opacity: 0; }
-.bt__stage.is-reveal .bt__shade, .bt__stage.is-reveal .bt__credit { opacity: 1; transition: opacity .7s ease .45s; }
-.bt__stage.is-done .bt__shade, .bt__stage.is-done .bt__credit { opacity: 1; }
 /* Each strand is one dash (pathLength 1) slid into place; delay and duration are set per strand */
 .bt__s { stroke-dasharray: 1 3; stroke-dashoffset: 1.05; transition-property: stroke-dashoffset; transition-timing-function: cubic-bezier(.3, .55, .25, 1); }
 .is-draw .bt__s { stroke-dashoffset: 0; }
 /* The drops at the strand tips and her eyes */
 .bt__dot { opacity: 0; transition: opacity .12s linear; }
 .is-draw .bt__dot { opacity: 1; }
-.is-draw .bt__svg--ink { will-change: opacity; }   /* each ink layer is its own layer: a finished one is not repainted */
-/* The reveal. Every photo layer is static (its mask never changes): painted once during the hold at a near-zero
-   opacity, then only faded, which the compositor does on its own. */
-.bt__svg--photo { visibility: hidden; opacity: 0; }
-.bt__svg--photo.is-ready { visibility: visible; opacity: .001; will-change: opacity; }
-.is-reveal .bt__svg--photo { opacity: 1; transition: opacity .4s ease; }   /* the strands become windows onto the photo */
-.is-reveal .bt__svg--b0 { transition: opacity .5s ease .15s; }             /* her head and shoulders, in one patch */
-.is-reveal .bt__svg--b1 { transition: opacity .5s ease .35s; }
-.is-reveal .bt__svg--b2 { transition: opacity .5s ease .55s; }
-.is-reveal .bt__svg--ink { opacity: 0; transition: opacity .55s ease .12s; }
-.is-reveal .bt__svg--eyes { transition: opacity .15s ease; }   /* her drawn eyes leave before her face comes in */
-.is-reveal .bt__cover { opacity: 0; transition: opacity .4s ease .55s; }
-.is-lift .bt__svg--photo { opacity: 0; transition: opacity .35s ease; }   /* …and lifts off the sharp photo under it */
-/* A slow machine: a plain crossfade from the drawing to the photo */
-.is-slow .bt__svg--photo { display: none; }
-.is-slow.is-reveal .bt__svg--ink { transition: opacity .8s ease; }
-.is-slow.is-reveal .bt__cover { transition: opacity .8s ease .2s; }
-.is-slow.is-reveal .bt__svg--eyes { transition: opacity .15s ease; }
-.bt__stage.is-done .bt__svg, .bt__stage.is-done .bt__cover { display: none; }
-.bt__stage.is-done.no-photo .bt__svg--ink, .bt__stage.is-done.no-photo .bt__cover { display: block; opacity: 1; }
-.bt__stage.is-reset, .bt__stage.is-reset *, .bt__stage.is-reset ~ .bt__copy * { transition: none !important; }
+.is-draw .bt__svg--ink { will-change: opacity, transform; }   /* each ink layer is its own layer: a finished one is not repainted */
+/* The photo sinks into black as the drawing grows: a first dim so the strokes read on it, then all the way down
+   (the script sets the duration to the drawing's) */
+.bt__cover { opacity: 0; will-change: opacity; }
+.is-draw .bt__cover { animation: bt-sink 3s cubic-bezier(.4, .1, .6, 1) both; }
+@keyframes bt-sink { 0% { opacity: 0; } 14% { opacity: .42; } 100% { opacity: 1; } }
+/* Paf: the drawing flies apart, a flash, streaks and drops of ink flung out, the frame shakes */
+.is-boom .bt__svg--ink { opacity: 0; transform: scale(1.14); transition: opacity .32s ease, transform .5s cubic-bezier(.2, .7, .2, 1); }
+.is-boom .bt__frame { animation: bt-shake .34s linear both; }
+@keyframes bt-shake { 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-3px, 2px); } 80% { transform: translate(2px, -1px); } 100% { transform: none; } }
+.bt__shop, .bt__burst { position: absolute; inset: 5% 4%; pointer-events: none; }
+@media (min-width: 600px) { .bt__shop, .bt__burst { inset: 6% 9%; } }
+@media (min-width: 900px) { .bt__shop, .bt__burst { inset: 7% 14%; } }
+@media (min-width: 1280px) {
+  /* beside the copy, in the column the photo's shelves filled */
+  .bt__shop, .bt__burst { top: 8%; bottom: 9%; right: max(var(--gutter), (100% - var(--max)) / 2); left: calc(max(var(--gutter), (100% - var(--max)) / 2) + min(520px, 38vw) + 56px); }
+}
+.bt__burst { visibility: hidden; }
+.is-boom .bt__burst { visibility: visible; }
+.bt__burst i { position: absolute; left: 50%; top: 50%; width: var(--w); height: var(--h); margin-top: calc(var(--h) / -2); border-radius: 99px; background: var(--c, var(--cream)); transform-origin: 0 50%; opacity: 0; }
+.bt__burst i.d { margin-left: calc(var(--w) / -2); transform-origin: 50% 50%; }
+.is-boom .bt__burst i.s { animation: bt-streak .72s cubic-bezier(.12, .75, .3, 1) var(--t) both; }
+.is-boom .bt__burst i.d { animation: bt-drop .85s cubic-bezier(.12, .75, .3, 1) var(--t) both; }
+@keyframes bt-streak { 0% { opacity: 1; transform: rotate(var(--a)) translateX(var(--r0)) scaleX(.12); } 55% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--r1)) scaleX(1); } }
+@keyframes bt-drop { 0% { opacity: 1; transform: rotate(var(--a)) translateX(var(--r0)) scale(.4); } 65% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--r1)) scale(1); } }
+.bt__flash { position: absolute; left: 50%; top: 50%; width: 170%; aspect-ratio: 1; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, #fff 0, rgba(243, 238, 228, .6) 16%, rgba(243, 238, 228, 0) 56%); transform: translate(-50%, -50%) scale(.02); }
+.is-boom .bt__flash { animation: bt-flash .62s cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes bt-flash { 0% { opacity: 1; transform: translate(-50%, -50%) scale(.02); } 30% { opacity: .9; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+/* A slow machine: no burst, the drawing simply fades as the store comes in */
+.is-slow .bt__burst { display: none; }
+.is-slow.is-boom .bt__frame { animation: none; }
+.bt__stage.is-done .bt__svg, .bt__stage.is-done .bt__burst { display: none; }
+.bt__stage.is-reset, .bt__stage.is-reset *, .bt__stage.is-reset ~ .bt__copy * { transition: none !important; animation: none !important; }
+
+/* The boutique, online, in the manner of the Tabouret concept: a frosted pastel window, glass cards with cut-out
+   objects that stand out of them, black pills, and pieces that break out of the window (the cart, the « Coup de
+   cœur » card, the Wave payment, the dock). One row of products scrolls. Sizes follow the store's box (cq units). */
+.bt__shop { visibility: hidden; container-type: size; color: #16120F; font-family: var(--f-text);
+  --glass: rgba(255, 255, 255, .62); }
+.bt__win { position: absolute; inset: 3% 24% 15% 0; display: flex; flex-direction: column; container-type: size;
+  border-radius: 30px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .7);
+  background:
+    radial-gradient(120% 70% at 0% 0%, #FFD9C7 0, rgba(255, 217, 199, 0) 60%),
+    radial-gradient(90% 60% at 100% 100%, #D7EDDF 0, rgba(215, 237, 223, 0) 65%),
+    radial-gradient(70% 50% at 100% 0%, #FBE7F3 0, rgba(251, 231, 243, 0) 70%), #FFF6EE;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 50px 100px -20px rgba(0, 0, 0, .55);
+  opacity: 0; transform: translateY(24px) scale(.6) rotate(-3deg); }
+.bt__top { display: flex; align-items: center; gap: 9px; padding: clamp(14px, 4cqw, 26px) clamp(16px, 5cqw, 32px) 0; }
+.bt__logo { display: grid; place-items: center; width: clamp(24px, 6cqw, 34px); aspect-ratio: 1; border-radius: 50%; background: #16120F; color: #FFF6EE;
+  font: 700 clamp(12px, 3cqw, 16px)/1 var(--f-display); }
+.bt__brand { font: 700 clamp(13px, 3.2cqw, 18px)/1.2 var(--f-display); letter-spacing: -.02em; }
+.bt__url { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: clamp(40px, 12cqw, 70px); padding: 5px 11px; border-radius: 99px;
+  background: var(--glass); font: 500 clamp(10px, 2.1cqw, 12.5px)/1 var(--f-text); color: #5A514B; }
+.bt__url svg { width: 9px; height: 11px; }
+.bt__open { display: inline-flex; align-self: flex-start; align-items: center; gap: 7px; margin: clamp(12px, 3.4cqw, 22px) clamp(16px, 5cqw, 32px) 0; padding: 5px 11px 5px 9px;
+  border-radius: 99px; background: var(--glass); font-size: clamp(10px, 2.1cqw, 12.5px); font-weight: 500; color: #3E3833; }
+.bt__open i { width: 7px; height: 7px; border-radius: 50%; background: #1FB36B; box-shadow: 0 0 0 3px rgba(31, 179, 107, .18); }
+.bt__h { margin: clamp(8px, 2.4cqw, 14px) clamp(16px, 5cqw, 32px) 0; font: 700 clamp(24px, 7.4cqw, 44px)/1 var(--f-display); letter-spacing: -.035em; }
+.bt__h span { display: block; }
+.bt__h em { display: block; margin-top: .1em; font: 500 .62em/1.1 var(--f-display); font-style: normal; letter-spacing: -.02em; color: #C2410C; }
+.bt__chips { display: flex; gap: 6px; margin: clamp(10px, 3cqw, 18px) clamp(16px, 5cqw, 32px) 0; overflow: hidden; }
+.bt__chips span { flex: none; padding: 7px 13px; border-radius: 99px; background: var(--glass); font-size: clamp(10.5px, 2.2cqw, 13px); font-weight: 500; }
+.bt__chips .is-on { background: #16120F; color: #fff; }
+/* The row: room above the cards for the round photos that spill out of them */
+.bt__rail { flex: 1 1 0; min-height: 0; overflow: hidden; padding: 0 0 clamp(30px, 8cqw, 54px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+.bt__track { display: flex; align-items: center; gap: clamp(10px, 2.6cqw, 16px); height: 100%; width: max-content; padding-left: clamp(16px, 5cqw, 32px);
+  animation: bt-roll 34s linear infinite paused; }
+@keyframes bt-roll { to { transform: translateX(calc(-50% - clamp(5px, 1.3cqw, 8px))); } }
+.bt__p { position: relative; flex: none; margin: 0; width: clamp(112px, min(42cqw, 34cqh), 230px); padding: 0 12px 12px; border-radius: 22px; background: var(--glass);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 12px 24px -14px rgba(60, 30, 10, .35); }
+.bt__p img { display: block; width: 100%; height: auto; aspect-ratio: 1.15; margin: -34% 0 6px; object-fit: contain; object-position: 50% 100%;
+  filter: drop-shadow(0 14px 10px rgba(60, 30, 10, .28)); }   /* cut-out objects standing out of their card */
+.bt__p figcaption { display: flex; flex-direction: column; gap: 2px; }
+.bt__p b { font-size: clamp(11.5px, 2.5cqw, 14px); font-weight: 600; line-height: 1.2; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bt__p small { font-size: clamp(9.5px, 2cqw, 11.5px); color: #7A6F67; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bt__price { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-size: clamp(12px, 2.6cqw, 15px); font-weight: 700; letter-spacing: -.01em; }
+.bt__price i { display: grid; place-items: center; width: clamp(22px, 5cqw, 28px); aspect-ratio: 1; border-radius: 50%; background: #16120F; color: #fff; }
+.bt__price i svg { width: 42%; height: 42%; }
+/* Out of the window: the cart on its top edge */
+.bt__cart { position: absolute; top: 0; right: calc(24% + clamp(16px, 4cqw, 30px)); display: flex; align-items: center; gap: 6px;
+  padding: 0 14px; height: clamp(38px, 7cqh, 50px); border-radius: 16px; background: #16120F; color: #fff; box-shadow: 0 14px 30px -10px rgba(0, 0, 0, .6); }
+.bt__cart svg { width: 20px; height: 20px; }
+.bt__cart b { display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: 99px; background: #FF7A45; font-size: 11.5px; }
+/* …the « Coup de cœur » card, half outside on the right, its photo spilling over its top */
+.bt__feat { position: absolute; right: 0; top: 23%; width: 42%; padding: 0 clamp(14px, 3cqw, 20px) clamp(14px, 3cqw, 20px); border-radius: 26px;
+  background: rgba(255, 255, 255, .78); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, .8);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .55); }
+.bt__feat img { display: block; width: 78%; height: auto; aspect-ratio: 375 / 560; margin: -58% auto 8px; object-fit: contain; filter: drop-shadow(0 24px 18px rgba(40, 20, 5, .4)); }
+.bt__tag { margin: 0; font-size: clamp(9.5px, 1.8cqw, 11px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #C2410C; }
+.bt__fname { margin: 4px 0 0; font: 700 clamp(14px, 3.1cqw, 20px)/1.15 var(--f-display); letter-spacing: -.02em; }
+.bt__fdesc { margin: 3px 0 0; font-size: clamp(10px, 2cqw, 12.5px); color: #7A6F67; }
+.bt__fbuy { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.bt__fbuy .bt__price { margin: 0; font-size: clamp(13px, 2.8cqw, 17px); }
+.bt__add { padding: 8px 14px; border-radius: 99px; background: #16120F; color: #fff; font-size: clamp(10.5px, 2.1cqw, 13px); font-weight: 600; }
+/* …the Wave payment, over the bottom-left corner */
+.bt__toast { position: absolute; left: 45%; bottom: 9.5%; display: flex; align-items: center; gap: 10px; padding: 10px 16px 10px 10px; border-radius: 18px;
+  background: #fff; box-shadow: 0 22px 44px -16px rgba(0, 0, 0, .6); }
+.bt__toast i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #1DC8F2; color: #fff; }
+.bt__toast i svg { width: 13px; height: 13px; }
+.bt__toast b { display: block; font-size: 13px; font-weight: 600; }
+.bt__toast small { display: block; font-size: 11px; color: #7A6F67; }
+/* …and the dock, astride the bottom edge */
+.bt__dock { position: absolute; bottom: 9%; left: 25%; width: max-content; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 99px;
+  background: #16120F; color: rgba(255, 255, 255, .62); box-shadow: 0 18px 36px -12px rgba(0, 0, 0, .6); }
+.bt__dock > span { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.bt__dock > .is-on { background: rgba(255, 255, 255, .14); color: #fff; }
+.bt__dock svg { flex: none; width: 17px; height: 17px; }
+/* A narrow store box (phones, tablets): the window takes the width, the « Coup de cœur » card stays home */
+@container (max-width: 560px) {
+  .bt__win { inset: 4% 0 9% 0; }
+  .bt__feat { display: none; }
+  .bt__cart { right: clamp(14px, 5cqw, 26px); top: 0; }
+  .bt__url { margin-right: clamp(50px, 16cqw, 76px); }
+  .bt__toast { left: auto; right: -3%; bottom: 17%; }
+  .bt__dock { left: 50%; bottom: 2%; }
+}
+@container (max-width: 380px) { .bt__url { display: none; } }
+/* In: the window pops, then the pieces outside it land one by one */
+.bt__cart, .bt__feat, .bt__toast, .bt__dock { opacity: 0; }
+.bt__cart { transform: translateY(-30px) scale(.8); }
+.bt__feat { transform: translateX(40px) rotate(4deg) scale(.9); }
+.bt__toast { transform: translateY(16px) scale(.85); }
+.bt__dock { transform: translate(-50%, 30px); }
+.bt__stage.is-shop .bt__shop, .bt__stage.is-static .bt__shop { visibility: visible; }
+.bt__stage.is-shop .bt__win { opacity: 1; transform: none; transition: transform .8s cubic-bezier(.18, 1.3, .4, 1), opacity .22s ease; }
+.bt__stage.is-shop :is(.bt__cart, .bt__feat, .bt__toast) { opacity: 1; transform: none; transition: transform .7s cubic-bezier(.2, 1.4, .4, 1), opacity .3s ease; }
+.bt__stage.is-shop .bt__dock { opacity: 1; transform: translateX(-50%); transition: transform .7s cubic-bezier(.2, 1.4, .4, 1) .3s, opacity .3s ease .3s; }
+.bt__stage.is-shop .bt__cart { transition-delay: .2s; }
+.bt__stage.is-shop .bt__feat { transition-delay: .35s; }
+.bt__stage.is-shop .bt__toast { transition-delay: 1.4s; }
+.bt__stage.is-shop .bt__track { animation-play-state: running; }
+.bt__credit { transition: opacity .4s ease; }
+.bt__stage.is-shop .bt__credit, .bt__stage.is-static .bt__credit { opacity: 0; pointer-events: none; }   /* the photo is gone */
+/* Still: the store over the dimmed photo */
+.bt__stage.is-static .bt__frame { opacity: .2; }
+.bt__stage.is-static :is(.bt__win, .bt__cart, .bt__feat, .bt__toast) { opacity: 1; transform: none; }
+.bt__stage.is-static .bt__dock { opacity: 1; transform: translateX(-50%); }
+
 /* « jeere » is written from left to right as the drawing ends */
 .bt__stage.is-armed:not(.is-sign) ~ .bt__copy .bt__mark { clip-path: inset(-12% 100% -12% -3%); }
 .bt.is-focus .bt__stage ~ .bt__copy .bt__mark { clip-path: inset(-12% -3% -12% -3%); }
 @media (min-width: 1280px) {
-  /* The copy follows the two halves: « Vous imaginez la boutique. » while it is drawn, « Jeere la rend réelle. »
-     and the button as the photo arrives */
-  .bt__stage.is-draw .bt__shade { opacity: 1; transition: opacity .8s ease; }
+  /* The copy follows the story: « Votre boutique physique, » with the photo, « maintenant en ligne. », the lead
+     and the button as the store comes in */
   .bt__stage.is-armed ~ .bt__copy :is(.eyebrow, .bt__t1, .bt__t2, .lead, .bt__acts) { opacity: 0; transform: translateY(14px); }
-  .bt__stage.is-draw ~ .bt__copy :is(.eyebrow, .bt__t1) { opacity: 1; transform: none; transition: opacity .7s ease .2s, transform .7s cubic-bezier(.2, .8, .2, 1) .2s; }
-  .bt__stage.is-draw ~ .bt__copy .bt__t1 { transition-delay: .4s; }
-  .bt__stage.is-reveal ~ .bt__copy :is(.bt__t2, .lead, .bt__acts) { opacity: 1; transform: none; transition: opacity .7s ease .25s, transform .7s cubic-bezier(.2, .8, .2, 1) .25s; }
-  .bt__stage.is-reveal ~ .bt__copy .lead { transition-delay: .4s; }
-  .bt__stage.is-reveal ~ .bt__copy .bt__acts { transition-delay: .55s; }
+  .bt__stage.is-real ~ .bt__copy :is(.eyebrow, .bt__t1) { opacity: 1; transform: none; transition: opacity .7s ease .1s, transform .7s cubic-bezier(.2, .8, .2, 1) .1s; }
+  .bt__stage.is-real ~ .bt__copy .bt__t1 { transition-delay: .3s; }
+  .bt__stage.is-shop ~ .bt__copy :is(.bt__t2, .lead, .bt__acts) { opacity: 1; transform: none; transition: opacity .7s ease .25s, transform .7s cubic-bezier(.2, .8, .2, 1) .25s; }
+  .bt__stage.is-shop ~ .bt__copy .lead { transition-delay: .4s; }
+  .bt__stage.is-shop ~ .bt__copy .bt__acts { transition-delay: .55s; }
   .bt__stage.is-done ~ .bt__copy :is(.eyebrow, .bt__t1, .bt__t2, .lead, .bt__acts),
   .bt.is-focus .bt__stage ~ .bt__copy :is(.eyebrow, .bt__t1, .bt__t2, .lead, .bt__acts) { opacity: 1; transform: none; }
+}
 }

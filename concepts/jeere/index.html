@@ -98,7 +98,7 @@
 
 <main id="main">
 
-  <!-- 0. Hero: brush strokes draw a boutique that becomes real (anim/boutique.js) -->
+  <!-- 0. Hero: a real artisan's stall, traced in brush strokes, bursts into her online store (anim/boutique.js) -->
   <section class="bt bt--hero" id="top" aria-labelledby="bt-title" data-bt>
     <div class="bt__stage" data-bt-stage>
       <div class="bt__frame" data-bt-frame data-bt-reveal="img/boutique-960.webp">
@@ -106,12 +106,44 @@
           <source media="(max-width: 599px)" srcset="img/boutique-960.webp" width="960" height="540">
           <img class="bt__img" src="img/boutique.webp" srcset="img/boutique.webp 1920w, img/boutique-2400.webp 2400w" sizes="100vw"
             width="1920" height="1080" loading="eager" fetchpriority="high" decoding="async"
-            alt="Une commerçante souriante, accoudée au comptoir de sa petite boutique, devant des étagères remplies de produits."
+            alt="Une artisane souriante, en pagne vert et foulard assorti, tresse un grand panier en raffia devant le mur ocre de son atelier, entre ses jarres et ses calebasses."
             data-i18n-attr="alt:bt.alt">
         </picture>
       </div>
       <div class="bt__shade" aria-hidden="true"></div>
-      <p class="bt__credit"><span data-i18n="bt.credit">Photo</span>&nbsp;: <a href="https://unsplash.com/photos/a-woman-sitting-at-a-counter-in-a-store-EOkN2pRjFsg" target="_blank" rel="noopener">Ali Mkumbwa / Unsplash</a></p>
+      <!-- The same boutique, online: shown after the burst (anim/boutique.js). Decorative: the copy says it in words.
+           Soft glass cards, round photos that spill out of their cards and pieces that break out of the window. -->
+      <div class="bt__shop" aria-hidden="true">
+        <div class="bt__win">
+          <div class="bt__top">
+            <span class="bt__logo">A</span><span class="bt__brand">Chez Awa</span>
+            <span class="bt__url"><svg viewBox="0 0 12 14" aria-hidden="true"><path d="M3 6V4a3 3 0 0 1 6 0v2M2 6h8v7H2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>chezawa.jeere.shop</span>
+          </div>
+          <p class="bt__open"><i></i><span data-i18n="bt.shop.open">Ouvert · livraison partout à Abidjan</span></p>
+          <p class="bt__h"><span data-i18n="bt.shop.h1">Fait main,</span> <em data-i18n="bt.shop.h2">nouveautés de la semaine</em></p>
+          <div class="bt__chips"><span class="is-on" data-i18n="bt.shop.c1">Tout</span><span data-i18n="bt.shop.c2">Bijoux</span><span data-i18n="bt.shop.c3">Vannerie</span><span data-i18n="bt.shop.c4">Pagne</span><span data-i18n="bt.shop.c5">Déco</span></div>
+          <div class="bt__rail"><div class="bt__track">
+            <figure class="bt__p"><img src="img/shop/creoles-martelees.webp" alt="" width="360" height="161" loading="lazy" decoding="async" fetchpriority="low"><figcaption><b data-i18n="bt.shop.p1">Créoles martelées</b><small data-i18n="bt.shop.d1">Laiton doré</small><span class="bt__price">6 000&nbsp;F<i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></i></span></figcaption></figure>
+            <figure class="bt__p"><img src="img/shop/bracelets-perles-lot-3.webp" alt="" width="360" height="294" loading="lazy" decoding="async" fetchpriority="low"><figcaption><b data-i18n="bt.shop.p2">Bracelets perles</b><small data-i18n="bt.shop.d2">Bois et pierre, lot de 3</small><span class="bt__price">4 500&nbsp;F<i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></i></span></figcaption></figure>
+            <figure class="bt__p"><img src="img/shop/pochette-toile-korhogo.webp" alt="" width="356" height="360" loading="lazy" decoding="async" fetchpriority="low"><figcaption><b data-i18n="bt.shop.p3">Pochette Korhogo</b><small data-i18n="bt.shop.d3">Toile peinte à la main</small><span class="bt__price">15 000&nbsp;F<i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></i></span></figcaption></figure>
+            <figure class="bt__p"><img src="img/shop/panier-rond-raffia.webp" alt="" width="360" height="357" loading="lazy" decoding="async" fetchpriority="low"><figcaption><b data-i18n="bt.shop.p4">Panier raffia</b><small data-i18n="bt.shop.d4">Tressé à la main</small><span class="bt__price">8 000&nbsp;F<i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></i></span></figcaption></figure>
+            <figure class="bt__p"><img src="img/shop/bol-terre-cuite.webp" alt="" width="360" height="157" loading="lazy" decoding="async" fetchpriority="low"><figcaption><b data-i18n="bt.shop.p5">Bol terre cuite</b><small data-i18n="bt.shop.d5">Émaillé, pièce unique</small><span class="bt__price">6 500&nbsp;F<i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></i></span></figcaption></figure>
+            <figure class="bt__p"><img src="img/shop/sac-cabas-tresse.webp" alt="" width="340" height="360" loading="lazy" decoding="async" fetchpriority="low"><figcaption><b data-i18n="bt.shop.p6">Cabas tressé</b><small data-i18n="bt.shop.d6">Paille et cuir</small><span class="bt__price">12 000&nbsp;F<i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></i></span></figcaption></figure>
+            <figure class="bt__p"><img src="img/shop/bracelet-jonc-grave.webp" alt="" width="360" height="214" loading="lazy" decoding="async" fetchpriority="low"><figcaption><b data-i18n="bt.shop.p7">Jonc gravé</b><small data-i18n="bt.shop.d7">Laiton gravé main</small><span class="bt__price">9 500&nbsp;F<i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></i></span></figcaption></figure>
+          </div></div>
+        </div>
+        <div class="bt__cart"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14l-1.4 8.2a2 2 0 0 1-2 1.8H6.4a2 2 0 0 1-2-1.8zM7 5a3 3 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><b>2</b></div>
+        <div class="bt__feat">
+          <img src="img/shop/jarre-terre-katiola.webp" alt="" width="375" height="560" loading="lazy" decoding="async" fetchpriority="low">
+          <p class="bt__tag" data-i18n="bt.shop.pick">Coup de cœur</p>
+          <p class="bt__fname" data-i18n="bt.shop.feat">Jarre en terre de Katiola</p>
+          <p class="bt__fdesc" data-i18n="bt.shop.featd">Tournée à la main, pièce unique</p>
+          <div class="bt__fbuy"><span class="bt__price">18 000&nbsp;F</span><span class="bt__add" data-i18n="bt.shop.add">Ajouter</span></div>
+        </div>
+        <div class="bt__toast"><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.3 5 8.6l4.5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span><b data-i18n="bt.shop.paid">Payé avec Wave</b><small data-i18n="bt.shop.paidd">Cabas tressé · 12 000 F</small></span></div>
+        <div class="bt__dock"><span class="is-on"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 9.5 10 4l7 5.5V16a1 1 0 0 1-1 1h-3.5v-4.5h-5V17H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span data-i18n="bt.shop.home">Boutique</span></span><span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6-3.6-6-8A3.3 3.3 0 0 1 10 6.4a3.3 3.3 0 0 1 6 2.1c0 4.4-6 8-6 8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16.5V5.8A1.8 1.8 0 0 1 5.8 4h8.4A1.8 1.8 0 0 1 16 5.8v6.4a1.8 1.8 0 0 1-1.8 1.8H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><span><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 17c.8-3 3.2-4.5 6-4.5s5.2 1.5 6 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></div>
+      </div>
+      <p class="bt__credit"><span data-i18n="bt.credit">Photo</span>&nbsp;: <a href="https://unsplash.com/photos/woman-making-basket-M-MzUrjQjtY" target="_blank" rel="noopener">Nnaemeka Ugochukwu / Unsplash</a></p>
     </div>
     <div class="bt__copy">
       <div class="wrap">
