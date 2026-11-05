@@ -38,7 +38,7 @@ window.JEERE_EN = {
   'bt.credit': 'Photo',
   'bt.shop.h2': 'New this week',
   'bt.shop.c1': 'All', 'bt.shop.c2': 'Jewellery', 'bt.shop.c3': 'Basketry', 'bt.shop.c4': 'Cloth', 'bt.shop.c5': 'Decor',
-  'bt.shop.p1': 'Hammered hoops', 'bt.shop.d1': 'Gold-tone brass', 'bt.shop.p2': 'Bead bracelets', 'bt.shop.d2': 'Wood and stone, set of 3',
+  'bt.shop.p1': 'Woven basket', 'bt.shop.d1': 'Hand-woven rattan', 'bt.shop.p2': 'Bead bracelets', 'bt.shop.d2': 'Wood and stone, set of 3',
   'bt.shop.p3': 'Korhogo clutch', 'bt.shop.d3': 'Hand-painted cloth', 'bt.shop.p4': 'Raffia basket', 'bt.shop.d4': 'Woven by hand',
   'bt.shop.p5': 'Terracotta bowl', 'bt.shop.d5': 'Glazed, one of a kind', 'bt.shop.p6': 'Woven tote', 'bt.shop.d6': 'Straw and leather',
   'bt.shop.p7': 'Engraved bangle', 'bt.shop.d7': 'Hand-engraved brass', 'bt.shop.paid': 'Paid with Wave', 'bt.shop.paidd': 'Woven tote · 12,000 F', 'bt.shop.home': 'Shop',
