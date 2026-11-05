@@ -88,7 +88,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
    jeere » is written over the copy. Then a burst (a flash, streaks and drops of ink in the store's colours, the frame
    shakes) and the same stall comes back online: « Chez Awa » (its own basket mark, its name in Fraunces italic), a
    plain white store window laid out like the Tabouret concept, in black and white, with cut-out products in colour
-   standing out of their cards in a scrolling row (the cards stay in the window, the objects go over its edges), a straw tote floating over its edge, the cart, a « Payé avec Wave » notice and the
+   standing out of their cards in a scrolling row (the cards stay in the window, the objects go over its edges), the cart, a « Payé avec Wave » notice and the
    dock breaking out of its frame. The copy follows: « Votre boutique physique, » with the photo, « maintenant en ligne. », the line and «
    Créer ma boutique e-commerce maintenant » (to sign-up) with the store; then « Revoir ».
    See [Idea to store](#idea-to-store-animation).
