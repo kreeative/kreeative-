@@ -1526,10 +1526,18 @@
         m.appendChild(list);
         var items = [];
         function item(v, label, family, cat) {
-          var it = ce('button', 'dz-fontmenu__i' + (val(t, fprop) === v || (!v && !val(t, fprop)) ? ' is-on' : ''), '<span>' + esc(label) + '</span>' + (cat ? '<small>' + esc(cat) + '</small>' : ''));
+          /* « Abonnements Studio »: the catalogue fonts are locked on Découverte (visible, with a lock;
+           * a click opens the upgrade sheet); the template's own fonts always stay free */
+          var locked = !!v && v.charAt(0) !== '@' && typeof S.can === 'function' && !S.can('fonts');
+          var it = ce('button', 'dz-fontmenu__i' + (val(t, fprop) === v || (!v && !val(t, fprop)) ? ' is-on' : '') + (locked ? ' is-locked' : ''), '<span>' + esc(label) + '</span>' + (cat ? '<small>' + esc(cat) + '</small>' : '') + (locked ? '<svg class="dz-fontmenu__lock" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5.2a2.5 2.5 0 015 0V7" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>' : ''));
           it.type = 'button';
+          if (locked) it.setAttribute('aria-label', label + ' (avec un abonnement Studio)');
           if (family) it.firstChild.style.fontFamily = family;
-          it.addEventListener('click', function () { closeFontMenu(); var fp = {}; fp[fprop] = v; setProps(t, fp, 'Police : ' + label, null); });
+          it.addEventListener('click', function () {
+            closeFontMenu();
+            if (locked && typeof S.gate === 'function' && !S.gate('fonts')) return;
+            var fp = {}; fp[fprop] = v; setProps(t, fp, 'Police : ' + label, null);
+          });
           it.setAttribute('data-q', (label + ' ' + (cat || '')).toLowerCase());
           list.appendChild(it);
           items.push(it);

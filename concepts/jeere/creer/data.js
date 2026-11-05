@@ -3312,7 +3312,7 @@
 
   var STORAGE_KEYS = {
     config: 'jeere-studio-config', // the fiche boutique (the editor's; the dashboard writes it too, through normalizeConfig)
-    account: 'jeere-account', // { version, firstName, phone, storeName, createdAt, plan, loggedIn }
+    account: 'jeere-account', // { version, firstName, phone, storeName, createdAt, plan, loggedIn, studio? } (studio: the Studio subscription, ../studio/plans.js)
     admin: 'jeere-admin', // { version, orders, settings, connectors, stock? }
     open: 'jeere-studio-open', // one-shot { page, pageId?, productId? } read and deleted by the editor
     tour: 'jeere-tour' // { version: 1, seen: { editor: iso, admin: iso } }: the guided tours already shown (tour.js)
@@ -3568,7 +3568,7 @@
     if (!isObj(src)) return null;
     var phone = normalizeWhatsapp(str(src.phone, ''));
     if (!/^\+\d{8,15}$/.test(phone)) return null;
-    return {
+    var out = {
       version: 1,
       firstName: clampStr(src.firstName, 40),
       phone: phone,
@@ -3577,6 +3577,16 @@
       plan: idIn(PLANS, src.plan) ? src.plan : 'gratuit',
       loggedIn: src.loggedIn === true
     };
+    // The Studio subscription (« Abonnements Studio »): kept as it is, normalised by
+    // ../studio/plans.js (JeerePlans.normalizeSub) wherever it is read. Only when there is one,
+    // so an account without it keeps exactly the shape above.
+    if (isObj(src.studio)) {
+      var studio = clone(src.studio);
+      var size = 0;
+      try { size = JSON.stringify(studio).length; } catch (e) { size = Infinity; }
+      if (studio && size < 60000) out.studio = studio;
+    }
+    return out;
   }
 
   function normSettings2(src, config) {

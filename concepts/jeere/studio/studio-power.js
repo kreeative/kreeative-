@@ -30,6 +30,10 @@
     function state() { return S.state(); }
     function ui() { return S.ui(); }
     function cfg() { return state().config; }
+    /* « Abonnements Studio » (studio-plans.js, loaded later): S.gate(feature, { count }) opens the
+     * upgrade sheet and returns false when the plan does not include it; absent = everything open */
+    function gate(feature, opts) { return typeof S.gate === 'function' ? S.gate(feature, opts) : true; }
+    function planLimit(name, cap) { var l = typeof S.limit === 'function' ? S.limit(name) : Infinity; return Math.min(cap, typeof l === 'number' ? l : cap); }
 
     function copyText(text, okMsg) {
       var done = function () { toast(okMsg || 'Copié dans le presse-papiers.', 'ok'); };
@@ -194,6 +198,7 @@
 
     function saveBlock(section, ask) {
       if (!section) { toast('Sélectionnez une section à enregistrer.'); return; }
+      if (!gate('blocks', { count: blocks().length })) return;
       if (blocks().length >= BLOCKS_CAP) { toast(BLOCKS_CAP + ' blocs au maximum : supprimez-en un d’abord (clic droit sur le bloc).', 'warn'); return; }
       var counter = { n: 0 };
       var settings = stripHeavyImages(clone(section.settings || {}), counter);
@@ -278,10 +283,11 @@
         try { parsed = JSON.parse(String(reader.result)); } catch (e) { toast('Ce fichier n’est pas un JSON valide.', 'err'); return; }
         var list = parsed && Array.isArray(parsed.blocks) ? parsed.blocks : (Array.isArray(parsed) ? parsed : null);
         if (!list) { toast('Ce fichier ne contient pas de blocs.', 'err'); return; }
-        var added = 0;
+        var added = 0, capped = 0;
+        var cap = planLimit('blocks', BLOCKS_CAP);
         list.forEach(function (b) {
           if (!b || typeof b.type !== 'string' || !S.sectionDef(b.type)) return;
-          if (blocks().length >= BLOCKS_CAP) return;
+          if (blocks().length >= cap) { capped++; return; }
           var counter = { n: 0 };
           ui().blocks = blocks().concat([{
             id: 'b' + Date.now().toString(36) + Math.floor(Math.random() * 9999) + added,
@@ -295,6 +301,7 @@
         S.saveUI();
         S.buildInsertPanel();
         toast(added ? added + ' bloc(s) importé(s) dans « Mes blocs ».' : 'Aucun bloc compatible dans ce fichier.', added ? 'ok' : 'warn');
+        if (capped && cap < BLOCKS_CAP) gate('blocks', { count: blocks().length });
       };
       reader.readAsText(file);
     }
@@ -319,7 +326,8 @@
 
     hooks.insertPanelBuilt = function (panel) {
       var head = ce('div', 'st-blocks__title');
-      head.appendChild(ce('span', '', 'Mes blocs'));
+      var bcap = planLimit('blocks', BLOCKS_CAP);
+      head.appendChild(ce('span', '', bcap < BLOCKS_CAP ? 'Mes blocs · ' + Math.min(blocks().length, 99) + ' / ' + bcap : 'Mes blocs'));
       var btns = ce('span', '');
       var ex = ce('button', 'st-ghostbtn', 'Exporter');
       ex.type = 'button';
@@ -549,6 +557,12 @@
     }
 
     function takeSnapshot(name, auto, named) {
+      var cap = planLimit('versions', VERSIONS_CAP);
+      if (cap < VERSIONS_CAP && loadVersions().items.length >= cap) {
+        /* Découverte: never evict her own versions to make room; an automatic snapshot simply waits */
+        if (auto) return false;
+        if (!gate('versions', { count: loadVersions().items.length })) return false;
+      }
       var out;
       try { out = D.normalizeConfig(cfg()); } catch (e) { out = clone(cfg()); }
       var store = loadVersions();
@@ -559,7 +573,7 @@
         auto: !!auto,
         config: out
       });
-      while (store.items.length > VERSIONS_CAP) store.items.shift();
+      while (store.items.length > cap) store.items.shift();
       var ok = saveVersions(store);
       if (ok && !auto) toast(named === false ? 'Instantané pris (« ' + String(name).slice(0, 40) + ' »).' : 'Version « ' + String(name || 'Sans titre').slice(0, 40) + ' » enregistrée.', 'ok');
       buildVersions();
@@ -636,7 +650,10 @@
       bar.appendChild(nameIn);
       bar.appendChild(snapBtn);
       body.appendChild(bar);
-      body.appendChild(ce('p', 'st-insp__empty', 'Un instantané automatique est pris tous les ' + AUTO_EVERY + ' enregistrements. ' + VERSIONS_CAP + ' versions au maximum — la plus ancienne s’efface.'));
+      var vcap = planLimit('versions', VERSIONS_CAP);
+      body.appendChild(ce('p', 'st-insp__empty', vcap < VERSIONS_CAP
+        ? 'Découverte : ' + vcap + ' versions au maximum (' + Math.min(loadVersions().items.length, vcap) + ' / ' + vcap + '). Avec un abonnement Studio : ' + VERSIONS_CAP + ' versions et un instantané automatique tous les ' + AUTO_EVERY + ' enregistrements.'
+        : 'Un instantané automatique est pris tous les ' + AUTO_EVERY + ' enregistrements. ' + VERSIONS_CAP + ' versions au maximum — la plus ancienne s’efface.'));
 
       var items = loadVersions().items.slice().reverse();
       if (!items.length) {
@@ -1008,6 +1025,7 @@
     }
 
     function exportPNG(key, scale) {
+      if (!gate('png')) return Promise.resolve(false);
       key = key || S.primaryKey();
       scale = scale || 2;
       var preset = null;

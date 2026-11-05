@@ -396,3 +396,8 @@ a { color: inherit; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .c-otp.is-focus .c-otp__cell.is-active:empty::after { animation: none; }
 }
+
+/* ---------- The Studio (« Abonnements Studio », ../studio/plans.js) ---------- */
+.c-choice--next { border-color: var(--ink); }
+.c-studio { margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--muted); text-align: center; }
+.c-studio .c-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; text-decoration: underline; text-underline-offset: 3px; }

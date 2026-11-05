@@ -29,6 +29,19 @@
   var FLOW_KEY = 'jeere-compte-flow';
   var RESEND_S = 30;
   var DASHBOARD = '../admin/';
+  // « ?suite=studio » (the Studio's trial sheet) or « ?suite=abonnements&plan=pro&periode=an » (the
+  // pricing page's checkout): where she goes once her account is ready. Only these two targets.
+  var SUITE = (function () {
+    var q = '';
+    try { q = root.location.search || ''; } catch (e) { q = ''; }
+    var m = /[?&]suite=(studio|abonnements)(?:&|$)/.exec(q);
+    if (!m) return null;
+    if (m[1] === 'studio') return { id: 'studio', url: '../studio/?essai=1', title: 'Démarrer mon essai du Studio', text: '14 jours de Studio complet, gratuits. Aucun moyen de paiement demandé.', cta: 'Démarrer mon essai du Studio' };
+    var plan = /[?&]plan=(solo|pro|agence)(?:&|$)/.exec(q);
+    var per = /[?&]periode=(mois|an)(?:&|$)/.exec(q);
+    var url = '../abonnements/?' + (plan ? 'plan=' + plan[1] + '&' : '') + 'periode=' + (per ? per[1] : 'an') + '#paiement';
+    return { id: 'abonnements', url: url, title: 'Reprendre mon abonnement Studio', text: 'Votre formule et votre période sont gardées : il reste le paiement.', cta: 'Reprendre mon abonnement Studio' };
+  })();
 
   // The landing page's country list (../index.html, the waitlist form), +225 first
   var COUNTRIES = [
@@ -679,7 +692,8 @@
     announce(hello);
     flow = {};
     saveFlow();
-    setTimeout(function () { try { root.location.assign(DASHBOARD); } catch (e) { root.location.href = DASHBOARD; } }, 650);
+    var next = SUITE ? SUITE.url : DASHBOARD;
+    setTimeout(function () { try { root.location.assign(next); } catch (e) { root.location.href = next; } }, 650);
   }
 
   function startTimer() {
@@ -758,6 +772,7 @@
       plan: (same && prev.plan) || 'gratuit',
       loggedIn: true
     };
+    if (same && prev.studio) acc.studio = prev.studio; // her Studio subscription stays with her number
     var ok = saveAccount(acc);
     fillFiche(name, flow.phone, true);
     flow.created = true;
@@ -780,7 +795,24 @@
       el.startFiche.hidden = false;
     } else el.startFiche.hidden = true;
     el.saveWarn.hidden = flow.saved !== false;
+    // Coming from the Studio or the pricing page: that comes first
+    var li = $('c-go-studio-li');
+    if (li) {
+      li.hidden = !SUITE;
+      if (SUITE) { $('c-go-studio').setAttribute('href', SUITE.url); $('c-go-studio-t').textContent = SUITE.title; $('c-go-studio-d').textContent = SUITE.text; }
+    }
   };
+  // The Studio subscription, in words (« Pro · annuel, jusqu'au 5 novembre 2027 »)
+  function studioSummary() {
+    var P = root.JeerePlans;
+    if (!P) return 'Découverte (gratuit)';
+    var s = P.state();
+    if (s.status === 'trial') return 'Essai, encore ' + s.daysLeft + NB + 'jour' + (s.daysLeft > 1 ? 's' : '');
+    if (s.status === 'active') return s.plan.name + ' · ' + (s.period === 'an' ? 'annuel' : 'mensuel') + ', renouvellement le ' + P.date(s.periodEnd);
+    if (s.status === 'canceling') return s.plan.name + ', jusqu’au ' + P.date(s.periodEnd);
+    if (s.status === 'due') return s.plan.name + ', à renouveler';
+    return 'Découverte (gratuit)';
+  }
 
   // Already signed in on this device
   SETUP.session = function () {
@@ -791,6 +823,10 @@
     el.sumStore.textContent = acc.storeName || ficheName() || 'Pas encore de nom';
     el.sumPhone.textContent = formatPhone(acc.phone);
     el.sumPlan.textContent = planName(acc.plan);
+    var sd = $('c-sum-studio');
+    if (sd) sd.textContent = studioSummary();
+    var nx = $('c-studio-next');
+    if (nx) { nx.hidden = !SUITE; if (SUITE) { nx.setAttribute('href', SUITE.url); $('c-studio-next-t').textContent = SUITE.cta; } }
   };
   function logout() {
     var acc = readAccount();

@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="compte.css">
   <script src="../creer/data.js" defer></script>
   <script src="../creer/elstyles.js" defer></script>
+  <script src="../studio/plans.js" defer></script>
   <script src="compte.js" defer></script>
 </head>
 <body>
@@ -213,6 +214,16 @@
           <h1 class="c-title" id="c-start-t" tabindex="-1">Comment voulez-vous commencer&nbsp;?</h1>
           <p class="c-lead" id="c-start-lead"></p>
           <ul class="c-choices">
+            <li id="c-go-studio-li" hidden>
+              <a class="c-choice c-choice--next" href="../studio/?essai=1" id="c-go-studio">
+                <span class="c-choice__ico" aria-hidden="true"><svg class="c-ico"><use href="#i-sparkle"/></svg></span>
+                <span class="c-choice__txt">
+                  <span class="c-choice__t" id="c-go-studio-t">Démarrer mon essai du Studio</span>
+                  <span class="c-choice__d" id="c-go-studio-d">14 jours de Studio complet, gratuits. Aucun moyen de paiement demandé.</span>
+                </span>
+                <svg class="c-ico c-choice__arr" aria-hidden="true"><use href="#i-arrow"/></svg>
+              </a>
+            </li>
             <li>
               <a class="c-choice" href="../creer/" id="c-go-template">
                 <span class="c-choice__ico" aria-hidden="true"><svg class="c-ico"><use href="#i-template"/></svg></span>
@@ -265,8 +276,11 @@
             <div><dt>Boutique</dt><dd id="c-sum-store"></dd></div>
             <div><dt>Numéro WhatsApp</dt><dd class="c-nowrap" id="c-sum-phone"></dd></div>
             <div><dt>Formule</dt><dd id="c-sum-plan"></dd></div>
+            <div><dt>Studio</dt><dd id="c-sum-studio">Découverte (gratuit)</dd></div>
           </dl>
+          <p class="c-studio" id="c-studio-line"><a class="c-link" href="../admin/#parametres/studio" id="c-studio-manage">Gérer mon abonnement Studio</a> · <a class="c-link" href="../studio/" id="c-studio-open">Ouvrir le Studio</a></p>
           <div class="c-acts">
+            <a class="c-btn c-btn--primary c-btn--block" href="../studio/?essai=1" id="c-studio-next" hidden><svg class="c-ico" aria-hidden="true"><use href="#i-sparkle"/></svg><span id="c-studio-next-t">Continuer vers le Studio</span></a>
             <a class="c-btn c-btn--primary c-btn--block" href="../admin/"><svg class="c-ico" aria-hidden="true"><use href="#i-dash"/></svg>Aller au tableau de bord</a>
             <a class="c-btn c-btn--ghost c-btn--block" href="../creer/"><svg class="c-ico" aria-hidden="true"><use href="#i-edit"/></svg>Ouvrir l’éditeur</a>
             <button class="c-btn c-btn--quiet c-btn--block" type="button" id="c-logout"><svg class="c-ico" aria-hidden="true"><use href="#i-logout"/></svg>Se déconnecter</button>

@@ -633,6 +633,73 @@
     </div>
   </section>
 
+  <!-- 8b. The Studio's plans (« Abonnements Studio »). The prices are those of studio/plans.js
+       (JeerePlans.PLANS): change them there and here; plans-test.js checks they match. -->
+  <section class="section section--ink" id="studio" aria-labelledby="studio-title" data-sp data-period="an">
+    <div class="wrap">
+      <header class="section__head">
+        <p class="eyebrow eyebrow--light" data-i18n="studio.eyebrow">Le Studio · formule Avancée</p>
+        <h2 class="h2" id="studio-title" data-i18n="studio.title">Le Studio&nbsp;: l’éditeur avancé, façon Figma. Au prix d’ici.</h2>
+        <p class="lead" data-i18n="studio.lead">Pour régler chaque détail de votre boutique&nbsp;: calques, sections, styles élément par élément, aperçus de 360 à 1440&nbsp;px. Gratuit sur votre boutique, 14&nbsp;jours d’essai de tout le Studio, puis payé en FCFA par mobile money.</p>
+      </header>
+      <div class="sp__bar">
+        <div class="sp__toggle" role="group" aria-label="Facturation" data-i18n-attr="aria-label:studio.billing">
+          <button type="button" data-sp-period="mois" aria-pressed="false" data-i18n="studio.monthly">Mensuel</button>
+          <button type="button" data-sp-period="an" aria-pressed="true"><span data-i18n="studio.yearly">Annuel</span> <span class="sp__save">−20&nbsp;%</span></button>
+        </div>
+        <p class="sp__fx" data-i18n="studio.fx">Prix en FCFA. Depuis la diaspora&nbsp;: par carte, en euros ou en dollars.</p>
+      </div>
+      <div class="sp">
+        <article class="sp__plan" data-sp-plan="decouverte">
+          <h3 class="sp__name">Découverte</h3>
+          <p class="sp__price"><b>0</b> FCFA</p>
+          <p class="sp__alt" data-i18n="studio.p0alt">Gratuit, sur votre boutique</p>
+          <ul class="sp__list">
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p0a">Tout l’éditeur&nbsp;: calques, sections, Design, raccourcis</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p0b">3 blocs et 3 versions enregistrés</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p0c">Badge «&nbsp;Fait avec Jeere&nbsp;»</span></li>
+          </ul>
+        </article>
+        <article class="sp__plan" data-sp-plan="solo">
+          <h3 class="sp__name">Solo</h3>
+          <p class="sp__price"><b data-sp-y>3&nbsp;900</b><b data-sp-m>4&nbsp;900</b> <span data-i18n="price.month">FCFA / mois</span></p>
+          <p class="sp__alt"><span data-sp-y data-i18n="studio.p1y">46&nbsp;800&nbsp;FCFA par an · ≈&nbsp;5,95&nbsp;€ / mois</span><span data-sp-m data-i18n="studio.p1m">Sans engagement · ≈&nbsp;7,47&nbsp;€ / mois</span></p>
+          <ul class="sp__list">
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p1a">Tout le Studio débloqué, sur 1 boutique</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p1b">Export du code et des images, commentaires</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p1c">Sans le badge «&nbsp;Fait avec Jeere&nbsp;»</span></li>
+          </ul>
+        </article>
+        <article class="sp__plan sp__plan--pick" data-sp-plan="pro">
+          <p class="sp__flag" data-i18n="studio.pick">Le plus choisi</p>
+          <h3 class="sp__name">Pro</h3>
+          <p class="sp__price"><b data-sp-y>7&nbsp;900</b><b data-sp-m>9&nbsp;900</b> <span data-i18n="price.month">FCFA / mois</span></p>
+          <p class="sp__alt"><span data-sp-y data-i18n="studio.p2y">94&nbsp;800&nbsp;FCFA par an · ≈&nbsp;12,04&nbsp;€ / mois</span><span data-sp-m data-i18n="studio.p2m">Sans engagement · ≈&nbsp;15,09&nbsp;€ / mois</span></p>
+          <ul class="sp__list">
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p2a">Tout le Studio débloqué, sur 3 boutiques</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p2b">2 places&nbsp;: vous et une personne de votre équipe</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p2c">Support prioritaire sur WhatsApp</span></li>
+          </ul>
+        </article>
+        <article class="sp__plan" data-sp-plan="agence">
+          <h3 class="sp__name" data-i18n="studio.p3">Agence</h3>
+          <p class="sp__price"><b data-sp-y>19&nbsp;900</b><b data-sp-m>24&nbsp;900</b> <span data-i18n="price.month">FCFA / mois</span></p>
+          <p class="sp__alt"><span data-sp-y data-i18n="studio.p3y">238&nbsp;800&nbsp;FCFA par an · ≈&nbsp;30,34&nbsp;€ / mois</span><span data-sp-m data-i18n="studio.p3m">Sans engagement · ≈&nbsp;37,96&nbsp;€ / mois</span></p>
+          <ul class="sp__list">
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p3a">Tout le Studio débloqué, sur 10 boutiques clientes</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p3b">5 places incluses, puis 2&nbsp;500&nbsp;FCFA par place</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="studio.p3c">Un interlocuteur dédié</span></li>
+          </ul>
+        </article>
+      </div>
+      <div class="sp__cta">
+        <a class="btn sp__try" href="studio/?essai=1"><span data-i18n="studio.try">Essayer le Studio 14 jours</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn sp__more" href="abonnements/" data-i18n="studio.compare">Comparer les formules</a>
+      </div>
+      <p class="caption caption--center sp__note" data-i18n="studio.note">Sans moyen de paiement pour l’essai. Le Studio se pilote sur ordinateur ou iPad&nbsp;; sur téléphone, l’éditeur simple fait tout. Tarifs prévus pour le lancement.</p>
+    </div>
+  </section>
+
   <!-- 9. FAQ -->
   <section class="section section--paper" id="faq" aria-labelledby="faq-title">
     <div class="wrap faq">
@@ -844,6 +911,7 @@
       <nav class="foot__links" aria-label="Pied de page" data-i18n-attr="aria-label:foot.nav">
         <a href="#comment" data-i18n="nav.how">Comment ça marche</a>
         <a href="#tarifs" data-i18n="nav.pricing">Tarifs</a>
+        <a href="abonnements/" data-i18n="nav.studio">Le Studio</a>
         <a href="#faq" data-i18n="nav.faq">Questions</a>
       <a href="creer/" class="head__try" data-i18n="nav.try">Essayer l’éditeur</a>
         <a href="#liste" data-i18n="nav.cta">Rejoindre la liste</a>
