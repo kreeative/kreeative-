@@ -88,8 +88,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
    jeere » is written over the copy. Then a burst (a flash, streaks and drops of ink in the store's colours, the frame
    shakes) and the same stall comes back online: « Chez Awa » (its own basket mark, its name in Fraunces italic), a
    plain white store window laid out like the Tabouret concept, in black and white, with cut-out products in colour
-   standing out of their cards in a scrolling row, a « Coup de cœur » card (the Katiola clay jar), the same size as the
-   others and on their line, laid over the window's right edge, a straw tote floating over its edge, the cart, a « Payé avec Wave » notice and the
+   standing out of their cards in a scrolling row that runs past the window's edges onto the black, a straw tote floating over its edge, the cart, a « Payé avec Wave » notice and the
    dock breaking out of its frame. The copy follows: « Votre boutique physique, » with the photo, « maintenant en ligne. », the line and «
    Créer ma boutique e-commerce maintenant » (to sign-up) with the store; then « Revoir ».
    See [Idea to store](#idea-to-store-animation).
@@ -128,7 +127,7 @@ anim/boutique.js  the hero animation: the traced stall lines, the brush-stroke b
              replay (the motion itself is CSS in style.css, « Physical to online »)
 img/boutique.webp, img/boutique-960.webp, img/boutique-2400.webp  the stall photo, 1920×1080 (288 KB),
              960×540 (98 KB, phones) and 2400×1350 (381 KB, large or dense screens)
-img/shop/…   the online store's products: transparent cut-outs (WebP with alpha, 360 px; the jar 560 px) made
+img/shop/…   the online store's products: transparent cut-outs (WebP with alpha, 360 px) made
              from creer/img/demo photos with rembg (isnet-general-use)
 favicon.svg  the white cloud on pop blue #3657FF (tab icon)
 apple-touch-icon.png  the same, 180×180, for home screens
@@ -225,8 +224,8 @@ line at a time) when the section is within a screen of the viewport, and plays i
   weight, drifting so neighbours touch and cross, with a comb of strands ending in round drops where the brush lifts.
   Each strand is a single dash (`pathLength="1"`) slid in with `stroke-dashoffset`. Phones get one strand fewer.
 - **The store** (`.bt__shop`, in the HTML, decorative, `aria-hidden`) sits beside the copy from 1280 px and fills the
-  stage below. Its sizes follow its box (container queries, `cq` units); under 560 px of box the « Coup de cœur » card
-  stays home (`@container shop`). Everything is in Poppins except the store's name (Fraunces italic, loaded for those 7 letters only). Product cut-outs are WebP with alpha and a CSS `drop-shadow`.
+  stage below. Its sizes follow its box (container queries, `cq` units); under 560 px of box (`@container shop`) the window
+  takes the whole width. Everything is in Poppins except the store's name (Fraunces italic, loaded for those 7 letters only). Product cut-outs are WebP with alpha and a CSS `drop-shadow`.
 - **LCP**: the `<img>` is visible from the start (eager, high priority): the cover only darkens it during the drawing.
 - **Speed**: about 250 paths; the ink is split over three stacked SVG layers plus one for the eyes, so a finished
   layer is not repainted; the cover, the burst and the store only use opacity and transforms. If the median frame of
