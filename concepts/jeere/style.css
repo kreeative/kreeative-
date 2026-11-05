@@ -770,14 +770,8 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .bt__replay[hidden] { display: none; }
 .bt__replay.is-off { visibility: hidden; }   /* keeps its place: the copy does not jump when it appears */
 @media (min-width: 1280px) {
-  /* Wide screens: the photo moves right (its right edge is cropped), the text sits on solid black at the left
-     and on a strong gradient, clear of the seller */
-  .bt__frame { left: 12%; }
-  .bt__shade {
-    background:
-      linear-gradient(90deg, #000 0, #000 12%, rgba(0, 0, 0, .86) 13.5%, rgba(0, 0, 0, .68) 28%, rgba(0, 0, 0, .46) 42%, rgba(0, 0, 0, 0) 57%),
-      linear-gradient(to top, rgba(0, 0, 0, .72) 0, rgba(0, 0, 0, 0) 45%);
-  }
+  /* Wide screens: the text sits on solid black at the left, the photo in the right-hand column */
+  .bt__shade { display: none; }
   .bt__copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 0 clamp(40px, 5vw, 76px); pointer-events: none; }
   .bt__text { pointer-events: auto; max-width: min(520px, 38vw); }
   .bt .lead { max-width: 24em; }
@@ -801,12 +795,14 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .is-boom .bt__svg--ink { opacity: 0; transform: scale(1.14); transition: opacity .32s ease, transform .5s cubic-bezier(.2, .7, .2, 1); }
 .is-boom .bt__frame { animation: bt-shake .34s linear both; }
 @keyframes bt-shake { 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-3px, 2px); } 80% { transform: translate(2px, -1px); } 100% { transform: none; } }
-.bt__shop, .bt__burst { position: absolute; inset: 5% 4%; pointer-events: none; }
-@media (min-width: 600px) { .bt__shop, .bt__burst { inset: 6% 9%; } }
-@media (min-width: 900px) { .bt__shop, .bt__burst { inset: 7% 14%; } }
+.bt__frame, .bt__shop, .bt__burst { position: absolute; inset: 5% 4%; pointer-events: none; }
+/* The photo of the stall (portrait) sits in the same box as the store that replaces it, as a rounded card */
+.bt__frame { width: auto; height: auto; overflow: hidden; border-radius: 26px; }
+@media (min-width: 600px) { .bt__frame, .bt__shop, .bt__burst { inset: 6% 9%; } }
+@media (min-width: 900px) { .bt__frame, .bt__shop, .bt__burst { inset: 7% 14%; } }
 @media (min-width: 1280px) {
   /* beside the copy, in the column the photo's shelves filled */
-  .bt__shop, .bt__burst { top: 8%; bottom: 9%; right: max(var(--gutter), (100% - var(--max)) / 2); left: calc(max(var(--gutter), (100% - var(--max)) / 2) + min(520px, 38vw) + 56px); }
+  .bt__frame, .bt__shop, .bt__burst { top: 8%; bottom: 9%; right: max(var(--gutter), (100% - var(--max)) / 2); left: calc(max(var(--gutter), (100% - var(--max)) / 2) + min(520px, 38vw) + 56px); }
 }
 .bt__burst { visibility: hidden; }
 .is-boom .bt__burst { visibility: visible; }

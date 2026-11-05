@@ -125,8 +125,7 @@ site.js      language, delivery demo, template tabs, waitlist form, hero canvas,
              for a photo that cannot load, scroll-in
 anim/boutique.js  the hero animation: the traced stall lines, the brush-stroke builder, the burst, play and
              replay (the motion itself is CSS in style.css, « Physical to online »)
-img/boutique.webp, img/boutique-960.webp, img/boutique-2400.webp  the stall photo, 1920×1080 (288 KB),
-             960×540 (98 KB, phones) and 2400×1350 (381 KB, large or dense screens)
+img/boutique.webp, img/boutique-720.webp  the stall photo (portrait), 1080×1350 and 720×900 (phones)
 img/shop/…   the online store's products: transparent cut-outs (WebP with alpha, 360 px) made
              from creer/img/demo photos with rembg (isnet-general-use)
 favicon.svg  the white cloud on pop blue #3657FF (tab icon)
@@ -181,18 +180,16 @@ Unsplash, also credited in `creer/img/demo/CREDITS.md`), referenced from here wi
 | `landing/sac-banane.webp` (Treichville) | 800×1000, 100 KB | [StartVisuals](https://unsplash.com/@startvisuals) | [Unsplash](https://unsplash.com/photos/a-pink-purse-sitting-on-top-of-a-white-bench-kYQ2uqYm0aY) |
 | `landing/livraison.webp` (diaspora proof) | 800×1000, 45 KB | [Luke Minnaar](https://unsplash.com/@lukeminnaar) | [Unsplash](https://unsplash.com/photos/a-man-with-a-box-on-a-city-street-xwbCZN4S9oA) |
 
-The stall in the hero is its own file, `img/boutique.webp` (1920×1080, WebP q58, 288 KB: the earth wall's grain
-costs bytes), `img/boutique-960.webp` (960×540, 98 KB, up to 599 px wide through `<picture>`) and
-`img/boutique-2400.webp` (2400×1350, 381 KB, picked by `srcset` on large or dense screens), loaded eagerly (it is
-the page's first paint). It was cropped to 16:9 from the 5184×3456 Unsplash download (y 243 to 3159). The printed
-rice sack on the ground (« … RICE … SORTEX ») was blurred so it reads as out of focus, and nothing readable is left.
-The credit sits on the photo, bottom right, while the photo shows: « Photo : Nnaemeka Ugochukwu / Unsplash ». No free
-photo of an Ivorian artisan was found on Unsplash (the photographer's other work is in Nigeria): replace it with a
-real Jeere seller's stall when there is one, and retrace the lines (see below).
+The stall in the hero is its own file, `img/boutique.webp` (1080×1350, portrait) and `img/boutique-720.webp` (720×900,
+up to 599 px wide through `<picture>`), loaded eagerly (it is the page's first paint). It is shown as a rounded card in
+the same box as the online store that replaces it (the right-hand column from 1280 px, the stage below). Photo by Tuke
+(@prince_edja on Instagram), credited on the photo with a link to his post. **Temporary file**: it was made from a
+399×501 copy, upscaled, so it is soft; replace both files with the 1080×1350 original (same framing, so `LINES` stays
+valid).
 
 | File | Size | Photographer | Photo |
 | --- | --- | --- | --- |
-| `img/boutique.webp`, `img/boutique-960.webp`, `img/boutique-2400.webp` (the hero) | 1920×1080, 288 KB / 960×540, 98 KB / 2400×1350, 381 KB | [Nnaemeka Ugochukwu](https://unsplash.com/@iblaqprinz) | [Unsplash](https://unsplash.com/photos/woman-making-basket-M-MzUrjQjtY) |
+| `img/boutique.webp`, `img/boutique-720.webp` (the hero) | 1080×1350 / 720×900 | Tuke ([@prince_edja](https://www.instagram.com/prince_edja/)) | [Instagram](https://www.instagram.com/p/CnHB84TrQEX/?img_index=1) |
 | `img/shop/*.webp` (the online store) | cut-outs of `creer/img/demo` photos | see `creer/img/demo/CREDITS.md` | — |
 
 Known weak spot: the delivery photo was taken in South Africa, not West Africa (nothing better was
@@ -205,8 +202,8 @@ line at a time) when the section is within a screen of the viewport, and plays i
 (IntersectionObserver); « Revoir » plays it again. Classes on `.bt__stage`, motion in style.css (« Physical to online »):
 
 - **is-real** (0.6 s): the photo alone; the eyebrow and « Votre boutique physique, » come in (wide screens).
-- **is-draw** (about 3.2 s, `PACE`): the strokes draw in, in drawing order (the basket, her, the raffia, the stall,
-  the wall), and a black cover rises over the photo with the drawing (a first dim so the cream strokes read on it,
+- **is-draw** (about 3.2 s, `PACE`): the strokes draw in, in drawing order (the stall, him, the goods behind, the goods
+  in front), and a black cover rises over the photo with the drawing (a first dim so the cream strokes read on it,
   then all the way down, an animation whose duration the script sets to the drawing's). **is-sign**: « jeere » is
   written over the copy as the last strokes land.
 - **is-boom** (after a 0.35 s `HOLD`): the ink layers fly apart (scale and fade), a flash, about 34 streaks and drops
@@ -215,9 +212,9 @@ line at a time) when the section is within a screen of the viewport, and plays i
   notice land one by one; the row of products scrolls (the script writes each card twice, the row slides by one copy's
   width, 34 s a lap). « maintenant en ligne. », the line and the button come in. **is-done** (+1.1 s, `BOOM`).
 
-- **The lines** (`LINES`) are traced by hand on the photo, in its own pixels (1920×1080): about 50 lines and loops
-  (the basket's rim and coils, the headscarf, her face with two solid drops for the eyes, the dress, the arms, the
-  hands, the raffia strands, the gourd, the basin, the clay jar, the blue pot, the cloths on the wall, a few cracks),
+- **The lines** (`LINES`) are traced by hand on the photo, in its own pixels (1080×1350): about 55 lines and loops
+  (the roof beam, the post, the platform and the mat, him with two solid drops for the eyes, the hanging bags and the
+  painted cloths, the stacked bowls, the tall lidded baskets, the little pots, the round trays),
   each with a start time, a duration, a weight and a number of strands. The SVG uses
   `preserveAspectRatio="xMidYMid slice"`, exactly like the photo's `object-fit: cover`.
 - **The brush** copies the logo: each line becomes a bundle of 2 to 5 seeded strands, all opaque and about the same

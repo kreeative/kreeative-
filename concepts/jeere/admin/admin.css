@@ -1390,3 +1390,12 @@ html.has-savebar .a-catnav { top: var(--a-top-h); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Paramètres › Studio avancé: the Studio subscription's invoices (« Abonnements Studio ») */
+.a-invoices { margin: 10px 0 0; padding: 0; list-style: none; }
+.a-invoice { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.a-invoice:first-child { border-top: 0; }
+.a-invoice__main { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.a-invoice__t { font-weight: 500; font-size: 14.5px; }
+.a-invoice__m { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.a-invoice__end { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }

@@ -17,10 +17,11 @@ mobile »), la carte « trois gestes » au premier lancement, le bloc « Respons
 1440 px » du groupe Disposition, et les touches de dessin de Figma (F, R, O, P, L, Ctrl G) ou
 le glisser d’un sous-élément, qui expliquent le modèle au lieu de ne rien faire.
 
-Le Studio fait partie de la **formule Avancée** : au premier lancement, une modale le dit et
-propose « Essayer gratuitement » (prototype : pas de facturation, copy honnête — « Bientôt payant
-à l’ouverture des abonnements »). En dessous de 1024 px, un écran « Le Studio se pilote sur
-ordinateur » renvoie vers l’éditeur simple.
+Le Studio fait partie de la **formule Avancée**, avec ses propres abonnements (voir
+[Abonnements Studio](#abonnements-studio)) : gratuit en Découverte, 14 jours d’essai de tout le
+Studio, puis Solo, Pro ou Agence. Au premier lancement, une modale le présente et propose
+« Essayer 14 jours gratuitement » ou « Continuer en Découverte ». En dessous de 1024 px, un écran
+« Le Studio se pilote sur ordinateur » renvoie vers l’éditeur simple.
 
 ## La même fiche, deux éditeurs
 
@@ -55,6 +56,8 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 | `studio.js` | Le cœur : état, historique, canevas (zoom/pan/tactile), sélection (simple **et multiple**), édition en place, calques, insertion, inspecteur, artboards dynamiques, raccourcis, autosave, dialogues. Expose `window.JeereStudio._internals` (le pont) et des `hooks`. |
 | `studio-power.js` | Les fonctions avancées, greffées sur le pont : palette de commandes, Mes blocs, Jetons, Historique (versions), onglet Code, panneau Images, superpositions mesures/contrastes, export PNG. IIFE classique, chargée après `studio.js`. |
 | `studio-design.js`, `studio-design.css` | L’onglet **Design** : l’inspecteur élément par élément (voir plus bas), la barre de style rapide et le recadrage sur le canevas, l’aperçu de la page. Écrit `elementStyles` (`../creer/elstyles.js`) par l’historique unique. Expose `window.JeereStudioDesign` pour les tests. |
+| `plans.js` | Les abonnements Studio, sans DOM : `window.JeerePlans` (formules, limites, abonnement en cours, essai, droits) et `window.JeereBilling` (le paiement, derrière un adaptateur de fournisseur). Chargé aussi par `../admin/`, `../compte/` et `../abonnements/`. |
+| `studio-plans.js`, `studio-plans.css` | Les abonnements dans l’éditeur : la pastille de formule de la barre du haut, la feuille « Avec un abonnement Studio », les cadenas, l’essai, le badge « Fait avec Jeere » du dialogue Publier. Définit `S.can`, `S.limit`, `S.gate` sur le pont. Chargé en dernier. Expose `window.JeereStudioPlans` pour les tests. |
 | `studio-toolbar.js` | La couche UI3 : barre d’outils flottante, fenêtre d’insertion (S), barre contextuelle de la sélection, infobulles stylées, commentaires locaux (C), carte d’accueil « trois gestes ». Chaîne les `hooks` (ne les remplace jamais). Expose `window.JeereStudioToolbar` pour les tests. |
 
 ## Les fonctions avancées (`studio-power.js`)
@@ -372,6 +375,234 @@ focus itinérant), ↑/↓ passent de ligne en ligne, Entrée ou Espace sélecti
 avec le backend, rien n’est publié pour l’instant*. « Partager » ouvre un dialogue distinct,
 tourné vers la fiche-fichier : adresse, télécharger (action principale) / copier / importer le
 JSON, ouvrir l’éditeur simple. Dans chaque dialogue, une seule action est primaire.
+
+## Abonnements Studio
+
+La demande de la fondatrice : un Studio **pleinement utilisable avec un abonnement qui le débloque
+entièrement**, à des prix compétitifs face à Framer et Webflow. Tout est en place de bout en bout,
+en local : tarifs (accueil et page dédiée), essai, paiement (mode démo), déblocage immédiat,
+gestion de l’abonnement, factures, places d’équipe.
+
+### Ce que font Framer et Webflow (relevé du 5 novembre 2026)
+
+Conversion : 1 $ ≈ 575 FCFA (indicatif, fin octobre 2026 : 560 à 586 selon les sources) ;
+1 € = 655,957 FCFA (parité fixe).
+
+| Offre | Annuel (par mois) | Mensuel | En FCFA (annuel / mensuel) | Ce qu’on a |
+| --- | --- | --- | --- | --- |
+| Framer Free | 0 | 0 | 0 | domaine framer, 1 Go, bannière « Made in Framer » |
+| Framer Basic | 10 $ | 15 $ ¹ | 5 750 / 8 625 | 1 site, 30 pages, 50 Go, domaine perso |
+| Framer Pro | 30 $ | 45 $ ¹ | 17 250 / 25 875 | 1 site, 150 pages, 100 Go |
+| Framer, éditeur en plus | 20 $ / éditeur | — | 11 500 | lecteurs gratuits, éditeur contenu 10 $ |
+| Webflow Starter | 0 | 0 | 0 | webflow.io, 2 pages, 1 Go, badge « Made in Webflow » |
+| Webflow Basic (site) | 15 $ | 25 $ | 8 625 / 14 375 | domaine perso, 300 pages, 10 Go |
+| Webflow Premium (site) | 25 $ | 39 $ | 14 375 / 22 425 | CMS, 50 Go (ex-CMS + Business, mai 2026) |
+| Webflow E-commerce Standard | 29 $ | — | 16 675 | 500 articles, 2 % de frais |
+| Webflow Workspace Core / Growth | 19 $ / 49 $ | — | 10 925 / 28 175 | espaces d’équipe internes |
+| Webflow Workspace Freelancer / Agency | 16 $ / 35 $ | — | 9 200 / 20 125 | pour les clients d’agence |
+| Webflow, place en plus | Full 39 $ · Limited 15 $ | — | 22 425 / 8 625 | relecteurs gratuits |
+
+¹ Le prix mensuel de Framer est derrière un interrupteur de sa page ; le chiffre vient d’un relevé
+tiers d’octobre 2026.
+
+Sources :
+- Framer : https://www.framer.com/pricing (page officielle, lue le 5 novembre 2026 : Basic 10 $,
+  Pro 30 $ en facturation annuelle, « Additional editors are $20 / month, and viewers are free ») ;
+  https://siter.io/framer-pricing (relevé du 27 octobre 2026 : limites, badge, places) ;
+  https://saascrmreview.com/?p=14254 (prix mensuels 15 $ / 45 $).
+- Webflow : https://webflow.com/pricing (page officielle, lue le 5 novembre 2026 : Basic 15 $,
+  Premium 25 $ en annuel, Workspace Core 19 $, Growth 49 $, Freelancer 16 $, Agency 35 $, places Full
+  39 $ et Limited 15 $) ; https://webflow.com/blog/simplified-plans-and-updated-pricing-2026 (13 mai
+  2026 : Basic 15 $ / 25 $, Premium 25 $ / 39 $).
+- Taux : https://www.currencybeacon.com/rates/USD/XOF (≈ 585,6 au 30 octobre 2026) et
+  https://www.mexc.co/price/USD/XOF (≈ 560,1) : d’où 575 retenu, à mettre à jour avant le lancement.
+
+### Les formules Jeere Studio
+
+| | Découverte | Solo | Pro (le plus choisi) | Agence |
+| --- | --- | --- | --- | --- |
+| Annuel, par mois | 0 | **3 900 FCFA** | **7 900 FCFA** | **19 900 FCFA** |
+| Facturé par an | — | 46 800 FCFA | 94 800 FCFA | 238 800 FCFA |
+| Mensuel | 0 | 4 900 FCFA | 9 900 FCFA | 24 900 FCFA |
+| ≈ € / mois (annuel · mensuel) | — | 5,95 · 7,47 | 12,04 · 15,09 | 30,34 · 37,96 |
+| ≈ $ / mois (annuel · mensuel) | — | 6,78 · 8,52 | 13,74 · 17,22 | 34,61 · 43,30 |
+| Boutiques dans le Studio | 1 | 1 | 3 | 10 |
+| Places | 1 | 1 | 2 | 5, puis 2 500 FCFA (2 000 en annuel) par place, jusqu’à 25 |
+| Studio | tout l’éditeur, avec les verrous ci-dessous | **tout débloqué** | **tout débloqué** | **tout débloqué** |
+| Support | WhatsApp | WhatsApp | prioritaire (< 2 h ouvrées) | interlocuteur dédié |
+
+Plus un **essai de 14 jours** de tout le Studio (au niveau Pro), une fois par compte, **sans moyen
+de paiement** : à la fin, retour en Découverte, rien n’est effacé, rien n’est prélevé.
+
+**Pourquoi ces prix.**
+- Solo coûte 32 % de moins que Framer Basic en annuel (43 % en mensuel) et 55 % de moins que
+  Webflow Basic.
+- Pro coûte 54 % de moins que Framer Pro et 45 % de moins que Webflow Premium.
+- Agence, 5 places et 10 boutiques comprises, coûte moins qu’un seul espace Agency de Webflow
+  (35 $) avant ses places à 39 $. Chez Framer, quatre éditeurs en plus coûtent déjà 80 $.
+- Les prix restent assez proches pour la diaspora (≈ 6 à 35 €), et assez bas pour Abidjan. Solo
+  se place à côté du plan boutique Essentiel (3 000 FCFA), Agence au niveau de Business
+  (25 000 FCFA).
+- L’hébergement, les pages et la bande passante sont déjà dans la formule boutique. Le Studio ne
+  facture que l’éditeur : c’est ce qui permet d’être nettement moins cher.
+- Les montants ronds en « 900 » sont lisibles et faciles à payer par mobile money.
+- L’annuel coûte 20 % de moins (−20,4 %, −20,2 %, −20,1 %), moins que Framer (−33 %) et Webflow
+  (−40 % sur Basic) : à Abidjan, une grosse somme d’un coup se vend mal, donc l’écart reste
+  modéré et le mensuel garde sa place.
+
+**Le principe des formules** est celui des formules boutique de Jeere : on monte quand on
+grandit, pas pour débloquer une fonction. **N’importe quel abonnement payant, et l’essai,
+débloquent tout le Studio.** Solo, Pro et Agence ne diffèrent que par le nombre de boutiques, de
+places et le niveau de support.
+
+### Ce que Découverte garde verrouillé (visible, jamais caché)
+
+`JeerePlans.FEATURES` ; chaque verrou ouvre la feuille « Avec un abonnement Studio » (la fonction
+expliquée, l’essai ou le compte, les trois formules avec mensuel / annuel, « Comparer toutes les
+formules », « Mode démo · aucun paiement réel ») :
+
+| id | Où | Découverte |
+| --- | --- | --- |
+| `code` | onglet Code de l’inspecteur (CSS et JSON de la sélection), aussi par la palette | cadenas sur l’onglet ; le clic ouvre la feuille |
+| `png` | « Exporter en image » (palette, dialogue Partager / Publier) | cadenas sur le bouton ; la feuille au lieu de l’export |
+| `blocks` | Mes blocs (enregistrer, importer) | 3 blocs (« Mes blocs · 2 / 3 ») ; le 4ᵉ ouvre la feuille ; un import s’arrête à 3 |
+| `versions` | Historique (versions nommées) | 3 versions (« 2 / 3 ») ; le 4ᵉ instantané ouvre la feuille, l’instantané automatique attend, jamais une version à elle effacée pour faire de la place |
+| `comments` | outil Commentaire (C, bouton, palette) | cadenas sur l’outil ; l’outil revient à Déplacer et la feuille s’ouvre ; les épingles déjà posées restent visibles |
+| `fonts` | Design › Typographie : les 33 polices du catalogue par élément | cadenas sur chaque police du catalogue ; les polices du modèle restent libres |
+| `badge` | dialogue Publier : « Badge « Fait avec Jeere » » | interrupteur verrouillé ; avec un abonnement, il est retiré par défaut (`hideBadge`) |
+
+Non verrouillé, à dessein :
+- **l’export de la fiche (JSON, Ctrl E)** : Jeere promet l’export des données dans chaque formule ;
+- **le domaine personnalisé** : il est inclus dans toutes les formules boutique, dans le tableau
+  de bord. Le retirer casserait la promesse de la page d’accueil ;
+- **les aperçus de 360 à 1440 px** : le responsive est le cœur du Studio.
+
+En Découverte, l’éditeur entier marche : sections, calques, Design, raccourcis, jetons, images,
+contrastes, mesures. Avec un abonnement ou l’essai, les limites du module reprennent (20 blocs,
+15 versions, gardes de taille) et tout le reste est ouvert. Les suites de tests existantes
+tournent avec un abonnement Pro actif (voir plus bas).
+
+### Où vit l’abonnement
+
+Il n’y a pas de clé à part. L’abonnement est `studio` dans le compte, `localStorage['jeere-account']` :
+`JEERE_DATA.normalizeAccount` le garde tel quel (un objet de moins de 60 Ko, seulement s’il y en a
+un, donc un compte sans abonnement garde exactement sa forme), et `JeerePlans.normalizeSub` le
+répare à chaque lecture. La forme est décrite en tête de `plans.js` : `plan`, `period`
+(`mois` / `an`), `status`, `startedAt`, `periodEnd`, `cancelAtPeriodEnd`, `pending`, `trialUsed`,
+`trialEndsAt`, `extraSeats`, `members`, `invoices`, `method`, `hideBadge`.
+
+L’état vivant se calcule à la volée (`JeerePlans.state()`) :
+- `free` : Découverte, ou pas de compte, ou un compte déconnecté ;
+- `trial` : jusqu’à `trialEndsAt` ;
+- `active` ;
+- `canceling` : annulé, encore actif jusqu’à `periodEnd` ;
+- `due` : la période est finie et rien n’est payé. Le mobile money n’est jamais débité tout seul,
+  donc il reste 7 jours (`GRACE_DAYS`) pour renouveler, sans rien perdre ;
+- ensuite, retour en Découverte.
+
+Les pages qui suivent l’abonnement :
+- **Le Studio** se met à jour sur l’évènement `storage` : un paiement fait dans un autre onglet
+  débloque l’éditeur ouvert, avec un toast. Il vérifie aussi chaque minute qu’un essai n’est pas
+  arrivé à sa fin.
+- **Le tableau de bord** relit le compte après chaque changement, pour que sa copie en mémoire
+  n’écrase jamais l’abonnement.
+- **`compte/`** garde l’abonnement quand on se réinscrit avec le même numéro.
+
+### Les parcours
+
+- **Essayer** :
+  - « Essayer le Studio 14 jours » sur l’accueil (`#studio`) ouvre `studio/?essai=1`. Avec un
+    compte connecté, l’essai démarre et l’éditeur se débloque aussitôt.
+  - Sans compte, la modale propose « Créer mon compte » / « J’ai déjà un compte », qui ouvrent
+    `../compte/?suite=studio`. Après l’inscription, « Démarrer mon essai du Studio » est le premier
+    choix ; après la connexion, on revient directement au Studio.
+  - L’essai démarre aussi depuis la feuille, la modale de bienvenue, la page des abonnements et le
+    tableau de bord.
+- **S’abonner** se fait sur la page des abonnements, `../abonnements/` :
+  - la page a les cartes, l’interrupteur mensuel / annuel, le tableau comparatif (sur téléphone,
+    une colonne à la fois, choisie par des onglets), la FAQ et le paiement en
+    quatre étapes : formule (et places en plus pour Agence), période, paiement, confirmation ;
+  - les moyens de paiement sont Wave, Orange Money, MTN MoMo, Moov Money (numéro qui paie) et la
+    carte (page sécurisée du partenaire) ;
+  - le récapitulatif donne le prix, le crédit au prorata quand on monte de formule, « À payer
+    aujourd’hui » et la prochaine échéance ;
+  - « Mode démo » est affiché à chaque étape ;
+  - la feuille du Studio envoie directement à l’étape paiement :
+    `?plan=pro&periode=an&retour=studio#paiement`. À la fin, « Retour au Studio » ramène dans
+    l’éditeur, déjà débloqué.
+- **Gérer** se fait dans le tableau de bord, Paramètres › **Studio avancé**
+  (`../admin/#parametres/studio`, aussi dans le menu du compte) :
+  - la formule, l’état, la facturation, l’échéance, le moyen de paiement, les boutiques et les
+    places ;
+  - « Changer de formule » et « Passer à l’annuel » passent par le paiement, avec un crédit au
+    prorata ;
+  - « Passer au mensuel » et toute descente de formule sont programmés à la fin de la période,
+    sans paiement ;
+  - « Annuler l’abonnement » garde tout actif jusqu’à la fin de la période, puis Découverte ;
+    « Reprendre » l’annule ;
+  - les places : Pro donne 1 invitée, Agence 4, plus des places en plus ;
+  - les factures (démo) et ce que l’abonnement débloque.
+- **`compte/`** affiche la ligne « Studio » (Découverte, essai, formule et échéance), avec
+  « Gérer mon abonnement Studio » et « Ouvrir le Studio ».
+
+Le Studio reste réservé à l’ordinateur et à l’iPad. Sur téléphone, la page des abonnements et le
+tableau de bord marchent entièrement ; seul l’éditeur affiche son écran « sur ordinateur ».
+
+### Le paiement : l’adaptateur, et où brancher Paystack et Wave
+
+`JeereBilling.startCheckout(planId, period, method, { phone, extraSeats })` renvoie une promesse :
+`{ ok: true, invoice, quote, state }` ou `{ ok: false, reason, message }`. Elle :
+1. vérifie le compte, la formule, le moyen de paiement et le numéro ;
+2. calcule le devis (`JeerePlans.quote`) ;
+3. appelle le fournisseur (`providers[...].charge(intent)`) ;
+4. active l’abonnement et ajoute la facture.
+
+Aujourd’hui, seul le fournisseur `demo` marche : il simule la validation en 0,9 s et ne prélève
+rien. `ROUTES` dit qui prendra quoi : Wave Checkout pour Wave, Paystack pour Orange Money, MTN
+MoMo, Moov Money et la carte. Les fournisseurs `paystack` et `wave` existent déjà et répondent
+« pas encore connecté ». Pour les brancher :
+
+1. **Côté serveur** (une Edge Function Supabase `studio-checkout`, avec les clés secrètes, jamais
+   dans le navigateur), créer la transaction :
+   - **Paystack** : `POST https://api.paystack.co/transaction/initialize` avec
+     - `amount` (en FCFA ; vérifier l’unité XOF chez Paystack),
+     - `currency: 'XOF'`,
+     - `channels: ['mobile_money', 'card']`,
+     - `metadata: { account, plan, period, extraSeats }`.
+     Le navigateur ouvre ensuite `authorization_url` (ou Paystack Inline).
+   - **Wave** : `POST https://api.wave.com/v1/checkout/sessions` avec `amount`, `currency: 'XOF'`,
+     `success_url`, `error_url` et `client_reference` (l’id de l’abonnement). Le navigateur va
+     ensuite sur `wave_launch_url`.
+2. **Le webhook** (`studio-billing-webhook`) est le seul à activer une formule. Il vérifie la
+   signature :
+   - Paystack : `x-paystack-signature`, HMAC SHA-512 du corps avec la clé secrète ;
+   - Wave : `Wave-Signature`, HMAC SHA-256 avec le secret du webhook.
+   Puis il écrit l’abonnement dans une table `studio_subscriptions` (et la facture).
+3. **Le navigateur** : `providers.paystack.charge` / `providers.wave.charge` appellent
+   `studio-checkout`, redirigent, puis relisent l’abonnement au retour.
+   - `activate()` (dans `plans.js`) ne doit plus être appelé côté client hors du mode démo.
+   - `JeereBilling.useProvider('paystack')` bascule le parcours.
+
+**BCEAO.** Jeere ne détient jamais l’argent des acheteurs des boutiques : il passe par un
+partenaire agréé et va directement à la vendeuse. L’abonnement Studio est différent : c’est le
+prix d’un logiciel, payé à Jeere elle-même. Encaisser un abonnement SaaS sur le compte marchand de
+Jeere est donc permis, sans rien changer à la règle pour l’argent des boutiques.
+
+### Tests
+
+`scratchpad/plans/plans-test.js` (Playwright) couvre :
+- les verrous de chaque formule ;
+- l’essai (démarrage, unicité, fin) ;
+- le paiement avec chacun des cinq moyens en mode démo ;
+- le déblocage immédiat, aussi dans un onglet Studio déjà ouvert ;
+- l’annulation et la descente de formule ;
+- la persistance après rechargement ;
+- l’interrupteur et le tableau des tarifs ;
+- la page des tarifs sur téléphone.
+
+Captures dans `scratchpad/plans/shots/`. Les suites existantes du Studio (`studio-test.js`,
+`power-test.js`, `toolbar-test.js`, `elstyles-test.js`) posent un compte avec un abonnement Pro
+actif dans leur préparation : elles vérifient le Studio débloqué, comme avant.
 
 ## Ouvrir et tester
 

@@ -758,6 +758,7 @@
       <button class="a-menu-item" type="button" data-act="share-store">${ico('share')}Partager ma boutique</button>
       <button class="a-menu-item" type="button" data-act="help">${ico('help')}Aide · une vraie personne sur WhatsApp</button>
       <a class="a-menu-item" href="${EDITOR_URL}">${ico('palette')}Ouvrir le Studio</a>
+      <a class="a-menu-item" href="#parametres/studio">${ico('sparkle')}Studio avancé · ${esc(studioHint())}</a>
       <a class="a-menu-item" href="../">${ico('home')}Retour à Jeere</a>
       <div class="a-menu-sep" role="separator"></div>
       <button class="a-menu-item" type="button" data-act="logout">${ico('logout')}Se déconnecter</button>`;
@@ -3184,6 +3185,7 @@
     { id: 'domaine', label: 'Domaine', icon: 'globe', hint: () => S.admin.settings.customDomain || subdomain() },
     { id: 'equipe', label: 'Équipe', icon: 'users', hint: () => plural(S.admin.settings.team.length, 'personne', 'personnes') + (couriers().length ? ', dont ' + plural(couriers().length, 'livreur', 'livreurs') : '') },
     { id: 'abonnement', label: 'Abonnement', icon: 'card', hint: () => 'Formule ' + plan().name + (S.admin.settings.billing.paused ? ', en pause' : '') },
+    { id: 'studio', label: 'Studio avancé', icon: 'sparkle', hint: () => studioHint() },
     { id: 'notifications', label: 'Notifications', icon: 'bell', hint: () => 'Commandes, résumé du jour, stock' },
     { id: 'pages-legales', label: 'Pages légales', icon: 'shield', hint: () => 'Conditions de vente, livraison et retours' },
     { id: 'donnees', label: 'Données', icon: 'data', hint: () => 'Exporter, supprimer mon compte' }
@@ -3191,7 +3193,7 @@
   function viewParametres(r) {
     const sub = SUBS.some((s) => s.id === r.parts[0]) ? r.parts[0] : '';
     const shown = sub || 'boutique';
-    const content = { boutique: setBoutique, domaine: setDomaine, equipe: setEquipe, abonnement: setAbonnement, notifications: setNotifications, 'pages-legales': setLegal, donnees: setDonnees }[shown]();
+    const content = { boutique: setBoutique, domaine: setDomaine, equipe: setEquipe, abonnement: setAbonnement, studio: setStudio, notifications: setNotifications, 'pages-legales': setLegal, donnees: setDonnees }[shown]();
     const s = SUBS.find((x) => x.id === shown);
     const navItem = (x, href, cur) => H`<li><a href="${href}"${cur ? ' aria-current="page"' : ''}>
           <span class="a-subnav__ico">${ico(x.icon)}</span><span class="a-subnav__txt"><span class="a-subnav__title">${esc(x.label)}</span><span class="a-subnav__hint">${esc(fr(x.hint()))}</span></span>${ico('chev', 'a-row__chev')}</a></li>`;
@@ -3366,6 +3368,158 @@
       <section class="a-card" aria-labelledby="h-incl"><div class="a-card__head"><h3 class="a-card__title" id="h-incl">Dans toutes les formules</h3></div>
         <ul class="a-checks">${arr(D.PLAN_FEATURES).map((f) => H`<li>${ico('check')}<span>${esc(fr(f))}</span></li>`)}</ul>
         ${D.PLAN_NOTE ? H`<p class="a-small" style="margin-top:12px">${esc(fr(D.PLAN_NOTE))}</p>` : ''}</section>`;
+  }
+  /* ---------- Paramètres › Studio avancé: the Studio subscription (../studio/plans.js, kept in
+   * 'jeere-account'.studio). Only the trial, cancel / resume, a move down, seats and members are
+   * changed here; anything that is paid goes through the checkout of ../abonnements/. ---------- */
+  const SP = () => window.JeerePlans || null;
+  function studioHint() {
+    const P = SP();
+    if (!P) return 'Découverte';
+    const s = P.state();
+    if (s.status === 'trial') return 'Essai, encore ' + plural(s.daysLeft, 'jour', 'jours');
+    if (s.status === 'canceling') return s.plan.name + ', annulé';
+    if (s.status === 'due') return s.plan.name + ', à renouveler';
+    if (s.unlocked) return s.plan.name + (s.period === 'an' ? ' annuel' : ' mensuel');
+    return 'Découverte, gratuit';
+  }
+  const ckUrl = (planId, period) => '../abonnements/?plan=' + encodeURIComponent(planId) + '&periode=' + (period === 'mois' ? 'mois' : 'an') + '#paiement';
+  function setStudio() {
+    const P = SP();
+    if (!P) return H`<section class="a-card"><p class="a-small">Les abonnements du Studio n’ont pas pu se charger. Rechargez la page.</p></section>`;
+    const B = window.JeereBilling;
+    const s = P.state();
+    const sub = s.sub;
+    const chip = { trial: H`<span class="a-chip a-chip--ink">Essai</span>`, active: H`<span class="a-chip a-chip--ink">Actif</span>`, canceling: H`<span class="a-chip a-chip--line">Annulé</span>`, due: H`<span class="a-chip a-chip--due">À renouveler</span>`, free: H`<span class="a-chip a-chip--soft">Gratuit</span>` }[s.status];
+    const paidNow = s.unlocked && s.status !== 'trial';
+    const pr = paidNow ? P.price(sub.plan, sub.period, sub.extraSeats) : null;
+    const method = B && B.methodById(sub.method);
+    let rows = '';
+    if (s.status === 'trial') rows += H`<div><dt>Fin de l’essai</dt><dd>${esc(P.date(s.endsAt))}</dd></div><div><dt>Ensuite</dt><dd>Découverte, sauf si vous choisissez une formule. Rien n’est prélevé.</dd></div>`;
+    if (paidNow) {
+      rows += H`<div><dt>Facturation</dt><dd>${sub.period === 'an' ? esc('Annuelle : ' + P.fcfa(pr.total) + ' par an') : esc('Mensuelle : ' + P.fcfa(pr.total) + ' par mois')}</dd></div>`;
+      rows += H`<div><dt>${s.status === 'canceling' ? 'Fin de l’abonnement' : (s.status === 'due' ? 'À renouveler avant le' : 'Prochain renouvellement')}</dt><dd>${esc(P.date(s.status === 'due' ? s.endsAt : s.periodEnd))}</dd></div>`;
+      if (method) rows += H`<div><dt>Moyen de paiement</dt><dd>${esc(method.name)}</dd></div>`;
+    }
+    rows += H`<div><dt>Boutiques dans le Studio</dt><dd>${esc(String(s.plan.sites))}</dd></div><div><dt>Places</dt><dd>${esc(s.seatsUsed + ' sur ' + s.seats)}</dd></div>`;
+    const pend = s.pending ? H`<p class="a-note a-note--line" style="margin-top:12px">${ico('info')}<span>${esc('Le ' + P.date(sub.periodEnd) + ', passage à ' + P.planById(s.pending.plan).label + ' ' + (s.pending.period === 'an' ? 'annuel' : 'mensuel') + '.')} <button class="a-link" type="button" data-act="studio-resume">Garder ma formule</button></span></p>` : '';
+    let acts = '';
+    if (s.status === 'free') acts = H`${s.trialAvailable ? H`<button class="a-btn a-btn--primary" type="button" data-act="studio-trial">${ico('sparkle')}Essayer 14 jours gratuitement</button>` : ''}<a class="a-btn ${s.trialAvailable ? 'a-btn--ghost' : 'a-btn--primary'}" href="../abonnements/">Voir les abonnements</a><a class="a-btn a-btn--quiet" href="../studio/">Ouvrir le Studio</a>`;
+    else if (s.status === 'trial') acts = H`<a class="a-btn a-btn--primary" href="../abonnements/">Choisir une formule</a><a class="a-btn a-btn--ghost" href="../studio/">Ouvrir le Studio</a>`;
+    else if (s.status === 'canceling') acts = H`<button class="a-btn a-btn--primary" type="button" data-act="studio-resume">${ico('refresh')}Reprendre l’abonnement</button><a class="a-btn a-btn--ghost" href="../studio/">Ouvrir le Studio</a>`;
+    else if (s.status === 'due') acts = H`<a class="a-btn a-btn--primary" href="${ckUrl(s.pending ? s.pending.plan : sub.plan, s.pending ? s.pending.period : sub.period)}">Renouveler · ${esc(P.fcfa(s.pending ? P.price(s.pending.plan, s.pending.period).total : pr.total))}</a><button class="a-btn a-btn--quiet" type="button" data-act="studio-cancel">Arrêter</button>`;
+    else acts = H`<a class="a-btn a-btn--primary" href="../studio/">${ico('sparkle')}Ouvrir le Studio</a><a class="a-btn a-btn--ghost" href="../abonnements/">Changer de formule</a>
+        ${sub.period === 'mois' ? H`<a class="a-btn a-btn--ghost" href="${ckUrl(sub.plan, 'an')}">Passer à l’annuel (−${P.discount(sub.plan)} %)</a>` : (s.pending ? '' : H`<button class="a-btn a-btn--ghost" type="button" data-act="studio-monthly">Passer au mensuel</button>`)}
+        <button class="a-btn a-btn--quiet" type="button" data-act="studio-cancel">Annuler l’abonnement</button>`;
+    const cur = H`<section class="a-card" aria-labelledby="h-st"><div class="a-card__head"><div><h3 class="a-card__title" id="h-st">${esc(s.unlocked ? 'Studio ' + s.plan.name : 'Studio Découverte')} ${chip}</h3>
+          <p class="a-card__sub">${esc(s.status === 'trial' ? 'Essai de tout le Studio, comme Studio Pro' : s.plan.for)}</p></div></div>
+        <p class="a-big">${esc(paidNow ? P.fcfa(pr.perMonth) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${paidNow ? ' / mois' : (s.status === 'trial' ? ' pendant l’essai' : '')}</small></p>
+        <dl class="a-dl" style="margin-top:14px">${rows}</dl>${pend}
+        <div class="a-card__foot a-btnrow">${acts}</div>
+        <p class="a-small" style="margin-top:10px">Mode démo : rien n’est prélevé. Dans Jeere, le mobile money n’est jamais débité tout seul : une demande à valider arrive à chaque échéance, avec ${P.GRACE_DAYS} jours pour renouveler.</p></section>`;
+
+    // seats (Pro: 2, Agence: 5 and more)
+    const owner = S.account || {};
+    let seats;
+    if (s.seats > 1) {
+      const ag = P.planById('agence');
+      const full = s.seatsUsed >= s.seats;
+      seats = H`<section class="a-card" aria-labelledby="h-seats"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title" id="h-seats">Places du Studio</h3><p class="a-card__sub">${esc(s.seatsUsed + ' sur ' + s.seats + ' places utilisées. Chacun ouvre le Studio avec son propre numéro.')}</p></div></div>
+        <div class="a-member"><span class="a-avatar">${esc(initials(owner.firstName || '?'))}</span><span class="a-member__main"><span class="a-member__name">${esc(owner.firstName || 'Vous')} <span class="a-chip">Vous</span></span><span class="a-member__meta">${esc(phoneFmt(owner.phone))} · Propriétaire</span></span></div>
+        ${sub.members.map((m) => H`<div class="a-member"><span class="a-avatar">${esc(initials(m.name || '?'))}</span><span class="a-member__main"><span class="a-member__name">${esc(m.name)}</span><span class="a-member__meta">${esc(phoneFmt(m.phone) || m.phone)} · Studio</span></span>
+          <button class="a-ibtn" type="button" data-act="studio-member-del" data-id="${esc(m.id)}" aria-label="${esc('Retirer ' + (m.name || 'cette personne') + ' du Studio')}">${ico('trash')}</button></div>`)}
+        ${s.planId === 'agence' && paidNow ? H`<div class="a-field" style="margin-top:14px"><span class="a-label" id="l-xseat">Places en plus · ${esc(P.fcfa(sub.period === 'an' ? ag.extraSeatYear : ag.extraSeat))} par place et par mois</span>
+          <div class="a-btnrow" role="group" aria-labelledby="l-xseat"><button class="a-ibtn a-ibtn--line" type="button" data-act="studio-seat" data-d="-1" aria-label="Une place de moins"${sub.extraSeats <= 0 ? ' disabled' : ''}>${ico('minus')}</button><strong aria-live="polite" id="studio-xseats">${sub.extraSeats}</strong><button class="a-ibtn a-ibtn--line" type="button" data-act="studio-seat" data-d="1" aria-label="Une place de plus"${sub.extraSeats >= ag.seatsMax - ag.seats ? ' disabled' : ''}>${ico('plus')}</button></div>
+          <p class="a-hint">Facturées à partir de la prochaine échéance (démo).</p></div>` : ''}
+        ${full ? H`<p class="a-small" style="margin-top:12px">Toutes les places sont prises.${s.planId === 'agence' ? ' Ajoutez une place pour inviter quelqu’un.' : ' Studio Agence : 5 places et plus.'}</p>` : H`<form class="a-form" data-form="studiomember" data-light novalidate style="margin-top:14px">
+          <div class="a-grid2"><div class="a-field"><label class="a-label" for="sm-name">Prénom</label><input class="a-input" id="sm-name" name="name" maxlength="40" autocomplete="off" placeholder="Koffi"></div>
+            <div class="a-field"><label class="a-label" for="sm-phone">Numéro WhatsApp</label><input class="a-input" id="sm-phone" name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="Ex. : 05 44 12 34 56"></div></div>
+          <div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">${ico('plus')}Donner une place</button></div>
+          <p class="a-small" style="margin-top:8px">Démo : aucune invitation n’est envoyée.</p></form>`}</section>`;
+    } else {
+      seats = H`<section class="a-card" aria-labelledby="h-seats"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title" id="h-seats">Places du Studio</h3><p class="a-card__sub">Votre formule a une place : la vôtre. Studio Pro en a 2, Studio Agence 5 et plus.</p></div></div>
+        <div class="a-btnrow" style="margin-top:12px"><a class="a-btn a-btn--ghost a-btn--sm" href="../abonnements/#comparer">Comparer les formules</a></div></section>`;
+    }
+
+    // invoices (demo)
+    const inv = sub.invoices;
+    const invoices = H`<section class="a-card" aria-labelledby="h-inv"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title" id="h-inv">Factures</h3><p class="a-card__sub">Démo : des reçus d’exemple, aucun paiement réel.</p></div></div>
+      ${inv.length ? H`<ul class="a-invoices">${inv.map((v) => H`<li class="a-invoice"><span class="a-invoice__main"><span class="a-invoice__t">${esc(v.label)}</span><span class="a-invoice__m">${esc(v.id + ' · ' + P.date(v.date) + ' · ' + ((B && B.methodById(v.method) || {}).name || ''))}</span></span>
+        <span class="a-invoice__end"><strong>${esc(P.fcfa(v.amount))}</strong><span class="a-chip a-chip--soft">Payée (démo)</span></span></li>`)}</ul>` : H`<p class="a-small" style="margin-top:10px">Aucune facture pour l’instant.</p>`}</section>`;
+
+    const feats = H`<section class="a-card" aria-labelledby="h-sf"><div class="a-card__head"><h3 class="a-card__title" id="h-sf">${s.unlocked ? 'Débloqué dans votre Studio' : 'Ce que débloque un abonnement'}</h3></div>
+      <ul class="a-checks">${P.FEATURES.map((f) => H`<li>${ico(s.unlocked ? 'check' : 'lock')}<span><strong>${esc(f.name)}</strong> · ${esc(f.text)}</span></li>`)}</ul></section>`;
+    return cur + seats + invoices + feats;
+  }
+  function afterStudio(msg, sel) {
+    S.account = readAccount();
+    refresh(sel);
+    if (msg) toast(msg);
+  }
+  function studioTrial() {
+    const P = SP();
+    if (!P) return;
+    const r = P.startTrial();
+    afterStudio(r.ok ? 'Essai démarré : tout le Studio est débloqué pendant 14 jours.' : r.message, '#h-st');
+  }
+  async function studioCancel() {
+    const P = SP();
+    if (!P) return;
+    const s = P.state();
+    const ok = await confirmBox({
+      title: 'Annuler l’abonnement Studio ?',
+      text: s.status === 'due' ? 'Le Studio repasse en Découverte tout de suite. Rien n’est effacé.' : 'Tout reste débloqué jusqu’au ' + P.date(s.periodEnd) + ', puis le Studio repasse en Découverte. Rien n’est effacé, et vous pouvez reprendre d’ici là.',
+      ok: 'Annuler l’abonnement', cancel: 'Garder mon abonnement'
+    });
+    if (!ok) { focusMain(); return; }
+    const r = P.cancel();
+    afterStudio(r.ok ? (s.status === 'due' ? 'Abonnement arrêté : retour en Découverte.' : 'Abonnement annulé : actif jusqu’au ' + P.date(r.at) + '.') : r.message, '[data-act="studio-resume"]');
+  }
+  function studioResume() {
+    const P = SP();
+    if (!P) return;
+    const r = P.resume();
+    afterStudio(r.ok ? 'Abonnement repris : rien ne change.' : '', '#h-st');
+  }
+  async function studioMonthly() {
+    const P = SP();
+    if (!P) return;
+    const s = P.state();
+    const ok = await confirmBox({ title: 'Passer au mensuel ?', text: 'Le changement se fait le ' + P.date(s.periodEnd) + ', à la fin de votre année payée : ' + P.fcfa(P.price(s.sub.plan, 'mois').perMonth) + ' par mois ensuite.', ok: 'Passer au mensuel' });
+    if (!ok) { focusMain(); return; }
+    const r = P.scheduleChange(s.sub.plan, 'mois');
+    afterStudio(r.ok ? 'Passage au mensuel programmé le ' + P.date(r.at) + '.' : r.message, '#h-st');
+  }
+  function studioSeat(el) {
+    const P = SP();
+    if (!P) return;
+    const d = Number(el.getAttribute('data-d')) || 0;
+    const r = P.setExtraSeats(P.state().sub.extraSeats + d);
+    afterStudio(r.ok ? (d > 0 ? 'Une place ajoutée (démo).' : 'Une place retirée.') : r.message, '[data-act="studio-seat"][data-d="' + d + '"]:not([disabled])');
+  }
+  function studioMemberDel(el) {
+    const P = SP();
+    if (!P) return;
+    const r = P.removeMember(el.getAttribute('data-id'));
+    afterStudio(r.ok ? 'Place libérée.' : '', '#sm-name');
+  }
+  function saveStudioMember(form) {
+    const P = SP();
+    if (!P) return;
+    clearErrors(form);
+    const v = serialize(form);
+    const name = clip(v.name, 40);
+    const phone = normPhone(v.phone);
+    let ok = true;
+    if (!name) ok = invalid(form.elements.name, 'Indiquez le prénom.');
+    if (!digits(phone)) ok = invalid(form.elements.phone, 'Indiquez son numéro WhatsApp, par exemple 07 07 12 34 56.') && ok;
+    else if (phoneProblem(phone)) ok = invalid(form.elements.phone, phoneProblem(phone)) && ok;
+    else if ((S.account && S.account.phone === phone) || P.state().sub.members.some((m) => m.phone === phone)) ok = invalid(form.elements.phone, 'Ce numéro a déjà une place.') && ok;
+    if (!ok) { focusFirstError(form); return; }
+    const r = P.addMember(name, phone);
+    if (!r.ok) { toast(r.message || 'Impossible d’ajouter cette personne.'); return; }
+    clearDirty();
+    afterStudio(name + ' a une place dans le Studio (démo : aucune invitation envoyée).', '#sm-name');
   }
   async function choosePlan(id) {
     const p = PLANS().find((x) => x.id === id);
@@ -3738,10 +3892,16 @@
       b.paused = !b.paused; saveAdmin(); refresh('[data-act="pause"]'); toast(b.paused ? 'Abonnement en pause (démo).' : 'Abonnement repris (démo).');
     },
     'pay-mm': () => payMobileMoney(),
+    'studio-trial': () => studioTrial(),
+    'studio-cancel': () => studioCancel(),
+    'studio-resume': () => studioResume(),
+    'studio-monthly': () => studioMonthly(),
+    'studio-seat': (el) => studioSeat(el),
+    'studio-member-del': (el) => studioMemberDel(el),
     'delete-account': () => deleteAccount()
   };
 
-  const FORMS = { product: saveProductForm, prefs: savePrefsForm, page: savePageForm, zones: saveZonesForm, subdomain: saveSubdomainForm, domain: saveDomainForm, invite: saveInviteForm, promo: savePromoForm };
+  const FORMS = { product: saveProductForm, prefs: savePrefsForm, page: savePageForm, zones: saveZonesForm, subdomain: saveSubdomainForm, domain: saveDomainForm, invite: saveInviteForm, promo: savePromoForm, studiomember: saveStudioMember };
   const DFORMS = { connector: saveConnectorForm, paymm: savePayForm, delete: doDeleteAccount, neworder: saveNewOrderForm, courier: saveCourierForm, fail: saveFailForm, deposit: saveDepositForm };
 
   function onClick(e) {
@@ -3906,6 +4066,8 @@
     window.addEventListener('hashchange', () => { if (S.inApp) render(parseHash(), true); });
     window.addEventListener('storage', (e) => { if (!e.key || e.key === KEYS.config || e.key === KEYS.account || e.key === KEYS.admin) syncFromStorage(); });
     window.addEventListener('pageshow', (e) => { if (e.persisted) syncFromStorage(); });
+    // The Studio subscription lives in the account: keep the copy in memory equal to what was saved
+    if (window.JeerePlans) window.JeerePlans.onChange(() => { if (S.account) { const a = readAccount(); if (a) S.account = a; } });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncFromStorage(); });
     window.addEventListener('beforeunload', (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
     window.addEventListener('beforeprint', onBeforePrint);

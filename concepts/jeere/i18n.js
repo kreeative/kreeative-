@@ -42,7 +42,7 @@ window.JEERE_EN = {
   'bt.shop.p3': 'Korhogo clutch', 'bt.shop.d3': 'Hand-painted cloth', 'bt.shop.p4': 'Raffia basket', 'bt.shop.d4': 'Woven by hand',
   'bt.shop.p5': 'Terracotta bowl', 'bt.shop.d5': 'Glazed, one of a kind', 'bt.shop.p6': 'Woven tote', 'bt.shop.d6': 'Straw and leather',
   'bt.shop.p7': 'Engraved bangle', 'bt.shop.d7': 'Hand-engraved brass', 'bt.shop.paid': 'Paid with Wave', 'bt.shop.paidd': 'Woven tote · 12,000 F', 'bt.shop.home': 'Shop',
-  'bt.alt': 'A smiling artisan in a green wax-print dress and matching headscarf weaving a large raffia basket against the ochre wall of her workshop, among her jars and gourds.',
+  'bt.alt': 'A smiling artisan in front of his stall at the craft market: wax-print bags hanging, painted cloths, colourful woven baskets and small pots.',
   'hero.ui': 'Interactive preview',
   'hero.swatch.karite': 'Karité colour',
   'hero.swatch.lagune': 'Lagune colour',
