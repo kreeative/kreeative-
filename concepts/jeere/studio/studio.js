@@ -193,9 +193,26 @@
     afterChange(opts);
   }
 
+  /* an entry that undoes itself (the DualEngine sections: RFC 6902 patches, studio-engine.js) */
+  function pushEntry(entry) {
+    undoStack.push(entry);
+    if (undoStack.length > 120) undoStack.shift();
+    coalesceKey = null;
+    redoStack.length = 0;
+  }
+  function runEntry(entry, dir, from, to) {
+    try { entry[dir](); } catch (e) { from.push(entry); toast('La modification n’a pas pu être ' + (dir === 'undo' ? 'annulée.' : 'rétablie.'), 'err'); return; }
+    to.push(entry);
+    coalesceKey = null;
+    validateSelection();
+    afterChange({ structure: true, engineEntry: true });
+    toast((dir === 'undo' ? 'Annulé : ' : 'Rétabli : ') + entry.label.toLowerCase(), 'info');
+  }
+
   function undo() {
     if (!undoStack.length) { toast('Rien à annuler.'); return; }
     var entry = undoStack.pop();
+    if (typeof entry.undo === 'function') { runEntry(entry, 'undo', undoStack, redoStack); return; }
     redoStack.push({ label: entry.label, before: snapshot() });
     state.config = entry.before;
     coalesceKey = null;
@@ -207,6 +224,7 @@
   function redo() {
     if (!redoStack.length) { toast('Rien à rétablir.'); return; }
     var entry = redoStack.pop();
+    if (typeof entry.redo === 'function') { runEntry(entry, 'redo', redoStack, undoStack); return; }
     undoStack.push({ label: entry.label, before: snapshot() });
     state.config = entry.before;
     coalesceKey = null;
@@ -228,6 +246,7 @@
     if (sel.kind === 'product' && !productById(sel.id)) state.sel = null;
     if (sel.kind === 'page' && !pageById(sel.id)) state.sel = null;
     if (state.page === 'page' && state.pageId && !pageById(state.pageId)) { state.page = 'home'; state.pageId = null; }
+    if (state.sel && hooks.validateSelection) { try { state.sel = hooks.validateSelection(state.sel); } catch (e) { /* module error */ } }
   }
 
   /* ------------------------------------------------------------------ save (autosave + Ctrl+S) */
@@ -667,6 +686,9 @@
 
   /* ------------------------------------------------------------------ viewport: zoom + pan */
 
+  /* 10 % to 25 600 % (SPEC-DUALENGINE §1.1) */
+  var ZOOM_MIN = 0.1, ZOOM_MAX = 256;
+
   function applyTransform() {
     world.style.transform = 'translate(' + state.panX + 'px,' + state.panY + 'px) scale(' + state.zoom + ')';
     world.style.setProperty('--inv', String(1 / state.zoom));
@@ -698,7 +720,7 @@
   }
 
   function setZoom(z, cx, cy) {
-    z = clamp(z, 0.03, 4);
+    z = clamp(z, ZOOM_MIN, ZOOM_MAX);
     var r = stage.getBoundingClientRect();
     var px = (cx == null ? r.width / 2 : cx - r.left);
     var py = (cy == null ? r.height / 2 : cy - r.top);
@@ -754,7 +776,7 @@
     var wx = (nr.left - sr.left - state.panX) / state.zoom;
     var wy = (nr.top - sr.top - state.panY) / state.zoom;
     var ww = Math.max(1, nr.width / state.zoom), wh = Math.max(1, nr.height / state.zoom);
-    var z = clamp(Math.min((sr.width - 160) / ww, (sr.height - 140) / wh), 0.03, 2);
+    var z = clamp(Math.min((sr.width - 160) / ww, (sr.height - 140) / wh), ZOOM_MIN, 2);
     state.zoom = z;
     state.panX = (sr.width - ww * z) / 2 - wx * z;
     state.panY = (sr.height - wh * z) / 2 - wy * z;
@@ -772,7 +794,7 @@
       x1 = Math.max(x1, ab.offsetLeft + ab.offsetWidth);
     });
     var r = stage.getBoundingClientRect();
-    var z = clamp((r.width - 120) / Math.max(1, x1 - x0), 0.03, 1);
+    var z = clamp((r.width - 120) / Math.max(1, x1 - x0), ZOOM_MIN, 1);
     state.zoom = z;
     state.panX = (r.width - (x1 - x0) * z) / 2 - x0 * z;
     state.panY = 56 - y0 * z;
@@ -1033,7 +1055,7 @@
       var pts = touchPair();
       var dist = Math.max(10, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y));
       var midX = (pts[0].x + pts[1].x) / 2, midY = (pts[0].y + pts[1].y) / 2;
-      var z = clamp(pinchRef.zoom * dist / pinchRef.dist, 0.03, 4);
+      var z = clamp(pinchRef.zoom * dist / pinchRef.dist, ZOOM_MIN, ZOOM_MAX);
       var r = stage.getBoundingClientRect();
       /* the world point under the starting midpoint stays glued to the moving midpoint:
        * same distance = two-finger pan, spreading fingers = zoom to the midpoint */
@@ -1730,7 +1752,10 @@
       row.addEventListener('click', function () { showPage(pg.id); });
       g1.appendChild(row);
       if (pg.id === 'home') {
-        sections().forEach(function (s) { g1.appendChild(sectionRow(s)); });
+        sections().forEach(function (s) {
+          g1.appendChild(sectionRow(s));
+          if (hooks.treeSection) { try { hooks.treeSection(s, g1); } catch (e) { /* module error */ } }
+        });
         if (!sections().length) g1.appendChild(ce('div', 'st-tree__empty', 'Aucune section. Ajoutez-en depuis l’onglet « Ajouter ».'));
       }
     });
@@ -1810,6 +1835,8 @@
         isSel = multi ? multi.indexOf(sid) !== -1 : !!(sel && sel.kind === 'section' && sel.id === sid);
       } else if (r.hasAttribute('data-product-row')) {
         isSel = !!(sel && sel.kind === 'product' && sel.id === r.getAttribute('data-product-row'));
+      } else if (hooks.treeRowSelected) {
+        try { isSel = !!hooks.treeRowSelected(r, sel); } catch (e) { isSel = false; }
       }
       if (r.classList.contains('is-page')) r.classList.toggle('is-on', on);
       r.classList.toggle('is-sel', isSel);
@@ -2186,7 +2213,9 @@
     if (!insp) return;
     insp.innerHTML = '';
     var sel = state.sel;
-    if (sel && isMulti(sel)) {
+    if (sel && hooks.customInspector && hooks.customInspector(sel, insp, title, sub)) {
+      /* a module drew it (a detached section and its DualEngine nodes: studio-inspector.js) */
+    } else if (sel && isMulti(sel)) {
       title.textContent = sel.ids.length + ' sections sélectionnées';
       sub.textContent = '';
       insp.appendChild(multiInspector(sel.ids));
@@ -3607,7 +3636,7 @@
     if (e.key === ' ') { spaceHeld = false; if (state.tool !== 'hand') stage.classList.remove('is-hand'); }
   }
 
-  var TOOLS = ['select', 'hand', 'text', 'comment'];
+  var TOOLS = ['select', 'hand', 'text', 'comment', 'frame', 'rect', 'ellipse', 'image'];
   function setTool(t) {
     if (TOOLS.indexOf(t) === -1) t = 'select';
     var prev = state.tool;
@@ -3876,6 +3905,8 @@
     cssEsc: cssEsc,
     toast: toast,
     commit: commit,
+    pushEntry: pushEntry,
+    afterChange: afterChange,
     undo: undo,
     redo: redo,
     select: select,
@@ -3968,6 +3999,8 @@
     findFieldEl: findFieldEl,
     frameScale: frameScale,
     isDragging: function () { return !!(canvasDrag && canvasDrag.moved) || !!pan; },
+    zoomRange: function () { return { min: ZOOM_MIN, max: ZOOM_MAX }; },
+    isSpaceHeld: function () { return spaceHeld; },
     isInlineEditing: function () { return !!inlineEdit; }
   };
 })();

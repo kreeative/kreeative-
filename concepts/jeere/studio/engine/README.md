@@ -194,6 +194,19 @@ The spec is not edited from here (engine scope); these points are implemented as
 - **§3.4**: lines are SVG strokes (`<line>` with `stroke-linecap`); ellipses keep box-shadow strokes
   (exact for circles, a warning otherwise).
 
+## Phase B additions (the Studio)
+
+- `LayoutEngine(doc, { viewport, nominalReference: true })`: a canvas laid out at a width that is not
+  its breakpoint's (a 1440 or a 360 artboard) reads the constraint reference sizes from the nominal
+  layouts (each breakpoint at its own width), exactly like the exported CSS whose `right` / `center` /
+  `scale` values come from those layouts. Off by default: the export and the conformance runs are
+  unchanged (`nominalEngine()` forwards every invalidation).
+- `TextStyle.family` may be a fallback list (`"Playfair, Playfair Display, Georgia, serif"`):
+  `css.js` quotes each name (generic keywords bare, `sans-serif` added only without one) and the canvas
+  measurer builds the same `font` string. A single family is emitted as before.
+- The Studio's bridge, detach, canvas and inspector are in `../studio-engine.js`,
+  `../studio-canvas.js`, `../studio-inspector.js`; the store side in `../../creer/engine-sections.js`.
+
 ## Next phases (Annexe C)
 
 - **B — Canvas.** WebGL2 renderer (instanced SDF rects, borders and shadows; image atlas; MSDF glyph atlas; two-pass separable blur on FBOs), with a Canvas2D/OffscreenCanvas fallback built on `raster.js`. Zoom from 10 % to 25 600 % with tile-relative GPU coordinates, quadtree culling, LOD, raster caches per zoom band, and 512 px tiles. Snapping (pixel, objects, guides, stack insertion by the midpoint rule §1.3), rulers, guides, pixel grid, breakpoint artboards, the two-column inspector (controls ↔ CSS from `css.nodeDeclarations`), and the floating toolbar. The existing store sections become components; "Detach" makes every element editable.

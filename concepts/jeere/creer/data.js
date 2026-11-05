@@ -2912,12 +2912,20 @@
       var def = sectionTypes[s.type];
       var settings = normSettings(def.fields, s.settings, def.defaults);
       if (isObj(s.settings)) normSectionColors(s.type, s.settings, settings);
-      sections.push({
+      var sec = {
         id: s.id,
         type: s.type,
         enabled: toBool(s.enabled, true),
         settings: settings
-      });
+      };
+      // A section detached in the Studio (optional, never added): its DualEngine nodes, sanitised by
+      // engine-sections.js; a page without that file keeps them as they are (never a silent loss)
+      if (has(s, 'engine')) {
+        var EN = root.JeereEngineSections;
+        var eng = EN && typeof EN.sanitize === 'function' ? EN.sanitize(s.engine) : (isObj(s.engine) ? clone(s.engine) : null);
+        if (eng) sec.engine = eng;
+      }
+      sections.push(sec);
     });
     assignIds(sections, 's');
 

@@ -1,0 +1,108 @@
+/* Jeere Studio — studio-engine.css: the DualEngine canvas (overlay, rulers, guides, grids) and the
+ * inspector of the engine nodes. Same tokens as studio.css / studio-design.css (SPEC-DUALENGINE-UI). */
+
+/* ---------------------------------------------------------------- overlay (screen space) */
+.st-eng-ov { position: absolute; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+.st-eng-ov > * { position: absolute; left: 0; top: 0; box-sizing: border-box; }
+.st-eng-sel { box-shadow: 0 0 0 1px var(--st-blue, #3657FF); }
+.st-eng-sel.is-other { box-shadow: 0 0 0 1px rgba(54, 87, 255, 0.45); }
+.st-eng-hov { box-shadow: 0 0 0 1px var(--st-blue, #3657FF); opacity: 0.7; }
+.st-eng-h { width: 8px; height: 8px; background: #fff; border: 1px solid var(--st-blue, #3657FF); border-radius: 2px; pointer-events: auto; }
+.st-eng-h--nw, .st-eng-h--se { cursor: nwse-resize; }
+.st-eng-h--ne, .st-eng-h--sw { cursor: nesw-resize; }
+.st-eng-h--n, .st-eng-h--s { cursor: ns-resize; }
+.st-eng-h--e, .st-eng-h--w { cursor: ew-resize; }
+.st-touch .st-eng-h { border-radius: 4px; }
+.st-eng-rot { pointer-events: auto; border-radius: 50%;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M5 13a7 7 0 1 0 2-5.5M5 4v4h4' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M5 13a7 7 0 1 0 2-5.5M5 4v4h4' fill='none' stroke='%23111' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") 12 12, crosshair; }
+.st-eng-size { padding: 2px 6px; border-radius: 4px; background: var(--st-blue, #3657FF); color: #fff; font: 500 11px/16px var(--st-font, Inter, sans-serif); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.st-eng-snap--v { border-left: 1px solid #F24822; }
+.st-eng-snap--h { border-top: 1px solid #F24822; }
+.st-eng-meas--v { border-left: 1px solid #F24822; }
+.st-eng-meas--h { border-top: 1px solid #F24822; }
+.st-eng-meas__l { padding: 1px 4px; border-radius: 4px; background: #F24822; color: #fff; font: 500 11px/16px var(--st-font, Inter, sans-serif); font-variant-numeric: tabular-nums; }
+.st-eng-ins { background: var(--st-blue, #3657FF); border-radius: 2px; }
+.st-eng-draw { box-shadow: 0 0 0 1px var(--st-blue, #3657FF); background: rgba(54, 87, 255, 0.06); }
+.st-eng-guide { pointer-events: auto; }
+.st-eng-guide--x { border-left: 1px solid #F24822; cursor: ew-resize; padding: 0 3px; margin-left: -3px; background-clip: content-box; }
+.st-eng-guide--y { border-top: 1px solid #F24822; cursor: ns-resize; padding: 3px 0; margin-top: -3px; }
+.st-eng-guide.is-other { opacity: 0.4; }
+.st-stage.st-eng-drawing, .st-stage.st-eng-drawing .st-ab__frame, .st-stage.st-eng-drawing .st-ab__frame * { cursor: crosshair !important; }
+.st-stage.st-eng-dragging .st-hovbox, .st-stage.st-eng-dragging .st-selbar { display: none !important; }
+.st-ab [data-eng] .st-eng-editing { outline: 1.5px solid var(--st-blue, #3657FF) !important; outline-offset: 2px; cursor: text; caret-color: var(--st-blue, #3657FF); }
+
+/* ---------------------------------------------------------------- rulers and grids */
+.st-eng-ruler { position: absolute; z-index: 44; display: block; }
+.st-eng-ruler[hidden] { display: none; }
+.st-eng-ruler--x { left: 0; top: 0; cursor: ns-resize; }
+.st-eng-ruler--y { left: 0; top: 0; cursor: ew-resize; }
+.st-eng-ruler--c { left: 0; top: 0; width: 20px; height: 20px; background: #262626; box-shadow: inset -1px -1px 0 rgba(255, 255, 255, 0.08); }
+.st-eng-pixgrid { position: absolute; inset: 0; z-index: 39; pointer-events: none; }
+.st-eng-pixgrid[hidden] { display: none; }
+.st-eng-lgrid { position: absolute; pointer-events: none; z-index: 2; }
+.st-eng-lgrid span { position: absolute; top: 0; bottom: 0; background: rgba(242, 72, 34, 0.08); box-shadow: inset 1px 0 0 rgba(242, 72, 34, 0.18), inset -1px 0 0 rgba(242, 72, 34, 0.18); }
+.st-eng-bp { font-style: normal; color: #6A6A6A; }
+.st-ab.is-bp-edit .st-eng-bp { color: var(--st-blue, #3657FF); }
+
+/* ---------------------------------------------------------------- inspector (the dz-* controls of studio-design.css) */
+.st-eng-insp { padding-bottom: 24px; }
+.st-eng-insp .dz-g { border-top: 1px solid var(--st-line, rgba(255, 255, 255, 0.08)); }
+.st-eng-bps { display: flex; gap: 4px; padding: 8px 12px; align-items: center; }
+.st-eng-bps .dz-seg { flex: 1; }
+.st-eng-note { margin: 4px 12px 8px; font: 400 11px/16px var(--st-font, Inter, sans-serif); color: #A3A3A3; }
+.st-eng-note b { color: #E6E6E6; font-weight: 550; }
+.st-eng-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 4px 12px; align-items: center; }
+.st-eng-row--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.st-eng-row--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.st-eng-row--1 { grid-template-columns: minmax(0, 1fr); }
+.st-eng-lab { display: block; padding: 4px 12px 0; font: 500 11px/16px var(--st-font, Inter, sans-serif); color: #A3A3A3; }
+.st-eng-num { min-width: 0; position: relative; display: flex; align-items: center; height: 24px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); }
+.st-eng-num:hover { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
+.st-eng-num.is-over { box-shadow: inset 0 0 0 1px rgba(54, 87, 255, 0.85); }
+.st-eng-num > span { flex: none; width: 22px; text-align: center; font: 500 11px var(--st-font, Inter, sans-serif); color: #8F8F8F; cursor: ew-resize; user-select: none; }
+.st-eng-num input { flex: 1; min-width: 0; height: 22px; border: 0; background: transparent; color: #F2F2F2; font: 450 11px var(--st-font, Inter, sans-serif); font-variant-numeric: tabular-nums; outline: none; padding: 0 6px 0 0; }
+.st-eng-num input:disabled { color: #7A7A7A; }
+.st-eng-num .st-eng-lock { position: absolute; right: 3px; top: 50%; translate: 0 -50%; width: 14px; height: 14px; border: 0; padding: 0; border-radius: 50%; background: var(--st-blue, #3657FF); cursor: pointer; }
+.st-eng-select { width: 100%; height: 24px; border-radius: 6px; border: 0; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); color: #F2F2F2; font: 450 11px var(--st-font, Inter, sans-serif); padding: 0 6px; }
+.st-eng-select option { background: #2C2C2C; color: #F2F2F2; }
+.st-eng-seg { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); }
+.st-eng-seg button { flex: 1; height: 20px; border: 0; border-radius: 4px; background: transparent; color: #BDBDBD; font: 500 11px var(--st-font, Inter, sans-serif); cursor: pointer; padding: 0 4px; white-space: nowrap; }
+.st-eng-seg button:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.st-eng-seg button.is-on { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.st-eng-seg button.is-over { box-shadow: inset 0 -2px 0 var(--st-blue, #3657FF); }
+.st-eng-align { display: grid; grid-template-columns: repeat(3, 20px); grid-template-rows: repeat(3, 20px); gap: 2px; padding: 4px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); width: max-content; }
+.st-eng-align button { width: 20px; height: 20px; border: 0; border-radius: 4px; background: transparent; cursor: pointer; padding: 0; position: relative; }
+.st-eng-align button::after { content: ''; position: absolute; inset: 8px; border-radius: 50%; background: #6B6B6B; }
+.st-eng-align button.is-on::after { inset: 5px; border-radius: 2px; background: var(--st-blue, #3657FF); }
+.st-eng-color { display: flex; align-items: center; gap: 6px; height: 24px; }
+.st-eng-sw { width: 20px; height: 20px; flex: none; border: 0; border-radius: 4px; cursor: pointer; padding: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  background-image: linear-gradient(45deg, #777 25%, transparent 25%, transparent 75%, #777 75%), linear-gradient(45deg, #777 25%, #aaa 25%, #aaa 75%, #777 75%);
+  background-size: 8px 8px; background-position: 0 0, 4px 4px; overflow: hidden; }
+.st-eng-sw i { display: block; width: 100%; height: 100%; }
+.st-eng-list { display: grid; gap: 4px; padding: 2px 12px; }
+.st-eng-item { display: grid; grid-template-columns: minmax(0, 1fr) 60px auto auto; gap: 4px; align-items: center; }
+.st-eng-ib { width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: #BDBDBD; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.st-eng-ib:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.st-eng-ib svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.st-eng-text { width: 100%; min-height: 56px; resize: vertical; box-sizing: border-box; border: 0; border-radius: 6px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); color: #F2F2F2; font: 450 12px/16px var(--st-font, Inter, sans-serif); padding: 6px 8px; outline: none; }
+.st-eng-input { width: 100%; height: 24px; box-sizing: border-box; border: 0; border-radius: 6px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); color: #F2F2F2; font: 450 11px var(--st-font, Inter, sans-serif); padding: 0 8px; outline: none; }
+.st-eng-text:focus, .st-eng-input:focus, .st-eng-num:focus-within { box-shadow: inset 0 0 0 1px var(--st-blue, #3657FF); }
+.st-eng-code { margin: 4px 12px; max-height: 220px; overflow: auto; padding: 8px; border-radius: 6px; background: #1A1A1A; color: #CFCFCF; font: 400 11px/16px var(--st-mono, ui-monospace, Menlo, monospace); white-space: pre-wrap; word-break: break-all; }
+.st-eng-actions { display: grid; gap: 6px; padding: 8px 12px; }
+.st-eng-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px 12px; }
+.st-eng-photos button { aspect-ratio: 1; border: 0; padding: 0; border-radius: 4px; background-size: cover; background-position: center; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
+.st-eng-photos button:hover { box-shadow: inset 0 0 0 2px var(--st-blue, #3657FF); }
+
+/* ---------------------------------------------------------------- layers: the nodes of a detached section */
+.st-erow { font-size: 11px; }
+.st-erow .st-row__icon svg { width: 14px; height: 14px; }
+.st-erow.is-hidden-node .st-row__name { opacity: 0.45; }
+.st-row--section.is-detached .st-row__name::after { content: ' · détachée'; color: #8F8F8F; font-weight: 400; }
+
+/* inside the Design-tab groups (they pad their body already) */
+.st-eng-insp .dz-gb__in .st-eng-row { padding: 2px 0; }
+.st-eng-insp .dz-gb__in .st-eng-lab { padding: 4px 0 0; }
+.st-eng-insp .dz-gb__in .st-eng-note { margin: 4px 0; }
+.st-eng-insp .dz-gb__in .st-eng-list, .st-eng-insp .dz-gb__in .st-eng-actions, .st-eng-insp .dz-gb__in .st-eng-photos, .st-eng-insp .dz-gb__in .st-eng-code { padding-left: 0; padding-right: 0; margin-left: 0; margin-right: 0; }
+.st-eng-insp .st-eng-bps .st-eng-seg { flex: 1; }
+.st-eng-insp > .st-eng-note { margin: 0 12px 8px; }

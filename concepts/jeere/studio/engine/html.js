@@ -82,6 +82,14 @@
       children = '<svg class="de-svg" width="100%" height="1" aria-hidden="true"><line class="' + cls + '-s" x1="0" y1="0" x2="100%" y2="0"/></svg>';
     else if (node.children) children = node.children.map(function (cid) { var c = doc.nodes[cid]; return c ? emitNode(doc, c, opts) : ''; }).join('');
     if (tag === 'img' && node.type !== 'image') tag = 'div';
+    if (node.type === 'image' && wrapper) {
+      // <img> is void: a squircle photo with a drop shadow is an unclipped <div> (the shadow) holding
+      // the clipped <img class="…-in"> (§3.2 wrapper)
+      var imgAttrs = ' class="' + cls + '-in" src="' + escAttr(extra.src) + '" alt="' + escAttr(extra.alt) + '"' + (extra.width ? ' width="' + escAttr(extra.width) + '" height="' + escAttr(extra.height) + '"' : '');
+      delete extra.src; delete extra.alt; delete extra.width; delete extra.height;
+      var semAttrs = Object.assign({}, node.semantic.attrs || {}); delete semAttrs.alt;
+      return '<div' + attrs({ semantic: { tag: 'div', attrs: semAttrs, className: node.semantic.className } }, cls, extra) + '><img' + imgAttrs + '></div>';
+    }
     if (tag === 'a' && !(extra.href || (node.semantic.attrs && node.semantic.attrs.href))) extra.href = '#';
     if (tag === 'button') extra.type = extra.type || (node.semantic.attrs && node.semantic.attrs.type) || 'button';
     var open = '<' + tag + attrs(node, cls, extra) + '>';

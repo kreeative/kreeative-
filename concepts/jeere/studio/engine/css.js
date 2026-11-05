@@ -92,6 +92,21 @@
     return t + ' ' + r + ' ' + b + ' ' + l;
   }
   function esc(s) { return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"'); }
+  /**
+   * `font-family` of a text style (§3.6): one family → `"X", sans-serif` (unchanged); a fallback
+   * list "X, Y, serif" (a detached store text keeps its stack) → each name quoted, generic keywords
+   * bare, `sans-serif` added only when the list has no generic family.
+   */
+  var GENERIC_FAMILIES = { serif: 1, 'sans-serif': 1, monospace: 1, cursive: 1, fantasy: 1, 'system-ui': 1, 'ui-serif': 1, 'ui-sans-serif': 1, 'ui-monospace': 1, 'ui-rounded': 1, emoji: 1, math: 1, fangsong: 1 };
+  function familyCSS(f) {
+    var s = String(f == null ? '' : f);
+    if (s.indexOf(',') === -1) return '"' + esc(s) + '", sans-serif';
+    var names = s.split(',').map(function (x) { return x.trim().replace(/^["']|["']$/g, ''); }).filter(Boolean);
+    var generic = false;
+    var out = names.map(function (x) { if (GENERIC_FAMILIES[x]) { generic = true; return x; } return '"' + esc(x) + '"'; });
+    if (!generic) out.push('sans-serif');
+    return out.join(', ');
+  }
 
   /* ------------------------------------------------------------------ §3.2 corners */
 
@@ -502,10 +517,10 @@
     }
     if (isImage) {
       var fitMap = { fill: 'cover', fit: 'contain', crop: 'cover', tile: 'none' };
-      main.set('object-fit', rn.fit && rn.fit !== 'fill' ? fitMap[rn.fit] || 'cover' : 'cover');
+      (inner || main).set('object-fit', rn.fit && rn.fit !== 'fill' ? fitMap[rn.fit] || 'cover' : 'cover');
       if (rn.fit === 'crop' && rn.crop) { // §3.3: visible part of the image → object-position (cover keeps the scale)
         var ic = rn.crop;
-        main.set('object-position', pct(ic.w < 1 ? ic.x / (1 - ic.w) * 100 : 50) + ' ' + pct(ic.h < 1 ? ic.y / (1 - ic.h) * 100 : 50));
+        (inner || main).set('object-position', pct(ic.w < 1 ? ic.x / (1 - ic.w) * 100 : 50) + ' ' + pct(ic.h < 1 ? ic.y / (1 - ic.h) * 100 : 50));
       }
     }
     var bm = BLEND_CSS[rn.blendMode];
@@ -608,7 +623,7 @@
     /* ---- §3.6 typography */
     if (isText) {
       var st = rn.style, stk = rk.style || st;
-      main.set('font-family', (R.isRef(stk.family) ? varRef(stk.family) : '"' + esc(st.family) + '"') + ', sans-serif');
+      main.set('font-family', R.isRef(stk.family) ? varRef(stk.family) + ', sans-serif' : familyCSS(st.family));
       main.set('font-weight', R.isRef(stk.weight) ? varRef(stk.weight) : String(st.weight || 400));
       if (st.italic) main.set('font-style', 'italic');
       main.set('font-size', R.isRef(stk.size) ? varRef(stk.size) : px(st.size));
@@ -695,7 +710,7 @@
   /** Declarations of a rich-text run's partial style (§3.6: runs → spans with derived classes). */
   function runDeclarations(doc, style, warnings) {
     var s = R.resolveRefs(doc, style), out = [];
-    if (s.family) out.push(['font-family', '"' + esc(s.family) + '", sans-serif']);
+    if (s.family) out.push(['font-family', familyCSS(s.family)]);
     if (s.weight) out.push(['font-weight', String(s.weight)]);
     if (s.italic !== undefined) out.push(['font-style', s.italic ? 'italic' : 'normal']);
     if (s.size) out.push(['font-size', px(s.size)]);

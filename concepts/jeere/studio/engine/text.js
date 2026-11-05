@@ -286,7 +286,11 @@
   function createCanvasMeasurer(ctx, extraFonts) {
     if (!ctx && typeof document !== 'undefined') ctx = document.createElement('canvas').getContext('2d');
     function fontString(style) {
-      return (style.italic ? 'italic ' : '') + (style.weight || 400) + ' ' + style.size + 'px ' + JSON.stringify(style.family) + ', sans-serif';
+      var fam = String(style.family == null ? '' : style.family);
+      // a fallback list (css.js familyCSS): each name quoted, a generic keyword bare
+      var list = fam.indexOf(',') === -1 ? JSON.stringify(fam) + ', sans-serif'
+        : fam.split(',').map(function (x) { x = x.trim().replace(/^["']|["']$/g, ''); return /^(serif|sans-serif|monospace|cursive|fantasy|system-ui)$/.test(x) ? x : JSON.stringify(x); }).join(', ');
+      return (style.italic ? 'italic ' : '') + (style.weight || 400) + ' ' + style.size + 'px ' + list;
     }
     function measureString(str, style) {
       ctx.font = fontString(style);

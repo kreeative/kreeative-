@@ -61,6 +61,7 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | `data.js` | The contract: templates, 8 palettes (contrast-checked), the 2 colour intensities, the custom colours (`COLOR_GROUPS`, `themeColors`, `sectionColors`, `colorChecks`, `fixColors`), 6 font pairs (the « Suggestions ») and 33 Google Fonts in 5 styles (`FONTS`, `typography`: see [Fonts](#fonts-themetypography)), the 8 section types and their form fields, 8 niches with French example content (including the 4 default custom pages of each niche), Abidjan communes and fees, the payment methods with their checkout texts, the 5 store pages. The seller side: `PLANS`, `CONNECTORS` and `CONNECTOR_CATEGORIES`, `ADMIN_DEFAULTS`, `ORDER_STATUSES`, `STORAGE_KEYS`, `demoOrders`. Pure helpers: `defaultConfig`, `normalizeConfig`, `validate`, `formatPrice`, `normalizeWhatsapp`, `slugify`, `newId`, `clone`… No DOM access, so it also loads in Node and in a Supabase Edge Function. | `window.JEERE_DATA` |
 | `render.js`, `store.css` | Renders a fiche into one of the 5 store pages (header and footer on every page) for a phone (390 px) or desktop (1200 px) frame, in vivid or soft colours. Handles the navigation inside the preview and a demo cart. Pure and defensive: escapes every string, never throws, shows the seller's photo, else the demo photo, else draws the product illustration in SVG, never makes a network request to another site. Store CSS is scoped under `.jst`. | `window.JeereRender` |
 | `elstyles.js` | Element styles, the design layer of the Studio's Design tab and of the quick-style sheet: the element registry, the property whitelist and sanitiser (used by `normalizeConfig`), the breakpoint / state cascade, the CSS generator and `apply(config, root)` (called at the end of `render()`; a no-op without `elementStyles`). Loaded right after `render.js` on every page that reads the fiche (`creer/`, `admin/`, `studio/`, `compte/`). See [Element styles](#element-styles-elementstyles). | `window.JeereElStyles` |
+| `engine-sections.js` | The store side of the Studio's detached sections (`sections[].engine`): the sanitiser (used by `normalizeConfig`, also in Node), the DualEngine document of a section, its scoped HTML/CSS (container queries) for `render.js`, the on-demand loading of `../studio/engine/`. See [Detached sections](#detached-sections-sectionsengine). | `window.JeereEngineSections` |
 | `jcolor.js`, `jcolor.css` | The colour picker of the Studio and of the editor (never a native `<input type="color">`): HSV square, hue, alpha, Hex / RGB / HSL, pipette, palette and recent chips, a « Dégradé » tab; popover or inline, dark or light, mouse or finger. | `window.JeereColor` |
 | `quickstyle.js` | The editor's quick-style bottom sheet: a tap on a button, a title, a text, an image or an icon of the phone preview (see [Element styles](#element-styles-elementstyles)). | `window.JeereQuickStyle` |
 | `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
@@ -174,6 +175,7 @@ One JSON object, fully described by [`schema.json`](schema.json) (`$id`
 | `theme.customFonts` | optional: her own fonts, « Mes polices »: up to 4 imported files (a base64 data URL each, 400 KB at most) and 4 Google Fonts added by name. Never written by the assistant. A fiche without it renders exactly as before — see [Her own fonts](#her-own-fonts-mes-polices-themecustomfonts) |
 | `theme.radius` / `theme.buttons` | `none`, `soft`, `round` / `solid`, `outline` |
 | `payments` | exactly `wave`, `orange`, `mtn`, `moov`, `cod`, `card` (booleans), shown as plain text, never with the operators' logos or colours: in the footer, on the product page and as the checkout's payment options |
+| `sections[].engine` | optional: a section detached in the Studio, drawn from its DualEngine nodes — see [Detached sections](#detached-sections-sectionsengine) |
 | `sections[]` | ordered; ids `s1`, `s2`…; `type` is one of `announcement`, `hero`, `categories`, `products`, `about`, `reviews`, `delivery`, `whatsapp`; `enabled`; `settings` specific to the type (the schema checks each type with `if`/`then`); `hero` and `about` have `image` and the optional demo `photo`. The zones of the first enabled `delivery` section (else of a hidden one) are also the checkout's commune list |
 | `products[]` | ids `p1`, `p2`…; `price` is a whole number of FCFA (`6500`, formatted `6 500 FCFA` for display); `badge` `null`, `new`, `best` or `promo`; `art` one of 12 illustrations; `color` `#RRGGBB`; `image` `null` or a JPEG data URL (≤ 800 px wide); `photo` `null` or a demo photo id (optional, see [Demo photos](#demo-photos)) |
 | `pages[]` | the store's own pages, 20 at most: ids `pg1`, `pg2`…; `title` ≤ 60; `slug` unique, `[a-z0-9]` words joined by hyphens; `body` plain text ≤ 4 000 characters, paragraphs separated by a blank line; `inMenu`, `inFooter` booleans — see [The store's own pages](#the-stores-own-pages-configpages) |
@@ -1177,6 +1179,45 @@ rounding, size S / M / L, border on / off + colour, bold, alignment; for a photo
 in the preview, pinch or the slider to zoom, a format (1:1, 4:5, 16:9). It writes the same
 `elementStyles` (`base` layer) through the editor's one change path (undo, autosave). The store's
 own controls (add to cart, menu, links: `data-jst-action`) and the product cards keep working.
+
+## Detached sections (`sections[].engine`)
+
+In the Studio, « Détacher la section » (Réglages, the context menu, `Ctrl Alt B`) turns a section of
+the template into free DualEngine nodes (`../studio/engine/`, SPEC-DUALENGINE). An optional key of
+the section, **never added**: a fiche without it renders byte-identically (`render.js` only takes the
+engine path for a section that has it, and the engine is not even loaded).
+
+```json
+{ "id": "s2", "type": "hero", "enabled": true, "settings": { "title": "…" },
+  "engine": { "v": 1, "root": "72d5e379-…",
+              "nodes": { "72d5e379-…": { "id": "72d5e379-…", "type": "frame", "parent": null, "children": ["…"],
+                                         "layoutChild": { "position": "flow", "widthMode": "fill", "heightMode": "hug" },
+                                         "layoutParent": { "mode": "stack", "direction": "vertical", "gap": 0, … },
+                                         "overrides": { "phone": { "geometry": { "h": 728 } } }, … }, … },
+              "assets": { "a1": { "src": "demo:beauty-hero", "w": 1200, "h": 1500 } } } }
+```
+
+- **Nodes**: DualEngine nodes (`frame`, `stack`, `grid`, `rect`, `ellipse`, `line`, `text`, `image`), one
+  tree under `root` (the section itself, always full width). Breakpoints: `base` = computer (1200 px and
+  wider), `tablet` (< 1200 px), `phone` (< 768 px); `overrides.tablet` / `overrides.phone` hold exact
+  values (SPEC §1.5). `id`, `type`, `enabled` and `settings` stay as they were: « Rattacher au modèle »
+  just removes `engine`, and the simple editor keeps editing the settings.
+- **Sanitised** by `normalizeConfig` through `JeereEngineSections.sanitize` (`engine-sections.js`, also
+  in Node): whitelisted types and properties, numbers clamped, colours `{ r, g, b, a }` in [0, 1], fonts
+  a list of plain family names, links `https://`, `#`, `/`, `tel:`, `mailto:` only, images `demo:<id>`
+  or a base64 `data:image/…` (≤ 1.7 MB), no `vw` / `vh` (a store in an artboard is not the window),
+  unreachable nodes and cycles dropped, 3 000 nodes at most. A page without `engine-sections.js` keeps
+  the key as it is (never a silent loss).
+- **Rendered** by `JeereEngineSections.sectionHTML` (called from `render.js`'s `renderSection`): the
+  engine's `exportDocument` HTML in `<section class="jst-eng" data-section-id data-eng>`, with its CSS
+  in a `<style>` scoped under `.jst [data-eng="<id>"]` and the breakpoint media queries rewritten as
+  **container queries** on the section (`container-type: inline-size`): the Studio's artboards, the
+  editor's preview, the dashboard and the real store pick the breakpoint from the store's width. The
+  engine (`../studio/engine/*.js`) is loaded on demand the first time a fiche has a detached section;
+  until then the section keeps its place and the store renders again once (`apply`). Exports are cached
+  by content.
+- `engine-sections.js` is loaded right after `elstyles.js` on every page that reads the fiche
+  (`creer/`, `admin/`, `compte/`, `studio/`). Global `window.JeereEngineSections`.
 
 ## Seller accounts (`../compte/`)
 

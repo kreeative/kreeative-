@@ -59,6 +59,10 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 | `plans.js` | Les abonnements Studio, sans DOM : `window.JeerePlans` (formules, limites, abonnement en cours, essai, droits) et `window.JeereBilling` (le paiement, derrière un adaptateur de fournisseur). Chargé aussi par `../admin/`, `../compte/` et `../abonnements/`. |
 | `studio-plans.js`, `studio-plans.css` | Les abonnements dans l’éditeur : la pastille de formule de la barre du haut, la feuille « Avec un abonnement Studio », les cadenas, l’essai, le badge « Fait avec Jeere » du dialogue Publier. Définit `S.can`, `S.limit`, `S.gate` sur le pont. Chargé en dernier. Expose `window.JeereStudioPlans` pour les tests. |
 | `studio-toolbar.js` | La couche UI3 : barre d’outils flottante, fenêtre d’insertion (S), barre contextuelle de la sélection, infobulles stylées, commentaires locaux (C), carte d’accueil « trois gestes ». Chaîne les `hooks` (ne les remplace jamais). Expose `window.JeereStudioToolbar` pour les tests. |
+| `engine/` | DualEngine (phase A + les ajouts de la phase B : références nominales, piles de polices) : le modèle, l’historique RFC 6902, le solveur Flex / Grid / absolu, le générateur HTML / CSS. Voir `engine/README.md`. |
+| `studio-engine.js` | Le pont fiche ↔ document DualEngine, « Détacher » / « Rattacher », un document et un historique DualEngine par section détachée, la mise en page par artboard, l’export HTML / CSS. `window.JeereStudioEngine`. |
+| `studio-canvas.js` | Le canevas des nœuds DualEngine : sélection, poignées, déplacement / redimensionnement / rotation, magnétisme, guides, règles, grilles, outils F R O T I, raccourcis, tactile. `window.JeereStudioCanvas`. |
+| `studio-inspector.js`, `studio-engine.css` | L’inspecteur des nœuds DualEngine (module 3), leurs calques, les actions Détacher / Rattacher / Exporter, le CSS de l’onglet Code. `window.JeereStudioInspector`. |
 
 ## Les fonctions avancées (`studio-power.js`)
 
@@ -314,6 +318,65 @@ simple, le tableau de bord et la boutique.
 - **Code** : l’onglet Code a un mode **CSS** (le CSS exact de la sélection, sinon de toute la boutique)
   à côté du JSON ; le groupe CSS du panneau le montre aussi, en direct.
 
+## DualEngine dans le Studio (phase B : `studio-engine.js`, `studio-canvas.js`, `studio-inspector.js`)
+
+DualEngine (`engine/`, `SPEC-DUALENGINE.md`) est le cœur de document et de mise en page du dessin libre.
+Les sections du modèle restent des **composants** ; « Détacher » en fait des nœuds libres.
+
+- **Le pont** (`JeereStudioEngine.toDocument` / `fromDocument`) : la fiche entière comme document
+  DualEngine — un composant par type de section (ses éléments, du registre d’`elstyles.js`, en nœuds
+  maîtres), une instance par section sur la page « Accueil » (props = réglages, surcharges d’instance =
+  styles d’éléments), les nœuds libres des sections détachées. `fromDocument(toDocument(c))` est
+  identique octet pour octet (testé sur les 48 fiches par défaut et avec des styles d’éléments).
+- **Détacher** (Réglages « Édition libre », menu contextuel, `Ctrl Alt B`) : la section rendue hors
+  écran à 1200, 768 et 390 px devient des nœuds — piles (Auto Layout) là où le CSS du modèle met en
+  flex / en flux, grilles en `fr`, positions libres avec contraintes ailleurs (« proportionnelle »
+  quand une colonne garde la même part à 1200 et 768), textes (pile de polices, runs), images
+  (photos d’exemple ou data-URL, point focal), boutons, `::before` / `::after` (voiles, traits, cadres),
+  et des surcharges Tablette / Téléphone mesurées. Une étape d’annulation ; les styles d’éléments de la
+  section passent dans ses nœuds. « Rattacher au modèle » retire la clé. Stocké dans
+  `sections[].engine` (voir `../creer/README.md`, « Detached sections »).
+- **Les artboards sont les points de rupture** : 1200 / 1440 = Ordinateur (base), 768 = Tablette,
+  390 / 360 = Téléphone (l’étiquette de l’artboard le dit, l’écran en cours d’édition est en bleu). Une
+  modification faite sur un artboard (ou avec le sélecteur de l’inspecteur) s’écrit à son point de
+  rupture : valeur exacte, pastille bleue, clic = retour à la valeur plus large. La mise en page de
+  chaque artboard est celle du solveur (références nominales : un 1440 ou un 360 donnent le même
+  résultat que le CSS exporté).
+- **Canevas** : zoom 10 % – 25 600 % (molette + Ctrl / ⌘, pincement, `⇧ 0 / 1 / 2`, `Ctrl ±`) ;
+  sélection façon Figma (clic : le niveau suivant, `Ctrl` + clic : le plus profond, double-clic :
+  entrer / éditer un texte, `Maj` + clic : plusieurs, `Échap` : le parent, `Entrée` : les enfants ;
+  une forme sans remplissage ne se prend que par son contour) ; déplacer (guides intelligents rouges
+  sur les frères, le cadre et les guides, cotes, snap pixel ; dans une pile, insertion par la règle
+  du point médian avec la ligne bleue, `Ctrl` = absolu), redimensionner (8 poignées, `Maj` ratio,
+  `Alt` depuis le centre), pivoter (hors d’un coin, `Maj` par 15°), flèches (`Maj` = 10 px ; dans une
+  pile, elles réordonnent), `Ctrl G` / `Ctrl ⇧ G`, `Ctrl ]` / `[` (`⇧` : premier / arrière-plan),
+  `Ctrl C` / `V` / `D` / `X`, `Suppr`, `⇧ A` (Auto Layout ↔ positions libres, déduit des boîtes),
+  règles (`⇧ R`) avec guides à tirer, grille de mise en page (`⇧ G`), grille de pixels dès 800 %
+  (`Ctrl ⇧ '`). Le rendu est le HTML/CSS de DualEngine dans chaque artboard ; pendant un geste seul
+  l’élément tiré bouge (transform), puis **une** transaction RFC 6902.
+- **Outils** : Cadre (F), Rectangle (R), Ellipse (O) dans la barre flottante, Texte (T : sur un texte
+  du modèle, l’édition sur place d’avant ; ailleurs, un texte DualEngine édité sur place), Image (I,
+  quand la sélection est dans une section détachée), Main (H). Dessiner sur une section du modèle la
+  détache d’abord (une étape d’annulation de plus).
+- **Inspecteur** (Réglages, aux contrôles et au chrome de l’onglet Design) : écran modifié,
+  position / contraintes, dimensions (fixe / contenu / remplir, min / max), Auto Layout (libre / pile
+  / grille, direction, gap ou Auto, marges, alignement 3 × 3, retour à la ligne, colonnes, clip),
+  apparence (opacité, rayons par coin, lissage squircle), remplissages (uni, dégradés, image —
+  `jcolor.js`), bordure, effets (ombres, flous), texte (contenu, police de la boutique ou du
+  catalogue, graisse, taille, interligne, espacement, alignement, casse, couleur), image (photos
+  d’exemple, « Mettre ma photo »), web (balise, lien), CSS exact. Un élément d’une section **non
+  détachée** garde l’onglet Design et `elementStyles` comme avant.
+- **Calques** : les nœuds de la section détachée sous sa ligne (œil, double-clic = renommer).
+- **Historique** : chaque geste est une transaction de l’historique DualEngine, poussée sur la pile
+  unique du Studio (`_internals.pushEntry`) : `Ctrl Z` / `Ctrl ⇧ Z` passent de l’une à l’autre.
+- **Code / export** : l’onglet Code (CSS) montre le CSS de DualEngine du nœud ou de la section ;
+  « Exporter en HTML / CSS » télécharge le document de `DualEngine.exportDocument`.
+
+Points d’accroche ajoutés à `studio.js` (petits, localisés) : `ZOOM_MIN / ZOOM_MAX`, `pushEntry` et
+les entrées qui s’annulent elles-mêmes dans `undo` / `redo`, `hooks.customInspector`,
+`hooks.validateSelection`, `hooks.treeSection`, `hooks.treeRowSelected`, les outils `frame`, `rect`,
+`ellipse`, `image`, et `afterChange`, `zoomRange`, `isSpaceHeld` dans `_internals`.
+
 ## Historique
 
 **Une seule pile** pour toutes les mutations : contenu, réordonner, ajouter/supprimer/coller,
@@ -347,7 +410,8 @@ une erreur) ; tout le reste se supprime librement, Ctrl Z ramène tout.
 | Tab / ⇧ Tab | Section suivante / précédente |
 | Entrée / ⇧ Entrée | Entrer dans la section (premier texte, puis édition) / revenir à la section |
 | Ctrl \ (aussi Ctrl .) | Masquer / afficher les panneaux |
-| F, R, O, P, L, Ctrl G | Pas de dessin libre : un toast explique le modèle en sections |
+| F, R, O · I | Cadre, Rectangle, Ellipse · Image (dans une section détachée) : dessiner des nœuds DualEngine (une section du modèle est d’abord détachée). P, L, K : un toast explique le modèle |
+| Ctrl G · Ctrl ⇧ G · ⇧ A · ⇧ R · ⇧ G · Ctrl Alt B | Grouper · dissocier · Auto Layout · règles · grille de mise en page · détacher / rattacher (sections détachées) |
 | Ctrl S | Enregistrer maintenant (« Enregistré ») |
 | Ctrl E | Exporter la fiche (JSON) |
 | Espace + glisser | Déplacer la vue |

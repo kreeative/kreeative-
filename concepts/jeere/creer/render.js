@@ -816,6 +816,8 @@
       if (usedIds[id]) id = id + '-' + i;
       usedIds[id] = true;
       const sec = { id: id, type: s.type, settings: mergeSettings(d.sectionTypes[s.type].defaults, s.settings) };
+      // A section detached in the Studio: drawn from the engine's HTML/CSS (engine-sections.js)
+      if (isObj(s.engine)) sec.engine = s.engine;
       if (isObj(s.settings) && SECTION_COLOR_KEYS.some((k) => s.settings[k] != null) && typeof d.sectionColors === 'function') {
         const sc = safe(() => d.sectionColors(s, colors));
         if (sc && sc.zone) sec.zone = sc.zone;
@@ -1507,6 +1509,10 @@
 
   function renderSection(m, s) {
     try {
+      if (s.engine && root.JeereEngineSections && typeof root.JeereEngineSections.sectionHTML === 'function') {
+        const eh = safe(() => root.JeereEngineSections.sectionHTML(s));
+        if (eh) return eh;
+      }
       return SECTION_RENDERERS[s.type](m, s);
     } catch (e) {
       return '<section class="jst-sec" data-section-id="' + esc(s.id) + '" data-section-type="' + esc(s.type) + '"><div class="jst-wrap">' +
@@ -2349,6 +2355,8 @@
     ensureFonts(config, rootEl.ownerDocument);
     // Element styles (elstyles.js, the Studio's design layer): a no-op for a fiche without elementStyles
     if (root.JeereElStyles && typeof root.JeereElStyles.apply === 'function') { try { root.JeereElStyles.apply(config, rootEl); } catch (e) { /* styles are a layer, never a failure */ } }
+    // Detached sections (engine-sections.js): a no-op unless one waits for the engine to load
+    if (root.JeereEngineSections && typeof root.JeereEngineSections.apply === 'function') { try { root.JeereEngineSections.apply(config, rootEl); } catch (e) { /* a layer too */ } }
     return rootEl;
   }
 

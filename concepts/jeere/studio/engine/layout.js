@@ -156,6 +156,8 @@
      *   res    Map      resolved views              flow  Map  resolved flow children
      *   inv    boolean  the subtree lays out the same at every breakpoint (no override, no vw/vh,
      *                   no constraint reading a reference size): its entries are shared by all */
+    this.nominalReference = !!opts.nominalReference;
+    this._nominal = null;
     this.slots = new Map();
     this.results = new Map();    // bp|page → LayoutResult (persistent)
     this.stats = { layouts: 0, cacheHits: 0, replays: 0, worldUpdates: 0 };
@@ -173,7 +175,13 @@
     if (!s) { s = { layout: null, iw: null, text: null, res: null, flow: null, inv: undefined }; this.slots.set(id, s); }
     return s;
   };
+  /** The same document laid out at each breakpoint's own width (see nominalReference in layout()). */
+  LayoutEngine.prototype.nominalEngine = function () {
+    if (!this._nominal) this._nominal = new LayoutEngine(this.doc, { measurer: this.measurer, rootPlacement: this.rootPlacement, state: this.state, layoutUnit: this.snap === luSnap });
+    return this._nominal;
+  };
   LayoutEngine.prototype.invalidate = function (nodeId, kind) {
+    if (this._nominal) this._nominal.invalidate(nodeId, kind);
     kind = kind || 'layout';
     var self = this, nn = this.doc.nodes[nodeId], sl = this.slots.get(nodeId);
     if (sl) { sl.res = null; sl.flow = null; }
@@ -233,6 +241,7 @@
     if (patch.from) one(patch.from, 'move');
   };
   LayoutEngine.prototype.invalidateAll = function () {
+    if (this._nominal) this._nominal.invalidateAll();
     this.slots.clear(); this.results.clear();
   };
 
@@ -425,7 +434,7 @@
     var fw = forced.w, fh = forced.h, aw = avail.w, ah = avail.h, cw = ctx.cbW, chh = ctx.cbH;
     var sl = this.slot(rn.id), inv = this.invariant(this.doc.nodes[rn.id] || rn);
     var ebp = inv ? '*' : bp;
-    var ref = !inv && rn.children && rn.layoutParent && bp !== 'base' ? refKey(rn, ctx) : '';
+    var ref = !inv && rn.children && rn.layoutParent && (bp !== 'base' || (ctx.result && ctx.result.reference && ctx.result.reference.base)) ? refKey(rn, ctx) : '';
     var c = sl.layout, hit = null;
     if (c) for (var i = 0; i < c.length; i++) {
       var e = c[i];
@@ -523,8 +532,8 @@
   /** Reference (definition-breakpoint) border-box size of a container, for constraints (§2.5). */
   LayoutEngine.prototype.referenceSize = function (rn, child, bp, ctx) {
     var defBp = R.definingBreakpoint(this.doc, this.doc.nodes[child.id], 'geometry', bp);
-    if (defBp === bp) return null; // current layout is the definition: W0 = W
     var ref = ctx.result && ctx.result.reference && ctx.result.reference[defBp];
+    if (defBp === bp && !ref) return null; // current layout is the definition: W0 = W
     if (!ref || !ref.boxes.get(rn.id)) return null;
     var b = ref.boxes.get(rn.id);
     return { w: b.w, h: b.h };
@@ -1055,7 +1064,12 @@
     // reference layouts for wider breakpoints (definition breakpoints of overrides)
     var reference = {};
     var chain = R.chainOf(doc, bp);
-    for (var i = 1; i < chain.length; i++) reference[chain[i]] = this.layout(chain[i], page);
+    // nominalReference (a canvas laid out at a width that is not its breakpoint's, e.g. a 1440 or a
+    // 360 artboard): constraints read the definition sizes at each breakpoint's own width, exactly as
+    // the exported CSS does (its right / center / scale values come from the nominal layouts, §2.5)
+    var nominal = this.nominalReference && this.viewport ? this.nominalEngine() : null;
+    for (var i = 1; i < chain.length; i++) reference[chain[i]] = (nominal || this).layout(chain[i], page);
+    if (nominal && this.viewport.width !== bpDef.width) reference[bp] = nominal.layout(bp, page);
     var savedViewport = this.viewport; this.viewport = viewport;
     var result = prev && !prev.rebuild ? prev : freshResult(bp, viewport);
     result.viewport = viewport; result.reference = reference; result.stale = false; result.rebuild = false;

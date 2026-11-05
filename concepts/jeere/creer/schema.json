@@ -31,6 +31,64 @@
     "elementStyles": { "$ref": "#/$defs/elementStyles" }
   },
   "$defs": {
+    "sectionEngine": {
+      "type": "object",
+      "description": "Optional, never added: a section « détachée » in the Studio. Its free DualEngine nodes (studio/engine/, SPEC-DUALENGINE §0.3): frames (Auto Layout stacks / grids or free positions with constraints), texts, images, rectangles, ellipses, with per-breakpoint overrides (tablet < 1200 px, phone < 768 px). The store draws the section from the engine's generated HTML/CSS (creer/engine-sections.js, scoped under .jst [data-eng], breakpoints as container queries); id, type, enabled and settings are kept unchanged (« Rattacher » removes this key). normalizeConfig sanitises it (JeereEngineSections.sanitize): whitelisted node types and properties, numbers clamped, colours {r,g,b,a} in [0, 1], links https / # / / / tel: / mailto: only, images 'demo:<photoId>' or a base64 data:image, one tree under root, at most 3 000 nodes. A fiche without it renders byte-identically.",
+      "required": ["v", "root", "nodes"],
+      "additionalProperties": false,
+      "properties": {
+        "v": { "const": 1 },
+        "root": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{3,39}$", "description": "Id of the section's root frame (width: fill)." },
+        "nodes": {
+          "type": "object",
+          "maxProperties": 3000,
+          "propertyNames": { "pattern": "^[A-Za-z0-9][A-Za-z0-9-]{3,39}$" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["id", "type", "parent", "geometry", "layoutChild"],
+            "properties": {
+              "id": { "type": "string" },
+              "type": { "enum": ["frame", "stack", "grid", "rect", "ellipse", "line", "text", "image"] },
+              "name": { "type": "string", "maxLength": 80 },
+              "parent": { "type": ["string", "null"] },
+              "children": { "type": "array", "items": { "type": "string" }, "maxItems": 600 },
+              "visible": { "type": "boolean" },
+              "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+              "geometry": { "type": "object" },
+              "layoutChild": { "type": "object" },
+              "layoutParent": { "type": "object" },
+              "fills": { "type": "array", "maxItems": 8 },
+              "strokes": { "type": "array", "maxItems": 4 },
+              "effects": { "type": "array", "maxItems": 8 },
+              "corners": { "type": "object" },
+              "overrides": { "type": "object", "propertyNames": { "enum": ["tablet", "phone"] } },
+              "semantic": { "type": "object" },
+              "text": { "type": "object" },
+              "style": { "type": "object" },
+              "resize": { "enum": ["autoWidth", "autoHeight", "fixed"] },
+              "asset": { "type": "string" },
+              "fit": { "enum": ["fill", "fit", "crop", "tile"] },
+              "alt": { "type": "string", "maxLength": 200 }
+            }
+          }
+        },
+        "assets": {
+          "type": "object",
+          "maxProperties": 120,
+          "propertyNames": { "pattern": "^[A-Za-z0-9_-]{1,40}$" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["src"],
+            "additionalProperties": false,
+            "properties": {
+              "src": { "type": "string", "pattern": "^(demo:[a-z0-9]+(-[a-z0-9]+)*|data:image/(png|jpeg|webp|gif|avif|svg\\+xml);base64,[A-Za-z0-9+/]+=*)$", "maxLength": 1700000 },
+              "w": { "type": "integer", "minimum": 1 },
+              "h": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
     "elementStyles": {
       "type": "object",
       "description": "Optional, never added: the Studio's design layer (Design tab), applied by elstyles.js. Keys are '<sectionId>/<elementKey>' ('s2/button', 's4/card', 's4/card~p3' for one product card, '@header/logo', '@footer/link'); elementKey comes from JeereElStyles.REGISTRY[sectionType]. Each entry has optional layers: base (every screen), desktop (computer only), tablet (tablet and phone), phone, hover, pressed, focus. normalizeConfig sanitises everything (JeereElStyles.sanitize): whitelisted props only (JeereElStyles.PROPS), numbers clamped, colours #RRGGBB / #RRGGBBAA or a palette token ('@accent', '@accent/40'), images 'demo:<photoId>' or a base64 data:image, entries of missing sections dropped. A fiche without it renders byte-identically.",
@@ -322,7 +380,8 @@
           "enum": ["announcement", "hero", "categories", "products", "about", "reviews", "delivery", "whatsapp"]
         },
         "enabled": { "type": "boolean", "description": "false hides the section without losing its settings." },
-        "settings": { "type": "object" }
+        "settings": { "type": "object" },
+        "engine": { "$ref": "#/$defs/sectionEngine" }
       },
       "allOf": [
         { "if": { "properties": { "type": { "const": "announcement" } }, "required": ["type"] }, "then": { "properties": { "settings": { "$ref": "#/$defs/settings_announcement" } } } },
