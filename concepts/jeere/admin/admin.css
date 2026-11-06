@@ -1447,3 +1447,13 @@ html.has-savebar .a-catnav { top: var(--a-top-h); }
 @media (max-width: 479.98px) { .a-copy .a-btn { flex: 1 1 100%; } }
 .a-pm a.a-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
 .a-pm a.a-link .a-ico { width: 16px; height: 16px; }
+
+/* Mes boutiques in the switcher (a link for a store with its own dashboard) and the cloud centred in the left menu */
+a.a-proj__item { text-decoration: none; }
+.a-proj__av--img { overflow: hidden; background: var(--grey-2); }
+.a-proj__av--img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.a-proj__item .a-proj__check { color: var(--muted); }
+@media (min-width: 960px) {
+  .a-side__top { justify-content: center; }
+  .a-side__top .a-logo { padding: 6px 12px; }
+}

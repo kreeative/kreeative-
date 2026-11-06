@@ -787,10 +787,43 @@
     if (!e.remote) bits.push('dans ce navigateur');
     return bits.join(' · ');
   }
+  const MY_SHOPS = [
+    { name: 'The Ivory Sukundu', meta: 'Son tableau de bord · theivorysukundu.com', manage: 'https://www.theivorysukundu.com/admin', thumb: '../studio/sites/thumbs/live--the-ivory-sukundu.webp' },
+    { name: 'Sonia Luxury Hair', meta: 'Boutique Jeere', thumb: '../studio/sites/thumbs/concepts--sonia-luxury-hair.webp' },
+    { name: 'Joshua Cooker', meta: 'Boutique Jeere', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' }
+  ];
+  // a boutique of hers not yet in the list: its project is made once (her name on it), then it is a project like the others
+  function openShopProject(el) {
+    if (S.dirty) { closeProj(); closeDialog(true); nudgeSave(); return; }
+    const name = el.getAttribute('data-name');
+    const norm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const found = projList().find((e) => norm(projName(e)) === norm(name));
+    if (found) { switchProject(found.id); return; }
+    if (!PJ()) { toast('Les projets ne sont pas disponibles sur cette page.'); return; }
+    closeProj(); closeDialog(true);
+    PJ().create({ clientName: name, template: el.getAttribute('data-template') || undefined }).then((r) => {
+      if (!r.ok) { toast(r.message || 'Cette boutique n’a pas pu s’ouvrir.'); return; }
+      afterProjectChange('Boutique ouverte : ' + name + '.');
+    });
+  }
   function projListHTML() {
     const cur = projCurrent();
     const items = projList();
-    return H`<p class="a-proj__title" id="pj-t">Projets</p>
+    // her boutiques: always in the list. The Ivory Sukundu has its own dashboard (its own site); the others open here
+    const norm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const have = new Set(items.map((e) => norm(projName(e))));
+    const shops = MY_SHOPS.filter((x) => x.manage || !have.has(norm(x.name)));
+    return H`<p class="a-proj__title" id="pj-sh">Mes boutiques</p>
+      <ul class="a-proj__list" aria-labelledby="pj-sh">${shops.map((x) => x.manage
+        ? H`<li><a class="a-proj__item" href="${esc(x.manage)}" target="_blank" rel="noopener">
+          <span class="a-proj__av a-proj__av--img" aria-hidden="true"><img alt="" src="${esc(x.thumb)}"></span>
+          <span class="a-proj__txt"><span class="a-proj__name">${esc(x.name)}</span><span class="a-proj__meta">${esc(x.meta)}</span></span>
+          ${ico('external', 'a-proj__check')}</a></li>`
+        : H`<li><button class="a-proj__item" type="button" data-act="proj-shop" data-name="${esc(x.name)}" data-template="${esc(x.template || '')}">
+          <span class="a-proj__av a-proj__av--img" aria-hidden="true"><img alt="" src="${esc(x.thumb)}"></span>
+          <span class="a-proj__txt"><span class="a-proj__name">${esc(x.name)}</span><span class="a-proj__meta">${esc(x.meta)}</span></span></button></li>`)}</ul>
+      <div class="a-menu-sep" role="separator"></div>
+      <p class="a-proj__title" id="pj-t">Projets</p>
       ${items.length ? H`<ul class="a-proj__list" aria-labelledby="pj-t">${items.map((e) => {
         const on = cur && cur.id === e.id;
         return H`<li><button class="a-proj__item" type="button" data-act="proj-switch" data-id="${esc(e.id)}"${on ? ' aria-current="true"' : ''}>
@@ -4030,6 +4063,7 @@
     'share-store': () => shareStore(),
     'projects': (el) => openProjects(el),
     'proj-switch': (el) => switchProject(el.getAttribute('data-id')),
+    'proj-shop': (el) => openShopProject(el),
     'proj-new': () => openNewProject(),
     'proj-manage': () => openProject(),
     'proj-copy': () => copyPreview(),
