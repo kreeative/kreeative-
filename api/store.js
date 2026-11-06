@@ -14,6 +14,8 @@
  * Anything that fails (Supabase unreachable, a fiche that does not render) gives the static page as it
  * is: b.js then loads the store itself, as before.
  *
+ * « Aperçu privé »: …/b/<slug>?apercu=<token> serves the store even unpublished (rpc store_preview), noindex
+ * and never cached (client projects, migration jeere_client_projects).
  * Routes (vercel.json):
  *   jeere.kreeative.xyz/b/<slug>[/produits/<id> | /pages/<slug> | /panier | /paiement]
  *        → /api/store?slug=<slug>&path=<rest>
@@ -87,6 +89,27 @@ function viewOf(cfg, rest) {
     if (pg) return { page: 'page', productId: null, pageId: pg.id, route: '/pages/' + encodeURIComponent(pg.slug || pg.id) };
   }
   return { page: 'home', productId: null, pageId: null, route: '' };
+}
+
+// « Aperçu privé » (client projects, migration jeere_client_projects): the store published or not, for
+// whoever has its token (rpc store_preview). Same row shape, plus preview: true.
+async function fetchPreview(slug, token) {
+  if (!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(slug) || !/^[A-Za-z0-9_-]{24,64}$/.test(token)) return { ok: false, code: 'notfound' };
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/store_preview', {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_slug: slug, p_token: token }),
+      signal: AbortSignal.timeout(3500)
+    });
+    if (r.status >= 500) return { ok: false, code: 'network' };
+    const row = r.ok ? await r.json() : null;
+    if (!row || typeof row !== 'object' || !row.fiche) return { ok: false, code: 'notfound' };
+    row.preview = true;
+    return { ok: true, row };
+  } catch (e) {
+    return { ok: false, code: 'network' };
+  }
 }
 
 async function fetchRow(q) {
@@ -203,7 +226,9 @@ async function handler(req, res) {
   const onJeere = !!slug;
   if (!onJeere && (!rawHost || JEERE_HOST.test(rawHost))) { send(res, 200, tpl, 'no-store'); return; }
 
-  const got = await fetchRow(onJeere ? { slug } : { host: rawHost });
+  const apercu = onJeere ? String(q.apercu || '') : '';
+  const got = apercu ? await fetchPreview(slug, apercu) : await fetchRow(onJeere ? { slug } : { host: rawHost });
+  if (!got.ok && apercu) { send(res, 200, tpl.replace('<meta name="theme-color"', '<meta name="robots" content="noindex">\n  <meta name="theme-color"'), 'private, no-store'); return; }
   if (!got.ok) {
     // Not found (yet): the page itself, kept out of the index; b.js asks again and says « Boutique
     // introuvable », or shows a store published a second ago (200, so a fresh store is never a dead end)
@@ -222,6 +247,7 @@ async function handler(req, res) {
     const canonicalOrigin = own ? proto + own : (onJeere ? origin : proto + rawHost);
     const url = canonicalOrigin + (view.route || (onJeere && !own ? '' : '/'));
     const meta = R.storeMeta(cfg, view, { abs: (s) => { try { return new URL(s, 'https://' + PUBLIC_HOST + '/').href; } catch (e) { return ''; } } });
+    if (row.preview) meta.noindex = true; // a private preview is never indexed
     const linkBase = onJeere ? '/b/' + row.slug : '';
     const base = onJeere ? '/' : '/concepts/jeere/';
     let body = '';
@@ -232,7 +258,8 @@ async function handler(req, res) {
     const data = '<script type="application/json" id="jb-data">' + jsonScript(row) + '</script>';
     if (body) html = between(html, 'jb:body', body + '\n    ' + data + '\n');
     else html = html.replace('</main>', '  ' + data + '\n  </main>');
-    send(res, 200, html, 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+    // the private preview is not cached by Vercel (the token is in the query, and a store not online must not linger)
+    send(res, 200, html, row.preview ? 'private, no-store' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
   } catch (e) {
     send(res, 200, tpl, 'no-store');
   }
@@ -240,4 +267,4 @@ async function handler(req, res) {
 
 module.exports = handler;
 module.exports.default = handler;
-module.exports._internals = { viewOf, lib, drawStore, fetchRow };
+module.exports._internals = { viewOf, lib, drawStore, fetchRow, fetchPreview };

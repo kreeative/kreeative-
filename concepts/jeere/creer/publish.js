@@ -23,6 +23,7 @@
  *   JeerePublish.history()              → Promise { ok, versions: [{ id, slug, published_at, bytes }] } (last 10)
  *   JeerePublish.restore(versionId)     → Promise { ok, fiche } : that version is live again (a new version too)
  *   JeerePublish.fetchPublished({ slug } | { host }) → Promise { ok, store } | { ok: false, code: 'notfound' | 'network' }
+ *   JeerePublish.fetchPreview(slug, token) → the same for the private preview (rpc store_preview, published or not)
  *   JeerePublish.mount(el, { getConfig, theme, showScore, onClose, onRestore(fiche) }) → the panel (address,
  *        publish, live link, draft / live state, the published versions with « Restaurer »)
  *   JeerePublish.local()                → this browser's record, 'jeere-publish':
@@ -261,7 +262,14 @@
       var body = { slug: slug, fiche: pubFiche, published: true, show_badge: badge };
       var sel = '?select=id,slug,published,published_at,show_badge,updated_at';
       var pickId = rec && rec.storeId && (!rec.ownerId || !s.userId || rec.ownerId === s.userId) ? Promise.resolve(rec.storeId)
-        : myStores(s.token).then(function (rows) { var m = rows.filter(function (x) { return x.slug === slug; })[0] || rows[0]; return m ? m.id : ''; });
+        : myStores(s.token).then(function (rows) {
+          // With client projects (projects.js) every store of hers is known by its id: a project without one is
+          // new (an insert), never « her first store » — that would overwrite another client's
+          var PJ = window.JeereProjects;
+          var known = !!PJ && typeof PJ.list === 'function' && (PJ.hasRemote() || PJ.list().length > 1);
+          var m = rows.filter(function (x) { return x.slug === slug; })[0] || (known ? null : rows[0]);
+          return m ? m.id : '';
+        });
       return pickId.then(function (id) {
         var write = id
           ? request('/rest/v1/stores' + sel + '&id=eq.' + id, { method: 'PATCH', token: s.token, body: body, headers: { Prefer: 'return=representation' } })
@@ -349,6 +357,20 @@
       var row = r.body[0];
       if (o.host && r.body.length > 1) row = r.body.filter(function (x) { return x.custom_domain === str(o.host).toLowerCase(); })[0] || row;
       return { ok: true, store: row };
+    });
+  }
+
+  // The private preview (« Aperçu privé », migration jeere_client_projects): a store published or not, for
+  // whoever has its link …/b/<slug>?apercu=<token>. Same shape as fetchPublished, plus store.preview = true.
+  function fetchPreview(slug, token) {
+    var s = str(slug).toLowerCase();
+    var t = str(token);
+    if (!checkSlug(s).ok || !/^[A-Za-z0-9_-]{24,64}$/.test(t)) return Promise.resolve({ ok: false, code: 'notfound' });
+    return request('/rest/v1/rpc/store_preview', { method: 'POST', body: { p_slug: s, p_token: t } }).then(function (r) {
+      if (r.status === 0 || r.status >= 500) return { ok: false, code: 'network' };
+      if (!r.ok || !isObj(r.body) || !isObj(r.body.fiche)) return { ok: false, code: 'notfound' };
+      r.body.preview = true;
+      return { ok: true, store: r.body };
     });
   }
 
@@ -645,7 +667,7 @@
     SB_URL: SB_URL, SB_KEY: SB_KEY, LOCAL_KEY: LOCAL_KEY, MAX_BYTES: MAX_BYTES, PREFIX: PREFIX, SLUG_MESSAGES: SLUG_MESSAGES,
     address: address, url: url, checkSlug: checkSlug, normalizeInput: normalizeInput,
     available: available, suggestions: suggestions, session: session, local: local,
-    publish: publish, unpublish: unpublish, fetchPublished: fetchPublished, mount: mount, badgeShown: badgeShown, hash: hash,
+    publish: publish, unpublish: unpublish, fetchPublished: fetchPublished, fetchPreview: fetchPreview, mount: mount, badgeShown: badgeShown, hash: hash,
     history: history, restore: restore
   };
 })();

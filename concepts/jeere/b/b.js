@@ -53,12 +53,14 @@
     var host = location.hostname.toLowerCase();
     // Her own domain: every path is her store, the links are paths from the root
     if (!JEERE_HOST.test(host)) return { host: host, base: '', rest: location.pathname };
+    // « Aperçu privé » (client projects): ?apercu=<token> shows the store even before it is published
+    var ap = /^[A-Za-z0-9_-]{24,64}$/.test(q.apercu || '') ? q.apercu : '';
     var s = q.s || '';
-    if (s) return { slug: String(s).toLowerCase(), base: null };
+    if (s) return { slug: String(s).toLowerCase(), base: null, apercu: ap };
     var m = /\/b\/([A-Za-z0-9-]+)(\/.*)?$/.exec(location.pathname);
     if (m) {
       var i = location.pathname.indexOf('/b/' + m[1]);
-      return { slug: m[1].toLowerCase(), base: location.pathname.slice(0, i) + '/b/' + m[1], rest: m[2] || '' };
+      return { slug: m[1].toLowerCase(), base: location.pathname.slice(0, i) + '/b/' + m[1], rest: m[2] || '', apercu: ap };
     }
     if (q.domaine) return { host: String(q.domaine).toLowerCase(), base: null };
     return { slug: '' };
@@ -200,7 +202,7 @@
     meta('og:image', m.image || 'https://jeere.kreeative.xyz/img/og.jpg', true);
     meta('twitter:title', m.title);
     meta('twitter:description', m.description);
-    meta('robots', m.noindex ? 'noindex' : 'index, follow');
+    meta('robots', m.noindex || (S.store && S.store.preview === true) ? 'noindex' : 'index, follow');
     linkTag('canonical', canonical());
   }
   function headMeta(cfg, store) {
@@ -372,10 +374,23 @@
     }
     root.classList.add('jb-store');
     headMeta(cfg, store);
+    if (store.preview === true) previewBar(store);
     // The badge: decided by the server from the owner's plan (stores.badge), else the row's show_badge
     var badgeOn = typeof store.badge === 'boolean' ? store.badge : store.show_badge !== false;
     if (!badgeOn) document.body.classList.add('jb-nobadge'); else document.body.classList.remove('jb-nobadge');
     badgeRow(badgeOn);
+  }
+
+  // « Aperçu privé »: a quiet bar on top, the page kept out of search engines
+  function previewBar(store) {
+    meta('robots', 'noindex, nofollow');
+    if (document.getElementById('jb-preview')) return;
+    var bar = document.createElement('p');
+    bar.id = 'jb-preview';
+    bar.className = 'jb-preview';
+    bar.setAttribute('role', 'note');
+    bar.textContent = fr(store.published ? 'Aperçu privé : ce lien montre la boutique telle qu’elle est maintenant.' : 'Aperçu privé : cette boutique n’est pas encore en ligne. Seules les personnes qui ont ce lien la voient.');
+    main.insertBefore(bar, main.firstChild);
   }
 
   // The store row api/store.js put in the page (<script type="application/json" id="jb-data">), if it is this one
@@ -385,8 +400,8 @@
     var row = null;
     try { row = JSON.parse(el.textContent || 'null'); } catch (e) { row = null; }
     el.remove();
-    if (!row || typeof row !== 'object' || !row.fiche || row.published === false) return null;
     var t = S.target || {};
+    if (!row || typeof row !== 'object' || !row.fiche || (row.published === false && !(t.apercu && row.preview === true))) return null;
     if (t.slug && String(row.slug || '').toLowerCase() === t.slug) return row;
     if (t.host) { var d = String(row.custom_domain || '').toLowerCase(), h = t.host.replace(/^www\./, ''); if (d && d.replace(/^www\./, '') === h) return row; }
     return null;
@@ -402,7 +417,8 @@
     if (pre) { show(pre); return; }
     var loading = document.getElementById('jb-loading');
     if (!loading) main.innerHTML = '<div class="jb-state jb-state--load" id="jb-loading" role="status"><span class="jb-spin" aria-hidden="true"></span><p>Chargement de la boutique…</p></div>';
-    P.fetchPublished(S.target).then(function (r) {
+    var fetchRow = S.target.apercu && S.target.slug && P.fetchPreview ? P.fetchPreview(S.target.slug, S.target.apercu) : P.fetchPublished(S.target);
+    fetchRow.then(function (r) {
       if (r.ok) show(r.store);
       else stateView(r.code === 'network' ? 'network' : 'notfound');
     }, function () { stateView('network'); });

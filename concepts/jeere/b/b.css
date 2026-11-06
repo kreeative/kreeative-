@@ -62,3 +62,6 @@ body.jb { margin: 0; min-height: 100vh; background: #FFFFFF; color: #111111; fon
 .jb-sheet__card li b { font-weight: 600; white-space: nowrap; }
 .jb-sheet .jb-actions { justify-content: stretch; }
 .jb-sheet .jb-btn { flex: 1 1 12em; }
+
+/* « Aperçu privé » (client projects): the link shows a store not yet online */
+.jb-preview { margin: 0; padding: 10px 16px; background: #111111; color: #FFFFFF; font-size: 14px; line-height: 1.45; text-align: center; }
