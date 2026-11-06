@@ -81,7 +81,7 @@
         <button class="sk-ib sk-only-edit" id="skRedo" type="button" aria-label="Rétablir" data-tip="Rétablir" data-kbd="Ctrl ⇧ Z" disabled>
           <svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M170.34,130.34,204.69,96H88a48,48,0,0,0,0,96h88a8,8,0,0,1,0,16H88A64,64,0,0,1,88,80H204.69L170.34,45.66a8,8,0,0,1,11.32-11.32l48,48a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32-11.32Z"/></g></svg>
         </button>
-        <button class="sk-ib sk-only-edit sk-rightbtn" id="skRightBtn" type="button" aria-label="Réglages de la sélection" aria-expanded="false" data-tip="Réglages">
+        <button class="sk-ib sk-only-edit sk-rightbtn" id="skRightBtn" type="button" aria-label="Réglages de la sélection" aria-expanded="true" data-tip="Afficher / masquer les réglages" data-kbd="Ctrl \\">
           <svg viewBox="0 0 256 256" aria-hidden="true" style="transform:scaleX(-1)"><g fill="currentColor" stroke="none"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H80V200H40ZM216,200H96V56H216V200Z"/></g></svg>
         </button>
         <span class="sk-sep sk-only-edit" aria-hidden="true"></span>
@@ -145,9 +145,17 @@
           <div class="sk-sizer" id="skSizer"><div class="sk-world" id="skWorld"></div></div>
         </div>
         <div class="sk-selbar" id="skSelbar" hidden role="toolbar" aria-label="Actions de la sélection"></div>
-        <div class="sk-modebar" role="group" aria-label="Mode">
-          <button type="button" id="skModeEdit" class="is-on" aria-pressed="true" data-tip="Cliquez un élément pour le choisir" data-kbd="V">Modifier</button>
-          <button type="button" id="skModeNav" aria-pressed="false" data-tip="Le site réagit comme en ligne (menus, liens)" data-kbd="P">Naviguer</button>
+        <div class="sk-modebar" role="toolbar" aria-label="Outils">
+          <button type="button" id="skModeEdit" class="is-on" aria-pressed="true" aria-label="Modifier" data-tip="Modifier : cliquez un élément pour le choisir" data-kbd="V"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M168,132.69,214.08,115l.33-.13A16,16,0,0,0,213,85.07L52.92,32.8A15.95,15.95,0,0,0,32.8,52.92L85.07,213a15.82,15.82,0,0,0,14.41,11l.78,0a15.84,15.84,0,0,0,14.61-9.59l.13-.33L132.69,168,184,219.31a16,16,0,0,0,22.63,0l12.68-12.68a16,16,0,0,0,0-22.63ZM195.31,208,144,156.69a16,16,0,0,0-26,4.93c0,.11-.09.22-.13.32l-17.65,46L48,48l159.85,52.2-45.95,17.64-.32.13a16,16,0,0,0-4.93,26h0L208,195.31Z"/></g></svg></button>
+          <button type="button" id="skModeHand" aria-pressed="false" aria-label="Main" data-tip="Main : glissez pour déplacer le canevas (ou maintenez Espace)" data-kbd="H"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M188,48a27.75,27.75,0,0,0-12,2.71V44a28,28,0,0,0-54.65-8.6A28,28,0,0,0,80,60v64l-3.82-6.13a28,28,0,0,0-48.6,27.82c16,33.77,28.93,57.72,43.72,72.69C86.24,233.54,103.2,240,128,240a88.1,88.1,0,0,0,88-88V76A28,28,0,0,0,188,48Zm12,104a72.08,72.08,0,0,1-72,72c-20.38,0-33.51-4.88-45.33-16.85C69.44,193.74,57.26,171,41.9,138.58a6.36,6.36,0,0,0-.3-.58,12,12,0,0,1,20.79-12,1.76,1.76,0,0,0,.14.23l18.67,30A8,8,0,0,0,96,152V60a12,12,0,0,1,24,0v60a8,8,0,0,0,16,0V44a12,12,0,0,1,24,0v76a8,8,0,0,0,16,0V76a12,12,0,0,1,24,0Z"/></g></svg></button>
+          <button type="button" id="skModeNav" aria-pressed="false" aria-label="Naviguer" data-tip="Naviguer : le site réagit comme en ligne (menus, liens)" data-kbd="P"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/></g></svg></button>
+          <span class="sk-modebar__sep" aria-hidden="true"></span>
+          <button type="button" id="skToolText" aria-label="Modifier le texte" data-tip="Texte : réécrire le texte choisi" data-kbd="T"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M208,56V88a8,8,0,0,1-16,0V64H136V192h24a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16h24V64H64V88a8,8,0,0,1-16,0V56a8,8,0,0,1,8-8H200A8,8,0,0,1,208,56Z"/></g></svg></button>
+          <button type="button" id="skToolImage" aria-label="Changer l’image" data-tip="Image : remplacer la photo choisie" data-kbd="I"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"/></g></svg></button>
+          <span class="sk-modebar__sep" aria-hidden="true"></span>
+          <button type="button" data-zoomproxy="out" aria-label="Zoom arrière" data-tip="Zoom arrière" data-kbd="−"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"/></g></svg></button>
+          <button type="button" data-zoomproxy="fit" class="sk-modebar__zoom" id="skZoom2" data-tip="Ajuster à l’écran">100 %</button>
+          <button type="button" data-zoomproxy="in" aria-label="Zoom avant" data-tip="Zoom avant" data-kbd="+"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></g></svg></button>
         </div>
       </main>
 

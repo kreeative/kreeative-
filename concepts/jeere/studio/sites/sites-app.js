@@ -768,6 +768,7 @@
     sizer.style.height = Math.ceil(wh * z) + 'px';
     world._z = z;
     $('skZoom').textContent = Math.round(z * 100) + NB + '%';
+    if ($('skZoom2')) $('skZoom2').textContent = $('skZoom').textContent;
     paintBoxes();
   }
   window.addEventListener('resize', function () { if (cur) layout(); });
@@ -2041,18 +2042,66 @@
     if (k === 'enter' && sel) { e.preventDefault(); startEdit(sel.el, sel.frame); return; }
     if (k === 'v') { setMode('edit'); return; }
     if (k === 'p') { setMode('nav'); return; }
+    if (k === 'h') { setMode('hand'); return; }
+    if (k === 't') { toolText(); return; }
+    if (k === 'i') { toolImage(); return; }
+    if (k === ' ' && mode !== 'hand' && !e.repeat) { e.preventDefault(); spaceHand = mode; setMode('hand'); return; }
   }
+  var spaceHand = null;
+  doc.addEventListener('keyup', function (e) { if (e.key === ' ' && spaceHand) { var back = spaceHand; spaceHand = null; setMode(back); } });
+  // Ctrl/⌘ + \ : fold or unfold both side panels at once (Figma's « show / hide UI »)
+  doc.addEventListener('keydown', function (e) {
+    if (!(e.ctrlKey || e.metaKey) || e.key !== '\\' || $('sk').getAttribute('data-view') !== 'edit') return;
+    e.preventDefault();
+    var skEl = $('sk'), hide = !(skEl.classList.contains('is-left-hidden') && skEl.classList.contains('is-right-hidden'));
+    skEl.classList.toggle('is-left-hidden', hide); skEl.classList.toggle('is-right-hidden', hide);
+    doc.querySelectorAll('.sk-rail__btn[data-rail]').forEach(function (b, i) { b.setAttribute('aria-pressed', String(!hide && i === 0)); });
+    if ($('skRightBtn')) $('skRightBtn').setAttribute('aria-expanded', String(!hide));
+    if (cur) layout();
+    toast(hide ? 'Panneaux masqués · Ctrl \\ pour les rouvrir' : 'Panneaux affichés', 'info');
+  });
+  // Texte / Image in the toolbar act on the selection
+  function toolText() {
+    if (!sel) { toast('Choisissez d’abord un texte sur la page.', 'info'); return; }
+    if (!isTextual(srcOf())) { toast('L’élément choisi n’est pas un texte.', 'info'); return; }
+    startEdit(sel.el, sel.frame);
+  }
+  function toolImage() {
+    var s0 = srcOf();
+    var im = sel && imgOf(sel.el);
+    if (!sel || !im) { toast('Choisissez d’abord une photo sur la page.', 'info'); return; }
+    var isrc = sel.frame.map.l2s.get(im);
+    pickImage(function (rel, abs) { setImage(isrc || s0, im, rel, abs && abs.indexOf('blob:') === 0 ? abs : rel); });
+  }
+  // the hand: drag to move around the canvas
+  (function () {
+    var sc = $('skScroll'), drag = null;
+    sc.addEventListener('pointerdown', function (e) {
+      if (mode !== 'hand' || e.button !== 0) return;
+      drag = { x: e.clientX, y: e.clientY, l: sc.scrollLeft, t: sc.scrollTop };
+      sc.setPointerCapture(e.pointerId); $('sk').classList.add('is-grabbing'); e.preventDefault();
+    });
+    sc.addEventListener('pointermove', function (e) { if (!drag) return; sc.scrollLeft = drag.l - (e.clientX - drag.x); sc.scrollTop = drag.t - (e.clientY - drag.y); });
+    function end() { drag = null; $('sk').classList.remove('is-grabbing'); }
+    sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
+  })();
   doc.addEventListener('keydown', function (e) { onKey(e, null); });
   function setMode(m) {
     mode = m;
     endEdit(false);
     $('skModeEdit').classList.toggle('is-on', m === 'edit'); $('skModeEdit').setAttribute('aria-pressed', String(m === 'edit'));
     $('skModeNav').classList.toggle('is-on', m === 'nav'); $('skModeNav').setAttribute('aria-pressed', String(m === 'nav'));
+    if ($('skModeHand')) { $('skModeHand').classList.toggle('is-on', m === 'hand'); $('skModeHand').setAttribute('aria-pressed', String(m === 'hand')); }
+    $('sk').classList.toggle('is-hand', m === 'hand');
     if (m === 'nav') { hover = null; }
     paintBoxes();
     if (m === 'nav') toast('Mode Naviguer : le site réagit comme en ligne. V pour revenir à Modifier.', 'info');
   }
   $('skModeEdit').addEventListener('click', function () { setMode('edit'); });
+  if ($('skModeHand')) $('skModeHand').addEventListener('click', function () { setMode('hand'); });
+  if ($('skToolText')) $('skToolText').addEventListener('click', toolText);
+  if ($('skToolImage')) $('skToolImage').addEventListener('click', toolImage);
+  doc.querySelectorAll('[data-zoomproxy]').forEach(function (b) { b.addEventListener('click', function () { var t = doc.querySelector('.sk-zoom [data-zoom="' + b.getAttribute('data-zoomproxy') + '"]'); if (t) t.click(); }); });
   $('skModeNav').addEventListener('click', function () { setMode('nav'); });
   $('skUndo').addEventListener('click', undo);
   $('skRedo').addEventListener('click', redo);
@@ -2108,7 +2157,8 @@
   })();
 
   $('skPagesBtn').addEventListener('click', function () { var o = $('sk').classList.toggle('is-left-open'); this.setAttribute('aria-expanded', String(o)); });
-  $('skRightBtn') && $('skRightBtn').addEventListener('click', function () { var o = $('sk').classList.toggle('is-right-open'); this.setAttribute('aria-expanded', String(o)); });
+  $('skRightBtn') && innerWidth >= 900 && $('skRightBtn').addEventListener('click', function (e) { e.stopImmediatePropagation(); var h = $('sk').classList.toggle('is-right-hidden'); this.setAttribute('aria-expanded', String(!h)); if (cur) layout(); }, true);
+  $('skRightBtn') && $('skRightBtn').addEventListener('click', function () { if (innerWidth >= 900) return; var o = $('sk').classList.toggle('is-right-open'); this.setAttribute('aria-expanded', String(o)); });
   function closeDrawers() { $('sk').classList.remove('is-left-open'); $('skPagesBtn').setAttribute('aria-expanded', 'false'); }
   $('skStage').addEventListener('pointerdown', function (e) { if (e.target === $('skScroll') || e.target === $('skSizer') || e.target === $('skWorld')) { endEdit(false); select(null); } closeDrawers(); });
 

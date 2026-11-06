@@ -561,3 +561,34 @@ html:not([data-theme="dark"]) .sk-badge--warn { color: var(--warn-ink); }
 /* a soft focus ring instead of a black frame */
 .sk-pagepick:focus-visible { outline: 2px solid rgba(0, 0, 0, 0.18); outline-offset: 2px; }
 .sk-pagepick:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- Room to breathe in the panels ---------- */
+.sk-right__head { padding: var(--sp-3) var(--sp-4) 0; }
+.sk-tabs { padding: var(--sp-3) var(--sp-4); gap: var(--sp-2); }
+.sk-sec { padding: var(--sp-5) var(--sp-4); gap: var(--sp-3); }
+.sk-sec__t { font-size: 12px; line-height: 18px; margin-bottom: 2px; }
+.sk-field { gap: 6px; }
+.sk-field > span { font-size: 12px; }
+.sk-input, .sk-select { min-height: 32px; }
+.sk-textarea { padding-top: 8px; padding-bottom: 8px; line-height: 18px; }
+.sk-panel .sk-btns { gap: var(--sp-2); }
+.sk-left__sec { padding: var(--sp-3) 0; }
+.sk-left__head { padding: 0 var(--sp-4); }
+.sk-pages { padding: 0 var(--sp-3); display: flex; flex-direction: column; gap: 2px; }
+.sk-page { padding: 6px var(--sp-2); min-height: 36px; }
+.sk-pagefind { margin: 0 var(--sp-4) var(--sp-3); height: 32px; }
+.sk-sitehead { padding: var(--sp-3) var(--sp-4) var(--sp-4); }
+.sk-tree { padding: 0 var(--sp-2); }
+.sk-row { min-height: 30px; }
+
+/* ---------- The toolbar in the middle ---------- */
+.sk-modebar { gap: 2px; padding: 6px; border-radius: 14px; align-items: center; }
+.sk-modebar button { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; }
+.sk-modebar button svg { width: 20px; height: 20px; }
+.sk-modebar button.sk-modebar__zoom { width: auto; min-width: 52px; padding: 0 var(--sp-2); font: var(--fw-medium) 12px/16px var(--font-ui); font-variant-numeric: tabular-nums; }
+.sk-modebar__sep { width: var(--hair); height: 22px; margin: 0 4px; background: var(--line-2); }
+.sk.is-hand .sk-scroll { cursor: grab; }
+.sk.is-hand.is-grabbing .sk-scroll { cursor: grabbing; }
+.sk.is-hand .sk-world { pointer-events: none; }
+.sk.is-right-hidden .sk-right { display: none; }
+@media (min-width: 900px) { .sk-rightbtn { display: inline-flex !important; } }
