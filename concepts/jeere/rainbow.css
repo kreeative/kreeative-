@@ -1,7 +1,7 @@
 /* Jeere — the rainbow: the buttons that were blue, and the logo now and then.
  * Black and white everywhere else. The colours are the logo's own (pink-red, orange, yellow, green,
  * blue, violet, magenta), all side by side across the button and blended at their edges, on a matte
- * frosted veil with a fine grain: no shine, no relief. Hover shows a little more colour. Tweak it here, once, for the whole platform:
+ * frosted veil with a fine grain: no shine, no relief. White text on it (a darker veil keeps it readable); hover shows a little more colour. Tweak it here, once, for the whole platform:
  *   --jr-tint  how much colour (0 → 1)      --jr-veil  the glass under the colour
  * The platform's primary buttons (formerly blue) wear it: .sk-primary (Mes sites), .jp-btn--primary (the
  * publish panel), .a-btn--primary (the dashboard). Anywhere else: class="… jr-rainbow" on a button; on a dark surface add jr-on-dark (or sit under
@@ -10,35 +10,53 @@
 :root {
   --jr-c1: 232, 70, 124; --jr-c2: 240, 138, 60; --jr-c3: 240, 196, 20; --jr-c4: 34, 201, 126;
   --jr-c5: 30, 155, 224; --jr-c6: 106, 76, 255; --jr-c7: 193, 60, 224;
+  /* the same colours, deeper, under white text */
+  --jr-d1: 196, 44, 96; --jr-d2: 200, 92, 24; --jr-d3: 148, 104, 0; --jr-d4: 12, 132, 76; --jr-d5: 16, 108, 176; --jr-d6: 82, 54, 216; --jr-d7: 152, 38, 186;
   --jr-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .4 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 :is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary) {
-  --jr-tint: .5; --jr-veil: rgba(255, 255, 255, .4); --jr-ink: #141414; --jr-edge: rgba(0, 0, 0, .07);
+  --jr-tint: .9; --jr-veil: rgba(22, 22, 22, .58); --jr-ink: #FFFFFF; --jr-edge: rgba(0, 0, 0, .08);
   color: var(--jr-ink) !important;
   background-color: var(--jr-veil) !important;
   background-image:
     var(--jr-grain),
-    linear-gradient(100deg, rgba(var(--jr-c1), var(--jr-tint)) 0%, rgba(var(--jr-c2), var(--jr-tint)) 17%, rgba(var(--jr-c3), var(--jr-tint)) 33%, rgba(var(--jr-c4), var(--jr-tint)) 50%, rgba(var(--jr-c5), var(--jr-tint)) 67%, rgba(var(--jr-c6), var(--jr-tint)) 83%, rgba(var(--jr-c7), var(--jr-tint)) 100%) !important;
+    linear-gradient(100deg, rgba(var(--jr-d1), var(--jr-tint)) 0%, rgba(var(--jr-d2), var(--jr-tint)) 17%, rgba(var(--jr-d3), var(--jr-tint)) 33%, rgba(var(--jr-d4), var(--jr-tint)) 50%, rgba(var(--jr-d5), var(--jr-tint)) 67%, rgba(var(--jr-d6), var(--jr-tint)) 83%, rgba(var(--jr-d7), var(--jr-tint)) 100%) !important;
   background-size: 140px 140px, 100% 100% !important;
   background-blend-mode: soft-light, normal;
   white-space: nowrap;
   -webkit-backdrop-filter: blur(16px) saturate(1.25); backdrop-filter: blur(16px) saturate(1.25);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .4), 0 0 0 1px var(--jr-edge) !important;
-  text-shadow: none !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 0 0 1px var(--jr-edge) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .35) !important;
   transition: --jr-tint .2s, filter .2s, box-shadow .2s;
 }
-:is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary):hover { --jr-tint: .7; }
-:is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary):active { --jr-tint: .78; }
+:is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary):hover { --jr-tint: 1; }
+:is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary):active { --jr-tint: 1; }
 :is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary):focus-visible { outline: 2px solid #141414; outline-offset: 2px; }
-:is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary):is([disabled], [aria-disabled="true"]) { --jr-tint: .22; opacity: .7; }
+:is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary):is([disabled], [aria-disabled="true"]) { --jr-tint: .4; opacity: .6; }
 /* on a dark surface: a darker veil, white text */
 :is(.jr-on-dark.jr-rainbow, .jr-dark .jr-rainbow, [data-theme="dark"] :is(.jr-rainbow, .sk-primary), .jp--dark .jp-btn--primary) {
-  --jr-veil: rgba(30, 30, 30, .3); --jr-ink: #FFFFFF; --jr-tint: .5; --jr-edge: rgba(255, 255, 255, .1);
+  --jr-veil: rgba(22, 22, 22, .5); --jr-ink: #FFFFFF; --jr-tint: .9; --jr-edge: rgba(255, 255, 255, .1);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14) !important;
 }
-:is(.jr-on-dark.jr-rainbow, .jr-dark .jr-rainbow, [data-theme="dark"] :is(.jr-rainbow, .sk-primary), .jp--dark .jp-btn--primary):hover { --jr-tint: .7; }
+:is(.jr-on-dark.jr-rainbow, .jr-dark .jr-rainbow, [data-theme="dark"] :is(.jr-rainbow, .sk-primary), .jp--dark .jp-btn--primary):hover { --jr-tint: 1; }
 :is(.jr-on-dark.jr-rainbow, .jr-dark .jr-rainbow, [data-theme="dark"] :is(.jr-rainbow, .sk-primary), .jp--dark .jp-btn--primary):focus-visible { outline-color: #FFFFFF; }
-@property --jr-tint { syntax: '<number>'; inherits: true; initial-value: .5; }
-@media (prefers-reduced-transparency: reduce) { :is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary) { --jr-veil: rgba(255, 255, 255, .9); } }
+@property --jr-tint { syntax: '<number>'; inherits: true; initial-value: .9; }
+@media (prefers-reduced-transparency: reduce) { :is(.jr-rainbow, .sk-primary, .jp .jp-btn--primary, .a-btn--primary) { --jr-veil: rgba(22, 22, 22, .8); } }
+/* the other way round: a white button with the text in the logo's colours (class="jr-rainbow-ink") */
+.jr-rainbow-ink {
+  background: #FFFFFF !important; color: #141414;
+  box-shadow: inset 0 0 0 1.5px transparent, 0 0 0 1px rgba(0, 0, 0, .1) !important;
+  border: 1.5px solid transparent !important;
+  background: linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(100deg, rgb(var(--jr-c1)), rgb(var(--jr-c2)), rgb(var(--jr-c3)), rgb(var(--jr-c4)), rgb(var(--jr-c5)), rgb(var(--jr-c6)), rgb(var(--jr-c7))) border-box !important;
+  white-space: nowrap;
+}
+.jr-rainbow-ink > span, .jr-rainbow-ink:not(:has(> span)) {
+  /* the words themselves in a slightly deeper rainbow, so they read on white */
+  background-image: linear-gradient(100deg, #D63A6E, #DD6A1F, #B98500, #10955A, #1479BA, #5B3EF0, #A62BC8);
+  -webkit-background-clip: text; background-clip: text; color: transparent !important;
+}
+.jr-rainbow-ink:not(:has(> span)) { background: linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(100deg, rgb(var(--jr-c1)), rgb(var(--jr-c2)), rgb(var(--jr-c3)), rgb(var(--jr-c4)), rgb(var(--jr-c5)), rgb(var(--jr-c6)), rgb(var(--jr-c7))) border-box !important; }
+.jr-rainbow-ink:hover { box-shadow: 0 0 0 1px rgba(0, 0, 0, .1), 0 4px 14px -6px rgba(106, 76, 255, .4) !important; }
+
 /* the logo in the rainbow */
 .jr-logo { fill: url(#jr-grad) !important; }
