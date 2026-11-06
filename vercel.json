@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "destination": "/concepts/jeere/:path*"
+    }
+  ]
+}
