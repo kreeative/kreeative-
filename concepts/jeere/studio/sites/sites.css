@@ -212,7 +212,9 @@ kbd { font: var(--fw-medium) 11px/16px var(--font-ui); color: var(--fg-3); backg
   transition: color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out);
 }
 .sk-page:hover { background-color: var(--bg-hover); color: var(--fg-1); transition-duration: var(--dur-instant); }
-.sk-page[aria-selected="true"] { background-color: var(--accent-soft); color: var(--fg-1); box-shadow: inset 2px 0 0 var(--accent); transition: none; }
+.sk-page[aria-selected="true"] { background-color: var(--bg-active); color: var(--fg-1); box-shadow: none; transition: none; }   /* the open page: a soft rounded fill, no bar */
+.sk-page[aria-selected="true"] .sk-page__t b { font-weight: var(--fw-semibold); }
+.sk-page[aria-selected="true"] svg { color: var(--fg-1); }
 .sk-page svg { width: 16px; height: 16px; flex: none; stroke-width: 1.25; color: var(--fg-3); }
 .sk-page__t { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 .sk-page__t b { font-weight: var(--fw-medium); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -224,7 +226,7 @@ kbd { font: var(--fw-medium) 11px/16px var(--font-ui); color: var(--fg-3); backg
   transition: color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out);
 }
 .sk-row:hover { background-color: var(--bg-hover); color: var(--fg-1); transition-duration: var(--dur-instant); }
-.sk-row[aria-selected="true"] { background-color: var(--accent-soft); color: var(--fg-1); transition: none; }
+.sk-row[aria-selected="true"] { background-color: var(--bg-active); color: var(--fg-1); transition: none; }
 .sk-row.is-hidden .sk-row__name { opacity: 0.45; text-decoration: line-through; }
 .sk-row__tw { width: var(--ctl-xs); height: var(--ctl-xs); display: inline-flex; align-items: center; justify-content: center; border: 0; background: none; padding: 0; color: var(--fg-3); cursor: pointer; flex: none; border-radius: var(--r-xs); }
 .sk-row__tw svg { width: 12px; height: 12px; transition: transform var(--dur-panel) var(--ease-out-expo); }
