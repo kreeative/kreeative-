@@ -450,3 +450,6 @@ a { color: inherit; }
 /* An e-mail link being opened */
 .c-wait { margin-bottom: 18px; }
 .c-spin--ink { display: block; width: 28px; height: 28px; border-color: rgba(17, 17, 17, .15); border-top-color: var(--ink); }
+
+/* methods that are not switched on are not shown (compte.js drawProviders) */
+.c-seg__opt[hidden], .c-methods[hidden] { display: none; }

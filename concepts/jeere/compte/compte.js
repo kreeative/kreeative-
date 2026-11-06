@@ -1,6 +1,6 @@
 /* Jeere — the seller account (../compte/): sign-up and login with a one-time code, no password.
  *
- *   #inscription  prénom + « Recevoir mon code par » e-mail (default) / SMS / WhatsApp ─► code à 6 chiffres
+ *   #inscription  prénom + « Recevoir mon code par » e-mail (default) / SMS / WhatsApp ─► code reçu (6 à 10 chiffres)
  *                 ─► nom de la boutique ─► « Comment voulez-vous commencer ? »
  *   #connexion    e-mail or number ─► code ─► ../admin/   (an address with no account: offer to create one)
  *   (no hash)     #inscription when there is no account, #connexion when it is logged out, « Bonjour Awa » when it is open
@@ -10,7 +10,7 @@
  * profile lives in public.profiles, and the account is mirrored to localStorage 'jeere-account'
  * so the editor, the dashboard, the Studio and the plans work unchanged.
  * DEMO (« Mode démo » on the screen: ?demo=1, localhost, or Supabase unreachable): nothing is sent
- * and any 6-digit code is accepted.
+ * and any code of 6 digits or more is accepted.
  *
  * 'jeere-account' = { version: 1, firstName, phone, storeName, createdAt, plan, loggedIn, email?, userId?,
  * method?, studio? }, through JEERE_DATA.normalizeAccount (a usable number or e-mail is required; phone is ''
@@ -358,7 +358,24 @@
     waitLead: $('c-wait-lead')
   };
   if (!el.formSignup || !el.formCode) return; // not this page
+  /* The code is 6 to 10 digits: Supabase's « Email OTP Length » decides (6 by default, 8 on some projects). The page
+   * follows whatever arrives: the boxes grow with the digits, a pasted code is checked at once, a typed one after a
+   * short pause once it has at least 6 digits. */
+  var CODE_MIN = 6, CODE_MAX = 10;
   var cells = el.otp ? Array.prototype.slice.call(el.otp.querySelectorAll('.c-otp__cell')) : [];
+  function layoutCells(n) {
+    var wrap = el.otp && el.otp.querySelector('.c-otp__cells');
+    if (!wrap || cells.length === n) return;
+    var half = n % 2 === 0 ? n / 2 : -1, html = '', cols = [];
+    for (var i = 0; i < n; i++) {
+      if (i === half) { html += '<span class="c-otp__sep"></span>'; cols.push('12px'); }
+      html += '<span class="c-otp__cell"></span>'; cols.push('minmax(0, 1fr)');
+    }
+    wrap.innerHTML = html;
+    wrap.style.gridTemplateColumns = cols.join(' ');
+    wrap.style.gap = n > 6 ? '5px' : '';
+    cells = Array.prototype.slice.call(wrap.querySelectorAll('.c-otp__cell'));
+  }
   var sections = Array.prototype.slice.call(doc.querySelectorAll('.c-step[data-step]'));
 
   var TITLES = {
@@ -455,8 +472,8 @@
     if (el.nomatchDemo) el.nomatchDemo.hidden = !d;
     if (el.realTxt) {
       el.realTxt.textContent = d
-        ? 'Mode démo' + NB + ': dans le vrai Jeere, vous entrez avec un code à usage unique, reçu par e-mail, par SMS ou sur WhatsApp. Pas de mot de passe.'
-        : 'Pas de mot de passe à retenir' + NB + ': vous entrez avec un code à usage unique, reçu par e-mail, par SMS ou sur WhatsApp.';
+        ? 'Mode démo' + NB + ': dans le vrai Jeere, vous entrez avec un code à usage unique, reçu ' + channelsText() + '. Pas de mot de passe.'
+        : 'Pas de mot de passe à retenir' + NB + ': vous entrez avec un code à usage unique, reçu ' + channelsText() + '.';
     }
     if (el.footTxt) {
       el.footTxt.textContent = d
@@ -467,23 +484,41 @@
     drawMethod('signup');
     drawMethod('login');
   }
-  // « bientôt »: SMS and WhatsApp shown but not offered while the phone provider is off (real mode only;
-  // the demo sends nothing, so every method works there). The e-mail is chosen instead (wave 2).
+  // A method that is not switched on is not shown at all (real mode): no « bientôt ». SMS and WhatsApp appear by
+  // themselves once a phone provider is on in Supabase (probed at load). With e-mail alone, the choice itself goes:
+  // the hint under it says the code comes by e-mail. The demo (local only) keeps every method, it sends nothing.
+  // « par e-mail », or « par e-mail, par SMS ou sur WhatsApp »: only the ways that are switched on
+  function channelsText() {
+    var on = ['par e-mail'];
+    if (demo() || providers.sms) on.push('par SMS');
+    if (demo() || providers.whatsapp) on.push('sur WhatsApp');
+    return on.length === 1 ? on[0] : on.slice(0, -1).join(', ') + ' ou ' + on[on.length - 1];
+  }
+  function drawChannelTexts() {
+    var one = !demo() && !providers.sms && !providers.whatsapp;
+    var lead = doc.getElementById('c-signup-lead');
+    if (lead) lead.innerHTML = one ? 'Votre prénom et votre adresse e-mail&nbsp;: vous recevez un code de connexion. Pas de mot de passe à retenir.'
+      : 'Votre prénom, puis où recevoir votre code de connexion. Pas de mot de passe à retenir.';
+    var cap = doc.querySelector('.c-msg__cap');
+    if (cap) cap.textContent = 'Exemple du message, ' + channelsText() + '.';
+    // with e-mail alone, the line under the (hidden) choice repeats the e-mail field's hint: hidden too
+    ['c-method-hint', 'c-l-method-hint'].forEach(function (id) { var h = doc.getElementById(id); if (h) h.hidden = one; });
+  }
   function drawProviders() {
+    drawChannelTexts();
     ['method', 'lmethod'].forEach(function (name) {
-      radios(name).forEach(function (r) {
-        if (r.value === 'email') return;
-        var off = !demo() && !providers[r.value];
+      var list = radios(name);
+      var shown = 0;
+      list.forEach(function (r) {
+        var off = r.value !== 'email' && !demo() && !providers[r.value];
         var lab = r.closest ? r.closest('label') : null;
-        var span = lab ? lab.querySelector('span') : null;
-        var tag = span ? span.querySelector('.c-soon') : null;
         r.disabled = off;
-        if (lab) lab.classList.toggle('is-soon', off);
-        if (off && span && !tag) { tag = doc.createElement('small'); tag.className = 'c-soon'; tag.textContent = 'bientôt'; span.appendChild(tag); }
-        if (!off && tag) tag.parentNode.removeChild(tag);
-        if (lab) { if (off) lab.setAttribute('title', (r.value === 'whatsapp' ? 'WhatsApp' : 'SMS') + NB + ': bientôt sur Jeere. Recevez votre code par e-mail pour l’instant.'); else lab.removeAttribute('title'); }
-        if (off && r.checked) { r.checked = false; radios(name).forEach(function (x) { if (x.value === 'email') x.checked = true; }); }
+        if (lab) lab.hidden = off;
+        if (off && r.checked) { r.checked = false; list.forEach(function (x) { if (x.value === 'email') x.checked = true; }); }
+        if (!off) shown++;
       });
+      var fs = list[0] && list[0].closest ? list[0].closest('fieldset') : null;
+      if (fs) fs.hidden = shown < 2;   // e-mail alone: no choice to make
     });
   }
 
@@ -499,8 +534,8 @@
     drawMethod(scope);
   }
   var HINTS = {
-    email: 'Un code à 6' + NB + 'chiffres, gratuit, dans votre boîte e-mail.',
-    sms: 'Un code à 6' + NB + 'chiffres par SMS, même sans Internet.',
+    email: 'Un code gratuit, dans votre boîte e-mail.',
+    sms: 'Un code par SMS, même sans Internet.',
     whatsapp: 'Si vous utilisez déjà WhatsApp sur ce numéro. L’e-mail reste le plus simple.'
   };
   function offText(m) {
@@ -941,9 +976,9 @@
   SETUP.code = function () {
     var isMail = flow.method === 'email';
     el.codeBackT.textContent = isMail ? 'Changer d’adresse' : 'Changer de numéro';
-    // « Nous avons envoyé un code à 6 chiffres par e-mail à awa@gmail.com. »
+    // « Nous avons envoyé un code par e-mail à awa@gmail.com. »
     el.codeLead.innerHTML = '';
-    el.codeLead.appendChild(doc.createTextNode((flow.real ? 'Nous avons envoyé un code à 6' + NB + 'chiffres ' : 'Dans le vrai Jeere, le code à 6' + NB + 'chiffres part ') + channelWords(flow.method) + ' ' + (isMail ? 'à ' : 'au ')));
+    el.codeLead.appendChild(doc.createTextNode((flow.real ? 'Nous avons envoyé un code ' : 'Dans le vrai Jeere, le code part ') + channelWords(flow.method) + ' ' + (isMail ? 'à ' : 'au ')));
     var b = doc.createElement('strong');
     b.className = 'c-nowrap';
     b.id = 'c-code-num';
@@ -970,6 +1005,7 @@
 
   function drawCells() {
     var v = el.code.value;
+    layoutCells(Math.max(CODE_MIN, Math.min(CODE_MAX, v.length)));
     cells.forEach(function (c, i) {
       c.textContent = v.charAt(i);
       c.classList.toggle('is-filled', i < v.length);
@@ -980,15 +1016,18 @@
   function caretEnd() {
     try { var n = el.code.value.length; el.code.setSelectionRange(n, n); } catch (e) { /* ignore */ }
   }
+  var pasted = false;
   function onCodeInput() {
-    var v = el.code.value.replace(/\D/g, '').slice(0, 6);
+    var v = el.code.value.replace(/\D/g, '').slice(0, CODE_MAX);
     if (v !== el.code.value) el.code.value = v;
     caretEnd();
     el.otp.classList.remove('is-bad');
     clearError(el.code, 'c-code-err');
     drawCells();
     clearTimeout(autoT);
-    if (v.length === 6) autoT = setTimeout(verify, 220);
+    // pasted (or autofilled whole): at once; typed: a pause, the code may have more than 6 digits
+    if (v.length >= CODE_MIN) autoT = setTimeout(verify, pasted ? 220 : 1100);
+    pasted = false;
   }
   function onCodePaste(e) {
     var text = '';
@@ -996,10 +1035,11 @@
     var d = String(text || '').replace(/\D/g, '');
     e.preventDefault();
     if (verifying) return;
-    if (!d) { codeError('Ce texte ne contient pas de code. Collez les 6' + NB + 'chiffres reçus.'); return; }
-    el.code.value = d.slice(0, 6);
+    if (!d) { codeError('Ce texte ne contient pas de code. Collez les chiffres reçus.'); return; }
+    el.code.value = d.slice(0, CODE_MAX);
+    pasted = d.length >= CODE_MIN;
     onCodeInput();
-    if (d.length < 6) announce('Code collé' + NB + ': il manque ' + (6 - d.length) + ' chiffre' + (6 - d.length > 1 ? 's' : '') + '.');
+    if (d.length < CODE_MIN) announce('Code collé' + NB + ': il manque des chiffres.');
   }
   function codeError(msg) {
     el.otp.classList.add('is-bad');
@@ -1016,9 +1056,8 @@
     if (verifying) return;
     clearTimeout(autoT);
     var v = el.code.value.replace(/\D/g, '');
-    if (v.length !== 6) {
-      var miss = 6 - v.length;
-      codeError(v.length ? 'Il manque ' + miss + ' chiffre' + (miss > 1 ? 's' : '') + '. Tapez les 6' + NB + 'chiffres du code.' : 'Tapez les 6' + NB + 'chiffres du code.');
+    if (v.length < CODE_MIN) {
+      codeError(v.length ? 'Le code est incomplet. Tapez tous les chiffres reçus.' : 'Tapez le code reçu.');
       return;
     }
     verifying = true;
@@ -1121,7 +1160,7 @@
       startTimer();
       announce(flow.real
         ? 'Nouveau code envoyé ' + channelWords(flow.method) + '.'
-        : 'Nouveau code demandé. Mode démo' + NB + ': rien n’est envoyé, tapez n’importe quel code à 6' + NB + 'chiffres.');
+        : 'Nouveau code demandé. Mode démo' + NB + ': rien n’est envoyé, tapez n’importe quel code de 6' + NB + 'chiffres ou plus.');
       if (refocus) { try { el.code.focus(); } catch (e) { /* ignore */ } }
     });
   }

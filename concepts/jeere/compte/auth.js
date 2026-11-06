@@ -9,7 +9,7 @@
  * Modes
  *   real   the code goes out for real: e-mail (Supabase's mailer), SMS or WhatsApp (when an SMS
  *          provider is configured in the Supabase dashboard). The account lives in public.profiles.
- *   demo   nothing leaves the browser, any 6-digit code works (« Mode démo » on the screen).
+ *   demo   nothing leaves the browser, any code of 6+ digits works (« Mode démo » on the screen).
  *          Forced with ?demo=1; the default on localhost / 127.0.0.1 / file: (tests, offline work;
  *          add ?demo=0 to use Supabase locally); and the fallback when Supabase cannot be reached.
  *
@@ -202,7 +202,7 @@
       return { kind: 'rate', text: 'Trop de demandes. Patientez une minute avant de redemander un code.' };
     }
     if (code === 'otp_expired' || /token has expired|invalid.*(token|otp)|otp.*(invalid|expired)/i.test(msg) || (status === 403 && /token|otp/i.test(msg))) {
-      return { kind: 'code', text: 'Ce code est incorrect ou a expiré. Vérifiez les 6' + NB + 'chiffres, ou demandez un nouveau code.' };
+      return { kind: 'code', text: 'Ce code est incorrect ou a expiré. Vérifiez les chiffres, ou demandez un nouveau code.' };
     }
     if (code === 'otp_disabled' || /signups not allowed for otp|user not found/i.test(msg)) {
       return { kind: 'nouser', text: 'Aucun compte Jeere avec cette adresse.' };
