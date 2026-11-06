@@ -214,7 +214,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transform: translateX(-50%) scale(var(--s, .5)); transform-origin: top center;
   box-shadow: 0 30px 60px -20px rgba(17, 17, 17, .4);
 }
-.a-mini__screen { width: 390px; height: 820px; overflow: hidden; border-radius: 38px; background: var(--white); pointer-events: none; }
+.a-mini__screen { width: 390px; height: 820px; overflow: hidden; border-radius: 38px; background: var(--white); pointer-events: none;
+  clip-path: inset(0 round 38px); isolation: isolate; contain: paint; } /* the store never spills past the screen of the phone, not even its sticky bars */
 .a-mini--gate { top: 36px; --s: .62; }
 
 /* ============================================================ APP SHELL */

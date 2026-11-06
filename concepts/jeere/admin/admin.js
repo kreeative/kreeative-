@@ -1134,7 +1134,10 @@
     const screen = $('.a-mini__screen', stage);
     const R = window.JeereRender;
     if (!frame || !screen || !R || !cfg) return;
-    try { R.render(cfg, screen, { device: 'phone', page: o.page || 'home', pageId: o.pageId, productId: o.productId }); } catch (e) { return; }
+    // draw into a box of its own: the renderer renames the element it draws into, the screen keeps its frame
+    let host = screen.firstElementChild;
+    if (!host) { host = document.createElement('div'); screen.appendChild(host); }
+    try { R.render(cfg, host, { device: 'phone', page: o.page || 'home', pageId: o.pageId, productId: o.productId }); } catch (e) { return; }
     const fit = () => {
       const w = stage.clientWidth || 300;
       const s = Math.max(0.3, Math.min(o.max || 0.62, (w - 24) / 406));
@@ -3919,7 +3922,11 @@
     if (mini && window.matchMedia && window.matchMedia('(min-width: 900px)').matches) {
       const stage = $('#a-gate .a-gate__visual');
       const screen = $('#a-gate-mini .a-mini__screen');
-      try { if (screen && window.JeereRender) window.JeereRender.render(mini, screen, { device: 'phone', page: 'home' }); } catch (e) { /* the visual is a bonus */ }
+      // the renderer takes over the element it draws into (its class becomes « jst »): it gets its own box,
+      // so the screen keeps its size and its rounded corners and the store stays inside the phone
+      let host = screen && screen.firstElementChild;
+      if (screen && !host) { host = document.createElement('div'); screen.appendChild(host); }
+      try { if (host && window.JeereRender) window.JeereRender.render(mini, host, { device: 'phone', page: 'home' }); } catch (e) { /* the visual is a bonus */ }
       if (stage) stage.setAttribute('inert', '');
     }
   }
