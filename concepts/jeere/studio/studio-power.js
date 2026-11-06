@@ -1492,6 +1492,8 @@
       add('view:chrome', 'Affichage', 'Masquer / afficher les panneaux', 'Ctrl \\', function () { S.toggleChrome(); });
       add('view:help', 'Aide', 'Raccourcis clavier (aide)', '?', function () { S.toggleHelp(); });
       add('view:simple', 'Aide', 'Ouvrir l’éditeur simple (même fiche)', 'Ctrl Alt P', function () { if (S.goSimple) S.goSimple(); else window.location.href = '../creer/#editeur'; });
+      // commands of optional extensions (sites/entry.js: « Mes sites », for the founder only)
+      (window.JeereStudioExtraCommands || []).forEach(function (f) { try { f(add); } catch (e) { /* the extension */ } });
       return cmds;
     }
 

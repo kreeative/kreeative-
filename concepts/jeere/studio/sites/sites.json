@@ -1,0 +1,1074 @@
+{
+ "version": 1,
+ "generated": "2026-11-06T08:16:02.806Z",
+ "repo": "kreeative/kreeative-",
+ "defaultBranch": "claude/kreeative-portfolio-design-n2a770",
+ "defaultHead": "2fdd50f98aa221698eb44d3587190da6330296d0",
+ "branches": [
+  "claude/add-tabouret-site",
+  "claude/aissa-kee-personal-brand-rgrggx",
+  "claude/kreeative-portfolio-design-n2a770",
+  "claude/session-setup-kcwzk4"
+ ],
+ "sites": [
+  {
+   "id": "kreeative",
+   "title": "kreeative.xyz",
+   "kind": "kreeative",
+   "kindLabel": "kreeative.xyz",
+   "path": "",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/kreeative.webp",
+   "updated": {
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "index.html",
+    "404.html",
+    "about/",
+    "access/",
+    "pricing/",
+    "shop/",
+    "signature/",
+    "teach/",
+    "the-kreeative-designer-newsletter/",
+    "assets/img/studio/"
+   ],
+   "uploads": "assets/img/studio/",
+   "pages": [
+    {
+     "path": "404.html",
+     "title": "Page not found — Kreeative",
+     "url": "404.html",
+     "sha": "cd5e320adb9494cc535cd27dbf3ea029717d71ab",
+     "size": 3436,
+     "local": true
+    },
+    {
+     "path": "index.html",
+     "title": "Kreeative | Web & Graphic Design Studio",
+     "url": "",
+     "sha": "06ef84994ae1853fe600931c8b53aecb33c3aa3a",
+     "size": 39058,
+     "local": true
+    },
+    {
+     "path": "about/index.html",
+     "title": "About Anne-Kelly Kouyaté — Designer. Builder. Lifelong learner. | Kreeative",
+     "url": "about/",
+     "sha": "c1179c429b140f0016c5142c9bf4c56406360033",
+     "size": 16139,
+     "local": true
+    },
+    {
+     "path": "pricing/index.html",
+     "title": "Pricing — Kreeative",
+     "url": "pricing/",
+     "sha": "180a5c3dc788e92252a168c619646e203d531acc",
+     "size": 16621,
+     "local": true
+    },
+    {
+     "path": "shop/index.html",
+     "title": "Shop — Kreeative",
+     "url": "shop/",
+     "sha": "5d012643c0de0701b2990553d674507d5d368ad1",
+     "size": 31559,
+     "local": true
+    },
+    {
+     "path": "signature/index.html",
+     "title": "Email signature · Kreeative",
+     "url": "signature/",
+     "sha": "b2591f1e732456973ad72553dbcbd93b42857e20",
+     "size": 5376,
+     "local": true
+    },
+    {
+     "path": "teach/index.html",
+     "title": "Kreeator Academy — UGC Creator Formation",
+     "url": "teach/",
+     "sha": "179f7b7713af3b10a3ab0f0778ed8b37b999f255",
+     "size": 17010,
+     "local": true
+    },
+    {
+     "path": "the-kreeative-designer-newsletter/index.html",
+     "title": "The Kreeative Designer Newsletter",
+     "url": "the-kreeative-designer-newsletter/",
+     "sha": "52e62b2bdc66462d2906077a8f22b0925ba43b26",
+     "size": 4066,
+     "local": true
+    },
+    {
+     "path": "access/brown-7d3bab3b6852/index.html",
+     "title": "Your Minimal Brown media kit — Kreeative",
+     "url": "access/brown-7d3bab3b6852/",
+     "sha": "a3149b79e6321798592660667f417028b2c47aef",
+     "size": 4205,
+     "local": true
+    },
+    {
+     "path": "access/burgundy-5e9f5a180fe3/index.html",
+     "title": "Your Burgundy Editorial media kit — Kreeative",
+     "url": "access/burgundy-5e9f5a180fe3/",
+     "sha": "f061919b1324cce2b9f44443ddde0e0bcaceb0ff",
+     "size": 4229,
+     "local": true
+    },
+    {
+     "path": "access/cocoa-2d55a368f39f/index.html",
+     "title": "Your Soft Blue & Cocoa media kit — Kreeative",
+     "url": "access/cocoa-2d55a368f39f/",
+     "sha": "abc2fc32fb9f6b5ec1d023f981d7a25dbb417041",
+     "size": 4217,
+     "local": true
+    },
+    {
+     "path": "access/pink-e98b32be6047/index.html",
+     "title": "Your Pink Scrapbook media kit — Kreeative",
+     "url": "access/pink-e98b32be6047/",
+     "sha": "11edc60bd5b131412505fe65f6e0f235bdc1e02e",
+     "size": 4205,
+     "local": true
+    },
+    {
+     "path": "access/retro-60d7c32827e2/index.html",
+     "title": "Your Retro 70s media kit — Kreeative",
+     "url": "access/retro-60d7c32827e2/",
+     "sha": "07f762cd5a44d46b8d34754dc6c324a2a34c60ab",
+     "size": 4193,
+     "local": true
+    },
+    {
+     "path": "access/stationery-362c40ac15f4/index.html",
+     "title": "Your Blue Stationery media kit — Kreeative",
+     "url": "access/stationery-362c40ac15f4/",
+     "sha": "8f440cee1e7e43f5c1a6da5695dbaf68036b4906",
+     "size": 4226,
+     "local": true
+    },
+    {
+     "path": "pricing/flyers/index.html",
+     "title": "Flyer pricing — Kreeative",
+     "url": "pricing/flyers/",
+     "sha": "261016540fa706e14f44582bb8480ccbc0a63cb2",
+     "size": 16130,
+     "local": true
+    },
+    {
+     "path": "pricing/video-editing/index.html",
+     "title": "Video editing pricing — Kreeative",
+     "url": "pricing/video-editing/",
+     "sha": "ea6a7bd7b5784e7f8d3ac2e398779ec80b6ec102",
+     "size": 16296,
+     "local": true
+    },
+    {
+     "path": "pricing/websites/index.html",
+     "title": "Website pricing — Kreeative",
+     "url": "pricing/websites/",
+     "sha": "81c59580c6c5069dd87997b4e6f80fbb1da34fd1",
+     "size": 38975,
+     "local": true
+    },
+    {
+     "path": "teach/certificate/index.html",
+     "title": "Certificate — Kreeator Academy",
+     "url": "teach/certificate/",
+     "sha": "c7a167a4f884ec0d8512d6a65dde79ecc9a95193",
+     "size": 5992,
+     "local": true
+    },
+    {
+     "path": "teach/learn/index.html",
+     "title": "My course — Kreeator Academy",
+     "url": "teach/learn/",
+     "sha": "214881e1e8127c7a657e6d972311deaad8be3ad8",
+     "size": 11012,
+     "local": true
+    },
+    {
+     "path": "teach/login/index.html",
+     "title": "Log in — Kreeator Academy",
+     "url": "teach/login/",
+     "sha": "cefda95fabe5e9b63cb8ef24510eabfc7db61074",
+     "size": 5239,
+     "local": true
+    },
+    {
+     "path": "teach/reset/index.html",
+     "title": "Reset password — Kreeator Academy",
+     "url": "teach/reset/",
+     "sha": "c31fbbf73a56a71c2838ea8e051bdec0d9491924",
+     "size": 6050,
+     "local": true
+    },
+    {
+     "path": "teach/signup/index.html",
+     "title": "Create your account — Kreeator Academy",
+     "url": "teach/signup/",
+     "sha": "cdb2ccf914a6bb44a50abb94405197f4665c3a95",
+     "size": 7467,
+     "local": true
+    },
+    {
+     "path": "teach/welcome/index.html",
+     "title": "Welcome — Kreeator Academy",
+     "url": "teach/welcome/",
+     "sha": "074d0901949e2550e761b565e47a6837105d4363",
+     "size": 5432,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--cameleon",
+   "title": "Caméléon",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/cameleon",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/websites/cameleon/",
+   "externalUrl": "https://cameleon-concept.vercel.app/",
+   "thumbnail": "thumbs/websites--cameleon.webp",
+   "updated": {
+    "date": "2026-09-27T20:58:30+00:00",
+    "commit": "95593ed",
+    "subject": "Show Burgundy About Me page on carousel hook image"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "websites/cameleon/"
+   ],
+   "uploads": "websites/cameleon/img/",
+   "pages": [
+    {
+     "path": "websites/cameleon/index.html",
+     "title": "Caméléon — Kreeative",
+     "url": "",
+     "sha": "5fa467225a5f7b2ec1be8bf077d6eacb076e0186",
+     "size": 13481,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--guillemot",
+   "title": "Guillemot",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/guillemot",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/websites/guillemot/",
+   "externalUrl": "https://guillemot.vercel.app/",
+   "thumbnail": "thumbs/websites--guillemot.webp",
+   "updated": {
+    "date": "2026-09-28T14:24:17+00:00",
+    "commit": "7183589",
+    "subject": "Add Guillemot to the websites"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "websites/guillemot/"
+   ],
+   "uploads": "websites/guillemot/img/",
+   "pages": [
+    {
+     "path": "websites/guillemot/index.html",
+     "title": "Guillemot — Kreeative",
+     "url": "",
+     "sha": "60959dde505e21ae776604ad63aaa96495e04ef9",
+     "size": 13880,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--jessicas-secrets",
+   "title": "Jessica’s Secrets",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/jessicas-secrets",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/websites/jessicas-secrets/",
+   "externalUrl": "https://kreeative.xyz/concepts/jessicas-secrets/",
+   "thumbnail": "thumbs/websites--jessicas-secrets.webp",
+   "updated": {
+    "date": "2026-09-29T02:29:09+00:00",
+    "commit": "a16be4f",
+    "subject": "Add Jessica’s Secrets to the websites"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "websites/jessicas-secrets/"
+   ],
+   "uploads": "websites/jessicas-secrets/img/",
+   "pages": [
+    {
+     "path": "websites/jessicas-secrets/index.html",
+     "title": "Jessica’s Secrets — Kreeative",
+     "url": "",
+     "sha": "4c1021699b358b53bd74531d9e87b08253b280e4",
+     "size": 14618,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--keewal-meere",
+   "title": "Keewal Meere",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/keewal-meere",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/websites/keewal-meere/",
+   "externalUrl": "https://keewaomeere.vercel.app/",
+   "thumbnail": "thumbs/websites--keewal-meere.webp",
+   "updated": {
+    "date": "2026-09-27T20:58:30+00:00",
+    "commit": "95593ed",
+    "subject": "Show Burgundy About Me page on carousel hook image"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "websites/keewal-meere/"
+   ],
+   "uploads": "websites/keewal-meere/img/",
+   "pages": [
+    {
+     "path": "websites/keewal-meere/index.html",
+     "title": "Keewal Meere — Kreeative",
+     "url": "",
+     "sha": "0acfd0731572c758dfb3625d498b2b862e439723",
+     "size": 13299,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--rich-and-friends",
+   "title": "Rich & Friends",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/rich-and-friends",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/websites/rich-and-friends/",
+   "externalUrl": "https://richandfriends.xyz/",
+   "thumbnail": "thumbs/websites--rich-and-friends.webp",
+   "updated": {
+    "date": "2026-09-27T20:58:30+00:00",
+    "commit": "95593ed",
+    "subject": "Show Burgundy About Me page on carousel hook image"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "websites/rich-and-friends/"
+   ],
+   "uploads": "websites/rich-and-friends/img/",
+   "pages": [
+    {
+     "path": "websites/rich-and-friends/index.html",
+     "title": "Rich & Friends — Kreeative",
+     "url": "",
+     "sha": "7f4ebd1d154bea929907184a1413360a04d5fdbd",
+     "size": 13481,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--tabouret",
+   "title": "Tabouret",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/tabouret",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/websites/tabouret/",
+   "externalUrl": "https://tabouret.vercel.app/",
+   "thumbnail": "thumbs/websites--tabouret.webp",
+   "updated": {
+    "date": "2026-09-27T20:58:30+00:00",
+    "commit": "95593ed",
+    "subject": "Show Burgundy About Me page on carousel hook image"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "websites/tabouret/"
+   ],
+   "uploads": "websites/tabouret/img/",
+   "pages": [
+    {
+     "path": "websites/tabouret/index.html",
+     "title": "Tabouret — Kreeative",
+     "url": "",
+     "sha": "768c0a06d81872425b746af1aebeb27324a35e95",
+     "size": 13540,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--the-bakery",
+   "title": "The Bakery",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/the-bakery",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/websites/the-bakery/",
+   "externalUrl": "https://the-bakery-concept.vercel.app/",
+   "thumbnail": "thumbs/websites--the-bakery.webp",
+   "updated": {
+    "date": "2026-10-04T16:52:09+00:00",
+    "commit": "c84b16d",
+    "subject": "Show The Bakery without the sticker on its hero"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "websites/the-bakery/"
+   ],
+   "uploads": "websites/the-bakery/img/",
+   "pages": [
+    {
+     "path": "websites/the-bakery/index.html",
+     "title": "The Bakery — Kreeative",
+     "url": "",
+     "sha": "80162eb650d68778be373915fb646361226ea56d",
+     "size": 14484,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "concepts--jessicas-secrets",
+   "title": "Jessica’s Secrets",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "path": "concepts/jessicas-secrets",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/jessicas-secrets/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--jessicas-secrets.webp",
+   "updated": {
+    "date": "2026-09-29T02:29:09+00:00",
+    "commit": "a16be4f",
+    "subject": "Add Jessica’s Secrets to the websites"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "concepts/jessicas-secrets/"
+   ],
+   "uploads": "concepts/jessicas-secrets/img/",
+   "pages": [
+    {
+     "path": "concepts/jessicas-secrets/index.html",
+     "title": "Jessica’s Secrets",
+     "url": "",
+     "sha": "d3579a242dc543b125dd36791e45a3082eaec809",
+     "size": 34326,
+     "local": true
+    }
+   ],
+   "images": [
+    "concepts/jessicas-secrets/favicon.svg",
+    "concepts/jessicas-secrets/img/og.jpg",
+    "concepts/jessicas-secrets/img/photos/about-set-480.webp",
+    "concepts/jessicas-secrets/img/photos/about-set-960.webp",
+    "concepts/jessicas-secrets/img/photos/blog-mannequin-480.webp",
+    "concepts/jessicas-secrets/img/photos/blog-mannequin-960.webp",
+    "concepts/jessicas-secrets/img/photos/camille-480.webp",
+    "concepts/jessicas-secrets/img/photos/camille-960.webp",
+    "concepts/jessicas-secrets/img/photos/cat-bodys-wide-1040.webp",
+    "concepts/jessicas-secrets/img/photos/cat-bodys-wide-720.webp",
+    "concepts/jessicas-secrets/img/photos/cat-bras-tall-400.webp",
+    "concepts/jessicas-secrets/img/photos/cat-bras-tall-624.webp",
+    "concepts/jessicas-secrets/img/photos/cat-briefs-satin-480.webp",
+    "concepts/jessicas-secrets/img/photos/cat-briefs-satin-600.webp",
+    "concepts/jessicas-secrets/img/photos/cat-lounge-knit-420.webp",
+    "concepts/jessicas-secrets/img/photos/cat-lounge-knit-840.webp",
+    "concepts/jessicas-secrets/img/photos/cat-swim-480.webp",
+    "concepts/jessicas-secrets/img/photos/cat-swim-960.webp",
+    "concepts/jessicas-secrets/img/photos/clara-498.webp",
+    "concepts/jessicas-secrets/img/photos/colette-480.webp",
+    "concepts/jessicas-secrets/img/photos/colette-960.webp",
+    "concepts/jessicas-secrets/img/photos/gisele-300.webp",
+    "concepts/jessicas-secrets/img/photos/hero-tall-1200.webp",
+    "concepts/jessicas-secrets/img/photos/hero-tall-600.webp",
+    "concepts/jessicas-secrets/img/photos/hero-tall-900.webp",
+    "concepts/jessicas-secrets/img/photos/hero-wide-1200.webp",
+    "concepts/jessicas-secrets/img/photos/hero-wide-1800.webp",
+    "concepts/jessicas-secrets/img/photos/hero-wide-2400.webp",
+    "concepts/jessicas-secrets/img/photos/ines-480.webp",
+    "concepts/jessicas-secrets/img/photos/ines-960.webp",
+    "concepts/jessicas-secrets/img/photos/lea-480.webp",
+    "concepts/jessicas-secrets/img/photos/lea-960.webp",
+    "concepts/jessicas-secrets/img/photos/margaux-480.webp",
+    "concepts/jessicas-secrets/img/photos/margaux-960.webp",
+    "concepts/jessicas-secrets/img/photos/nina-480.webp",
+    "concepts/jessicas-secrets/img/photos/nina-712.webp",
+    "concepts/jessicas-secrets/img/photos/odette-480.webp",
+    "concepts/jessicas-secrets/img/photos/odette-555.webp",
+    "concepts/jessicas-secrets/img/photos/review-lace-600.webp",
+    "concepts/jessicas-secrets/img/photos/rosalie-480.webp",
+    "concepts/jessicas-secrets/img/photos/rosalie-960.webp"
+   ]
+  },
+  {
+   "id": "concepts--joshua-cooker",
+   "title": "Joshua Cooker · Concept de site par Kreeative",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "path": "concepts/joshua-cooker",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/joshua-cooker/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--joshua-cooker.webp",
+   "updated": {
+    "date": "2026-10-16T04:36:19+00:00",
+    "commit": "238cf58",
+    "subject": "Add private Nanawax proposal page and email preview images"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "concepts/joshua-cooker/"
+   ],
+   "uploads": "concepts/joshua-cooker/img/",
+   "pages": [
+    {
+     "path": "concepts/joshua-cooker/index.html",
+     "title": "Joshua Cooker · Concept de site par Kreeative",
+     "url": "",
+     "sha": "c0d0c1dad78796950823e9248dcd841a248fc3d3",
+     "size": 26878,
+     "local": true
+    }
+   ],
+   "images": [
+    "concepts/joshua-cooker/img/collab1-crop.webp",
+    "concepts/joshua-cooker/img/collab2-crop.webp",
+    "concepts/joshua-cooker/img/collab3-crop.webp",
+    "concepts/joshua-cooker/img/collab4-crop.webp",
+    "concepts/joshua-cooker/img/email-apercu.jpg",
+    "concepts/joshua-cooker/img/josh2.webp",
+    "concepts/joshua-cooker/img/leaf-cream.webp",
+    "concepts/joshua-cooker/img/leaf-green.webp",
+    "concepts/joshua-cooker/img/lieu1-crop.webp",
+    "concepts/joshua-cooker/img/lieu3-crop.webp",
+    "concepts/joshua-cooker/img/lieu5-crop.webp",
+    "concepts/joshua-cooker/img/logo-cream.webp",
+    "concepts/joshua-cooker/img/logo-green.webp",
+    "concepts/joshua-cooker/img/pagne-light.webp",
+    "concepts/joshua-cooker/img/pagne.webp",
+    "concepts/joshua-cooker/img/plat3-crop.webp",
+    "concepts/joshua-cooker/img/plat4-crop.webp",
+    "concepts/joshua-cooker/img/plate6b.webp",
+    "concepts/joshua-cooker/img/plateA.webp"
+   ]
+  },
+  {
+   "id": "concepts--nanawax",
+   "title": "Nanawax · Proposition de site",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "path": "concepts/nanawax",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/nanawax/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--nanawax.webp",
+   "updated": {
+    "date": "2026-10-16T04:36:19+00:00",
+    "commit": "238cf58",
+    "subject": "Add private Nanawax proposal page and email preview images"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "concepts/nanawax/"
+   ],
+   "uploads": "concepts/nanawax/img/",
+   "pages": [
+    {
+     "path": "concepts/nanawax/index.html",
+     "title": "Nanawax · Proposition de site",
+     "url": "",
+     "sha": "3dcf78cf0c9a61b913ae27285e4f95323d5afbe3",
+     "size": 9250,
+     "local": true
+    }
+   ],
+   "images": [
+    "concepts/nanawax/img/audit-1-1080.webp",
+    "concepts/nanawax/img/audit-1-540.webp",
+    "concepts/nanawax/img/audit-2-1080.webp",
+    "concepts/nanawax/img/audit-2-540.webp",
+    "concepts/nanawax/img/audit-3-1080.webp",
+    "concepts/nanawax/img/audit-3-540.webp",
+    "concepts/nanawax/img/audit-4-1080.webp",
+    "concepts/nanawax/img/audit-4-540.webp",
+    "concepts/nanawax/img/audit-5-1080.webp",
+    "concepts/nanawax/img/audit-5-540.webp",
+    "concepts/nanawax/img/audit-6-1080.webp",
+    "concepts/nanawax/img/audit-6-540.webp",
+    "concepts/nanawax/img/email-apercu.jpg",
+    "concepts/nanawax/img/maquette-1-1600.webp",
+    "concepts/nanawax/img/maquette-1-800.webp",
+    "concepts/nanawax/img/maquette-2-1600.webp",
+    "concepts/nanawax/img/maquette-2-800.webp",
+    "concepts/nanawax/img/maquette-3-1600.webp",
+    "concepts/nanawax/img/maquette-3-800.webp",
+    "concepts/nanawax/img/maquette-4-1600.webp",
+    "concepts/nanawax/img/maquette-4-800.webp",
+    "concepts/nanawax/img/maquette-5-1600.webp",
+    "concepts/nanawax/img/maquette-5-800.webp",
+    "concepts/nanawax/img/og.jpg"
+   ]
+  },
+  {
+   "id": "concepts--ririfood",
+   "title": "Riri Food · Mini-audit",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "path": "concepts/ririfood",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/ririfood/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--ririfood.webp",
+   "updated": {
+    "date": "2026-10-16T11:53:35+00:00",
+    "commit": "95b4ee7",
+    "subject": "Add private mini-audit pages for SAO and Riri Food"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "concepts/ririfood/"
+   ],
+   "uploads": "concepts/ririfood/img/",
+   "pages": [
+    {
+     "path": "concepts/ririfood/index.html",
+     "title": "Riri Food · Mini-audit",
+     "url": "",
+     "sha": "3762d1648c834a94fd40d0bdd0f296a41a913732",
+     "size": 6041,
+     "local": true
+    }
+   ],
+   "images": [
+    "concepts/ririfood/img/audit-1-1080.webp",
+    "concepts/ririfood/img/audit-1-540.webp",
+    "concepts/ririfood/img/audit-2-1080.webp",
+    "concepts/ririfood/img/audit-2-540.webp",
+    "concepts/ririfood/img/audit-3-1080.webp",
+    "concepts/ririfood/img/audit-3-540.webp",
+    "concepts/ririfood/img/audit-4-1080.webp",
+    "concepts/ririfood/img/audit-4-540.webp",
+    "concepts/ririfood/img/audit-5-1080.webp",
+    "concepts/ririfood/img/audit-5-540.webp",
+    "concepts/ririfood/img/audit-6-1080.webp",
+    "concepts/ririfood/img/audit-6-540.webp",
+    "concepts/ririfood/img/email-apercu.jpg",
+    "concepts/ririfood/img/og.jpg"
+   ]
+  },
+  {
+   "id": "concepts--sao",
+   "title": "S'embellir avec Orly · Mini-audit",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "path": "concepts/sao",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/sao/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--sao.webp",
+   "updated": {
+    "date": "2026-10-16T11:53:35+00:00",
+    "commit": "95b4ee7",
+    "subject": "Add private mini-audit pages for SAO and Riri Food"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "concepts/sao/"
+   ],
+   "uploads": "concepts/sao/img/",
+   "pages": [
+    {
+     "path": "concepts/sao/index.html",
+     "title": "S'embellir avec Orly · Mini-audit",
+     "url": "",
+     "sha": "dee63196e0681a5c2d75889f31e2ad1eb636f92c",
+     "size": 6104,
+     "local": true
+    }
+   ],
+   "images": [
+    "concepts/sao/img/audit-1-1080.webp",
+    "concepts/sao/img/audit-1-540.webp",
+    "concepts/sao/img/audit-2-1080.webp",
+    "concepts/sao/img/audit-2-540.webp",
+    "concepts/sao/img/audit-3-1080.webp",
+    "concepts/sao/img/audit-3-540.webp",
+    "concepts/sao/img/audit-4-1080.webp",
+    "concepts/sao/img/audit-4-540.webp",
+    "concepts/sao/img/audit-5-1080.webp",
+    "concepts/sao/img/audit-5-540.webp",
+    "concepts/sao/img/audit-6-1080.webp",
+    "concepts/sao/img/audit-6-540.webp",
+    "concepts/sao/img/email-apercu.jpg",
+    "concepts/sao/img/og.jpg"
+   ]
+  },
+  {
+   "id": "concepts--sonia-luxury-hair",
+   "title": "Sonia Luxury Hair",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "path": "concepts/sonia-luxury-hair",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/sonia-luxury-hair/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--sonia-luxury-hair.webp",
+   "updated": {
+    "date": "2026-10-16T04:36:19+00:00",
+    "commit": "238cf58",
+    "subject": "Add private Nanawax proposal page and email preview images"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "concepts/sonia-luxury-hair/"
+   ],
+   "uploads": "concepts/sonia-luxury-hair/img/",
+   "pages": [
+    {
+     "path": "concepts/sonia-luxury-hair/index.html",
+     "title": "Sonia Luxury Hair",
+     "url": "",
+     "sha": "7183f61376ebb762270af80042d8b285ad6f9e9c",
+     "size": 40216,
+     "local": true
+    }
+   ],
+   "images": [
+    "concepts/sonia-luxury-hair/favicon.svg",
+    "concepts/sonia-luxury-hair/img/cut/cat-accessoires-240.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-accessoires-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-bonnets-240.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-bonnets-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-frontals-240.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-frontals-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-meches-240.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-meches-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-perruques-240.webp",
+    "concepts/sonia-luxury-hair/img/cut/cat-perruques-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/hero-model-480.webp",
+    "concepts/sonia-luxury-hair/img/cut/hero-model-700.webp",
+    "concepts/sonia-luxury-hair/img/cut/hero-model-960.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-frontal-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-frontal-600.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-frontal-800.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-lisse-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-lisse-600.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-lisse-800.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-perruque-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-perruque-600.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-perruque-800.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-wave-400.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-wave-600.webp",
+    "concepts/sonia-luxury-hair/img/cut/prod-wave-800.webp",
+    "concepts/sonia-luxury-hair/img/cut/textures-480.webp",
+    "concepts/sonia-luxury-hair/img/cut/textures-700.webp",
+    "concepts/sonia-luxury-hair/img/email-apercu.jpg",
+    "concepts/sonia-luxury-hair/img/og.jpg",
+    "concepts/sonia-luxury-hair/img/photos/campaign-1200.webp",
+    "concepts/sonia-luxury-hair/img/photos/campaign-600.webp",
+    "concepts/sonia-luxury-hair/img/photos/campaign-900.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-back-400.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-back-600.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-back-800.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-bundle-400.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-bundle-600.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-comb-400.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-comb-600.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-comb-800.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-profile-400.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-profile-600.webp",
+    "concepts/sonia-luxury-hair/img/photos/post-profile-800.webp"
+   ]
+  },
+  {
+   "id": "portfolio--designing-a-seamless-user-experience-for-taskflow",
+   "title": "GloryWalk",
+   "kind": "portfolio",
+   "kindLabel": "Étude de cas",
+   "path": "portfolio/designing-a-seamless-user-experience-for-taskflow",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/portfolio/designing-a-seamless-user-experience-for-taskflow/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/portfolio--designing-a-seamless-user-experience-for-taskflow.webp",
+   "updated": {
+    "date": "2026-09-27T20:58:30+00:00",
+    "commit": "95593ed",
+    "subject": "Show Burgundy About Me page on carousel hook image"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "portfolio/designing-a-seamless-user-experience-for-taskflow/"
+   ],
+   "uploads": "portfolio/designing-a-seamless-user-experience-for-taskflow/img/",
+   "pages": [
+    {
+     "path": "portfolio/designing-a-seamless-user-experience-for-taskflow/index.html",
+     "title": "GloryWalk",
+     "url": "",
+     "sha": "d3a6666d4038d1d7cacc30def7df09a9a4a44e64",
+     "size": 12580,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "portfolio--nexatech",
+   "title": "Lyzma Industries",
+   "kind": "portfolio",
+   "kindLabel": "Étude de cas",
+   "path": "portfolio/nexatech",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/portfolio/nexatech/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/portfolio--nexatech.webp",
+   "updated": {
+    "date": "2026-09-27T20:58:30+00:00",
+    "commit": "95593ed",
+    "subject": "Show Burgundy About Me page on carousel hook image"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "portfolio/nexatech/"
+   ],
+   "uploads": "portfolio/nexatech/img/",
+   "pages": [
+    {
+     "path": "portfolio/nexatech/index.html",
+     "title": "Lyzma Industries",
+     "url": "",
+     "sha": "cff24a8863ae24e8f8a9ed26f44a2b4b1fcb7465",
+     "size": 12787,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "portfolio--revitalizing-customer-engagement-for-fluxcrm",
+   "title": "The Bakery",
+   "kind": "portfolio",
+   "kindLabel": "Étude de cas",
+   "path": "portfolio/revitalizing-customer-engagement-for-fluxcrm",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/portfolio/revitalizing-customer-engagement-for-fluxcrm/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/portfolio--revitalizing-customer-engagement-for-fluxcrm.webp",
+   "updated": {
+    "date": "2026-10-04T15:11:13+00:00",
+    "commit": "9055c90",
+    "subject": "Add The Bakery website to the websites"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "portfolio/revitalizing-customer-engagement-for-fluxcrm/"
+   ],
+   "uploads": "portfolio/revitalizing-customer-engagement-for-fluxcrm/img/",
+   "pages": [
+    {
+     "path": "portfolio/revitalizing-customer-engagement-for-fluxcrm/index.html",
+     "title": "The Bakery",
+     "url": "",
+     "sha": "ff532b1d9226f3ea0cb80fab0b895bc13bd4fb7e",
+     "size": 13621,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "portfolio--streamlining-e-commerce-for-zenithcart",
+   "title": "Gogiya",
+   "kind": "portfolio",
+   "kindLabel": "Étude de cas",
+   "path": "portfolio/streamlining-e-commerce-for-zenithcart",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/portfolio/streamlining-e-commerce-for-zenithcart/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/portfolio--streamlining-e-commerce-for-zenithcart.webp",
+   "updated": {
+    "date": "2026-09-27T20:58:30+00:00",
+    "commit": "95593ed",
+    "subject": "Show Burgundy About Me page on carousel hook image"
+   },
+   "local": true,
+   "previewBase": null,
+   "writable": [
+    "portfolio/streamlining-e-commerce-for-zenithcart/"
+   ],
+   "uploads": "portfolio/streamlining-e-commerce-for-zenithcart/img/",
+   "pages": [
+    {
+     "path": "portfolio/streamlining-e-commerce-for-zenithcart/index.html",
+     "title": "Gogiya",
+     "url": "",
+     "sha": "546618262e5950fd35c14c4db17ebeb494aaab48",
+     "size": 13037,
+     "local": true
+    }
+   ],
+   "images": []
+  },
+  {
+   "id": "websites--the-ivory-sukundu",
+   "title": "The Ivory Sukundu",
+   "kind": "client",
+   "kindLabel": "Site client",
+   "path": "websites/the-ivory-sukundu",
+   "branch": "claude/add-tabouret-site",
+   "onlyOnBranch": true,
+   "liveUrl": null,
+   "externalUrl": null,
+   "thumbnail": "thumbs/websites--the-ivory-sukundu.webp",
+   "updated": {
+    "date": "2026-09-24T10:15:51+00:00",
+    "commit": "a6775c6",
+    "subject": "Refresh site screenshots"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "websites/the-ivory-sukundu/"
+   ],
+   "uploads": "websites/the-ivory-sukundu/img/",
+   "pages": [
+    {
+     "path": "websites/the-ivory-sukundu/index.html",
+     "title": "The Ivory Sukundu — Kreeative",
+     "url": "",
+     "sha": "0d2b0ada3064955186716e8d29711171d60890e0",
+     "size": 13109,
+     "local": false
+    }
+   ],
+   "images": [],
+   "headSha": "aaa4db20806d110c571176e533e1290d1bdf5248"
+  },
+  {
+   "id": "aissakee",
+   "title": "Aïssa Kee · UGC creator and designer in Toronto",
+   "kind": "personal",
+   "kindLabel": "Marque personnelle",
+   "path": "aissakee",
+   "branch": "claude/aissa-kee-personal-brand-rgrggx",
+   "onlyOnBranch": true,
+   "liveUrl": "https://kreeative-site-27rftjrcj-management-7548s-projects.vercel.app/aissakee/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/aissakee.webp",
+   "updated": {
+    "date": "2026-10-20T02:36:12+00:00",
+    "commit": "14b201b",
+    "subject": "Portfolio: the UGC videos section, ready for Kee's files"
+   },
+   "local": false,
+   "previewBase": "https://kreeative-site-27rftjrcj-management-7548s-projects.vercel.app/",
+   "writable": [
+    "aissakee/"
+   ],
+   "uploads": "aissakee/img/",
+   "pages": [
+    {
+     "path": "aissakee/index.html",
+     "title": "Aïssa Kee · UGC creator and designer in Toronto",
+     "url": "",
+     "sha": "c3f5055d6a55cc5e9b52db04c91bd94e0d0766d8",
+     "size": 20767,
+     "local": false
+    }
+   ],
+   "images": [
+    "aissakee/favicon.svg",
+    "aissakee/img/leopard-pink-2400.webp",
+    "aissakee/img/leopard-pink-portrait-1000.webp",
+    "aissakee/img/monday-story-1200.webp",
+    "aissakee/img/monday-story-600.webp",
+    "aissakee/img/paper-cream-1200.webp",
+    "aissakee/img/paper-grain-900.webp",
+    "aissakee/img/photo-nails-1200.webp",
+    "aissakee/img/photo-nails-600.webp",
+    "aissakee/img/photo-nails2-1200.webp",
+    "aissakee/img/photo-nails2-600.webp",
+    "aissakee/img/photo-nyx-1600.webp",
+    "aissakee/img/photo-nyx-900.webp",
+    "aissakee/img/photo-ugg-1200.webp",
+    "aissakee/img/photo-ugg-600.webp",
+    "aissakee/img/portrait-480.webp",
+    "aissakee/img/portrait-960.webp",
+    "aissakee/img/profusion-cart-1400.webp",
+    "aissakee/img/profusion-cart-720.webp",
+    "aissakee/img/profusion-step02-1400.webp",
+    "aissakee/img/profusion-step02-720.webp",
+    "aissakee/img/site-guillemot-phone-390.webp",
+    "aissakee/img/site-guillemot-phone-780.webp",
+    "aissakee/img/site-jessicas-phone-390.webp",
+    "aissakee/img/site-jessicas-phone-780.webp",
+    "aissakee/img/site-rich-phone-390.webp",
+    "aissakee/img/site-rich-phone-780.webp",
+    "aissakee/img/site-tabouret-phone-390.webp",
+    "aissakee/img/site-tabouret-phone-780.webp"
+   ],
+   "headSha": "14b201b9609d8ee1a9f12ecd26c45e941f283962"
+  }
+ ]
+}

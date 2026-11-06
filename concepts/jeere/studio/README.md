@@ -68,6 +68,7 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 | `studio-canvas.js` | Le canevas des nœuds DualEngine : sélection, poignées, déplacement / redimensionnement / rotation, magnétisme, guides, règles, grilles, outils F R O T I, raccourcis, tactile. `window.JeereStudioCanvas`. |
 | `studio-preview.js` | Le mode **Aperçu** (vague 2) : `P` ou ▶ « Aperçu », la boutique plein écran à la largeur choisie, interactive. `window.JeereStudioPreview`. |
 | `studio-inspector.js`, `studio-engine.css` | L’inspecteur des nœuds DualEngine (module 3), leurs calques, les actions Détacher / Rattacher / Exporter, le CSS de l’onglet Code. `window.JeereStudioInspector`. |
+| `sites/` | **Mes sites** : les sites web de la fondatrice, ouverts, modifiés et publiés depuis le Studio (voir [Mes sites](#mes-sites)). `sites/entry.js` est la seule chose que le Studio charge : le bouton « Mes sites » et sa commande de palette, pour elle seule. |
 
 ## Les fonctions avancées (`studio-power.js`)
 
@@ -787,6 +788,196 @@ Jeere est donc permis, sans rien changer à la règle pour l’argent des boutiq
 Captures dans `scratchpad/plans/shots/`. Les suites existantes du Studio (`studio-test.js`,
 `power-test.js`, `toolbar-test.js`, `elstyles-test.js`) posent un compte avec un abonnement Pro
 actif dans leur préparation : elles vérifient le Studio débloqué, comme avant.
+
+## Mes sites
+
+La demande de la fondatrice : « Pour le studio pro, ajoute tous les sites web que j’ai jamais faits
+dessus, pour que moi-même je puisse venir modifier et publier les sites web à chaque fois que je veux
+les publier. » **Mes sites** (`studio/sites/`) ouvre chacun de ses sites (le dépôt GitHub
+`kreeative/kreeative-`), le laisse modifier sur place, puis le publie sur GitHub, d’où Vercel met
+kreeative.xyz à jour. Ce ne sont pas des fiches Jeere : rien n’est converti, on modifie le HTML écrit à
+la main, tel quel.
+
+### Qui le voit
+
+Elle seule. Le Studio charge `sites/entry.js`, qui n’affiche le bouton « Mes sites » (barre du haut)
+et la commande « Mes sites » (palette, Ctrl K) que si une **vraie session Supabase** est ouverte **et**
+que la fonction `sites-publish` répond que ce compte est sur la liste `public.site_editors` (question
+posée une fois par onglet). Sans session, rien n’est demandé ; une vendeuse ordinaire ne voit rien. La
+page `sites/` elle-même refait la vérification (porte « Connectez-vous » ou « Accès réservé »). La liste
+des sites et leurs fichiers sont publics de toute façon (le dépôt est public) : ce qui est protégé, c’est
+la **publication**, que seule la fonction peut faire.
+
+**Mode démo** (tests) : sur un hôte local seulement (localhost, 127.0.0.1, file:), `sites/?demo=1`
+ou `localStorage['jeere-sites-demo'] = '1'` (`studio/?sites=demo` le pose) ouvre tout sans compte. Il
+n’existe pas sur kreeative.xyz ni sur jeere.kreeative.xyz.
+
+### Les sites (`sites/sites.json`)
+
+Construit depuis git, sans rien extraire : `git fetch origin && node concepts/jeere/studio/sites/build-manifest.mjs`
+(depuis la racine du dépôt). Il lit la branche principale `claude/kreeative-portfolio-design-n2a770`
+(ce que sert kreeative.xyz) et **toutes les autres branches**, et garde les dossiers de site qui n’existent
+que sur l’une d’elles. Par site : `id`, `title`, `kind`, `path`, `branch`, `liveUrl`, `externalUrl` (le
+déploiement à part du client, quand il existe), `thumbnail`, `updated` (dernier commit), `pages` (chemin,
+titre, sha du blob git), `images`, `writable`. Aujourd’hui : 20 sites, 42 pages —
+
+- **kreeative.xyz** : l’accueil, `404.html`, `about/`, `pricing/` (+ flyers, video-editing, websites),
+  `shop/`, `teach/` (+ certificate, learn, login, reset, signup, welcome), `signature/`, `access/` (6),
+  `the-kreeative-designer-newsletter/` — 23 pages ;
+- **Sites clients** (`websites/`) : Caméléon, Guillemot, Jessica’s Secrets, Keewal Meere, Rich & Friends,
+  Tabouret, The Bakery ;
+- **Concepts** (`concepts/`, sans `jeere/`, la plateforme) : Jessica’s Secrets, Joshua Cooker, Nanawax,
+  Riri Food, S’embellir avec Orly (sao), Sonia Luxury Hair ;
+- **Études de cas** (`portfolio/`) : GloryWalk, Lyzma Industries, The Bakery, Gogiya ;
+- **Seulement sur une autre branche** : `aissakee/` (Aïssa Kee, branche `claude/aissa-kee-personal-brand-rgrggx`)
+  et `websites/the-ivory-sukundu/` (branche `claude/add-tabouret-site`).
+
+Les vignettes (`sites/thumbs/<id>.webp`, 640 × 400, 8 à 37 ko) : `BASE=http://127.0.0.1:8941 node concepts/jeere/studio/sites/thumbs.mjs`
+avec un serveur statique du dépôt (Playwright ; l’encodage WebP est fait par Chromium lui-même). Les sites
+d’une autre branche y sont lus par `git archive`.
+
+### Modifier
+
+- **Accueil** : une carte par site (vignette, titre, type, nombre de pages, dernière modification,
+  « Voir en ligne », « Site du client » quand il a son propre déploiement), filtres et recherche, un
+  badge quand des pages ont des modifications non publiées.
+- **Aperçus** : chaque page dans des iframes de 390 / 768 / 1440 px (chips en haut, comme les artboards
+  du Studio), **même origine** : chargées directement depuis le serveur statique ; une page modifiée,
+  une nouvelle page ou un site d’une autre branche passent par `srcdoc` + `<base>` (même origine aussi).
+  Une page qui redirige dès l’ouverture (teach/learn) s’affiche sans ses scripts (bascule dans le panneau
+  de la page). « Naviguer » (P) rend le site cliquable comme en ligne ; « Modifier » (V) revient.
+- **Sélection** : clic sur n’importe quel élément, fil d’Ariane cliquable, panneau **Structure** (arbre,
+  œil pour masquer), cadre et étiquette sur les trois aperçus, barre d’actions (Parent, Texte, Image,
+  Dupliquer, Masquer, Supprimer).
+- **Texte** : double-clic (ou Entrée) : édition sur place, Entrée valide, Maj + Entrée passe à la ligne,
+  Échap termine, collage en texte brut.
+- **Images** : « Remplacer… » (un fichier : il part avec la publication, dans `<dossier du site>/img/`,
+  `assets/img/studio/` pour kreeative.xyz ; une photo de plus de 1,5 Mo est réduite à 2 400 px) ou
+  « Choisir une image du site » (celles de la page et du dossier). `srcset` / `sizes` sont retirés, les
+  `<source>` d’un `<picture>` suivent. Texte alternatif. Images de fond (`background-image`).
+- **Liens** : adresse (`href`) et cible (même onglet / nouvel onglet, `rel="noopener"` ajouté s’il manque).
+- **Style** : l’onglet Style reprend les contrôles du Studio (`studio-design.css` : champs à glisser,
+  ↑ ↓, expressions ; `../creer/jcolor.js` pour les couleurs) : typographie, fond, marges et retraits,
+  dimensions, bordure, opacité, ombre, et le CSS en ligne brut.
+  **Choix : le style en ligne (`style=""`), pas une feuille `studio-overrides.css`.** Une modification
+  touche un seul attribut de l’élément choisi : pas de sélecteur généré qui casse quand la page change,
+  pas de `<link>` à ajouter dans chaque page, elle l’emporte sur les classes du site sans `!important`,
+  et le diff se lit d’un coup d’œil. La limite : un style vaut pour toutes les largeurs (le responsive
+  fin reste dans la feuille de style du site).
+- **Masquer** (`display: none`), **Dupliquer** (copie exacte juste après, même indentation, `id` suffixé
+  `-2`), **Supprimer** (la ligne part si l’élément était seul dessus). Ctrl Z / Ctrl ⇧ Z partout.
+- **Code** : le HTML exact de l’élément (les octets du fichier), modifiable, « Appliquer ».
+- **Pages** : la liste du site ; « Dupliquer la page » crée `<nom>.html` à côté (mêmes chemins relatifs),
+  avec le nouveau titre, et le `canonical` / `og:url` mis à jour.
+- **Référencement** (sans sélection) : titre, description, image de partage (`og:image`), aperçu Google,
+  compteurs. `og:title`, `og:description`, `twitter:*` suivent quand ils répétaient l’ancienne valeur.
+
+**Rien n’est re-sérialisé.** `sites-core.js` lit la page comme un **texte** : un arbre des éléments avec
+leurs positions exactes (balises, attributs, valeurs, textes, commentaires), selon les règles du HTML
+(éléments vides, texte brut, `</p>` `</li>` implicites, SVG). Chaque élément de l’aperçu est relié à sa
+place dans ce texte (alignement LCS par balise et `id` : les éléments ajoutés par les scripts de la page
+sont simplement ignorés). Une modification change **seulement les octets concernés** : un texte est
+corrigé au caractère près (préfixe et suffixe communs gardés, entités `&amp;` `&nbsp;` des parties non
+touchées gardées), un attribut est remplacé, ajouté ou retiré dans sa balise. Le doctype, la tête, les
+scripts, les commentaires, l’indentation de tout le reste ne bougent pas. Testé : les 40 pages de ce
+checkout sont lues et réécrites à l’identique ; un style posé puis retiré redonne les mêmes octets ; les
+diffs des modifications sont exactement ceux attendus.
+
+Les modifications non publiées restent **sur l’appareil** (IndexedDB) : fermer l’onglet ne perd rien.
+« Enregistrer » (Ctrl S) montre la liste des fichiers modifiés et leur diff.
+
+### Publier
+
+« Publier » envoie les fichiers cochés à la fonction Supabase **`sites-publish`** (projet « Jeere »,
+`concepts/jeere/supabase/functions/sites-publish/index.ts`), qui fait **un seul commit atomique** avec
+l’API Git data de GitHub (blobs → arbre → commit → mise à jour de la branche, sans forcer), pages et
+images ensemble :
+
+- **Mettre en ligne** : sur la branche du site — la principale `claude/kreeative-portfolio-design-n2a770`,
+  que Vercel (projet kreeative-site) sert sur kreeative.xyz ; un site qui n’existe que sur une autre
+  branche est publié sur cette branche-là.
+- **Brouillon** : sur une branche `studio/…` (nom proposé : `studio/brouillon-<site>-<date>`), créée
+  depuis la branche du site ; Vercel en fait un aperçu, le site en ligne ne change pas.
+- Autrice et committer : **Anne-Kelly Kouyate <annklyy@gmail.com>**, avec son message (modifiable,
+  aucune ligne ajoutée).
+- Ensuite : le lien du commit, la page en ligne, et le statut du déploiement Vercel (lu sur GitHub).
+
+**Le jeton GitHub ne va jamais dans le navigateur** : il vit dans les secrets de la fonction. Le
+navigateur n’envoie que la session Supabase de la fondatrice. La fonction vérifie : session valide (sinon
+401), e-mail sur `public.site_editors` (sinon 403), jeton présent (sinon 503 « GitHub pas encore
+connecté »), chaque chemin (pas de `..`, pas de chemin absolu ni caché, seulement les dossiers de site de
+cette branche — jamais `concepts/jeere/`, `.github/`, `vercel.json`…, seulement `.html` et images),
+40 fichiers, 5 Mo par fichier et 20 Mo au plus, et la **version** : une page modifiée depuis une version
+plus ancienne que celle de la branche (sha du blob) est refusée (409), rien n’est écrit.
+
+Tant que GitHub n’est pas connecté, le dialogue affiche les étapes ci-dessous, et **« Télécharger les
+fichiers (.zip) »** donne les mêmes fichiers, dans leurs dossiers (zip « stocké », fait dans le
+navigateur, sans librairie), à déposer sur github.com (Add file › Upload files).
+
+### Brancher GitHub (une fois)
+
+1. Sur github.com, connectée au compte **kreeative** : **Settings › Developer settings › Personal access
+   tokens › Fine-grained tokens › Generate new token**.
+2. Token name : `Jeere Mes sites`. **Expiration : 1 an** (366 jours au plus ; noter la date, un nouveau
+   jeton est à créer avant). Resource owner : **kreeative**.
+3. Repository access : **Only select repositories** › `kreeative/kreeative-`.
+4. Permissions › Repository permissions › **Contents : Read and write** (Metadata : Read-only s’ajoute
+   tout seul). Rien d’autre.
+5. **Generate token**, copier le jeton (`github_pat_…`, affiché une seule fois).
+6. **Supabase › projet Jeere › Edge Functions › Secrets › Add new secret** : nom `GITHUB_TOKEN`, valeur
+   le jeton, **Save**. Rien à redéployer.
+7. Dans Mes sites, « Publier » › « Réessayer ».
+
+Le compte doit être celui de `annklyy@gmail.com` côté Jeere (connexion par e-mail sur `compte/`).
+Ajouter une autre personne : `insert into public.site_editors (email, note) values ('…', '…');` dans
+l’éditeur SQL de Supabase.
+
+### La base et la fonction
+
+- Migration `create_site_editors` (`concepts/jeere/supabase/migrations/20261106180000_create_site_editors.sql`) :
+  `public.site_editors(email primary key, note, created_at)`, RLS activée **sans aucune politique**, tous
+  les droits retirés à `anon` et `authenticated` (aucun accès par l’API), lecture pour `service_role`
+  seulement ; une ligne : `annklyy@gmail.com`. L’avis « RLS Enabled No Policy » du conseiller Supabase est
+  voulu (niveau INFO).
+- Fonction `sites-publish` (verify_jwt désactivé, comme `domains` : la clé publishable n’est pas un JWT,
+  la fonction vérifie la session elle-même). Actions : `status` (public : dit seulement si le jeton est
+  là), `whoami`, `publish`, `deploy-status`.
+
+### Limites
+
+- Les sites qui ont **leur propre déploiement** (Caméléon, Guillemot, Keewal Meere, Rich & Friends,
+  Tabouret, The Bakery sur leurs projets Vercel, depuis d’autres dépôts) : Mes sites modifie leur page dans
+  ce dépôt (l’étude de cas servie par kreeative.xyz), pas ces autres dépôts. Le lien « Site du client »
+  ouvre l’autre.
+- Le contenu ajouté par un script de la page (textes traduits par `i18n.js`, éléments créés en JS) n’est
+  pas dans le fichier : il se modifie par son parent (onglet Code) ou dans le script. Un texte que le
+  script remplace au chargement s’écrit dans le HTML, mais le script peut le remplacer à nouveau.
+- Le style est en ligne : pas de valeur par largeur d’écran, pas d’états (survol).
+- Pas de déplacement d’élément par glisser (Dupliquer + Supprimer, ou l’onglet Code).
+- « Dupliquer la page » crée une page `.html` à côté de l’originale ; pas de suppression ni de
+  renommage de page.
+- Sur jeere.kreeative.xyz (où les chemins sont réécrits vers `concepts/jeere/`), les pages sont lues
+  depuis GitHub (raw) et leurs fichiers depuis kreeative.xyz : préférer l’adresse
+  `…/concepts/jeere/studio/sites/` du déploiement kreeative-site. Les sites d’une autre branche sont
+  toujours lus depuis GitHub et l’aperçu Vercel de leur branche.
+- Un fichier de plus de 5 Mo, plus de 40 fichiers ou 20 Mo par publication : en plusieurs fois.
+- Le manifeste est une photo : après un nouveau site ou une nouvelle page faits hors du Studio, relancer
+  `build-manifest.mjs` (et `thumbs.mjs`).
+- Ordinateur et iPad (les panneaux deviennent des tiroirs sous 1 200 / 900 px) ; sur téléphone, un écran
+  explique d’utiliser un ordinateur ou une tablette.
+
+### Tests
+
+- `scratchpad/sites/sites-test.js` (126 vérifications, Playwright, mode démo, fonction simulée par
+  `page.route`) : le manifeste (sites, branches, sha, vignettes), l’accès (porte, bouton et palette du
+  Studio), l’accueil, l’ouverture d’un site, sélection au pointeur et texte sur place, lien, style, masquer
+  / dupliquer / supprimer / code, images (du site et téléversée), SEO, nouvelle page, entités, octets
+  identiques des pages non touchées et diffs minimaux, enregistrement, publication (chemins, encodages,
+  baseSha, image, aucun jeton), brouillon, « pas encore connecté », .zip décompressé et comparé, iPad
+  portrait et paysage, téléphone.
+- `scratchpad/sites/fn-test.js` (26 vérifications) : la fonction elle-même dans Node (faux Deno, faux
+  réseau) : 401, 403, 503, chemins refusés, tailles, 409 de version, la suite d’appels Git data,
+  l’autrice, le brouillon, la course entre deux publications.
 
 ## Ouvrir et tester
 
