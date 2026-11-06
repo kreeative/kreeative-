@@ -41,6 +41,165 @@ sign-ups in Supabase → Table Editor → `jeere_waitlist`.
 Numbers are personal data: keep the table private, and delete a row when someone asks
 (the FAQ gives annklyy@gmail.com for that). A hidden honeypot field drops most bots.
 
+## Seller accounts (Supabase Auth)
+
+`compte/` creates real accounts in the same **Jeere** Supabase project, with a choice of how the
+seller receives her one-time code. Not everyone has WhatsApp on the number she types, so e-mail
+comes first; SMS and WhatsApp are there, and switch on as soon as an SMS provider is configured.
+
+```
+#inscription  « Votre prénom »
+              « Recevoir mon code par »  [ E-mail ] [ SMS ] [ WhatsApp ]   (e-mail selected by default)
+              E-mail: « Adresse e-mail » + « Numéro WhatsApp (facultatif) » (for her orders, never required)
+              SMS / WhatsApp: « Numéro de téléphone » / « Numéro WhatsApp »
+   └─ « Entrez le code »: 6 boxes (one input: paste, autofill, auto-advance), « Changer d'adresse »,
+      « Renvoyer le code » after 60 s, « Autre méthode »
+       └─ « Le nom de votre boutique » ─► « Comment voulez-vous commencer ? »
+#connexion    the same choice (the device's account as a one-tap card) ─► code ─► ../admin/
+```
+
+- **Sending the code**: `signInWithOtp({ email })` / `signInWithOtp({ phone, options: { channel: 'sms' | 'whatsapp' } })`,
+  checked with `verifyOtp({ type: 'email' })` / `verifyOtp({ type: 'sms' })` (WhatsApp codes too). Sign-up sends
+  `first_name` and the optional number as user metadata; log-in sends `shouldCreateUser: false`, so an unknown address
+  gets « Aucun compte avec cette adresse » and a « Créer un compte » button.
+- **SMS or WhatsApp not configured**: `GET /auth/v1/settings` says whether phone sign-in is on; if not, picking SMS or
+  WhatsApp shows at once « Les codes par SMS ne sont pas encore activés sur Jeere. Recevez votre code par e-mail pour
+  l'instant… » with a « Recevoir mon code par e-mail » button. The same message comes when the API answers
+  `phone_provider_disabled` (« Unsupported phone provider ») or `sms_send_failed`.
+- **Errors in plain French** (`JeereAuth.describeError`): wrong or expired code, too many e-mails or codes (429), an
+  address refused (`email_address_invalid`: Supabase refuses example.com and test domains), no network, sign-ups closed.
+  Field errors go under the field (`aria-invalid`, `aria-describedby`, focus moves there); the others are announced
+  (`role="alert"`).
+- **Links in the e-mail**: if the template still sends a link, opening it on `compte/` finishes the login
+  (`#access_token=…`, read by supabase-js) and asks for the store name when there is none; an expired link says so.
+
+### Real mode and « mode démo »
+
+| When | Mode |
+| --- | --- |
+| The live site | real: codes go out, the account is in Supabase |
+| `?demo=1` | demo, forced |
+| `localhost`, `127.0.0.1`, `file:` | demo by default, so the tests and offline work never send codes; `?demo=0` uses Supabase locally |
+| Supabase or the CDN unreachable (offline, timeout) | demo, with « Jeere est injoignable… » and « Réessayer »; an error while sending offers « Continuer en mode démo » |
+
+Demo is written on the screen (« Mode démo » banner, « aucun e-mail, SMS ni WhatsApp n'est envoyé » on the code step,
+the footer): any 6-digit code works and the account stays in `localStorage`, as before. The e2e suite runs in it.
+
+### Files
+
+- `compte/auth.js` (`window.JeereAuth`): the Supabase client, the mode, sending and checking codes, the French errors,
+  the bridge and the sync. It loads supabase-js **on demand** from a pinned build with Subresource Integrity
+  (`https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js`,
+  `sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o`, ~110 KB): on `compte/` in real mode, and on
+  `creer/`, `admin/`, `studio/`, `abonnements/` only while a real session is open. Demo visitors never download it.
+  To upgrade, change the version and recompute the hash
+  (`curl -s URL | openssl dgst -sha384 -binary | openssl base64 -A`). Use the file `dist/umd/supabase.js`, not
+  `supabase.min.js`: jsDelivr generates the `.min` one and it must not be used with SRI.
+- `compte/compte.js`, `compte/index.html`, `compte/compte.css`: the screens.
+- The URL and the **publishable** key are in `auth.js` (`CONFIG`); they are public by design, row level security
+  protects the data. Never put the secret key in the site.
+
+### Schema (migration `create_profiles`)
+
+`public.profiles`, one row per seller, created by a trigger when Supabase creates the user:
+
+| Column | Type | What it holds |
+| --- | --- | --- |
+| `id` | `uuid`, primary key, → `auth.users(id)` `on delete cascade` | the user |
+| `first_name` | `text`, ≤ 40 | « Votre prénom » |
+| `phone` | `text`, `+` and 8 to 15 digits, or null | her WhatsApp number for orders (the login number for an SMS/WhatsApp account) |
+| `store_name` | `text`, ≤ 40 | « Le nom de votre boutique » |
+| `plan` | `gratuit` / `essentiel` / `pro` / `business` | the store plan (dashboard) |
+| `studio` | `jsonb` object or null, < 60 KB | the Studio subscription kept by `studio/plans.js` |
+| `created_at`, `updated_at` | `timestamptz` | `updated_at` is set by a trigger |
+
+- **RLS**: on. `authenticated` may `select` and `update` only the row where `id = auth.uid()`; `anon` has no access at
+  all (the REST API answers « permission denied »). No insert or delete through the API; only the columns
+  `first_name, phone, store_name, plan, studio` can be updated (column privileges).
+- **Trigger** `on_auth_user_created` → `private.handle_new_user()` (`security definer`, `search_path = ''`, in a
+  `private` schema the API does not expose): copies `first_name`, `phone`, `store_name` from the sign-up metadata (or
+  the auth phone), cleaned, and never fails a sign-up on bad input.
+- `get_advisors` (security) after the migration: no finding on the schema. The one left is « Leaked password protection
+  disabled », a dashboard setting about passwords, which Jeere does not use.
+- **Before real payments**: `plan` and `studio` are writable by the seller today because the checkout is a demo. When
+  payments are real, revoke `update (plan, studio)` from `authenticated` and set them from the payment webhook (service role).
+
+### The bridge to `jeere-account`
+
+After a real login, the profile is written to `localStorage['jeere-account']` in the same shape as before
+(`{ version: 1, firstName, phone, storeName, createdAt, plan, loggedIn, studio? }`) plus `email`, `userId` and `method`,
+so the editor, the dashboard, the Studio and the plans work unchanged (`JEERE_DATA.normalizeAccount` now accepts an
+account with an e-mail and no number; `phone` is then `''`). The server wins; what it does not have yet (a store name,
+a number, a Studio subscription already on this device for the same seller) is taken from the device and sent up.
+Then every change those pages make (store name, plan, Studio subscription) is sent to `profiles`: a snapshot of what the
+server has (`jeere-auth-sync`) says what changed. « Se déconnecter » (account page or dashboard) and « Supprimer mon
+compte » end the Supabase session too. Real deletion of the user needs a service-role Edge Function (not built yet):
+today « Supprimer mon compte » clears the device and signs out.
+
+### What the founder must configure in Supabase
+
+Dashboard → project **Jeere** → **Authentication**.
+
+1. **URL Configuration** (`/auth/url-configuration`): Site URL `https://kreeative.xyz/concepts/jeere/compte/`; Redirect
+   URLs: add `https://kreeative.xyz/concepts/jeere/compte/**` (and `http://localhost:8911/concepts/jeere/compte/**` to
+   test locally with `?demo=0`). It is still the default `http://localhost:3000` today (seen in the auth logs), so a link
+   in an e-mail would open nowhere.
+2. **Email templates** (**Emails → Templates**): Supabase's defaults send only a link. To send the 6-digit code, put
+   `{{ .Token }}` in **Confirm signup** (first code of a new account) and **Magic link** (every later code), in French,
+   for example: subject « Votre code Jeere : {{ .Token }} », body
+   `<p>Bonjour {{ .Data.first_name }},</p><p>Votre code Jeere : <strong>{{ .Token }}</strong></p><p>Il est valable
+   1 heure. Ne le partagez avec personne, même pas avec l'équipe Jeere.</p>`. Keep the link out, or keep it too: the
+   page handles both. In **Sign In / Providers → Email**, check that the email OTP length is **6** (the page reads 6
+   digits) and keep « Confirm email » on.
+3. **Custom SMTP, before any real seller** (**Emails → SMTP Settings**). Supabase's built-in mailer is for trying Auth
+   only: it is limited to a few e-mails an hour for the whole project (the test hit `429 over_email_send_rate_limit` after
+   two requests on 6 November 2026) and Supabase documents that it only sends to members of the organisation's team
+   (`email_address_not_authorized` for everyone else; that day the logs still showed one delivered to an outside
+   address, but do not count on it). With **Resend**: verify a sending domain (`jeere.shop` or the one
+   chosen), create an API key, then in Supabase: host `smtp.resend.com`, port `465`, user `resend`, password = the API
+   key, sender `Jeere <code@…>`. Resend's free plan is 3 000 e-mails a month and 100 a day; Pro is 20 $ a month for
+   50 000. Then raise **Rate Limits → emails per hour**.
+4. **SMS** (**Sign In / Providers → Phone**): turn Phone on, choose **Twilio** (the one Supabase documents best, and the
+   only one that also does WhatsApp; Vonage, MessageBird and Textlocal are the other choices), paste the Account SID, Auth
+   Token and Messaging Service SID from the Twilio console (a Messaging Service with an alphanumeric sender « Jeere »,
+   free at Twilio), set the SMS message to « Votre code Jeere : {{ .Code }} », raise the code lifetime from 60 s to
+   300 s, and set **Rate Limits → SMS per hour**. **Cost to Côte d'Ivoire: 0.4925 $ per SMS segment on Twilio**
+   (about 300 FCFA, October 2026 price list), i.e. about 50 times an e-mail. Plivo's public list gives 0.30 $ (Orange),
+   0.33 $ (MTN) and 0.50 $ (Moov) for comparison; Vonage and MessageBird publish their Ivorian prices only in their
+   consoles. Turn on Twilio's SMS pumping protection before opening SMS, and consider a CAPTCHA (Supabase **Attack
+   Protection**; the page would then need the widget and to pass `captchaToken`): Africa-bound SMS is a classic target
+   of SMS pumping fraud. A cheaper route later: a « Send SMS » Auth Hook
+   (an Edge Function) calling a local aggregator.
+5. **WhatsApp (optional, secondary)**: needs Twilio (or Twilio Verify) as the phone provider, plus a WhatsApp sender
+   approved on Twilio (a Meta Business account, business verification, the display name « Jeere »). Supabase then sends
+   the code with `channel: 'whatsapp'`. **Cost: Meta's « authentication » rate for Côte d'Ivoire (region « Rest of
+   Africa ») is about 0.004 $ per message from 1 October 2026** (as copied from Meta's rate card by Zernio and SleekFlow;
+   check the card itself), **plus 0.005 $ per message for Twilio**: about 0.009 $ (≈ 5 FCFA) per code, some 50 times
+   cheaper than an SMS. With Twilio Verify add 0.05 $ per successful verification.
+6. **Test numbers**: Phone → « Test Phone Numbers and OTPs » (`2250700000000=123456`, with an end date) lets you try SMS
+   sign-in without sending anything, once a provider is set.
+
+Sources: [Supabase, test auth flows](https://supabase.com/docs/guides/auth/testing-auth-flows) (built-in mailer limits),
+[Supabase, phone login](https://supabase.com/docs/guides/auth/phone-login) (providers, WhatsApp only on Twilio),
+[Supabase, signInWithOtp](https://supabase.com/docs/reference/javascript/auth-signinwithotp),
+[Supabase, email templates](https://supabase.com/docs/guides/local-development/customizing-email-templates) (`{{ .Token }}`),
+[Twilio SMS pricing, Côte d'Ivoire](https://www.twilio.com/en-us/sms/pricing/ci) (0.4925 $),
+[Twilio WhatsApp pricing](https://www.twilio.com/en-us/whatsapp/pricing) (0.005 $ per message),
+[Twilio Verify pricing](https://www.twilio.com/en-us/verify/pricing) (0.05 $ per verification),
+[Meta, WhatsApp pricing](https://developers.facebook.com/docs/whatsapp/pricing) (Côte d'Ivoire in « Rest of Africa »),
+[Zernio](https://zernio.com/blog/whatsapp-business-api-pricing) and [SleekFlow](https://sleekflow.io/en-us/blog/whatsapp-business-price)
+(Rest of Africa authentication 0.0040 $), [Plivo, Côte d'Ivoire](https://www.plivo.com/sms/pricing/ci/),
+[Resend with Supabase SMTP](https://resend.com/docs/send-with-supabase-smtp), [Resend pricing](https://resend.com/pricing).
+Prices checked on 6 November 2026.
+
+### Tests
+
+`auth-test.js` (scratchpad `auth/`): the demo flow, method switching and validation, a real e-mail code request (HTTP 200),
+a wrong code on the real API, « SMS / WhatsApp not configured » (real API and mocked), the bridge on a mocked Supabase
+(profile → `jeere-account`, store name and dashboard changes sent to `profiles`, log-out ending the session, the e-mail
+link), the offline fallback, and the layout at 360 / 390 / 768 / 1440 (no horizontal scroll, 44 px targets, contrast).
+Delete the test users afterwards (`delete from auth.users where email like 'jeere-auth-%@mailinator.com'`).
+
 ## Identity used on the page
 
 - **Logo**: drawn by hand by the founder in black ink, then traced to vector paths (no font, no

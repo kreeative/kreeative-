@@ -74,7 +74,7 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1, `pages` included. | — |
 | `prompts.md` | In French: the single AI assistant of the real product — system prompt, its one tool, the free code around it, the self-improvement loop, the TypeScript orchestration and the cost estimate. The assistant can also adapt the 4 default pages. | — |
 | `README.md` | This file: the whole prototype, the account and the dashboard included. | — |
-| `../compte/` (`index.html`, `compte.css`, `compte.js`) | Sign-up and login, phone number first, no e-mail: see [Seller accounts](#seller-accounts-compte). Loads `../creer/data.js`. | — |
+| `../compte/` (`index.html`, `compte.css`, `compte.js`, `auth.js`) | Sign-up and login with a one-time code by e-mail (default), SMS or WhatsApp, real accounts on Supabase Auth: see [Seller accounts](#seller-accounts-compte) and `../README.md`, « Seller accounts (Supabase Auth) ». Loads `../creer/data.js`. `auth.js` is also loaded by `creer/`, `admin/`, `studio/` and `abonnements/` (it keeps `public.profiles` in step with `'jeere-account'`; nothing happens without a real session). | `window.JeereAuth` |
 | `../admin/` (`index.html`, `admin.css`, `admin.js`) | The seller dashboard: see [The seller dashboard](#the-seller-dashboard-admin). Loads `../creer/data.js`, `../creer/render.js` and `../creer/store.css` (for its mini preview of the store), and `../creer/tour.js` and `../creer/tour.css` (its guided tour). | — |
 
 The three apps share five `localStorage` keys, listed in
@@ -1251,47 +1251,55 @@ engine path for a section that has it, and the engine is not even loaded).
 
 ## Seller accounts (`../compte/`)
 
-How a seller signs up to manage her store: **phone number first, no e-mail, no password**, like
-the brainstorm and like the mobile-money apps she already uses. One step per screen, big inputs,
-built for 360 px with the on-screen keyboard open.
+How a seller signs up to manage her store: **a first name and a one-time code, no password**. Not
+everyone has WhatsApp on the number she types, so she chooses where the code goes: **e-mail
+(default)**, SMS or WhatsApp. One step per screen, big inputs, built for 360 px with the on-screen
+keyboard open. Real accounts live in Supabase (see `../README.md`, « Seller accounts (Supabase
+Auth) »: schema, modes, what to configure).
 
 ```
 #inscription (default when there is no account)
-  Prénom + Numéro WhatsApp (+225 by default, the landing form's country list)
-   └─ « Recevoir le code » ─► 6 boxes (paste works, autocomplete="one-time-code", resend after 30 s)
+  Prénom + « Recevoir mon code par » [E-mail | SMS | WhatsApp]
+    E-mail: adresse e-mail + numéro WhatsApp (facultatif, for her orders)
+    SMS / WhatsApp: the number (+225 by default, the landing form's country list)
+   └─ « Recevoir mon code » ─► 6 boxes (paste works, autocomplete="one-time-code", resend after 60 s,
+      « Changer d'adresse », « Autre méthode »)
        └─ « Le nom de votre boutique » (prefilled from the fiche when there is one)
            └─ « Comment voulez-vous commencer ? »
                 Choisir un modèle → ../creer/ · Discuter avec l'assistant → ../creer/#assistant
                 Aller au tableau de bord → ../admin/
 #connexion
-  Numéro ─► code ─► ../admin/   (another number than the saved account's: offer to create one)
+  E-mail or number ─► code ─► ../admin/   (an address with no account: offer to create one)
 ```
 
-- **Demo, said on the screen**: « Démo : aucun SMS ni WhatsApp n'est envoyé. Tapez n'importe quel
-  code à 6 chiffres. » The consent line reads « En continuant, vous acceptez les conditions et la
-  politique de confidentialité de Jeere. »
+- **Real or demo**: real on the live site (Supabase sends the code; SMS and WhatsApp say « pas encore
+  activés » until an SMS provider is configured); « Mode démo » with `?demo=1`, on localhost and when
+  Supabase is unreachable: then nothing is sent, any 6-digit code works, and the screen says so (a
+  « Mode démo » banner, « aucun e-mail, SMS ni WhatsApp n'est envoyé » on the code step). The consent
+  line reads « En continuant, vous acceptez les conditions et la politique de confidentialité de Jeere. »
 - **Saved** as `'jeere-account'` = `{ version: 1, firstName, phone, storeName, createdAt, plan,
-  loggedIn }` (`phone` normalised with `normalizeWhatsapp`, `+2250707123456`; `plan` `'gratuit'` at
-  sign-up; `loggedIn: true`). When a fiche exists, its name is prefilled on « Le nom de votre
-  boutique »: if she types another one, the saved store takes it (and the hero titles that carried
-  the old name follow, as in the dashboard's Préférences); `store.whatsapp` is set only if it is
-  empty. `JEERE_DATA.normalizeAccount(raw)` turns whatever was saved into that shape, or `null`
-  when there is no account; an account without a usable number (`+` and 8 to 15 digits) is no
-  account, for the account page, the dashboard and the editor alike.
+  loggedIn }` plus, when present, `email`, `userId` (a real Supabase account), `method` (`'email'`,
+  `'sms'` or `'whatsapp'`) and `studio`. `phone` is normalised with `normalizeWhatsapp`
+  (`+2250707123456`), or `''` for an e-mail account without a number; `plan` is `'gratuit'` at
+  sign-up; `loggedIn: true`. A real login writes the profile row (`public.profiles`) in this shape,
+  and `../compte/auth.js` sends the changes the other pages make back to it. When a fiche exists,
+  its name is prefilled on « Le nom de votre boutique »: if she types another one, the saved store
+  takes it (and the hero titles that carried the old name follow, as in the dashboard's
+  Préférences); `store.whatsapp` is set only if it is empty. `JEERE_DATA.normalizeAccount(raw)`
+  turns whatever was saved into that shape, or `null` when there is no account; an account with
+  neither a usable number (`+` and 8 to 15 digits) nor a usable e-mail is no account, for the
+  account page, the dashboard and the editor alike.
 - **Routes**: `#inscription` and `#connexion` (the links of the editor and the dashboard). With no
   hash the page picks sign-up when there is no account, login when the saved account is logged
-  out (with a one-tap « Continuer » card for it), and a « Bonjour {prénom} » screen (store, number,
-  plan; « Aller au tableau de bord », « Ouvrir l'éditeur », « Se déconnecter ») when it is logged
-  in. Each step is a history entry, so the phone's Back button goes back one step. An account
-  whose number is not a valid `+` number (8 to 15 digits) counts as no account. The page never
+  out (with a one-tap « Continuer » card for it, showing the masked e-mail or number), and a
+  « Bonjour {prénom} » screen (store, e-mail, number, plan; « Aller au tableau de bord », « Ouvrir
+  l'éditeur », « Se déconnecter », which also ends the Supabase session) when it is logged in.
+  Each step is a history entry, so the phone's Back button goes back one step. The page never
   writes `'jeere-admin'` or `'jeere-studio-open'`; `window.JeereCompte = { parsePhone,
-  formatPhone, maskPhone }` holds its pure helpers for tests.
+  formatPhone, maskPhone, maskEmail, normEmail }` holds its pure helpers for tests.
 - **After sign-up**: a template chosen in the editor carries her store name and number; « Discuter
   avec l'assistant » offers the same name and number as the first quick answers of its name and
   WhatsApp questions (`wizard.js` reads `'jeere-account'`, never writes it).
-- **In the real product**: the same screens on Supabase Auth's phone sign-in, with a one-time code
-  sent over WhatsApp (an approved WhatsApp Business provider) or by SMS as a fallback; rate limits
-  per number; the session in an HTTP-only cookie; the store row tied to the user id.
 
 ## The seller dashboard (`../admin/`)
 
@@ -1460,7 +1468,7 @@ throws still works for the session.
 | Key | Holds | Written by | Read by |
 | --- | --- | --- | --- |
 | `jeere-studio-config` | The fiche boutique, always through `normalizeConfig` | editor, dashboard, account (the store name she types at sign-up; WhatsApp when empty) | all three |
-| `jeere-account` | `{ version: 1, firstName, phone, storeName, createdAt, plan, loggedIn, studio? }`; `studio` is the Studio subscription (`../studio/plans.js`, see `../studio/README.md`, « Abonnements Studio »), kept as it is by `normalizeAccount` and only when there is one | account page, dashboard (plan, log out, demo account, Studio subscription), Studio and `../abonnements/` (Studio subscription, through `JeerePlans`) | all of them (`normalizeAccount`) |
+| `jeere-account` | `{ version: 1, firstName, phone, storeName, createdAt, plan, loggedIn, email?, userId?, method?, studio? }` (`phone` may be `''` for an e-mail account; `userId` = a real Supabase account, mirrored to `public.profiles` by `../compte/auth.js`); `studio` is the Studio subscription (`../studio/plans.js`, see `../studio/README.md`, « Abonnements Studio »), kept as it is by `normalizeAccount` and only when there is one | account page, dashboard (plan, log out, demo account, Studio subscription), Studio and `../abonnements/` (Studio subscription, through `JeerePlans`) | all of them (`normalizeAccount`) |
 | `jeere-admin` | `{ version: 1, orders, settings, connectors, stock? }`, created from `ADMIN_DEFAULTS` and `demoOrders(config)` | dashboard | dashboard (`normalizeAdmin`) |
 | `jeere-studio-open` | One-shot `{ page, pageId?, productId?, view? }`: the editor opens directly on that page, then deletes the key. `page` is `'home'`, `'product'` (with `productId`) or `'page'` (with `pageId`); the optional `view` (`'preview'` or `'edit'`) says what to show first: the dashboard sends `'preview'` for « Voir la boutique » / « Voir dans la boutique » (a phone opens on the preview; a computer shows the storefront alone, without the panel, until « Modifier la boutique ») | dashboard | editor |
 | `jeere-tour` | `{ version: 1, seen: { editor?: iso date, admin?: iso date } }`: the guided tours already shown in this browser (`JeereTour.seen(id)`), written when a tour first shows, so it starts by itself only once | `tour.js` (editor, dashboard) | `tour.js` |
@@ -1666,10 +1674,11 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
     list the `inMenu` pages, the footer lists the `inFooter` pages and ends with « Propulsé par
     Jeere ». Ask the assistant for « Chez Fanta » in Bouaké: the pages say « Chez Fanta » and
     « Bouaké ».
-11. `../compte/`: sign up with a first name and a number (any 6-digit code; paste a code; wait for
-    « Renvoyer le code »), name the store, pick « Aller au tableau de bord ». Log out from the
-    dashboard and log in again with the same number; try another number (it offers to create an
-    account).
+11. `../compte/` (`?demo=1`): sign up with a first name and an e-mail, then by SMS and by WhatsApp
+    (any 6-digit code; paste a code; wait for « Renvoyer le code »), name the store, pick « Aller au
+    tableau de bord ». Log out from the dashboard and log in again with the same address; try
+    another address (it offers to create an account). Without `?demo=` on the live site, the code
+    really arrives by e-mail.
 12. `../admin/`: without an account, the gate and « Voir la démo »; then every route at 360 px and
     on desktop: change an order's status, write to a customer, print a slip; add a product with a
     photo; edit, reorder and delete a page and see it in the editor; turn payment methods off;
@@ -1775,9 +1784,10 @@ value).
    Function holding the Anthropic API key as a secret, the system prompt and its one tool, code
    validation with `schema.json` and `JEERE_DATA.validate`, monthly and per-store budget caps, and
    this prototype's local assistant as the free fallback.
-2. Save fiches in Supabase (one row per store) instead of `localStorage`, with the seller
-   account of `../compte/` on Supabase Auth's phone sign-in (one-time code over WhatsApp, SMS as
-   a fallback), and the dashboard's orders, settings, team and connectors as rows of their own.
+2. Save fiches in Supabase (one row per store) instead of `localStorage`, tied to the seller
+   account of `../compte/` (Supabase Auth, done: e-mail code today, SMS and WhatsApp once a provider
+   is configured; `public.profiles`), and the dashboard's orders, settings, team and connectors as
+   rows of their own.
 3. Start the « il se nourrit lui-même » loop: anonymised kept stores (opt-in), the nightly job that
    updates the defaults library (template, palette and intensity per niche), the few-shot examples
    and the keyword lists.

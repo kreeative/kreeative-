@@ -3349,7 +3349,7 @@
 
   var STORAGE_KEYS = {
     config: 'jeere-studio-config', // the fiche boutique (the editor's; the dashboard writes it too, through normalizeConfig)
-    account: 'jeere-account', // { version, firstName, phone, storeName, createdAt, plan, loggedIn, studio? } (studio: the Studio subscription, ../studio/plans.js)
+    account: 'jeere-account', // { version, firstName, phone, storeName, createdAt, plan, loggedIn, email?, userId?, method?, studio? } (studio: the Studio subscription, ../studio/plans.js; userId: a real Supabase account, ../compte/auth.js)
     admin: 'jeere-admin', // { version, orders, settings, connectors, stock? }
     open: 'jeere-studio-open', // one-shot { page, pageId?, productId? } read and deleted by the editor
     tour: 'jeere-tour' // { version: 1, seen: { editor: iso, admin: iso } }: the guided tours already shown (tour.js)
@@ -3664,15 +3664,23 @@
     return isFinite(t) ? new Date(t).toISOString() : def;
   }
 
-  // A complete 'jeere-account', or null when there is none. Phone normalised (+225...). An account
-  // without a usable number (+ and 8 to 15 digits) is no account: sign-in is by number, so the same
-  // rule holds in the account page, the dashboard and the editor.
+  // A complete 'jeere-account', or null when there is none. Phone normalised (+225...), e-mail in
+  // lower case. Sign-in is by e-mail, SMS or WhatsApp (../compte/), so an account needs a usable
+  // number (+ and 8 to 15 digits) or a usable e-mail: with neither it is no account, in the account
+  // page, the dashboard and the editor alike. phone is '' for an e-mail account without a number.
+  // Optional extras, kept only when present: email, userId (the Supabase user id, a real account),
+  // method ('email' | 'sms' | 'whatsapp': how she receives her code) and studio (below).
+  var ACCOUNT_EMAIL_RE = /^[^\s@<>()",;:]{1,64}@[^\s@<>()",;:]+\.[a-z]{2,}$/i;
+  var ACCOUNT_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   function normalizeAccount(input) {
     var src = input;
     if (typeof src === 'string') { try { src = JSON.parse(src); } catch (e) { src = null; } }
     if (!isObj(src)) return null;
     var phone = normalizeWhatsapp(str(src.phone, ''));
-    if (!/^\+\d{8,15}$/.test(phone)) return null;
+    if (!/^\+\d{8,15}$/.test(phone)) phone = '';
+    var email = str(src.email, '').trim().toLowerCase();
+    if (email.length > 254 || !ACCOUNT_EMAIL_RE.test(email)) email = '';
+    if (!phone && !email) return null;
     var out = {
       version: 1,
       firstName: clampStr(src.firstName, 40),
@@ -3682,6 +3690,9 @@
       plan: idIn(PLANS, src.plan) ? src.plan : 'gratuit',
       loggedIn: src.loggedIn === true
     };
+    if (email) out.email = email;
+    if (typeof src.userId === 'string' && ACCOUNT_UUID_RE.test(src.userId)) out.userId = src.userId.toLowerCase();
+    if (src.method === 'email' || src.method === 'sms' || src.method === 'whatsapp') out.method = src.method;
     // The Studio subscription (« Abonnements Studio »): kept as it is, normalised by
     // ../studio/plans.js (JeerePlans.normalizeSub) wherever it is read. Only when there is one,
     // so an account without it keeps exactly the shape above.

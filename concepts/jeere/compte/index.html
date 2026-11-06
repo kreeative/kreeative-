@@ -7,7 +7,7 @@
   <!-- The page lives in a folder (/concepts/jeere/compte/): add the final slash so relative links keep working -->
   <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
   <title>Votre compte · Jeere</title>
-  <meta name="description" content="Prototype de l’inscription Jeere&nbsp;: créez votre compte avec votre numéro WhatsApp et un code, sans e-mail ni mot de passe.">
+  <meta name="description" content="Créez votre compte Jeere avec votre prénom et un code à 6 chiffres reçu par e-mail, par SMS ou sur WhatsApp. Pas de mot de passe.">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#FFFFFF">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
@@ -22,6 +22,7 @@
   <script src="../creer/elstyles.js" defer></script>
   <script src="../studio/plans.js" defer></script>
   <script src="../creer/engine-sections.js" defer></script>
+  <script src="auth.js" defer></script>
   <script src="compte.js" defer></script>
 </head>
 <body>
@@ -43,6 +44,8 @@
     <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="9" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.6"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.6"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.6"/></symbol>
     <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9.5 5.5 4h13L20 9.5M4 9.5h16M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0M5.5 12v8h13v-8M10 20v-4.5h4V20"/></symbol>
     <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4.5 19.5h4l10-10a2.8 2.8 0 0 0-4-4l-10 10z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></symbol>
+    <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4.5 19.5 5.6 16A8 8 0 1 1 8.4 18.6z"/><path d="M9.6 8.8c-.2 1.5.8 3.4 2.3 4.5.9.6 1.9.9 2.7.7l.5-1.1-1.4-.8-.7.6c-.7-.3-1.5-1.1-1.9-1.8l.5-.7-.7-1.5z" stroke-width="1.2"/></symbol>
     <symbol id="i-sms" viewBox="0 0 24 24"><path d="M4.5 5.5h15a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9l-4.5 3.5v-3.5h-1.5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z"/><path d="M8 11h.01M12 11h.01M16 11h.01" stroke-width="2.4"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></symbol>
     <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14.5 4.5h-8a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h8"/><path d="M10.5 12h10m-3.5-3.5L20.5 12 17 15.5"/></symbol>
@@ -65,16 +68,23 @@
 
         <noscript><p class="c-noscript">Activez JavaScript pour créer votre compte ou vous connecter.</p></noscript>
 
+        <!-- « Mode démo »: nothing is sent (?demo=1, localhost, or Supabase unreachable); compte.js shows it -->
+        <div class="c-modebar" id="c-modebar" hidden>
+          <span class="c-modebar__pill">Mode démo</span>
+          <p class="c-modebar__txt" id="c-modebar-txt">Aucun code n’est envoyé&nbsp;: votre compte reste dans ce navigateur.</p>
+          <button class="c-btn c-btn--quiet c-btn--sm c-modebar__retry" type="button" id="c-modebar-retry" hidden><svg class="c-ico" aria-hidden="true"><use href="#i-refresh"/></svg>Réessayer</button>
+        </div>
+
         <!-- Progress: « Étape 2 sur 4 », drawn by compte.js -->
         <div class="c-progress" id="c-progress" hidden>
           <div class="c-progress__bar" id="c-progress-bar" aria-hidden="true"></div>
           <p class="c-progress__txt" id="c-progress-txt"></p>
         </div>
 
-        <!-- =========================== #inscription, 1: first name + WhatsApp number -->
+        <!-- =========================== #inscription, 1: first name, then how to receive the code (e-mail by default) -->
         <section class="c-step" data-step="signup" aria-labelledby="c-signup-t" hidden>
           <h1 class="c-title" id="c-signup-t" tabindex="-1">Créez votre compte</h1>
-          <p class="c-lead" id="c-signup-lead">Votre prénom et votre numéro WhatsApp suffisent&nbsp;: pas d’e-mail, pas de mot de passe.</p>
+          <p class="c-lead" id="c-signup-lead">Votre prénom, puis où recevoir votre code à 6&nbsp;chiffres. Pas de mot de passe à retenir.</p>
 
           <div class="c-notice" id="c-exists" hidden>
             <svg class="c-ico" aria-hidden="true"><use href="#i-info"/></svg>
@@ -87,34 +97,70 @@
               <input class="c-input" id="c-first" name="firstName" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" maxlength="40" enterkeyhint="next" placeholder="Ex.&nbsp;: Awa">
               <p class="c-err" id="c-first-err" hidden></p>
             </div>
-            <div class="c-field">
-              <label class="c-label" for="c-phone">Numéro WhatsApp</label>
+            <fieldset class="c-field c-methods" aria-describedby="c-method-hint">
+              <legend class="c-label" id="c-method-t">Recevoir mon code par</legend>
+              <div class="c-seg">
+                <label class="c-seg__opt"><input type="radio" name="method" value="email" id="c-m-email" checked><span><svg class="c-ico" aria-hidden="true"><use href="#i-mail"/></svg>E-mail</span></label>
+                <label class="c-seg__opt"><input type="radio" name="method" value="sms" id="c-m-sms"><span><svg class="c-ico" aria-hidden="true"><use href="#i-sms"/></svg>SMS</span></label>
+                <label class="c-seg__opt"><input type="radio" name="method" value="whatsapp" id="c-m-whatsapp"><span><svg class="c-ico" aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</span></label>
+              </div>
+              <p class="c-hint" id="c-method-hint">Un code à 6&nbsp;chiffres, gratuit, dans votre boîte e-mail.</p>
+            </fieldset>
+            <div class="c-notice c-notice--off" id="c-off" role="group" aria-labelledby="c-off-t" hidden>
+              <svg class="c-ico" aria-hidden="true"><use href="#i-alert"/></svg>
+              <div>
+                <p id="c-off-t"></p>
+                <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-off-email"><svg class="c-ico" aria-hidden="true"><use href="#i-mail"/></svg>Recevoir mon code par e-mail</button>
+              </div>
+            </div>
+            <div class="c-field" id="c-email-field">
+              <label class="c-label" for="c-email">Adresse e-mail</label>
+              <input class="c-input" id="c-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="254" enterkeyhint="next" placeholder="Ex.&nbsp;: awa@gmail.com" aria-describedby="c-email-hint">
+              <p class="c-hint" id="c-email-hint">Le code arrive en quelques secondes. Regardez aussi dans les courriers indésirables.</p>
+              <p class="c-err" id="c-email-err" hidden></p>
+              <button class="c-btn c-btn--ghost c-btn--sm c-err__act" type="button" id="c-email-use-sms" hidden><svg class="c-ico" aria-hidden="true"><use href="#i-sms"/></svg><span>Recevoir le code par SMS à la place</span></button>
+            </div>
+            <div class="c-field" id="c-phone-field">
+              <label class="c-label" for="c-phone" id="c-phone-label">Numéro WhatsApp <span class="c-opt">(facultatif)</span></label>
               <div class="c-phone">
                 <select class="c-input c-phone__cc" id="c-cc" name="cc" aria-label="Indicatif du pays"></select>
                 <input class="c-input c-phone__num" id="c-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" enterkeyhint="send" placeholder="07 07 12 34 56" aria-describedby="c-phone-hint">
               </div>
-              <p class="c-hint" id="c-phone-hint">Celui où vous recevez vos commandes. Il sert aussi à vous connecter.</p>
+              <p class="c-hint" id="c-phone-hint">Celui où vous recevez vos commandes. Vous pourrez l’ajouter plus tard.</p>
               <p class="c-err" id="c-phone-err" hidden></p>
             </div>
 
             <div class="c-notice c-notice--strong" id="c-same" hidden>
               <svg class="c-ico" aria-hidden="true"><use href="#i-info"/></svg>
               <div>
-                <p><strong>Ce numéro a déjà un compte sur cet appareil.</strong> Connectez-vous plutôt&nbsp;: vos réglages et votre boutique sont gardés.</p>
-                <button class="c-btn c-btn--primary c-btn--sm" type="button" id="c-same-login">Me connecter avec ce numéro</button>
+                <p><strong>Cette adresse a déjà un compte sur cet appareil.</strong> Connectez-vous plutôt&nbsp;: vos réglages et votre boutique sont gardés.</p>
+                <button class="c-btn c-btn--primary c-btn--sm" type="button" id="c-same-login">Me connecter</button>
               </div>
             </div>
 
-            <button class="c-btn c-btn--primary c-btn--block" type="submit" id="c-signup-btn"><span class="c-btn__txt">Recevoir le code</span><svg class="c-ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <div class="c-notice c-notice--err" id="c-signup-fail" role="group" aria-labelledby="c-signup-fail-t" hidden>
+              <svg class="c-ico" aria-hidden="true"><use href="#i-alert"/></svg>
+              <div>
+                <p id="c-signup-fail-t"></p>
+                <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-signup-demo" hidden>Continuer en mode démo</button>
+              </div>
+            </div>
+
+            <button class="c-btn c-btn--primary c-btn--block" type="submit" id="c-signup-btn"><span class="c-btn__txt">Recevoir mon code</span><svg class="c-ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
             <p class="c-consent">En continuant, vous acceptez les conditions et la politique de confidentialité de Jeere.</p>
           </form>
           <p class="c-switch">Déjà un compte&nbsp;? <a class="c-link" href="#connexion">Se connecter</a></p>
         </section>
 
-        <!-- =========================== #connexion, 1: the WhatsApp number -->
+        <!-- =========================== #connexion, 1: e-mail (default) or number -->
         <section class="c-step" data-step="login" aria-labelledby="c-login-t" hidden>
           <h1 class="c-title" id="c-login-t" tabindex="-1">Connectez-vous</h1>
-          <p class="c-lead">Tapez le numéro WhatsApp de votre compte. Vous recevrez un code pour entrer, sans mot de passe.</p>
+          <p class="c-lead">Recevez un code à 6&nbsp;chiffres pour entrer, sans mot de passe.</p>
+
+          <div class="c-notice" id="c-login-note" hidden>
+            <svg class="c-ico" aria-hidden="true"><use href="#i-alert"/></svg>
+            <p id="c-login-note-t"></p>
+          </div>
 
           <button class="c-known" type="button" id="c-known" hidden>
             <span class="c-known__av" id="c-known-av" aria-hidden="true"></span>
@@ -125,11 +171,32 @@
             </span>
             <span class="c-known__go"><span>Continuer</span><svg class="c-ico" aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </button>
-          <p class="c-or" id="c-known-or" hidden><span>ou un autre numéro</span></p>
+          <p class="c-or" id="c-known-or" hidden><span>ou un autre compte</span></p>
 
           <form class="c-form" id="c-form-login" novalidate>
-            <div class="c-field">
-              <label class="c-label" for="c-lphone">Numéro WhatsApp</label>
+            <fieldset class="c-field c-methods" aria-describedby="c-l-method-hint">
+              <legend class="c-label" id="c-lmethod-t">Recevoir mon code par</legend>
+              <div class="c-seg">
+                <label class="c-seg__opt"><input type="radio" name="lmethod" value="email" id="c-l-m-email" checked><span><svg class="c-ico" aria-hidden="true"><use href="#i-mail"/></svg>E-mail</span></label>
+                <label class="c-seg__opt"><input type="radio" name="lmethod" value="sms" id="c-l-m-sms"><span><svg class="c-ico" aria-hidden="true"><use href="#i-sms"/></svg>SMS</span></label>
+                <label class="c-seg__opt"><input type="radio" name="lmethod" value="whatsapp" id="c-l-m-whatsapp"><span><svg class="c-ico" aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</span></label>
+              </div>
+              <p class="c-hint" id="c-l-method-hint">Un code à 6&nbsp;chiffres, gratuit, dans votre boîte e-mail.</p>
+            </fieldset>
+            <div class="c-notice c-notice--off" id="c-l-off" role="group" aria-labelledby="c-l-off-t" hidden>
+              <svg class="c-ico" aria-hidden="true"><use href="#i-alert"/></svg>
+              <div>
+                <p id="c-l-off-t"></p>
+                <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-l-off-email"><svg class="c-ico" aria-hidden="true"><use href="#i-mail"/></svg>Recevoir mon code par e-mail</button>
+              </div>
+            </div>
+            <div class="c-field" id="c-lemail-field">
+              <label class="c-label" for="c-lemail">Adresse e-mail</label>
+              <input class="c-input" id="c-lemail" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="254" enterkeyhint="send" placeholder="Ex.&nbsp;: awa@gmail.com">
+              <p class="c-err" id="c-lemail-err" hidden></p>
+            </div>
+            <div class="c-field" id="c-lphone-field" hidden>
+              <label class="c-label" for="c-lphone" id="c-lphone-label">Numéro de téléphone</label>
               <div class="c-phone">
                 <select class="c-input c-phone__cc" id="c-lcc" name="cc" aria-label="Indicatif du pays"></select>
                 <input class="c-input c-phone__num" id="c-lphone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" enterkeyhint="send" placeholder="07 07 12 34 56">
@@ -138,16 +205,24 @@
             </div>
 
             <div class="c-nomatch" id="c-nomatch" hidden>
-              <p class="c-nomatch__t" id="c-nomatch-t" tabindex="-1">Aucun compte avec ce numéro</p>
+              <p class="c-nomatch__t" id="c-nomatch-t" tabindex="-1">Aucun compte avec cette adresse</p>
               <p class="c-nomatch__d" id="c-nomatch-d"></p>
               <div class="c-nomatch__acts">
                 <button class="c-btn c-btn--primary c-btn--block" type="button" id="c-nomatch-create">Créer un compte</button>
-                <button class="c-btn c-btn--ghost c-btn--block" type="button" id="c-nomatch-retry">Essayer un autre numéro</button>
+                <button class="c-btn c-btn--ghost c-btn--block" type="button" id="c-nomatch-retry">Essayer une autre adresse</button>
               </div>
-              <p class="c-nomatch__demo">Démo&nbsp;: les comptes sont enregistrés dans ce navigateur seulement.</p>
+              <p class="c-nomatch__demo" id="c-nomatch-demo">Mode démo&nbsp;: les comptes sont enregistrés dans ce navigateur seulement.</p>
             </div>
 
-            <button class="c-btn c-btn--primary c-btn--block" type="submit" id="c-login-btn"><span class="c-btn__txt">Recevoir le code</span><svg class="c-ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <div class="c-notice c-notice--err" id="c-login-fail" role="group" aria-labelledby="c-login-fail-t" hidden>
+              <svg class="c-ico" aria-hidden="true"><use href="#i-alert"/></svg>
+              <div>
+                <p id="c-login-fail-t"></p>
+                <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-login-demo" hidden>Continuer en mode démo</button>
+              </div>
+            </div>
+
+            <button class="c-btn c-btn--primary c-btn--block" type="submit" id="c-login-btn"><span class="c-btn__txt">Recevoir mon code</span><svg class="c-ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
             <p class="c-consent">En continuant, vous acceptez les conditions et la politique de confidentialité de Jeere.</p>
           </form>
           <p class="c-switch">Pas encore de compte&nbsp;? <a class="c-link" href="#inscription">Créer un compte</a></p>
@@ -155,13 +230,13 @@
 
         <!-- =========================== both flows, 2: the 6-digit code -->
         <section class="c-step" data-step="code" aria-labelledby="c-code-t" hidden>
-          <button class="c-back" type="button" id="c-code-back"><svg class="c-ico" aria-hidden="true"><use href="#i-back"/></svg>Modifier le numéro</button>
+          <button class="c-back" type="button" id="c-code-back"><svg class="c-ico" aria-hidden="true"><use href="#i-back"/></svg><span id="c-code-back-t">Changer d’adresse</span></button>
           <h1 class="c-title" id="c-code-t" tabindex="-1">Entrez le code</h1>
-          <p class="c-lead" id="c-code-lead">Dans le vrai produit, Jeere vous envoie un code à 6&nbsp;chiffres <span id="c-code-ch">sur WhatsApp</span>, au <strong class="c-nowrap" id="c-code-num"></strong>.</p>
+          <p class="c-lead" id="c-code-lead">Nous avons envoyé un code à 6&nbsp;chiffres <span id="c-code-ch">par e-mail</span> à <strong class="c-nowrap" id="c-code-num"></strong>.</p>
 
-          <div class="c-demo" id="c-demo">
+          <div class="c-demo" id="c-demo" hidden>
             <svg class="c-ico" aria-hidden="true"><use href="#i-info"/></svg>
-            <p><strong>Démo&nbsp;:</strong> aucun SMS ni WhatsApp n’est envoyé. Tapez n’importe quel code à 6&nbsp;chiffres.</p>
+            <p id="c-demo-t"><strong>Mode démo&nbsp;:</strong> aucun e-mail, SMS ni WhatsApp n’est envoyé. Tapez n’importe quel code à 6&nbsp;chiffres.</p>
           </div>
 
           <form class="c-form" id="c-form-code" novalidate>
@@ -169,7 +244,7 @@
               <label class="c-label" for="c-code">Code à 6&nbsp;chiffres</label>
               <div class="c-otp" id="c-otp">
                 <!-- One real input (paste, SMS autofill and screen readers see one field), drawn as 6 boxes -->
-                <input class="c-otp__input" id="c-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="done" aria-describedby="c-demo c-code-hint">
+                <input class="c-otp__input" id="c-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="done" aria-describedby="c-code-hint">
                 <div class="c-otp__cells" aria-hidden="true">
                   <span class="c-otp__cell"></span><span class="c-otp__cell"></span><span class="c-otp__cell"></span>
                   <span class="c-otp__sep"></span>
@@ -181,13 +256,21 @@
             </div>
             <button class="c-btn c-btn--primary c-btn--block" type="submit" id="c-code-btn"><span class="c-btn__txt">Valider</span></button>
             <div class="c-resend">
-              <p class="c-resend__wait" id="c-resend-wait"><span id="c-resend-pre">Pas reçu&nbsp;? Renvoyer le code dans</span> <span class="c-resend__time" id="c-resend-time">0:30</span></p>
+              <p class="c-resend__wait" id="c-resend-wait"><span id="c-resend-pre">Pas reçu&nbsp;? Renvoyer le code dans</span> <span class="c-resend__time" id="c-resend-time">1:00</span></p>
               <div class="c-resend__acts" id="c-resend-acts" hidden>
                 <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-resend"><svg class="c-ico" aria-hidden="true"><use href="#i-refresh"/></svg>Renvoyer le code</button>
-                <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-resend-sms"><svg class="c-ico" aria-hidden="true"><use href="#i-sms"/></svg>Recevoir par SMS</button>
+                <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-other"><svg class="c-ico" aria-hidden="true"><use href="#i-back"/></svg>Autre méthode</button>
               </div>
+              <p class="c-resend__msg" id="c-resend-msg" hidden></p>
             </div>
           </form>
+        </section>
+
+        <!-- =========================== an e-mail link was opened (when the template sends a link): finishing the login -->
+        <section class="c-step" data-step="wait" aria-labelledby="c-wait-t" hidden>
+          <p class="c-wait"><span class="c-spin c-spin--ink" aria-hidden="true"></span></p>
+          <h1 class="c-title" id="c-wait-t" tabindex="-1">Connexion en cours…</h1>
+          <p class="c-lead" id="c-wait-lead">Un instant, nous ouvrons votre compte.</p>
         </section>
 
         <!-- =========================== #inscription, 3: the store name -->
@@ -270,11 +353,12 @@
             <span class="c-me__av" id="c-me-av" aria-hidden="true"></span>
             <div>
               <h1 class="c-title c-title--sm" id="c-session-t" tabindex="-1"></h1>
-              <p class="c-me__sub">Votre compte est ouvert sur cet appareil.</p>
+              <p class="c-me__sub" id="c-me-sub">Votre compte est ouvert sur cet appareil.</p>
             </div>
           </div>
           <dl class="c-sum">
             <div><dt>Boutique</dt><dd id="c-sum-store"></dd></div>
+            <div id="c-sum-email-row" hidden><dt>E-mail</dt><dd id="c-sum-email"></dd></div>
             <div><dt>Numéro WhatsApp</dt><dd class="c-nowrap" id="c-sum-phone"></dd></div>
             <div><dt>Formule</dt><dd id="c-sum-plan"></dd></div>
             <div><dt>Studio</dt><dd id="c-sum-studio">Découverte (gratuit)</dd></div>
@@ -290,10 +374,10 @@
 
       </div>
 
-      <p class="c-real"><svg class="c-ico" aria-hidden="true"><use href="#i-shield"/></svg><span>Dans le vrai produit, vous vous connectez avec un code à usage unique envoyé sur WhatsApp, ou par SMS si besoin. Pas de mot de passe à retenir.</span></p>
+      <p class="c-real"><svg class="c-ico" aria-hidden="true"><use href="#i-shield"/></svg><span id="c-real-txt">Pas de mot de passe à retenir&nbsp;: vous entrez avec un code à usage unique, reçu par e-mail, par SMS ou sur WhatsApp.</span></p>
 
       <footer class="c-foot">
-        <p>Prototype Jeere&nbsp;: votre compte reste dans ce navigateur, rien n’est envoyé. Un concept Kreeative.</p>
+        <p id="c-foot-txt">Votre compte Jeere est enregistré de façon sécurisée (Supabase, serveurs à Paris). Un concept Kreeative.</p>
         <nav class="c-foot__nav" aria-label="Pied de page">
           <a class="c-link" href="../">Découvrir Jeere</a>
           <a class="c-link" href="../creer/">L’éditeur de boutique</a>
@@ -313,7 +397,7 @@
           <p class="c-msg__head"><span class="c-msg__av" aria-hidden="true"><svg viewBox="0 0 600 446" focusable="false"><use href="#cloud"/></svg></span><span class="c-msg__from">Jeere</span><span class="c-msg__when">maintenant</span></p>
           <p class="c-msg__body">Votre code Jeere&nbsp;: <strong>482&nbsp;913</strong>. Ne le partagez avec personne, même pas avec l’équipe Jeere.</p>
         </div>
-        <figcaption class="c-msg__cap">Exemple du message du vrai produit, sur WhatsApp ou par SMS. Ici, rien n’est envoyé.</figcaption>
+        <figcaption class="c-msg__cap">Exemple du message, par e-mail, par SMS ou sur WhatsApp.</figcaption>
       </figure>
       <ul class="c-perks">
         <li><svg class="c-ico" aria-hidden="true"><use href="#i-check"/></svg>Gratuit pour démarrer, sans carte bancaire</li>

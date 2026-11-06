@@ -1,4 +1,4 @@
-/* Jeere — the seller account: sign-up and login by phone number and a one-time code.
+/* Jeere — the seller account: sign-up and login with a one-time code (e-mail, SMS or WhatsApp).
    Black and white, like the editor's chrome (the Jeere logo itself is black ink). Colour only carries a meaning,
    in small doses: red = error, green = verified / done, orange = attention, blue = information
    (tokens below, same values as ../creer/builder.css; README « Couleurs d’état »).
@@ -401,3 +401,47 @@ a { color: inherit; }
 .c-choice--next { border-color: var(--ink); }
 .c-studio { margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--muted); text-align: center; }
 .c-studio .c-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- How she receives her code: e-mail (default), SMS, WhatsApp (auth.js) ---------- */
+.c-methods { margin: 0; padding: 0; border: 0; min-width: 0; }
+.c-methods > legend { padding: 0; margin-bottom: 8px; }
+.c-seg {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px;
+  border-radius: 16px; background: var(--grey-1); border: 1px solid var(--line);
+}
+.c-seg__opt { position: relative; display: block; min-width: 0; }
+/* The real radio covers its segment: tap, arrow keys and screen readers work natively */
+.c-seg__opt input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.c-seg__opt span {
+  display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 48px; padding: 0 6px;
+  border-radius: 12px; font-size: 15px; font-weight: 500; line-height: 1.2; color: var(--muted); text-align: center;
+  transition: background-color .15s, color .15s, box-shadow .15s;
+}
+.c-seg__opt span .c-ico { width: 18px; height: 18px; }
+.c-seg__opt:hover span { color: var(--ink); }
+.c-seg__opt input:checked + span { background: var(--white); color: var(--ink); box-shadow: 0 0 0 1.5px var(--ink), 0 1px 2px rgba(17, 17, 17, .08); }
+.c-seg__opt input:focus-visible + span { outline: 3px solid var(--ink); outline-offset: 2px; }
+@media (max-width: 379.98px) { .c-seg__opt span { gap: 5px; font-size: 14px; padding: 0 4px; } .c-seg__opt span .c-ico { width: 16px; height: 16px; } }
+.c-methods .c-hint { margin-top: 8px; }
+.c-opt { font-weight: 400; color: var(--muted); }
+.c-err__act { justify-self: start; }
+.c-form > .c-notice { margin-top: 0; }
+.c-notice--off > div, .c-notice--err > div { display: grid; gap: 10px; justify-items: start; }
+.c-notice--off .c-btn--ghost, .c-notice--err .c-btn--ghost { color: var(--ink); }
+.c-resend__msg { font-size: 14px; line-height: 1.45; text-align: center; color: var(--err-ink); font-weight: 500; }
+
+/* « Mode démo »: nothing leaves the browser */
+.c-modebar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 18px; padding: 10px 12px;
+  border-radius: 14px; border: 1.5px dashed rgba(17, 17, 17, .35); background: var(--white);
+}
+.c-modebar__pill {
+  display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px;
+  background: var(--warn-bg); color: var(--warn-ink); font-size: 12.5px; font-weight: 600; letter-spacing: .02em; white-space: nowrap;
+}
+.c-modebar__txt { flex: 1 1 200px; min-width: 0; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.c-modebar__retry { min-height: 44px; margin-left: auto; }
+
+/* An e-mail link being opened */
+.c-wait { margin-bottom: 18px; }
+.c-spin--ink { display: block; width: 28px; height: 28px; border-color: rgba(17, 17, 17, .15); border-top-color: var(--ink); }
