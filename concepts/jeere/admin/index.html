@@ -33,6 +33,8 @@
   <script src="../creer/tour.js" defer></script>
   <script src="../studio/plans.js" defer></script>
   <script src="../creer/publish.js" defer></script>
+  <!-- Client projects: the switcher's list, switching the store in view, invites (Supabase or this browser) -->
+  <script src="../creer/projects.js" defer></script>
   <script src="../creer/domains.js" defer></script>
   <script src="domaines.js" defer></script>
   <script src="admin.js" defer></script>
@@ -160,12 +162,18 @@
         <span class="a-lock"><svg class="logo__cloud jr-logo" viewBox="0 0 600 446" aria-hidden="true" focusable="false"><use href="#cloud"/></svg></span>
       </a>
     </div>
-    <div class="a-storecard">
-      <span class="a-storecard__av" data-bind="store-initial" aria-hidden="true">A</span>
-      <span class="a-storecard__txt">
-        <span class="a-storecard__name" data-bind="store-name">Ma boutique</span>
-        <span class="a-storecard__url" data-bind="store-url"></span>
-      </span>
+    <!-- The project switcher (client projects, ../creer/projects.js): the store in view, its role, the other projects -->
+    <div class="a-proj">
+      <button class="a-storecard a-proj__btn" type="button" id="a-proj-btn" data-act="projects" aria-haspopup="true" aria-expanded="false" aria-controls="a-proj-menu">
+        <span class="a-storecard__av" data-bind="store-initial" aria-hidden="true">A</span>
+        <span class="a-storecard__txt">
+          <span class="a-storecard__name" data-bind="store-name">Ma boutique</span>
+          <span class="a-storecard__url"><span class="a-proj__role" data-bind="proj-role" hidden></span><span data-bind="store-url"></span></span>
+        </span>
+        <svg class="a-ico a-proj__chev" aria-hidden="true"><use href="#i-down"/></svg>
+        <span class="a-sr">Changer de projet</span>
+      </button>
+      <div class="a-proj__menu" id="a-proj-menu" hidden></div>
     </div>
     <button class="a-btn a-btn--ghost a-btn--sm a-btn--block a-side__view" type="button" data-act="view-store"><svg class="a-ico" aria-hidden="true"><use href="#i-eye"/></svg>Voir la boutique</button>
     <nav class="a-nav" aria-label="Sections">
@@ -195,10 +203,12 @@
 
   <div class="a-frame">
     <header class="a-top">
-      <a class="a-top__store" href="#accueil" aria-label="Accueil du tableau de bord">
+      <button class="a-top__store" type="button" data-act="projects" aria-haspopup="dialog">
         <span class="a-top__av" data-bind="store-initial" aria-hidden="true">A</span>
         <span class="a-top__name" data-bind="store-name">Ma boutique</span>
-      </a>
+        <svg class="a-ico a-top__chev" aria-hidden="true"><use href="#i-down"/></svg>
+        <span class="a-sr">, changer de projet</span>
+      </button>
       <div class="a-search" id="a-search" role="search">
         <button class="a-ibtn a-search__back" type="button" data-act="search-close" aria-label="Fermer la recherche"><svg class="a-ico" aria-hidden="true"><use href="#i-back"/></svg></button>
         <div class="a-search__field">

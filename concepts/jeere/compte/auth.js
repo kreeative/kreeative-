@@ -23,8 +23,10 @@
  * demo checkout made (syncPlan); its answer overwrites the local copy. A log-out or a removed
  * account ends the Supabase session too.
  *
+ * Client projects: completeLogin also accepts the store invites waiting for her e-mail (acceptInvites).
+ *
  * window.JeereAuth = { isDemo, why, forceDemo, probe, sendCode, verifyCode, session, completeLogin,
- *   saveProfile, syncNow, signOut, describeError, maskEmail, CONFIG }.
+ *   saveProfile, syncNow, acceptInvites, signOut, describeError, maskEmail, CONFIG }.
  */
 (function () {
   'use strict';
@@ -348,7 +350,8 @@
         var written = writeAccount(acc) || acc;
         // her profile first, then the entitlements: the server's word (a demo subscription of this browser
         // goes up only in demo billing mode, see syncPlan)
-        return syncNow().then(syncPlan).then(function () { return readAccount() || written; });
+        // then the client projects she was invited to (an agency handing a store over to her)
+        return syncNow().then(syncPlan).then(acceptInvites).then(function () { return readAccount() || written; });
       });
     });
   }
@@ -416,6 +419,31 @@
     planSyncing.then(function () { planSyncing = null; }, function () { planSyncing = null; });
     return planSyncing;
   }
+  /* Client projects (migration jeere_client_projects): after a real log-in, the invites waiting for her
+   * e-mail are accepted once (rpc accept_store_invites: an agency hands her a store, with or without the
+   * agency's access kept). The stores she now has are announced by the dashboard (« Vous avez maintenant
+   * accès à … », 'jeere-projects-notice') and the project list is refreshed (../creer/projects.js).
+   * Resolves to the stores accepted ([] when none, offline, or the migration is not applied yet). */
+  var NOTICE_KEY = 'jeere-projects-notice';
+  function acceptInvites() {
+    var tok = accessToken();
+    if (!tok) return Promise.resolve([]);
+    return withTimeout(fetch(CONFIG.url + '/rest/v1/rpc/accept_store_invites', { method: 'POST', headers: { apikey: CONFIG.key, Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: '{}' }), CONFIG.timeoutMs, 'invites')
+      .then(function (r) { return r.ok ? r.json().catch(function () { return []; }) : []; }, function () { return []; })
+      .then(function (rows) {
+        rows = Array.isArray(rows) ? rows.filter(isObj) : [];
+        if (rows.length) {
+          lsSet(NOTICE_KEY, JSON.stringify({
+            at: new Date().toISOString(),
+            ids: rows.map(function (x) { return String(x.store_id || ''); }),
+            names: rows.map(function (x) { return clip(x.client_name || x.store_name || x.slug || 'une boutique', 80); })
+          }));
+          try { if (root.JeereProjects && typeof root.JeereProjects.refresh === 'function') root.JeereProjects.refresh(); } catch (e) { /* the dashboard refreshes on load */ }
+        }
+        return rows;
+      }, function () { return []; });
+  }
+
   // The one 14-day trial, started by the server (any billing mode) → Promise { ok, studio } | null (offline)
   function startTrial() {
     var acc = readAccount();
@@ -515,7 +543,7 @@
     CONFIG: CONFIG,
     isDemo: isDemo, why: why, forceDemo: forceDemo, probe: probe,
     sendCode: sendCode, verifyCode: verifyCode, session: session, completeLogin: completeLogin,
-    saveProfile: saveProfile, syncNow: syncNow, syncPlan: syncPlan, startTrial: startTrial, signOut: signOut, forgetSession: forgetSession,
+    saveProfile: saveProfile, syncNow: syncNow, syncPlan: syncPlan, startTrial: startTrial, acceptInvites: acceptInvites, signOut: signOut, forgetSession: forgetSession,
     describeError: describeError, maskEmail: maskEmail, watch: watch,
     _fromAccount: fromAccount
   };

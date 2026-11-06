@@ -1399,3 +1399,50 @@ html.has-savebar .a-catnav { top: var(--a-top-h); }
 .a-invoice__t { font-weight: 500; font-size: 14.5px; }
 .a-invoice__m { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .a-invoice__end { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+
+/* ---------- Client projects: the project switcher (top of the left menu; the top bar's store on the phone) ---------- */
+.a-top__store { border: 0; background: none; padding: 0 4px 0 0; font: inherit; color: var(--ink); text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.a-top__store:hover { background: var(--grey-1); }
+.a-top__chev { width: 16px; height: 16px; color: var(--muted); }
+.a-proj { position: relative; }
+.a-proj__btn { width: 100%; border: 0; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.a-proj__btn:hover { background: var(--grey-2); }
+.a-proj__btn .a-storecard__txt { flex: 1; }
+.a-proj__chev { width: 16px; height: 16px; color: var(--muted); }
+.a-proj__btn[aria-expanded="true"] .a-proj__chev { transform: rotate(180deg); }
+.a-proj__role { display: inline-block; margin-right: 6px; padding: 0 7px; border-radius: 999px; background: var(--ink); color: var(--white); font-size: 11.5px; font-weight: 500; line-height: 1.6; vertical-align: 1px; }
+.a-proj__menu {
+  position: absolute; left: 0; right: 0; top: calc(100% - 4px); z-index: 50; min-width: 240px;
+  background: var(--white); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--a-shadow-2); padding: 8px;
+  max-height: min(70vh, 520px); overflow-y: auto;
+}
+.a-proj__title { margin: 4px 10px 6px; font-size: 11.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.a-proj__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.a-proj__item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 10px; border: 0; border-radius: 11px;
+  background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+}
+.a-proj__item:hover { background: var(--grey-1); }
+.a-proj__item[aria-current="true"] { background: var(--grey-1); }
+.a-proj__av { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 8px; background: var(--grey-2); font-weight: 500; font-size: 13.5px; }
+.a-proj__item[aria-current="true"] .a-proj__av { background: var(--ink); color: var(--white); }
+.a-proj__txt { display: grid; min-width: 0; flex: 1; }
+.a-proj__name { font-size: 14.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a-proj__meta { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a-proj__check { width: 18px; height: 18px; }
+.a-proj--sheet .a-dialog__body { padding-top: 4px; }
+/* « Gérer ce projet » */
+.a-pm { display: grid; gap: 16px; }
+.a-pm__role { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.a-pm__sec { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.a-pm__h { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15.5px; font-weight: 500; }
+.a-pm__sec > .a-btn { justify-self: start; }
+.a-pm__sec .a-small { margin: 0; }
+.a-pm__invites { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.a-pm__invites li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px 8px 12px; border-radius: 12px; background: var(--grey-1); overflow-wrap: anywhere; }
+.a-pm__invites strong { font-weight: 500; }
+.a-copy { display: flex; gap: 8px; flex-wrap: wrap; }
+.a-copy .a-input { flex: 1 1 220px; min-width: 0; font-size: 14px; }
+@media (max-width: 479.98px) { .a-copy .a-btn { flex: 1 1 100%; } }
+.a-pm a.a-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.a-pm a.a-link .a-ico { width: 16px; height: 16px; }

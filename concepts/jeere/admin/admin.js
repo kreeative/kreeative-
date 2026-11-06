@@ -160,7 +160,7 @@
   const demoSig = () => (S.config ? str(S.config.template) + '/' + str(S.config.store.niche) : '');
   function freshAdmin() {
     let a = null;
-    try { if (typeof D.adminDefaults === 'function') a = D.adminDefaults(S.config, S.account, S.now); } catch (e) { a = null; }
+    try { if (typeof D.adminDefaults === 'function') a = D.adminDefaults(S.config, S.forClient ? null : S.account, S.now); } catch (e) { a = null; }
     if (!isObj(a)) {
       const d = copy(D.ADMIN_DEFAULTS) || {};
       a = { version: 1, orders: S.config && D.demoOrders ? D.demoOrders(S.config, 14, S.now) : [], settings: d, connectors: {} };
@@ -240,12 +240,12 @@
       code: clip(x.code, 20).toUpperCase(), kind: x.kind === 'fcfa' ? 'fcfa' : 'pct',
       value: Math.max(0, Math.min(x.kind === 'fcfa' ? 1000000 : 90, Math.round(Number(x.value) || 0))), active: x.active !== false, uses: Math.max(0, Math.round(Number(x.uses) || 0))
     }));
-    // The signed-in seller is the owner of the store
-    if (acc && acc.phone && !a.settings.team.some((m) => m.phone === acc.phone)) {
+    // The signed-in seller is the owner of the store (not of a client's store she builds: projects.js)
+    if (acc && acc.phone && !S.forClient && !a.settings.team.some((m) => m.phone === acc.phone)) {
       a.settings.team.unshift({ name: acc.firstName, phone: acc.phone, role: 'proprietaire' });
       changed = true;
     }
-    if (!a.settings.payoutPhone && acc && acc.phone) { a.settings.payoutPhone = acc.phone; changed = true; }
+    if (!a.settings.payoutPhone && acc && acc.phone && !S.forClient) { a.settings.payoutPhone = acc.phone; changed = true; }
     // Until the seller chooses her address, it follows the store's name, wherever it was renamed (here or in the Studio)
     if (S.config && a.subdomainChosen !== true && !a.settings.customDomain && D.subdomainFor) {
       const sub = D.subdomainFor(S.config.store.name);
@@ -255,6 +255,8 @@
   }
   function loadAll() {
     S.now = new Date();
+    // A client's store, seen by the agency (projects.js): her own number is never its owner nor its payout
+    try { S.forClient = !!(window.JeereProjects && window.JeereProjects.isClientProject()); } catch (e) { S.forClient = false; }
     S.account = readAccount();
     S.config = readConfig();
     const r = readAdmin();
@@ -262,7 +264,7 @@
     if (r.changed && isIn()) saveAdmin(true);
     // The account keeps the store's current name, also when it was renamed in the Studio
     const nm = S.config && str(S.config.store.name).trim();
-    if (isIn() && nm && S.account.storeName !== nm) { S.account.storeName = nm; saveAccount(); }
+    if (isIn() && nm && S.account.storeName !== nm && !S.forClient) { S.account.storeName = nm; saveAccount(); }
   }
   const isIn = () => !!(S.account && S.account.loggedIn);
 
@@ -720,6 +722,7 @@
       } else n.textContent = initials(name).charAt(0) || 'J';
     });
     $$('[data-bind="store-url"]').forEach((n) => { n.textContent = subdomain(); });
+    updateProjShell();
     const acc = S.account || {};
     $$('[data-bind="user-name"]').forEach((n) => { n.textContent = acc.firstName || 'Mon compte'; });
     $$('[data-bind="user-initial"]').forEach((n) => { n.textContent = initials(acc.firstName || name).charAt(0) || 'J'; });
@@ -766,6 +769,225 @@
     b.setAttribute('aria-expanded', 'true');
     const first = $('.a-menu-item, a', m);
     if (first) first.focus();
+  }
+
+  /* ---------- client projects: the switcher (../creer/projects.js) ---------- */
+
+  const PJ = () => window.JeereProjects || null;
+  const ROLE_LABEL = { owner: 'Propriétaire', agency: 'Agence', editor: 'Éditeur' };
+  const STATUS_LABEL = { proposition: 'Proposition', en_cours: 'En cours', livre: 'Livré' };
+  const MODE_LABEL = { entretien: 'Avec pack entretien', remis: 'Remise complète', editor: 'Modification seule' };
+  const projName = (e) => (e && (e.clientName || e.storeName || e.slug)) || 'Ma boutique';
+  function projCurrent() { try { return PJ() ? PJ().current() : null; } catch (e) { return null; } }
+  function projList() { try { return PJ() ? PJ().list() : []; } catch (e) { return []; } }
+  function projMeta(e) {
+    const bits = [ROLE_LABEL[e.role] || 'Propriétaire'];
+    // the status is a client project's (her own shop has none to show)
+    if (e.status && (e.role !== 'owner' || (e.clientName && !e.handoff))) bits.push(STATUS_LABEL[e.status]);
+    if (!e.remote) bits.push('dans ce navigateur');
+    return bits.join(' · ');
+  }
+  function projListHTML() {
+    const cur = projCurrent();
+    const items = projList();
+    return H`<p class="a-proj__title" id="pj-t">Projets</p>
+      ${items.length ? H`<ul class="a-proj__list" aria-labelledby="pj-t">${items.map((e) => {
+        const on = cur && cur.id === e.id;
+        return H`<li><button class="a-proj__item" type="button" data-act="proj-switch" data-id="${esc(e.id)}"${on ? ' aria-current="true"' : ''}>
+          <span class="a-proj__av" aria-hidden="true">${esc(initials(projName(e)).charAt(0) || 'J')}</span>
+          <span class="a-proj__txt"><span class="a-proj__name">${esc(projName(e))}</span><span class="a-proj__meta">${esc(fr(projMeta(e)))}</span></span>
+          ${on ? ico('check', 'a-proj__check') : ''}</button></li>`;
+      })}</ul>` : H`<p class="a-small" style="padding:4px 10px 8px">Aucun projet pour l’instant.</p>`}
+      <div class="a-menu-sep" role="separator"></div>
+      ${cur ? H`<button class="a-menu-item" type="button" data-act="proj-manage">${ico('gear')}Gérer ce projet</button>` : ''}
+      <button class="a-menu-item" type="button" data-act="proj-new">${ico('plus')}Nouveau projet client</button>`;
+  }
+  function closeProj() {
+    const m = $('#a-proj-menu');
+    const b = $('#a-proj-btn');
+    if (m && !m.hidden) { m.hidden = true; if (b) b.setAttribute('aria-expanded', 'false'); }
+  }
+  function openProjects(el) {
+    // The left menu (computer): a list under the button. The phone's top bar: a sheet.
+    if (el && el.id === 'a-proj-btn') {
+      const m = $('#a-proj-menu');
+      if (!m) return;
+      if (!m.hidden) { closeProj(); return; }
+      closeAcct();
+      m.innerHTML = projListHTML();
+      m.hidden = false;
+      el.setAttribute('aria-expanded', 'true');
+      const first = $('[aria-current="true"], .a-proj__item, .a-menu-item', m);
+      if (first) first.focus();
+      return;
+    }
+    openDialog(H`<div class="a-dialog__card a-proj--sheet">${dlgHead('pjs-t', 'Changer de projet')}<div class="a-dialog__body">${projListHTML()}</div></div>`, { sheet: true, labelledby: 'pjs-t' });
+  }
+  // After a switch (here, or a refresh that changed the store in view): everything is read again
+  function afterProjectChange(msg) {
+    closeProj();
+    clearDirty();
+    S.drafts = {};
+    loadAll();
+    if (!S.inApp) return;
+    if (window.location.hash !== '#accueil') go('#accueil'); else render(parseHash(), true);
+    if (msg) toast(msg);
+  }
+  function switchProject(id) {
+    if (S.dirty) { closeProj(); closeDialog(true); nudgeSave(); return; }
+    const cur = projCurrent();
+    if (cur && cur.id === id) { closeProj(); closeDialog(true); return; }
+    closeDialog(true);
+    PJ().switchTo(id).then((r) => {
+      if (!r.ok) { toast(r.message || 'Ce projet n’a pas pu s’ouvrir.'); return; }
+      afterProjectChange('Projet ouvert : ' + projName(r.entry) + '.');
+    });
+  }
+
+  // « Nouveau projet client »: the client's name and a template; the store is created under her account
+  function openNewProject() {
+    if (S.dirty) { closeProj(); nudgeSave(); return; }
+    closeProj();
+    const tpls = D.templates || {};
+    const ids = Object.keys(tpls).filter((k) => tpls[k] && tpls[k].name);
+    const html = H`<form class="a-dialog__card" data-dform="newproject" novalidate>${dlgHead('np-t', 'Nouveau projet client')}
+      <div class="a-dialog__body"><p class="a-dialog__lead">Le site est créé sous votre compte. Vous le montrez au client avec un lien d’aperçu privé, puis vous lui donnez l’accès.</p>
+        <div class="a-field"><label class="a-label" for="np-name">Nom du client</label><input class="a-input" id="np-name" name="client" maxlength="80" autocomplete="off" placeholder="Ex. : Sonia Luxury Hair" data-autofocus></div>
+        <fieldset class="a-fieldset"><legend>Modèle</legend><div class="a-radios">${ids.map((k, i) => H`<label class="a-radio"><input type="radio" name="template" value="${esc(k)}"${i === 0 ? ' checked' : ''}><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">${esc(tpls[k].name)}${tpls[k].style ? ' · ' + esc(tpls[k].style) : ''}</span><span class="a-radio__hint">${esc(fr(tpls[k].bestFor || tpls[k].description || ''))}</span></span></label>`)}</div></fieldset>
+      </div>
+      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="submit">${ico('plus')}Créer le projet</button></div></form>`;
+    openDialog(html, { labelledby: 'np-t', focus: '#np-name' });
+  }
+  function saveNewProject(form) {
+    clearErrors(form);
+    const v = serialize(form);
+    const name = clip(v.client, 80);
+    if (!name) { invalid(form.elements.client, 'Écrivez le nom du client.'); focusFirstError(form); return; }
+    const btn = $('button[type="submit"]', form);
+    if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
+    PJ().create({ clientName: name, template: v.template }).then((r) => {
+      if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+      if (!r.ok) { invalid(form.elements.client, r.message || 'Le projet n’a pas pu être créé.'); focusFirstError(form); return; }
+      closeDialog(true);
+      afterProjectChange('Projet créé : ' + name + '. Vous travaillez maintenant dessus.' + (r.remote ? '' : ' (Enregistré dans ce navigateur.)'));
+    });
+  }
+
+  // « Gérer ce projet »: status, private preview, invite the client, the agency's access
+  function openProject() {
+    closeProj();
+    const e = projCurrent();
+    if (!e) { openNewProject(); return; }
+    const url = PJ().previewUrl(e);
+    // the project's status is the agency's business (her project, or her access); a client's own store has none
+    const canManage = e.role === 'agency' || (e.role === 'owner' && !!e.clientName && !e.handoff);
+    const invites = e.invites || [];
+    const html = H`<div class="a-dialog__card">${dlgHead('pm-t', projName(e))}
+      <div class="a-dialog__body a-pm">
+        <p class="a-pm__role"><span class="a-chip a-chip--ink">${esc(ROLE_LABEL[e.role] || 'Propriétaire')}</span>${e.handoff === 'entretien' ? H` <span class="a-chip a-chip--line">Pack entretien</span>` : ''}${e.handoff === 'remis' ? H` <span class="a-chip a-chip--line">Remis au client</span>` : ''}</p>
+        ${e.role === 'agency' ? H`<p class="a-note">${ico('info')}<span>Le client est propriétaire de la boutique : ses ventes vont sur son compte. Vous gardez un accès Agence pour la modifier. Il peut le retirer.${e.owner ? ' Propriétaire : ' + esc(e.owner) + '.' : ''}</span></p>` : ''}
+        ${e.role === 'editor' ? H`<p class="a-note">${ico('info')}<span>Vous pouvez modifier et publier cette boutique. Elle appartient à ${esc(e.owner || 'sa propriétaire')}.</span></p>` : ''}
+        ${canManage ? H`<div class="a-field"><label class="a-label" for="pm-status">Statut du projet</label><div class="a-selectwrap"><select class="a-input" id="pm-status" data-projstatus>${['proposition', 'en_cours', 'livre'].map((s) => H`<option value="${s}"${(e.status || 'en_cours') === s ? ' selected' : ''}>${STATUS_LABEL[s]}</option>`)}</select>${ico('down')}</div></div>` : ''}
+        <section class="a-pm__sec" aria-labelledby="pm-prev"><h3 class="a-pm__h" id="pm-prev">${ico('eye')}Aperçu privé</h3>
+          ${url ? H`<p class="a-small">Un lien pour montrer le site au client, même s’il n’est pas encore en ligne. Seules les personnes qui ont ce lien le voient.</p>
+            <div class="a-copy"><label class="a-sr" for="pm-url">Lien d’aperçu privé</label><input class="a-input" id="pm-url" value="${esc(url)}" readonly>
+              <button class="a-btn a-btn--primary" type="button" data-act="proj-copy">${ico('copy')}Copier le lien</button></div>
+            <p class="a-small"><a class="a-link" href="${esc(url)}" target="_blank" rel="noopener">Ouvrir l’aperçu ${ico('external')}</a></p>`
+            : H`<p class="a-small">${e.remote ? 'Le lien arrive dans un instant : rouvrez cette fenêtre.' : 'Connectez-vous à votre compte Jeere : le projet est alors enregistré sur Jeere et reçoit son lien d’aperçu.'}</p>`}
+        </section>
+        ${e.role === 'owner' ? H`<section class="a-pm__sec" aria-labelledby="pm-inv"><h3 class="a-pm__h" id="pm-inv">${ico('user')}Accès du client</h3>
+          ${invites.length ? H`<ul class="a-pm__invites">${invites.map((i) => H`<li><span><strong>${esc(i.email)}</strong><span class="a-small"> · ${esc(MODE_LABEL[i.mode] || '')} · en attente</span></span>
+            <button class="a-btn a-btn--quiet a-btn--sm" type="button" data-act="proj-cancel-invite" data-invite="${esc(i.id)}">Annuler</button></li>`)}</ul>
+            <p class="a-small">Le client se connecte à Jeere avec cette adresse e-mail : le projet s’ouvre chez lui.</p>` : ''}
+          ${!e.agency ? H`<button class="a-btn a-btn--primary" type="button" data-act="proj-invite">${ico('share')}Inviter le client</button>` : ''}
+          ${e.agency ? H`<p class="a-small"><strong>${esc(e.agency)}</strong> a un accès Agence : cette personne peut encore modifier votre boutique (pack entretien). Vos ventes vont toujours sur votre compte.</p>
+            <button class="a-btn a-btn--ghost" type="button" data-act="proj-remove-agency">${ico('lock')}Retirer l’accès Agence</button>` : ''}
+        </section>` : ''}
+      </div>
+      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Fermer</button></div></div>`;
+    openDialog(html, { labelledby: 'pm-t', wide: true });
+  }
+  function copyPreview() {
+    const i = $('#pm-url');
+    if (!i) return;
+    const fallback = () => { i.focus(); i.select(); toast('Sélectionnez le lien puis copiez-le.'); };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(i.value).then(() => toast('Lien d’aperçu copié.'), fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  }
+  function setProjStatus(sel) {
+    const e = projCurrent();
+    if (!e) return;
+    PJ().setStatus(e.id, sel.value).then((r) => toast(r.ok ? 'Statut du projet : ' + STATUS_LABEL[sel.value] + '.' : (r.message || 'Le statut n’a pas pu être changé.')));
+  }
+
+  // « Inviter le client »: an e-mail and how the site is handed over
+  function openInvite() {
+    const e = projCurrent();
+    if (!e) return;
+    const html = H`<form class="a-dialog__card" data-dform="projinvite" novalidate>${dlgHead('pi-t', 'Inviter le client')}
+      <div class="a-dialog__body"><p class="a-dialog__lead">Le client reçoit l’accès en se connectant à Jeere avec cette adresse e-mail. Ses ventes vont toujours sur son propre compte (mobile money, carte), jamais sur le vôtre.</p>
+        <div class="a-field"><label class="a-label" for="pi-email">E-mail du client</label><input class="a-input" id="pi-email" name="email" type="email" inputmode="email" autocomplete="off" maxlength="254" placeholder="client@exemple.com" data-autofocus></div>
+        <fieldset class="a-fieldset"><legend>Comment remettre le site</legend><div class="a-radios">
+          <label class="a-radio"><input type="radio" name="mode" value="entretien" checked><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">Avec pack entretien</span><span class="a-radio__hint">${esc(fr('Le client devient propriétaire : son tableau de bord, ses paiements. Vous gardez un accès Agence pour continuer à modifier le site. Il peut le retirer quand il veut.'))}</span></span></label>
+          <label class="a-radio"><input type="radio" name="mode" value="remis"><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">Remise complète</span><span class="a-radio__hint">${esc(fr('Le client a tout. Votre accès est retiré : vous ne voyez plus ce projet.'))}</span></span></label>
+        </div></fieldset>
+        ${e.remote ? '' : H`<p class="a-small" style="margin-top:12px">Démo : l’invitation reste dans ce navigateur. Connectez-vous pour l’envoyer pour de vrai.</p>`}
+      </div>
+      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="submit">Inviter</button></div></form>`;
+    openDialog(html, { labelledby: 'pi-t', focus: '#pi-email' });
+  }
+  function refillInvite(email, mode, msg) {
+    if (!$('form[data-dform="projinvite"]')) openInvite();
+    const f = $('form[data-dform="projinvite"]');
+    if (!f) return;
+    f.elements.email.value = email;
+    const m = $('input[value="' + mode + '"]', f);
+    if (m) m.checked = true;
+    if (msg) { invalid(f.elements.email, msg); focusFirstError(f); }
+  }
+  async function saveProjInvite(form) {
+    clearErrors(form);
+    const e = projCurrent();
+    if (!e) return;
+    const v = serialize(form);
+    const email = str(v.email).trim().toLowerCase();
+    const mode = v.mode === 'remis' ? 'remis' : 'entretien';
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { invalid(form.elements.email, 'Écrivez l’adresse e-mail du client, par exemple sonia@exemple.com.'); focusFirstError(form); return; }
+    if (S.account && S.account.email && S.account.email === email) { invalid(form.elements.email, 'C’est votre propre adresse : écrivez celle du client.'); focusFirstError(form); return; }
+    if (mode === 'remis') {
+      const ok = await confirmBox({ title: 'Remise complète ?', text: 'Quand ' + projName(e) + ' acceptera l’invitation, vous perdrez l’accès à ce projet : vous ne pourrez plus le voir ni le modifier.', ok: 'Oui, tout remettre', cancel: 'Retour' });
+      if (!ok) { refillInvite(email, mode); return; }
+    }
+    const r = await PJ().invite(e.id, email, mode);
+    if (!r.ok) { refillInvite(email, mode, r.message || 'L’invitation n’a pas pu être enregistrée.'); return; }
+    closeDialog(true);
+    openProject();
+    toast(r.remote ? 'Invitation enregistrée pour ' + email + '. Prévenez votre client : il se connecte à Jeere avec cette adresse.' : 'Démo : invitation enregistrée dans ce navigateur pour ' + email + '.', { ms: 6500, tone: 'ok' });
+  }
+  function cancelProjInvite(el) {
+    const e = projCurrent();
+    if (!e) return;
+    PJ().cancelInvite(e.id, el.getAttribute('data-invite')).then((r) => { if (r.ok) { openProject(); toast('Invitation annulée.', { tone: 'ok' }); } else toast(r.message || 'L’invitation n’a pas pu être annulée.'); });
+  }
+  async function removeAgencyAccess() {
+    const e = projCurrent();
+    if (!e || !e.agency) return;
+    const ok = await confirmBox({ title: 'Retirer l’accès Agence ?', text: e.agency + ' ne pourra plus voir ni modifier votre boutique. Votre boutique, vos commandes et vos paiements ne changent pas.', ok: 'Retirer l’accès', danger: true });
+    if (!ok) { openProject(); return; }
+    const r = await PJ().removeAgency(e.id);
+    if (!r.ok) { toast(r.message || 'L’accès n’a pas pu être retiré.'); return; }
+    openProject();
+    toast('Accès Agence retiré.');
+  }
+  function updateProjShell() {
+    const e = projCurrent();
+    $$('[data-bind="proj-role"]').forEach((n) => {
+      const show = !!e && (e.role !== 'owner' || (!!e.clientName && !e.handoff));
+      n.hidden = !show;
+      n.textContent = show ? (e.role === 'owner' ? (STATUS_LABEL[e.status] || 'Client') : ROLE_LABEL[e.role]) : '';
+    });
   }
 
   /* ---------- search: orders, products, customers ---------- */
@@ -986,7 +1208,7 @@
       { id: 'products', done: photos >= 3, title: 'Ajoutez 3 produits avec une vraie photo', hint: photos ? photos + ' sur 3 pour l’instant. Une photo nette, à la lumière du jour, vend mieux qu’un dessin.' : 'Une photo nette, à la lumière du jour, vend mieux qu’un dessin.', href: '#produits' },
       { id: 'wave', done: isOn('mobile-money'), title: 'Connectez Wave et le mobile money', hint: 'Votre numéro Wave, Orange Money, MTN MoMo ou Moov Money : vos clients paient, l’argent arrive directement chez vous.', href: '#paiements' },
       { id: 'whatsapp', done: phoneOk(cfg.store.whatsapp), title: 'Ajoutez votre numéro WhatsApp', hint: 'Vos clients vous écrivent et vous recevez les commandes.', href: '#parametres/boutique',
-        quick: S.account && phoneOk(S.account.phone) ? { act: 'use-my-wa', icon: 'chat', label: 'Utiliser mon numéro ' + phoneFmt(S.account.phone) } : null },
+        quick: S.account && !S.forClient && phoneOk(S.account.phone) ? { act: 'use-my-wa', icon: 'chat', label: 'Utiliser mon numéro ' + phoneFmt(S.account.phone) } : null },
       { id: 'delivery', done: ownZones().length > 0, title: 'Choisissez vos communes de livraison', hint: 'Les communes où vous livrez, avec leurs frais.', href: '#livraison' },
       { id: 'studio', done: customised(cfg), title: 'Personnalisez votre boutique', hint: 'Vos couleurs, votre grand titre, vos textes : dans le Studio, avec l’aperçu sous les yeux.', act: 'open-editor' },
       { id: 'logo', done: !!storeLogo(), title: 'Ajoutez votre logo', hint: 'En haut de chaque page de votre boutique. Pas encore de logo ? Le Studio en crée un simple avec votre nom.', act: 'open-editor', focus: 'logo' },
@@ -2414,7 +2636,7 @@
       <div class="a-grid2" style="margin-top:16px">
         <div class="a-field"><label class="a-label" for="s-city">Ville</label><input class="a-input" id="s-city" name="city" maxlength="40" value="${esc(v.city)}" placeholder="Abidjan" autocomplete="address-level2"></div>
         <div class="a-field"><label class="a-label" for="s-wa">Numéro WhatsApp</label><input class="a-input" id="s-wa" name="whatsapp" type="tel" inputmode="tel" value="${esc(v.whatsapp)}" placeholder="Ex. : 05 44 12 34 56" autocomplete="tel"><p class="a-hint">Vos clients vous écrivent sur ce numéro. +225 est ajouté pour vous.</p>
-          ${!str(v.whatsapp).trim() && S.account && phoneOk(S.account.phone) ? H`<div><button class="a-btn a-btn--soft a-btn--sm" type="button" data-act="use-my-wa">${ico('chat')}${esc(fr('Utiliser mon numéro ' + phoneFmt(S.account.phone)))}</button></div>` : ''}</div>
+          ${!str(v.whatsapp).trim() && S.account && !S.forClient && phoneOk(S.account.phone) ? H`<div><button class="a-btn a-btn--soft a-btn--sm" type="button" data-act="use-my-wa">${ico('chat')}${esc(fr('Utiliser mon numéro ' + phoneFmt(S.account.phone)))}</button></div>` : ''}</div>
       </div>
       <div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">${ico('check')}Enregistrer</button></div>
     </form>`;
@@ -2446,7 +2668,7 @@
       cfg.store.whatsapp = waN;
     });
     if (!saved) return;
-    if (S.account) { S.account.storeName = name; saveAccount(); }
+    if (S.account && !S.forClient) { S.account.storeName = name; saveAccount(); }
     if (!S.admin.subdomainChosen && !S.admin.settings.customDomain && D.subdomainFor) S.admin.settings.subdomain = D.subdomainFor(name);
     if (isOn('whatsapp') && waN) S.admin.connectors.whatsapp.values.number = waN;
     saveAdmin();
@@ -3642,6 +3864,8 @@
   function doDeleteAccount(form) {
     if (fold(form.elements.confirm.value).trim() !== 'supprimer') { invalid(form.elements.confirm, 'Tapez SUPPRIMER pour confirmer.'); return; }
     [KEYS.config, KEYS.account, KEYS.admin, KEYS.open, KEYS.tour || 'jeere-tour'].forEach(lsDel);
+    // the client projects of this browser (projects.js: the list and the projects put aside) go too
+    try { Object.keys(window.localStorage).filter((k) => k === 'jeere-projects' || k.indexOf('jeere-project:') === 0).forEach(lsDel); } catch (e) { /* blocked storage */ }
     S.drafts = {};
     clearDirty();
     closeDialog(true);
@@ -3797,6 +4021,14 @@
     },
     'use-my-wa': () => useMyWhatsapp(),
     'share-store': () => shareStore(),
+    'projects': (el) => openProjects(el),
+    'proj-switch': (el) => switchProject(el.getAttribute('data-id')),
+    'proj-new': () => openNewProject(),
+    'proj-manage': () => openProject(),
+    'proj-copy': () => copyPreview(),
+    'proj-invite': () => openInvite(),
+    'proj-cancel-invite': (el) => cancelProjInvite(el),
+    'proj-remove-agency': () => removeAgencyAccess(),
     'share-product': (el) => shareProduct(el.getAttribute('data-id')),
     'share-copy': (el) => copyLink(el.getAttribute('data-url')),
     'share-native': (el) => nativeShare(el),
@@ -3894,7 +4126,7 @@
   };
 
   const FORMS = { product: saveProductForm, prefs: savePrefsForm, page: savePageForm, zones: saveZonesForm, subdomain: saveSubdomainForm, domain: saveDomainForm, invite: saveInviteForm, promo: savePromoForm, studiomember: saveStudioMember };
-  const DFORMS = { connector: saveConnectorForm, paymm: savePayForm, delete: doDeleteAccount, neworder: saveNewOrderForm, courier: saveCourierForm, fail: saveFailForm, deposit: saveDepositForm };
+  const DFORMS = { newproject: saveNewProject, projinvite: saveProjInvite, connector: saveConnectorForm, paymm: savePayForm, delete: doDeleteAccount, neworder: saveNewOrderForm, courier: saveCourierForm, fail: saveFailForm, deposit: saveDepositForm };
 
   function onClick(e) {
     const t = e.target;
@@ -3905,6 +4137,7 @@
     const acctBtn = t.closest('#a-acct-btn');
     if (acctBtn) { toggleAcct(); return; }
     if (!t.closest('#a-acct-menu')) closeAcct();
+    if (!t.closest('#a-proj-menu') && !t.closest('#a-proj-btn')) closeProj();
     // Desktop search: a click elsewhere closes the results
     if (!t.closest('#a-search') && !t.closest('[data-act="search-open"]')) { const p = $('#a-search-results'); if (p && !$('#a-search').classList.contains('is-open')) p.hidden = true; }
     // Dialog close buttons
@@ -3975,6 +4208,7 @@
     if (t.hasAttribute('data-pay')) { togglePayment(t); return; }
     if (t.hasAttribute('data-navpage')) { toggleNav(t); return; }
     if (t.hasAttribute('data-notif')) { toggleNotif(t); return; }
+    if (t.hasAttribute('data-projstatus')) { setProjStatus(t); return; }
     if (t.hasAttribute('data-courier')) { setCourier(t); return; }
     if (t.hasAttribute('data-promo')) { const x = S.admin.promos[parseInt(t.getAttribute('data-promo'), 10)]; if (x) { x.active = t.checked; saveAdmin(); refresh('[data-promo="' + t.getAttribute('data-promo') + '"]'); toast('Code ' + x.code + (x.active ? ' actif.' : ' en pause.')); } return; }
     if (t.id === 'no-commune') { const f = t.closest('form'); const o = t.options[t.selectedIndex]; if (f && o) { f.elements.fee.value = number(Number(o.getAttribute('data-fee')) || 0); newOrderTotals(f); } return; }
@@ -3991,6 +4225,8 @@
       if (closeSearch(false)) { const b = $('.a-top__searchbtn'); if (b && b.getClientRects().length) b.focus(); else { const i = $('#a-search-input'); if (i) i.blur(); } e.preventDefault(); return; }
       const m = $('#a-acct-menu');
       if (m && !m.hidden) { closeAcct(); const b = $('#a-acct-btn'); if (b) b.focus(); return; }
+      const pm = $('#a-proj-menu');
+      if (pm && !pm.hidden) { closeProj(); const b = $('#a-proj-btn'); if (b) b.focus(); return; }
       if (t && t.id === 'a-search-input') { closeSearch(); t.blur(); }
       return;
     }
@@ -4098,9 +4334,34 @@
     document.addEventListener('focusin', typing);
     document.addEventListener('focusout', () => setTimeout(typing, 50));
 
+    // Client projects (../creer/projects.js): a refresh that changed the store in view (her access was
+    // removed, a new device) reads everything again; another tab's switch arrives with the shared keys
+    window.addEventListener('jeere:project', () => {
+      if (!S.inApp) return;
+      const raw = lsGet(KEYS.config);
+      if (raw !== S.raw.config) afterProjectChange(''); else updateShell();
+    });
+    window.addEventListener('storage', (e) => { if (e.key === 'jeere-projects' && S.inApp) updateShell(); });
+
+    if (PJ()) PJ().ensure();
     loadAll();
     if (boot) boot.hidden = true;
     if (isIn()) showApp(false); else showGate();
+    if (PJ() && isIn()) {
+      const n = PJ().takeNotice();
+      if (n) toast('Vous avez maintenant accès à ' + listFr(n.names) + '.', { ms: 7000, tone: 'ok' });
+      PJ().refresh().then((r) => {
+        if (r && r.lost) toast('Vous n’avez plus accès à ' + projName(r.lost) + '.', { ms: 6000, tone: 'info' });
+        // A store just handed over to her opens at once
+        const id = n && Array.isArray(n.ids) ? n.ids[0] : '';
+        const cur = projCurrent();
+        if (id && PJ().get(id) && (!cur || cur.id !== id) && !S.dirty) {
+          PJ().switchTo(id).then((sw) => { if (sw.ok) afterProjectChange(''); });
+          return;
+        }
+        if (S.inApp) updateShell();
+      }, () => { /* offline: the list on this device */ });
+    }
   }
 
   window.JeereAdmin = {
