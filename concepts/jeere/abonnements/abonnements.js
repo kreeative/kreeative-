@@ -71,6 +71,7 @@
     var who = s.account && s.account.firstName ? s.account.firstName + ', ' : '';
     var txt;
     if (s.status === 'trial') txt = 'votre essai du Studio court encore ' + s.daysLeft + NB + 'jour' + (s.daysLeft > 1 ? 's' : '') + ', jusqu’au ' + P.date(s.endsAt) + '.';
+    else if (s.lifetime) txt = 'vous avez le Studio ' + s.plan.name + ' offert à vie.';
     else if (s.status === 'active') txt = 'vous êtes en Studio ' + s.plan.name + ' ' + (s.period === 'an' ? 'annuel' : 'mensuel') + ', renouvellement le ' + P.date(s.periodEnd) + '.';
     else if (s.status === 'canceling') txt = 'Studio ' + s.plan.name + ' jusqu’au ' + P.date(s.periodEnd) + ', puis Découverte (annulé).';
     else if (s.status === 'due') txt = 'votre Studio ' + s.plan.name + ' est à renouveler avant le ' + P.date(s.endsAt) + '.';

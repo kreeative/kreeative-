@@ -55,6 +55,7 @@
       l.textContent = s.label;
       b.setAttribute('data-state', s.status);
       var sub = s.status === 'trial' ? 'Essai de tout le Studio jusqu’au ' + P.date(s.endsAt)
+        : s.lifetime ? 'Studio ' + s.plan.name + ' · offert à vie'
         : s.status === 'active' ? 'Studio ' + s.plan.name + ' · renouvellement le ' + P.date(s.periodEnd)
         : s.status === 'canceling' ? 'Studio ' + s.plan.name + ' jusqu’au ' + P.date(s.periodEnd) + ', puis Découverte'
         : s.status === 'due' ? 'À renouveler avant le ' + P.date(s.endsAt)
@@ -228,6 +229,7 @@
     }
     function statusText(s) {
       if (s.status === 'trial') return 'Essai de tout le Studio : encore ' + s.daysLeft + NB + 'jour' + (s.daysLeft > 1 ? 's' : '') + ', jusqu’au ' + P.date(s.endsAt) + '. Aucun moyen de paiement enregistré : rien ne sera prélevé.';
+      if (s.lifetime) return 'Offert à vie : rien à payer, rien à renouveler.';
       if (s.status === 'active') return (s.period === 'an' ? 'Annuel' : 'Mensuel') + ', renouvellement le ' + P.date(s.periodEnd) + '.' + (s.pending ? ' Passage à ' + P.planById(s.pending.plan).name + ' à cette date.' : '');
       if (s.status === 'canceling') return 'Annulé : tout reste débloqué jusqu’au ' + P.date(s.periodEnd) + ', puis le Studio repasse en Découverte.';
       if (s.status === 'due') return 'Votre période est terminée : renouvelez avant le ' + P.date(s.endsAt) + ' pour garder tout le Studio.';

@@ -243,7 +243,8 @@
       members: members,
       invoices: invoices,
       method: methodById(s.method) ? s.method : '',
-      hideBadge: s.hideBadge !== false
+      hideBadge: s.hideBadge !== false,
+      lifetime: s.lifetime === true           // given for life by the team (never renewed, never charged)
     };
   }
 
@@ -300,6 +301,7 @@
       period: sub.period,
       endsAt: endsAt,             // end of the trial, of the paid period, or of the grace week
       periodEnd: sub.periodEnd,
+      lifetime: sub.lifetime === true && unlocked,   // « À vie » instead of a renewal date
       daysLeft: daysLeft,
       trialAvailable: signedIn && !sub.trialUsed && !unlocked,
       trialEnded: trialEnded,

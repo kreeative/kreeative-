@@ -116,6 +116,12 @@ Deno.serve(async (req: Request) => {
 
   if (action === 'get') return json({ ok: true, mode: MODE, plan: prof.plan, studio: prev });
 
+  // An account given the Studio for life by the team (studio.lifetime): nothing a browser sends changes it,
+  // neither a demo checkout nor a trial — the answer is always the plan the server keeps.
+  if (prev && prev.lifetime === true && (action === 'sync' || action === 'trial')) {
+    return json({ ok: true, mode: MODE, plan: prof.plan, studio: prev, lifetime: true });
+  }
+
   if (action === 'trial') {
     if (prev && prev.trialUsed === true) return json({ ok: false, code: 'used', mode: MODE, plan: prof.plan, studio: prev, message: 'Votre essai gratuit a déjà été utilisé.' }, 409);
     const now = Date.now();
