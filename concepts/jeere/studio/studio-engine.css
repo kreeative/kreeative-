@@ -106,3 +106,13 @@
 .st-eng-insp .dz-gb__in .st-eng-list, .st-eng-insp .dz-gb__in .st-eng-actions, .st-eng-insp .dz-gb__in .st-eng-photos, .st-eng-insp .dz-gb__in .st-eng-code { padding-left: 0; padding-right: 0; margin-left: 0; margin-right: 0; }
 .st-eng-insp .st-eng-bps .st-eng-seg { flex: 1; }
 .st-eng-insp > .st-eng-note { margin: 0 12px 8px; }
+
+/* wave 1: the align / distribute row (inspector of the DualEngine nodes), « Mixte » values */
+.st-eng-alignrow { display: flex; align-items: center; gap: 2px; padding: 8px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.st-eng-alignrow .st-eng-ib { width: 28px; height: 28px; }
+.st-eng-alignrow .st-eng-ib:disabled { opacity: 0.35; cursor: default; }
+.st-eng-alignrow__sep { width: 1px; height: 18px; background: rgba(255, 255, 255, 0.12); margin: 0 4px; }
+.st-eng-num.is-mixed input::placeholder, .st-eng-color.is-mixed .st-eng-input { color: #9E9E9E; font-style: italic; }
+.st-eng-seg.is-mixed { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); }
+/* wave 1: the crop mode of a detached photo hides the node handles (its own frame shows) */
+body.st-eng-cropping .st-eng-ov { visibility: hidden; }

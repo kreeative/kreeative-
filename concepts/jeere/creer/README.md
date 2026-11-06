@@ -1218,6 +1218,34 @@ engine path for a section that has it, and the engine is not even loaded).
   by content.
 - `engine-sections.js` is loaded right after `elstyles.js` on every page that reads the fiche
   (`creer/`, `admin/`, `compte/`, `studio/`). Global `window.JeereEngineSections`.
+- **Wave 1 of the Studio audit** (all optional, kept by the sanitiser, never added):
+  - `semantic.attrs` keeps a store behaviour: `data-jst-action` (one of `go`, `add`, `menu`, `wa`,
+    `scroll`, `ext`, `qty`, `pdp-qty`, `remove`) with its `data-product` / `data-page` / `data-page-id`
+    / `data-section` / `data-delta` / `data-quick`, and `target="_blank"` with an href. render.js's
+    delegated clicks then work on a detached section (« Ajouter » adds to the cart).
+  - `node.bind = { product, field: 'name' | 'price' | 'image' }` on a text or an image: `sectionHTML(s, m)`
+    (render.js passes its model) draws the product's current name, price or photo there
+    (`boundSection(s, m)`), so a detached products section follows the catalogue.
+  - image nodes: `crop.fx` / `crop.fy` (the focal point; with them `crop.w < 1` is a zoom of `1 / w`,
+    drawn as a scale about the focal point clipped back to the box) and `adjust { brightness, contrast,
+    saturate (0–200, %), grayscale, sepia (0–100), hue (−180–180°) }` (CSS filters).
+
+## Links, alternative texts, buttons and SEO (wave 1 of the Studio audit)
+
+- **Every store link has an `href`** (`render.js`, `withHrefs`): a link with `data-jst-action="go"` gets an
+  in-page address (`#/`, `#/produits/<id>`, `#/pages/<slug>`, `#/panier`, `#/paiement`, `#/confirmation`),
+  or, with `render(config, root, { linkBase: '/b/<slug>' })`, a path address under that base for a
+  published store. The previews keep intercepting the clicks. The category tiles link to the first
+  products section (`#<section id>`, `data-jst-action="scroll"`).
+- **Alternative texts**: hero and « À propos » photos read `settings.imageAlt`, else the demo photo's
+  description, else the section's title; product photos read `products[].alt`, else the product's name.
+- **A button's link** (hero, WhatsApp): `settings.buttonLink` = `home` | `cart` | `whatsapp` | `page:<id>` |
+  `product:<id>` | `section:<id>` | `https://…`, `settings.buttonNewTab: true`. With it the button is an
+  `<a class="jst-btn" href>`; without it, exactly the template's `<button>` as before.
+- **SEO** apart from the store's name and tagline: `store.seo` and `pages[].seo` =
+  `{ title (70), description (160), noindex }`. Empty: the name, the tagline, the page's title and text.
+- All of them are optional keys, repaired by `normalizeConfig` (`normSectionExtras`, `normSeo`) and never
+  added: a fiche without them is unchanged.
 
 ## Seller accounts (`../compte/`)
 

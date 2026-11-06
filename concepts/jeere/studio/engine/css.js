@@ -325,6 +325,7 @@
     var m = L.modes(rn);
     var main = new Decls(), inner = null;
     var isText = rn.type === 'text', isImage = rn.type === 'image', isContainer = !!(rn.children && rn.layoutParent);
+    var cropZoom = null;
     var squircle = hasSquircle(rn.corners) && rn.type !== 'ellipse';
     var shadows = (rn.effects || []).filter(function (e) { return e.visible !== false && (e.type === 'dropShadow' || e.type === 'innerShadow'); });
     var squircleStrokes = squircle ? (rn.strokes || []).filter(function (st) { return st.visible !== false && model.strokeMode(st) === 'shadow' && typeof st.width === 'number' && st.width > 0; }) : [];
@@ -520,7 +521,15 @@
       (inner || main).set('object-fit', rn.fit && rn.fit !== 'fill' ? fitMap[rn.fit] || 'cover' : 'cover');
       if (rn.fit === 'crop' && rn.crop) { // §3.3: visible part of the image → object-position (cover keeps the scale)
         var ic = rn.crop;
-        (inner || main).set('object-position', pct(ic.w < 1 ? ic.x / (1 - ic.w) * 100 : 50) + ' ' + pct(ic.h < 1 ? ic.y / (1 - ic.h) * 100 : 50));
+        // the focal point (crop.fx / fy, the Studio's crop mode) wins; else derived from the visible window
+        var fxc = typeof ic.fx === 'number' ? ic.fx * 100 : (ic.w < 1 ? ic.x / (1 - ic.w) * 100 : 50);
+        var fyc = typeof ic.fy === 'number' ? ic.fy * 100 : (ic.h < 1 ? ic.y / (1 - ic.h) * 100 : 50);
+        (inner || main).set('object-position', pct(fxc) + ' ' + pct(fyc));
+        // a zoom (visible window narrower than the picture, w < 1): scaled about the focal point and clipped
+        // back to the box by clip-path, so the layout never moves (as the template photos, elstyles.js)
+        // (only the crops of the Studio's crop mode, which carry fx / fy: an older crop's w < 1 only placed the photo)
+        var zc = typeof ic.fx === 'number' && ic.w > 0 && ic.w < 0.9995 ? 1 / ic.w : 1;
+        if (isImage && zc > 1) cropZoom = { z: zc, fx: fxc, fy: fyc };
       }
     }
     var bm = BLEND_CSS[rn.blendMode];
@@ -618,6 +627,17 @@
         if (last && last.type === 'solid' && (last.color.a === undefined || last.color.a >= 1) && (last.opacity === undefined || last.opacity >= 1)) warn('backdrop-opaque', 'Background blur behind an opaque fill is invisible');
       }
     });
+    // an image's colour adjustments (adjust: brightness / contrast / saturate in %, grayscale / sepia in %, hue in °)
+    if (isImage && rn.adjust) {
+      var aj = rn.adjust, af = [];
+      if (aj.brightness !== undefined) af.push('brightness(' + num(aj.brightness / 100) + ')');
+      if (aj.contrast !== undefined) af.push('contrast(' + num(aj.contrast / 100) + ')');
+      if (aj.saturate !== undefined) af.push('saturate(' + num(aj.saturate / 100) + ')');
+      if (aj.grayscale !== undefined) af.push('grayscale(' + num(aj.grayscale / 100) + ')');
+      if (aj.sepia !== undefined) af.push('sepia(' + num(aj.sepia / 100) + ')');
+      if (aj.hue !== undefined) af.push('hue-rotate(' + num(aj.hue) + 'deg)');
+      filters = af.concat(filters);
+    }
     if (filters.length) { var f0 = main.get('filter'); main.set('filter', (f0 ? f0 + ' ' : '') + filters.join(' ')); }
 
     /* ---- §3.6 typography */
@@ -657,7 +677,17 @@
     if (g2.flipH) tr.push('scaleX(-1)');
     if (g2.flipV) tr.push('scaleY(-1)');
     if (rn.transform && rn.transform.scale !== undefined && rn.transform.scale !== 1) tr.push('scale(' + num(rn.transform.scale) + ')');
-    if (tr.length) { main.set('transform', tr.join(' ')); main.set('transform-origin', '50% 50%'); }
+    if (cropZoom) {
+      // the crop's zoom composed with the node's own transform: rotate / flip about the centre, then the
+      // zoom about the focal point (percentages of the element's own box: right at every breakpoint)
+      var zk = 1 - 1 / cropZoom.z, zfx = cropZoom.fx, zfy = cropZoom.fy;
+      var zoomT = 'translate(' + pct(zfx) + ',' + pct(zfy) + ') scale(' + num(cropZoom.z) + ') translate(' + pct(-zfx) + ',' + pct(-zfy) + ')';
+      main.set('transform', tr.length ? 'translate(50%,50%) ' + tr.join(' ') + ' translate(-50%,-50%) ' + zoomT : zoomT);
+      main.set('transform-origin', '0 0');
+      var rr0 = main.get('border-radius');
+      var rmax = rr0 ? Math.max.apply(null, String(rr0).split(/\s+/).map(function (v) { return parseFloat(v) || 0; })) : 0;
+      if (!main.get('clip-path')) main.set('clip-path', 'inset(' + [zfy * zk, (100 - zfx) * zk, (100 - zfy) * zk, zfx * zk].map(function (v) { return pct(Math.round(v * 1000) / 1000); }).join(' ') + (rmax ? ' round ' + px(Math.round(rmax / cropZoom.z * 100) / 100) : '') + ')');
+    } else if (tr.length) { main.set('transform', tr.join(' ')); main.set('transform-origin', '50% 50%'); }
 
     var svgDecls = null;
     if (rn.type === 'line') {

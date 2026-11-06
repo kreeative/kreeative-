@@ -162,6 +162,19 @@
   }
 
   /* multi-selection ({ kind: 'multi', ids: [...] }): always section ids, in fiche order */
+  /* the store's public address as the Studio shows it (référencement, pages): the store's NAME through
+   * JEERE_DATA.subdomainFor (it used to receive the whole fiche: « object-object.jeere.shop »). One
+   * helper, so the address can move (jeere.kreeative.xyz/b/<slug>) in one place. */
+  function storeAddress(path) {
+    var name = (state.config && state.config.store && state.config.store.name) || '';
+    var base = 'ma-boutique.jeere.shop';
+    try {
+      if (typeof D.storeAddress === 'function') base = D.storeAddress(state.config) || base;
+      else if (typeof D.subdomainFor === 'function') base = D.subdomainFor(name) || base;
+    } catch (e) { /* the default */ }
+    return String(base).replace(/^https?:\/\//, '').replace(/\/$/, '') + (path || '');
+  }
+
   function isMulti(sel) { return !!(sel && sel.kind === 'multi' && Array.isArray(sel.ids)); }
   function selectedSectionIds() {
     var sel = state.sel;
@@ -288,13 +301,50 @@
     saveStateEl.setAttribute('aria-label', saveLabelEl.textContent);
   }
 
+  var unsaved = false;   // a change waits for the debounced save
   function scheduleSave() {
+    unsaved = true;
     setSaveState('saving');
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(saveNow, 600);
   }
 
+  /* Leaving the Studio (reload, closing the tab, Ctrl Alt P, « Éditeur simple », a link): what is being
+   * typed is committed (a field commits on blur, a text edited in place on finish) and the fiche is
+   * written NOW — the 600 ms debounce used to lose the last edit. `soft` (the tab only hidden): save
+   * without touching the focus. */
+  function flushPending(soft) {
+    if (!soft) {
+      try {
+        var a = document.activeElement;
+        if (a && a !== document.body && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') && !(a.closest && a.closest('.st-ab__root'))) a.blur();
+      } catch (e) { /* nothing focused */ }
+      if (inlineEdit) { try { finishInlineEdit(true); } catch (e) { /* the edit is lost, not the save */ } }
+      if (hooks.flushPending) { try { hooks.flushPending(); } catch (e) { /* module error */ } }
+    }
+    if (unsaved || saveTimer) return saveNow();
+    return true;
+  }
+  /* the simple editor, on the same fiche, straight into the editor (not its welcome screen) */
+  var SIMPLE_URL = '../creer/#editeur';
+  /* the editor's one-shot instruction (JEERE_DATA.STORAGE_KEYS.open, read and deleted by creer/editor.js):
+   * open the editor itself, on the page shown here, instead of its « Créez votre boutique » screen */
+  function markOpenSimple() {
+    var key = (D.STORAGE_KEYS && D.STORAGE_KEYS.open) || 'jeere-studio-open';
+    var pg = state.page === 'product' || state.page === 'page' ? state.page : 'home';
+    var o = { page: pg };
+    if (pg === 'product' && state.productId) o.productId = state.productId;
+    if (pg === 'page' && state.pageId) o.pageId = state.pageId;
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) { /* blocked storage: the start screen then */ }
+  }
+  function goSimple() {
+    flushPending();
+    markOpenSimple();
+    window.location.href = SIMPLE_URL;
+  }
+
   function saveNow() {
+    unsaved = false;
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
     var out;
     try { out = D.normalizeConfig(state.config); } catch (e) { out = state.config; }
@@ -326,9 +376,10 @@
       return;
     }
     if (opts.structure) prevCache = {}; // the insert previews render in the current style: drop them when it moves
-    scheduleRender();
+    scheduleRender(opts);
     scheduleSave();
-    buildTree();
+    /* a burst of typing (coalesced commits) rebuilds the layers once it pauses, not on every key */
+    if (opts.coalesce && !opts.structure && !opts.engine && !opts.engineEntry) scheduleTree(); else buildTree();
     if (opts.structure) buildInspector();
     syncTopBar();
     if (hooks.afterChange) { try { hooks.afterChange(opts); } catch (e) { /* module error, not ours */ } }
@@ -355,10 +406,227 @@
     positionTags();
   }
 
-  function scheduleRender() {
+  /* ---------------------------------------------------------------- incremental rendering (wave 1)
+   * A change used to re-render EVERY artboard, synchronously, in one frame: on a big store (36 sections,
+   * 54 products, 5 artboards) that was 200–250 ms of blocking per keystroke, mostly the layout of whole
+   * pages. Now:
+   *   - each artboard is drawn into an off-document copy (no style, no layout: ~5 ms) and only the
+   *     top-level parts and the sections whose markup changed are swapped into the live artboard;
+   *   - the artboards in view are patched first (the active one first), within a ~8 ms budget per
+   *     frame; the artboards out of view wait until the typing pauses (200 ms), then one per frame;
+   *   - renderArtboards() (export, tests, a new page) still draws everything at once.
+   * Anything the patch cannot prove identical (a desktop header whose links are fitted to the width,
+   * a detached section still waiting for the engine) falls back to the full render of that artboard. */
+  var dirtyAbs = {}, hiddenTimer = null, burst = false;
+  function scheduleRender(opts) {
+    /* typing (a coalesced burst): only the artboard she is looking at follows each key; the others
+     * catch up when the typing pauses */
+    burst = !!(opts && opts.coalesce && !opts.structure);
+    activePresets().forEach(function (p) { dirtyAbs[p.key] = true; });
+    if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; }
     if (renderQueued) return;
     renderQueued = true;
-    requestAnimationFrame(function () { renderQueued = false; renderArtboards(); });
+    requestAnimationFrame(renderStep);
+  }
+  function abInView(key) {
+    var ab = abEls[key];
+    if (!ab || ab.classList.contains('is-hidden') || !stage) return false;
+    var r = ab.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    return r.right > sr.left && r.left < sr.right && r.bottom > sr.top && r.top < sr.bottom;
+  }
+  function renderStep() {
+    renderQueued = false;
+    var keys = Object.keys(dirtyAbs).filter(function (k) { return !!roots[k]; });
+    if (!keys.length) return;
+    var pk = primaryKey();
+    var vis = keys.filter(abInView).sort(function (a, b) { return (a === pk ? -1 : 0) - (b === pk ? -1 : 0); });
+    if (burst) vis = vis.filter(function (k) { return k === pk; }).concat(vis.indexOf(pk) === -1 ? vis.slice(0, 1) : []);
+    var t0 = performance.now(), did = 0;
+    curLog = { abs: [], at: Math.round(t0) };
+    for (var i = 0; i < vis.length; i++) {
+      if (did) break; // one artboard per frame: its patch and its layout fit in the frame
+      renderOne(vis[i], true);
+      delete dirtyAbs[vis[i]];
+      curLog.abs.push(vis[i]);
+      did++;
+    }
+    curLog.patch = +(performance.now() - t0).toFixed(1);
+    if (did) afterArtboards(); else curLog = null;
+    if (vis.length > did) { renderQueued = true; requestAnimationFrame(renderStep); return; }
+    if (Object.keys(dirtyAbs).length) {
+      if (hiddenTimer) clearTimeout(hiddenTimer);
+      hiddenTimer = setTimeout(function () { hiddenTimer = null; burst = false; requestAnimationFrame(renderHiddenStep); }, burst ? 260 : 120);
+    }
+  }
+  function renderHiddenStep() {
+    var keys = Object.keys(dirtyAbs).filter(function (k) { return !!roots[k]; });
+    if (!keys.length || renderQueued) return;
+    var t0 = performance.now(), did = 0;
+    curLog = { abs: [], hidden: true, at: Math.round(t0) };
+    for (var i = 0; i < keys.length; i++) {
+      if (did) break;
+      renderOne(keys[i], true);
+      delete dirtyAbs[keys[i]];
+      curLog.abs.push(keys[i]);
+      did++;
+    }
+    curLog.patch = +(performance.now() - t0).toFixed(1);
+    if (did) afterArtboards(); else curLog = null;
+    if (Object.keys(dirtyAbs).length) requestAnimationFrame(renderHiddenStep);
+  }
+  /* the artboards out of view, drawn now (an export, a test, the camera bringing them in) */
+  function flushRenders() {
+    if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; }
+    var keys = Object.keys(dirtyAbs).filter(function (k) { return !!roots[k]; });
+    if (!keys.length) return false;
+    keys.forEach(function (k) { renderOne(k, true); delete dirtyAbs[k]; });
+    afterArtboards();
+    return true;
+  }
+  /* after a full render, the copies the next patch compares with are drawn while nothing happens, so the
+   * first key typed afterwards is a patch too */
+  var seedQueued = false;
+  function seedCaches() {
+    if (!seedQueued) return;
+    var key = activePresets().map(function (p) { return p.key; }).filter(function (k) { return roots[k] && !roots[k].__stParts && !dirtyAbs[k]; })[0];
+    if (!key) { seedQueued = false; return; }
+    var run = function () {
+      var p = presetByKey(key), live = roots[key];
+      if (!live || live.__stParts || dirtyAbs[key]) return;
+      try { patchRender(live, renderOpts(p), true); } catch (e) { /* the next change renders it fully */ }
+      setTimeout(seedCaches, 30);
+    };
+    if (window.requestIdleCallback) window.requestIdleCallback(run, { timeout: 600 }); else setTimeout(run, 0);
+  }
+  function renderOpts(p) { return { device: p.device, page: state.page, productId: state.productId, pageId: state.pageId }; }
+  function renderOne(key, incremental) {
+    var p = presetByKey(key), rootEl = roots[key];
+    if (!p || !rootEl) return;
+    try {
+      if (!incremental || !patchRender(rootEl, renderOpts(p))) R.render(state.config, rootEl, renderOpts(p));
+      else {
+        /* render() applies the element styles itself: the patch path does it on the live artboard */
+        var ES = window.JeereElStyles;
+        if (ES && typeof ES.apply === 'function') { try { ES.apply(state.config, rootEl); } catch (e) { /* a layer */ } }
+      }
+    } catch (e) {
+      try {
+        rootEl.className = '';
+        rootEl.__stParts = null;
+        rootEl.innerHTML = '<div class="st-ab__err">L’aperçu n’a pas pu être affiché.<small>La fiche boutique est peut-être abîmée. Annulez la dernière action (Ctrl Z), ou importez une fiche valide.</small></div>';
+      } catch (e2) { /* nothing more */ }
+    }
+  }
+  /* the last render steps, for the performance tests: [{ abs, patch, styles, decor, hooks }] (ms) */
+  var renderLog = [];
+  var curLog = null;
+  function afterArtboards() {
+    var t0 = performance.now();
+    if (hooks.elStyleOptions) applyElStyles(true);
+    var t1 = performance.now();
+    applyDecor();
+    var t2 = performance.now();
+    if (hooks.afterRender) { try { hooks.afterRender(); } catch (e) { /* module error */ } }
+    if (curLog) { curLog.styles = +(t1 - t0).toFixed(1); curLog.decor = +(t2 - t1).toFixed(1); curLog.hooks = +(performance.now() - t2).toFixed(1); renderLog.push(curLog); if (renderLog.length > 60) renderLog.shift(); curLog = null; }
+  }
+  var JST_STATE = ['__jstCart', '__jstForm', '__jstMenu', '__jstPeek', '__jstErr', '__jstCartCleared', '__jstView'];
+  function partsOf(el) {
+    return Array.prototype.filter.call(el.children, function (c) { return !(c.tagName === 'STYLE' && c.hasAttribute('data-jst-es')); });
+  }
+  function sigOf(el) { return el.tagName + '|' + (el.getAttribute('data-section-id') || '') + '|' + (el.getAttribute('data-section-type') || ''); }
+  /* bring a live node to the new markup with the fewest DOM writes: a text that changed is one text
+   * node (0.3 ms of layout), where swapping the whole section cost 7–10 ms (its style and layout from
+   * scratch). Same tag: attributes and children are brought over one by one; anything else is replaced.
+   * The Studio's own classes on the store (st-sel, st-hov…) are kept: applyDecor owns them. */
+  function morph(a, b) {
+    if (a.nodeType !== b.nodeType || (a.nodeType === 1 && a.tagName !== b.tagName)) { a.parentNode.replaceChild(b, a); return; }
+    if (a.nodeType !== 1) { if (a.nodeValue !== b.nodeValue) a.nodeValue = b.nodeValue; return; }
+    var i, ba = b.attributes, aa = a.attributes;
+    for (i = 0; i < ba.length; i++) {
+      var n = ba[i].name, v = ba[i].value;
+      if (n === 'class') {
+        var keep = Array.prototype.filter.call(a.classList, function (c) { return c.indexOf('st-') === 0; });
+        var want = keep.length ? v + ' ' + keep.join(' ') : v;
+        if (a.getAttribute('class') !== want) a.setAttribute('class', want);
+      } else if (a.getAttribute(n) !== v) a.setAttribute(n, v);
+    }
+    for (i = aa.length - 1; i >= 0; i--) {
+      var an = aa[i].name;
+      if (!b.hasAttribute(an) && an.indexOf('data-st-') !== 0 && !(an === 'class' && a.className && /(^|\s)st-/.test(a.className))) a.removeAttribute(an);
+    }
+    var ac = Array.prototype.slice.call(a.childNodes), bc = Array.prototype.slice.call(b.childNodes);
+    if (ac.length !== bc.length) {
+      while (a.firstChild) a.removeChild(a.firstChild);
+      bc.forEach(function (c) { a.appendChild(c); });
+      return;
+    }
+    for (i = 0; i < ac.length; i++) morph(ac[i], bc[i]);
+  }
+  /* draw into an off-document copy, swap in what changed; false: the caller renders the artboard fully */
+  function patchRender(live, opts, seedOnly) {
+    var scratch = live.__stScratch;
+    if (!scratch) { scratch = live.__stScratch = document.createElement('div'); }
+    JST_STATE.forEach(function (k) { scratch[k] = live[k]; });
+    var ES = window.JeereElStyles, EN = window.JeereEngineSections;
+    var esApply = ES && ES.apply, enApply = EN && EN.apply;
+    /* the copy needs neither the element styles (applied on the live artboard after) nor the engine's
+     * late re-render (it would draw the off-document copy again) */
+    if (ES) ES.apply = function () { return ''; };
+    if (EN) EN.apply = function () {};
+    /* render() waits for document.fonts.ready to fit a desktop header again: on the copy that is useless,
+     * and reading it flushes the styles of the whole page (a forced recalculation per keystroke) */
+    var fontsHidden = false;
+    try { Object.defineProperty(document, 'fonts', { value: null, configurable: true }); fontsHidden = true; } catch (e) { fontsHidden = false; }
+    try { R.render(state.config, scratch, opts); }
+    finally {
+      if (ES) ES.apply = esApply;
+      if (EN) EN.apply = enApply;
+      if (fontsHidden) { try { delete document.fonts; } catch (e) { /* the prototype's getter is back anyway */ } }
+    }
+    JST_STATE.forEach(function (k) { live[k] = scratch[k]; });
+    if (scratch.querySelector('[data-eng-pending]')) return false;
+    var cache = live.__stParts;
+    var nk = partsOf(scratch), lk = partsOf(live);
+    var nsig = nk.map(sigOf);
+    var html = nk.map(function (c) { return c.tagName === 'MAIN' ? null : c.outerHTML; });
+    var mainIdx = nsig.findIndex ? nsig.findIndex(function (x) { return x.indexOf('MAIN|') === 0; }) : -1;
+    var mainKids = mainIdx >= 0 ? Array.prototype.slice.call(nk[mainIdx].children) : [];
+    var mainShell = mainIdx >= 0 ? nk[mainIdx].cloneNode(false).outerHTML : '';
+    var mainHtml = mainKids.map(function (c) { return c.outerHTML; });
+    var same = cache && lk.length === nk.length && cache.sig.join('\n') === nsig.join('\n') && cache.mainShell === mainShell && cache.mainSig.join('\n') === mainKids.map(sigOf).join('\n') &&
+      lk.every(function (c, i) { return sigOf(c) === nsig[i]; });
+    /* the root itself: class, data-* attributes, the CSS variables of the theme */
+    if (live.className !== scratch.className) live.className = scratch.className;
+    Array.prototype.slice.call(scratch.attributes).forEach(function (a) { if (a.name !== 'class' && a.name !== 'style' && live.getAttribute(a.name) !== a.value) live.setAttribute(a.name, a.value); });
+    Array.prototype.slice.call(live.attributes).forEach(function (a) { if (/^data-/.test(a.name) && a.name !== 'data-jst-es' && a.name !== 'data-jst-bp' && !scratch.hasAttribute(a.name)) live.removeAttribute(a.name); });
+    if (live.style.cssText !== scratch.style.cssText) live.style.cssText = scratch.style.cssText;
+    var styleEl = live.lastElementChild && live.lastElementChild.tagName === 'STYLE' && live.lastElementChild.hasAttribute('data-jst-es') ? live.lastElementChild : null;
+    var nextCache = { sig: nsig, html: html, mainShell: mainShell, mainSig: mainKids.map(sigOf), mainHtml: mainHtml };
+    /* the desktop header's links are fitted to the width by render() itself: a full render, whose markup
+     * is the copy's (the cache compares copies, never the fitted live header) */
+    function full() { live.__stParts = nextCache; scratch.innerHTML = ''; return false; }
+    if (!same && seedOnly) { live.__stParts = nextCache; scratch.innerHTML = ''; return true; } // the live artboard is already this render
+    if (!same) {
+      /* another page, sections added / removed / moved: every part is swapped (still no reparse) */
+      if (opts.device === 'desktop') return full();
+      lk.forEach(function (c) { c.remove(); });
+      nk.forEach(function (c) { live.insertBefore(c, styleEl); });
+    } else {
+      for (var i = 0; i < nk.length; i++) {
+        if (i === mainIdx) {
+          var lm = lk[i], lmk = Array.prototype.slice.call(lm.children);
+          for (var j = 0; j < mainKids.length; j++) if (mainHtml[j] !== cache.mainHtml[j]) morph(lmk[j], mainKids[j]);
+          continue;
+        }
+        if (html[i] !== cache.html[i]) {
+          if (opts.device === 'desktop' && /jst-header/.test(nk[i].className || '')) return full();
+          morph(lk[i], nk[i]);
+        }
+      }
+    }
+    live.__stParts = nextCache;
+    scratch.innerHTML = '';
+    return true;
   }
 
   /* ------------------------------------------------------------------ artboards */
@@ -448,22 +716,17 @@
   }
 
   function renderArtboards() {
+    if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; }
     activePresets().forEach(function (p) {
-      var rootEl = roots[p.key];
-      if (!rootEl) return;
-      try {
-        R.render(state.config, rootEl, { device: p.device, page: state.page, productId: state.productId, pageId: state.pageId });
-      } catch (e) {
-        try {
-          rootEl.className = '';
-          rootEl.innerHTML = '<div class="st-ab__err">L’aperçu n’a pas pu être affiché.<small>La fiche boutique est peut-être abîmée. Annulez la dernière action (Ctrl Z), ou importez une fiche valide.</small></div>';
-        } catch (e2) { /* nothing more */ }
-      }
+      delete dirtyAbs[p.key];
+      if (!roots[p.key]) return;
+      roots[p.key].__stParts = null; // a full render: the next patch starts from a fresh copy
+      renderOne(p.key, false);
     });
+    seedQueued = true;
+    setTimeout(seedCaches, 400);
     /* render() applied the element styles; the Design tab may want a state shown on top */
-    if (hooks.elStyleOptions) applyElStyles(true);
-    applyDecor();
-    if (hooks.afterRender) { try { hooks.afterRender(); } catch (e) { /* module error */ } }
+    afterArtboards();
   }
 
   /* The selection and hover outlines live on the rendered store nodes, re-applied after every
@@ -1779,7 +2042,13 @@
   };
   function icon(name) { return ICONS[name] || ICONS.page; }
 
+  var treeTimer = null;
+  function scheduleTree() {
+    if (treeTimer) clearTimeout(treeTimer);
+    treeTimer = setTimeout(function () { treeTimer = null; buildTree(); }, 160);
+  }
   function buildTree() {
+    if (treeTimer) { clearTimeout(treeTimer); treeTimer = null; }
     var panel = $('layersPanel');
     if (!panel || panel.querySelector('.st-row__name input')) return; // a rename is in progress
 
@@ -2032,6 +2301,8 @@
     if (!sel || !ui.treeOpen) return;
     if (sel.kind === 'section' || sel.kind === 'product' || isMulti(sel)) ui.treeOpen['page:home'] = true;
     if (sel.kind === 'section' && (sel.el || sel.field)) ui.treeOpen['sec:' + sel.id] = true;
+    /* a node of a detached section, picked on the canvas: its section unfolds in the layers (Figma) */
+    if (sel.kind === 'engine' || (sel.kind === 'section' && isDetachedSec(sectionById(sel.id)))) { ui.treeOpen['page:home'] = true; ui.treeOpen['sec:' + sel.id] = true; }
     if (sel.kind === 'product') { var fp = sections().filter(function (x) { return x.type === 'products'; })[0]; if (fp) ui.treeOpen['sec:' + fp.id] = true; }
   }
   function isDetachedSec(s) { return !!(s && s.engine && s.engine.nodes); }
@@ -2170,7 +2441,7 @@
   function buildInsertPanel() {
     var panel = $('insertPanel');
     panel.innerHTML = '';
-    panel.appendChild(ce('div', 'st-insert__hint', '<b>Des sections, pas des pixels.</b> Chaque section s’adapte toute seule de 360 à 1440 px. Glissez-en une sur un aperçu pour l’insérer à cet endroit (ligne bleue), ou cliquez pour l’insérer après la sélection. Raccourci : <kbd>S</kbd>.'));
+    panel.appendChild(ce('div', 'st-insert__hint', '<b>Des sections qui s’adaptent.</b> Chaque section reste juste de 360 à 1440 px (détachez-la pour la composer librement). Glissez-en une sur un aperçu pour l’insérer à cet endroit (ligne bleue), ou cliquez pour l’insérer après la sélection. Raccourci : <kbd>S</kbd>.'));
     var grid = ce('div', 'st-insert__grid');
     var list = [];
     try { D.sectionTypes.forEach(function (t) { list.push(t); }); } catch (e) { /* collection helper missing */ }
@@ -2841,6 +3112,17 @@
     gv.body.appendChild(fieldImage('Photo du produit', function (c) {
       return (c.products || []).filter(function (x) { return x.id === p.id; })[0] || null;
     }, 'Photo du produit', true));
+    /* what screen readers and Google read (products[].alt); empty: the product's name */
+    var altW = fieldText('Texte alternatif de la photo', p.alt || '', 160, function (v) {
+      commit('Texte alternatif modifié', function (c) {
+        var t = (c.products || []).filter(function (x) { return x.id === p.id; })[0];
+        if (!t) return;
+        if (String(v).trim()) t.alt = v; else delete t.alt;
+      }, { coalesce: 'p:' + p.id + ':alt' });
+    }, false);
+    var altIn = altW.querySelector('input');
+    if (altIn) altIn.placeholder = p.name || 'Décrivez la photo';
+    gv.body.appendChild(altW);
     var sw = fieldWrap('Couleur de la tuile');
     var swatches = ce('div', 'st-swatches');
     (D.PRODUCT_COLORS || []).forEach(function (col) {
@@ -2893,8 +3175,7 @@
         if (t) t.title = v;
       }, { coalesce: 'pg:' + pg.id + ':title' });
     }, false));
-    var sub = (typeof D.subdomainFor === 'function' && state.config.store) ? D.subdomainFor(state.config.store.name) : 'ma-boutique.jeere.shop';
-    g.body.appendChild(ce('div', 'st-credit', 'Adresse : <code>' + esc(sub + '/pages/' + (pg.slug || '')) + '</code>'));
+    g.body.appendChild(ce('div', 'st-credit', 'Adresse : <code>' + esc(storeAddress('/pages/' + (pg.slug || ''))) + '</code>'));
     g.body.appendChild(fieldText('Texte de la page', pg.body, (D.PAGE_LIMITS && D.PAGE_LIMITS.body) || 4000, function (v) {
       commit('Texte modifié (page)', function (c) {
         var t = (c.pages || []).filter(function (x) { return x.id === pg.id; })[0];
@@ -2918,6 +3199,26 @@
     del.addEventListener('click', deleteSelection);
     g.body.appendChild(del);
     frag.appendChild(g);
+    /* its own référencement (pages[].seo): apart from the page's title and text */
+    var gs = group('Référencement de la page');
+    var seo = pg.seo || {};
+    [['title', 'Titre pour Google', 70, (pg.title || '') + ((state.config.store && state.config.store.name) ? ' · ' + state.config.store.name : '')],
+      ['description', 'Description pour Google', 160, String(pg.body || '').replace(/\s+/g, ' ').trim().slice(0, 155)]].forEach(function (f) {
+      var w = fieldText(f[1], seo[f[0]] || '', f[2], function (v) {
+        commit('Référencement de la page', function (c) {
+          var t = (c.pages || []).filter(function (x) { return x.id === pg.id; })[0];
+          if (!t) return;
+          var o = t.seo && typeof t.seo === 'object' ? t.seo : (t.seo = {});
+          if (String(v).trim()) o[f[0]] = v; else delete o[f[0]];
+          if (!Object.keys(o).length) delete t.seo;
+        }, { coalesce: 'pg:' + pg.id + ':seo:' + f[0] });
+      }, f[0] === 'description');
+      var inp = w.querySelector('input, textarea');
+      if (inp) { inp.placeholder = f[3]; inp.setAttribute('data-seo', f[0]); }
+      gs.body.appendChild(w);
+    });
+    gs.body.appendChild(ce('div', 'st-credit', 'Vide : le titre de la page (et le nom de la boutique), le début de son texte. Le référencement de la boutique : onglet Design, rien de sélectionné.'));
+    frag.appendChild(gs);
     return frag;
   }
 
@@ -3062,7 +3363,7 @@
     imp.addEventListener('click', function () { $('importFile').click(); });
     gf.body.appendChild(imp);
     var open = ce('a', 'st-addbtn', 'Ouvrir dans l’éditeur simple');
-    open.href = '../creer/';
+    open.href = SIMPLE_URL;
     open.style.textAlign = 'center';
     open.style.display = 'block';
     gf.body.appendChild(open);
@@ -3624,6 +3925,7 @@
       [['Ctrl', '⇧', 'Z'], 'Rétablir (aussi Ctrl Y)'],
       [['Ctrl', 'S'], 'Enregistrer maintenant'],
       [['Ctrl', 'E'], 'Exporter la fiche (JSON)'],
+      [['Ctrl', 'Alt', 'P'], 'Passer à l’éditeur simple (même fiche, rien n’est perdu)'],
       [['?'], 'Ce panneau'],
       [['Échap'], 'Élément parent, puis tout désélectionner']
     ]],
@@ -3639,7 +3941,32 @@
       [['F2'], 'Renommer (aussi Ctrl R, ou double-clic dans les calques)'],
       [['Ctrl', '⇧', 'H'], 'Masquer / afficher la section'],
       [['Ctrl', '⇧', 'L'], 'Verrouiller la section'],
+      [['1', '…', '9', '0'], 'Opacité de la sélection : 10 % … 100 % (deux chiffres vite : 45 %)'],
+      [['Ctrl', 'Alt', 'C'], 'Copier le style (Ctrl Alt V : le coller) — éléments du modèle et nœuds libres'],
       [['Clic droit'], 'Copier · coller · dupliquer · masquer · supprimer · Mes blocs']
+    ]],
+    ['Édition libre (sections détachées)', [
+      [['Ctrl', 'Alt', 'B'], 'Détacher la section (nœuds libres) / la rattacher au modèle'],
+      [['F', 'R', 'O'], 'Dessiner un cadre, un rectangle, une ellipse'],
+      [['Ctrl', 'clic'], 'Sélectionner l’élément le plus profond'],
+      [['2 × clic'], 'Entrer dans un cadre · modifier un texte · recadrer une image'],
+      [['Entrée'], 'Sélectionner les enfants (Maj Entrée : le parent)'],
+      [['Tab'], 'Élément suivant (Maj Tab : précédent)'],
+      [['←', '→', '↑', '↓'], 'Déplacer de 1 px (Maj : 10 px)'],
+      [['⇧', 'A'], 'Auto Layout : ajouter / retirer'],
+      [['Ctrl', 'G'], 'Grouper (Ctrl ⇧ G : dissocier)'],
+      [['Ctrl', ']'], 'Avancer d’un plan (Ctrl [ : reculer ; avec ⇧ : premier / arrière-plan)'],
+      [['Ctrl', '⇧', 'H'], 'Masquer / afficher l’élément'],
+      [['Ctrl', '⇧', 'L'], 'Verrouiller / déverrouiller l’élément'],
+      [['Ctrl', 'R'], 'Renommer le calque (aussi F2)'],
+      [['Ctrl', 'D'], 'Dupliquer · Ctrl C / V : copier, coller · Suppr : supprimer']
+    ]],
+    ['Aligner et répartir', [
+      [['Alt', 'A'], 'Aligner à gauche (Alt D : à droite)'],
+      [['Alt', 'W'], 'Aligner en haut (Alt S : en bas)'],
+      [['Alt', 'H'], 'Centrer horizontalement (Alt V : verticalement)'],
+      [['Alt', '⇧', 'H'], 'Répartir l’espacement horizontal (aussi Ctrl Alt H ; Mac : Ctrl ⌥ H)'],
+      [['Alt', '⇧', 'V'], 'Répartir l’espacement vertical (Mac : Ctrl ⌥ V ; Ctrl Alt V colle le style)']
     ]],
     ['Sélection', [
       [['Tab'], 'Section suivante (Maj Tab : précédente)'],
@@ -3660,8 +3987,12 @@
       [['⇧', '2'], 'Zoomer sur la sélection (sur l’aperçu cliqué)'],
       [['Espace', 'glisser'], 'Déplacer la vue (ou clic molette)'],
       [['Ctrl', '\\'], 'Masquer / afficher les panneaux'],
+      [['Ctrl', 'Alt', '['], 'Replier le panneau de gauche (Ctrl Alt ] : celui de droite)'],
+      [['⇧', 'R'], 'Règles (tirez un guide depuis une règle)'],
+      [['⇧', 'G'], 'Grille de mise en page'],
+      [['Ctrl', '⇧', '\''], 'Grille de pixels (dès 800 %)'],
       [['D'], 'Téléphone seul · les deux · ordinateur seul'],
-      [['1', '…', '5'], 'Accueil · Fiche produit · Panier · Paiement · Confirmation']
+      [['Alt', '1', '…', '5'], 'Accueil · Fiche produit · Panier · Paiement · Confirmation']
     ]]
   ];
 
@@ -3700,8 +4031,35 @@
     return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
   }
 
+  /* Ctrl Z from a field of the inspector (Design, Réglages, the engine's inspector, the quick bar):
+   * while she is typing, the field's own text undo; once the value is committed (Enter, a change, a
+   * scrub, or just focused), the document's undo — Figma's reflex: « 20, Entrée, Ctrl Z ». The field
+   * hands the focus back so the shortcuts after it reach the canvas too. */
+  var fieldDirty = typeof WeakMap === 'function' ? new WeakMap() : { get: function () { return false; }, set: function () {} };
+  var NON_TEXT_INPUT = /^(checkbox|radio|range|color|button|submit|reset|file|image)$/;
+  function isChromeField(t) {
+    if (!t || !t.tagName || !(t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return false;
+    if (!t.closest) return false;
+    if (t.closest('.st-ab__root, .st-pal, .st-modal, [aria-modal="true"], .st-drawer')) return false; // the store's own fields, the palette, dialogs
+    return !!t.closest('.st-right, .st-left, .dz-qbar, .dz-cropbar, .st-selbar, .jc, .dz-fontmenu');
+  }
+  function onFieldUndoKey(e) {
+    var t = e.target;
+    if (!isChromeField(t)) return;
+    if (e.key === 'Enter' && t.tagName !== 'TEXTAREA') { setTimeout(function () { fieldDirty.set(t, false); }, 0); return; }
+    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+    var low = typeof e.key === 'string' ? e.key.toLowerCase() : '';
+    if (low !== 'z' && low !== 'y') return;
+    var textual = t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !NON_TEXT_INPUT.test(t.type || 'text'));
+    if (textual && fieldDirty.get(t)) return; // typing: the browser's own undo of the field
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    try { t.blur(); } catch (err) { /* already gone */ }
+    if (low === 'y' || e.shiftKey) redo(); else undo();
+  }
+
   /* Figma drawing keys that have no meaning here: say why, once in a while, instead of silence */
-  var FREE_DRAW_KEYS = { f: 'cadre', r: 'rectangle', o: 'ellipse', p: 'plume', l: 'ligne', k: 'échelle' };
+  var FREE_DRAW_KEYS = { p: 'plume', l: 'ligne', k: 'échelle' };
 
   function onKeyDown(e) {
     var k = typeof e.key === 'string' ? e.key : '';
@@ -3750,7 +4108,7 @@
     if (mod && low === 'c') { copySelection(); return; }
     if (mod && low === 'v') { pasteClipboard(); return; }
     if (mod && low === 'd') { e.preventDefault(); duplicateSelection(); return; }
-    if (mod && low === 'g') { e.preventDefault(); hintOnce('group', 'Pas de groupes dans le Studio : chaque section est déjà un bloc qui s’adapte à chaque écran. Sélection multiple : Maj + clic.'); return; }
+    if (mod && low === 'g') { e.preventDefault(); hintOnce('group', 'Grouper : dans une section détachée (Ctrl Alt B), sélectionnez des éléments (Maj + clic) puis Ctrl G. Une section du modèle est déjà un bloc qui s’adapte à chaque écran.'); return; }
     if (mod && (k === ']' || e.code === 'BracketRight')) { e.preventDefault(); moveSelection(1, false); return; }
     if (mod && (k === '[' || e.code === 'BracketLeft')) { e.preventDefault(); moveSelection(-1, false); return; }
     if (mod && (k === '\\' || k === '.' || e.code === 'Backslash' || e.code === 'IntlBackslash')) { e.preventDefault(); toggleChrome(); return; }
@@ -3777,7 +4135,7 @@
       if (low === 'a') { switchLeftTab('insert'); return; }
       if (low === 'd') { cycleDevice(); return; }
       if (FREE_DRAW_KEYS[low]) {
-        hintOnce('freedraw', 'Pas de dessin libre (' + FREE_DRAW_KEYS[low] + ') : le Studio assemble des sections qui restent justes sur chaque téléphone. S pour insérer une section, T pour modifier un texte.');
+        hintOnce('freedraw', 'Pas encore d’outil ' + FREE_DRAW_KEYS[low] + ' : F, R et O dessinent un cadre, un rectangle, une ellipse (la section est détachée). S pour insérer une section, T pour un texte.');
         return;
       }
     }
@@ -3793,15 +4151,38 @@
     if (e.shiftKey && (e.code === 'Digit2' || e.code === 'Numpad2')) { e.preventDefault(); camera(zoomToSelection); return; }
     if (e.shiftKey) return;
 
-    /* pages 1..5 — by key when the layout gives a digit, by physical position otherwise (AZERTY);
-     * never shifted: Shift+digits belong to the zoom vocabulary above. No toast: the tree's
-     * active-page marker and the artboards already say where you are. */
-    var digit = /^[1-5]$/.test(k) ? parseInt(k, 10)
-      : (/^Digit[1-5]$/.test(e.code || '') ? parseInt(e.code.slice(5), 10) : 0);
-    if (digit && !e.altKey) {
-      var pg = PAGES[digit - 1];
-      if (pg) showPage(pg.id);
+    /* digits, by physical position (e.code, so AZERTY's & é " ' ( work too); never shifted: Shift+digits
+     * belong to the zoom vocabulary above.
+     *   Alt 1 … 5: the pages of the journey (they used to be the bare digits; Figma gives those to opacity).
+     *   1 … 9, 0: the opacity of the selection, 10 % … 100 %, like Figma; two digits typed quickly give
+     *   the exact value (« 4 » « 5 » = 45 %, « 0 » « 5 » = 5 %). */
+    var dcode = /^(Digit|Numpad)[0-9]$/.test(e.code || '') ? parseInt(e.code.slice(-1), 10) : (/^[0-9]$/.test(k) ? parseInt(k, 10) : -1);
+    if (dcode < 0) return;
+    if (e.altKey) {
+      if (dcode >= 1 && dcode <= 5) { e.preventDefault(); var pg = PAGES[dcode - 1]; if (pg) showPage(pg.id); }
+      return;
     }
+    e.preventDefault();
+    opacityDigit(dcode);
+  }
+
+  var opDigit = null; // { d, at }: the first of two digits typed quickly
+  function opacityDigit(d) {
+    var now = Date.now(), pct;
+    if (opDigit && now - opDigit.at < 650) { pct = opDigit.d * 10 + d; opDigit = null; }
+    else { pct = d === 0 ? 100 : d * 10; opDigit = { d: d, at: now }; }
+    setSelectionOpacity(pct);
+  }
+  /* the opacity of whatever is selected: a node of a detached section (studio-canvas.js), an element or
+   * a section of the template (elementStyles, studio-design.js), several sections */
+  function setSelectionOpacity(pct) {
+    pct = clamp(Math.round(pct), 0, 100);
+    if (!state.sel) { hintOnce('opacity-none', 'Sélectionnez un élément : 1 … 9 et 0 règlent son opacité (10 % … 100 %). Alt 1 … 5 : les pages.'); return false; }
+    var done = false;
+    if (hooks.selectionOpacity) { try { done = !!hooks.selectionOpacity(pct); } catch (e) { done = false; } }
+    if (!done) { hintOnce('opacity-na', 'L’opacité se règle sur une section, un élément ou un nœud libre (pas sur ' + (state.sel.kind === 'product' ? 'un produit' : 'une page') + ').'); return false; }
+    toast('Opacité : ' + pct + ' %', 'info');
+    return true;
   }
 
   function onKeyUp(e) {
@@ -3937,8 +4318,26 @@
       b.addEventListener('click', function () { toggleArtboard(b.getAttribute('data-ab')); });
     });
 
+    window.addEventListener('keydown', onFieldUndoKey, true);
+    document.addEventListener('focusin', function (e) { if (isChromeField(e.target)) fieldDirty.set(e.target, false); }, true);
+    document.addEventListener('input', function (e) { if (isChromeField(e.target)) fieldDirty.set(e.target, true); }, true);
+    document.addEventListener('change', function (e) { if (isChromeField(e.target)) fieldDirty.set(e.target, false); }, true);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+
+    /* nothing is lost when leaving: reload, tab closed, the simple editor, any link */
+    window.addEventListener('pagehide', function () { flushPending(); });
+    window.addEventListener('beforeunload', function () { flushPending(); });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushPending(true); });
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || (a.closest && a.closest('.st-ab__root'))) return;
+      flushPending();
+      /* the simple editor opens on the editor itself, not on its « Créez votre boutique » screen */
+      var href = a.getAttribute('href') || '';
+      if (/(^|\/)creer\/?$/.test(href)) a.setAttribute('href', href.replace(/\/?$/, '/') + '#editeur');
+      if (/(^|\/)creer\/?(#editeur)?$/.test(a.getAttribute('href') || '')) markOpenSimple();
+    }, true);
     window.addEventListener('resize', function () { /* keep the view; Ctrl+0 refits */ });
 
     /* top bar */
@@ -4010,11 +4409,25 @@
       if (hooks.onboarding) { try { hooks.onboarding(); } catch (e) { /* module error */ } }
       else toast('Bienvenue dans le Studio. Appuyez sur ? pour les raccourcis.', 'ok');
     });
+    fillPlanPrices();
     if (!ui.proSeen) openModal($('proModal'));
 
     /* the opening view: both artboards in sight, like opening a Figma file */
     requestAnimationFrame(function () { requestAnimationFrame(fitWidthTop); });
     setSaveState('saved');
+  }
+
+  /* the prices quoted in the Studio come from plans.js (JeerePlans), the one source of truth: the
+   * cheapest paid plan, billed yearly and monthly (« dès 5 400 FCFA par mois, facturé à l’année ») */
+  function fillPlanPrices() {
+    var P = window.JeerePlans;
+    if (!P || !Array.isArray(P.PLANS) || typeof P.fcfa !== 'function') return;
+    var paid = P.PLANS.filter(function (p) { return p && p.paid && p.year > 0; });
+    if (!paid.length) return;
+    var low = paid.reduce(function (a, b) { return b.year < a.year ? b : a; });
+    document.querySelectorAll('[data-plan-from]').forEach(function (el) {
+      el.textContent = P.fcfa(low.year) + ' par mois, facturé à l’année (' + P.fcfa(low.month) + ' au mois)';
+    });
   }
 
   function switchLeftTab(tab) {
@@ -4182,7 +4595,15 @@
     isDragging: function () { return !!(canvasDrag && canvasDrag.moved) || !!pan; },
     zoomRange: function () { return { min: ZOOM_MIN, max: ZOOM_MAX }; },
     isSpaceHeld: function () { return spaceHeld; },
-    isInlineEditing: function () { return !!inlineEdit; }
+    isInlineEditing: function () { return !!inlineEdit; },
+    flushPending: flushPending,
+    goSimple: goSimple,
+    storeAddress: storeAddress,
+    flushRenders: flushRenders,
+    renderLog: function () { return renderLog.slice(); },
+    setPanel: setPanel,
+    setSelectionOpacity: setSelectionOpacity,
+    isChromeField: isChromeField
   };
 })();
 
@@ -4193,6 +4614,8 @@
   document.addEventListener('keydown', function (e) {
     if (!(e.ctrlKey || e.metaKey) || !e.altKey || e.shiftKey || e.code !== 'KeyP') return;
     e.preventDefault();
-    window.location.href = '../creer/';
+    var S = window.JeereStudio && window.JeereStudio._internals;
+    if (S && S.goSimple) { S.goSimple(); return; } // commits and saves first: nothing typed is lost
+    window.location.href = '../creer/#editeur';
   });
 })();

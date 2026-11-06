@@ -60,7 +60,16 @@
       if (e) return e;
       var s = sectionById(sid);
       if (!EN.isDetached(s)) return null;
-      var doc = EN.toDocument(s.engine, { name: S.sectionName(s) });
+      // the nodes bound to the catalogue show the products as they are now (as render.js draws them)
+      var src = s;
+      if (EN.boundSection) {
+        try {
+          src = EN.boundSection(s, { products: S.products().map(function (p) {
+            return { id: p.id, name: p.name, price: p.price, alt: p.alt, image: p.image, ownImage: !!p.image, photo: p.photo ? { id: p.photo } : null };
+          }) });
+        } catch (er) { src = s; }
+      }
+      var doc = EN.toDocument(src.engine, { name: S.sectionName(s) });
       if (!doc) return null;
       e = eds[sid] = { sid: sid, doc: doc, history: new H.History({ max: 1000 }), engines: {} };
       return e;
@@ -747,6 +756,37 @@
       return kind === 'text' ? 'Texte' : kind === 'image' ? 'Image' : kind === 'rect' ? 'Forme' : 'Cadre';
     }
 
+    /* What a converted element keeps of the store (wave 1): its behaviour (render.js's delegated clicks read
+     * data-jst-action: « Ajouter » still adds to the cart, a card still opens its product), its aria-label,
+     * a new tab; and, inside a product card, its binding to the catalogue (name, price, photo), so the
+     * detached section keeps following the products (engine-sections.js boundSection). */
+    var BEHAVIOUR_DATA = ['data-product', 'data-page', 'data-page-id', 'data-section', 'data-delta', 'data-quick'];
+    function keepBehaviour(n, el) {
+      if (!el || !el.getAttribute) return;
+      var attrs = n.semantic.attrs || (n.semantic.attrs = {});
+      var a = el.getAttribute('data-jst-action');
+      if (a) {
+        attrs['data-jst-action'] = a;
+        BEHAVIOUR_DATA.forEach(function (k) { var v = el.getAttribute(k); if (v) attrs[k] = v; });
+        if (!attrs.href && el.tagName === 'A' && n.type !== 'image' && EN.href(el.getAttribute('href') || '')) { attrs.href = EN.href(el.getAttribute('href')); n.semantic.tag = 'a'; }
+      }
+      var al = el.getAttribute('aria-label');
+      if (al && n.type !== 'image') attrs['aria-label'] = al.slice(0, 160);
+      if (el.getAttribute('target') === '_blank' && attrs.href) attrs.target = '_blank';
+    }
+    function bindingOf(el, n) {
+      var host = el && el.nodeType === 3 ? el.parentElement : el;
+      var card = host && host.closest ? host.closest('[data-product-id]') : null;
+      if (!card) return null;
+      var pid = card.getAttribute('data-product-id');
+      if (!pid) return null;
+      if (n.type === 'image' && host.tagName === 'IMG') return { product: pid, field: 'image' };
+      if (n.type !== 'text') return null;
+      if (host.closest('.jst-price') || (host.matches && host.matches('.jst-card-price, .jst-pdp-price, .jst-line-price')) || (host.querySelector && host.querySelector('.jst-price') && !host.querySelector('.jst-card-name'))) return { product: pid, field: 'price' };
+      if (/jst-[\w-]*name\b/.test(String(host.className || '')) || host.closest('.jst-card-name, .jst-pdp-name, .jst-line-name')) return { product: pid, field: 'name' };
+      return null;
+    }
+
     /**
      * Free DualEngine nodes from the section rendered at the three breakpoints (same markup at every
      * width, so the three trees are walked in parallel; base = 1200).
@@ -824,6 +864,8 @@
           n.style = textStyleOf(cs);
           n.semantic.tag = 'span';
           n.resize = 'autoWidth';
+          var tb = bindingOf(el, n);
+          if (tb) n.bind = tb;
           ['tablet', 'phone'].forEach(function (bp) {
             var i = infs[bp];
             if (!i || i.hidden || bp === bpOfB) return;
@@ -873,6 +915,9 @@
         }
         n.semantic.tag = semTag(n, el, kind);
         if (n.semantic.tag === 'a') { var h = EN.href(el.getAttribute('href') || ''); if (h) n.semantic.attrs.href = h; }
+        keepBehaviour(n, el);
+        var bnd = bindingOf(el, n);
+        if (bnd) n.bind = bnd;
 
         // visuals per breakpoint
         var vis = {};
@@ -909,6 +954,8 @@
           t.semantic.tag = 'span';
           t.parent = n.id;
           n.children = [t.id];
+          var tbd = bindingOf(el, t);
+          if (tbd) t.bind = tbd;
           if (isBtn) n.name = 'Bouton';
           var pad = padOf(cs);
           var flexRow = /flex/.test(cs.display) && !/column/.test(cs.flexDirection);
@@ -1590,12 +1637,44 @@
 
     /* ================================================================ export (HTML / CSS of a detached section) */
 
+    /* The section as a standalone HTML / CSS file (wave 1):
+     *   - the root is a <section> (a <div> on the canvas);
+     *   - the classes are readable, from the layer names (« hero__titre », « hero__bouton-2 »), not the
+     *     engine's hashed « de-xxxxxxxx » (those stay in the Studio, where they key the nodes);
+     *   - the photos point to the public copy of the demo photos (https://jeere.kreeative.xyz/creer/img/…),
+     *     never to the address the Studio runs on (http://localhost…); her own photos are embedded. */
+    var PUBLIC_ORIGIN = 'https://jeere.kreeative.xyz/';
+    function publicUrl(u) {
+      u = String(u || '');
+      if (/^data:/i.test(u)) return u;
+      var at = u.indexOf('/concepts/jeere/');
+      if (at !== -1) return PUBLIC_ORIGIN + u.slice(at + '/concepts/jeere/'.length);
+      try { var o = location.origin; if (o && u.indexOf(o + '/') === 0) return PUBLIC_ORIGIN + u.slice(o.length + 1); } catch (e) { /* file:// */ }
+      return u;
+    }
+    function readableClasses(doc, sectionSlug) {
+      var map = {}, used = {};
+      Object.keys(doc.nodes).forEach(function (id) {
+        var n = doc.nodes[id];
+        var base = id === doc.pages[0].children[0] ? sectionSlug : sectionSlug + '__' + (slug(n.name || n.type).slice(0, 32) || n.type);
+        var name = base, k = 2;
+        while (used[name]) name = base + '-' + (k++);
+        used[name] = true;
+        map[M.classOf(id)] = name;
+      });
+      return map;
+    }
     function exportSectionFile(sid) {
       var s = sectionById(sid);
       if (!EN.isDetached(s)) return null;
       var doc = EN.toDocument(s.engine, { name: S.sectionName(s) });
+      var rid = doc.pages[0].children[0], rn = doc.nodes[rid];
+      if (rn && rn.semantic && (!rn.semantic.tag || rn.semantic.tag === 'div')) rn.semantic = Object.assign({}, rn.semantic, { tag: 'section' });
+      Object.keys(doc.assets || {}).forEach(function (k) { var a = doc.assets[k]; if (a && a.url) a.url = publicUrl(a.url); });
       var out = DE.exportDocument(doc, {});
-      return { html: out.html, css: out.css, body: out.body, warnings: out.warnings };
+      var map = readableClasses(doc, slug(S.sectionName(s)).slice(0, 24) || 'section');
+      var swap = function (text) { return String(text).replace(/\bde-[0-9a-zA-Z]{8}\b/g, function (c) { return map[c] || c; }); };
+      return { html: swap(out.html).replace('<head>', '<head>\n<!-- Exporté depuis Jeere Studio (DualEngine) : classes nommées d’après les calques -->'), css: swap(out.css), body: swap(out.body), warnings: out.warnings, classes: map };
     }
     function download(name, text, type) {
       try {

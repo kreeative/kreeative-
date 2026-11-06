@@ -173,7 +173,7 @@
       period: yearly ? 'an' : 'mois'
     };
   }
-  // Annual vs monthly discount of a plan, in whole percent (20 for every paid plan)
+  // Annual vs monthly discount of a plan, in whole percent (31 to 32 % for the paid plans: 5 400 / 7 900, 16 900 / 24 900, 54 900 / 79 900)
   function discount(planId) {
     var p = planById(planId);
     return p && p.month ? Math.round((1 - p.year / p.month) * 100) : 0;

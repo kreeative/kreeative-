@@ -8,14 +8,14 @@ Calques, un inspecteur Réglages, et les raccourcis clavier qu’on attend de ce
 tête). Chrome sombre `#1E1E1E` en Inter (11 / 12 / 13 / 15 px), les boutiques en couleur sur le
 canevas clair ; sélection en bleu `#3657FF` (magenta quand l’accent du store est ce bleu).
 
-**Le modèle : des sections, pas des pixels.** Le Studio insère, déplace, masque et réécrit des
-*sections* responsives (et leurs textes, photos, produits) — comme les sections de Framer ou de
-Webflow, pas le dessin libre de Figma — parce qu’une boutique doit rester juste sur chaque
-téléphone. C’est présenté comme une promesse, pas comme un manque : la modale d’accueil (« des
-sections qui s’adaptent toutes seules à chaque téléphone », « impossible de casser l’affichage
-mobile »), la carte « trois gestes » au premier lancement, le bloc « Responsive, de 360 à
-1440 px » du groupe Disposition, et les touches de dessin de Figma (F, R, O, P, L, Ctrl G) ou
-le glisser d’un sous-élément, qui expliquent le modèle au lieu de ne rien faire.
+**Le modèle : des sections qui s’adaptent, et le dessin libre quand on le veut.** Le Studio insère,
+déplace, masque et réécrit des *sections* responsives (et leurs textes, photos, produits) — comme
+les sections de Framer ou de Webflow — parce qu’une boutique doit rester juste sur chaque
+téléphone ; « Détacher » (Ctrl Alt B) et les outils Cadre, Rectangle, Ellipse (F, R, O) en font des
+nœuds libres DualEngine, placés écran par écran. La modale d’accueil (« des sections qui s’adaptent
+toutes seules à chaque téléphone », « Juste sur chaque téléphone ») et la carte « trois gestes » le
+disent ; depuis la vague 1 de l’audit, plus de promesse « pas de pixels à placer », démentie par la
+barre d’outils.
 
 Le Studio fait partie de la **formule Avancée**, avec ses propres abonnements (voir
 [Abonnements Studio](#abonnements-studio)) : gratuit en Découverte, 14 jours d’essai de tout le
@@ -30,8 +30,12 @@ Le Studio lit et écrit **la même fiche boutique** que l’éditeur simple et l
 `JEERE_DATA.normalizeConfig` **au chargement et à chaque enregistrement** — la fiche écrite par le
 Studio est acceptée telle quelle par `normalizeConfig` (vérifié par le test). Autosave (600 ms
 après la dernière frappe), état « Enregistré / Enregistrement… / Non enregistré » dans la barre ;
-un `localStorage` plein ou bloqué donne un toast rouge, jamais un crash. « Éditeur simple » dans
-la barre (et dans le dialogue Partager) ouvre `../creer/` sur la même fiche. Import / export
+un `localStorage` plein ou bloqué donne un toast rouge, jamais un crash. **Rien ne se perd en
+partant** : `pagehide`, `beforeunload` et `visibilitychange` (caché) écrivent la fiche aussitôt, et
+avant toute navigation interne (Ctrl Alt P, « Éditeur simple », un lien) le champ en cours est validé,
+le texte édité sur place aussi, puis la fiche est écrite. « Éditeur simple » dans la barre (et dans le
+dialogue Partager) ouvre `../creer/#editeur` sur la même fiche, directement dans l’éditeur (la clé
+d’ouverture `JEERE_DATA.STORAGE_KEYS.open`, lue par `creer/editor.js`), plus sur son écran d’accueil. Import / export
 JSON de la fiche : Ctrl E, le dialogue Partager/Publier, ou le groupe « Fiche boutique » de
 l’inspecteur. Fiche absente ou illisible → `defaultConfig('plateau', 'beauty')`.
 
@@ -217,6 +221,24 @@ travail, le dernier remplace le précédent.
 - **Caméra** : la vue ne bouge que si la sélection est (presque) hors de vue, et juste assez pour
   la ramener ; plus de recentrage qui sortait l’autre aperçu de l’écran.
 
+### Rendu incrémental (vague 1)
+
+Une modification redessinait **tous** les artboards d’un coup : sur la grande boutique de l’audit (36
+sections, 54 produits, 5 artboards, 3 sections détachées), 200 à 250 ms de blocage par touche tapée dans
+l’inspecteur. Désormais (`studio.js`, `scheduleRender` / `patchRender`) :
+- chaque artboard est dessiné dans une copie hors document (`render()` sans style ni mise en page : ~5 ms),
+  puis seules les parties et les sections dont le balisage a changé sont **rapprochées** du DOM vivant
+  (`morph` : un texte modifié = un nœud texte, 0,3 ms de mise en page, au lieu de 7 à 10 ms pour une
+  section remplacée) ; les classes `st-*` du Studio sont gardées ;
+- pendant une frappe (commits coalescés), seul l’artboard qu’on regarde suit chaque touche ; les autres
+  rattrapent 260 ms après la pause, un par image ; hors frappe, les artboards visibles d’abord, un par
+  image, les autres ensuite ; l’arbre des calques se reconstruit à la pause ;
+- tout ce que la copie ne peut pas garantir (l’en-tête ordinateur, dont `render()` ajuste les liens à la
+  largeur ; une section détachée qui attend le moteur ; une autre page) repasse par le rendu complet de
+  l’artboard ; `renderArtboards()` (export PNG, nouvelle page, tests) dessine toujours tout.
+Mesure (`scratchpad/wave1/perf13.js`, Chromium headless) : blocage par touche 213 ms → 0,1 ms, plus
+aucune tâche longue, pire image 16,8 ms ; `_internals.renderLog()` donne le détail des dernières images.
+
 ## Calques (panneau gauche)
 
 L’arbre du store : **Parcours d’achat** (Accueil, Fiche produit, Panier, Paiement, Confirmation
@@ -308,13 +330,25 @@ simple, le tableau de bord et la boutique.
   saturation / luminosité, teinte, alpha sur damier, Hex / RGB / HSL, pipette (EyeDropper), palette de
   la boutique en **jetons vivants** et couleurs récentes, onglet **Dégradé** (arrêts sur une barre,
   linéaire / radial, cadran), tout au clavier.
-- **Sur le canevas** : barre de **style rapide** sous l’élément (fond, texte, rayon, S/M/L, gras,
-  recadrer…) ; padding teinté au survol du champ ou du padding de la sélection ; poignées de rayon aux
+- **Sur le canevas** : barre de **style rapide** près de l’élément (fond, texte, rayon, S/M/L, gras,
+  recadrer…), placée là où elle ne couvre rien de cliquable : au-dessus de l’élément, sinon dessous, sur
+  le bas d’une photo, à côté de l’artboard ou au-dessus de la barre de sélection — chaque place est notée
+  par ce qu’elle cacherait (les textes, boutons et photos de la section, la barre de sélection, les autres
+  artboards) et la première qui ne cache rien gagne ; ses valeurs (et les indications des champs) se
+  relisent après chaque rendu, donc justes après Ctrl Z / Ctrl ⇧ Z ; padding teinté au survol du champ ou du padding de la sélection ; poignées de rayon aux
   coins ; **recadrage** (double-clic sur l’image ou Entrée) : la photo entière en transparence autour du
   cadre, glisser pour repositionner, molette pour zoomer, formats, « Terminé » / Entrée / Échap.
 - **Rien de sélectionné** : l’aperçu de la page — sa structure (sections, en-tête, pied de page),
   ses réglages (fond, couleur des textes, largeur du contenu, polices des titres et des textes, palette),
-  référencement (titre, description, adresse), chiffres.
+  référencement (titre et description **pour Google, distincts du nom et du slogan** : `store.seo`, vides =
+  le nom et le slogan ; l’adresse par `storeAddress()`, un seul endroit ; un aperçu du résultat Google),
+  chiffres. Une page de la vendeuse a son propre référencement (Réglages, `pages[].seo`).
+- **Lien d’un bouton** (Contenu, hero et WhatsApp) : aucun, Accueil, Panier, une de ses pages, une section
+  de l’accueil (défilement), un produit, WhatsApp, une adresse https:// ; « Nouvel onglet ». Stocké dans
+  `sections[].settings.buttonLink` / `buttonNewTab` ; `render.js` fait alors du bouton un `<a href>`.
+- **Texte alternatif** : la photo du hero et d’« À propos » (Contenu, `settings.imageAlt`, vide = la
+  description de la photo d’exemple ou le titre de la section) ; la photo d’un produit (Réglages,
+  `products[].alt`, vide = le nom du produit).
 - **Code** : l’onglet Code a un mode **CSS** (le CSS exact de la sélection, sinon de toute la boutique)
   à côté du JSON ; le groupe CSS du panneau le montre aussi, en direct.
 
@@ -372,6 +406,39 @@ Les sections du modèle restent des **composants** ; « Détacher » en fait des
 - **Code / export** : l’onglet Code (CSS) montre le CSS de DualEngine du nœud ou de la section ;
   « Exporter en HTML / CSS » télécharge le document de `DualEngine.exportDocument`.
 
+**Vague 1 de l’audit (6 novembre 2026)** :
+- **Le geste suit** : pendant un déplacement ou un redimensionnement, le cadre de sélection, l’étiquette
+  de taille et les champs X / Y / L / H de l’inspecteur suivent l’élément tiré, en direct.
+- **Sélection multiple de nœuds** : l’inspecteur montre « Mixte » quand les valeurs diffèrent (champs,
+  segments, menus, couleurs) et une valeur tapée s’écrit sur tous ; le contenu d’un texte ne se modifie
+  qu’un par un. Les 8 poignées redimensionnent la **boîte du groupe** (chaque nœud garde sa place et sa
+  part, `Maj` = ratio, `Alt` = depuis le centre), en une transaction ; le glisser déplace le groupe.
+- **Aligner / répartir** : une rangée de 6 + 2 boutons en tête de l’inspecteur des nœuds, et les
+  raccourcis de Figma (Alt A D W S H V ; répartir : Alt ⇧ H / V, Ctrl ⌥ H / V sur Mac). Ctrl Alt C / V copie et colle aussi le style d’un nœud (remplissages, bordures, effets, coins, opacité, style du texte).
+- **Raccourcis des nœuds** : Ctrl ⇧ H (masquer), Ctrl ⇧ L (verrouiller : le nœud ne se tire plus),
+  Ctrl R / F2 (renommer dans les calques), Tab / ⇧ Tab (frères), Entrée / ⇧ Entrée (enfants / parent).
+  Sélectionner un nœud sur le canevas déplie sa section dans les calques et y fait défiler sa ligne.
+- **Recadrer une photo détachée** comme une photo du modèle : double-clic (ou Entrée) → la photo entière
+  en transparence autour du cadre, glisser pour la placer, molette ou curseur pour zoomer (100–400 %),
+  formats Libre / Orig. / 1:1 / 4:5 / 3:4 / 16:9, Entrée / Échap / Terminé. L’inspecteur a le zoom, le
+  point focal (X / Y) et 6 filtres (lumière, contraste, saturation, N & B, sépia, teinte). Modèle :
+  `fit: 'crop'`, `crop { x, y, w, h, fx, fy }` (fenêtre visible, `w = 1 / zoom`, point focal) et
+  `adjust { brightness, contrast, saturate, grayscale, sepia, hue }` ; `engine/css.js` les écrit en
+  `object-position`, `scale()` autour du point focal rogné par `clip-path: inset()` (la mise en page ne
+  bouge jamais, la rotation se compose) et `filter`. Un ancien recadrage (sans `fx`) garde son rendu.
+- **Ce que garde une section détachée** : les comportements de la boutique (`data-jst-action` : « Ajouter »
+  ajoute toujours au panier, une carte ouvre son produit, un lien sa page ; leurs `aria-label` ; les
+  `href`), et **les liaisons au catalogue** : dans une carte produit, le nom, le prix et la photo
+  deviennent des nœuds liés (`node.bind = { product, field: 'name' | 'price' | 'image' }`). Le rendu
+  (`engine-sections.js` `boundSection`, appelé par `render.js` avec son modèle) y met le nom, le prix et
+  la photo actuels du produit : renommer un produit ou changer son prix se voit dans la section
+  détachée. Sur le canevas, modifier le texte d’un nom ou d’un prix lié modifie **le produit** ;
+  l’inspecteur dit « Lié à Produit · nom » avec « Ouvrir le produit » et « Délier ».
+- **Export HTML / CSS** : la racine est une `<section>`, les classes sont nommées d’après les calques
+  (`nos-soins__nom`, `-2` en cas de doublon ; les classes `de-xxxxxxxx` restent internes au Studio), les
+  photos d’exemple pointent vers leur copie publique (`https://jeere.kreeative.xyz/creer/img/…`), jamais
+  vers l’adresse locale du Studio ; les photos de la vendeuse sont embarquées.
+
 Points d’accroche ajoutés à `studio.js` (petits, localisés) : `ZOOM_MIN / ZOOM_MAX`, `pushEntry` et
 les entrées qui s’annulent elles-mêmes dans `undo` / `redo`, `hooks.customInspector`,
 `hooks.validateSelection`, `hooks.treeSection`, `hooks.treeRowSelected`, les outils `frame`, `rect`,
@@ -419,15 +486,27 @@ une erreur) ; tout le reste se supprime librement, Ctrl Z ramène tout.
 | Ctrl 0, ⇧ 1 | Ajuster à l’écran (le cadrage d’ouverture : largeurs des artboards, haut de page) |
 | ⇧ 2 | Zoomer sur la sélection (comme Figma) |
 | Ctrl 1, ⇧ 0 | Zoom 100 % |
-| 1 … 5 | Accueil · Fiche produit · Panier · Paiement · Confirmation (aussi par position de touche, pour l’AZERTY ; jamais avec ⇧ — ⇧ 1/2 appartiennent au zoom) |
+| 1 … 9, 0 | Opacité de la sélection : 10 % … 100 % (Figma) ; deux chiffres tapés vite donnent la valeur exacte (« 4 » « 5 » = 45 %). Sections, éléments du modèle (`elementStyles`, au point de rupture et à l’état affichés), nœuds DualEngine. Par position de touche (`e.code`) : « ( » de l’AZERTY = 5 |
+| Alt 1 … 5 | Accueil · Fiche produit · Panier · Paiement · Confirmation (les chiffres seuls servaient aux pages jusqu’à la vague 1 de l’audit) |
+| Alt A · D · W · S · H · V | Nœuds d’une section détachée : aligner à gauche · à droite · en haut · en bas · centrer horizontalement · verticalement (un nœud : dans son cadre ; plusieurs : sur leur boîte commune ; dans une pile : `align-self`, ou l’alignement de la pile sur son axe principal). La lettre est lue sur `e.key` quand c’est une lettre (AZERTY), sinon sur `e.code` (Option de Mac) |
+| Alt ⇧ H / V (Mac : Ctrl ⌥ H / V ; Ctrl Alt H aussi) | Répartir l’espacement horizontal / vertical (3 éléments libres ou plus), le mapping de Figma : sous Windows Ctrl Alt V reste « coller le style » (⌘ ⌥ V sur Mac) |
+| Ctrl ⇧ H · Ctrl ⇧ L · Ctrl R, F2 | Sur des nœuds : masquer / afficher · verrouiller · renommer (le calque devient un champ) |
+| Tab / ⇧ Tab · Entrée / ⇧ Entrée | Sur des nœuds : frère suivant / précédent · les enfants (une photo : le recadrage ; un texte : l’édition) / le parent |
+| Ctrl Alt [ / ] | Replier / afficher le panneau de gauche / de droite |
+| Ctrl Alt P | Passer à l’éditeur simple, sur la même fiche : ce qui vient d’être tapé est validé et enregistré avant de partir |
 | D | Téléphone seul · les deux · ordinateur seul |
 | Clic droit | Menu contextuel : copier · coller · dupliquer · masquer · supprimer |
 | Double-clic sur un texte sans champ | Sélectionne le sous-élément et met le curseur dans le champ de l’inspecteur |
 | ? | Le panneau des raccourcis (groupés comme Figma) |
 | Échap | Menu contextuel → fenêtre d’insertion / note → dialogues → outil Texte/Commentaire → sous-élément → section → rien ; sort d’un champ |
 
+**Ctrl Z depuis un champ de l’inspecteur** (Design, Réglages, nœuds, barre rapide) : tant qu’on tape,
+c’est l’annulation du texte du champ ; une fois la valeur validée (Entrée, un changement, un glisser,
+ou le champ juste focalisé), c’est l’annulation du document, et le champ rend la main (« 20, Entrée,
+Ctrl Z » comme dans Figma).
+
 Un dialogue ouvert (`aria-modal`) **bloque les raccourcis d’édition** : Suppr, Ctrl D, les
-flèches et 1…5 ne touchent plus le canevas derrière lui (Ctrl S / Ctrl E restent permis, Échap
+flèches et les chiffres ne touchent plus le canevas derrière lui (Ctrl S / Ctrl E restent permis, Échap
 ferme). Les calques se pilotent aussi au clavier : Tab entre dans l’arborescence (`role="tree"`,
 focus itinérant), ↑/↓ passent de ligne en ligne, Entrée ou Espace sélectionne.
 

@@ -248,8 +248,32 @@
     var h = href(a.href);
     if (h && (out.tag === 'a' || out.tag === 'button')) out.attrs.href = h;
     ['aria-label', 'title'].forEach(function (k) { if (typeof a[k] === 'string' && a[k].trim()) out.attrs[k] = a[k].trim().slice(0, 160); });
+    // a store behaviour kept through « Détacher » (wave 1): render.js's delegated clicks (add to the cart,
+    // open a product, a page…) read these, so a detached « Ajouter » still adds to the cart
+    if (typeof a['data-jst-action'] === 'string' && ACTIONS.indexOf(a['data-jst-action']) !== -1) {
+      out.attrs['data-jst-action'] = a['data-jst-action'];
+      ['data-product', 'data-page', 'data-page-id', 'data-section', 'data-delta', 'data-quick'].forEach(function (k) {
+        if (typeof a[k] === 'string' && /^[\w:-]{0,40}$/.test(a[k])) out.attrs[k] = a[k];
+      });
+    }
+    if (a.target === '_blank' && out.attrs.href) { out.attrs.target = '_blank'; out.attrs.rel = 'noopener'; }
     if (s.tagLocked === true) out.tagLocked = true;
     return out;
+  }
+  var ACTIONS = ['go', 'add', 'menu', 'wa', 'scroll', 'ext', 'qty', 'pdp-qty', 'remove'];
+  /* a node bound to the catalogue (wave 1): { product: 'p1', field: 'name' | 'price' | 'image' } — the detached
+   * section keeps following the product (sectionHTML(s, model) puts its current name, price, photo in place) */
+  function binding(b) {
+    if (!isObj(b) || typeof b.product !== 'string' || !/^[\w-]{1,40}$/.test(b.product)) return null;
+    return ['name', 'price', 'image'].indexOf(b.field) === -1 ? null : { product: b.product, field: b.field };
+  }
+  /* an image's colour adjustments (wave 1), as the template photos have: CSS filter() percentages */
+  var ADJUST = { brightness: [0, 200, 100], contrast: [0, 200, 100], saturate: [0, 200, 100], grayscale: [0, 100, 0], sepia: [0, 100, 0], hue: [-180, 180, 0] };
+  function adjust(v) {
+    if (!isObj(v)) return null;
+    var out = {};
+    Object.keys(ADJUST).forEach(function (k) { var r = ADJUST[k]; if (typeof v[k] === 'number' && isFinite(v[k])) { var n = num(v[k], r[0], r[1], r[2]); if (n !== r[2]) out[k] = n; } });
+    return Object.keys(out).length ? out : null;
   }
   var OV_PROPS = ['visible', 'opacity', 'geometry', 'layoutChild', 'layoutParent', 'fills', 'strokes', 'effects', 'corners', 'text'];
   function overridable(o, node, assets) {
@@ -326,6 +350,8 @@
           overrides: {}
         };
         if (s.aspectLocked === true) n.aspectLocked = true;
+        var bind = binding(s.bind);
+        if (bind && (bind.field === 'image' ? s.type === 'image' : s.type === 'text')) n.bind = bind;
         if (CONTAINERS[s.type]) {
           n.children = [];
           n.layoutParent = layoutParent(s.layoutParent, false);
@@ -343,7 +369,14 @@
           n.asset = typeof s.asset === 'string' && own(assets, s.asset) ? s.asset : '';
           n.fit = oneOf(s.fit, ['fill', 'fit', 'crop', 'tile'], 'fill');
           n.alt = str(s.alt, 200);
-          if (isObj(s.crop)) n.crop = { x: num(s.crop.x, 0, 1, 0), y: num(s.crop.y, 0, 1, 0), w: num(s.crop.w, 0.01, 1, 1), h: num(s.crop.h, 0.01, 1, 1) };
+          if (isObj(s.crop)) {
+            n.crop = { x: num(s.crop.x, 0, 1, 0), y: num(s.crop.y, 0, 1, 0), w: num(s.crop.w, 0.01, 1, 1), h: num(s.crop.h, 0.01, 1, 1) };
+            // the focal point (wave 1: the Studio's crop mode), 0–1 on each axis
+            if (typeof s.crop.fx === 'number' && isFinite(s.crop.fx)) n.crop.fx = num(s.crop.fx, 0, 1, 0.5);
+            if (typeof s.crop.fy === 'number' && isFinite(s.crop.fy)) n.crop.fy = num(s.crop.fy, 0, 1, 0.5);
+          }
+          var adj = adjust(s.adjust);
+          if (adj) n.adjust = adj;
         }
         if (isObj(s.overrides)) {
           ['tablet', 'phone'].forEach(function (bp) {
@@ -502,8 +535,54 @@
 
   var pending = false;
   /** The markup render.js puts in place of the section (null: not detached → the template renders it). */
-  function sectionHTML(s) {
+  /* A detached section whose nodes are bound to products (node.bind, wave 1): a copy with the products' current
+   * name, price and photo in place (render.js passes its model: m.products). The fiche keeps the binding,
+   * the markup follows the catalogue. */
+  function fmtPrice(n) {
+    var D = root.JEERE_DATA;
+    var t = D && typeof D.formatNumber === 'function' ? D.formatNumber(n) : String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202F');
+    return t + '\u00A0FCFA';
+  }
+  function boundSection(s, m) {
+    var nodes = s.engine && s.engine.nodes;
+    if (!nodes || !m || !Array.isArray(m.products)) return s;
+    var ids = Object.keys(nodes).filter(function (id) { return isObj(nodes[id]) && isObj(nodes[id].bind); });
+    if (!ids.length) return s;
+    var copy = JSON.parse(JSON.stringify(s));
+    ids.forEach(function (id) {
+      var n = copy.engine.nodes[id], b = n.bind;
+      var p = m.products.filter(function (x) { return x && x.id === b.product; })[0];
+      if (!p) return;
+      if (b.field === 'image') {
+        var src = p.photo && p.photo.id && !p.ownImage ? 'demo:' + p.photo.id : (typeof p.image === 'string' && DATA_RE.test(p.image) ? p.image : null);
+        if (!src) return;
+        var aid = 'bind-' + String(b.product).slice(0, 30);
+        copy.engine.assets = isObj(copy.engine.assets) ? copy.engine.assets : {};
+        copy.engine.assets[aid] = { src: src };
+        n.asset = aid;
+        n.alt = p.alt || p.name || n.alt || '';
+        return;
+      }
+      var txt = b.field === 'price' ? (typeof p.price === 'number' ? fmtPrice(p.price) : 'Prix à venir') : (p.name || 'Produit');
+      var paras = n.text && Array.isArray(n.text.paragraphs) ? n.text.paragraphs : [];
+      var runs = paras[0] && Array.isArray(paras[0].runs) ? paras[0].runs : [];
+      if (b.field === 'price' && runs.length > 1) {
+        // « 6 500 » + « FCFA » in two runs: the number run takes the number, the rest stays
+        var num = typeof p.price === 'number' ? fmtPrice(p.price).replace(/\u00A0FCFA$/, '') : 'Prix à venir';
+        var at = runs.findIndex ? runs.findIndex(function (r) { return /\d/.test(r.text || ''); }) : 0;
+        var r0 = runs[at < 0 ? 0 : at];
+        r0.text = num + ((String(r0.text || '').match(/\s+$/) || [''])[0]);
+        return;
+      }
+      n.text = { paragraphs: [{ runs: [Object.assign({}, runs[0] || {}, { text: txt })] }] };
+      if (paras[0] && paras[0].style) n.text.paragraphs[0].style = paras[0].style;
+    });
+    return copy;
+  }
+
+  function sectionHTML(s, m) {
     if (!isDetached(s)) return null;
+    if (m) { try { s = boundSection(s, m); } catch (e) { /* the section as it was detached */ } }
     var sid = attrEsc(s.id || 's');
     var type = attrEsc(s.type || '');
     var open = '<section class="jst-eng" data-section-id="' + escAttr(s.id || sid) + '" data-section-type="' + type + '" data-eng="' + sid + '"';
@@ -536,7 +615,7 @@
     version: 1, BREAKPOINTS: BREAKPOINTS, BP_IDS: BP_IDS, LIMITS: LIMITS, TAGS: TAGS,
     sanitize: sanitize, isDetached: isDetached, hasDetached: hasDetached, bpForWidth: bpForWidth,
     href: href, assetSrc: assetSrc, toDocument: toDocument, scopeCSS: scopeCSS, exportSection: exportSection,
-    sectionHTML: sectionHTML, apply: apply, ensureEngine: ensureEngine, ready: ready,
+    sectionHTML: sectionHTML, boundSection: boundSection, apply: apply, ensureEngine: ensureEngine, ready: ready,
     clearCache: function () { cache.length = 0; }
   };
   root.JeereEngineSections = api;

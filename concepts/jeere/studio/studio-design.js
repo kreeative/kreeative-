@@ -1820,7 +1820,7 @@
         });
         b.appendChild(row(k === 'button' ? 'Libellé' : (f.label && f.label.length < 10 ? f.label : 'Texte'), [inp], null, null, multi ? 'dz-row--top' : ''));
       }
-      if (k === 'button') b.appendChild(row('Lien', [ce('span', 'dz-note dz-note--wrap', esc(LINKS[t.type] || 'Lien du modèle'))]));
+      if (k === 'button') b.appendChild(linkRows(t, s));
       if (hasImg) {
         var acts = ce('div', 'dz-btns');
         var rep = ce('button', 'dz-btn', IC.image + '<span>Remplacer…</span>');
@@ -1829,8 +1829,93 @@
         rep.addEventListener('click', function () { S.select({ kind: 'section', id: t.sid }); S.pickImageForSelection(); });
         acts.appendChild(rep);
         b.appendChild(row('Photo', [acts]));
+        var ar = altRow(t);
+        if (ar) b.appendChild(ar);
       }
       return g;
+    }
+
+    /* « Lien » of a button (sections[].settings.buttonLink): the template's default, a page of the journey,
+     * one of her pages, a section of the home page (scroll), a product, WhatsApp, or an https:// address,
+     * in a new tab or not. render.js turns the button into an <a href> */
+    function linkRows(t, s) {
+      var box = ce('div', 'dz-link');
+      if (!s || !s.settings || (t.type !== 'hero' && t.type !== 'whatsapp')) { box.appendChild(ce('span', 'dz-note dz-note--wrap', esc(LINKS[t.type] || 'Lien du modèle'))); return row('Lien', [box]); }
+      var cur = function () { var x = S.sectionById(t.sid); return x && x.settings ? (x.settings.buttonLink || '') : ''; };
+      var opts = [['', t.type === 'whatsapp' ? 'Par défaut : WhatsApp (aperçu)' : 'Aucun lien (le bouton du modèle)'], ['home', 'Accueil'], ['cart', 'Panier']];
+      (cfg().pages || []).forEach(function (pg) { opts.push(['page:' + pg.id, 'Page : ' + (pg.title || pg.slug)]); });
+      S.sections().forEach(function (x) { if (x.id !== t.sid) opts.push(['section:' + x.id, 'Section : ' + S.sectionName(x)]); });
+      S.products().slice(0, 60).forEach(function (pr) { opts.push(['product:' + pr.id, 'Produit : ' + (pr.name || pr.id)]); });
+      opts.push(['whatsapp', 'WhatsApp de la boutique'], ['url', 'Adresse web (https://…)']);
+      var sel = ce('select', 'dz-select');
+      sel.setAttribute('aria-label', 'Lien du bouton');
+      opts.forEach(function (o) { var op = ce('option'); op.value = o[0]; op.textContent = o[1].length > 48 ? o[1].slice(0, 47) + '…' : o[1]; sel.appendChild(op); });
+      var url = ce('input', 'dz-text');
+      url.type = 'url'; url.placeholder = 'https://…'; url.maxLength = 300;
+      url.setAttribute('aria-label', 'Adresse du lien (https://)');
+      var nt = ce('label', 'dz-check', '<input type="checkbox"><span>Nouvel onglet</span>');
+      var ntIn = nt.querySelector('input');
+      function write(v, newTab) {
+        S.commit('Lien du bouton', function (c) {
+          var x = (c.sections || []).filter(function (y) { return y.id === t.sid; })[0];
+          if (!x || !x.settings) return;
+          if (v) x.settings.buttonLink = v; else delete x.settings.buttonLink;
+          if (v && newTab) x.settings.buttonNewTab = true; else delete x.settings.buttonNewTab;
+        }, { structure: false });
+      }
+      sel.addEventListener('change', function () {
+        if (sel.value === 'url') { url.hidden = false; url.focus(); return; }
+        write(sel.value, ntIn.checked);
+      });
+      url.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); url.blur(); } });
+      url.addEventListener('change', function () {
+        var v = url.value.trim();
+        if (v && !/^https:\/\/[^\s"'<>]{1,300}$/i.test(v)) { toast('Lien refusé : une adresse https:// complète (par exemple https://instagram.com/maboutique).', 'warn'); return; }
+        write(v, ntIn.checked);
+      });
+      ntIn.addEventListener('change', function () { write(cur(), ntIn.checked); });
+      reg(function () {
+        var v = cur(), isUrl = /^https:/i.test(v);
+        if (document.activeElement !== sel) sel.value = isUrl ? 'url' : (opts.some(function (o) { return o[0] === v; }) ? v : '');
+        url.hidden = !isUrl && sel.value !== 'url';
+        if (document.activeElement !== url) url.value = isUrl ? v : '';
+        var x = S.sectionById(t.sid);
+        ntIn.checked = !!(x && x.settings && x.settings.buttonNewTab);
+        nt.hidden = !v;
+      });
+      box.appendChild(sel); box.appendChild(url); box.appendChild(nt);
+      return row('Lien', [box], null, null, 'dz-row--top');
+    }
+    /* « Texte alternatif » of a picture: the section's (settings.imageAlt), what screen readers and Google
+     * read; empty: the demo photo's own description, else the section's title */
+    function altRow(t) {
+      var s = S.sectionById(t.sid);
+      if (!s || !s.settings || (t.type !== 'hero' && t.type !== 'about')) return null;
+      var inp = ce('input', 'dz-text');
+      inp.type = 'text'; inp.maxLength = 160;
+      inp.setAttribute('aria-label', 'Texte alternatif de la photo');
+      function fallback() {
+        var x = S.sectionById(t.sid) || {}, st = x.settings || {};
+        var info = st.photo && S.R && S.R.photoInfo ? S.R.photoInfo(st.photo) : null;
+        return (!st.image && info && info.alt) || String(st.title || '').trim() || 'Décrivez la photo';
+      }
+      inp.addEventListener('input', function () {
+        var v = inp.value;
+        S.commit('Texte alternatif modifié', function (c) {
+          var x = (c.sections || []).filter(function (y) { return y.id === t.sid; })[0];
+          if (!x || !x.settings) return;
+          if (v.trim()) x.settings.imageAlt = v; else delete x.settings.imageAlt;
+        }, { coalesce: 'alt:' + t.sid });
+      });
+      inp.addEventListener('keydown', function (e) { e.stopPropagation(); });
+      reg(function () {
+        var x = S.sectionById(t.sid);
+        if (document.activeElement !== inp) inp.value = (x && x.settings && x.settings.imageAlt) || '';
+        inp.placeholder = fallback();
+      });
+      var r = row('Texte alt.', [inp]);
+      tip(r.lab, 'Texte alternatif : ce que lisent les lecteurs d’écran et Google. Vide : la description de la photo d’exemple, ou le titre de la section.');
+      return r;
     }
 
     /* visibility per screen (Disposition): three toggles, each screen says itself */
@@ -2326,10 +2411,58 @@
       if (r.bottom < sr.top || r.top > sr.bottom || r.right < sr.left || r.left > sr.right) { qbar.hidden = true; return; }
       qbar.hidden = false;
       var bw = qbar.offsetWidth, bh = qbar.offsetHeight;
-      var y = r.bottom - sr.top + 10;
-      if (y + bh > sr.height - 80) y = Math.max(8, r.top - sr.top - bh - 52);
-      qbar.style.left = clamp(r.left - sr.left + r.width / 2 - bw / 2, 8, sr.width - bw - 8) + 'px';
-      qbar.style.top = clamp(y, 8, sr.height - bh - 76) + 'px';
+      var p = qbarSpot(el, r, sr, bw, bh, ab);
+      qbar.style.left = p.x + 'px';
+      qbar.style.top = p.y + 'px';
+      qbar.setAttribute('data-spot', p.name);
+    }
+    /* where the quick bar goes: never over what she may click next. Above the element when there is
+     * room, else below, else beside the artboard; each spot is scored by what it would cover (the other
+     * texts, buttons and photos of the section, the selection bar, the other artboards, the tool bar)
+     * and the first spot that covers nothing wins (else the one that covers least). */
+    function qbarSpot(el, r, sr, bw, bh, ab) {
+      var maxY = sr.height - bh - 76, maxX = sr.width - bw - 8;
+      var cx = clamp(r.left - sr.left + r.width / 2 - bw / 2, 8, maxX);
+      var fr = (ab.querySelector('.st-ab__frame') || ab).getBoundingClientRect();
+      var bar = document.getElementById('selbar');
+      var br = bar && !bar.hidden ? bar.getBoundingClientRect() : null;
+      var spots = [
+        { name: 'above', x: cx, y: r.top - sr.top - bh - 8 },
+        { name: 'below', x: cx, y: r.bottom - sr.top + 8 },
+        // a photo: its own lower edge (covering the selected photo hides nothing she wants to click)
+        { name: 'inside', x: cx, y: r.bottom - sr.top - bh - 8, only: el.tagName === 'IMG' || !!el.querySelector('img') ? r.height > bh * 2.5 && r.width > bw * 0.8 : false },
+        { name: 'left', x: fr.left - sr.left - bw - 12, y: r.top - sr.top + r.height / 2 - bh / 2 },
+        { name: 'right', x: fr.right - sr.left + 12, y: r.top - sr.top + r.height / 2 - bh / 2 },
+        // stacked over the selection bar
+        { name: 'over-bar', x: br ? clamp(br.left - sr.left, 8, maxX) : cx, y: br ? br.top - sr.top - bh - 6 : -1, only: !!br }
+      ].filter(function (s) { return s.only !== false; });
+      var obstacles = [];
+      var sec = el.closest('[data-section-id], .jst-header, .jst-footer');
+      if (sec) {
+        Array.prototype.forEach.call(sec.querySelectorAll('h1, h2, h3, h4, p, a, button, img, li, label, .jst-btn, .jst-price, [data-jst-field]'), function (o) {
+          if (o === el || o.contains(el) || el.contains(o)) return;
+          var q = o.getBoundingClientRect();
+          if (q.width > 2 && q.height > 2) obstacles.push(q);
+        });
+      }
+      if (br) obstacles.push(br);
+      Object.keys(S.abEls()).forEach(function (k) {
+        var a = S.abEls()[k];
+        if (a !== ab && !a.classList.contains('is-hidden')) obstacles.push((a.querySelector('.st-ab__frame') || a).getBoundingClientRect());
+      });
+      var best = null;
+      spots.forEach(function (s, i) {
+        var fits = s.x >= 8 && s.x <= maxX && s.y >= 8 && s.y <= maxY;
+        var x = clamp(s.x, 8, maxX), y = clamp(s.y, 8, maxY);
+        var L = sr.left + x, T = sr.top + y, cover = 0;
+        obstacles.concat(s.name === 'inside' ? [] : [r]).forEach(function (q) {
+          var w = Math.min(L + bw, q.right) - Math.max(L, q.left), h = Math.min(T + bh, q.bottom) - Math.max(T, q.top);
+          if (w > 0 && h > 0) cover += w * h;
+        });
+        var score = cover + (fits ? 0 : 1e6) + i;   // the order breaks the ties
+        if (!best || score < best.score) best = { name: s.name, x: Math.round(x), y: Math.round(y), score: score, cover: cover };
+      });
+      return best;
     }
 
     /* ================================================================ the page overview (nothing selected) */
@@ -2340,6 +2473,52 @@
       t.kind = ES.KINDS.page;
       return t;
     }
+    /* « Référencement »: the title and the description for the search engines, apart from the store's name
+     * and tagline (store.seo; a page of hers: pages[].seo). Empty: the name / the tagline are used, shown as
+     * placeholders. Plus the search-result preview (Google, WhatsApp). */
+    function seoRows(body, pageId) {
+      function own() { var c = cfg(); if (pageId) { var pg = (c.pages || []).filter(function (x) { return x.id === pageId; })[0]; return (pg && pg.seo) || {}; } return (c.store && c.store.seo) || {}; }
+      function fallback(k) {
+        var c = cfg(), st = c.store || {};
+        if (pageId) { var pg = (c.pages || []).filter(function (x) { return x.id === pageId; })[0] || {}; return k === 'title' ? (pg.title || '') + (st.name ? ' · ' + st.name : '') : String(pg.body || '').replace(/\s+/g, ' ').trim().slice(0, 155); }
+        return k === 'title' ? (st.name || '') : (st.tagline || '');
+      }
+      var prev = ce('div', 'dz-serp');
+      function paint() {
+        var o = own();
+        var url = S.storeAddress ? S.storeAddress(pageId ? '/pages/' + ((cfg().pages || []).filter(function (x) { return x.id === pageId; })[0] || {}).slug : '') : '';
+        prev.innerHTML = '<small>' + esc(url) + '</small><b>' + esc(o.title || fallback('title') || 'Titre de la page') + '</b><span>' + esc(o.description || fallback('description') || 'Ajoutez une description : deux phrases qui donnent envie de cliquer.') + '</span>';
+      }
+      [['title', 'Titre', 'Le titre dans Google et dans l’onglet (70 caractères). Vide : ' + (pageId ? 'le titre de la page et le nom de la boutique' : 'le nom de la boutique'), 70],
+        ['description', 'Description', 'La description dans Google et dans les aperçus WhatsApp (160 caractères). Vide : ' + (pageId ? 'le début de la page' : 'le slogan'), 160]].forEach(function (f) {
+        var inp = ce(f[0] === 'description' ? 'textarea' : 'input', 'dz-text');
+        if (f[0] !== 'description') inp.type = 'text';
+        inp.maxLength = f[3];
+        inp.value = own()[f[0]] || '';
+        inp.placeholder = fallback(f[0]);
+        inp.setAttribute('aria-label', (pageId ? 'Page : ' : '') + f[1] + ' pour les moteurs de recherche');
+        inp.setAttribute('data-seo', f[0]);
+        inp.addEventListener('input', function () {
+          var v = inp.value;
+          S.commit(f[1] + ' (référencement) modifié', function (c) {
+            var host;
+            if (pageId) { host = (c.pages || []).filter(function (x) { return x.id === pageId; })[0]; if (!host) return; }
+            else host = c.store = c.store || {};
+            var seo = host.seo && typeof host.seo === 'object' ? host.seo : (host.seo = {});
+            if (v.trim()) seo[f[0]] = v; else delete seo[f[0]];
+            if (!Object.keys(seo).length) delete host.seo;
+          }, { coalesce: 'seo:' + (pageId || 'store') + ':' + f[0] });
+          paint();
+        });
+        inp.addEventListener('keydown', function (e) { e.stopPropagation(); });
+        var r = row(f[1], [inp], null, null, f[0] === 'description' ? 'dz-row--top' : '');
+        tip(r.lab, f[2]);
+        body.appendChild(r);
+      });
+      paint();
+      body.appendChild(row('Aperçu', [prev], null, null, 'dz-row--top'));
+    }
+    S.seoRows = seoRows;
     function pageOverview(t) {
       var frag = document.createDocumentFragment();
       // structure
@@ -2389,21 +2568,9 @@
       frag.appendChild(gp);
       // référencement
       var gr = group('seo', t);
-      var st = cfg().store || {};
-      [['name', 'Titre', 'Le titre de l’onglet et de Google : le nom de la boutique', 40], ['tagline', 'Description', 'La description pour Google : le slogan', 120]].forEach(function (f) {
-        var inp = ce('input', 'dz-text');
-        inp.type = 'text';
-        inp.maxLength = f[3];
-        inp.value = st[f[0]] || '';
-        inp.setAttribute('aria-label', f[2]);
-        inp.addEventListener('input', function () { var v = inp.value; S.commit(f[1] + ' modifié', function (c) { c.store = c.store || {}; c.store[f[0]] = v; }, { coalesce: 'store:' + f[0] }); });
-        inp.addEventListener('keydown', function (e) { e.stopPropagation(); });
-        var r = row(f[1], [inp]);
-        tip(r.lab, f[2]);
-        gr.body.appendChild(r);
-      });
-      var sub = 'jeere.shop';
-      try { if (typeof D.subdomainFor === 'function') sub = D.subdomainFor(cfg()) || sub; } catch (e) { /* default */ }
+      seoRows(gr.body, null);
+      var sub = 'ma-boutique.jeere.shop';
+      try { sub = S.storeAddress ? S.storeAddress() : (typeof D.subdomainFor === 'function' ? D.subdomainFor((cfg().store || {}).name) || sub : sub); } catch (e) { /* default */ }
       gr.body.appendChild(row('Adresse', [ce('span', 'dz-note', esc(String(sub).indexOf('.') === -1 ? sub + '.jeere.shop' : sub))]));
       frag.appendChild(gr);
       // stats
@@ -2934,6 +3101,34 @@
       try { all = ES.css(cfg(), { scope: '.jst' }); } catch (e) { all = ''; }
       return { label: 'CSS — toute la boutique', css: shortenData(all) };
     };
+    /* 1 … 9, 0 (studio.js): the opacity of the template selection, at the breakpoint and state shown */
+    chain('selectionOpacity', function (pct) {
+      var sel = state().sel;
+      if (!sel) return undefined;
+      if (window.JeereStudioCanvas && window.JeereStudioCanvas.current && window.JeereStudioCanvas.current()) return undefined; // a detached section: the canvas
+      if (S.isMulti(sel)) {
+        var L = layerName();
+        S.commit('Opacité ' + pct + ' %', function (c) {
+          var es = c.elementStyles && typeof c.elementStyles === 'object' ? c.elementStyles : (c.elementStyles = {});
+          sel.ids.forEach(function (sid) {
+            var s = S.sectionById(sid);
+            if (!s || !ES.elementDef(s.type, 'section')) return;
+            var key = ES.keyOf(sid, 'section', null);
+            var e = es[key] && typeof es[key] === 'object' ? es[key] : (es[key] = {});
+            var layer = e[L] && typeof e[L] === 'object' ? e[L] : (e[L] = {});
+            var n = ES.normProp('opacity', pct);
+            if (n === null || (pct === 100 && L === 'base')) delete layer.opacity; else layer.opacity = n;
+            tidy(c, key);
+          });
+        }, { styleOnly: true, coalesce: 'es:multi:opacity' });
+        if (isShown()) refresh();
+        return true;
+      }
+      var t = target();
+      if (!t || !t.def || t.def.kind === 'page') return undefined;
+      setProps(t, { opacity: pct === 100 && layerName() === 'base' ? null : pct }, 'Opacité ' + pct + ' %', 'digit-opacity');
+      return true;
+    });
     hooks.openDesign = function () {
       if (S.switchInspTab) S.switchInspTab('design');
     };
@@ -2985,6 +3180,9 @@
       var t = target();
       if (!t || t.key !== renderedFor) render(); else refresh();
     });
+    /* the placeholders (« 20 » in the radius field) and the quick bar read the live element: after an undo
+     * the artboards are drawn on the next frame, so read them again once they are */
+    chain('afterRender', function () { if (isShown() && !ds.scrubbing && target()) refresh(); });
     chain('afterDecor', function () { if (isShown()) { overlay(); positionQbar(); if (crop) drawCrop(); } });
     chain('viewChanged', function () { if (isShown()) { overlay(); positionQbar(); if (crop) drawCrop(); } });
     chain('escapeOverlay', function () {
@@ -3012,6 +3210,8 @@
       if (!mod || !e.altKey || e.shiftKey) return;
       var a = document.activeElement;
       if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return;
+      // nodes of a detached section: their own style clipboard (studio-canvas.js)
+      if (window.JeereStudioCanvas && window.JeereStudioCanvas.current && window.JeereStudioCanvas.current()) return;
       if (e.code === 'KeyC' || e.key === 'c' || e.key === 'C') { e.preventDefault(); e.stopPropagation(); copyStyle(); }
       else if (e.code === 'KeyV' || e.key === 'v' || e.key === 'V') { e.preventDefault(); e.stopPropagation(); pasteStyle(); }
     }, true);

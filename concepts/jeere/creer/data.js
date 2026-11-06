@@ -2824,6 +2824,31 @@
     return out;
   }
 
+  /* Wave 1 of the Studio audit — optional keys, kept (repaired) when the fiche has them, never added:
+   *   sections[].settings.buttonLink   the button's link: 'home' | 'cart' | 'whatsapp' | 'page:<id>' |
+   *                                    'product:<id>' | 'section:<id>' | 'https://…' (render.js: an <a href>)
+   *   sections[].settings.buttonNewTab true: the link opens in a new tab
+   *   sections[].settings.imageAlt     the alternative text of the section's picture (hero, about)
+   *   products[].alt                   the alternative text of the product's photo
+   *   store.seo / pages[].seo          { title (70), description (160) }: the search engines' title and
+   *                                    description, apart from the store's name and tagline */
+  var LINK_RE = /^(home|cart|whatsapp|(page|product|section):[\w-]{1,40}|https:\/\/[^\s"'<>]{1,300})$/i;
+  function oneLine(v, n) { return typeof v === 'string' ? v.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n) : ''; }
+  function normSectionExtras(src, out) {
+    if (has(src, 'buttonLink') && typeof src.buttonLink === 'string' && LINK_RE.test(src.buttonLink.trim())) out.buttonLink = src.buttonLink.trim();
+    if (out.buttonLink && src.buttonNewTab === true) out.buttonNewTab = true;
+    if (has(src, 'imageAlt')) { var alt = oneLine(src.imageAlt, 160); if (alt) out.imageAlt = alt; }
+  }
+  function normSeo(v) {
+    if (!isObj(v)) return null;
+    var o = {};
+    var t = oneLine(v.title, 70), d = oneLine(v.description, 160);
+    if (t) o.title = t;
+    if (d) o.description = d;
+    if (v.noindex === true) o.noindex = true;
+    return Object.keys(o).length ? o : null;
+  }
+
   // A section's own colours (optional, never added): bg 'page' | 'surface' | 'accent' | #RRGGBB, fg
   // #RRGGBB (only with a bg), and on the hero buttonBg / buttonText. 'auto' or anything else: dropped.
   function normSectionColors(type, src, out) {
@@ -2877,6 +2902,7 @@
     };
     // The brand keys are optional: kept (repaired) when the fiche has them, never added
     BRAND_KEYS.forEach(function (k) { if (has(srcStore, k)) store[k] = normBrand(k, srcStore[k]); });
+    if (has(srcStore, 'seo')) { var storeSeo = normSeo(srcStore.seo); if (storeSeo) store.seo = storeSeo; }
 
     var srcTheme = isObj(src.theme) ? src.theme : {};
     var theme = {
@@ -2912,6 +2938,7 @@
       var def = sectionTypes[s.type];
       var settings = normSettings(def.fields, s.settings, def.defaults);
       if (isObj(s.settings)) normSectionColors(s.type, s.settings, settings);
+      if (isObj(s.settings)) normSectionExtras(s.settings, settings);
       var sec = {
         id: s.id,
         type: s.type,
@@ -2945,6 +2972,7 @@
         image: isImage(p.image) ? p.image : null,
         photo: photoId(p.photo)
       });
+      if (has(p, 'alt')) { var palt = oneLine(p.alt, 160); if (palt) products[products.length - 1].alt = palt; }
     });
     assignIds(products, 'p');
 
@@ -2984,6 +3012,7 @@
         id: pg.id, title: title, slug: pg.slug, body: body,
         inMenu: toBool(pg.inMenu, false), inFooter: toBool(pg.inFooter, true)
       });
+      if (has(pg, 'seo')) { var pseo = normSeo(pg.seo); if (pseo) out[out.length - 1].seo = pseo; }
     });
     assignIds(out, 'pg');
     var used = {};

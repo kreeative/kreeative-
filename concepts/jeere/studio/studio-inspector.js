@@ -143,6 +143,26 @@
 
     var updaters = [];
     function reg(f) { updaters.push(f); return f; }
+    /* several nodes selected: a control reads every one of them (its getter is evaluated with the target
+     * pointing at each node in turn) and says « Mixte » when they differ; its setter writes them all */
+    var curT = null;
+    function mixedOf(get) {
+      var t = curT;
+      if (!t || !t.ids || t.ids.length < 2) return { mixed: false };
+      var keepId = t.id, keepN = t.n, first, mixed = false;
+      try {
+        t.ids.forEach(function (id, i) {
+          var n = E.node(t.sid, id);
+          if (!n) return;
+          t.id = id; t.n = n;
+          var v;
+          try { v = get(); } catch (e) { v = undefined; }
+          var k = JSON.stringify(v === undefined ? null : v);
+          if (i === 0) first = k; else if (k !== first) mixed = true;
+        });
+      } finally { t.id = keepId; t.n = keepN; }
+      return { mixed: mixed };
+    }
     function refresh() { updaters.forEach(function (f) { try { f(); } catch (e) { /* stale */ } }); }
     function parseNum(s) { var p = window.JeereStudioDesign && window.JeereStudioDesign.parseExpr; var v = p ? p(s) : parseFloat(String(s).replace(',', '.')); return v === null || !isFinite(v) ? null : v; }
     function fmt(v) { return v === null || v === undefined || v === '' ? '' : String(round(Number(v), 2)).replace('.', ','); }
@@ -200,7 +220,10 @@
       reg(function () {
         var dis = !!(o.disabled && o.disabled());
         inp.disabled = dis;
-        if (document.activeElement !== inp) { var v = o.get(); inp.value = v === null || v === undefined || (typeof v === 'number' && !isFinite(v)) ? '' : fmt(v); before = inp.value; }
+        var mx = mixedOf(o.get).mixed;
+        w.classList.toggle('is-mixed', mx);
+        inp.placeholder = mx ? 'Mixte' : '';
+        if (document.activeElement !== inp) { var v = o.get(); inp.value = mx || v === null || v === undefined || (typeof v === 'number' && !isFinite(v)) ? '' : fmt(v); before = inp.value; }
         var ov = !!(o.over && o.over());
         w.classList.toggle('is-over', ov);
         if (lock) lock.hidden = !ov;
@@ -222,6 +245,9 @@
       });
       reg(function () {
         var cur = o.get();
+        var mx = mixedOf(o.get).mixed;
+        box.classList.toggle('is-mixed', mx);
+        if (mx) cur = { mixed: true };
         btns.forEach(function (b, i) { var on = o.options[i].v === cur; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.classList.toggle('is-over', on && !!(o.over && o.over())); });
       });
       return box;
@@ -232,7 +258,13 @@
       o.options.forEach(function (op) { var x = ce('option'); x.value = String(op.v); x.textContent = op.label; s.appendChild(x); });
       s.addEventListener('change', function () { o.set(o.numeric ? Number(s.value) : s.value); });
       s.addEventListener('keydown', function (e) { e.stopPropagation(); });
-      reg(function () { var v = o.get(); s.value = v === undefined || v === null ? '' : String(v); });
+      var mixOpt = null;
+      reg(function () {
+        var mx = mixedOf(o.get).mixed;
+        if (mx && !mixOpt) { mixOpt = ce('option'); mixOpt.value = '__mixed'; mixOpt.textContent = 'Mixte'; mixOpt.disabled = true; s.insertBefore(mixOpt, s.firstChild); }
+        if (!mx && mixOpt) { mixOpt.remove(); mixOpt = null; }
+        var v = o.get(); s.value = mx ? '__mixed' : (v === undefined || v === null ? '' : String(v));
+      });
       return s;
     }
     function colorCtl(o) {
@@ -257,8 +289,10 @@
       });
       reg(function () {
         var p = o.get();
-        sw.firstChild.style.background = paintCss(p);
-        if (document.activeElement !== hex) hex.value = p ? (p.type === 'solid' ? toHex(p.color).slice(1) : p.type === 'image' ? 'Image' : (p.type === 'radial' ? 'Dégradé radial' : 'Dégradé')) : '';
+        var mx = mixedOf(o.get).mixed;
+        box.classList.toggle('is-mixed', mx);
+        sw.firstChild.style.background = mx ? 'repeating-conic-gradient(#8a8a8a 0 25%, #c8c8c8 0 50%) 0 0 / 8px 8px' : paintCss(p);
+        if (document.activeElement !== hex) hex.value = mx ? 'Mixte' : p ? (p.type === 'solid' ? toHex(p.color).slice(1) : p.type === 'image' ? 'Image' : (p.type === 'radial' ? 'Dégradé radial' : 'Dégradé')) : '';
       });
       return box;
     }
@@ -295,12 +329,14 @@
 
     var BP_LABEL = { base: 'Ordinateur', tablet: 'Tablette', phone: 'Téléphone' };
     var TYPE_LABEL = { frame: 'Cadre', stack: 'Pile', grid: 'Grille', rect: 'Rectangle', ellipse: 'Ellipse', line: 'Ligne', text: 'Texte', image: 'Image' };
-    function boxOf(t) { var b = C.boxF(C.activeAb(), t.sid, t.id); return b; }
+    function boxOf(t) { var ab = C.activeAb(); return C.previewBox ? C.previewBox(ab, t.sid, t.id) : C.boxF(ab, t.sid, t.id); }
 
     function build(insp, titleEl, subEl) {
       updaters = [];
       var t = target();
       if (!t) return false;
+      curT = t;
+      var allOf = function (type) { return t.ids.every(function (id) { var n = E.node(t.sid, id); return n && n.type === type; }); };
       var s = S.sectionById(t.sid);
       titleEl.textContent = t.root ? S.sectionName(s) : (t.ids.length > 1 ? t.ids.length + ' éléments' : t.n.name || TYPE_LABEL[t.n.type]);
       subEl.textContent = t.root ? 'Section détachée' : (TYPE_LABEL[t.n.type] || t.n.type) + ' · ' + S.sectionName(s);
@@ -318,18 +354,75 @@
       root.appendChild(sizeGroup(t));
       if (E.isContainer(t.n)) root.appendChild(layoutGroup(t));
       root.appendChild(appearanceGroup(t));
+      if (!t.root && C.align) root.insertBefore(alignRow(t), root.children[1] || null);
+      if (!t.root && t.ids.length === 1 && t.n.bind) root.insertBefore(bindGroup(t), root.children[2] || null);
       if (t.n.type !== 'text' && t.n.type !== 'image') root.appendChild(fillGroup(t));
-      if (t.n.type === 'image') root.appendChild(imageGroup(t));
-      if (t.n.type === 'text') root.appendChild(typoGroup(t));
+      if (allOf('image')) root.appendChild(imageGroup(t));
+      if (allOf('text')) root.appendChild(typoGroup(t));
       root.appendChild(strokeGroup(t));
       root.appendChild(effectsGroup(t));
-      if (!t.root) root.appendChild(webGroup(t));
+      if (!t.root && t.ids.length === 1) root.appendChild(webGroup(t));
       root.appendChild(cssGroup(t));
       insp.appendChild(root);
       refresh();
       return true;
     }
     function rebuild() { if (S.state().sel) S.buildInspector(); }
+
+    /* the align / distribute row at the top of the panel (Figma): 6 alignments, 2 distributions */
+    var AL_IC = {
+      left: '<path d="M2.5 2v12"/><rect x="4.5" y="4" width="8" height="3" rx=".8"/><rect x="4.5" y="9" width="5" height="3" rx=".8"/>',
+      hcenter: '<path d="M8 2v12"/><rect x="3.5" y="4" width="9" height="3" rx=".8"/><rect x="5" y="9" width="6" height="3" rx=".8"/>',
+      right: '<path d="M13.5 2v12"/><rect x="3.5" y="4" width="8" height="3" rx=".8"/><rect x="6.5" y="9" width="5" height="3" rx=".8"/>',
+      top: '<path d="M2 2.5h12"/><rect x="4" y="4.5" width="3" height="8" rx=".8"/><rect x="9" y="4.5" width="3" height="5" rx=".8"/>',
+      vcenter: '<path d="M2 8h12"/><rect x="4" y="3.5" width="3" height="9" rx=".8"/><rect x="9" y="5" width="3" height="6" rx=".8"/>',
+      bottom: '<path d="M2 13.5h12"/><rect x="4" y="3.5" width="3" height="8" rx=".8"/><rect x="9" y="6.5" width="3" height="5" rx=".8"/>',
+      dh: '<path d="M2.5 2.5v11M13.5 2.5v11"/><rect x="6.5" y="5" width="3" height="6" rx=".8"/>',
+      dv: '<path d="M2.5 2.5h11M2.5 13.5h11"/><rect x="5" y="6.5" width="6" height="3" rx=".8"/>'
+    };
+    function alignRow(t) {
+      var r = ce('div', 'st-eng-alignrow');
+      r.setAttribute('role', 'toolbar');
+      r.setAttribute('aria-label', 'Aligner et répartir');
+      [['left', 'Aligner à gauche', 'Alt A'], ['hcenter', 'Centrer horizontalement', 'Alt H'], ['right', 'Aligner à droite', 'Alt D'],
+        ['top', 'Aligner en haut', 'Alt W'], ['vcenter', 'Centrer verticalement', 'Alt V'], ['bottom', 'Aligner en bas', 'Alt S']].forEach(function (a) {
+        var b = ib(AL_IC[a[0]], a[1] + (t.ids.length > 1 ? '' : ' (dans son cadre)'), function () { C.align(C.current(), a[0]); });
+        b.setAttribute('data-align', a[0]);
+        b.setAttribute('data-kbd', a[2]);
+        r.appendChild(b);
+      });
+      r.appendChild(ce('span', 'st-eng-alignrow__sep'));
+      [['h', 'dh', 'Répartir l’espacement horizontal', 'Alt ⇧ H'], ['v', 'dv', 'Répartir l’espacement vertical', 'Alt ⇧ V']].forEach(function (a) {
+        var b = ib(AL_IC[a[1]], a[2] + ' (3 éléments ou plus)', function () { C.distribute(C.current(), a[0]); });
+        b.setAttribute('data-distribute', a[0]);
+        b.setAttribute('data-kbd', a[3]);
+        b.disabled = t.ids.length < 3;
+        r.appendChild(b);
+      });
+      return r;
+    }
+
+    /* a node bound to the catalogue (detached products, wave 1): it follows the product; « Délier » freezes it */
+    var BIND_LABEL = { name: 'nom', price: 'prix', image: 'photo' };
+    function bindGroup(t) {
+      var g = group('Lié au catalogue');
+      var p = S.productById(t.n.bind.product);
+      g.body.appendChild(ce('p', 'st-eng-note', 'Lié à <b>Produit · ' + esc(BIND_LABEL[t.n.bind.field] || t.n.bind.field) + '</b>' + (p ? ' (« ' + esc(p.name || p.id) + ' »)' : ' (produit supprimé)') + ' : ' + (t.n.bind.field === 'image' ? 'la photo du produit s’affiche ici.' : 'modifier ce texte modifie le produit, partout dans la boutique.')));
+      var a = ce('div', 'st-eng-actions');
+      if (p) {
+        var go = ce('button', 'st-secbtn', 'Ouvrir le produit');
+        go.type = 'button';
+        go.addEventListener('click', function () { S.select({ kind: 'product', id: p.id }); });
+        a.appendChild(go);
+      }
+      var un = ce('button', 'st-secbtn', 'Délier');
+      un.type = 'button';
+      un.addEventListener('click', function () { E.apply(t.sid, [{ op: 'remove', path: E.path(t.id, 'bind') }], 'Élément délié du catalogue', { structure: true }); });
+      a.appendChild(un);
+      g.body.appendChild(a);
+      g.setAttribute('data-bind', t.n.bind.field);
+      return g;
+    }
 
     function sectionGroup(t, s) {
       var g = group('Section détachée');
@@ -647,7 +740,8 @@
         var r0 = t.n.text.paragraphs[0] && t.n.text.paragraphs[0].runs[0];
         E.apply(t.sid, [{ op: 'replace', path: E.path(t.id, 'text'), value: M.richText(v, r0 && r0.style ? r0.style : undefined) }], 'Texte modifié');
       });
-      reg(function () { if (document.activeElement !== ta) ta.value = M.plainText(E.node(t.sid, t.id).text); });
+      if (t.ids.length > 1) { ta.disabled = true; ta.placeholder = t.ids.length + ' textes : modifiez le contenu de chacun séparément (double-clic sur le canevas).'; }
+      reg(function () { if (t.ids.length > 1) { ta.value = ''; return; } if (document.activeElement !== ta) ta.value = M.plainText(E.node(t.sid, t.id).text); });
       g.body.appendChild(row('st-eng-row--1', [ta]));
       g.body.appendChild(row('st-eng-row--1', [sel({ title: 'Police', options: fontOptions(st().family), get: function () { return st().family; }, set: function (v) { sk('family', v, 'Police'); } })]));
       g.body.appendChild(row('', [
@@ -719,6 +813,35 @@
       up.addEventListener('click', function () { file.click(); });
       g.body.appendChild(row('st-eng-row--1', [up, file]));
       g.body.appendChild(row('st-eng-row--1', [seg({ title: 'Ajustement', options: [{ v: 'fill', label: 'Remplir', tip: 'object-fit: cover' }, { v: 'fit', label: 'Contenir', tip: 'object-fit: contain' }, { v: 'crop', label: 'Recadrer' }], get: function () { return E.node(t.sid, t.id).fit; }, set: function (v) { var p = [{ op: 'replace', path: E.path(t.id, 'fit'), value: v }]; if (v === 'crop' && !E.node(t.sid, t.id).crop) p.push({ op: 'add', path: E.path(t.id, 'crop'), value: { x: 0.25, y: 0.25, w: 0.5, h: 0.5 } }); E.apply(t.sid, p, 'Ajustement de l’image'); } })]));
+      // the crop (wave 1): zoom and focal point, as the template photos have, and « Recadrer » on the canvas
+      var cv = function () { return C.cropOf ? C.cropOf(t.sid, t.id) : { z: 1, fx: 0.5, fy: 0.5 }; };
+      var setC = function (k, label) { return function (v, live) { var c = cv(); c[k] = k === 'z' ? clamp(v / 100, 1, 4) : clamp(v / 100, 0, 1); C.setNodeCrop(t.sid, t.id, c, label, live ? 'ccrop' + k : null); }; };
+      g.body.appendChild(row('', [
+        num({ letter: '⤢', title: 'Zoom de la photo (%)', min: 100, max: 400, get: function () { return round(cv().z * 100, 0); }, set: setC('z', 'Zoom de l’image') }),
+        ib('<path d="M4.5 1.5v10h10M1.5 4.5h10v10"/>', 'Recadrer sur le canevas (double-clic, Entrée)', function () { if (C.startNodeCrop) C.startNodeCrop(t.sid, t.id, C.activeAb()); })
+      ]));
+      g.body.appendChild(lab('Point focal'));
+      g.body.appendChild(row('', [
+        num({ letter: 'X', title: 'Point focal horizontal (%)', min: 0, max: 100, get: function () { return round(cv().fx * 100, 1); }, set: setC('fx', 'Point focal') }),
+        num({ letter: 'Y', title: 'Point focal vertical (%)', min: 0, max: 100, get: function () { return round(cv().fy * 100, 1); }, set: setC('fy', 'Point focal') })
+      ]));
+      // the filters (adjust), as the template photos have
+      var ADJ = [['brightness', 'Lumière', 0, 200, 100, '☀'], ['contrast', 'Contraste', 0, 200, 100, '◐'], ['saturate', 'Saturation', 0, 200, 100, '◉'], ['grayscale', 'N & B', 0, 100, 0, '◑'], ['sepia', 'Sépia', 0, 100, 0, 'S'], ['hue', 'Teinte (°)', -180, 180, 0, 'H']];
+      var adjOf = function () { return (E.node(t.sid, t.id) || {}).adjust || {}; };
+      var setAdj = function (k, dflt) {
+        return function (v, live) {
+          var o = clone(adjOf()), n0 = E.node(t.sid, t.id);
+          if (Math.abs(v - dflt) < 0.001) delete o[k]; else o[k] = v;
+          var p = Object.keys(o).length ? { op: n0.adjust ? 'replace' : 'add', path: E.path(t.id, 'adjust'), value: o } : (n0.adjust ? { op: 'remove', path: E.path(t.id, 'adjust') } : null);
+          if (p) E.apply(t.sid, [p], 'Filtre de l’image', { coalesce: live ? 'adj' + k + t.id : undefined });
+        };
+      };
+      g.body.appendChild(lab('Filtres'));
+      for (var ai = 0; ai < ADJ.length; ai += 2) {
+        g.body.appendChild(row('', [ADJ[ai], ADJ[ai + 1]].map(function (a) {
+          return num({ letter: a[5], title: a[1] + (a[0] === 'hue' ? '' : ' (%)'), min: a[2], max: a[3], get: function () { var v = adjOf()[a[0]]; return v === undefined ? a[4] : v; }, set: setAdj(a[0], a[4]) });
+        })));
+      }
       var alt = ce('input', 'st-eng-input');
       alt.placeholder = 'Texte alternatif (décrit la photo)';
       alt.setAttribute('aria-label', 'Texte alternatif');
@@ -797,6 +920,8 @@
       refresh();
     });
     chain('engineBpChanged', function () { refresh(); });
+    // the X / Y / L / H fields follow a drag or a resize on the canvas, live
+    chain('engineDragging', function () { if ($('inspector') && $('inspector').querySelector('[data-eng-insp]')) refresh(); });
     /* Échap closes the colour picker first (the selection stays) */
     chain('escapeOverlay', function () {
       if (picker && window.JeereColor && window.JeereColor.isOpen()) { window.JeereColor.close(); picker = false; return true; }
@@ -905,7 +1030,8 @@
               var inp = document.createElement('input');
               inp.value = c.name; inp.maxLength = 80;
               nm.textContent = ''; nm.appendChild(inp); inp.focus(); inp.select();
-              var fin = function (ok) { var v = inp.value.trim(); inp.remove(); if (ok && v && v !== c.name) E.apply(s.id, [{ op: 'replace', path: E.path(cid, 'name'), value: v.slice(0, 80) }], 'Calque renommé', { structure: true }); else S.buildTree(); };
+              var finished = false;
+              var fin = function (ok) { if (finished) return; finished = true; var v = inp.value.trim(); inp.remove(); if (ok && v && v !== c.name) E.apply(s.id, [{ op: 'replace', path: E.path(cid, 'name'), value: v.slice(0, 80) }], 'Calque renommé', { structure: true }); else S.buildTree(); };
               inp.addEventListener('keydown', function (k) { k.stopPropagation(); if (k.key === 'Enter') fin(true); if (k.key === 'Escape') fin(false); });
               inp.addEventListener('blur', function () { fin(true); });
             });

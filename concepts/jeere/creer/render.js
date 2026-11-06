@@ -720,6 +720,7 @@
       art: kinds.indexOf(p.art) !== -1 && own(ART, p.art) ? p.art : 'box',
       color: validHex(p.color) || '#E9D8BD',
       description: str(p.description),
+      alt: str(p.alt).replace(/\s+/g, ' ').trim().slice(0, 160),
       image: mine || (photo ? photo.src : null),
       ownImage: !!mine,
       photo: photo,
@@ -1019,6 +1020,59 @@
   const go = (page, productId, pageId) => act('go', { page: page, product: productId || null, 'page-id': pageId || null });
   const goPage = (pageId) => go('page', null, pageId);
 
+  /* Real addresses on the store's links (wave 1 of the Studio audit): every <a data-jst-action="go"> gets
+   * an href, so it takes the keyboard focus, opens in a new tab with a middle click and can be indexed.
+   * options.linkBase (a published store's root, e.g. '/b/awa-beaute') gives path addresses
+   * (<base>/produits/<id>, <base>/pages/<slug>, <base>/panier…); without it they are in-page fragments
+   * (#/produits/p1…). The previews keep intercepting the clicks (onClick), nothing changes there. */
+  let LINK_BASE = null;
+  let LINK_PAGES = null; // pageId → slug
+  function hrefOf(page, productId, pageId) {
+    const enc = (v) => encodeURIComponent(String(v || ''));
+    let path = '/';
+    if (page === 'product' && productId) path = '/produits/' + enc(productId);
+    else if (page === 'page' && pageId) path = '/pages/' + enc((LINK_PAGES && LINK_PAGES[pageId]) || pageId);
+    else if (page === 'cart') path = '/panier';
+    else if (page === 'checkout') path = '/paiement';
+    else if (page === 'confirmation') path = '/confirmation';
+    return LINK_BASE !== null ? LINK_BASE.replace(/\/+$/, '') + path : '#' + path;
+  }
+  function withHrefs(html) {
+    return html.replace(/<a\b((?:(?!\shref=)[^>])*?\sdata-jst-action="go"[^>]*)>/g, (all, attrs) => {
+      if (/\shref=/.test(attrs)) return all;
+      const g = (k) => { const r = new RegExp('\\sdata-' + k + '="([^"]*)"').exec(attrs); return r ? r[1].replace(/&amp;/g, '&') : ''; };
+      return '<a href="' + esc(hrefOf(g('page') || 'home', g('product'), g('page-id'))) + '"' + attrs + '>';
+    });
+  }
+  /* A button's own link (sections[].settings.buttonLink, the Studio's « Lien »): 'home', 'cart', 'page:<id>',
+   * 'product:<id>', 'section:<id>' (scroll to it), 'whatsapp', or an https:// address. Absent: the template's
+   * button, unchanged. Returns the attributes of an <a class="jst-btn"> or null. */
+  function buttonLinkAttrs(m, st) {
+    const v = isObj(st) ? str(st.buttonLink).trim() : '';
+    if (!v) return null;
+    const blank = st.buttonNewTab === true ? ' target="_blank" rel="noopener"' : '';
+    let k;
+    if (v === 'home') return ' href="' + esc(hrefOf('home')) + '"' + go('home') + blank;
+    if (v === 'cart') return ' href="' + esc(hrefOf('cart')) + '"' + go('cart') + blank;
+    if ((k = /^page:([\w-]{1,40})$/.exec(v)) && m.pages.some((p) => p.id === k[1])) return ' href="' + esc(hrefOf('page', null, k[1])) + '"' + goPage(k[1]) + blank;
+    if ((k = /^product:([\w-]{1,40})$/.exec(v)) && m.products.some((p) => p.id === k[1])) return ' href="' + esc(hrefOf('product', k[1])) + '"' + go('product', k[1]) + blank;
+    if ((k = /^section:([\w-]{1,40})$/.exec(v))) return ' href="#' + esc(k[1]) + '"' + act('scroll', { section: k[1] });
+    if (v === 'whatsapp') return m.whatsapp ? ' href="https://wa.me/' + esc(String(m.whatsapp).replace(/\D/g, '')) + '"' + act('wa') + ' target="_blank" rel="noopener"' : act('wa');
+    if (/^https:\/\/[^\s"'<>]{1,300}$/i.test(v)) return ' href="' + esc(v) + '"' + act('ext') + blank;
+    return null;
+  }
+  /* the button, as a link when the seller gave it one (else exactly the template's <button>) */
+  function linkBtn(m, st, label, opts) {
+    const attrs = buttonLinkAttrs(m, st);
+    if (!attrs) return btn(label, opts);
+    return btn(label, opts).replace(/^<button type="button"/, '<a').replace(/ tabindex="-1"/, attrs).replace(/<\/button>$/, '</a>');
+  }
+  // The alternative text of a section's picture: hers (settings.imageAlt), else the demo photo's, else the title
+  function picAlt(st, pic) {
+    const own = isObj(st) ? str(st.imageAlt).trim() : '';
+    return own || (pic && pic.alt ? String(pic.alt) : '') || (isObj(st) ? str(st.title).replace(/\s+/g, ' ').trim() : '');
+  }
+
   function btn(label, opts) {
     const o = opts || {};
     const text = str(label).trim();
@@ -1040,7 +1094,7 @@
   // so their picture is decorative (alt=""); the product page (named) gives it the product's name.
   function media(p, cls, extra, named) {
     const inner = p.image
-      ? '<img src="' + esc(p.image) + '" alt="' + (named ? esc(p.name || (p.photo ? p.photo.alt : '')) : '') + '"' + photoAttrs(p.photo) + ' loading="lazy" decoding="async">'
+      ? '<img src="' + esc(p.image) + '" alt="' + esc(p.alt || p.name || (p.photo ? p.photo.alt : '')) + '"' + photoAttrs(p.photo) + ' loading="lazy" decoding="async">'
       : artSVG(p.art, p.color);
     return '<div class="jst-tile' + (p.image ? ' has-photo' : '') + (cls ? ' ' + cls : '') + '" style="' + tileStyle(p.color) + '">' + inner + (extra || '') + '</div>';
   }
@@ -1293,7 +1347,7 @@
       (kicker ? '<p class="' + kickerCls + '">' + kicker + '</p>' : '') +
       (title ? '<h1 class="jst-h jst-hero-title" data-len="' + titleLen(title) + '">' + line(title) + '</h1>' : '') +
       (text ? '<p class="jst-hero-text">' + line(text) + '</p>' : '') +
-      '<div class="jst-hero-actions">' + btn(st.button, { arrow: m.tpl !== 'cocody', size: 'lg' }) +
+      '<div class="jst-hero-actions">' + linkBtn(m, st, st.button, { arrow: m.tpl !== 'cocody', size: 'lg' }) +
       (m.tpl === 'cocody' && m.rating
         ? '<p class="jst-hero-proof">' + stars(Math.round(m.rating.avg)) + '<span>' + fmtRating(m.rating.avg) + '/5 · ' + plural(m.rating.count, 'avis', 'avis') + '</span></p>'
         : '') +
@@ -1305,7 +1359,7 @@
     const pic = sectionImage(st);
     const img = pic ? pic.src : null;
     const p = m.lead;
-    const imgTag = img ? '<img class="jst-hero-img" src="' + esc(img) + '" alt=""' + photoAttrs(pic) + ' decoding="async">' : '';
+    const imgTag = img ? '<img class="jst-hero-img" src="' + esc(img) + '" alt="' + esc(picAlt(st, pic)) + '"' + photoAttrs(pic) + ' decoding="async">' : '';
 
     if (m.tpl === 'cocody') {
       const visual = img
@@ -1368,8 +1422,11 @@
     if (!m.categories.length) {
       return sectionOpen(s) + '<div class="jst-wrap">' + head(title) + empty('Vos catégories apparaîtront ici dès que vos produits en auront une.') + '</div></section>';
     }
+    // a category opens the catalogue: the first products section of the page (an in-page link, wave 1)
+    const cat = (m.sections || []).filter((x) => x && x.type === 'products' && x.enabled !== false)[0];
+    const catLink = cat ? ' href="#' + esc(cat.id) + '"' + act('scroll', { section: cat.id }) : ' href="' + esc(hrefOf('home')) + '"';
     const items = m.categories.map((c, i) => {
-      return '<a class="jst-cat" style="' + tileStyle(c.product.color) + '">' +
+      return '<a class="jst-cat"' + catLink + ' style="' + tileStyle(c.product.color) + '">' +
         media(c.product, 'jst-cat-media') +
         '<span class="jst-cat-body"><span class="jst-cat-num">' + pad2(i + 1) + '</span><span class="jst-h jst-cat-name">' + esc(c.name) + '</span>' +
         '<span class="jst-cat-count">' + plural(c.count, 'produit', 'produits') + '</span></span>' +
@@ -1416,8 +1473,8 @@
   }
 
   // pic: the section's image or demo photo ({ src, focus }), else a composition of the first products.
-  function aboutVisual(m, pic) {
-    if (pic) return '<div class="jst-about-media has-img"><img src="' + esc(pic.src) + '" alt=""' + photoAttrs(pic) + ' loading="lazy" decoding="async"></div>';
+  function aboutVisual(m, pic, st) {
+    if (pic) return '<div class="jst-about-media has-img"><img src="' + esc(pic.src) + '" alt="' + esc(picAlt(st, pic)) + '"' + photoAttrs(pic) + ' loading="lazy" decoding="async"></div>';
     const a = m.lead, b = m.second;
     const t = tileColors(a.color);
     const art = (p, cls) => '<div class="jst-about-art ' + cls + '">' + leadPic(p) + '</div>';
@@ -1432,7 +1489,7 @@
     const st = s.settings;
     const title = str(st.title).trim();
     const text = paras(st.text);
-    return sectionOpen(s) + '<div class="jst-wrap jst-about">' + aboutVisual(m, sectionImage(st)) +
+    return sectionOpen(s) + '<div class="jst-wrap jst-about">' + aboutVisual(m, sectionImage(st), st) +
       '<div class="jst-about-copy">' +
       (m.tpl === 'plateau' ? '<p class="jst-kicker">À propos</p>' : '') +
       (title ? '<h2 class="jst-h jst-about-title">' + line(title) + '</h2>' : '') +
@@ -1497,7 +1554,7 @@
       '<span class="jst-wa-deco jst-wa-deco--a" aria-hidden="true"></span><span class="jst-wa-deco jst-wa-deco--b" aria-hidden="true"></span>' +
       '<span class="jst-wa-ico" aria-hidden="true">' + icon('chat') + '</span>' +
       '<div class="jst-wa-copy">' + (title ? '<h2 class="jst-h jst-wa-title">' + line(title) + '</h2>' : '') + (text ? '<p class="jst-wa-text">' + line(text) + '</p>' : '') + '</div>' +
-      '<div class="jst-wa-cta">' + btn(st.button || 'Commander sur WhatsApp', { icon: 'chat', size: 'lg' }) +
+      '<div class="jst-wa-cta">' + linkBtn(m, st, st.button || 'Commander sur WhatsApp', { icon: 'chat', size: 'lg' }) +
       (m.whatsapp ? '<p class="jst-wa-num">' + esc(prettyPhone(m.whatsapp)) + '</p>' : '') + '</div>' +
       '</div></div></section>';
   }
@@ -1510,7 +1567,7 @@
   function renderSection(m, s) {
     try {
       if (s.engine && root.JeereEngineSections && typeof root.JeereEngineSections.sectionHTML === 'function') {
-        const eh = safe(() => root.JeereEngineSections.sectionHTML(s));
+        const eh = safe(() => root.JeereEngineSections.sectionHTML(s, m)); // m: the products a detached section is bound to
         if (eh) return eh;
       }
       return SECTION_RENDERERS[s.type](m, s);
@@ -2191,6 +2248,14 @@
       case 'wa':
         toast(rootEl, a, 'Aperçu' + NBSP + ': dans votre boutique, ce bouton ouvre WhatsApp avec la commande prête à envoyer.');
         break;
+      case 'scroll': {
+        const sec = rootEl.querySelector('[data-section-id="' + String(a.getAttribute('data-section') || '').replace(/["\\]/g, '') + '"]');
+        if (sec) scrollToNode(rootEl, sec);
+        break;
+      }
+      case 'ext':
+        toast(rootEl, a, 'Aperçu' + NBSP + ': dans votre boutique, ce bouton ouvre ' + (a.getAttribute('href') || 'le lien') + '.');
+        break;
       default:
         break;
     }
@@ -2256,8 +2321,11 @@
     try {
       m = buildModel(config, device);
       VIVID = m.vivid;
+      LINK_BASE = typeof o.linkBase === 'string' ? o.linkBase : null;
+      LINK_PAGES = {};
+      m.pages.forEach((pg) => { if (pg && pg.id) LINK_PAGES[pg.id] = pg.slug || pg.id; });
       j = journey(m, rootEl, page, productId, pageId);
-      html = renderPage(m, j);
+      html = withHrefs(renderPage(m, j));
     } catch (e) {
       m = null;
       page = 'home';
@@ -2267,6 +2335,8 @@
         '<footer class="jst-footer"><div class="jst-wrap"><div class="jst-footer-bottom"><span>©' + NBSP + esc(name || 'Votre boutique') + '</span>' + powered() + '</div></div></footer>';
     } finally {
       VIVID = false;
+      LINK_BASE = null;
+      LINK_PAGES = null;
     }
     try {
       rootEl.__jstView = { config: config, device: device, page: page, productId: j ? j.productId : productId, pageId: j ? j.pageId : (page === 'page' ? pageId : null) };

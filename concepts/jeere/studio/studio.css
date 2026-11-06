@@ -1128,3 +1128,14 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
 .st-row__tw:hover { color: var(--st-ink); background: var(--st-chrome-3); }
 .st-row--el { margin-left: 44px; }
 .st-row--el .st-row__icon { color: var(--st-ink-dim); }
+
+/* wave 1 (audit items 14–16): the CSS / JSON switch of the Code tab is never cut (the label gives way),
+   the left tabs keep an 8 px margin beside the fold button, a toast clears the rulers */
+.st-code__bar #inspCodeLabel { flex: 1 1 auto; min-width: 0; }
+.st-code__bar .st-code__mode { flex: none; overflow: visible; white-space: nowrap; }
+.st-left__tabs { padding: 0 8px; gap: 4px; }
+body:has(.st-eng-has-rulers) .st-toasts { top: 80px; }
+
+/* wave 1 (audit item 24): the inspector's fields grow to 36 px under the finger (iPad) */
+.st-touch .dz-num, .st-touch .dz-text:not(textarea), .st-touch .dz-select, .st-touch .st-eng-num, .st-touch .st-eng-select, .st-touch .st-eng-input { height: 36px; }
+.st-touch .dz-num input, .st-touch .st-eng-num input { height: 34px; }

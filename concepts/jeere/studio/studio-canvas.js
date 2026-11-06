@@ -215,7 +215,7 @@
           if (!ab2 || ab2.classList.contains('is-hidden') || !secEl(k, cur.sid)) return;
           var union = null;
           cur.ids.forEach(function (id) {
-            var b = boxF(k, cur.sid, id);
+            var b = previewBox(k, cur.sid, id);
             if (!b) return;
             var s = toScreen(k, b.x, b.y);
             if (!cur.root) box('st-eng-sel' + (k === ab ? '' : ' is-other'), s.x, s.y, b.w * s.k, b.h * s.k);
@@ -240,8 +240,9 @@
               r.setAttribute('data-rot', hk);
             });
           }
-          if (cur.ids.length === 1) {
-            var b0 = boxF(k, cur.sid, cur.ids[0]);
+          if (cur.ids.length === 1 || (drag && drag.kind === 'resize' && drag.group)) {
+            var b0 = cur.ids.length === 1 ? previewBox(k, cur.sid, cur.ids[0]) : null;
+            if (!b0 && drag && drag.group && drag.res) b0 = { w: drag.res.w, h: drag.res.h };
             if (b0) {
               var lab = ce('div', 'st-eng-size', fmt(b0.w) + ' × ' + fmt(b0.h));
               lab.style.transform = 'translate(' + round((union.x0 + union.x1) / 2, 1) + 'px,' + round(union.y1 + 8, 1) + 'px) translateX(-50%)';
@@ -280,6 +281,28 @@
       markBps();
     }
     function fmt(v) { var r = Math.round(v * 100) / 100; return String(r).replace('.', ','); }
+
+    /* a node's box as the gesture in progress shows it: the selection box and the size label follow the
+     * dragged / resized elements live (the preview moves them with a transform, the layout is untouched
+     * until the drop) */
+    function previewBox(ab, sid, id) {
+      var b = boxF(ab, sid, id);
+      if (!b || !drag || drag.sid !== sid || ab !== drag.ab || !drag.moved) return b;
+      if (drag.kind === 'move' && drag.ids.indexOf(id) !== -1 && (drag.dx || drag.dy)) return { x: b.x + drag.dx, y: b.y + drag.dy, w: b.w, h: b.h };
+      if (drag.kind === 'resize' && drag.res) {
+        if (!drag.group && drag.id === id) return { x: b.x - drag.b0.x + drag.res.x, y: b.y - drag.b0.y + drag.res.y, w: drag.res.w, h: drag.res.h };
+        if (drag.group && drag.boxes && drag.boxes[id]) { var r = drag.boxes[id]; return { x: b.x - r.from.x + r.to.x, y: b.y - r.from.y + r.to.y, w: r.to.w, h: r.to.h }; }
+      }
+      return b;
+    }
+    /* the inspector's X / Y / W / H while a gesture is in progress (null when there is none) */
+    function dragPreview(sid, id) {
+      if (!drag || !drag.moved || drag.sid !== sid) return null;
+      if (drag.kind === 'move' && drag.ids.indexOf(id) !== -1) return { dx: drag.dx || 0, dy: drag.dy || 0 };
+      if (drag.kind === 'resize' && drag.res && !drag.group && drag.id === id) return { res: drag.res, b0: drag.b0 };
+      if (drag.kind === 'resize' && drag.group && drag.boxes && drag.boxes[id]) return { res: drag.boxes[id].to, b0: drag.boxes[id].from };
+      return null;
+    }
 
     /* ================================================================ rulers, guides, grids */
 
@@ -580,13 +603,18 @@
       return true;
     }
 
-    /* resize with the 8 handles (Maj: ratio, Alt: from the centre), on the artboard's breakpoint */
+    /* resize with the 8 handles (Maj: ratio, Alt: from the centre), on the artboard's breakpoint. Several
+     * nodes: the handles scale the group's bounding box, every node keeps its place and its share of it
+     * (Figma), one transaction. */
     function startResize(e, hk) {
       var cur = current();
-      if (!cur || cur.root || cur.ids.length !== 1) return false;
-      var ab = activeAb(), id = cur.ids[0], bp = abBp(ab);
+      if (!cur || cur.root) return false;
+      var ab = activeAb(), bp = abBp(ab);
+      var l = lay(cur.sid, ab);
+      if (cur.ids.length > 1) return startGroupResize(e, hk, cur, ab, bp, l);
+      var id = cur.ids[0];
       var n = E.node(cur.sid, id);
-      var l = lay(cur.sid, ab), b = l.world.get(id), pb = l.world.get(n.parent);
+      var b = l.world.get(id), pb = l.world.get(n.parent);
       if (!b || !pb) return false;
       var skip = {}; E.subtreeIds(cur.sid, id).forEach(function (x) { skip[x] = true; });
       var lb = l.boxes.get(id) || { x: b.x - pb.x, y: b.y - pb.y, w: b.w, h: b.h };
@@ -595,33 +623,50 @@
         abs: (E.value(cur.sid, id, 'layoutChild', bp) || {}).position === 'absolute' || (E.value(cur.sid, n.parent, 'layoutParent', bp) || {}).mode === 'absolute' };
       return true;
     }
-    function resizeDrag(e) {
-      var d = drag;
-      var p = toFrame(d.ab, e.clientX, e.clientY);
-      var dx = p.x - d.p0.x, dy = p.y - d.p0.y;
-      if (!d.moved) { if (Math.abs(dx) * p.k + Math.abs(dy) * p.k < 2) return; d.moved = true; }
-      var b = d.b0, hk = d.hk, tol = TOL / p.k;
+    function startGroupResize(e, hk, cur, ab, bp, l) {
+      var ids = cur.ids.filter(function (id) { var n = E.node(cur.sid, id); return n && !n.locked; });
+      if (!ids.length) return false;
+      var parents = {};
+      ids.forEach(function (id) { parents[E.node(cur.sid, id).parent] = true; });
+      var common = Object.keys(parents).length === 1 ? Object.keys(parents)[0] : null;
+      var pb = common ? l.world.get(common) : { x: 0, y: 0, w: 0, h: 0 };
+      var skip = {};
+      ids.forEach(function (id) { E.subtreeIds(cur.sid, id).forEach(function (x) { skip[x] = true; }); });
+      var items = ids.map(function (id) {
+        var n = E.node(cur.sid, id), wb = l.world.get(id), ppb = l.world.get(n.parent) || { x: 0, y: 0 };
+        var lb = l.boxes.get(id) || { x: wb.x - ppb.x, y: wb.y - ppb.y, w: wb.w, h: wb.h };
+        return { id: id, wb: { x: wb.x - pb.x, y: wb.y - pb.y, w: wb.w, h: wb.h }, lb: { x: lb.x, y: lb.y, w: lb.w, h: lb.h }, el: nodeEl(ab, cur.sid, id),
+          abs: (E.value(cur.sid, id, 'layoutChild', bp) || {}).position === 'absolute' || (E.value(cur.sid, n.parent, 'layoutParent', bp) || {}).mode === 'absolute' };
+      }).filter(function (it) { return it.wb && it.wb.w >= 0; });
+      var u = unionOf(items.map(function (it) { return it.wb; }));
+      drag = { kind: 'resize', group: true, hk: hk, sid: cur.sid, ab: ab, bp: bp, ids: ids, items: items, b0: u, p0: toFrame(ab, e.clientX, e.clientY),
+        targets: common ? snapTargets(ab, cur.sid, common, skip) : { xs: [], ys: [], boxes: [], pb: pb }, moved: false, pid: e.pointerId };
+      return true;
+    }
+    /* the new rectangle of a resized box b (handle hk, pointer delta dx / dy), snapped on its moving edges */
+    function resizedRect(d, e, dx, dy, tol) {
+      var b = d.b0, hk = d.hk;
       var x0 = b.x, y0 = b.y, x1 = b.x + b.w, y1 = b.y + b.h;
       if (hk.indexOf('w') !== -1) x0 += dx;
       if (hk.indexOf('e') !== -1) x1 += dx;
       if (hk.indexOf('n') !== -1) y0 += dy;
       if (hk.indexOf('s') !== -1) y1 += dy;
       snapLines = [];
-      var o = secOrigin(d.ab, d.sid), pb = d.targets.pb;
+      var o = secOrigin(d.ab, d.sid), pb = d.targets.pb || { x: 0, y: 0, w: 0, h: 0 };
       // snap the moving edges
       if (hk.indexOf('w') !== -1 || hk.indexOf('e') !== -1) {
         var ex = hk.indexOf('w') !== -1 ? x0 : x1;
         var sx = bestSnap([ex], d.targets.xs, tol);
         ex = sx ? ex + sx.d : pixelSnap(ex);
         if (hk.indexOf('w') !== -1) x0 = ex; else x1 = ex;
-        if (sx) snapLines.push({ ab: d.ab, x1: o.x + pb.x + sx.at, y1: o.y + pb.y, x2: o.x + pb.x + sx.at, y2: o.y + pb.y + pb.h });
+        if (sx && o) snapLines.push({ ab: d.ab, x1: o.x + pb.x + sx.at, y1: o.y + pb.y, x2: o.x + pb.x + sx.at, y2: o.y + pb.y + pb.h });
       }
       if (hk.indexOf('n') !== -1 || hk.indexOf('s') !== -1) {
         var ey = hk.indexOf('n') !== -1 ? y0 : y1;
         var sy = bestSnap([ey], d.targets.ys, tol);
         ey = sy ? ey + sy.d : pixelSnap(ey);
         if (hk.indexOf('n') !== -1) y0 = ey; else y1 = ey;
-        if (sy) snapLines.push({ ab: d.ab, x1: o.x + pb.x, y1: o.y + pb.y + sy.at, x2: o.x + pb.x + pb.w, y2: o.y + pb.y + sy.at });
+        if (sy && o) snapLines.push({ ab: d.ab, x1: o.x + pb.x, y1: o.y + pb.y + sy.at, x2: o.x + pb.x + pb.w, y2: o.y + pb.y + sy.at });
       }
       var w = x1 - x0, h = y1 - y0;
       if (e.shiftKey && b.w > 0 && b.h > 0) {
@@ -636,8 +681,31 @@
         if (hk.indexOf('n') !== -1 || hk.indexOf('s') !== -1) { var hh = Math.abs((hk.indexOf('s') !== -1 ? y1 : y0) - cy); y0 = cy - hh; y1 = cy + hh; h = 2 * hh; }
       }
       if (w < 1) { w = 1; } if (h < 1) { h = 1; }
-      d.res = { x: round(Math.min(x0, x1), 2), y: round(Math.min(y0, y1), 2), w: round(Math.abs(w), 2), h: round(Math.abs(h), 2) };
-      if (d.el) {
+      return { x: round(Math.min(x0, x1), 2), y: round(Math.min(y0, y1), 2), w: round(Math.abs(w), 2), h: round(Math.abs(h), 2) };
+    }
+    function resizeDrag(e) {
+      var d = drag;
+      var p = toFrame(d.ab, e.clientX, e.clientY);
+      var dx = p.x - d.p0.x, dy = p.y - d.p0.y;
+      if (!d.moved) { if (Math.abs(dx) * p.k + Math.abs(dy) * p.k < 2) return; d.moved = true; }
+      d.res = resizedRect(d, e, dx, dy, TOL / p.k);
+      if (d.group) {
+        // every node keeps its share of the group's box (scaled from the box's own origin)
+        var u = d.b0, r = d.res, sx = u.w ? r.w / u.w : 1, sy = u.h ? r.h / u.h : 1;
+        d.boxes = {};
+        d.items.forEach(function (it) {
+          var nx = r.x + (it.wb.x - u.x) * sx, ny = r.y + (it.wb.y - u.y) * sy;
+          var to = { x: round(it.lb.x + (nx - it.wb.x), 2), y: round(it.lb.y + (ny - it.wb.y), 2), w: round(Math.max(1, it.wb.w * sx), 2), h: round(Math.max(1, it.wb.h * sy), 2) };
+          d.boxes[it.id] = { from: it.lb, to: to };
+          if (it.el) {
+            it.el.style.width = to.w + 'px';
+            it.el.style.height = to.h + 'px';
+            it.el.style.maxWidth = 'none';
+            it.el.style.transform = it.abs ? 'translate(' + round(to.x - it.lb.x, 2) + 'px,' + round(to.y - it.lb.y, 2) + 'px)' : '';
+          }
+        });
+      } else if (d.el) {
+        var b = d.b0;
         d.el.style.width = d.res.w + 'px';
         d.el.style.height = d.res.h + 'px';
         if (d.abs) d.el.style.transform = 'translate(' + round(d.res.x - b.x, 2) + 'px,' + round(d.res.y - b.y, 2) + 'px)';
@@ -647,28 +715,38 @@
       draw();
     }
     var sizeLabel = null;
-    function endResize() {
-      var d = drag;
-      if (d.el) { d.el.style.width = ''; d.el.style.height = ''; d.el.style.transform = ''; d.el.style.maxWidth = ''; }
-      snapLines = [];
-      sizeLabel = null;
-      if (!d.moved || !d.res) return false;
+    /* the patches of one resized node: the geometry at the breakpoint, a hug / fill size made fixed */
+    function resizePatches(sid, id, bp, r, b, hk, abs) {
       var patches = [];
-      var r = d.res, b = d.b0, hk = d.hk;
-      var n = E.node(d.sid, d.id);
-      var lc = clone(E.value(d.sid, d.id, 'layoutChild', d.bp) || {});
+      var n = E.node(sid, id);
+      var lc = clone(E.value(sid, id, 'layoutChild', bp) || {});
       var g = {};
-      if (hk.indexOf('w') !== -1 || hk.indexOf('e') !== -1 || d.abs) g.w = r.w;
-      if (hk.indexOf('n') !== -1 || hk.indexOf('s') !== -1 || d.abs) g.h = r.h;
-      if (d.abs) { g.x = r.x; g.y = r.y; }
+      if (hk.indexOf('w') !== -1 || hk.indexOf('e') !== -1 || abs) g.w = r.w;
+      if (hk.indexOf('n') !== -1 || hk.indexOf('s') !== -1 || abs) g.h = r.h;
+      if (abs) { g.x = r.x; g.y = r.y; }
       // a hug / fill size resized by hand becomes fixed on that axis (Figma), at this breakpoint
       var lcd = {};
       if (g.w !== undefined && Math.abs(r.w - b.w) > 0.01 && lc.widthMode !== 'fixed') lcd.widthMode = 'fixed';
       if (g.h !== undefined && Math.abs(r.h - b.h) > 0.01 && lc.heightMode !== 'fixed') lcd.heightMode = 'fixed';
-      if (n.type === 'text' && n.resize === 'autoWidth' && lcd.widthMode) patches.push({ op: 'replace', path: E.path(d.id, 'resize'), value: 'autoHeight' });
-      if (Object.keys(lcd).length) patches = patches.concat(E.propPatches(d.sid, d.id, 'layoutChild', d.bp === 'base' ? Object.assign(lc, lcd) : lcd, d.bp));
-      patches = patches.concat(E.propPatches(d.sid, d.id, 'geometry', d.bp === 'base' ? Object.assign({}, E.value(d.sid, d.id, 'geometry', 'base'), g) : g, d.bp));
-      E.apply(d.sid, patches, 'Élément redimensionné');
+      if (n.type === 'text' && n.resize === 'autoWidth' && lcd.widthMode) patches.push({ op: 'replace', path: E.path(id, 'resize'), value: 'autoHeight' });
+      if (Object.keys(lcd).length) patches = patches.concat(E.propPatches(sid, id, 'layoutChild', bp === 'base' ? Object.assign(lc, lcd) : lcd, bp));
+      patches = patches.concat(E.propPatches(sid, id, 'geometry', bp === 'base' ? Object.assign({}, E.value(sid, id, 'geometry', 'base'), g) : g, bp));
+      return patches;
+    }
+    function endResize() {
+      var d = drag;
+      if (d.el) { d.el.style.width = ''; d.el.style.height = ''; d.el.style.transform = ''; d.el.style.maxWidth = ''; }
+      if (d.items) d.items.forEach(function (it) { if (it.el) { it.el.style.width = ''; it.el.style.height = ''; it.el.style.transform = ''; it.el.style.maxWidth = ''; } });
+      snapLines = [];
+      sizeLabel = null;
+      if (!d.moved || !d.res) return false;
+      if (d.group) {
+        var patches = [];
+        d.items.forEach(function (it) { var bx = d.boxes && d.boxes[it.id]; if (bx) patches = patches.concat(resizePatches(d.sid, it.id, d.bp, bx.to, it.lb, 'nesw', it.abs)); });
+        if (patches.length) E.apply(d.sid, patches, d.items.length + ' éléments redimensionnés');
+        return true;
+      }
+      E.apply(d.sid, resizePatches(d.sid, d.id, d.bp, d.res, d.b0, d.hk, d.abs), 'Élément redimensionné');
       return true;
     }
 
@@ -875,6 +953,17 @@
       var v = String(ed.el.innerText || '').replace(/ /g, ' ').replace(/\n$/, '').slice(0, 8000);
       if (apply && v !== ed.orig) {
         var n = E.node(ed.sid, ed.id);
+        // a text bound to a product (wave 1): the edit renames / reprices the product, everywhere
+        if (n.bind && (n.bind.field === 'name' || n.bind.field === 'price') && S.productById(n.bind.product)) {
+          var pid = n.bind.product, fld = n.bind.field;
+          var price = fld === 'price' ? parseInt(String(v).replace(/[^0-9]/g, ''), 10) : null;
+          if (fld === 'price' && !isFinite(price)) { toast('Prix non compris : des chiffres, en FCFA.', 'warn'); S.scheduleRender(); return; }
+          S.commit(fld === 'name' ? 'Texte modifié (nom du produit)' : 'Prix modifié', function (cfg) {
+            var pr = (cfg.products || []).filter(function (x) { return x.id === pid; })[0];
+            if (pr) { if (fld === 'name') pr.name = v.replace(/\s+/g, ' ').trim().slice(0, 60); else pr.price = price; }
+          });
+          return;
+        }
         // the first run's own look is kept for the whole text (rich runs are edited in the inspector)
         var st = n.text.paragraphs[0] && n.text.paragraphs[0].runs[0] && n.text.paragraphs[0].runs[0].style;
         E.apply(ed.sid, [{ op: 'replace', path: E.path(ed.id, 'text'), value: M.richText(v, st || undefined) }], 'Texte modifié');
@@ -1005,6 +1094,309 @@
       return true;
     }
 
+    /* ================================================================ align and distribute (Figma: Alt A D W S H V, Ctrl Alt H / V)
+     * One node: aligned in its frame. Several: on the selection's bounding box. A node placed by an Auto
+     * Layout (in a stack) is aligned by the stack: on the cross axis its own align-self, on the main axis
+     * the stack's alignment. One transaction, at the breakpoint being edited. */
+    var ALIGN_LABEL = { left: 'Aligné à gauche', hcenter: 'Centré horizontalement', right: 'Aligné à droite', top: 'Aligné en haut', vcenter: 'Centré verticalement', bottom: 'Aligné en bas' };
+    function alignItems(c) {
+      var ab = activeAb(), bp = editBp(), l = lay(c.sid, ab);
+      if (!l) return null;
+      return { ab: ab, bp: bp, l: l, list: c.ids.map(function (id) {
+        var n = E.node(c.sid, id), wb = l.world.get(id), pw = n ? l.world.get(n.parent) : null;
+        if (!n || !wb || !pw || n.locked) return null;
+        var plp = E.value(c.sid, n.parent, 'layoutParent', bp) || { mode: 'absolute' };
+        var abs = plp.mode === 'absolute' || (E.value(c.sid, id, 'layoutChild', bp) || {}).position === 'absolute';
+        var lb = l.boxes.get(id) || { x: wb.x - pw.x, y: wb.y - pw.y, w: wb.w, h: wb.h };
+        return { id: id, n: n, wb: wb, pw: pw, lb: lb, abs: abs, plp: plp };
+      }).filter(Boolean) };
+    }
+    function geomPatch(sid, id, bp, g) {
+      return E.propPatches(sid, id, 'geometry', bp === 'base' ? Object.assign({}, E.value(sid, id, 'geometry', 'base'), g) : g, bp);
+    }
+    function align(c, how) {
+      c = c || current();
+      if (!c || c.root || !ALIGN_LABEL[how]) return false;
+      var A = alignItems(c);
+      if (!A || !A.list.length) return false;
+      var horizAxis = how === 'left' || how === 'hcenter' || how === 'right';
+      var ref;
+      if (A.list.length === 1) { var it0 = A.list[0]; ref = it0.pw; var pad = it0.abs ? null : (it0.plp.padding || null); if (pad) ref = { x: ref.x + (pad.left || 0), y: ref.y + (pad.top || 0), w: ref.w - (pad.left || 0) - (pad.right || 0), h: ref.h - (pad.top || 0) - (pad.bottom || 0) }; }
+      else { var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; A.list.forEach(function (it) { x0 = Math.min(x0, it.wb.x); y0 = Math.min(y0, it.wb.y); x1 = Math.max(x1, it.wb.x + it.wb.w); y1 = Math.max(y1, it.wb.y + it.wb.h); }); ref = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; }
+      var patches = [], stackDone = {}, flowNote = false;
+      var pos = how === 'left' || how === 'top' ? 'start' : (how === 'right' || how === 'bottom' ? 'end' : 'center');
+      A.list.forEach(function (it) {
+        if (!it.abs) {
+          var horizStack = it.plp.mode === 'stack' && it.plp.direction === 'horizontal';
+          var cross = it.plp.mode === 'stack' && (horizStack ? !horizAxis : horizAxis);
+          if (cross) {
+            var lc = E.value(c.sid, it.id, 'layoutChild', A.bp) || {};
+            patches = patches.concat(E.propPatches(c.sid, it.id, 'layoutChild', A.bp === 'base' ? Object.assign({}, lc, { alignSelf: pos }) : { alignSelf: pos }, A.bp));
+          } else if (it.plp.mode === 'stack' && !stackDone[it.n.parent] && it.plp.gap !== 'auto') {
+            stackDone[it.n.parent] = true;
+            var lp = E.value(c.sid, it.n.parent, 'layoutParent', A.bp) || {};
+            patches = patches.concat(E.propPatches(c.sid, it.n.parent, 'layoutParent', A.bp === 'base' ? Object.assign({}, lp, { alignMain: pos }) : { alignMain: pos }, A.bp));
+            flowNote = true;
+          }
+          return;
+        }
+        var nx = it.wb.x, ny = it.wb.y;
+        if (how === 'left') nx = ref.x; else if (how === 'right') nx = ref.x + ref.w - it.wb.w; else if (how === 'hcenter') nx = ref.x + (ref.w - it.wb.w) / 2;
+        if (how === 'top') ny = ref.y; else if (how === 'bottom') ny = ref.y + ref.h - it.wb.h; else if (how === 'vcenter') ny = ref.y + (ref.h - it.wb.h) / 2;
+        var g = {};
+        if (horizAxis) g.x = round(it.lb.x + nx - it.wb.x, 2); else g.y = round(it.lb.y + ny - it.wb.y, 2);
+        if (Math.abs((horizAxis ? nx - it.wb.x : ny - it.wb.y)) < 0.005) return;
+        patches = patches.concat(geomPatch(c.sid, it.id, A.bp, g));
+      });
+      if (!patches.length) { toast('Déjà aligné.', 'info'); return true; }
+      E.apply(c.sid, patches, ALIGN_LABEL[how]);
+      if (flowNote) toast('Dans une pile, l’axe principal suit l’Auto Layout : c’est l’alignement de la pile qui change.', 'info');
+      return true;
+    }
+    function distribute(c, axis) {
+      c = c || current();
+      if (!c || c.root) return false;
+      var A = alignItems(c);
+      var list = A ? A.list.filter(function (it) { return it.abs; }) : [];
+      if (list.length < 3) { toast('Répartir : sélectionnez au moins 3 éléments à position libre' + (A && A.list.length > list.length ? ' (ceux d’une pile suivent son espacement).' : '.'), 'info'); return false; }
+      var hz = axis !== 'v';
+      list.sort(function (a, b) { return hz ? a.wb.x - b.wb.x : a.wb.y - b.wb.y; });
+      var first = list[0], last = list[list.length - 1];
+      var span = hz ? (last.wb.x + last.wb.w) - first.wb.x : (last.wb.y + last.wb.h) - first.wb.y;
+      var sizes = list.reduce(function (s, it) { return s + (hz ? it.wb.w : it.wb.h); }, 0);
+      var gap = (span - sizes) / (list.length - 1);
+      var at = hz ? first.wb.x : first.wb.y, patches = [];
+      list.forEach(function (it, i) {
+        if (i > 0 && i < list.length - 1) {
+          var d = at - (hz ? it.wb.x : it.wb.y);
+          if (Math.abs(d) > 0.005) patches = patches.concat(geomPatch(c.sid, it.id, A.bp, hz ? { x: round(it.lb.x + d, 2) } : { y: round(it.lb.y + d, 2) }));
+        }
+        at += (hz ? it.wb.w : it.wb.h) + gap;
+      });
+      if (!patches.length) { toast('Déjà réparti.', 'info'); return true; }
+      E.apply(c.sid, patches, hz ? 'Espacement horizontal réparti' : 'Espacement vertical réparti');
+      return true;
+    }
+
+    /* ================================================================ crop mode of a detached photo (wave 1)
+     * As the template photos (studio-design.js): double-click (or Entrée) on an image node → the whole photo
+     * shows faded around its frame; drag it to place it, the wheel (or the slider) zooms 100–400 %, the ratios
+     * reshape the frame; Entrée / Échap / a click outside leave. The model: fit 'crop' and crop { x, y, w, h,
+     * fx, fy } — the visible window of the photo (w = 1 / zoom) and its focal point; css.js draws it with
+     * object-position + a scale about the focal point clipped back to the box (the layout never moves). */
+    var ncrop = null;
+    var CROP_RATIOS = [['', 'Libre'], ['orig', 'Orig.'], [1, '1:1'], [0.8, '4:5'], [0.75, '3:4'], [1.7778, '16:9']];
+    function cropOf(sid, id) {
+      var n = E.node(sid, id), c = (n && n.crop) || {};
+      var isNew = n && n.fit === 'crop' && typeof c.fx === 'number';
+      var z = isNew && c.w > 0 ? 1 / c.w : 1;
+      var fx = typeof c.fx === 'number' ? c.fx : (n && n.fit === 'crop' && c.w < 1 ? c.x / (1 - c.w) : 0.5);
+      var fy = typeof c.fy === 'number' ? c.fy : (n && n.fit === 'crop' && c.h < 1 ? c.y / (1 - c.h) : 0.5);
+      return { z: clamp(z, 1, 4), fx: clamp(fx, 0, 1), fy: clamp(fy, 0, 1) };
+    }
+    /* one transaction: fit 'crop' and the crop of { z, fx, fy } (co: a coalesce key for a gesture) */
+    function setNodeCrop(sid, id, v, label, co) {
+      var n = E.node(sid, id);
+      if (!n || n.type !== 'image') return false;
+      var w = round(1 / clamp(v.z, 1, 4), 4);
+      var crop = { x: round(v.fx * (1 - w), 4), y: round(v.fy * (1 - w), 4), w: w, h: w, fx: round(clamp(v.fx, 0, 1), 4), fy: round(clamp(v.fy, 0, 1), 4) };
+      var patches = [];
+      if (n.fit !== 'crop') patches.push({ op: 'replace', path: E.path(id, 'fit'), value: 'crop' });
+      patches.push({ op: n.crop ? 'replace' : 'add', path: E.path(id, 'crop'), value: crop });
+      E.apply(sid, patches, label || 'Recadrage de l’image', { coalesce: co });
+      return true;
+    }
+    function liveImgOf(c) { return nodeEl(c.ab, c.sid, c.id); }
+    function cropGeomN(c) {
+      var b = boxF(c.ab, c.sid, c.id), img = liveImgOf(c);
+      if (!b || !img) return null;
+      var tag = img.tagName === 'IMG' ? img : img.querySelector('img');
+      var nw = tag && tag.naturalWidth || b.w, nh = tag && tag.naturalHeight || b.h;
+      var sc = Math.max(b.w / nw, b.h / nh), dw = nw * sc, dh = nh * sc;
+      var ox = (b.w - dw) * c.fx, oy = (b.h - dh) * c.fy, Ox = c.fx * b.w, Oy = c.fy * b.h;
+      return { b: b, dw: dw, dh: dh, src: tag ? (tag.currentSrc || tag.src) : '', gx: b.x + Ox + c.z * (ox - Ox), gy: b.y + Oy + c.z * (oy - Oy), gw: dw * c.z, gh: dh * c.z };
+    }
+    /* the live preview on the photo itself, before the transaction (the same CSS as css.js) */
+    function previewCrop(c) {
+      var el = liveImgOf(c);
+      if (!el) return;
+      var tag = el.tagName === 'IMG' ? el : el.querySelector('img') || el;
+      var zk = 1 - 1 / c.z, fx = c.fx * 100, fy = c.fy * 100;
+      tag.style.objectFit = 'cover';
+      tag.style.objectPosition = round(fx, 3) + '% ' + round(fy, 3) + '%';
+      if (c.z > 1.0005) {
+        tag.style.transformOrigin = round(fx, 3) + '% ' + round(fy, 3) + '%';
+        tag.style.transform = 'scale(' + round(c.z, 4) + ')';
+        tag.style.clipPath = 'inset(' + [fy * zk, (100 - fx) * zk, (100 - fy) * zk, fx * zk].map(function (v) { return round(v, 3) + '%'; }).join(' ') + ')';
+      } else { tag.style.transform = ''; tag.style.clipPath = 'none'; }
+      c.previewEl = tag;
+    }
+    function clearPreview(c) { var t = c && c.previewEl; if (t) { t.style.objectFit = ''; t.style.objectPosition = ''; t.style.transformOrigin = ''; t.style.transform = ''; t.style.clipPath = ''; } }
+    function startNodeCrop(sid, id, ab) {
+      var n = E.node(sid, id);
+      if (!n || n.type !== 'image' || n.locked) return false;
+      endNodeCrop(true);
+      var v = cropOf(sid, id);
+      ncrop = { sid: sid, id: id, ab: ab || activeAb(), z: v.z, fx: v.fx, fy: v.fy, dirty: false };
+      document.body.classList.add('dz-cropping', 'st-eng-cropping');
+      drawNodeCrop();
+      toast('Recadrage : glissez la photo, molette pour zoomer, un format dans la barre. Entrée ou Échap pour terminer.', 'info');
+      return true;
+    }
+    var cropTimer = null;
+    function flushCrop(label) {
+      if (cropTimer) { clearTimeout(cropTimer); cropTimer = null; }
+      var c = ncrop;
+      if (!c || !c.dirty) return;
+      c.dirty = false;
+      setNodeCrop(c.sid, c.id, c, label || 'Recadrage de l’image', 'ncrop:' + c.id);
+      clearPreview(c);
+    }
+    function endNodeCrop(silent) {
+      if (!ncrop) return false;
+      flushCrop();
+      var c = ncrop;
+      ncrop = null;
+      clearPreview(c);
+      document.body.classList.remove('dz-cropping', 'st-eng-cropping');
+      if (c.layer) c.layer.remove();
+      if (c.bar) c.bar.remove();
+      if (!silent) draw();
+      return true;
+    }
+    function drawNodeCrop() {
+      var c = ncrop;
+      if (!c) return;
+      if (!E.node(c.sid, c.id)) { endNodeCrop(true); return; }
+      var a = S.abEls()[c.ab], f = abFrame(c.ab);
+      var gm = cropGeomN(c);
+      if (!a || !f || !gm) return;
+      var k = frameScale(c.ab);
+      if (!c.layer) {
+        c.layer = ce('div', 'dz-crop st-eng-crop');
+        c.layer.innerHTML = '<img class="dz-crop__ghost" alt=""><div class="dz-crop__frame"><i></i><i></i><i></i><i></i></div><div class="dz-crop__hit"></div>';
+        a.appendChild(c.layer);
+        var hit = c.layer.querySelector('.dz-crop__hit');
+        hit.addEventListener('pointerdown', cropPanN);
+        hit.addEventListener('wheel', function (e) {
+          e.preventDefault(); e.stopPropagation();
+          c.z = clamp(c.z * (e.deltaY < 0 ? 1.06 : 1 / 1.06), 1, 4);
+          c.dirty = true;
+          previewCrop(c); drawNodeCrop();
+          if (cropTimer) clearTimeout(cropTimer);
+          cropTimer = setTimeout(function () { flushCrop('Zoom de l’image'); }, 260);
+        }, { passive: false });
+        hit.addEventListener('dblclick', function (e) { e.preventDefault(); e.stopPropagation(); endNodeCrop(); });
+      }
+      c.layer.style.setProperty('--k', String(k || 1));
+      var ghost = c.layer.querySelector('.dz-crop__ghost');
+      if (ghost.getAttribute('src') !== gm.src) ghost.setAttribute('src', gm.src);
+      ghost.style.left = gm.gx + 'px'; ghost.style.top = gm.gy + 'px'; ghost.style.width = gm.gw + 'px'; ghost.style.height = gm.gh + 'px';
+      var fr = c.layer.querySelector('.dz-crop__frame');
+      fr.style.left = gm.b.x + 'px'; fr.style.top = gm.b.y + 'px'; fr.style.width = gm.b.w + 'px'; fr.style.height = gm.b.h + 'px';
+      var hitEl = c.layer.querySelector('.dz-crop__hit');
+      var ux = Math.min(gm.gx, gm.b.x), uy = Math.min(gm.gy, gm.b.y);
+      hitEl.style.left = ux + 'px'; hitEl.style.top = uy + 'px';
+      hitEl.style.width = (Math.max(gm.gx + gm.gw, gm.b.x + gm.b.w) - ux) + 'px';
+      hitEl.style.height = (Math.max(gm.gy + gm.gh, gm.b.y + gm.b.h) - uy) + 'px';
+      drawCropBarN(gm, k);
+    }
+    function drawCropBarN(gm, k) {
+      var c = ncrop;
+      if (!c.bar) {
+        c.bar = ce('div', 'dz-cropbar st-eng-cropbar');
+        c.bar.setAttribute('role', 'toolbar');
+        c.bar.setAttribute('aria-label', 'Recadrage de la photo');
+        c.bar.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+        var zl = ce('label', 'dz-cropbar__z', '<span class="dz-cropbar__l"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5L8.5 7.5"/><rect x="2.5" y="8.5" width="5" height="5" rx="1"/></svg></span>');
+        var range = ce('input');
+        range.type = 'range'; range.min = '100'; range.max = '400'; range.step = '1';
+        range.setAttribute('aria-label', 'Zoom (%)');
+        range.addEventListener('input', function () { c.z = clamp(Number(range.value) / 100, 1, 4); c.dirty = true; previewCrop(c); drawNodeCrop(); });
+        range.addEventListener('change', function () { flushCrop('Zoom de l’image'); });
+        zl.appendChild(range);
+        c.bar.appendChild(zl);
+        c.range = range;
+        var seg = ce('div', 'dz-seg dz-seg--txt dz-seg--ratio');
+        CROP_RATIOS.forEach(function (r) {
+          var b = ce('button', '', esc(r[1]));
+          b.type = 'button';
+          b.setAttribute('data-ratio', String(r[0]));
+          b.addEventListener('click', function () { setRatio(r[0]); });
+          seg.appendChild(b);
+        });
+        c.bar.appendChild(seg);
+        var ok = ce('button', 'dz-cropbar__ok', 'Terminé');
+        ok.type = 'button';
+        ok.addEventListener('click', function () { endNodeCrop(); });
+        c.bar.appendChild(ok);
+        stage.appendChild(c.bar);
+      }
+      if (document.activeElement !== c.range) c.range.value = String(Math.round(c.z * 100));
+      var p1 = toScreen(c.ab, gm.b.x + gm.b.w / 2, gm.b.y + gm.b.h);
+      var sr = stage.getBoundingClientRect(), bw = c.bar.offsetWidth, bh = c.bar.offsetHeight;
+      var y = p1.y + 12;
+      if (y + bh > sr.height - 80) y = toScreen(c.ab, 0, gm.b.y).y - bh - 12;
+      c.bar.style.left = clamp(p1.x - bw / 2, 8, sr.width - bw - 8) + 'px';
+      c.bar.style.top = clamp(y, 8, sr.height - bh - 76) + 'px';
+    }
+    /* a format: the frame keeps its width, its height follows the ratio (at the breakpoint being edited) */
+    function setRatio(r) {
+      var c = ncrop;
+      if (!c || r === '') return;
+      var img = liveImgOf(c), tag = img && (img.tagName === 'IMG' ? img : img.querySelector('img'));
+      var ratio = r === 'orig' ? (tag && tag.naturalWidth && tag.naturalHeight ? tag.naturalWidth / tag.naturalHeight : null) : r;
+      if (!ratio) return;
+      flushCrop();
+      var bp = editBp(), b = boxF(c.ab, c.sid, c.id);
+      if (!b) return;
+      var h = round(b.w / ratio, 2);
+      var lc = E.value(c.sid, c.id, 'layoutChild', bp) || {};
+      var patches = [];
+      if (lc.heightMode !== 'fixed') patches = patches.concat(E.propPatches(c.sid, c.id, 'layoutChild', bp === 'base' ? Object.assign({}, lc, { heightMode: 'fixed' }) : { heightMode: 'fixed' }, bp));
+      patches = patches.concat(E.propPatches(c.sid, c.id, 'geometry', bp === 'base' ? Object.assign({}, E.value(c.sid, c.id, 'geometry', 'base'), { h: h }) : { h: h }, bp));
+      E.apply(c.sid, patches, 'Format de l’image');
+      requestAnimationFrame(drawNodeCrop);
+    }
+    function cropPanN(e) {
+      var c = ncrop;
+      if (!c || e.button !== 0) return;
+      e.preventDefault(); e.stopPropagation();
+      var gm0 = cropGeomN(c);
+      if (!gm0) return;
+      var k = frameScale(c.ab), x0 = e.clientX, y0 = e.clientY, f0 = { fx: c.fx, fy: c.fy }, raf = 0, last = e;
+      c.layer.classList.add('is-drag');
+      function at() {
+        var dx = (last.clientX - x0) / k, dy = (last.clientY - y0) / k;
+        var sx = gm0.b.w - c.z * gm0.dw, sy = gm0.b.h - c.z * gm0.dh;
+        if (Math.abs(sx) > 0.5) c.fx = clamp(f0.fx + dx / sx, 0, 1);
+        if (Math.abs(sy) > 0.5) c.fy = clamp(f0.fy + dy / sy, 0, 1);
+        c.dirty = true;
+        previewCrop(c); drawNodeCrop();
+      }
+      function mv(ev) { last = ev; if (!raf) raf = requestAnimationFrame(function () { raf = 0; at(); }); }
+      function up() {
+        window.removeEventListener('pointermove', mv, true);
+        window.removeEventListener('pointerup', up, true);
+        if (raf) { cancelAnimationFrame(raf); raf = 0; at(); }
+        if (c.layer) c.layer.classList.remove('is-drag');
+        flushCrop('Recadrage de l’image');
+      }
+      window.addEventListener('pointermove', mv, true);
+      window.addEventListener('pointerup', up, true);
+    }
+    window.addEventListener('keydown', function (e) {
+      if (!ncrop) return;
+      if (e.key === 'Escape' || (e.key === 'Enter' && !(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName) && e.target.type !== 'range'))) { e.preventDefault(); e.stopImmediatePropagation(); endNodeCrop(); }
+    }, true);
+    document.addEventListener('pointerdown', function (e) {
+      if (!ncrop || !e.target.closest) return;
+      if (e.target.closest('.st-eng-crop, .st-eng-cropbar, .st-right')) return;
+      endNodeCrop();
+    }, true);
+    chain('afterRender', function () { if (ncrop) requestAnimationFrame(drawNodeCrop); });
+    chain('viewChanged', function () { if (ncrop) drawNodeCrop(); });
+
     /* ================================================================ zoom on the selection (⇧ 2) up to 25 600 % */
 
     function zoomToNodes() {
@@ -1112,6 +1504,7 @@
         else if (drag.kind === 'guide') guideDrag(ev);
         perf.push(performance.now() - t0);
         if (perf.length > 600) perf.shift();
+        if (hooks.engineDragging && (drag.kind === 'move' || drag.kind === 'resize')) { try { hooks.engineDragging(); } catch (er) { /* module */ } }
       });
     }
     var perf = [];
@@ -1123,7 +1516,7 @@
       if (moveRaf) { cancelAnimationFrame(moveRaf); moveRaf = 0; if (lastMove) { var k = drag.kind; if (k === 'move') moveDrag(lastMove); else if (k === 'resize') resizeDrag(lastMove); else if (k === 'rotate') rotateDrag(lastMove); else if (k === 'draw') drawDrag(lastMove); else if (k === 'guide') guideDrag(lastMove); } }
       var d = drag, did = false;
       try {
-        if (e.type === 'pointercancel') { if (d.els) d.els.forEach(function (el) { if (el) el.style.transform = ''; }); if (d.el) { d.el.style.transform = ''; d.el.style.width = ''; d.el.style.height = ''; } snapLines = []; insertLine = null; drawRect = null; }
+        if (e.type === 'pointercancel') { if (d.els) d.els.forEach(function (el) { if (el) el.style.transform = ''; }); if (d.el) { d.el.style.transform = ''; d.el.style.width = ''; d.el.style.height = ''; } if (d.items) d.items.forEach(function (it) { if (it.el) { it.el.style.transform = ''; it.el.style.width = ''; it.el.style.height = ''; it.el.style.maxWidth = ''; } }); snapLines = []; insertLine = null; drawRect = null; }
         else if (d.kind === 'move') did = endMove(e);
         else if (d.kind === 'resize') did = endResize(e);
         else if (d.kind === 'rotate') did = endRotate(e);
@@ -1182,11 +1575,20 @@
     }, true);
     document.addEventListener('dblclick', function (e) {
       if (!inStage(e.target) || state().tool !== 'select') return;
+      // the selected photo (even under a scrim or a frame drawn over it): its crop mode
+      var c0 = current();
+      if (c0 && !c0.root && c0.ids.length === 1 && E.node(c0.sid, c0.ids[0]).type === 'image') {
+        var ab0 = abOf(e.target) || activeAb(), b0 = boxF(ab0, c0.sid, c0.ids[0]);
+        var pf = b0 ? toFrame(ab0, e.clientX, e.clientY) : null;
+        if (pf && pf.x >= b0.x && pf.x <= b0.x + b0.w && pf.y >= b0.y && pf.y <= b0.y + b0.h) { e.stopPropagation(); e.preventDefault(); startNodeCrop(c0.sid, c0.ids[0], ab0); return; }
+      }
       var h = hitPoint(e);
       if (!h) return;
       e.stopPropagation(); e.preventDefault();
       var n = E.node(h.sid, h.id);
       if (n.type === 'text') { selectNodes(h.sid, [h.id]); editText(h.sid, h.id, h.ab); return; }
+      var cur0 = current();
+      if (n.type === 'image' && cur0 && cur0.sid === h.sid && cur0.ids.indexOf(h.id) !== -1) { startNodeCrop(h.sid, h.id, h.ab); return; }
       var cur = current();
       var e2 = E.ed(h.sid);
       var chainIds = [h.id].concat(M.ancestors(e2.doc, h.id).map(function (a) { return a.id; })).reverse();
@@ -1233,6 +1635,78 @@
     }, { passive: true });
     stage.addEventListener('pointerleave', function () { if (hoverId) { hoverId = null; draw(); } });
 
+    /* the letter of a shortcut: the key when it is a plain letter (AZERTY, QWERTZ…), else the physical
+     * key (Mac Option turns Alt A into « å »: e.code then says KeyA) */
+    function letterOf(e) {
+      var k = typeof e.key === 'string' ? e.key : '';
+      if (/^[a-z]$/i.test(k)) return k.toLowerCase();
+      var c = e.code || '';
+      return /^Key[A-Z]$/.test(c) ? c.slice(3).toLowerCase() : '';
+    }
+    var ALIGN_KEYS = { a: 'left', d: 'right', w: 'top', s: 'bottom', h: 'hcenter', v: 'vcenter' };
+    var IS_MAC = /Mac|iPhone|iPad/.test((navigator.platform || '') + ' ' + (navigator.userAgent || ''));
+    /* Ctrl + arrows: the size by 1 px (10 with Maj) at the breakpoint being edited; a hug / fill size
+     * becomes fixed on that axis */
+    function resizeBy(c, dw, dh) {
+      var bp = editBp(), ab = activeAb(), patches = [];
+      c.ids.forEach(function (id) {
+        var b = boxF(ab, c.sid, id);
+        if (!b || E.node(c.sid, id).locked) return;
+        var lc = E.value(c.sid, id, 'layoutChild', bp) || {}, g = {}, lcd = {};
+        if (dw) { g.w = round(Math.max(1, b.w + dw), 2); if (lc.widthMode !== 'fixed') lcd.widthMode = 'fixed'; }
+        if (dh) { g.h = round(Math.max(1, b.h + dh), 2); if (lc.heightMode !== 'fixed') lcd.heightMode = 'fixed'; }
+        if (Object.keys(lcd).length) patches = patches.concat(E.propPatches(c.sid, id, 'layoutChild', bp === 'base' ? Object.assign({}, lc, lcd) : lcd, bp));
+        patches = patches.concat(E.propPatches(c.sid, id, 'geometry', bp === 'base' ? Object.assign({}, E.value(c.sid, id, 'geometry', 'base'), g) : g, bp));
+      });
+      if (patches.length) E.apply(c.sid, patches, 'Redimensionné au clavier', { coalesce: 'kresize:' + c.ids.join(',') });
+    }
+    /* Ctrl Alt C / V on nodes: the look (fills, strokes, effects, corners, opacity, blend; a text's style)
+     * of one node onto the selected ones — the effective values, not only the ones set by hand */
+    var styleClip = null;
+    var STYLE_PROPS = ['fills', 'strokes', 'effects', 'corners', 'opacity', 'blendMode'];
+    function copyNodeStyle(c) {
+      var id = c.ids[0], n = E.node(c.sid, id), bp = editBp();
+      styleClip = { type: n.type, props: {} };
+      STYLE_PROPS.forEach(function (p) { var v = E.value(c.sid, id, p, bp); if (v !== undefined) styleClip.props[p] = clone(v); });
+      if (n.type === 'text') styleClip.text = clone(E.value(c.sid, id, 'style', bp));
+      toast('Style copié — Ctrl Alt V pour le coller sur d’autres éléments.', 'info');
+    }
+    function pasteNodeStyle(c) {
+      if (!styleClip) { toast('Copiez d’abord un style (Ctrl Alt C).', 'info'); return; }
+      var bp = editBp(), patches = [];
+      c.ids.forEach(function (id) {
+        var n = E.node(c.sid, id);
+        Object.keys(styleClip.props).forEach(function (p) {
+          if (p === 'fills' && n.type === 'text') return;
+          patches = patches.concat(E.propPatches(c.sid, id, p, clone(styleClip.props[p]), bp));
+        });
+        if (n.type === 'text' && styleClip.text) patches = patches.concat(E.propPatches(c.sid, id, 'style', clone(styleClip.text), bp));
+      });
+      if (patches.length) { E.apply(c.sid, patches, 'Style collé'); toast('Style collé.', 'ok'); }
+    }
+    function toggleVisible(c) {
+      var hide = c.ids.some(function (id) { return E.value(c.sid, id, 'visible', 'base') !== false; });
+      var patches = c.ids.map(function (id) { return { op: 'replace', path: E.path(id, 'visible'), value: !hide }; });
+      E.apply(c.sid, patches, hide ? (c.ids.length > 1 ? 'Éléments masqués' : 'Élément masqué') : (c.ids.length > 1 ? 'Éléments affichés' : 'Élément affiché'), { structure: true });
+      toast(hide ? 'Masqué (Ctrl ⇧ H pour afficher).' : 'Affiché.', 'info');
+    }
+    function toggleLocked(c) {
+      var lock = c.ids.some(function (id) { return !E.node(c.sid, id).locked; });
+      var patches = c.ids.map(function (id) { return { op: E.node(c.sid, id).locked === undefined ? 'add' : 'replace', path: E.path(id, 'locked'), value: lock }; });
+      E.apply(c.sid, patches, lock ? 'Verrouillé' : 'Déverrouillé', { structure: true });
+      toast(lock ? 'Verrouillé : il ne se déplace plus sur le canevas (Ctrl ⇧ L pour libérer).' : 'Déverrouillé.', 'info');
+    }
+    /* rename in the layers panel (its row turns into a field), like a double-click on the row */
+    function renameNode(c) {
+      var id = c.ids[0];
+      function rowEl() { return document.querySelector('[data-eng-row="' + S.cssEsc(c.sid + '|' + id) + '"]'); }
+      var r = rowEl();
+      if (!r) { S.buildTree(); r = rowEl(); }
+      if (!r) { toast('Renommer : ouvrez le panneau Calques.', 'info'); return; }
+      if (r.scrollIntoView) r.scrollIntoView({ block: 'nearest' });
+      r.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    }
+
     /* keys (before the studio's): the engine selection's shortcuts, the drawing tools, rulers, grids */
     function typing(t) { return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable); }
     window.addEventListener('keydown', function (e) {
@@ -1269,15 +1743,56 @@
       }
       if (k === 'Enter' && !mod) {
         var n = E.node(c.sid, c.ids[0]);
+        // Maj Entrée: the parent; Entrée: the children (a text: edit it), like Figma
+        if (e.shiftKey) { if (!c.root) { done(); selectNodes(c.sid, [n.parent]); } return; }
         if (!c.root && n.type === 'text') { done(); editText(c.sid, n.id, activeAb(), true); return; }
-        if (n.children && n.children.length && (!c.root || e.shiftKey === false)) { if (c.root && !e.shiftKey) { done(); selectNodes(c.sid, [n.children[0]]); return; } if (!c.root) { done(); selectNodes(c.sid, n.children.slice()); return; } }
-        if (e.shiftKey && !c.root) { done(); selectNodes(c.sid, [n.parent]); return; }
+        if (!c.root && n.type === 'image' && c.ids.length === 1) { done(); startNodeCrop(c.sid, n.id, activeAb()); return; }
+        if (n.children && n.children.length) { done(); selectNodes(c.sid, c.root ? [n.children[0]] : n.children.slice()); return; }
+        if (!c.root) { done(); toast('Cet élément n’a pas d’enfants. Maj Entrée : le parent.', 'info'); return; }
+      }
+      // Tab / Maj Tab: the next / previous sibling (in the layer order), Figma
+      if (k === 'Tab' && !mod && !e.altKey && !c.root && !(e.target && e.target.closest && e.target.closest('button, a, [role="tab"], [role="treeitem"], .st-left, .st-right'))) {
+        done();
+        var n1 = E.node(c.sid, c.ids[c.ids.length - 1]), par = n1 && E.node(c.sid, n1.parent);
+        if (!par || !par.children || !par.children.length) return;
+        var at = par.children.indexOf(n1.id), len = par.children.length;
+        selectNodes(c.sid, [par.children[((at + (e.shiftKey ? -1 : 1)) % len + len) % len]]);
+        return;
+      }
+      if (!c.root) {
+        var L = letterOf(e);
+        // align (Alt A D W S H V) and distribute (Ctrl Alt H / V, or Alt Maj H / V)
+        if (e.altKey && !mod && !e.shiftKey && ALIGN_KEYS[L]) { done(); align(c, ALIGN_KEYS[L]); return; }
+        // Figma: Alt ⇧ H / V (Windows), Ctrl ⌥ H / V (Mac, the Control key); Ctrl Alt H too. On Windows Ctrl Alt V
+        // stays « coller le style » (Figma's paste properties), on a Mac that is ⌘ ⌥ V
+        var macCtrl = IS_MAC && e.ctrlKey && !e.metaKey;
+        if (e.altKey && ((mod && !e.shiftKey && (L === 'h' || macCtrl)) || (!mod && e.shiftKey)) && (L === 'h' || L === 'v')) { done(); distribute(c, L); return; }
+        // show / hide, lock, rename
+        if (mod && e.shiftKey && !e.altKey && L === 'h') { done(); toggleVisible(c); return; }
+        if (mod && e.shiftKey && !e.altKey && L === 'l') { done(); toggleLocked(c); return; }
+        if ((mod && !e.shiftKey && !e.altKey && L === 'r') || (k === 'F2' && !mod)) { done(); renameNode(c); return; }
       }
       if (c.root) {
         if (mod && low === 'g') { done(); toast('Sélectionnez des éléments de la section pour les grouper (double-clic pour entrer).', 'info'); }
         return;
       }
       if (k === 'Delete' || k === 'Backspace') { done(); deleteNodes(c); return; }
+      if (mod && !e.altKey && (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowDown')) {
+        // Ctrl + arrows resize (Maj: 10 px), like Figma
+        done();
+        var rs = e.shiftKey ? 10 : 1;
+        resizeBy(c, k === 'ArrowLeft' ? -rs : k === 'ArrowRight' ? rs : 0, k === 'ArrowUp' ? -rs : k === 'ArrowDown' ? rs : 0);
+        return;
+      }
+      if (!mod && e.shiftKey && !e.altKey && (L === 'h' || L === 'v') && !(e.target && e.target.closest && e.target.closest('button, a, [role="tab"]'))) {
+        // Maj H / Maj V: flip horizontally / vertically
+        done();
+        var fk = L === 'h' ? 'flipH' : 'flipV', bpf = editBp(), pf = [];
+        c.ids.forEach(function (id) { var g = E.value(c.sid, id, 'geometry', bpf) || {}; var o = {}; o[fk] = !g[fk]; pf = pf.concat(E.propPatches(c.sid, id, 'geometry', bpf === 'base' ? Object.assign({}, E.value(c.sid, id, 'geometry', 'base'), o) : o, bpf)); });
+        E.apply(c.sid, pf, L === 'h' ? 'Miroir horizontal' : 'Miroir vertical');
+        return;
+      }
+      if (mod && e.altKey && !e.shiftKey && (L === 'c' || L === 'v')) { done(); if (L === 'c') copyNodeStyle(c); else pasteNodeStyle(c); return; }
       if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowDown') {
         done();
         var st = e.shiftKey ? 10 : 1;
@@ -1352,6 +1867,17 @@
     chain('afterDecor', function () { draw(); drawLayoutGrid(); });
     chain('afterRender', function () { if (editing && !document.contains(editing.el)) editing = null; draw(); drawLayoutGrid(); });
     chain('afterChange', function () { draw(); });
+    // 1 … 9, 0 (studio.js): the opacity of the selected nodes, at the breakpoint being edited
+    chain('selectionOpacity', function (pct) {
+      var c = current();
+      if (!c) return undefined;
+      var bp = editBp(), patches = [];
+      c.ids.forEach(function (id) { patches = patches.concat(E.propPatches(c.sid, id, 'opacity', round(pct / 100, 3), bp)); });
+      if (patches.length) E.apply(c.sid, patches, 'Opacité ' + pct + ' %', { coalesce: 'digit-op:' + c.ids.join(',') });
+      return true;
+    });
+    // leaving the Studio: a text being edited on the canvas is committed first
+    chain('flushPending', function () { if (editing) finishEdit(true); });
     chain('inspectorBuilt', function () { var s = state().sel; if (s && (s.kind === 'engine' || s.kind === 'section') && s.id && E.isDetached(s.id)) { var a = activeAb(); if (!cv.bp && a) { /* follows the artboard */ } } draw(); });
     window.addEventListener('resize', draw);
     markBps();
@@ -1359,8 +1885,9 @@
 
     window.JeereStudioCanvas = {
       current: current, selectNodes: selectNodes, hit: hit, editBp: editBp, setEditBp: setEditBp, abBp: abBp, activeAb: activeAb,
-      boxF: boxF, nodeEl: nodeEl, secEl: secEl, toScreen: toScreen, layout: lay,
+      boxF: boxF, previewBox: previewBox, dragPreview: dragPreview, nodeEl: nodeEl, secEl: secEl, toScreen: toScreen, layout: lay,
       create: create, editText: editText, finishEdit: finishEdit, isEditing: function () { return !!editing; },
+      align: align, distribute: distribute, resizeBy: resizeBy, copyNodeStyle: copyNodeStyle, pasteNodeStyle: pasteNodeStyle, startNodeCrop: startNodeCrop, endNodeCrop: endNodeCrop, setNodeCrop: setNodeCrop, cropOf: cropOf, isCropping: function () { return !!ncrop; }, toggleVisible: toggleVisible, toggleLocked: toggleLocked, renameNode: renameNode,
       deleteNodes: deleteNodes, group: group, ungroup: ungroup, zorder: zorder, copy: copy, paste: paste, duplicate: duplicate, autoLayout: autoLayout, nudge: nudge,
       zoomToNodes: zoomToNodes, toggleRulers: toggleRulers, toggleGrid: toggleGrid, togglePixelGrid: togglePixelGrid, guides: guides,
       perf: function () { return perf.slice(); }, resetPerf: function () { perf.length = 0; }, isDragging: function () { return !!drag; },

@@ -626,7 +626,7 @@
         '<li><kbd>S</kbd><span><b>Insérer une section</b> : elle s’adapte toute seule de 360 à 1440 px.</span></li>' +
         '<li><kbd>Glisser</kbd><span><b>Déplacer une section</b> sur l’aperçu : la ligne bleue montre où elle tombe.</span></li>' +
         '<li><kbd>2 × clic</kbd><span><b>Réécrire un texte</b> sur place (ou l’outil Texte, <kbd>T</kbd>).</span></li></ul>' +
-        '<div class="st-coach__row"><small>Pas de pixels à placer : impossible de casser l’affichage mobile. <kbd>?</kbd> pour tous les raccourcis.</small></div>';
+        '<div class="st-coach__row"><small>Le modèle reste juste sur chaque téléphone ; pour composer librement, détachez une section (<kbd>Ctrl Alt B</kbd>). <kbd>?</kbd> pour tous les raccourcis.</small></div>';
       var okB = ce('button', 'st-primary', 'Compris');
       okB.type = 'button';
       okB.addEventListener('click', closeCoach);

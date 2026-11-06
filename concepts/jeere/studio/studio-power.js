@@ -1391,7 +1391,7 @@
         if (S.sectionDef(b.type)) add('block:' + b.id, 'Mes blocs', 'Insérer le bloc : ' + b.name, '', function () { S.insertSection(b.type, undefined, b.settings, b.name); });
       });
       S.PAGES.forEach(function (pg, i) {
-        add('page:' + pg.id, 'Aller à', 'Aller à : ' + pg.label, String(i + 1), function () { S.showPage(pg.id); });
+        add('page:' + pg.id, 'Aller à', 'Aller à : ' + pg.label, 'Alt ' + (i + 1), function () { S.showPage(pg.id); });
       });
       S.customPages().forEach(function (pg) {
         add('cpage:' + pg.id, 'Aller à', 'Aller à la page : ' + (pg.title || 'Page'), '', function () { S.showPage('page', pg.id); });
@@ -1458,11 +1458,40 @@
         var cur = cfg().store && cfg().store.niche === n.id;
         add('niche:' + n.id, 'Boutique', 'Changer de métier : ' + n.label + (cur ? ' (actuel)' : ''), '', function () { S.changeNiche(n.id); });
       });
-      add('sel:rename', 'Sélection', 'Renommer la sélection', 'F2', function () { S.renameSelection(); });
-      add('sel:lock', 'Sélection', 'Verrouiller la sélection', 'Ctrl ⇧ L', function () { S.toggleLockSelected(); });
+      // the DualEngine nodes (studio-canvas.js), when the selection is in a detached section
+      function eng() { var C = window.JeereStudioCanvas; return C && C.current && C.current() && !C.current().root ? C : null; }
+      add('sel:rename', 'Sélection', 'Renommer la sélection', 'F2 · Ctrl R', function () { var C = eng(); if (C) C.renameNode(C.current()); else S.renameSelection(); });
+      add('sel:lock', 'Sélection', 'Verrouiller / déverrouiller la sélection', 'Ctrl ⇧ L', function () { var C = eng(); if (C) C.toggleLocked(C.current()); else S.toggleLockSelected(); });
+      add('sel:hide', 'Sélection', 'Masquer / afficher la sélection', 'Ctrl ⇧ H', function () { var C = eng(); if (C) C.toggleVisible(C.current()); else if (S.toggleHideSelected) S.toggleHideSelected(); });
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].forEach(function (d) {
+        var pct = d === 0 ? 100 : d * 10;
+        add('sel:op' + pct, 'Sélection', 'Opacité de la sélection : ' + pct + ' %', String(d), function () { if (S.setSelectionOpacity) S.setSelectionOpacity(pct); });
+      });
+      [['left', 'Aligner à gauche', 'Alt A'], ['hcenter', 'Centrer horizontalement', 'Alt H'], ['right', 'Aligner à droite', 'Alt D'],
+        ['top', 'Aligner en haut', 'Alt W'], ['vcenter', 'Centrer verticalement', 'Alt V'], ['bottom', 'Aligner en bas', 'Alt S']].forEach(function (a) {
+        add('align:' + a[0], 'Aligner', a[1] + ' (éléments libres)', a[2], function () { var C = eng(); if (C) C.align(C.current(), a[0]); else toast('Aligner : sélectionnez des éléments d’une section détachée (Ctrl Alt B).', 'info'); });
+      });
+      add('dist:h', 'Aligner', 'Répartir l’espacement horizontal', 'Alt ⇧ H', function () { var C = eng(); if (C) C.distribute(C.current(), 'h'); else toast('Répartir : sélectionnez 3 éléments d’une section détachée.', 'info'); });
+      add('dist:v', 'Aligner', 'Répartir l’espacement vertical', 'Alt ⇧ V', function () { var C = eng(); if (C) C.distribute(C.current(), 'v'); else toast('Répartir : sélectionnez 3 éléments d’une section détachée.', 'info'); });
+      add('eng:detach', 'Édition libre', 'Détacher / rattacher la section sélectionnée', 'Ctrl Alt B', function () {
+        var E2 = window.JeereStudioEngine, sel = S.state().sel;
+        if (!E2 || !sel || sel.kind !== 'section') { toast('Sélectionnez une section à détacher.', 'info'); return; }
+        if (E2.isDetached(sel.id)) E2.attach(sel.id); else E2.detach(sel.id);
+      });
+      [['frame', 'Cadre', 'F'], ['rect', 'Rectangle', 'R'], ['ellipse', 'Ellipse', 'O']].forEach(function (t) {
+        add('tool:' + t[0], 'Outils', 'Outil : ' + t[1] + ' (dessiner, détache la section)', t[2], function () { S.setTool(t[0]); });
+      });
+      add('eng:autolayout', 'Édition libre', 'Auto Layout : ajouter / retirer', '⇧ A', function () { var C = eng(); if (C) C.autoLayout(C.current()); else toast('Auto Layout : sélectionnez un cadre d’une section détachée.', 'info'); });
+      add('eng:group', 'Édition libre', 'Grouper la sélection', 'Ctrl G', function () { var C = eng(); if (C) C.group(C.current()); });
+      add('eng:ungroup', 'Édition libre', 'Dissocier', 'Ctrl ⇧ G', function () { var C = eng(); if (C) C.ungroup(C.current()); });
+      add('eng:rulers', 'Affichage', 'Afficher / masquer les règles', '⇧ R', function () { var C = window.JeereStudioCanvas; if (C) C.toggleRulers(); });
+      add('eng:grid', 'Affichage', 'Grille de mise en page', '⇧ G', function () { var C = window.JeereStudioCanvas; if (C) C.toggleGrid(); });
+      add('eng:pixgrid', 'Affichage', 'Grille de pixels (dès 800 %)', 'Ctrl ⇧ \'', function () { var C = window.JeereStudioCanvas; if (C) C.togglePixelGrid(); });
+      add('view:left', 'Panneaux', 'Replier / afficher le panneau de gauche', 'Ctrl Alt [', function () { if (S.setPanel) S.setPanel('left', !document.body.classList.contains('st-left-off')); });
+      add('view:right', 'Panneaux', 'Replier / afficher le panneau de droite', 'Ctrl Alt ]', function () { if (S.setPanel) S.setPanel('right', !document.body.classList.contains('st-right-off')); });
       add('view:chrome', 'Affichage', 'Masquer / afficher les panneaux', 'Ctrl \\', function () { S.toggleChrome(); });
       add('view:help', 'Aide', 'Raccourcis clavier (aide)', '?', function () { S.toggleHelp(); });
-      add('view:simple', 'Aide', 'Ouvrir l’éditeur simple', '', function () { window.location.href = '../creer/'; });
+      add('view:simple', 'Aide', 'Ouvrir l’éditeur simple (même fiche)', 'Ctrl Alt P', function () { if (S.goSimple) S.goSimple(); else window.location.href = '../creer/#editeur'; });
       return cmds;
     }
 
