@@ -547,9 +547,9 @@ html:not([data-theme="dark"]) .dz-hint.is-state { color: #7B3FE4; }
 html:not([data-theme="dark"]) .sk-badge { background: rgba(255, 255, 255, 0.94); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), inset 0 0 0 var(--hair) var(--line-1); }
 html:not([data-theme="dark"]) .sk-badge--warn { color: var(--warn-ink); }
 
-/* links in black and white: underlined so they read as links */
-.sk-sitehead__t a, .sk-pubhead__url a, .sk-pubpage a, .sk-card__links a { text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; }
-.sk-sitehead__t a:hover, .sk-pubhead__url a:hover, .sk-card__links a:hover { text-decoration-color: currentColor; }
+/* links in black and white, never underlined */
+.sk-sitehead__t a, .sk-pubhead__url a, .sk-pubpage a, .sk-card__links a, .sk-sitehead__t a:hover, .sk-pubhead__url a:hover, .sk-card__links a:hover { text-decoration: none !important; font-weight: var(--fw-medium); }
+.sk-sitehead__t a:hover, .sk-pubhead__url a:hover, .sk-pubpage a:hover, .sk-card__links a:hover { opacity: .7; }
 
 /* The breadcrumb, with room to breathe: Mes sites › Kreeative › [page ▾] */
 .sk-top { padding-left: var(--sp-4); }

@@ -72,7 +72,7 @@
       JC.close();
       picker = true;
       JC.open({
-        anchor: anchor, title: title || 'Couleur', theme: 'dark', value: value || '#000000',
+        anchor: anchor, title: title || 'Couleur', theme: (window.JeereStudioTheme && window.JeereStudioTheme.get()) || 'light', value: value || '#000000',
         palette: [['--st-accent', 'Accent'], ['--st-text', 'Texte'], ['--st-bg', 'Fond'], ['--st-surface', 'Surface'], ['--st-muted', 'Atténué']].map(function (t) {
           var r = S.roots()[S.primaryKey()], c = r ? E.parseColor(getComputedStyle(r).getPropertyValue(t[0]).trim()) : null;
           return c ? { v: toHex(c), label: t[1] } : null;
@@ -297,14 +297,14 @@
       return box;
     }
     function ib(svg, label, fn) {
-      var b = ce('button', 'st-eng-ib', '<svg viewBox="0 0 16 16" aria-hidden="true">' + svg + '</svg>');
+      var b = ce('button', 'st-eng-ib', /^<svg/.test(svg) ? svg : '<svg viewBox="0 0 16 16" aria-hidden="true">' + svg + '</svg>');
       b.type = 'button';
       b.setAttribute('data-tip', label); b.setAttribute('aria-label', label);
       b.addEventListener('click', function (e) { e.preventDefault(); fn(); });
       return b;
     }
-    var IC = { plus: '<path d="M8 3.5v9M3.5 8h9"/>', minus: '<path d="M3.5 8h9"/>', eye: '<path d="M1.8 8S4 3.9 8 3.9 14.2 8 14.2 8 12 12.1 8 12.1 1.8 8 1.8 8z"/><circle cx="8" cy="8" r="1.9"/>',
-      x: '<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>' };
+    var IC = { plus: PHI('plus'), minus: PHI('minus'), eye: PHI('eye'),
+      x: PHI('x') };
     function group(title, open) {
       var g = ce('section', 'dz-g' + (open === false ? ' is-closed' : ''));
       var head = ce('div', 'dz-gh');
@@ -981,10 +981,10 @@
     /* ================================================================ layers: the nodes of a detached section */
 
     var NODE_ICON = {
-      frame: '<path d="M5 2.5v11M11 2.5v11M2.5 5h11M2.5 11h11"/>', stack: '<rect x="3" y="3" width="10" height="4" rx="1"/><rect x="3" y="9" width="10" height="4" rx="1"/>',
-      grid: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
-      rect: '<rect x="3" y="4" width="10" height="8" rx="1"/>', ellipse: '<ellipse cx="8" cy="8" rx="5" ry="4.5"/>', text: '<path d="M4 4.5V3.5h8v1M8 3.5v9M6.5 12.5h3"/>',
-      image: '<rect x="2.5" y="3.5" width="11" height="9" rx="1.5"/><circle cx="6" cy="7" r="1"/><path d="M3 11.5l3-2.5 2 1.6 2-1.6 3 2.4"/>', line: '<path d="M3 13L13 3"/>'
+      frame: PHI('hash'), stack: PHI('stack'),
+      grid: PHI('grid-four'),
+      rect: PHI('rectangle'), ellipse: PHI('circle'), text: PHI('text-t'),
+      image: PHI('image'), line: PHI('line-segment')
     };
     var openRows = {};
     /* Reorder the layers by dragging their rows (wave 2, Figma): before / after a sibling (upper / lower half
@@ -1088,7 +1088,7 @@
             r.setAttribute('data-eng-row', s.id + '|' + cid);
             r.style.paddingLeft = (28 + depth * 12) + 'px';
             var kind = c.type === 'frame' && c.layoutParent ? (c.layoutParent.mode === 'stack' ? 'stack' : c.layoutParent.mode === 'grid' ? 'grid' : 'frame') : c.type;
-            r.appendChild(ce('span', 'st-row__icon', '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">' + (NODE_ICON[kind] || NODE_ICON.rect) + '</svg>'));
+            r.appendChild(ce('span', 'st-row__icon', NODE_ICON[kind] || NODE_ICON.rect));
             r.appendChild(ce('span', 'st-row__name', esc(c.type === 'text' ? (M.plainText(c.text).slice(0, 40) || c.name) : c.name)));
             var eye = ce('button', 'st-row__btn' + (c.visible === false ? ' is-active' : ''), S.icon(c.visible === false ? 'eyeOff' : 'eye'));
             eye.type = 'button';

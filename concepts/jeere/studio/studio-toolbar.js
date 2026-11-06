@@ -32,20 +32,21 @@
       };
     }
 
-    var SVG16 = function (d) { return '<svg viewBox="0 0 16 16" aria-hidden="true">' + d + '</svg>'; };
+    /* the selection bar's glyphs: 24 × 24 grid, 1.5 stroke, round caps and joins (studio.css .st-selbar svg) */
+    var SVG24 = function (d) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>'; };
     var I = {
-      up: SVG16('<path d="M8 12.5v-9M4.5 7L8 3.5 11.5 7"/>'),
-      down: SVG16('<path d="M8 3.5v9M4.5 9L8 12.5 11.5 9"/>'),
-      plus: SVG16('<path d="M8 3.5v9M3.5 8h9"/>'),
-      dup: SVG16('<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.2V3a1 1 0 00-1-1H3.5a1 1 0 00-1 1v6a1 1 0 001 1h.3"/>'),
-      eye: SVG16('<path d="M1.8 8S4 3.9 8 3.9 14.2 8 14.2 8 12 12.1 8 12.1 1.8 8 1.8 8z"/><circle cx="8" cy="8" r="1.9"/>'),
-      eyeOff: SVG16('<path d="M3 13L13 3M5.8 11.4A6.7 6.7 0 011.8 8S4 3.9 8 3.9c.8 0 1.5.2 2.2.4M12 5.7A11 11 0 0114.2 8S12 12.1 8 12.1"/>'),
-      trash: SVG16('<path d="M2.8 4.3h10.4M6.3 4.3V2.8h3.4v1.5M4.2 4.3l.6 8.8a1 1 0 001 .9h4.4a1 1 0 001-.9l.6-8.8"/>'),
-      more: SVG16('<circle cx="3.5" cy="8" r=".9"/><circle cx="8" cy="8" r=".9"/><circle cx="12.5" cy="8" r=".9"/>'),
-      text: SVG16('<path d="M3.5 4.8V3.2h9v1.6M8 3.2v9.6M6 12.8h4"/>'),
-      parent: SVG16('<path d="M6 9.5L2.8 6.3 6 3.1M3 6.3h6.2a3.8 3.8 0 010 7.6H7"/>'),
-      image: SVG16('<rect x="2" y="2.8" width="12" height="10.4" rx="1.6"/><circle cx="6" cy="6.6" r="1.2"/><path d="M2.4 11.6l3.4-3 2.4 2 2.1-1.8 3.3 2.9"/>'),
-      design: SVG16('<path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/>')
+      up: PHI('arrow-up'),
+      down: PHI('arrow-down'),
+      plus: PHI('plus'),
+      dup: PHI('copy'),
+      eye: PHI('eye'),
+      eyeOff: PHI('eye-slash'),
+      trash: PHI('trash'),
+      more: PHI('dots-three'),
+      text: PHI('text-t'),
+      parent: PHI('arrow-bend-up-left'),
+      image: PHI('image'),
+      design: PHI('sliders-horizontal')
     };
     /* « Design » on every single selection: the Design tab of the inspector (studio-design.js) */
     function designBtn() {

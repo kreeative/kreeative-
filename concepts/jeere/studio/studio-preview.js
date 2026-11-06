@@ -39,7 +39,7 @@
     ov.setAttribute('aria-label', 'Aperçu de la boutique');
     ov.tabIndex = -1;
     var bar = ce('div', 'st-preview__bar');
-    bar.appendChild(ce('span', 'st-preview__t', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>Aperçu'));
+    bar.appendChild(ce('span', 'st-preview__t', '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5z"/></svg>Aperçu'));
     var seg = ce('div', 'st-preview__seg');
     seg.setAttribute('role', 'radiogroup');
     seg.setAttribute('aria-label', 'Largeur de l’aperçu');
@@ -167,7 +167,7 @@
   (function addButton() {
     var share = document.getElementById('shareBtn');
     if (!share || document.getElementById('previewBtn')) return;
-    btn = ce('button', 'st-ghostbtn st-previewbtn', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg><span>Aperçu</span>');
+    btn = ce('button', 'st-ghostbtn st-previewbtn', '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5z"/></svg><span>Aperçu</span>');
     btn.type = 'button';
     btn.id = 'previewBtn';
     btn.setAttribute('data-tip', 'Aperçu interactif');

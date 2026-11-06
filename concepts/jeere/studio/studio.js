@@ -33,14 +33,16 @@
   }
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  /* the chrome's theme (index.html: JeereStudioTheme, light by default) for the widgets that take one */
+  function studioTheme() { return window.JeereStudioTheme && window.JeereStudioTheme.get() === 'dark' ? 'dark' : 'light'; }
 
   if (!D || !R || typeof D.normalizeConfig !== 'function' || typeof R.render !== 'function' ||
       !D.sectionTypes || !D.palettes || !D.templates) {
     document.addEventListener('DOMContentLoaded', function () {
       var st = $('studio');
-      if (st) st.innerHTML = '<div style="padding:60px;text-align:center;font-family:Poppins,sans-serif;color:#E8E8E8">' +
+      if (st) st.innerHTML = '<div style="padding:60px;text-align:center;font-family:Poppins,sans-serif;color:var(--st-ink)">' +
         '<h1 style="font-size:19px">Le Studio n’a pas pu démarrer</h1>' +
-        '<p style="color:#9E9E9E">Les fichiers de l’éditeur (../creer/data.js, ../creer/render.js) n’ont pas chargé. Rechargez la page, ou ouvrez <a href="../creer/" style="color:#CFE0FF">l’éditeur simple</a>.</p></div>';
+        '<p style="color:var(--st-ink-dim)">Les fichiers de l’éditeur (../creer/data.js, ../creer/render.js) n’ont pas chargé. Rechargez la page, ou ouvrez <a href="../creer/" style="color:var(--st-link)">l’éditeur simple</a>.</p></div>';
     });
     return;
   }
@@ -110,7 +112,7 @@
   /* the disclosure arrow of a row (or an empty slot of the same width, so the names line up) */
   function twisty(key, hasKids, open) {
     if (!hasKids) return ce('span', 'st-row__tw is-empty');
-    var b = ce('button', 'st-row__tw' + (open ? ' is-open' : ''), '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4.5 9.5 8 6 11.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    var b = ce('button', 'st-row__tw' + (open ? ' is-open' : ''), '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
     b.type = 'button';
     b.tabIndex = -1;
     b.setAttribute('data-tw', key);
@@ -2099,21 +2101,23 @@
 
   var treeDrag = null;
 
+  /* the layers' glyphs: 24 × 24 grid, 1.5 stroke, round caps and joins (Lucide-like; .st-row__icon draws them) */
+  function svg24(d) { return '<svg class="st-i24" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>'; }
   var ICONS = {
-    page: '<svg viewBox="0 0 16 16"><path d="M4 1.5h5.5L13 5v9.5H4z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M9.5 1.5V5H13" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    announcement: '<svg viewBox="0 0 16 16"><rect x="1.5" y="5" width="13" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    hero: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 10.5l2.6-3 2.4 2.2 1.6-1.6 1.4 2.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>',
-    categories: '<svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    products: '<svg viewBox="0 0 16 16"><path d="M3 5.5l5-3 5 3v5l-5 3-5-3z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M3 5.5l5 3 5-3M8 8.5v5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    about: '<svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 13.5c.7-2.6 2.4-4 4.5-4s3.8 1.4 4.5 4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    reviews: '<svg viewBox="0 0 16 16"><path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.2L8 11.5l-3.8 2 .7-4.2-3.1-3 4.3-.6z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg>',
-    delivery: '<svg viewBox="0 0 16 16"><rect x="1.5" y="4" width="8" height="6.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M9.5 6h3l2 2.4v2.1h-5z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5" cy="12" r="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="12" cy="12" r="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    whatsapp: '<svg viewBox="0 0 16 16"><path d="M8 2.2a5.8 5.8 0 00-5 8.7L2.2 14l3.2-.8A5.8 5.8 0 108 2.2z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    product: '<svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 13.5V9.8h5v3.7" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>',
-    eye: '<svg viewBox="0 0 16 16"><path d="M1.8 8S4 3.9 8 3.9 14.2 8 14.2 8 12 12.1 8 12.1 1.8 8 1.8 8z" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="1.9" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    eyeOff: '<svg viewBox="0 0 16 16"><path d="M3 13L13 3M5.8 11.4A6.7 6.7 0 001.8 8S4 3.9 8 3.9c.8 0 1.5.2 2.2.4M12 5.7A11 11 0 0114.2 8S12 12.1 8 12.1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>',
-    lock: '<svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 7V5.4a2.5 2.5 0 015 0V7" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    unlock: '<svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 7V5.4a2.5 2.5 0 015-.8" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>'
+    page: PHI('file', ' class="st-i24"'),
+    announcement: PHI('megaphone', ' class="st-i24"'),
+    hero: PHI('image-square', ' class="st-i24"'),
+    categories: PHI('squares-four', ' class="st-i24"'),
+    products: PHI('package', ' class="st-i24"'),
+    about: PHI('user', ' class="st-i24"'),
+    reviews: PHI('star', ' class="st-i24"'),
+    delivery: PHI('truck', ' class="st-i24"'),
+    whatsapp: PHI('whatsapp-logo', ' class="st-i24"'),
+    product: PHI('shopping-bag', ' class="st-i24"'),
+    eye: PHI('eye', ' class="st-i24"'),
+    eyeOff: PHI('eye-slash', ' class="st-i24"'),
+    lock: PHI('lock', ' class="st-i24"'),
+    unlock: PHI('lock-open', ' class="st-i24"')
   };
   function icon(name) { return ICONS[name] || ICONS.page; }
 
@@ -2386,13 +2390,13 @@
     return esElements(type).filter(function (d) { return d && d.sel && d.key !== 'section' && d.kind !== 'section'; });
   }
   var EL_ICONS = {
-    text: '<svg viewBox="0 0 16 16"><path d="M3.5 4h9M8 4v8.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+    text: svg24('<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>'),
     image: ICONS.hero,
-    button: '<svg viewBox="0 0 16 16"><rect x="1.8" y="4.5" width="12.4" height="7" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
-    icon: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg>',
-    container: '<svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1.6"/></svg>',
+    button: svg24('<rect width="20" height="10" x="2" y="7" rx="5"/><path d="M8 12h8"/>'),
+    icon: svg24('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/>'),
+    container: svg24('<path d="M5 3a2 2 0 0 0-2 2M19 3a2 2 0 0 1 2 2M21 19a2 2 0 0 1-2 2M5 21a2 2 0 0 1-2-2M9 3h1M9 21h1M14 3h1M14 21h1M3 9v1M21 9v1M3 14v1M21 14v1"/>'),
     card: ICONS.product,
-    badge: '<svg viewBox="0 0 16 16"><rect x="2.5" y="5" width="11" height="6" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>'
+    badge: svg24('<rect width="18" height="9" x="3" y="7.5" rx="4.5"/>')
   };
 
   function startRename(nameEl, current, max, done) {
@@ -2803,7 +2807,7 @@
   function fieldNumber(labelText, value, min, max, onChange, coKey) {
     var w = fieldWrap(labelText);
     var box = ce('div', 'st-num');
-    var drag = ce('div', 'st-num__drag', '<svg viewBox="0 0 16 16"><path d="M5 4L1.5 8 5 12M11 4l3.5 4L11 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    var drag = ce('div', 'st-num__drag', svg24('<path d="m8 7-5 5 5 5M16 7l5 5-5 5"/>'));
     drag.title = 'Glissez horizontalement pour changer la valeur';
     var input = document.createElement('input');
     input.type = 'number';
@@ -2979,7 +2983,7 @@
     var cs = state.sel;
     var cdef = cs && cs.kind === 'section' && !cs.el ? esElements(sectionType(cs.id)).filter(function (d) { return d.kind === 'image'; })[0] : null;
     if (cdef && (image || (info && info.src)) && hooks.cropImage) {
-      var cb = ce('button', 'st-ghostbtn st-imgfield__crop', '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4.5 1.5v10h10M1.5 4.5h10v10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span>Recadrer et zoomer</span>');
+      var cb = ce('button', 'st-ghostbtn st-imgfield__crop', '<svg class="st-i24" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg><span>Recadrer et zoomer</span>');
       cb.type = 'button';
       cb.title = 'Recadrer et zoomer la photo (double-clic sur la photo)';
       cb.addEventListener('click', function () {
@@ -3016,11 +3020,11 @@
     all.forEach(function (x, i) { if (x.id === s.id) idx = i; });
     var posRow = ce('div', 'st-insp__row');
     posRow.appendChild(ce('span', 'st-insp__label', 'Position ' + (idx + 1) + ' sur ' + all.length));
-    var upB = ce('button', 'st-iconbtn st-iconbtn--sq', '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12.5v-9M4.5 7L8 3.5 11.5 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    var upB = ce('button', 'st-iconbtn st-iconbtn--sq', svg24('<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>'));
     upB.type = 'button'; upB.setAttribute('data-tip', 'Monter la section'); upB.setAttribute('data-kbd', '↑'); upB.setAttribute('aria-label', 'Monter la section');
     upB.disabled = idx <= 0;
     upB.addEventListener('click', function () { moveSelection(-1, true); buildInspector(); });
-    var dnB = ce('button', 'st-iconbtn st-iconbtn--sq', '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M4.5 9L8 12.5 11.5 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    var dnB = ce('button', 'st-iconbtn st-iconbtn--sq', svg24('<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>'));
     dnB.type = 'button'; dnB.setAttribute('data-tip', 'Descendre la section'); dnB.setAttribute('data-kbd', '↓'); dnB.setAttribute('aria-label', 'Descendre la section');
     dnB.disabled = idx === -1 || idx >= all.length - 1;
     dnB.addEventListener('click', function () { moveSelection(1, true); buildInspector(); });
@@ -3036,7 +3040,7 @@
     var tplName = '';
     try { D.templates.forEach(function (t) { if (t.id === state.config.template) tplName = t.name; }); } catch (e) { /* no templates */ }
     var promise = ce('div', 'st-promise',
-      '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="3" width="8.5" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="11" y="5" width="3.5" height="7.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>' +
+      svg24('<rect width="14" height="10" x="2" y="4" rx="2"/><rect width="5" height="10" x="17" y="9" rx="1.5"/><path d="M6 18h6"/>') +
       '<div><b>Responsive, de 360 à 1440 px</b><span>La mise en page de cette section suit le modèle' + (tplName ? ' « ' + esc(tplName) + ' »' : '') +
       ' : impossible de casser l’affichage sur téléphone. Pour la changer, choisissez un autre modèle.</span></div>');
     var tplLink = ce('button', 'st-linkbtn', 'Changer de modèle…');
@@ -3765,8 +3769,8 @@
   /* Ctrl+\ : masquer / afficher les panneaux (le plan de travail en grand) */
   /* each side panel folds on its own, like Claude's sidebar: a button in the panel, and one at the edge of the canvas
    * to bring it back (Ctrl/⌘ Alt [ for the left one, Ctrl/⌘ Alt ] for the right one) */
-  var PANEL_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="2.5" width="12.4" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6 2.8v10.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
-  var PANEL_ICON_R = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="2.5" width="12.4" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 2.8v10.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+  var PANEL_ICON = svg24('<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M9 3v18"/>');
+  var PANEL_ICON_R = svg24('<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M15 3v18"/>');
   function setPanel(side, off, quiet) {
     if (!ui.panels || typeof ui.panels !== 'object') ui.panels = {};
     ui.panels[side] = !!off;
@@ -3776,6 +3780,7 @@
     var tb = $(side + 'Toggle'), rb = $(side + 'Reopen');
     if (tb) tb.setAttribute('aria-expanded', off ? 'false' : 'true');
     if (rb) rb.hidden = !off;
+    if (side === 'left') syncRail();
     if (!quiet) {
       if (off && rb) rb.focus();
       else if (!off && tb) tb.focus();
@@ -3950,7 +3955,7 @@
     if (livePublish) {
       var pub = ce('div', 'st-publish');
       body.appendChild(pub);
-      window.JeerePublish.mount(pub, { getConfig: function () { return state.config; }, theme: 'dark', showScore: false, onPublished: function () { toast('Boutique en ligne !', 'ok'); },
+      window.JeerePublish.mount(pub, { getConfig: function () { return state.config; }, theme: studioTheme(), showScore: false, onPublished: function () { toast('Boutique en ligne !', 'ok'); },
         // « Restaurer » a published version: it is live again, and the draft takes it (one undo step, wave 2)
         onRestore: function (fiche) {
           var normalized;
@@ -4507,9 +4512,9 @@
     } catch (e) { /* ignore */ }
     try { if (location.hash === '#publier') { history.replaceState(null, '', location.pathname + location.search); setTimeout(function () { openShare(true); }, 400); } } catch (e) { /* ignore */ }
     $('helpBtn').addEventListener('click', toggleHelp);
-    $('tabLayers').addEventListener('click', function () { switchLeftTab('layers'); });
-    $('tabInsert').addEventListener('click', function () { switchLeftTab('insert'); });
-    if ($('tabAssets')) $('tabAssets').addEventListener('click', function () { switchLeftTab('assets'); });
+    $('tabLayers').addEventListener('click', function () { railTab('layers'); });
+    $('tabInsert').addEventListener('click', function () { railTab('insert'); });
+    if ($('tabAssets')) $('tabAssets').addEventListener('click', function () { railTab('assets'); });
     $('importFile').addEventListener('change', function () {
       importJSONFile($('importFile').files && $('importFile').files[0]);
       $('importFile').value = '';
@@ -4550,16 +4555,44 @@
     });
   }
 
+  /* the left panel: the rail's tabs (Calques / Insérer / Images, index.html) switch its content; the
+   * panel's head names it */
+  var LEFT_TABS = [['layers', 'tabLayers', 'layersPanel', 'Calques'], ['insert', 'tabInsert', 'insertPanel', 'Insérer une section'], ['assets', 'tabAssets', 'assetsPanel', 'Images']];
+  var leftTab = 'layers';
+  function syncRail() {
+    var open = !document.body.classList.contains('st-left-off');
+    LEFT_TABS.forEach(function (t) {
+      var btn = $(t[1]);
+      if (!btn) return;
+      var on = leftTab === t[0];
+      btn.classList.toggle('is-on', on && open);
+      btn.classList.toggle('is-cur', on);
+      // the current tab says whether its panel is shown (a click on it folds / unfolds the panel)
+      if (on) btn.setAttribute('aria-expanded', String(open)); else btn.removeAttribute('aria-expanded');
+    });
+  }
+  /* a click on the rail: another tab opens it (and the panel, if folded); the current one folds the
+   * panel, like Figma's left bar */
+  function railTab(tab) {
+    var folded = document.body.classList.contains('st-left-off');
+    if (folded) { setPanel('left', false, true); switchLeftTab(tab); return; }
+    if (tab === leftTab) { setPanel('left', true, true); return; }
+    switchLeftTab(tab);
+  }
   function switchLeftTab(tab) {
-    var tabs = [['layers', 'tabLayers', 'layersPanel'], ['insert', 'tabInsert', 'insertPanel'], ['assets', 'tabAssets', 'assetsPanel']];
-    tabs.forEach(function (t) {
+    LEFT_TABS.forEach(function (t) {
       var btn = $(t[1]), panel = $(t[2]);
       if (!btn || !panel) return;
       var on = tab === t[0];
-      btn.classList.toggle('is-on', on);
       btn.setAttribute('aria-selected', String(on));
       panel.hidden = !on;
+      if (on) {
+        leftTab = t[0];
+        var title = $('leftTitle');
+        if (title) title.textContent = t[3];
+      }
     });
+    syncRail();
     hideTypePreview();
     if (tab === 'assets' && hooks.assetsShown) { try { hooks.assetsShown(); } catch (e) { /* module error */ } }
   }
@@ -4669,6 +4702,8 @@
     buildInsertPanel: buildInsertPanel,
     buildHelp: buildHelp,
     switchLeftTab: switchLeftTab,
+    railTab: railTab,
+    leftTab: function () { return leftTab; },
     applyDecor: applyDecor,
     scheduleRender: scheduleRender,
     renderArtboards: renderArtboards,

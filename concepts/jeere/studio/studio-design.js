@@ -54,41 +54,41 @@
 
     function svg(d, extra) { return '<svg viewBox="0 0 16 16" aria-hidden="true"' + (extra || '') + '>' + d + '</svg>'; }
     var IC = {
-      all: svg('<rect x="2" y="3.5" width="8" height="6" rx="1"/><rect x="9" y="6.5" width="5" height="7" rx="1"/><path d="M4.5 12.5h3"/>'),
-      desktop: svg('<rect x="2" y="3" width="12" height="8" rx="1"/><path d="M6 13.5h4M8 11v2.5"/>'),
-      tablet: svg('<rect x="3.5" y="2" width="9" height="12" rx="1.5"/><path d="M7.2 12h1.6"/>'),
-      phone: svg('<rect x="5" y="2" width="6" height="12" rx="1.5"/><path d="M7.4 12h1.2"/>'),
-      copy: svg('<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.2V3a1 1 0 00-1-1H3.5a1 1 0 00-1 1v6a1 1 0 001 1h.3"/>'),
-      paste: svg('<rect x="3" y="3" width="10" height="11" rx="1.5"/><path d="M6 3V2h4v1M5.5 7h5M5.5 9.5h5M5.5 12h3"/>'),
-      reset: svg('<path d="M3 8a5 5 0 105-5 5 5 0 00-3.6 1.5L3 6"/><path d="M3 2.5V6h3.5"/>'),
-      link: svg('<path d="M6.5 9.5l3-3M7 4.6l1-1a2.6 2.6 0 013.7 3.7l-1 1M9 11.4l-1 1a2.6 2.6 0 01-3.7-3.7l1-1"/>'),
-      unlink: svg('<path d="M7 4.6l1-1a2.6 2.6 0 013.7 3.7l-1 1M9 11.4l-1 1a2.6 2.6 0 01-3.7-3.7l1-1M2.5 2.5l2 2M11.5 11.5l2 2"/>'),
-      plus: svg('<path d="M8 3.5v9M3.5 8h9"/>'),
-      minus: svg('<path d="M3.5 8h9"/>'),
-      up: svg('<path d="M8 12.5v-9M4.5 7L8 3.5 11.5 7"/>'),
-      down: svg('<path d="M8 3.5v9M4.5 9L8 12.5 11.5 9"/>'),
-      eye: svg('<path d="M1.8 8S4 3.9 8 3.9 14.2 8 14.2 8 12 12.1 8 12.1 1.8 8 1.8 8z"/><circle cx="8" cy="8" r="1.9"/>'),
-      drop: svg('<path d="M10.2 2.8l3 3-1.3 1.3-3-3zM9 5.2l-5.6 5.6-.6 2.4 2.4-.6L10.8 7"/>'),
-      caret: svg('<path d="M4.5 6.5L8 10l3.5-3.5"/>'),
-      x: svg('<path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>'),
-      alL: svg('<path d="M2.5 4h11M2.5 7h7M2.5 10h11M2.5 13h7"/>'),
-      alC: svg('<path d="M2.5 4h11M4.5 7h7M2.5 10h11M4.5 13h7"/>'),
-      alR: svg('<path d="M2.5 4h11M6.5 7h7M2.5 10h11M6.5 13h7"/>'),
-      alJ: svg('<path d="M2.5 4h11M2.5 7h11M2.5 10h11M2.5 13h11"/>'),
-      col: svg('<rect x="4" y="2.5" width="8" height="4" rx="1"/><rect x="4" y="9.5" width="8" height="4" rx="1"/>'),
-      row: svg('<rect x="2.5" y="4" width="4" height="8" rx="1"/><rect x="9.5" y="4" width="4" height="8" rx="1"/>'),
-      free: svg('<path d="M3 3h3M3 3v3M13 13h-3M13 13v-3M13 3h-3M13 3v3M3 13h3M3 13v-3"/>'),
-      inset: svg('<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><rect x="5" y="5" width="6" height="6" rx="1" fill="currentColor" stroke="none" opacity=".45"/>'),
-      blur: svg('<circle cx="8" cy="8" r="5.5" stroke-dasharray="1.6 1.6"/><circle cx="8" cy="8" r="2.5"/>'),
-      rot: svg('<path d="M12.5 8A4.5 4.5 0 118 3.5h2.5"/><path d="M9 1.8l1.7 1.7L9 5.2"/>'),
-      scale: svg('<path d="M9.5 2.5h4v4M13.5 2.5L8.5 7.5"/><rect x="2.5" y="8.5" width="5" height="5" rx="1"/>'),
-      grip: svg('<circle cx="6" cy="4" r=".8"/><circle cx="10" cy="4" r=".8"/><circle cx="6" cy="8" r=".8"/><circle cx="10" cy="8" r=".8"/><circle cx="6" cy="12" r=".8"/><circle cx="10" cy="12" r=".8"/>'),
-      flip: svg('<path d="M2.5 5.5h10l-2.5-2.5M13.5 10.5h-10l2.5 2.5"/>'),
-      image: svg('<rect x="2" y="2.8" width="12" height="10.4" rx="1.6"/><circle cx="6" cy="6.6" r="1.2"/><path d="M2.4 11.6l3.4-3 2.4 2 2.1-1.8 3.3 2.9"/>'),
-      upload: svg('<path d="M8 10.5V3M5 6l3-3 3 3M3 10.5v2a1 1 0 001 1h8a1 1 0 001-1v-2"/>'),
-      italic: svg('<path d="M7 3h5M4 13h5M9.5 3l-3 10"/>'),
-      ul: svg('<path d="M4.5 3v4.5a3.5 3.5 0 007 0V3M3.5 13.5h9"/>'),
-      strike: svg('<path d="M2.5 8h11M11 4.6C10.4 3.6 9.3 3 8 3 6.3 3 5 4 5 5.3c0 .8.4 1.4 1.1 1.8M5 11.2c.6 1.1 1.7 1.8 3.1 1.8 1.8 0 3.1-1 3.1-2.4 0-.6-.2-1.1-.6-1.5"/>')
+      all: PHI('devices'),
+      desktop: PHI('desktop'),
+      tablet: PHI('device-tablet'),
+      phone: PHI('device-mobile'),
+      copy: PHI('copy'),
+      paste: PHI('clipboard-text'),
+      reset: PHI('arrow-counter-clockwise'),
+      link: PHI('link'),
+      unlink: PHI('link-break'),
+      plus: PHI('plus'),
+      minus: PHI('minus'),
+      up: PHI('arrow-up'),
+      down: PHI('arrow-down'),
+      eye: PHI('eye'),
+      drop: PHI('eyedropper'),
+      caret: PHI('caret-down'),
+      x: PHI('x'),
+      alL: PHI('text-align-left'),
+      alC: PHI('text-align-center'),
+      alR: PHI('text-align-right'),
+      alJ: PHI('text-align-justify'),
+      col: PHI('rows'),
+      row: PHI('columns'),
+      free: PHI('frame-corners'),
+      inset: PHI('selection-inverse'),
+      blur: PHI('drop-half'),
+      rot: PHI('arrow-clockwise'),
+      scale: PHI('arrows-out-simple'),
+      grip: PHI('dots-six-vertical'),
+      flip: PHI('flip-horizontal'),
+      image: PHI('image'),
+      upload: PHI('upload-simple'),
+      italic: PHI('text-italic'),
+      ul: PHI('list-bullets'),
+      strike: PHI('text-strikethrough')
     };
 
     /* ================================================================ design-tab state (not the fiche) */
@@ -805,7 +805,7 @@
         if (!on) { S.applyElStyles(); refresh(); }
       }
       var h = JC.open({
-        anchor: anchor, title: title || 'Couleur', theme: 'dark', value: value,
+        anchor: anchor, title: title || 'Couleur', theme: (window.JeereStudioTheme && window.JeereStudioTheme.get()) || 'light', value: value,
         palette: ['accent', 'onAccent', 'text', 'muted', 'bg', 'surface', 'line'].map(function (k) { return { v: '@' + k, label: tokenLabel('@' + k) }; }),
         recents: recents(), resolve: colorRgba, toast: function (m) { toast(m, 'warn'); },
         onChange: function (v, isLive) { live(isLive); onSet(v, isLive); if (!isLive) live(false); },
@@ -1726,15 +1726,15 @@
 
     var KIND_NAME = { button: 'Bouton', text: 'Texte', image: 'Image', container: 'Bloc', section: 'Section', badge: 'Badge', icon: 'Icône', card: 'Carte produit', page: 'Page' };
     var KIND_ICON = {
-      button: svg('<rect x="2" y="4.5" width="12" height="7" rx="3.5"/><path d="M5.5 8h5"/>'),
-      text: svg('<path d="M3.5 4.5V3.2h9v1.3M8 3.2v9.6M6 12.8h4"/>'),
+      button: PHI('cursor-click'),
+      text: PHI('text-t'),
       image: IC.image,
-      container: svg('<rect x="2.5" y="2.5" width="11" height="11" rx="2"/>'),
-      section: svg('<rect x="1.8" y="3" width="12.4" height="10" rx="1.5"/><path d="M1.8 6.5h12.4"/>'),
-      badge: svg('<path d="M2.5 8.6V3.5a1 1 0 0 1 1-1h5.1l5.4 5.4-5.6 5.6z"/><circle cx="5.6" cy="5.6" r="1"/>'),
-      icon: svg('<path d="M8 2.2l1.8 3.7 4 .6-2.9 2.8.7 4L8 11.4l-3.6 1.9.7-4L2.2 6.5l4-.6z"/>'),
-      card: svg('<rect x="3" y="1.8" width="10" height="12.4" rx="1.5"/><rect x="4.6" y="3.4" width="6.8" height="5" rx="1"/><path d="M4.6 10.6h4.5M4.6 12.4h2.6"/>'),
-      page: svg('<path d="M4 1.8h5.5L12.5 5v9.2H4z"/><path d="M9.5 1.8V5h3"/>')
+      container: PHI('square'),
+      section: PHI('rows'),
+      badge: PHI('tag'),
+      icon: PHI('star'),
+      card: PHI('cards'),
+      page: PHI('file')
     };
     function fieldValue(t) {
       var s = S.sectionById(t.sid);

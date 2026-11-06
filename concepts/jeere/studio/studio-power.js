@@ -447,7 +447,7 @@
             }
             if (!window.JeereColor) return;
             window.JeereColor.open({
-              anchor: row, title: label, theme: 'dark', value: /^#[0-9a-fA-F]{6}$/.test(val) ? val : '#888888',
+              anchor: row, title: label, theme: (window.JeereStudioTheme && window.JeereStudioTheme.get()) || 'light', value: /^#[0-9a-fA-F]{6}$/.test(val) ? val : '#888888',
               onChange: function (v) { setToken(v); },
               place: function (el) {
                 var rr = row.getBoundingClientRect();
@@ -489,9 +489,9 @@
       /* one glyph per kind of token: Aa only for the typography row */
       var GLYPHS = {
         fonts: 'Aa',
-        radius: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 13V8a5 5 0 015-5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-        intensity: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 2.5a5.5 5.5 0 010 11z" fill="currentColor"/></svg>',
-        buttons: '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><rect x="1.5" y="5" width="13" height="6" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
+        radius: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-8a8 8 0 0 1 8-8h8"/></svg>',
+        intensity: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 7.5h4.6M12 12h6M12 16.5h4.6"/></svg>',
+        buttons: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="10" x="2" y="7" rx="5"/></svg>'
       };
       function infoRow(name, small, val, glyph) {
         var r = ce('div', 'st-token');
@@ -1583,27 +1583,28 @@
       });
     }
 
+    /* the palette's glyphs, one per category: 24 × 24 grid, 1.5 stroke, round caps and joins */
     var CMD_ICONS = {
-      'Ajouter': '<path d="M8 3v10M3 8h10"/>',
-      'Mes blocs': '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M2.5 7h11"/>',
-      'Aller à': '<path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5"/>',
-      'Modèle': '<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M2.5 6h11M6 6v7.5"/>',
-      'Palette': '<circle cx="8" cy="8" r="5.5"/><circle cx="6" cy="6.3" r=".8"/><circle cx="9.8" cy="6.3" r=".8"/><circle cx="5.6" cy="9.6" r=".8"/>',
-      'Style': '<path d="M4 12.5L8 3.5l4 9M5.6 9h4.8"/>',
-      'Appareils': '<rect x="2" y="3.5" width="9" height="7" rx="1"/><rect x="11.5" y="6" width="3" height="6.5" rx=".8"/>',
-      'Panneaux': '<rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M6 2.5v11"/>',
-      'Vérifier': '<path d="M3.5 8.3l3 3 6-6.6"/>',
-      'Sélection': '<path d="M4 2.8l8 5.4-3.5.7-1.6 3.6z"/>',
-      'Historique': '<path d="M3 8a5 5 0 101.3-3.4M3 3v2.4h2.4M8 5.5V8l1.8 1.2"/>',
-      'Fiche': '<path d="M4 1.8h5.3L12.5 5v9.2H4z"/><path d="M9.3 1.8V5h3.2"/>',
-      'Affichage': '<circle cx="7" cy="7" r="4.3"/><path d="M10.2 10.2l3.3 3.3"/>',
-      'Aide': '<circle cx="8" cy="8" r="5.6"/><path d="M6.4 6.4a1.7 1.7 0 113 1.1c-.6.5-1.4.8-1.4 1.8M8 11.4v.1"/>',
-      'Outils': '<path d="M4 2.8l8 5.4-3.5.7-1.6 3.6z"/>',
-      'Boutique': '<path d="M2.5 6l1-3.5h9l1 3.5M3.2 6v7.5h9.6V6"/>'
+      'Ajouter': '<path d="M5 12h14M12 5v14"/>',
+      'Mes blocs': '<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M3 9h18"/>',
+      'Aller à': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+      'Modèle': '<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M3 9h18M9 21V9"/>',
+      'Palette': '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6 17.46 2 12 2z"/>',
+      'Style': '<path d="m4 20 8-16 8 16"/><path d="M7.5 13h9"/>',
+      'Appareils': '<rect width="14" height="10" x="2" y="4" rx="2"/><rect width="5" height="10" x="17" y="9" rx="1.5"/><path d="M6 18h6"/>',
+      'Panneaux': '<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M9 3v18"/>',
+      'Vérifier': '<path d="M20 6 9 17l-5-5"/>',
+      'Sélection': '<path d="M4.04 4.69a.5.5 0 0 1 .65-.65l16 6.5a.5.5 0 0 1-.06.95l-6.13 1.58a2 2 0 0 0-1.43 1.43l-1.58 6.13a.5.5 0 0 1-.95.06z"/>',
+      'Historique': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3.5 2"/>',
+      'Fiche': '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
+      'Affichage': '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
+      'Aide': '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+      'Outils': '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+      'Boutique': '<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M2 7h20v2a3 3 0 0 1-6 0 3 3 0 0 1-4 0 3 3 0 0 1-4 0 3 3 0 0 1-6 0z"/>'
     };
     function cmdIcon(cmd) {
-      var d = CMD_ICONS[cmd.cat] || '<circle cx="8" cy="8" r="2"/>';
-      return '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+      var d = CMD_ICONS[cmd.cat] || '<circle cx="12" cy="12" r="3"/>';
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
     }
 
     function setActive(i) {

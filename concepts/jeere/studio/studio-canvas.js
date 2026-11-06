@@ -325,6 +325,18 @@
       for (var i = 0; i < steps.length; i++) if (steps[i] * k >= 60) return steps[i];
       return 10000;
     }
+    /* the rulers' colours: the chrome's tokens (studio.css --st-ruler-*), read once per theme */
+    var rulerInk = null;
+    function rulerColors() {
+      var t = document.documentElement.getAttribute('data-theme') || 'light';
+      if (rulerInk && rulerInk.t === t) return rulerInk;
+      var cs = getComputedStyle(document.documentElement);
+      function v(n, d) { var x = cs.getPropertyValue(n).trim(); return x || d; }
+      rulerInk = { t: t, bg: v('--st-ruler-bg', '#FFFFFF'), line: v('--st-ruler-line', 'rgba(0,0,0,.1)'),
+        tick: v('--st-ruler-tick', 'rgba(0,0,0,.3)'), ink: v('--st-ruler-ink', '#6B6B6B') };
+      return rulerInk;
+    }
+    window.addEventListener('jeere-studio-theme', function () { rulerInk = null; try { drawRulers(); } catch (e) { /* not ready */ } });
     function drawRulers() {
       var on = rulersOn();
       [rulerX, rulerY, rulerC].forEach(function (c) { c.hidden = !on; });
@@ -339,10 +351,11 @@
         if (c.width !== Math.round(d[1] * dpr) || c.height !== Math.round(d[2] * dpr)) { c.width = Math.round(d[1] * dpr); c.height = Math.round(d[2] * dpr); c.style.width = d[1] + 'px'; c.style.height = d[2] + 'px'; }
         var x = c.getContext('2d');
         x.setTransform(dpr, 0, 0, dpr, 0, 0);
-        x.fillStyle = '#262626'; x.fillRect(0, 0, d[1], d[2]);
-        x.fillStyle = 'rgba(255,255,255,.08)';
+        var rc = rulerColors();
+        x.fillStyle = rc.bg; x.fillRect(0, 0, d[1], d[2]);
+        x.fillStyle = rc.line;
         x.fillRect(d[3] === 'x' ? 0 : 19, d[3] === 'x' ? 19 : 0, d[3] === 'x' ? d[1] : 1, d[3] === 'x' ? 1 : d[2]);
-        x.strokeStyle = 'rgba(255,255,255,.38)'; x.fillStyle = '#B3B3B3'; x.font = '10px Inter, system-ui, sans-serif'; x.lineWidth = 1;
+        x.strokeStyle = rc.tick; x.fillStyle = rc.ink; x.font = '10px Inter, system-ui, sans-serif'; x.lineWidth = 1;
         var len = d[3] === 'x' ? d[1] : d[2], origin = d[3] === 'x' ? o.x : o.y;
         var first = Math.floor((-origin) / k / step) * step;
         x.beginPath();
@@ -1929,9 +1942,9 @@
       var ftb = $('ftb'), anchor = $('ftbSection');
       if (!ftb || !anchor || ftb.querySelector('[data-tool="frame"]')) return;
       var defs = [
-        ['frame', 'Cadre', 'F', 'Dessiner un cadre libre (détache la section)', '<path d="M7.5 3.5v17M16.5 3.5v17M3.5 7.5h17M3.5 16.5h17"/>'],
-        ['rect', 'Rectangle', 'R', 'Dessiner un rectangle', '<rect x="4.5" y="5.5" width="15" height="13" rx="1.6"/>'],
-        ['ellipse', 'Ellipse', 'O', 'Dessiner une ellipse', '<ellipse cx="12" cy="12" rx="7.5" ry="7"/>']
+        ['frame', 'Cadre', 'F', 'Dessiner un cadre libre (détache la section)', '<path d="M22 6H2M22 18H2M6 2v20M18 2v20"/>'],
+        ['rect', 'Rectangle', 'R', 'Dessiner un rectangle', '<rect width="18" height="18" x="3" y="3" rx="2.5"/>'],
+        ['ellipse', 'Ellipse', 'O', 'Dessiner une ellipse', '<circle cx="12" cy="12" r="9"/>']
       ];
       var after = anchor;
       defs.forEach(function (d) {
