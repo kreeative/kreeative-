@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="dark">
+  <title>Mes sites — Jeere Studio</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../studio-design.css">
+  <link rel="stylesheet" href="../../creer/jcolor.css">
+  <link rel="stylesheet" href="sites.css">
+  <script src="../../creer/data.js" defer></script>
+  <script src="../../compte/auth.js" defer></script>
+  <script src="../../creer/jcolor.js" defer></script>
+  <script src="sites-core.js" defer></script>
+  <script src="sites-app.js" defer></script>
+  <script src="sites-publish.js" defer></script>
+</head>
+<body>
+  <svg class="sk-defs" aria-hidden="true" focusable="false"><defs>
+    <symbol id="sk-cloud" viewBox="0 0 24 24"><path d="M7 18.5h10.2a4.3 4.3 0 00.6-8.6 6 6 0 00-11.5 1.6A3.5 3.5 0 007 18.5z"/></symbol>
+  </defs></svg>
+
+  <div class="sk" id="sk" data-view="loading">
+
+    <header class="sk-top">
+      <div class="sk-top__left">
+        <a class="sk-back" id="skBack" href="../" data-tip="Retour au Studio" aria-label="Retour au Studio">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5L9 12l5.5 5.5"/></svg>
+        </a>
+        <span class="sk-brand">Studio</span>
+        <span class="sk-sep" aria-hidden="true"></span>
+        <nav class="sk-crumbs" id="skCrumbs" aria-label="Où je suis">
+          <a href="#/" class="sk-crumbs__home">Mes sites</a>
+        </nav>
+        <button class="sk-ib sk-only-edit sk-panelbtn" id="skPagesBtn" type="button" aria-label="Pages et structure" aria-expanded="false" data-tip="Pages et structure">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15" rx="2"/><path d="M9.5 4.5v15"/></svg>
+        </button>
+      </div>
+
+      <div class="sk-top__center sk-only-edit">
+        <div class="sk-chips" id="skWidths" role="group" aria-label="Aperçus affichés (largeurs)">
+          <button type="button" data-w="390" aria-pressed="true" data-tip="Téléphone · 390 px">390</button>
+          <button type="button" data-w="768" aria-pressed="false" data-tip="Tablette · 768 px">768</button>
+          <button type="button" data-w="1440" aria-pressed="true" data-tip="Ordinateur · 1440 px">1440</button>
+        </div>
+        <div class="sk-zoom">
+          <button type="button" class="sk-ib" data-zoom="out" aria-label="Zoom arrière" data-tip="Zoom arrière">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12h10"/></svg>
+          </button>
+          <button type="button" class="sk-zoom__v" id="skZoom" data-zoom="fit" data-tip="Ajuster à l’écran">100 %</button>
+          <button type="button" class="sk-ib" data-zoom="in" aria-label="Zoom avant" data-tip="Zoom avant">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v10M7 12h10"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="sk-top__right">
+        <span class="sk-save sk-only-edit" id="skSave" data-state="clean"><span class="sk-save__dot" aria-hidden="true"></span><span id="skSaveLabel">Aucune modification</span></span>
+        <button class="sk-ib sk-only-edit" id="skUndo" type="button" aria-label="Annuler" data-tip="Annuler" data-kbd="Ctrl Z" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7.5L5 11.5l4 4M5.5 11.5h8.5a4.5 4.5 0 010 9H12"/></svg>
+        </button>
+        <button class="sk-ib sk-only-edit" id="skRedo" type="button" aria-label="Rétablir" data-tip="Rétablir" data-kbd="Ctrl ⇧ Z" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7.5l4 4-4 4M18.5 11.5H10a4.5 4.5 0 000 9h2"/></svg>
+        </button>
+        <button class="sk-ib sk-only-edit sk-rightbtn" id="skRightBtn" type="button" aria-label="Réglages de la sélection" aria-expanded="false" data-tip="Réglages">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15" rx="2"/><path d="M14.5 4.5v15"/></svg>
+        </button>
+        <span class="sk-sep sk-only-edit" aria-hidden="true"></span>
+        <button class="sk-ghost sk-only-edit" id="skChanges" type="button" data-tip="Les fichiers modifiés" data-kbd="Ctrl S">Enregistrer</button>
+        <button class="sk-primary sk-only-edit" id="skPublish" type="button">Publier</button>
+        <span class="sk-who" id="skWho" hidden></span>
+      </div>
+    </header>
+
+    <!-- ============================================================ home: the grid of sites -->
+    <main class="sk-home" id="skHome" aria-labelledby="skHomeTitle">
+      <div class="sk-home__head">
+        <div>
+          <h1 id="skHomeTitle">Mes sites</h1>
+          <p class="sk-home__sub">Tous les sites web que vous avez faits. Ouvrez-en un, modifiez-le sur place, publiez quand vous voulez.</p>
+        </div>
+        <div class="sk-home__tools">
+          <div class="sk-seg" id="skFilter" role="group" aria-label="Filtrer">
+            <button type="button" data-f="all" aria-pressed="true">Tous</button>
+            <button type="button" data-f="client" aria-pressed="false">Sites clients</button>
+            <button type="button" data-f="concept" aria-pressed="false">Concepts</button>
+            <button type="button" data-f="portfolio" aria-pressed="false">Études de cas</button>
+            <button type="button" data-f="kreeative" aria-pressed="false">kreeative.xyz</button>
+          </div>
+          <input class="sk-search" id="skSearch" type="search" placeholder="Rechercher un site…" aria-label="Rechercher un site" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="sk-grid" id="skGrid" role="list"></div>
+      <p class="sk-home__foot" id="skHomeFoot"></p>
+    </main>
+
+    <!-- ============================================================ the editor -->
+    <div class="sk-ed" id="skEditor" hidden>
+      <aside class="sk-left" id="skLeft" aria-label="Pages et structure">
+        <div class="sk-left__sec">
+          <div class="sk-left__head"><span>Pages</span><button class="sk-linkbtn" id="skAddPage" type="button" data-tip="Copie la page ouverte sous un nouveau nom">Dupliquer la page</button></div>
+          <div class="sk-pages" id="skPages" role="listbox" aria-label="Pages du site"></div>
+        </div>
+        <div class="sk-left__sec sk-left__sec--grow">
+          <div class="sk-left__head"><span>Structure</span><span class="sk-left__hint" id="skTreeHint"></span></div>
+          <div class="sk-tree" id="skTree" role="tree" aria-label="Structure de la page"></div>
+        </div>
+      </aside>
+
+      <main class="sk-stage" id="skStage" tabindex="-1" aria-label="Aperçus de la page">
+        <div class="sk-banner" id="skBanner" hidden></div>
+        <div class="sk-scroll" id="skScroll">
+          <div class="sk-sizer" id="skSizer"><div class="sk-world" id="skWorld"></div></div>
+        </div>
+        <div class="sk-selbar" id="skSelbar" hidden role="toolbar" aria-label="Actions de la sélection"></div>
+        <div class="sk-modebar" role="group" aria-label="Mode">
+          <button type="button" id="skModeEdit" class="is-on" aria-pressed="true" data-tip="Cliquez un élément pour le choisir" data-kbd="V">Modifier</button>
+          <button type="button" id="skModeNav" aria-pressed="false" data-tip="Le site réagit comme en ligne (menus, liens)" data-kbd="P">Naviguer</button>
+        </div>
+      </main>
+
+      <aside class="sk-right" id="skRight" aria-label="Réglages">
+        <div class="sk-right__head">
+          <div class="sk-path" id="skPath" aria-label="Chemin de l’élément"></div>
+        </div>
+        <div class="sk-tabs" role="tablist" aria-label="Réglages">
+          <button type="button" role="tab" id="skTabContent" data-tab="content" aria-selected="true" class="is-on">Contenu</button>
+          <button type="button" role="tab" id="skTabStyle" data-tab="style" aria-selected="false">Style</button>
+          <button type="button" role="tab" id="skTabCode" data-tab="code" aria-selected="false">Code</button>
+        </div>
+        <div class="sk-panel dz" id="skPanel" role="tabpanel"></div>
+      </aside>
+    </div>
+
+    <!-- ============================================================ gates -->
+    <section class="sk-gate" id="skGate" hidden>
+      <div class="sk-gate__card">
+        <svg viewBox="0 0 24 24" class="sk-gate__ico" aria-hidden="true"><use href="#sk-cloud"/></svg>
+        <h1 id="skGateTitle">Mes sites</h1>
+        <p id="skGateText"></p>
+        <div class="sk-gate__actions" id="skGateActions"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="sk-guard" id="skGuard" role="dialog" aria-label="Écran trop petit">
+    <div class="sk-gate__card">
+      <svg viewBox="0 0 24 24" class="sk-gate__ico" aria-hidden="true"><use href="#sk-cloud"/></svg>
+      <h1>Mes sites se pilote sur ordinateur ou iPad</h1>
+      <p>Pour modifier vos sites, il faut voir la page, ses aperçus et les réglages côte à côte : ouvrez « Mes sites » sur un ordinateur ou une tablette (au moins 700&nbsp;px de large).</p>
+      <a class="sk-primary sk-btnlink" href="../">Retour au Studio</a>
+    </div>
+  </div>
+
+  <div class="sk-modal" id="skModal" hidden role="dialog" aria-modal="true" aria-labelledby="skModalTitle">
+    <div class="sk-modal__card" id="skModalCard">
+      <button class="sk-modal__close" type="button" data-close aria-label="Fermer">×</button>
+      <h2 id="skModalTitle"></h2>
+      <div id="skModalBody"></div>
+    </div>
+  </div>
+
+  <div id="skTip" class="sk-tip" role="tooltip" hidden></div>
+  <div id="skToasts" class="sk-toasts" aria-live="polite"></div>
+  <input type="file" id="skFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/avif" hidden>
+</body>
+</html>
