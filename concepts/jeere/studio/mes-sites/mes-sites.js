@@ -116,6 +116,16 @@
       };
     });
   }
+  var LIVE = [
+    { id: 'the-ivory-sukundu', kind: 'shop', title: 'The Ivory Sukundu', label: 'Boutique en ligne · theivorysukundu.com', live: 'https://www.theivorysukundu.com/',
+      manage: 'https://www.theivorysukundu.com/admin', manageLabel: 'Gérer la boutique' },
+    { id: 'rich-and-friends', kind: 'site', title: 'Rich & Friends', label: 'En ligne · richandfriends.xyz', live: 'https://richandfriends.xyz/' },
+    { id: 'keewal-meere', kind: 'site', title: 'Keewal Meere', label: 'En ligne · keewaomeere.vercel.app', live: 'https://keewaomeere.vercel.app/' },
+    { id: 'the-bakery', kind: 'site', title: 'The Bakery', label: 'En ligne · the-bakery-concept.vercel.app', live: 'https://the-bakery-concept.vercel.app/' },
+    { id: 'cameleon', kind: 'site', title: 'Caméléon', label: 'En ligne · cameleon-concept.vercel.app', live: 'https://cameleon-concept.vercel.app/' },
+    { id: 'guillemot', kind: 'site', title: 'Guillemot', label: 'En ligne · guillemot.vercel.app', live: 'https://guillemot.vercel.app/' },
+    { id: 'tabouret', kind: 'site', title: 'Tabouret', label: 'En ligne · tabouret.vercel.app', live: 'https://tabouret.vercel.app/' }
+  ];
   function siteCards() {
     return Promise.all([fetch('../sites/sites.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }), pendingBySite()]).then(function (res) {
       var M = res[0], pend = res[1], list = M.sites || [];
@@ -144,7 +154,11 @@
         if (s === main || members.indexOf(s) >= 0) return; // pages of kreeative.xyz (Websites I built, case studies, mini-audits), not sites
         cards.push(card(s));
       });
-      return { cards: cards, generated: M.generated };
+      // her sites already online, each in its own project (not in this repository): a card each, The Ivory Sukundu first
+      var live = LIVE.map(function (x) {
+        return Object.assign({ thumb: '../sites/thumbs/live--' + x.id + '.webp', href: x.manage || x.live, ext: true, hay: x.live + ' ' + (x.label || '') }, x, { id: 'live--' + x.id });
+      });
+      return { cards: live.concat(cards), generated: M.generated };
     });
   }
 
@@ -217,9 +231,10 @@
     if (c.here) chips += '<span class="a-chip a-chip--line">Dans le Studio</span>';
     var links = c.live ? '<a class="a-link ms-card__live" href="' + esc(c.live) + '" target="_blank" rel="noopener">Voir en ligne' + ico('i-external') + '</a>'
       : '<span class="a-small a-muted">Pas encore en ligne</span>';
+    if (c.manage) links = '<a class="a-link ms-card__live" href="' + esc(c.manage) + '" target="_blank" rel="noopener">' + esc(c.manageLabel || 'Gérer') + ico('i-external') + '</a>' + links;
     if (c.external) links += '<a class="a-link ms-card__live" href="' + esc(c.external) + '" target="_blank" rel="noopener" title="Le site déployé à part (son propre projet)">Site du client' + ico('i-external') + '</a>';
     return '<li class="a-card a-card--flush ms-card" data-kind="' + c.kind + '" data-id="' + esc(c.id) + '">' +
-      '<a class="ms-card__open" href="' + esc(c.href) + '" data-open="' + esc(c.id) + '" aria-label="Ouvrir ' + esc(c.title) + ' dans le Studio (' + type + ')">' +
+      '<a class="ms-card__open" href="' + esc(c.href) + '" data-open="' + esc(c.id) + '"' + (c.ext ? ' target="_blank" rel="noopener"' : '') + ' aria-label="' + (c.ext ? (c.manage ? 'Gérer ' + esc(c.title) + ' (son tableau de bord)' : 'Ouvrir ' + esc(c.title) + ' en ligne') : 'Ouvrir ' + esc(c.title) + ' dans le Studio (' + type + ')') + '">' +
         '<span class="ms-card__shot">' + shot + '</span>' +
         '<span class="ms-card__body"><span class="a-card__title ms-card__title">' + esc(c.title) + '</span>' +
         '<span class="a-card__sub ms-card__meta">' + esc(meta.filter(Boolean).join(' · ')) + '</span>' +
