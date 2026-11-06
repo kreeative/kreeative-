@@ -27,7 +27,7 @@
   --elev-3: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 20px rgba(0, 0, 0, 0.10), 0 24px 56px rgba(0, 0, 0, 0.12);
   --shot-bg: #F0F0F0; --diff-bg: #F6F6F6; --ab-edge: rgba(0, 0, 0, 0.12); --badge-info: #2A47E0;
   --hair: 1px;
-  --top-h: 48px; --left-w: 248px; --right-w: 272px;
+  --top-h: 56px; --left-w: 272px; --right-w: 304px;
   --st-font: var(--font-ui);
 }
 @media (min-resolution: 2dppx) { :root { --hair: 0.5px; } }

@@ -522,3 +522,32 @@ body { font-size: 12px; -webkit-font-smoothing: antialiased; font-feature-settin
 .st-touch .st-top .st-iconbtn { height: 44px; }
 .st-touch .st-top :is(.st-ghostbtn, .st-primary) { min-height: 44px; }
 .st-touch .st-top .st-helpbtn { width: 40px; height: 40px; }
+
+/* ==================================================================== de l'air (novembre 2026)
+ * Both editors: the logo without an arrow (a click opens its menu), larger, with room around it; a
+ * wider rail, a taller top bar, panel heads and menus that breathe, a touch of tracking on the text. */
+:root { --st-rail-w: 68px; --st-left-w: 272px; --st-right-w: 304px; }
+@media (max-width: 1279px) { :root { --st-left-w: 224px; } }
+.st, .st-left, .st-right, .st-rail, .st-top, .st-menu { letter-spacing: 0.012em; }
+.st-top { height: 56px; padding: 0 14px; }
+.st-drawer { top: 56px; }
+.st-rail__top { height: 56px; margin-bottom: 12px; }
+.st-rail__logo { height: 44px; padding: 0 9px; border-radius: 12px; gap: 0; }
+.st-rail__cloud { height: 26px; }
+.st-rail__tabs { gap: 8px; }
+.st-rail__btn { width: 58px; min-height: 56px; gap: 5px; padding: 8px 0 7px; border-radius: 12px; font: 500 11.5px/14px var(--st-font); letter-spacing: 0.01em; }
+.st-rail__btn--icon { width: 40px; min-height: 40px; }
+.st-rail__foot { padding-bottom: 6px; }
+.st-ri { width: 22px; height: 22px; }
+.st-left__tabs button { padding: 12px 0; font-size: 13px; }
+.st-right__head { padding: 16px 18px; font-size: 14px; gap: 10px; }
+.st-right__sub { font-size: 12px; }
+.st-right__tabs button { padding-top: 12px; padding-bottom: 12px; font-size: 13px; }
+.st-left__tabs.st-left__head { height: 56px; padding: 0 10px 0 18px; }
+.st-left__title { font-size: 14px; }
+.st-right__head { height: 56px; padding: 0 12px 0 18px; align-items: center; }
+.st-logomenu { top: 52px; left: 10px; min-width: 260px; padding: 8px; border-radius: 14px; }
+.st-logomenu a, .st-logomenu button, .st-logomenu .st-logomenu__item { padding: 10px 12px; gap: 12px; font-size: 13.5px; border-radius: 9px; }
+.st-logomenu .st-mi { width: 18px; height: 18px; }
+.st-logomenu__sites.has-sites { padding-bottom: 8px; margin-bottom: 8px; }
+.st-menu button { padding: 9px 12px; font-size: 13px; }

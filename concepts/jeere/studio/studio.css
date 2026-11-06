@@ -687,7 +687,7 @@ input[type="number"],
 
 .st-drawer { width: var(--st-right-w); }
 
-.st-drawer { top: 44px; }
+.st-drawer { top: 56px; }
 .st-row { height: 28px; gap: 6px; }
 .st-row--child { height: 28px; }
 .st-row__name { font-size: 12px; }
@@ -1136,3 +1136,30 @@ body.st-rowdragging, body.st-rowdragging * { cursor: grabbing !important; user-s
 /* links in black and white, never underlined: a little bolder, and fainter on hover */
 .st-linkbtn, .st-linkbtn:hover { text-decoration: none !important; font-weight: 600; }
 .st-linkbtn:hover { opacity: .7; }
+
+/* ==================================================================== de l'air (novembre 2026)
+ * The panels breathed too little: 11-12 px text set tight, rows of 28 px, borders hugging the words.
+ * One step up everywhere: 13 px text with a touch of tracking, 32 px rows, wider panels, more padding.
+ * The logo: no arrow (a click opens its menu, like any logo), larger, with room around it. */
+/* left: the layers */
+.st-group { margin-bottom: 10px; }
+.st-group__title { padding: 14px 12px 8px; font-size: 11px; letter-spacing: 0.08em; }
+.st-row, .st-row--child { height: 34px; gap: 9px; padding: 0 10px; border-radius: 8px; }
+.st-row__name, .st-row--child .st-row__name { font-size: 13px; }
+.st-row__icon, .st-row__icon svg { width: 17px; height: 17px; }
+/* right: the inspector */
+.st-insp__head { padding: 16px 16px 10px; font-size: 13px; }
+.st-insp__body { gap: 14px; padding: 2px 16px 20px; }
+.st-insp__empty { font-size: 13px; padding: 18px 16px; }
+.st-field { gap: 7px; }
+.st-field > label { font-size: 12px; }
+.st-field input[type="text"], .st-field input[type="number"], .st-field select { height: 34px; padding: 0 11px; font-size: 13px; border-radius: 8px; }
+.st-field textarea { padding: 9px 11px; font-size: 13px; border-radius: 8px; }
+.st-seg button { padding: 8px 6px; font-size: 13px; }
+.st-tplcard { padding: 11px 13px !important; }
+.st-tplcard b { font-size: 13px; }
+.st-check { font-size: 13px; gap: 10px; }
+.st-ghostbtn { font-size: 13px; }
+.st-tplcard span { font-size: 12px; line-height: 1.45; }
+.st-tplcard { gap: 3px; }
+
