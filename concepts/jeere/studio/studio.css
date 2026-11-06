@@ -11,152 +11,41 @@
  * paint). Every chrome colour goes through the tokens below; the colours of the stores (artboards,
  * previews, swatches) are content and stay as they are. Contrast: text >= 4.5:1, icons >= 3:1. */
 
-:root {
-  color-scheme: light;
-  --st-chrome: #FFFFFF;      /* top bar + panels */
-  --st-chrome-2: #F5F5F5;    /* raised rows, inputs */
-  --st-chrome-3: #EBEBEB;    /* hover */
-  --st-line-d: #E6E6E6;      /* hairlines inside the panels */
-  --st-edge: #E3E3E3;        /* the edges between top bar, panels and canvas */
-  --st-ink: #1E1E1E;         /* 16.7:1 on white */
-  --st-ink-2: #3D3D3D;       /* body copy of the dialogs */
-  --st-ink-dim: #5E5E5E;     /* secondary text: 6.4:1 on white, 5.9:1 on --st-chrome-2 */
-  --st-ink-faint: #8A8A8A;   /* decoration only (3.4:1): dots, disabled glyphs */
-  --st-blue: #3657FF;        /* the canvas only: selection, insertion lines, element labels (like Figma) */
-  --st-accent: #1E1E1E;      /* the chrome: active tools, tabs, toggles, focus — black and white */
-  --st-blue-soft: rgba(54, 87, 255, 0.45);
-  --st-link: #1E1E1E;
-  --st-link-h: #000000;
-  --st-sel-row: rgba(0, 0, 0, 0.06);
-  --st-sel-row-h: rgba(0, 0, 0, 0.09);
-  --st-badge-ink: #2440D6; --st-badge-bg: rgba(54, 87, 255, 0.1); --st-badge-bg-h: rgba(54, 87, 255, 0.16); --st-badge-line: rgba(54, 87, 255, 0.3);
-  --st-info-ink: #1F3BB8; --st-info-ink-2: #3A4A75;
-  --st-danger-ink: #C42B2B;
-  --st-warn-ink: #7A5A00;    /* « Essai », the demo pill, the hint of a locked feature */
-  --st-lock-ink: #9A6B00;
-  --st-due-ink: #B91C1C;
-  --st-ok-ink-2: #166534;
-  --st-press: #E3E3E3; --st-press-ring: rgba(0, 0, 0, 0.06);
-  --st-ring-sw: rgba(0, 0, 0, 0.14);    /* the hairline round a swatch */
-  --st-scrollbar: #C8C8C8;
-  --st-code-bg: #F7F7F8; --st-code-ink: #1F3A5F;
-  --st-scrim: rgba(24, 24, 24, 0.32);
-  --st-scrim-2: rgba(24, 24, 24, 0.22);
-  --st-shadow-menu: 0 12px 32px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
-  --st-shadow-modal: 0 30px 70px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
-  --st-shadow-drawer: -12px 0 32px rgba(0, 0, 0, 0.08);
-  --st-shadow-btn: 0 4px 14px rgba(0, 0, 0, 0.12);
-  --st-bar: #FFFFFF; --st-bar-ink: #1E1E1E; --st-bar-ink-2: #3D3D3D; --st-bar-hover: #F0F0F0; --st-bar-sep: #E3E3E3;
-  --st-bar-line: rgba(0, 0, 0, 0.08);
-  --st-bar-shadow: 0 6px 22px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
-  --st-card: #F5F5F5; --st-card-h: #EDEDED;
-  --st-secbtn: #F5F5F5; --st-secbtn-line: #DEDEDE; --st-secbtn-h: #EBEBEB; --st-secbtn-line-h: #CFCFCF;
-  --st-knob: #FFFFFF; --st-knob-sh: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --st-ruler-bg: #FFFFFF; --st-ruler-line: rgba(0, 0, 0, 0.1); --st-ruler-tick: rgba(0, 0, 0, 0.3); --st-ruler-ink: #6B6B6B;
-  --st-preview-bg: #E5E5E5;
-  --st-rail-w: 52px;
-  --st-canvas: #F0F0F0;
-  --st-dot: #D9D9D9;
-  --ok: #22C55E; --ok-bg: #DCFCE7; --ok-ink: #166534;
-  --warn: #F5B800; --warn-bg: #FEF6D3; --warn-ink: #7A5A00;
-  --err: #EF4444; --err-bg: #FDE8E8; --err-ink: #B91C1C;
-  --info: #3B82F6; --info-bg: #E6F0FF; --info-ink: #1D4ED8;
-  --st-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --st-brand-font: 'Poppins', 'Inter', system-ui, sans-serif;
-}
+
 
 /* the former dark chrome, kept whole under « Thème : sombre » */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --st-chrome: #1E1E1E;
-  --st-chrome-2: #2C2C2C;
-  --st-chrome-3: #383838;
-  --st-line-d: #3D3D3D;
-  --st-edge: #111111;
-  --st-ink: #E8E8E8;
-  --st-ink-2: #C8C8C8;
-  --st-ink-dim: #9E9E9E;
-  --st-ink-faint: #767676;
-  --st-blue-soft: rgba(84, 118, 255, 0.55);
-  --st-link: #F2F2F2;
-  --st-link-h: #FFFFFF;
-  --st-sel-row: rgba(255, 255, 255, 0.1);
-  --st-sel-row-h: rgba(255, 255, 255, 0.14);
-  --st-accent: #F2F2F2;
-  --st-badge-ink: #DDE8FF; --st-badge-bg: rgba(54, 87, 255, 0.22); --st-badge-bg-h: rgba(54, 87, 255, 0.36); --st-badge-line: rgba(94, 125, 255, 0.5);
-  --st-info-ink: #DDE5FF; --st-info-ink-2: #B8C2E0;
-  --st-danger-ink: #FFB3B3;
-  --st-warn-ink: #FFE9A8;
-  --st-lock-ink: #FFE9A8;
-  --st-due-ink: #FFD0D0;
-  --st-ok-ink-2: #BFF0D0;
-  --st-press: #1A1A1A; --st-press-ring: rgba(255, 255, 255, 0.06);
-  --st-ring-sw: rgba(255, 255, 255, 0.18);
-  --st-scrollbar: #4A4A4A;
-  --st-code-bg: #161616; --st-code-ink: #D7E3F4;
-  --st-scrim: rgba(12, 12, 12, 0.6);
-  --st-scrim-2: rgba(10, 10, 10, 0.45);
-  --st-shadow-menu: 0 12px 30px rgba(0, 0, 0, 0.45);
-  --st-shadow-modal: 0 30px 70px rgba(0, 0, 0, 0.55);
-  --st-shadow-drawer: -16px 0 40px rgba(0, 0, 0, 0.35);
-  --st-shadow-btn: 0 6px 18px rgba(0, 0, 0, 0.35);
-  --st-bar: #2C2C2C; --st-bar-ink: #E6E6E6; --st-bar-ink-2: #DADADA; --st-bar-hover: #3A3A3A; --st-bar-sep: #484848;
-  --st-bar-line: rgba(255, 255, 255, 0.09);
-  --st-bar-shadow: 0 8px 26px rgba(0, 0, 0, 0.26), 0 1px 3px rgba(0, 0, 0, 0.28);
-  --st-card: #2E2E2E; --st-card-h: #363636;
-  --st-secbtn: #333333; --st-secbtn-line: #444444; --st-secbtn-h: #3C3C3C; --st-secbtn-line-h: #555555;
-  --st-knob: #E8E8E8; --st-knob-sh: none;
-  --st-ruler-bg: #262626; --st-ruler-line: rgba(255, 255, 255, 0.08); --st-ruler-tick: rgba(255, 255, 255, 0.38); --st-ruler-ink: #B3B3B3;
-  --st-preview-bg: #141414;
-  --st-pop: #262626;
-  --st-pop-line: rgba(255, 255, 255, 0.09);
-  --st-shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.38), 0 1px 3px rgba(0, 0, 0, 0.3);
-}
 
-* { box-sizing: border-box; }
-html, body { height: 100%; }
-body {
-  margin: 0; font-family: var(--st-font); font-size: 13px; color: var(--st-ink);
-  background: var(--st-chrome); overflow: hidden;
-}
-.st a { text-decoration: none; }
-.st button { font-family: inherit; }
-.st-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-kbd {
-  font-family: inherit; font-size: 11px; color: var(--st-ink-dim);
-  border: 1px solid var(--st-line-d); border-radius: 4px; padding: 1px 5px; background: var(--st-chrome-2);
-  white-space: nowrap;
-}
 
-.st { display: flex; flex-direction: column; height: 100vh; }
+
+
+
+
+
+
+
+
+
 
 /* ------------------------------------------------------------------ top bar */
 
-.st-top {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  height: 48px; padding: 0 10px; background: var(--st-chrome);
-  border-bottom: 1px solid var(--st-edge); flex: none; z-index: 40; position: relative;
-}
-.st-top__left, .st-top__center, .st-top__right { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.st-top__left { flex: 1 1 0; }
-.st-top__right { flex: 1 1 0; justify-content: flex-end; }
+
+
+
+
 
 .st-logo { display: flex; align-items: center; color: var(--st-ink); padding: 4px; border-radius: 6px; }
 .st-logo:hover { background: var(--st-chrome-3); }
 .st-logo svg { height: 26px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; display: block; }
-.st-brand { font-weight: 600; letter-spacing: 0.01em; }
+
 .st-badge {
   font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
   color: var(--st-badge-ink); background: var(--st-badge-bg); border: 1px solid var(--st-badge-line);
   padding: 2px 8px; border-radius: 999px; white-space: nowrap;
 }
-.st-sep { width: 1px; height: 20px; background: var(--st-line-d); margin: 0 2px; flex: none; }
-.st-name {
-  background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--st-ink);
-  font: 500 13px var(--st-font); padding: 5px 8px; min-width: 60px; max-width: 220px; width: 100%;
-}
-.st-name:hover { border-color: var(--st-line-d); }
-.st-name:focus { outline: none; border-color: var(--st-accent); background: var(--st-chrome-2); }
+
+
+
+
 
 .st-tools, .st-devices { display: flex; gap: 2px; background: var(--st-chrome-2); border-radius: 8px; padding: 2px; }
 .st-tool, .st-devices button {
@@ -167,76 +56,46 @@ kbd {
 .st-tool:hover, .st-devices button:hover { color: var(--st-ink); background: var(--st-chrome-3); }
 .st-tool.is-on, .st-devices button.is-on { background: var(--st-accent); color: #fff; }
 
-.st-zoomwrap { position: relative; }
-.st-zoombtn {
-  display: flex; align-items: center; gap: 5px; background: transparent; border: 0; color: var(--st-ink);
-  font: 500 12px var(--st-font); padding: 6px 8px; border-radius: 6px; cursor: pointer; min-width: 74px; justify-content: center;
-}
-.st-zoombtn:hover { background: var(--st-chrome-3); }
-.st-caret { width: 12px; height: 12px; color: var(--st-ink-dim); }
-.st-menu {
-  position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
-  background: var(--st-pop); border: 1px solid var(--st-pop-line); border-radius: 10px; padding: 6px;
-  min-width: 210px; box-shadow: var(--st-shadow-menu); z-index: 60;
-}
-.st-menu button {
-  display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%;
-  background: transparent; border: 0; color: var(--st-ink); font: 400 12px var(--st-font);
-  padding: 7px 9px; border-radius: 6px; cursor: pointer; text-align: left;
-}
-.st-menu button:hover { background: var(--st-chrome-3); color: var(--st-ink); }
-.st-menu button:hover kbd { color: rgba(255, 255, 255, 0.85); border-color: transparent; background: rgba(255, 255, 255, 0.16); }
-.st-menu hr { border: 0; border-top: 1px solid var(--st-line-d); margin: 5px 2px; }
+
+
+
+
+
+
+
+
+
 /* the right-click context menu reuses .st-menu, fixed at the pointer */
 .st-ctx { position: fixed; left: auto; top: auto; transform: none; z-index: 110; min-width: 190px; }
 
-.st-save { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--st-ink-dim); white-space: nowrap; }
-.st-save__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex: none; }
-.st-save[data-state="saving"] .st-save__dot { background: var(--st-ink-dim); }
-.st-save[data-state="error"] .st-save__dot { background: var(--err); }
-.st-save[data-state="error"] { color: var(--st-danger-ink); }
 
-.st-ghostbtn {
-  background: transparent; border: 1px solid var(--st-line-d); color: var(--st-ink);
-  font: 500 12px var(--st-font); padding: 6px 12px; border-radius: 7px; cursor: pointer; white-space: nowrap;
-  display: inline-flex; align-items: center;
-}
-.st-ghostbtn:hover { background: var(--st-chrome-3); }
-.st-primary {
-  background: var(--st-accent); border: 1px solid var(--st-accent); color: #fff;
-  font: 600 12px var(--st-font); padding: 6px 14px; border-radius: 7px; cursor: pointer; white-space: nowrap;
-}
-.st-primary:hover { filter: brightness(1.12); }
-.st-helpbtn {
-  width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--st-line-d);
-  background: transparent; color: var(--st-ink-dim); font: 600 13px var(--st-font); cursor: pointer;
-}
-.st-helpbtn:hover { color: var(--st-ink); background: var(--st-chrome-3); }
+
+
+
+
+
+
+
+
+
+
+
 
 /* ------------------------------------------------------------------ body layout */
 
-.st-body { display: flex; flex: 1 1 auto; min-height: 0; }
-.st-left, .st-right {
-  width: 260px; flex: none; background: var(--st-chrome); display: flex; flex-direction: column; min-height: 0;
-  z-index: 30; position: relative;
-}
-.st-left { border-right: 1px solid var(--st-edge); }
-.st-right { width: 280px; border-left: 1px solid var(--st-edge); }
+
+
+
+
 .st-panel { overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; padding: 8px; scrollbar-width: thin; scrollbar-color: var(--st-scrollbar) transparent; }
 
-.st-left__tabs { display: flex; border-bottom: 1px solid var(--st-line-d); flex: none; }
-.st-left__tabs button {
-  flex: 1; background: transparent; border: 0; color: var(--st-ink-dim); font: 500 12px var(--st-font);
-  padding: 10px 0; cursor: pointer; border-bottom: 2px solid transparent;
-}
-.st-left__tabs button.is-on { color: var(--st-ink); border-bottom-color: var(--st-accent); }
-.st-left__tabs button:hover { color: var(--st-ink); }
 
-.st-right__head {
-  display: flex; align-items: baseline; gap: 8px; padding: 11px 14px; border-bottom: 1px solid var(--st-line-d);
-  font-weight: 600; font-size: 13px; flex: none;
-}
-.st-right__sub { font-weight: 400; font-size: 11px; color: var(--st-ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+
+
+
+
 
 /* ------------------------------------------------------------------ layers tree */
 
@@ -305,27 +164,14 @@ kbd {
 
 /* ------------------------------------------------------------------ canvas / stage */
 
-.st-stage {
-  flex: 1 1 auto; position: relative; overflow: hidden; outline: none;
-  background-color: var(--st-canvas);
-  background-image: radial-gradient(var(--st-dot) 1px, transparent 1.3px);
-  background-size: 24px 24px;
-  cursor: default; touch-action: none;
-}
-.st-stage.is-hand { cursor: grab; }
-.st-stage.is-panning { cursor: grabbing; }
+
+
+
 .st-world { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
 .st-ab { position: absolute; }
 .st-ab.is-hidden { display: none; }
-.st-ab__name {
-  position: absolute; bottom: 100%; left: 0; padding-bottom: calc(6px * min(var(--inv, 1), 4));
-  /* the inverse scale is capped and the label clipped to its own artboard: at low zoom the two
-   * names no longer collide into one string. #5C5C5C / #767676 read at >= 4.5:1 on the canvas. */
-  font: 500 calc(12px * min(var(--inv, 1), 4)) var(--st-font); color: #5C5C5C; white-space: nowrap;
-  transform-origin: 0 100%; user-select: none;
-  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
-}
-.st-ab__name span { color: #6A6A6A; }
+
+
 .st-ab__frame {
   background: #fff; box-shadow: 0 0 0 calc(1px * var(--inv, 1)) rgba(0, 0, 0, 0.1), 0 10px 40px rgba(0, 0, 0, 0.12);
   min-height: 200px;
@@ -503,22 +349,14 @@ kbd {
 .st-share__issues { margin: 0 0 6px; padding: 0 0 0 18px; font-size: 12px; color: var(--st-ink-2); line-height: 1.7; }
 .st-share__row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 
-.st-toasts {
-  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 120;
-  display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
-}
-.st-toast {
-  background: var(--st-pop); border: 1px solid var(--st-pop-line); color: var(--st-ink);
-  font: 500 12px var(--st-font); padding: 9px 16px; border-radius: 10px;
-  box-shadow: var(--st-shadow-menu); display: flex; align-items: center; gap: 8px;
-  animation: st-toast-in 0.18s ease-out;
-}
-.st-toast::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--st-ink-dim); flex: none; }
-.st-toast[data-tone="ok"]::before { background: var(--ok); }
-.st-toast[data-tone="warn"]::before { background: var(--warn); }
-.st-toast[data-tone="err"]::before { background: var(--err); }
-.st-toast[data-tone="info"]::before { background: var(--info); }
-@keyframes st-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+
+
+
+
+
+
+
 
 /* ------------------------------------------------------------------ small screens */
 
@@ -542,10 +380,11 @@ kbd {
 
 /* late additions: drag housekeeping */
 .st-panel { position: relative; }
-.st-stage, .st-stage * { -webkit-user-select: none; user-select: none; }
+
 .st-field--focus { border-radius: 6px; }
-[hidden] { display: none !important; }
-.st-modal a, .st-guard a, .st-toasts a { text-decoration: none; }
+
+.st-modal a,
+.st-guard a { text-decoration: none; }
 
 /* ==================================================================== power features
  * Command palette (Ctrl K), device-preset chips, inline text editing, multi-selection,
@@ -553,26 +392,20 @@ kbd {
  * overlays, touch. Same chrome vocabulary as above, selection blue #3657FF. */
 
 /* touch: the stage owns its gestures (two-finger pan, pinch); section rows drag with a finger */
-.st-stage { touch-action: none; }
+
 .st-row--section { touch-action: none; }
 
 /* device-preset chips (artboards) */
-.st-abchips { display: flex; gap: 2px; background: var(--st-chrome-2); border-radius: 8px; padding: 2px; }
-.st-abchips button {
-  border: 0; background: transparent; color: var(--st-ink-dim); cursor: pointer;
-  font: 500 11px var(--st-font); padding: 5px 7px; border-radius: 6px; min-width: 34px;
-}
-.st-abchips button:hover { color: var(--st-ink); background: var(--st-chrome-3); }
-.st-abchips button.is-on { background: var(--st-accent); color: #fff; }
+
+
+
+
 
 /* top-bar icon buttons (contrast, jetons, historique) */
-.st-iconbtn {
-  display: flex; align-items: center; justify-content: center; width: 30px; height: 28px;
-  background: transparent; border: 0; border-radius: 6px; color: var(--st-ink-dim); cursor: pointer;
-}
-.st-iconbtn svg { width: 16px; height: 16px; }
-.st-iconbtn:hover { color: var(--st-ink); background: var(--st-chrome-3); }
-.st-iconbtn.is-on, .st-iconbtn[aria-pressed="true"] { background: var(--st-accent); color: #fff; }
+
+
+
+
 
 /* inline text editing in the artboard: a subtle ring, never the heavy selection outline */
 .st-ab [contenteditable].st-inline {
@@ -670,13 +503,10 @@ kbd {
 .st-version__auto { color: var(--st-ink-dim); font-size: 11px; border: 1px solid var(--st-line-d); border-radius: 999px; padding: 0 6px; flex: none; }
 
 /* inspector tabs + Code view */
-.st-right__tabs { display: flex; border-bottom: 1px solid var(--st-line-d); flex: none; }
-.st-right__tabs button {
-  flex: 1; background: transparent; border: 0; border-bottom: 2px solid transparent;
-  color: var(--st-ink-dim); font: 500 12px var(--st-font); padding: 7px 0; cursor: pointer;
-}
-.st-right__tabs button.is-on { color: var(--st-ink); border-bottom-color: var(--st-accent); }
-.st-right__tabs button:hover { color: var(--st-ink); }
+
+
+
+
 .st-code { display: flex; flex-direction: column; gap: 8px; }
 .st-code__bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; }
 .st-code__bar span { font-size: 11px; color: var(--st-ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -719,8 +549,8 @@ kbd {
   border-radius: 4px; font: 500 11px var(--st-font); padding: 2px 5px;
 }
 .st-blockcard__rename:focus { outline: none; }
-.st-ghostbtn:disabled { opacity: 0.4; cursor: default; }
-.st-ghostbtn:disabled:hover { background: transparent; }
+
+
 
 /* measure overlay (Alt + hover): red, like Figma */
 .st-measure { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 30; pointer-events: none; }
@@ -745,32 +575,20 @@ kbd {
  * below its content (it used to, and slid UNDER the artboard chips at 1440 and 1194), the
  * center keeps its natural width, the left side (shop name) gives way first; the left/right
  * equal shares still centre the tools whenever the window is wide enough. */
-.st-abchips button { min-width: 28px; padding: 5px 5px; }
-.st-top__left { overflow: hidden; }
-.st-top__center { flex: none; }
-.st-top__right { min-width: max-content; }
-#saveLabel { display: inline-block; min-width: 96px; }
+
+
+
+
+
 @media (max-width: 1600px) {
   .st-badge { display: none; }
-  .st-name { max-width: 150px; }
-  .st-top { gap: 8px; }
-  .st-top__left, .st-top__center, .st-top__right { gap: 6px; }
+  
+  
+  
 }
-@media (max-width: 1500px) {
-  /* the save state becomes the dot alone (label in its tooltip), so « Enregistrement… »
-   * never pushes the clusters around */
-  .st-save #saveLabel { display: none; }
-  .st-save { padding: 0 4px; }
-}
-@media (max-width: 1360px) {
-  .st-name { max-width: 110px; }
-  .st-ghostbtn { padding: 5px 8px; }
-  .st-brand { display: none; }
-}
-@media (max-width: 1240px) {
-  .st-top { padding: 0 6px; }
-  .st-zoombtn { min-width: 62px; padding: 6px 4px; }
-}
+
+
+
 
 /* touch (iPad 1194×834): html.st-touch is set on a coarse pointer or at the first finger touch.
  * Hover-only affordances are shown permanently and the targets grow towards 44 px. */
@@ -778,14 +596,14 @@ kbd {
 .st-touch .st-row--child { height: 40px; }
 .st-touch .st-row__btn { display: flex; width: 34px; height: 34px; }
 .st-touch .st-row__btn svg { width: 16px; height: 16px; }
-.st-touch .st-left__tabs button { min-height: 42px; }
-.st-touch .st-top { height: 54px; }
+
+
 .st-touch .st-tool, .st-touch .st-devices button { height: 38px; width: 36px; }
-.st-touch .st-abchips button { min-height: 38px; }
-.st-touch .st-iconbtn { height: 38px; width: 34px; }
-.st-touch .st-ghostbtn, .st-touch .st-primary { min-height: 38px; }
-.st-touch .st-helpbtn { width: 34px; height: 34px; }
-.st-touch .st-menu button { padding: 11px 12px; }
+
+
+
+
+
 .st-touch .st-typecard { min-height: 64px; }
 
 /* ==================================================================== UI3 pass
@@ -793,53 +611,62 @@ kbd {
  * tooltips, comments, one-at-a-time toasts, motion and the denser 28 px rhythm. Later rules
  * win over the ones above on purpose: this block is the current design. */
 
-:root {
-  --dur-1: 90ms;
-  --dur-2: 160ms;
-  --ease: cubic-bezier(.2, .8, .2, 1);
-  --st-sel: #3657FF;
-  --st-left-w: 248px;
-  --st-right-w: 272px;
-  --st-pop: #FFFFFF;
-  --st-pop-line: rgba(0, 0, 0, 0.09);
-  --st-shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
-}
+
 /* (the dark values of --st-pop* are in the [data-theme="dark"] block at the top; it must win over this
  * later :root, hence the attribute selector's higher specificity) */
 /* the store accent is the selection blue (Indigo): the selection turns magenta, like Figma's
  * component purple, so it never disappears into the store */
 .st-sel-alt { --st-sel: #E5399B; }
 
-body { font-size: 12px; -webkit-font-smoothing: antialiased; font-feature-settings: 'cv11', 'ss01'; }
-.st-brand, .st-modal__card h2, .st-guard__card h1 { font-family: var(--st-brand-font); }
-input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .st-ftb__count { font-variant-numeric: tabular-nums; }
+
+.st-modal__card h2,
+.st-guard__card h1 { font-family: var(--st-brand-font); }
+input[type="number"],
+.st-count,
+.st-token__val,
+.st-inlinecount { font-variant-numeric: tabular-nums; }
 
 /* focus: a ring for the keyboard only (a mouse click on a tab left a thick white ring) */
 .st :focus:not(:focus-visible), body :focus:not(:focus-visible) { outline: none; }
-.st button:focus-visible, .st a:focus-visible, .st-modal button:focus-visible, .st-drawer button:focus-visible,
+.st-modal button:focus-visible,
+.st-drawer button:focus-visible,
 .st-cmdk button:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 1px; }
 
 /* motion: hover and press feedback on every control */
-.st button, .st a, .st-row, .st-field input, .st-field textarea, .st-field select, .st-typecard, .st-asset,
-.st-modal button, .st-modal a, .st-drawer button, .st-cmdk__item, .st-token, .st-swatch, .st-tplcard, .st-menu button {
+.st-row,
+.st-field input,
+.st-field textarea,
+.st-field select,
+.st-typecard,
+.st-asset,
+.st-modal button,
+.st-modal a,
+.st-drawer button,
+.st-cmdk__item,
+.st-token,
+.st-swatch,
+.st-tplcard {
   transition: background-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease),
     border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease), opacity var(--dur-1) var(--ease),
     filter var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
 }
-.st-primary:active { filter: brightness(0.88); transform: translateY(0.5px); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); }
-.st-ghostbtn:active, .st-secbtn:active, .st-iconbtn:active, .st-helpbtn:active, .st-ftb__btn:active,
-.st-abchips button:active, .st-seg button:active, .st-selbar button:active, .st-addbtn:active, .st-menu button:active,
-.st-left__tabs button:active, .st-right__tabs button:active, .st-tplcard:active, .st-typecard:active, .st-rail__btn:active {
+
+.st-secbtn:active,
+.st-seg button:active,
+.st-selbar button:active,
+.st-addbtn:active,
+.st-tplcard:active,
+.st-typecard:active {
   background-color: var(--st-press); box-shadow: inset 0 0 0 1px var(--st-press-ring); transform: translateY(0.5px);
 }
 .st-danger:active { background: rgba(239, 68, 68, 0.3); transform: translateY(0.5px); }
 .st-swatch:hover { box-shadow: 0 0 0 2px var(--st-scrollbar); }
 .st-swatch.is-on:hover { box-shadow: 0 0 0 2px var(--st-accent); }
 
-@keyframes st-pop { from { opacity: 0; scale: 0.975; } to { opacity: 1; scale: 1; } }
-@keyframes st-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes st-slide { from { opacity: 0; translate: 8px 0; } to { opacity: 1; translate: 0 0; } }
-@keyframes st-rise { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+
+
+
+
 @keyframes st-shake { 0%, 100% { translate: 0 0; } 25% { translate: -3px 0; } 50% { translate: 3px 0; } 75% { translate: -2px 0; } }
 .st-menu:not([hidden]), .st-ctx, .st-pop:not([hidden]) { animation: st-pop var(--dur-2) var(--ease); transform-origin: 50% 100%; }
 .st-ctx { transform-origin: 0 0; }
@@ -850,24 +677,24 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
 .st-drawer:not([hidden]) { animation: st-slide var(--dur-2) var(--ease); }
 .st-prevcard:not([hidden]) { animation: st-fade var(--dur-1) var(--ease); }
 .st-world.is-cam { transition: transform 200ms var(--ease); }
-.st-stage.is-cam { transition: background-position 200ms var(--ease), background-size 200ms var(--ease); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
 
 /* ---------------------------------------------------------------- density (28 px rhythm) */
-.st-left { width: var(--st-left-w); }
-.st-right { width: var(--st-right-w); }
+
+
 .st-drawer { width: var(--st-right-w); }
-.st-top { height: 44px; }
+
 .st-drawer { top: 44px; }
 .st-row { height: 28px; gap: 6px; }
 .st-row--child { height: 28px; }
 .st-row__name { font-size: 12px; }
 .st-row--child .st-row__name { font-size: 12px; }
 .st-group__title { padding: 10px 8px 4px; }
-.st-left__tabs button { padding: 9px 0; font-weight: 500; }
-.st-right__head { padding: 10px 12px; font-size: 13px; }
+
+
 .st-insp__head { padding: 10px 8px; font-size: 12px; }
 .st-insp__body { gap: 10px; padding: 0 8px 12px; }
 .st-field > label { font-size: 11px; }
@@ -882,45 +709,33 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
 .st-addbtn { padding: 6px; font-size: 12px; border-radius: 6px; }
 
 /* ---------------------------------------------------------------- top bar */
-.st-top__center { gap: 8px; }
-.st-name { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-.st-name:focus { text-overflow: clip; }
-.st-abchips__lbl { font-size: 11px; color: var(--st-ink-dim); font-weight: 500; }
-.st-abchips button { font-size: 11px; min-width: 38px; height: 26px; padding: 0 6px; }
-.st-iconbtn { height: 28px; width: 28px; border-radius: 6px; }
-.st-ghostbtn, .st-primary { font-size: 12px; padding: 0 12px; height: 28px; border-radius: 6px; }
-.st-primary { display: inline-flex; align-items: center; }
-.st-helpbtn { width: 26px; height: 26px; font-size: 12px; }
+
+
+
+
+
+
+
+
+
 
 /* ---------------------------------------------------------------- floating tool bar (UI3) */
-.st-ftb {
-  position: absolute; left: 50%; bottom: 16px; translate: -50% 0; z-index: 50;
-  display: flex; align-items: center; gap: 2px; padding: 4px;
-  background: var(--st-bar); border: 1px solid var(--st-bar-line); border-radius: 13px;
-  box-shadow: var(--st-bar-shadow);
-  animation: st-rise 240ms var(--ease);
-}
-.st-ftb__btn {
-  position: relative; display: flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border: 0; border-radius: 9px; background: transparent; color: var(--st-bar-ink); cursor: pointer; padding: 0;
-}
-.st-ftb__btn--sm { width: 32px; }
-.st-ftb__btn:hover { background: var(--st-bar-hover); color: var(--st-bar-ink); }
-.st-ftb__btn.is-on, .st-ftb__btn[aria-expanded="true"] { background: var(--st-accent); color: #fff; }
-.st-ftb__btn.is-on:hover { background: #4A68FF; }
-.st-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; display: block; }
-.st-ftb__btn--sm .st-ico { width: 18px; height: 18px; }
-.st-ftb__sep { width: 1px; height: 22px; background: var(--st-bar-sep); margin: 0 4px; flex: none; }
-.st-ftb__count {
-  position: absolute; top: 3px; right: 2px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px;
-  background: #F24822; color: #fff; font: 600 11px/15px var(--st-font); text-align: center; box-shadow: 0 0 0 2px var(--st-bar);
-}
-.st-ftb .st-zoombtn { height: 38px; min-width: 66px; font: 500 12px var(--st-font); color: var(--st-bar-ink); border-radius: 9px; padding: 0 6px 0 10px; gap: 3px; }
-.st-ftb .st-zoombtn:hover { background: var(--st-bar-hover); }
-.st-ftb .st-zoombtn[aria-expanded="true"] { background: var(--st-bar-hover); }
-.st-menu--up { top: auto; bottom: calc(100% + 12px); }
-.st-touch .st-ftb__btn { width: 44px; height: 44px; }
-.st-touch .st-ftb .st-zoombtn { height: 44px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* the canvas cursors of the tools */
 .st-stage.is-text, .st-stage.is-text .st-ab__frame, .st-stage.is-text .st-ab__frame * { cursor: text !important; }
@@ -1062,26 +877,19 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
 .st-comments__tabs button.is-on { background: var(--st-chrome); color: var(--st-ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
 
 /* ---------------------------------------------------------------- tooltip */
-.st-tip {
-  position: fixed; z-index: 220; pointer-events: none; max-width: 260px;
-  background: #0E0E0E; color: #F2F2F2; border-radius: 6px; padding: 6px 8px;
-  font: 500 11px/1.35 var(--st-font); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-  animation: st-fade var(--dur-1) var(--ease);
-}
-.st-tip__main { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
-.st-tip kbd { background: #2E2E2E; border: 0; color: #CFCFCF; font-size: 11px; padding: 1px 5px; border-radius: 4px; }
-.st-tip__sub { display: block; color: #A8A8A8; font-weight: 400; margin-top: 2px; }
+
+
+
+
 
 /* ---------------------------------------------------------------- toasts: one, bottom-left of the canvas */
-.st-toasts {
-  left: calc(var(--st-rail-w) + var(--st-left-w) + 16px); bottom: 74px; transform: none; align-items: flex-start; max-width: 380px;
-}
-.st-chrome-off .st-toasts { left: 16px; }
-.st-toast { font-size: 12px; padding: 8px 14px; border-radius: 9px; line-height: 1.45; transition: opacity 240ms var(--ease), translate 240ms var(--ease); }
-.st-toast.is-out { opacity: 0; translate: 0 4px; }
+
+
+
+
 
 /* panels hidden (Ctrl \): the rail goes too, the canvas takes the whole window */
-.st-chrome-off .st-left, .st-chrome-off .st-right, .st-chrome-off .st-rail { display: none; }
+
 
 /* ---------------------------------------------------------------- inspector pieces */
 .st-insp__row { display: flex; align-items: center; gap: 4px; }
@@ -1163,18 +971,15 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
 .st-cmdk__recent { padding: 10px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
 
 /* toasts: top-centre of the canvas, clear of the tool bar, its popover and the selection bar */
-.st-toasts {
-  top: 56px; bottom: auto; transform: translateX(-50%); align-items: center; max-width: 460px;
-  left: calc(var(--st-rail-w) + var(--st-left-w) + (100vw - var(--st-rail-w) - var(--st-left-w) - var(--st-right-w)) / 2);
-}
-.st-chrome-off .st-toasts { left: 50%; }
-.st-toast.is-out { translate: 0 -4px; }
-@keyframes st-toast-in { from { opacity: 0; translate: 0 -6px; } to { opacity: 1; translate: 0 0; } }
+
+
+
+
 
 /* inspector header: one line, the type as a dim suffix */
-.st-right__head { align-items: center; min-width: 0; }
+
 #inspTitle { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.st-right__sub { flex: 0 1 auto; max-width: 45%; }
+
 
 /* image buttons: « Choisir dans Images » gets a full row, never clipped */
 .st-imgfield__row > * { grid-column: 1 / -1; }
@@ -1187,27 +992,20 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
 .st-pop.is-leaving { opacity: 0; pointer-events: none; transition: opacity var(--dur-1) var(--ease); }
 
 /* ---------------------------------------------------------------- folding side panels (like Claude's sidebar) */
-.st-body { position: relative; }
-.st-left, .st-right { transition: width .2s cubic-bezier(.2, .8, .2, 1); }
-.st-left-off .st-left, .st-right-off .st-right { width: 0 !important; border: 0; overflow: hidden; visibility: hidden; }
-.st-paneltoggle {
-  flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin: auto 6px auto 2px; padding: 0;
-  border: 0; border-radius: 6px; background: transparent; color: var(--st-ink-dim); cursor: pointer;
-}
-.st-paneltoggle svg, .st-reopen svg { width: 16px; height: 16px; }
-.st-paneltoggle:hover { color: var(--st-ink); background: var(--st-chrome-2); }
-.st-paneltoggle:focus-visible, .st-reopen:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 1px; }
-.st-right__head { display: flex; align-items: center; gap: 6px; }
-.st-right__head .st-paneltoggle { margin-left: auto; }
-.st-reopen {
-  position: absolute; top: 10px; z-index: 40; display: grid; place-items: center; width: 32px; height: 32px; padding: 0;
-  border: 1px solid var(--st-line-d); border-radius: 8px; background: var(--st-chrome); color: var(--st-ink-dim); cursor: pointer;
-  box-shadow: var(--st-shadow-btn);
-}
-.st-reopen:hover { color: var(--st-ink); background: var(--st-chrome-2); }
-.st-reopen[hidden] { display: none; }
-.st-reopen--l { left: 10px; }
-.st-reopen--r { right: 10px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ---------------------------------------------------------------- layers tree: disclosure arrows and element rows */
 .st-row__tw {
@@ -1225,7 +1023,7 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
    the left tabs keep an 8 px margin beside the fold button, a toast clears the rulers */
 .st-code__bar #inspCodeLabel { flex: 1 1 auto; min-width: 0; }
 .st-code__bar .st-code__mode { flex: none; overflow: visible; white-space: nowrap; }
-.st-left__tabs { padding: 0 8px; gap: 4px; }
+
 body:has(.st-eng-has-rulers) .st-toasts { top: 80px; }
 
 /* wave 1 (audit item 24): the inspector's fields grow to 36 px under the finger (iPad) */
@@ -1234,9 +1032,9 @@ body:has(.st-eng-has-rulers) .st-toasts { top: 80px; }
 
 /* ------------------------------------------------------------------ Aperçu (Preview mode, wave 2: studio-preview.js)
    The store full-screen at the chosen width, interactive; nothing to edit. */
-.st-previewbtn { display: inline-flex; align-items: center; gap: 6px; }
-.st-previewbtn svg { width: 12px; height: 12px; }
-.st-previewbtn[aria-pressed="true"] { color: var(--st-ink); border-color: var(--st-accent); }
+
+
+
 .st-preview { position: fixed; inset: 0; z-index: 9000; display: flex; flex-direction: column; background: var(--st-preview-bg); color: var(--st-ink); }
 .st-preview[hidden] { display: none; }
 .st-preview__bar { flex: none; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 12px; background: var(--st-chrome); border-bottom: 1px solid var(--st-line-d, #333); flex-wrap: wrap; }
@@ -1271,78 +1069,58 @@ body.st-rowdragging, body.st-rowdragging * { cursor: grabbing !important; user-s
  * A narrow bar on the far left, the whole height: the Jeere logo (its menu: mes sites, tableau de bord,
  * éditeur simple, compte, thème), the switch of the left panel (Calques / Insérer / Images), the theme.
  * Its width comes out of the left panel below 1280 px, so the canvas keeps the room it had. */
-.st { flex-direction: row; }
-.st-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; height: 100vh; }
-.st-rail {
-  flex: none; width: var(--st-rail-w); display: flex; flex-direction: column; align-items: center;
-  background: var(--st-chrome); border-right: 1px solid var(--st-edge); position: relative; z-index: 70;
-  padding-bottom: 8px;
-}
-.st-rail__top {
-  position: relative; flex: none; width: 100%; height: 44px; display: grid; place-items: center;
-  border-bottom: 1px solid var(--st-edge); margin-bottom: 8px;
-}
-.st-rail__logo {
-  display: inline-flex; align-items: center; gap: 1px; height: 32px; padding: 0 3px 0 6px; border: 0; border-radius: 8px;
-  background: transparent; color: var(--st-ink); cursor: pointer;
-}
-.st-rail__logo:hover, .st-rail__logo[aria-expanded="true"] { background: var(--st-chrome-3); }
-.st-rail__cloud { height: 17px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; display: block; }
-.st-rail__chev { width: 12px; height: 12px; fill: none; stroke: var(--st-ink-dim); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.st-rail__tabs { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
-.st-rail__foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.st-rail__btn {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  width: 46px; min-height: 50px; padding: 6px 0 5px; border: 0; border-radius: 10px;
-  background: transparent; color: var(--st-ink-dim); font: 500 11px/13px var(--st-font); letter-spacing: -0.01em; cursor: pointer;
-}
-.st-rail__btn--icon { min-height: 36px; width: 36px; padding: 0; border-radius: 8px; }
-.st-rail__btn:hover { color: var(--st-ink); background: var(--st-chrome-2); }
-.st-rail__btn.is-on { color: var(--st-ink); background: var(--st-chrome-3); }
-.st-rail__btn.is-on .st-ri { color: var(--st-ink); }
-.st-rail__btn:focus-visible, .st-rail__logo:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 1px; }
-.st-ri { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; display: block; flex: none; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* the theme glyphs: the moon in the light theme (what a click gives), the sun in the dark one */
-.st-mi--sun { display: none !important; }
-:root[data-theme="dark"] .st-mi--sun { display: block !important; }
-:root[data-theme="dark"] .st-mi--moon { display: none !important; }
-.st-touch .st-rail__btn { min-height: 56px; }
-.st-touch .st-rail__top { height: 54px; }
+
+
+
+
+
 
 /* the logo menu */
-.st-logomenu { top: 40px; left: 8px; transform: none; min-width: 236px; z-index: 210; transform-origin: 0 0; }
-.st-logomenu a, .st-logomenu button, .st-logomenu .st-logomenu__item {
-  display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 9px; border: 0; border-radius: 6px;
-  background: transparent; color: var(--st-ink); font: 400 12px var(--st-font); text-align: left; cursor: pointer;
-  justify-content: flex-start; text-decoration: none;
-}
-.st-logomenu a span, .st-logomenu button span { flex: 1 1 auto; }
-.st-logomenu b { font-weight: 600; }
-.st-logomenu a:hover, .st-logomenu button:hover, .st-logomenu a:focus-visible, .st-logomenu button:focus-visible { background: var(--st-chrome-3); color: var(--st-ink); outline: none; }
-.st-logomenu a:hover .st-mi, .st-logomenu button:hover .st-mi, .st-logomenu a:focus-visible .st-mi, .st-logomenu button:focus-visible .st-mi { color: #fff; }
-.st-logomenu a:hover kbd, .st-logomenu a:focus-visible kbd { color: rgba(255, 255, 255, 0.85); border-color: transparent; background: rgba(255, 255, 255, 0.16); }
-.st-logomenu .st-mi { width: 16px; height: 16px; flex: none; color: var(--st-ink-dim); fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.st-logomenu__sites.has-sites { padding-bottom: 5px; margin-bottom: 5px; border-bottom: 1px solid var(--st-line-d); }
-.st-touch .st-logomenu a, .st-touch .st-logomenu button { padding: 11px 12px; }
+
+
+
+
+
+
+
+
+
+
 
 /* the left panel's head: its name and the fold button (the tabs are on the rail now) */
-.st-left__tabs.st-left__head { display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 4px 0 12px; }
-.st-left__title { flex: 1 1 auto; min-width: 0; margin: 0; font: 600 12px var(--st-font); color: var(--st-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.st-left__tabs .st-paneltoggle { flex: none; margin: 0; padding: 0; border: 0; border-radius: 6px; min-height: 0; }
-.st-touch .st-left__tabs .st-paneltoggle { width: 36px; height: 36px; min-height: 36px; }
+
+
+
+
 
 /* below 1280 px the rail's width comes out of the left panel: the canvas keeps its 504 px at 1024 */
-@media (max-width: 1279px) {
-  :root { --st-left-w: 196px; }
-}
+
 
 /* ==================================================================== icons: one family
  * 24 × 24 grid, 1.5 stroke, round caps and joins, no fill (Lucide-like). The few 16 × 16 glyphs of
  * the inspector (alignment, text, gradient …) are drawn at the same weight (1 on 16 = 1.5 on 24).
  * Chrome only: the stores' own icons (artboards, the icon picker) keep their drawing. */
 .st-i24 { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.st-planchip__ico, .st-iconbtn .st-ico, .st-paneltoggle svg, .st-reopen svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.st-iconbtn .st-ico { width: 16px; height: 16px; }
+
+
 :is(.st-rail, .st-top, .st-left, .st-right, .st-ftb, .st-selbar, .st-menu, .st-pop, .st-cmdk, .st-modal__card, .st-reopen, .st-drawer__head, .dz-qbar, .dz-cropbar, .dz-pick, .dz-fontmenu, .st-preview__bar) svg[viewBox="0 0 16 16"]:not(.dz-icons__i svg) {
   stroke-linecap: round; stroke-linejoin: round;
 }

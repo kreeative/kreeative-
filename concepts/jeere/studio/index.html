@@ -38,6 +38,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
   <link rel="stylesheet" href="../creer/store.css">
+  <!-- the chrome both editors share (this one and Mes sites, sites/): top bar, rail, panels, canvas, tool bar -->
+  <link rel="stylesheet" href="studio-shell.css">
   <link rel="stylesheet" href="studio.css">
   <link rel="stylesheet" href="studio-design.css">
   <link rel="stylesheet" href="../creer/jcolor.css">
@@ -102,8 +104,6 @@
           <div class="st-logomenu__sites" id="logoMenuSites" role="none"></div>
           <a role="menuitem" id="railDashboard" href="../admin/"><svg viewBox="0 0 256 256" aria-hidden="true" class="st-mi"><g fill="currentColor" stroke="none"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V96H40V56ZM40,112H96v88H40Zm176,88H112V112H216v88Z"/></g></svg><span>Tableau de bord</span></a>
           <a role="menuitem" id="railAccount" href="../compte/"><svg viewBox="0 0 256 256" aria-hidden="true" class="st-mi"><g fill="currentColor" stroke="none"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></g></svg><span>Mon compte</span></a>
-          <hr role="separator">
-          <button role="menuitem" id="themeItem" type="button"><svg viewBox="0 0 256 256" aria-hidden="true" class="st-mi st-mi--moon"><g fill="currentColor" stroke="none"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></g></svg><svg viewBox="0 0 256 256" aria-hidden="true" class="st-mi st-mi--sun"><g fill="currentColor" stroke="none"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></g></svg><span>Thème : <b id="themeItemLabel">clair</b></span></button>
         </div>
       </div>
       <div class="st-rail__tabs" role="tablist" aria-orientation="vertical" aria-label="Panneau de gauche">
@@ -138,6 +138,13 @@
 
       <div class="st-top__right">
         <span id="saveState" class="st-save" data-state="saved"><span class="st-save__dot" aria-hidden="true"></span><span id="saveLabel">Enregistré</span></span>
+        <button id="undoBtn" class="st-iconbtn" type="button" aria-label="Annuler" data-tip="Annuler" data-kbd="Ctrl Z" disabled>
+          <svg viewBox="0 0 256 256" aria-hidden="true" class="st-ico"><g fill="currentColor" stroke="none"><path d="M232,144a64.07,64.07,0,0,1-64,64H80a8,8,0,0,1,0-16h88a48,48,0,0,0,0-96H51.31l34.35,34.34a8,8,0,0,1-11.32,11.32l-48-48a8,8,0,0,1,0-11.32l48-48A8,8,0,0,1,85.66,45.66L51.31,80H168A64.07,64.07,0,0,1,232,144Z"/></g></svg>
+        </button>
+        <button id="redoBtn" class="st-iconbtn" type="button" aria-label="Rétablir" data-tip="Rétablir" data-kbd="Ctrl ⇧ Z" disabled>
+          <svg viewBox="0 0 256 256" aria-hidden="true" class="st-ico"><g fill="currentColor" stroke="none"><path d="M170.34,130.34,204.69,96H88a48,48,0,0,0,0,96h88a8,8,0,0,1,0,16H88A64,64,0,0,1,88,80H204.69L170.34,45.66a8,8,0,0,1,11.32-11.32l48,48a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32-11.32Z"/></g></svg>
+        </button>
+        <span class="st-sep" aria-hidden="true"></span>
         <button id="contrastBtn" class="st-iconbtn" type="button" data-tip="Vérifier les contrastes" data-kbd="Ctrl ⇧ C" aria-pressed="false" aria-label="Vérifier les contrastes">
           <svg viewBox="0 0 256 256" aria-hidden="true" class="st-ico"><g fill="currentColor" stroke="none"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm8,16.37a86.4,86.4,0,0,1,16,3V212.67a86.4,86.4,0,0,1-16,3Zm32,9.26a87.81,87.81,0,0,1,16,10.54V195.83a87.81,87.81,0,0,1-16,10.54ZM40,128a88.11,88.11,0,0,1,80-87.63V215.63A88.11,88.11,0,0,1,40,128Zm160,50.54V77.46a87.82,87.82,0,0,1,0,101.08Z"/></g></svg>
         </button>

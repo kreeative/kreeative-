@@ -3,7 +3,7 @@
 //   git fetch origin && node concepts/jeere/studio/sites/build-manifest.mjs
 // It reads the default branch (what kreeative.xyz serves) and every other remote branch, and keeps
 // the site folders that exist only on another branch (e.g. aissakee/ on claude/aissa-kee-…).
-// Per site: id, title, kind, path, branch, live URL, thumbnail, last change, the HTML pages (with
+// Per site: id, title, kind, commerce (sells online or not), path, branch, live URL, thumbnail, last change, the HTML pages (with
 // their git blob sha, used by the editor to tell whether the copy it opens is the branch's) and the
 // folders the Edge Function lets it write (same rules as supabase/functions/sites-publish).
 import { execFileSync } from 'node:child_process';
@@ -45,6 +45,18 @@ function titleOf(branch, p) {
     const m = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
     return m ? decode(m[1]).replace(/\s+/g, ' ').trim() : '';
   } catch { return ''; }
+}
+// E-commerce or not, from the pages themselves: a site that sells through Jeere (Jeere Connect: it loads
+// jeere-connect.js or marks a store with data-store) is a « Boutique en ligne », any other a « Site web ».
+// COMMERCE forces the answer for a site that sells some other way (none yet). Never guessed from a title.
+const COMMERCE = {};
+function sellsOnJeere(branch, pages) {
+  return pages.some((pg) => {
+    try {
+      const html = gitBuf('show', refOf(branch) + ':' + pg.path).toString('utf8');
+      return /jeere-connect\.js/.test(html) || /\sdata-store=/.test(html);
+    } catch { return false; }
+  });
 }
 function shortTitle(t) { return t.replace(/\s+[—|·-]\s+(Kreeative|kreeative)\s*$/, '').trim(); }
 function urlOf(p) { return p.replace(/(^|\/)index\.html$/, '$1'); }
@@ -97,6 +109,7 @@ function siteFrom(branch, entries, folder, kind, extra = {}) {
     id,
     title: shortTitle(main.title) || folder,
     kind, kindLabel: KIND_LABEL[kind],
+    commerce: folder in COMMERCE ? !!COMMERCE[folder] : sellsOnJeere(branch, pages),
     path: folder,
     branch,
     onlyOnBranch: !isDefault,

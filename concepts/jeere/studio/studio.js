@@ -4363,6 +4363,10 @@
     if (input && document.activeElement !== input) {
       input.value = (state.config.store && state.config.store.name) || '';
     }
+    // the undo / redo of the top bar (the same two buttons as in Mes sites): greyed when there is nothing to do
+    var ub = $('undoBtn'), rb = $('redoBtn');
+    if (ub) ub.disabled = !undoStack.length;
+    if (rb) rb.disabled = !redoStack.length;
   }
 
   /* ------------------------------------------------------------------ init */
@@ -4502,6 +4506,8 @@
         zoomBtn.setAttribute('aria-expanded', 'false');
       });
     });
+    if ($('undoBtn')) $('undoBtn').addEventListener('click', function () { undo(); syncTopBar(); });
+    if ($('redoBtn')) $('redoBtn').addEventListener('click', function () { redo(); syncTopBar(); });
     $('shareBtn').addEventListener('click', function () { openShare(false); });
     $('publishBtn').addEventListener('click', function () { openShare(true); });
     // Back from « Se connecter pour publier » (compte/?suite=studio-publier): the publish dialog again (wave 2)
