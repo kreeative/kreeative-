@@ -1,9 +1,47 @@
 {
-  "rewrites": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
     {
-      "source": "/:path*",
+      "src": "^/concepts/jeere/(.*)$",
       "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
-      "destination": "/concepts/jeere/:path*"
+      "status": 308,
+      "headers": { "Location": "/$1" }
+    },
+    {
+      "src": "^/(creer|admin|compte|abonnements|studio|b)$",
+      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "status": 308,
+      "headers": { "Location": "/$1/" }
+    },
+    {
+      "src": "^/b/([A-Za-z0-9-]+)/?$",
+      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "dest": "/concepts/jeere/b/index.html"
+    },
+    {
+      "src": "^/$",
+      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "dest": "/concepts/jeere/index.html"
+    },
+    {
+      "src": "^/(.+/)$",
+      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "dest": "/concepts/jeere/$1index.html"
+    },
+    {
+      "src": "^/(.+)$",
+      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "dest": "/concepts/jeere/$1"
+    },
+    {
+      "src": "^/(?!concepts/jeere/)[^.]*$",
+      "missing": [
+        { "type": "host", "value": "kreeative.xyz" },
+        { "type": "host", "value": { "suf": ".kreeative.xyz" } },
+        { "type": "host", "value": { "suf": ".vercel.app" } },
+        { "type": "host", "value": "localhost" }
+      ],
+      "dest": "/concepts/jeere/b/index.html"
     }
   ]
 }

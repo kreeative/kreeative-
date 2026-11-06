@@ -130,6 +130,8 @@ style.css    tokens, layout, responsive rules (360 px first)
 site.js      language, delivery demo, template tabs, waitlist form, hero canvas, hidden fallback
              for a photo that cannot load, scroll-in
 abonnements/  the Studio's pricing page and checkout (« Abonnements Studio », see studio/README.md)
+b/           the public store page (index.html, b.js, b.css): jeere.kreeative.xyz/b/<adresse> and sellers' own domains
+supabase/    the SQL of public.stores (migrations/) and the Edge Function `domains` (functions/), see « Domaines »
 anim/boutique.js  the hero animation: the traced stall lines, the brush-stroke builder, the burst, play and
              replay (the motion itself is CSS in style.css, « Physical to online »)
 img/boutique.webp, img/boutique-720.webp  the stall photo (portrait), 1080×1350 and 720×900 (phones)
@@ -240,9 +242,254 @@ line at a time) when the section is within a screen of the viewport, and plays i
 - **Test**: `rev-test.js` (scratchpad) checks the photo at the start, the darkening, the black at the end of the
   drawing, the burst, the store and its scrolling row, replay, the title not jumping, reduced motion and no JS.
 
+## Domaines
+
+How a Jeere store gets a real address, how a seller connects a domain she bought elsewhere, and how she can
+buy one through Jeere. Everything below is built; what still needs the founder is in
+[What the founder must do](#what-the-founder-must-do).
+
+### The free address: `jeere.kreeative.xyz/b/<adresse>`
+
+Jeere does not own `jeere.shop` yet, and `kreeative.xyz`'s DNS is at GoDaddy (so no wildcard
+`*.jeere.kreeative.xyz`). Every store therefore lives on a **path** of the free Jeere host:
+
+```
+https://jeere.kreeative.xyz/b/awa-beaute            the store (vercel.json routes /b/<slug> on that host to b/index.html)
+https://kreeative.xyz/concepts/jeere/b/?s=awa-beaute the same page on any host (previews, kreeative.xyz, a local server)
+https://awabeaute.com/                               her own domain (below): the store whose custom_domain is the host
+```
+
+The address shown everywhere comes from `JEERE_DATA.storeAddress(slug)` (`creer/data.js`: `PUBLIC_HOST`,
+`STORE_PATH`, `ADDRESS_MODE = 'path'`). The dashboard, the editor's frame, the account page and the Studio
+all go through it, so no screen promises « nom.jeere.shop » any more; an address saved before
+(`awa-beaute.jeere.shop` in `'jeere-admin'`) is read back with `storeSlug()` and shown in the new form.
+
+**Address rules** (the same in `JEERE_DATA.checkStoreSlug` and in the database's `CHECK`): 3 to 40 characters,
+`a–z`, `0–9` and hyphens, no hyphen first, last or doubled, and none of Jeere's own words
+(`STORE_SLUG_RESERVED` = `public.jeere_slug_reserved`: www, admin, api, app, studio, creer, compte,
+abonnements, b, s, aide, panier, paiement, domaine, mail, ns1, test… 160 words, so they also stay free as
+sub-domains later). `publish-test.js` checks that both lists are identical and that the live database refuses each word.
+
+**The data: `public.stores`** (Supabase « Jeere », migration `create_jeere_stores`, the SQL is in
+`supabase/migrations/`):
+
+| Column | |
+| --- | --- |
+| `id` | uuid |
+| `owner` | `auth.users(id)`, default `auth.uid()`; nullable while accounts are a demo (rows without an owner are written by the team, in SQL) |
+| `slug` | unique, the rules above (CHECK) |
+| `fiche` | the fiche boutique (jsonb object, 1 MiB of text at most; the browser refuses more than 0,9 MB before sending, with a message about the photos) |
+| `show_badge` | « Fait avec Jeere » (true unless a paid Studio plan hides it: `JeerePlans.badgeShown()` when publishing) |
+| `published`, `published_at` | the switch, and when it was last turned on (a trigger) |
+| `custom_domain` | unique, lower case, never a Jeere / Vercel / Supabase host (CHECK) |
+| `domain_status` | `none` · `pending` · `dns_ok` · `waiting_team` (no Vercel token: the team attaches it) · `attached` · `verified` · `error` |
+| `domain_checked_at`, `created_at`, `updated_at` | |
+
+Row level security and column privileges: **anyone** (`anon`, `authenticated`) reads published rows, and only
+the public columns (never `owner`); **the owner** inserts, updates and deletes her rows (`owner = auth.uid()`)
+and reads them unpublished; browsers can write only `slug`, `fiche`, `show_badge`, `published`;
+`custom_domain` and `domain_status` are written only by the `domains` Edge Function (service key). A trigger
+keeps `owner` and `created_at` unchanged and caps a person at 10 stores. Two functions:
+`rpc/slug_available(p_slug)` → `{ available, reason: ok | format | reserved | taken | yours }` (security
+definer, so an unpublished store's address reads « taken » too) and `rpc/my_stores()` (her stores, signed in only).
+The security advisor flags both as « security definer callable »: that is their purpose.
+
+**Publishing** (`creer/publish.js`, `window.JeerePublish`, styles `creer/publish.css`): one panel mounted in the
+editor's « Publier », the Studio's « Publier » (dark) and the dashboard's « Publier ma boutique » and
+« Domaine ». It proposes an address from the store's name, checks it as she types (`slug_available`),
+offers free alternatives, then publishes (`POST /rest/v1/stores`, then `PATCH` for « Mettre à jour »),
+shows the live link with « Copier le lien », « Partager sur WhatsApp » and « Ouvrir », warns when the latest
+changes are not online yet, and « Retirer de la ligne » (published = false). This browser remembers the store in
+`'jeere-publish'` = `{ slug, storeId, ownerId, published, publishedAt, hash }`, and the dashboard's address follows it.
+
+Publishing needs a **signed-in Supabase user** (stores have an owner). The session is read from
+`window.JeereAuth.getSession()` (the account page's auth module: return `{ access_token, user }`), else a
+supabase-js client at `window.jeereSupabase`, else supabase-js's own storage key
+`sb-aezchxfvzfoqlvzchqyk-auth-token`; an expired session counts as none. Until auth is live the panel says
+« Votre boutique est enregistrée dans ce navigateur seulement » and offers « Se connecter pour publier »
+(`../compte/?suite=publier#connexion`); she can still choose and check her address.
+
+**The public store page** (`b/index.html`, `b/b.js`, `b/b.css`): reads the host and the path, fetches the published
+fiche (REST, publishable key), and draws it with `creer/render.js` + `store.css`, phone layout under 900 px,
+desktop above. Detached Studio sections render (`engine-sections.js` loads the DualEngine on demand). The page in
+view is in the hash (`#produit/p2`, `#panier`, `#paiement`, `#page/a-propos`), so Back works and a product can be
+shared. `<title>`, description, Open Graph and `theme-color` come from the fiche; « Fait avec Jeere » sits under
+the store unless `show_badge` is false (then « Propulsé par Jeere » goes too). A loading state, a friendly
+« Boutique introuvable » (noindex) for unknown or unpublished addresses, and « Connexion impossible » with
+« Réessayer ». **Ordering**: the store's checkout has no real payment yet, so « Payer » / « Confirmer la commande »
+opens WhatsApp to the shop's number with the order written (items, commune and fee, total, payment method, name)
+and says so; the preview's demo confirmation is never shown to a customer. Assets are added by the page's first
+script with the right base (`/` on jeere.kreeative.xyz, `/concepts/jeere/` elsewhere), never as relative links.
+Known limit: WhatsApp and Facebook do not run JavaScript, so a shared link shows the page's default preview
+(« Boutique en ligne · Jeere ») until a server renders the meta tags (a Vercel function or an Edge Function).
+
+### vercel.json: `routes`, not `rewrites`
+
+Vercel serves a file that exists **before** `rewrites` (« the filesystem takes precedence over rewrites »), so the
+old rule could never show Jeere at `jeere.kreeative.xyz/`: the repository root has its own `index.html` (the
+portfolio). `routes` run before the filesystem, so the file now uses `routes` (it had only one rewrite, nothing
+else to convert). In order:
+
+1. `jeere.kreeative.xyz` + `/concepts/jeere/…` → 308 to `/…` (old links).
+2. `jeere.kreeative.xyz` + `/creer`, `/admin`, `/compte`, `/abonnements`, `/studio`, `/b` → 308 with the final slash.
+3. `jeere.kreeative.xyz` + `/b/<slug>` (letters, digits, hyphens; optional final slash) → `/concepts/jeere/b/index.html`.
+4. `jeere.kreeative.xyz` + `/` → `/concepts/jeere/index.html`; a path ending in `/` → its `index.html`; any other path → `/concepts/jeere/<path>`.
+5. **Any other host** that is not `kreeative.xyz`, `*.kreeative.xyz` (www, jeere), `*.vercel.app` (kreeative-site.vercel.app, previews) or `localhost`, for a path without a dot outside `/concepts/jeere/` → `/concepts/jeere/b/index.html` (a seller's domain; its files, `/concepts/jeere/creer/render.js`…, have a dot and fall through to the filesystem).
+
+| Host | Path | Result |
+| --- | --- | --- |
+| kreeative.xyz, www.kreeative.xyz | everything | unchanged: the filesystem (portfolio, `/concepts/jeere/…`, `/robots.txt`, 404) |
+| kreeative-site.vercel.app, `*-<team>.vercel.app` previews | everything | unchanged |
+| jeere.kreeative.xyz | `/` | the Jeere landing (before: the portfolio's `index.html`) |
+| jeere.kreeative.xyz | `/creer` · `/creer/` · `/creer/render.js` | 308 `/creer/` · editor · the file |
+| jeere.kreeative.xyz | `/b/awa-beaute`, `/b/awa-beaute/` | the store page |
+| jeere.kreeative.xyz | `/b/b.js`, `/style.css`, `/studio/engine/model.js` | the Jeere files |
+| jeere.kreeative.xyz | `/robots.txt` | 404 (Jeere has none) |
+| awabeaute.com, www.awabeaute.com, boutique.awabeaute.ci | `/`, `/une/page` | the store page, which finds the store by its host |
+| awabeaute.com | `/concepts/jeere/creer/render.js`, demo photos | the files |
+
+`vroute.js` (a model of this router) and `vroute-test.js` (scratchpad `publish/`) check each line; `vserver.js`
+serves the worktree by `Host` header with the same model, so the tests open `http://jeere.kreeative.xyz:8921/b/…`
+and `http://awabeaute.test:8921/` in Chromium. Not checked by a deploy: that `has`/`missing` host values match as
+documented (`value` string, `{ suf }`). **Any other domain added to the project later that is not a store must be
+added to the `missing` list of rule 5.**
+
+### Her own domain (bought elsewhere)
+
+Dashboard › Paramètres › Domaine (`admin/domaines.js`, `admin/domaines.css`, `creer/domains.js` =
+`window.JeereDomains`):
+
+1. She types her domain: apex (`awabeaute.com`), `www.awabeaute.com` or a sub-domain; « https:// » and a final
+   slash are removed, accents and spaces refused, Jeere's own hosts refused.
+2. She sees exactly what to add, each value with « Copier »: `A @ 76.76.21.21` (apex) and
+   `CNAME www cname.vercel-dns.com` (the one she typed is « Obligatoire », the other « Conseillé »); a sub-domain
+   gets `CNAME <sub> cname.vercel-dns.com`. Step-by-step guides for GoDaddy, Namecheap, Hostinger, OVHcloud and
+   Cloudflare (« nuage gris »: Cloudflare's proxy blocks Vercel's certificate).
+3. « Vérifier » asks `https://dns.google/resolve?name=…&type=A|CNAME` from the browser and marks each record ✓ or ✗
+   with what it found (« Pas encore : trouvé parkingpage.namecheap.com »).
+4. When the required record is right, the dashboard calls the Edge Function `domains` (`attach`, then `verify`), which
+   checks she owns the store, saves `custom_domain` and adds the domain to the Vercel project. Without the Vercel token
+   it answers « pas encore configuré » and the screen says the Jeere team links it by hand (status « Relié par
+   l’équipe sous 24 h »). Without a published store she is told to publish first.
+5. Routing: the domain is attached to the same Vercel project; rule 5 above sends it to the store page, which reads
+   `location.host` and loads the store whose `custom_domain` is that host (or its www / apex twin).
+
+### The Edge Function `domains`
+
+Source in `supabase/functions/domains/index.ts`, deployed (version 1, `verify_jwt = false`: the publishable key is
+not a JWT, the function checks the session itself with `/auth/v1/user`).
+`POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains` with `{ action, … }`:
+
+| Action | Who | What |
+| --- | --- | --- |
+| `status` | anyone | `{ configured, purchases }` |
+| `search { name }` | anyone | with the token: Vercel's availability and price for .com .shop .store .online .net .co .site .boutique, in USD and FCFA; without: `configured: false` (the dashboard then guesses from the DNS) |
+| `attach { storeId, domain }` | the store's owner | saves the domain, adds it **and its www/apex twin (308 redirect)** to project `prj_fD8DW3XmW3iyaGNXSCquGcApR4AC` (team `team_baaIo2HD3gXK1oOziipXPpAl`, linked to the branch in `VERCEL_GIT_BRANCH`, default `claude/session-setup-kcwzk4`; empty = production), reads its config, sets `domain_status` |
+| `verify { storeId }` | owner | Vercel's verify + config → `attached` / `verified` (returns any TXT verification record to add) |
+| `detach { storeId }` | owner | removes it from the project and the store (never a Jeere / Vercel host) |
+| `buy { domain, years, expectedPrice, contact, storeId?, confirm: true }` | **the team only** | needs `VERCEL_TOKEN`, the `DOMAINS_ADMIN_KEY` secret sent as `x-jeere-admin`, and `confirm: true`; re-reads the price, refuses if it changed, buys (`autoRenew: false`), attaches it to the store |
+
+Secrets (Supabase › Edge Functions › Secrets): `VERCEL_TOKEN` (missing today), `DOMAINS_ADMIN_KEY` (missing today),
+optional `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `VERCEL_GIT_BRANCH`. The demo checkout never calls `buy`.
+Tested in Node with a Deno shim (`fn-test.mjs`) and live (`live-api-test.js`).
+
+### Buying a domain through Jeere
+
+**Research (6 November 2026).**
+- Vercel sells domains through its registrar API (`/v1/registrar/…`: availability, price, buy; buying needs the
+  registrant's contact: name, e-mail, phone, address, country). Prices read with the Vercel API (`get_tld_price`,
+  `get_bulk_price`) for team `team_baaIo2HD3gXK1oOziipXPpAl`.
+- **.ci is not sold by Vercel** (not in `list_supported_tlds`; `get_tld_price ci` → 400), and neither is **.africa**.
+  .ci is run by the ARTCI (ordonnance 2012-293), registry NIC.CI, sold through accredited registrars (36 in
+  January 2024, legal entities): local prices of about 5 000 to 15 000 FCFA a year (Abidjan.net; Digitalmag.ci says
+  9 000 to 10 000). International registrars with an API resell it much higher: INWX (DomRobot API) about CHF 33–46,
+  EuroDNS about 211 € a year, Gandi only under a corporate contract; some ask for a local presence.
+  Sources: [IANA .ci](https://www.iana.org/domains/root/db/ci.html), [ICANNWiki .ci](https://icannwiki.org/.ci),
+  [Abidjan.net](https://news.abidjan.net/articles/508100/telecommunications-lartci-marque-sa-presence-au-siweb),
+  [Digitalmag.ci](https://digitalmag.ci/les-noms-de-domaine-en-ci-une-identite-numerique-de-la-cote-divoire/),
+  [INWX .ci](https://www.inwx.com/en/ci-domain), [EuroDNS .ci](https://www.eurodns.com/domain-extensions/ci-domain-registration),
+  [Gandi .ci](https://www.gandi.net/fr-CA/domain/tld/ci), [101domain .ci](https://www.101domain.com/ci-information-help.htm),
+  [Vercel: buy a domain](https://vercel.com/docs/rest-api/domains-registrar/buy-a-domain),
+  [add a domain to a project](https://vercel.com/docs/rest-api/projects/add-a-domain-to-a-project),
+  [domain configuration](https://vercel.com/docs/rest-api/domains/get-a-domain-s-configuration).
+  So .ci stays « sur demande »: the team buys it from an accredited Ivorian registrar by hand.
+
+**Resale model.** Price in FCFA = Vercel's price in USD × 600 (a margin on ~575 FCFA per USD) + 25 % + 1 500 FCFA,
+rounded up to 500 FCFA (`JeereDomains.fcfa`, the same in the Edge Function). The margin pays mobile-money fees
+(~2 %), the exchange risk, the linking and the support. Renewals follow the same formula on the renewal price, and
+the screens always show both: some extensions are a promotion the first year only.
+
+| TLD | Vercel (buy / renew, USD) | Cost in FCFA (×600) | **Jeere, 1st year** | **Jeere, each renewal** | Margin 1st year / renewal |
+| --- | --- | --- | --- | --- | --- |
+| .com | 12,03 / 12,03 | 7 218 | **11 000** | **11 000** | 3 782 / 3 782 |
+| .net | 13,50 / 13,50 | 8 100 | **12 000** | **12 000** | 3 900 / 3 900 |
+| .shop | 2,99 / 38,39 | 1 794 / 23 034 | **4 000** | **30 500** | 2 206 / 7 466 |
+| .store | 1,49 / 44,00 | 894 / 26 400 | **3 000** | **34 500** | 2 106 / 8 100 |
+| .online | 1,49 / 27,00 | 894 / 16 200 | **3 000** | **22 000** | 2 106 / 5 800 |
+| .site | 1,49 / 27,00 | 894 / 16 200 | **3 000** | **22 000** | 2 106 / 5 800 |
+| .boutique | 3,99 / 33,00 | 2 394 / 19 800 | **4 500** | **26 500** | 2 106 / 6 700 |
+| .co | 29,99 / 24,80 | 17 994 / 14 880 | **24 000** | **20 500** | 6 006 / 5 620 |
+| .ci | not on Vercel | ~5 000–15 000 locally | **~15 000, sur demande** | same | depends on the registrar |
+
+Advice shown to sellers: .com keeps the same price every year; .shop / .store / .online are cheap only the first year.
+
+**Who owns the domain.** It is registered **in the seller's name** (she is the registrant contact; the checkout asks
+her name and e-mail, which registries require), in Jeere's Vercel team, which manages its DNS. She can transfer it
+out (after the 60-day ICANN lock). `autoRenew` is off: Jeere renews only after she pays, with a WhatsApp reminder
+30 days before; unpaid, it lapses, and her free Jeere address keeps working.
+
+**The flow.**
+1. Dashboard › Domaine › « Acheter un nom de domaine »: she types a name; the dashboard asks `domains/search`. With the
+   token it shows Vercel's real availability and price; without (today) it guesses from the DNS (`dns.google`
+   `type=NS`: NXDOMAIN = « Probablement libre », name servers = « Déjà pris ») with « vérification finale par
+   l’équipe », and the prices of the table above. .ci shows « Sur demande ».
+2. « Acheter » opens the checkout `../abonnements/?domaine=awabeaute.shop#domaine` (product type `domain`): the price is
+   computed there (never read from the URL), the holder's name and e-mail, then mobile money or card through
+   `JeereBilling.startProductCheckout` (demo provider today: nothing is charged), and an honest confirmation. The order is
+   kept in `'jeere-admin'.domainOrders` and listed in the dashboard.
+3. For real: the payment provider's webhook confirms the payment on the server, then the team (or a future job) calls
+   `buy` with `confirm: true` and `x-jeere-admin`; the function checks the price, buys, and attaches the domain. Until
+   automated, by hand:
+
+```sh
+curl -X POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains \
+  -H "apikey: sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w" -H "x-jeere-admin: $DOMAINS_ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"action":"buy","confirm":true,"domain":"awabeaute.shop","years":1,"expectedPrice":2.99,"storeId":"<stores.id>",
+       "contact":{"firstName":"Awa","lastName":"Koné","email":"awa@exemple.com","phone":"+225.0707123456",
+                  "address1":"Rue des Jardins","city":"Abidjan","state":"Abidjan","zip":"00225","country":"CI"}}'
+```
+
+### What the founder must do
+
+1. **GoDaddy › kreeative.xyz › DNS**: add `CNAME` `jeere` → `659106b38f644a47.vercel-dns-017.com`. Then
+   `https://jeere.kreeative.xyz/` shows Jeere and `https://jeere.kreeative.xyz/b/<adresse>` the stores. If a visitor
+   is asked to log in to Vercel, the branch domain is behind Deployment Protection: allow it in Vercel › Project ›
+   Settings › Deployment Protection, or point the domain at production.
+2. **A Vercel token**: Vercel › Account Settings › Tokens › « Create », scope = the team that owns the project
+   (`team_baaIo2HD3gXK1oOziipXPpAl`), an expiry you will remember. It can add domains to the project and buy domains:
+   keep it only in Supabase.
+3. **The secrets**: Supabase › project « Jeere » › Edge Functions › Secrets › add `VERCEL_TOKEN` = the token, and
+   `DOMAINS_ADMIN_KEY` = a long random string kept by the team (only needed for purchases). No redeploy needed. Check with
+   `{"action":"status"}`: `configured: true`.
+4. Supabase Auth (the other agent's work): when the account page signs sellers in, expose `window.JeereAuth.getSession()`
+   (or keep supabase-js's default storage key) and the « Publier » buttons publish for real.
+5. Later, a payment provider (Wave Checkout / Paystack, see `studio/README.md`) for real domain payments.
+
+### Later: `nom.jeere.shop`
+
+1. Buy `jeere.shop` (free on Vercel on 6 November 2026: 2,99 $ the first year, then 38,39 $ a year).
+2. Put its DNS on Vercel (Vercel nameservers), add `jeere.shop` and the wildcard `*.jeere.shop` to the project (a
+   wildcard needs Vercel's nameservers).
+3. Add a host-based route before rule 5: host `{ "suf": ".jeere.shop" }` (not `www.`), paths without a dot →
+   `/concepts/jeere/b/index.html`, and add `*.jeere.shop` hosts to b.js's lookup (slug = the first label).
+4. Set `ADDRESS_MODE = 'subdomain'` in `creer/data.js`: every screen shows `awa-beaute.jeere.shop`; old
+   `jeere.kreeative.xyz/b/…` links keep working (keep rule 3).
+
 ## To do before sharing
 
 - Pick the domain: `jeere.com` is taken; `jeere.shop`, `jeere.app` and `getjeere.com` were
-  free on 3 November 2026 (GoDaddy). `.ci` must be checked with the Ivorian registry. The page
-  uses `jeere.shop` in the examples; change it if you choose another.
+  free on 3 November 2026 (GoDaddy); `jeere.shop` was still free on Vercel on 6 November 2026
+  (2,99 $ the first year, then 38,39 $ a year). `.ci` must be checked with the Ivorian registry. Until a
+  domain is bought, stores live at `jeere.kreeative.xyz/b/<adresse>` (see [Domaines](#domaines)); only the
+  hero illustration still shows « chezawa.jeere.shop » (the hero is frozen: change `.bt__url` when it is not).
 - Add the @annklyy links (TikTok, Instagram) to the footer once you start posting.

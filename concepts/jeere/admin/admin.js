@@ -331,7 +331,7 @@
   const statusLabel = (id) => { const s = STATUSES().find((x) => x.id === id); return s ? s.label : id; };
   const channelLabel = (id) => { const c = arr(D && D.ORDER_CHANNELS).find((x) => x.id === id); return c ? c.label : str(id); };
   const storeName = () => (S.config && S.config.store.name) || (S.account && S.account.storeName) || 'Ma boutique';
-  const subdomain = () => (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'ma-boutique.jeere.shop');
+  const subdomain = () => (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jeere.kreeative.xyz/b/ma-boutique');
   const findOrder = (id) => S.admin.orders.find((o) => o.id === id) || null;
   const findProduct = (id) => (S.config ? S.config.products.find((p) => p.id === id) : null) || null;
   const findPage = (id) => (S.config ? arr(S.config.pages).find((p) => p.id === id) : null) || null;
@@ -1870,14 +1870,18 @@
       navigator.share({ title: el.getAttribute('data-title') || storeName(), text: el.getAttribute('data-text') || '', url: el.getAttribute('data-url') || storeUrl() }).then(markShared, () => { /* cancelled */ });
     } catch (e) { /* not available */ }
   }
+  // « Publier »: the address, the real publication and the live link (../creer/publish.js)
   function openPublish() {
     const v = validateFiche();
-    openDialog(H`<div class="a-dialog__card">${dlgHead('pb-t', 'Publier votre boutique')}
+    const live = !!window.JeerePublish;
+    const dlg = openDialog(H`<div class="a-dialog__card">${dlgHead('pb-t', 'Publier votre boutique')}
       <div class="a-dialog__body"><p class="a-dialog__lead"><strong>Score qualité : ${esc(String(v.score))} sur 100.</strong></p>
-        <p class="a-dialog__lead" style="margin-top:8px">Ceci est un prototype : rien n’est publié, et votre boutique reste dans ce navigateur. Dans Jeere, ce bouton mettra votre boutique en ligne sur ${esc(subdomain())}, avec les paiements Wave, Orange Money, MTN MoMo, Moov Money et à la livraison.</p>
-        <p class="a-small" style="margin-top:10px">Jeere ouvre bientôt à Abidjan. Rejoignez la liste d’attente pour faire partie des 50 premières boutiques.</p></div>
-      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Plus tard</button><a class="a-btn a-btn--primary" href="../#liste">Rejoindre la liste d’attente${ico('arrow')}</a></div></div>`, { labelledby: 'pb-t' });
+        <div id="a-publish-panel" style="margin-top:10px">${live ? '' : H`<p class="a-dialog__lead">Votre boutique est enregistrée dans ce navigateur seulement.</p>`}</div></div>
+      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Fermer</button></div></div>`, { labelledby: 'pb-t', onClose: () => { if (S.route && (S.route.name === 'parametres' || S.route.name === 'boutique' || S.route.name === 'accueil')) refresh(); } });
+    const panel = dlg ? $('#a-publish-panel', dlg) : null;
+    if (panel && live) window.JeerePublish.mount(panel, { getConfig: () => S.config, showScore: false });
   }
+  function isPublished() { try { const r = window.JeerePublish && window.JeerePublish.local(); return !!(r && r.published && r.storeId); } catch (e) { return false; } }
   // « ? Aide » (top bar, sidebar, « Plus »): the guided tour again, « Premiers pas » back on the home page, a real person
   function openHelp() {
     const hidden = S.config && onboarding().checklistHidden === true;
@@ -2486,7 +2490,7 @@
     const sw = (c) => H`<span style="background:${safeColor(c)}"></span>`;
     S.mounts.push(() => mountMini($('#a-main .a-theme [data-mini]'), S.config, { max: 0.6 }));
     return H`<div class="a-page">
-      ${pageHead('Boutique en ligne', H`${esc(subdomain())} · Démo : pas encore en ligne`, H`<button class="a-btn a-btn--ghost" type="button" data-act="view-store">${ico('eye')}Voir</button><button class="a-btn a-btn--ghost" type="button" data-act="share-store">${ico('share')}Partager</button><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('palette')}Personnaliser</button>`)}
+      ${pageHead('Boutique en ligne', H`${esc(subdomain())} · ${isPublished() ? 'En ligne' : 'Pas encore en ligne'}`, H`<button class="a-btn a-btn--ghost" type="button" data-act="view-store">${ico('eye')}Voir</button><button class="a-btn a-btn--ghost" type="button" data-act="share-store">${ico('share')}Partager</button><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('palette')}Personnaliser</button>`)}
       <div class="a-cols">
         <div class="a-stack">
           <section class="a-card" aria-labelledby="h-theme"><div class="a-card__head"><div><h2 class="a-card__title" id="h-theme">Thème</h2><p class="a-card__sub">Le modèle, les couleurs et les polices de votre boutique.</p></div></div>
@@ -3103,7 +3107,7 @@
       <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr(c.description))}</p>
         <div style="margin-top:14px">${c.fields.map((f) => connField(c, f, vals[f.key]))}</div>
         ${c.note ? H`<p class="a-small" style="margin-top:14px">${esc(fr(c.note))}</p>` : ''}
-        ${id === 'domain' ? H`<table class="a-dns"><thead><tr><th>Type</th><th>Nom</th><th>Valeur</th></tr></thead><tbody><tr><td>CNAME</td><td>www</td><td>${esc(D.DNS_TARGET || 'boutiques.jeere.shop')}</td></tr></tbody></table>` : ''}
+        ${id === 'domain' ? H`<table class="a-dns"><thead><tr><th>Type</th><th>Nom</th><th>Valeur</th></tr></thead><tbody><tr><td>A</td><td>@</td><td>${esc(D.DNS_APEX_A || '76.76.21.21')}</td></tr><tr><td>CNAME</td><td>www</td><td>${esc(D.DNS_TARGET || 'cname.vercel-dns.com')}</td></tr></tbody></table><p class="a-small" style="margin-top:8px"><a class="a-link" href="#parametres/domaine" data-close>Le pas à pas et la vérification : Paramètres › Domaine</a></p>` : ''}
         <div class="a-note a-note--line" style="margin-top:14px">${ico('info')}<p>Démo : aucune connexion réelle n’est faite. Vos réglages restent dans ce navigateur.</p></div></div>
       <div class="a-dialog__foot">${on ? H`<button class="a-btn a-btn--quiet a-btn--left" type="button" data-act="connector-off" data-id="${esc(id)}">Déconnecter</button>` : ''}
         <button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="submit">${on ? 'Enregistrer' : 'Connecter'}</button></div></form>`;
@@ -3229,42 +3233,30 @@
       </section>`;
   }
 
+  // « Domaine »: the free address, her own domain (DNS records, check, attach) and buying one: admin/domaines.js
   function setDomaine() {
-    const set = S.admin.settings;
-    const target = (D && D.DNS_TARGET) || 'boutiques.jeere.shop';
-    const suffix = (D && D.DOMAIN_SUFFIX) || '.jeere.shop';
-    const slug = subdomain().replace(suffix, '');
-    const chosen = S.admin.subdomainChosen === true;
-    return H`<section class="a-card" aria-labelledby="h-dfree"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dfree">Votre adresse Jeere <span class="a-chip">Gratuite</span></h3><p class="a-card__sub">Incluse dans toutes les formules, avec le cadenas de sécurité (https).</p></div></div>
-        <div class="a-domain">${ico('globe')}<span class="a-domain__name">${esc(subdomain())}</span>${chosen ? H`<span class="a-pill a-pill--check a-tone--ok">${ico('check')}Choisie</span>` : ''}</div>
-        <form class="a-form" data-form="subdomain" data-light novalidate style="margin-top:14px">
-          <div class="a-field"><label class="a-label" for="d-sub">Changer l’adresse</label><div class="a-affix"><input class="a-input" id="d-sub" name="sub" maxlength="40" value="${esc(slug)}" autocapitalize="off" spellcheck="false" autocomplete="off"><span class="a-affix__txt">${esc(suffix)}</span></div>
-            <p class="a-hint">Lettres sans accent, chiffres et tirets. Démo : nous ne vérifions pas si elle est libre.</p></div>
-          <div class="a-formfoot"><button class="a-btn ${chosen ? 'a-btn--ghost' : 'a-btn--primary'}" type="submit">${ico('check')}${chosen ? 'Enregistrer l’adresse' : 'Choisir cette adresse'}</button></div>
-        </form></section>
-      <section class="a-card" aria-labelledby="h-dcust"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dcust">Votre propre nom de domaine</h3><p class="a-card__sub">Par exemple awabeaute.ci, acheté chez un registraire.</p></div></div>
-        ${set.customDomain ? H`<div class="a-domain">${ico('link')}<span class="a-domain__name">${esc(set.customDomain)}</span><span class="a-pill a-pill--off a-tone--warn">${ico('clock')}À vérifier</span></div>
-          <div class="a-btnrow" style="margin-top:12px"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="domain-verify">${ico('refresh')}Vérifier maintenant</button><button class="a-btn a-btn--quiet a-btn--sm" type="button" data-act="domain-remove">${ico('trash')}Retirer ce domaine</button></div>`
-          : H`<form class="a-form" data-form="domain" data-light novalidate><div class="a-field"><label class="a-label" for="d-cust">Nom de domaine</label><input class="a-input" id="d-cust" name="domain" maxlength="120" placeholder="awabeaute.ci" autocapitalize="off" spellcheck="false" autocomplete="off"></div>
-            <div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">${ico('link')}Ajouter le domaine</button></div></form>`}
-        <div style="margin-top:16px"><p class="a-label">Réglage chez votre registraire</p>
-          <p class="a-small" style="margin-top:4px">Ajoutez cet enregistrement dans la zone DNS de votre domaine. La vérification peut prendre jusqu’à 48 h.</p>
-          <table class="a-dns"><thead><tr><th scope="col">Type</th><th scope="col">Nom</th><th scope="col">Valeur</th></tr></thead><tbody><tr><td>CNAME</td><td>www</td><td>${esc(target)}</td></tr></tbody></table>
-          <p class="a-small" style="margin-top:8px">Démo : aucun domaine n’est vérifié dans ce prototype.</p></div>
-      </section>`;
+    const M = window.JeereAdminDomains;
+    if (!M) return H`<section class="a-card"><p class="a-dialog__lead">Cette page n’a pas pu se charger : rechargez.</p></section>`;
+    const ctx = {
+      admin: () => S.admin, config: () => S.config, save: () => saveAdmin(), toast: (m, o) => toast(m, o),
+      storeName: () => storeName(), address: () => subdomain(), openPublish: () => openPublish(), confirm: (o) => confirmBox(o)
+    };
+    S.mounts.push(() => M.mount(ctx));
+    return M.html(ctx);
   }
   function saveSubdomainForm(form) {
     clearErrors(form);
-    const suffix = (D && D.DOMAIN_SUFFIX) || '.jeere.shop';
+    // (The address is now chosen in the « Publier » dialog, which checks it is free; kept for older drafts.)
     const s = slugify(form.elements.sub.value).slice(0, 40).replace(/-+$/, '');
     if (!s || s.length < 3) { invalid(form.elements.sub, 'Trois caractères au moins, par exemple awa-beaute.'); focusFirstError(form); return; }
-    S.admin.settings.subdomain = s + suffix;
+    const addr = D && D.storeAddress ? D.storeAddress(s) : 'jeere.kreeative.xyz/b/' + s;
+    S.admin.settings.subdomain = addr;
     S.admin.subdomainChosen = true;
     saveAdmin();
     clearDirty();
     refresh();
     focusMain();
-    toast('Adresse choisie : ' + s + suffix + '.');
+    toast('Adresse choisie : ' + addr + '.');
   }
   function saveDomainForm(form) {
     clearErrors(form);
@@ -4071,6 +4063,13 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncFromStorage(); });
     window.addEventListener('beforeunload', (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ''; } });
     window.addEventListener('beforeprint', onBeforePrint);
+    window.addEventListener('jeere:published', (e) => {
+      const d = e && e.detail;
+      if (!S.admin || !d || !d.slug || !D.storeAddress) return;
+      S.admin.settings.subdomain = D.storeAddress(d.slug);
+      S.admin.subdomainChosen = true;
+      saveAdmin();
+    });
     window.addEventListener('afterprint', clearSlip);
     const gd = $('#a-gate-demo');
     if (gd) gd.addEventListener('click', startDemo);

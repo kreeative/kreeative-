@@ -3355,12 +3355,80 @@
     tour: 'jeere-tour' // { version: 1, seen: { editor: iso, admin: iso } }: the guided tours already shown (tour.js)
   };
 
-  var DOMAIN_SUFFIX = '.jeere.shop';
-  var DNS_TARGET = 'boutiques.jeere.shop';
+  /* The free address of every store (README « Domaines »). Jeere does not own jeere.shop yet, so a
+   * store lives on a path of the free Jeere host: https://jeere.kreeative.xyz/b/<slug>. To move every
+   * store to <slug>.jeere.shop later, buy the domain, put its DNS on Vercel with a wildcard and set
+   * ADDRESS_MODE = 'subdomain': every screen follows (storeAddress), old addresses still parse (storeSlug). */
+  var PUBLIC_HOST = 'jeere.kreeative.xyz';
+  var STORE_PATH = '/b/';
+  var ADDRESS_MODE = 'path'; // 'path' (today) | 'subdomain' (once jeere.shop is Jeere's)
+  var SUBDOMAIN_SUFFIX = '.jeere.shop';
+  var STORE_PREFIX = ADDRESS_MODE === 'subdomain' ? '' : PUBLIC_HOST + STORE_PATH; // 'jeere.kreeative.xyz/b/'
+  var DOMAIN_SUFFIX = ADDRESS_MODE === 'subdomain' ? SUBDOMAIN_SUFFIX : '';
+  // A seller's own domain: the generic Vercel records (A for the apex, CNAME for www and subdomains)
+  var DNS_APEX_A = '76.76.21.21';
+  var DNS_TARGET = 'cname.vercel-dns.com';
 
-  // 'Awa Beauté' → 'awa-beaute.jeere.shop' (the free address of every store).
+  /* Store addresses (slugs): 3 to 40 characters, a–z 0–9 and hyphens, none first, last or doubled, and
+   * not one of Jeere's own words. The same rule is a CHECK on public.stores.slug (Supabase migration
+   * create_jeere_stores); keep STORE_SLUG_RESERVED in step with public.jeere_slug_reserved. */
+  var STORE_SLUG_MIN = 3, STORE_SLUG_MAX = 40;
+  var STORE_SLUG_RESERVED = [
+    'www', 'admin', 'api', 'app', 'apps', 'studio', 'creer', 'compte', 'abonnements', 'b', 's', 'p',
+    'anim', 'img', 'images', 'assets', 'static', 'cdn', 'media', 'files', 'concepts', 'supabase', 'vercel',
+    'jeere', 'kreeative', 'boutique', 'boutiques', 'shop', 'shops', 'store', 'stores', 'magasin',
+    'aide', 'help', 'support', 'contact', 'faq', 'blog', 'docs', 'doc', 'status', 'statut',
+    'login', 'logout', 'connexion', 'inscription', 'signup', 'signin', 'register', 'auth', 'oauth', 'callback',
+    'account', 'compte-pro', 'dashboard', 'tableau-de-bord', 'parametres', 'settings', 'profil', 'profile',
+    'panier', 'cart', 'paiement', 'checkout', 'payer', 'pay', 'commande', 'commandes', 'order', 'orders',
+    'produit', 'produits', 'product', 'products', 'pages', 'page', 'categorie', 'categories',
+    'tarifs', 'pricing', 'prix', 'domaine', 'domaines', 'domain', 'domains', 'abonnement', 'billing', 'facture',
+    'mail', 'email', 'smtp', 'imap', 'pop', 'ftp', 'ns', 'ns1', 'ns2', 'dns', 'mx', 'webmail', 'autoconfig',
+    'dev', 'test', 'tests', 'staging', 'preview', 'demo', 'beta', 'sandbox', 'local', 'localhost',
+    'root', 'null', 'undefined', 'index', 'new', 'nouveau', 'nouvelle', 'edit', 'modifier',
+    'legal', 'cgu', 'cgv', 'mentions-legales', 'confidentialite', 'privacy', 'terms', 'conditions',
+    'robots', 'sitemap', 'favicon', 'well-known', 'functions', 'rest', 'storage', 'realtime', 'graphql',
+    'webhook', 'webhooks', 'wave', 'orange', 'mtn', 'moov', 'whatsapp'
+  ];
+  // '' when the address is fine, else what is wrong with it: 'empty' | 'short' | 'long' | 'chars' |
+  // 'hyphen' (first, last or doubled) | 'reserved'
+  function checkStoreSlug(raw) {
+    var s = str(raw, '');
+    if (!s) return 'empty';
+    if (STORE_SLUG_RESERVED.indexOf(s) !== -1) return 'reserved';
+    if (!/^[a-z0-9-]+$/.test(s)) return 'chars';
+    if (s.length < STORE_SLUG_MIN) return 'short';
+    if (s.length > STORE_SLUG_MAX) return 'long';
+    if (/^-|-$|--/.test(s)) return 'hyphen';
+    return '';
+  }
+  // 'Awa Beauté' → 'awa-beaute'; always a valid address ('ab' → 'ab-boutique', 'admin' → 'admin-boutique').
+  function storeSlugFor(name) {
+    var s = slugify(name).slice(0, STORE_SLUG_MAX).replace(/-+$/g, '') || 'ma-boutique';
+    if (checkStoreSlug(s)) s = (s.slice(0, STORE_SLUG_MAX - 9).replace(/-+$/g, '') + '-boutique').replace(/^-+/, '');
+    return checkStoreSlug(s) ? 'ma-boutique' : s;
+  }
+  // 'awa-beaute' → 'jeere.kreeative.xyz/b/awa-beaute' (shown without https://)
+  function storeAddress(slug) {
+    var s = str(slug, '') || 'ma-boutique';
+    return ADDRESS_MODE === 'subdomain' ? s + SUBDOMAIN_SUFFIX : PUBLIC_HOST + STORE_PATH + s;
+  }
+  function storeUrl(slug) { return 'https://' + storeAddress(slug); }
+  // Any address a store ever had → its slug: 'https://jeere.kreeative.xyz/b/awa-beaute', 'awa-beaute.jeere.shop'
+  // (saved before November 2026) or 'awa-beaute' → 'awa-beaute'. '' when nothing is left.
+  function storeSlug(addr) {
+    var s = str(addr, '').trim().toLowerCase().replace(/^https?:\/\//, '');
+    var pre = (PUBLIC_HOST + STORE_PATH).toLowerCase();
+    if (s.indexOf(pre) === 0) s = s.slice(pre.length);
+    s = s.replace(/[/?#].*$/, '').replace(/\.jeere\.shop$/, '');
+    if (SUBDOMAIN_SUFFIX && s.slice(-SUBDOMAIN_SUFFIX.length) === SUBDOMAIN_SUFFIX) s = s.slice(0, -SUBDOMAIN_SUFFIX.length);
+    return slugify(s).slice(0, STORE_SLUG_MAX).replace(/-+$/g, '');
+  }
+
+  // 'Awa Beauté' → 'jeere.kreeative.xyz/b/awa-beaute' (the free address of every store; the name is
+  // historical: it gives <slug>.jeere.shop once ADDRESS_MODE is 'subdomain').
   function subdomainFor(name) {
-    return (slugify(name).slice(0, 40).replace(/-+$/g, '') || 'ma-boutique') + DOMAIN_SUFFIX;
+    return storeAddress(storeSlugFor(name));
   }
 
   /* ------------------------------------------------------------------ plans
@@ -3538,9 +3606,9 @@
     },
     {
       id: 'domain', category: 'domaine', name: 'Nom de domaine', icon: 'globe',
-      description: 'Utilisez votre propre adresse, par exemple awabeaute.ci, à la place de votre adresse en .jeere.shop.',
+      description: 'Utilisez votre propre adresse, par exemple awabeaute.ci, à la place de votre adresse ' + PUBLIC_HOST + STORE_PATH + '….',
       fields: [{ key: 'domain', label: 'Votre nom de domaine', type: 'text', placeholder: 'awabeaute.ci' }],
-      note: 'Chez votre registraire, ajoutez un enregistrement CNAME pour www vers ' + DNS_TARGET + '. La vérification peut prendre jusqu’à 48 h.'
+      note: 'Chez votre registraire, ajoutez un enregistrement A pour @ vers ' + DNS_APEX_A + ' et un CNAME pour www vers ' + DNS_TARGET + '. La vérification peut prendre jusqu’à 48 h.'
     },
     {
       id: 'assistant', category: 'ia', name: 'Assistant Jeere', icon: 'sparkle', soon: true,
@@ -3640,10 +3708,10 @@
       if (!name && !phone) return;
       team.push({ name: name, phone: phone, role: idIn(TEAM_ROLES, m.role) ? m.role : 'gestion' });
     });
-    var sub = slugify(str(s.subdomain, '').replace(/\.jeere\.shop$/i, ''));
+    var sub = storeSlug(s.subdomain);
     return {
       language: s.language === 'en' ? 'en' : 'fr',
-      subdomain: sub ? sub + DOMAIN_SUFFIX : subdomainFor(store.name),
+      subdomain: sub && !checkStoreSlug(sub) ? storeAddress(sub) : subdomainFor(store.name),
       customDomain: clampStr(s.customDomain, 120).toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, ''),
       payoutPhone: normalizeWhatsapp(str(s.payoutPhone, '')),
       payoutMethod: OPERATOR_OPTIONS.some(function (o) { return o.value === s.payoutMethod; }) ? s.payoutMethod : d.payoutMethod,
@@ -3986,6 +4054,19 @@
     STORAGE_KEYS: STORAGE_KEYS,
     DOMAIN_SUFFIX: DOMAIN_SUFFIX,
     DNS_TARGET: DNS_TARGET,
+    DNS_APEX_A: DNS_APEX_A,
+    PUBLIC_HOST: PUBLIC_HOST,
+    STORE_PATH: STORE_PATH,
+    STORE_PREFIX: STORE_PREFIX,
+    ADDRESS_MODE: ADDRESS_MODE,
+    STORE_SLUG_MIN: STORE_SLUG_MIN,
+    STORE_SLUG_MAX: STORE_SLUG_MAX,
+    STORE_SLUG_RESERVED: STORE_SLUG_RESERVED,
+    checkStoreSlug: checkStoreSlug,
+    storeSlugFor: storeSlugFor,
+    storeAddress: storeAddress,
+    storeUrl: storeUrl,
+    storeSlug: storeSlug,
     subdomainFor: subdomainFor,
     PLANS: PLANS,
     PLAN_FEATURES: PLAN_FEATURES,

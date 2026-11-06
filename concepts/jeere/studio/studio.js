@@ -165,13 +165,18 @@
   /* the store's public address as the Studio shows it (référencement, pages): the store's NAME through
    * JEERE_DATA.subdomainFor (it used to receive the whole fiche: « object-object.jeere.shop »). One
    * helper, so the address can move (jeere.kreeative.xyz/b/<slug>) in one place. */
+  /* the store's public address: the one chosen when publishing (the dashboard's settings), else the one its name
+   * gives — « jeere.kreeative.xyz/b/<adresse> » (creer/data.js, storeAddress) */
   function storeAddress(path) {
     var name = (state.config && state.config.store && state.config.store.name) || '';
-    var base = 'ma-boutique.jeere.shop';
+    var base = '';
     try {
-      if (typeof D.storeAddress === 'function') base = D.storeAddress(state.config) || base;
-      else if (typeof D.subdomainFor === 'function') base = D.subdomainFor(name) || base;
+      var adm = JSON.parse(localStorage.getItem((D.STORAGE_KEYS && D.STORAGE_KEYS.admin) || 'jeere-admin') || 'null');
+      var chosen = adm && adm.settings && adm.settings.subdomain;
+      if (chosen && typeof D.storeSlug === 'function' && typeof D.storeAddress === 'function') base = D.storeAddress(D.storeSlug(chosen));
+      if (!base && typeof D.subdomainFor === 'function') base = D.subdomainFor(name);
     } catch (e) { /* the default */ }
+    if (!base) base = 'jeere.kreeative.xyz/b/ma-boutique';
     return String(base).replace(/^https?:\/\//, '').replace(/\/$/, '') + (path || '');
   }
 
@@ -3833,7 +3838,7 @@
     if (titleEl) titleEl.textContent = publish ? 'Publier la boutique' : 'Partager la fiche';
     var v = null;
     try { v = D.validate(D.normalizeConfig(state.config)); } catch (e) { v = null; }
-    var sub = 'ma-boutique.jeere.shop';
+    var sub = 'jeere.kreeative.xyz/b/ma-boutique';
     try { if (D.subdomainFor && state.config.store) sub = D.subdomainFor(state.config.store.name); } catch (e) { /* default */ }
     var html = '';
     if (publish) {
@@ -3854,9 +3859,20 @@
     } else {
       html += '<p>La fiche boutique est un simple fichier JSON : exportez-la, partagez-la, ou ouvrez-la dans l’éditeur simple — c’est la même fiche, dans les deux sens.</p>';
     }
-    html += '<div class="st-share__addr"><code>' + esc(sub) + '</code><span style="color:var(--st-ink-dim);font-size:11px">votre adresse Jeere</span></div>';
-    html += '<p class="st-modal__note">Prototype : l’enregistrement est local à ce navigateur. La publication en un clic, le domaine et les connecteurs s’activent à l’ouverture du backend.</p>';
+    // Publier: the real publication (../creer/publish.js) replaces the prototype's text, the score stays
+    var livePublish = publish && window.JeerePublish;
+    if (livePublish) {
+      html = v ? '<div class="st-share__score"><span class="st-pill ' + (v.status === 'APPROUVÉ' ? 'st-pill--ok' : 'st-pill--err') + '">' + esc(v.status || '') + '</span><span>Qualité : <b>' + esc(String(v.score != null ? v.score : '—')) + ' / 100</b></span></div>' : '';
+    } else {
+      html += '<div class="st-share__addr"><code>' + esc(sub) + '</code><span style="color:var(--st-ink-dim);font-size:11px">votre adresse Jeere</span></div>';
+      html += '<p class="st-modal__note">Prototype : l’enregistrement est local à ce navigateur. La publication en un clic, le domaine et les connecteurs s’activent à l’ouverture du backend.</p>';
+    }
     body.innerHTML = html;
+    if (livePublish) {
+      var pub = ce('div', 'st-publish');
+      body.appendChild(pub);
+      window.JeerePublish.mount(pub, { getConfig: function () { return state.config; }, theme: 'dark', showScore: false, onPublished: function () { toast('Boutique en ligne !', 'ok'); } });
+    }
     var row = ce('div', 'st-share__row');
     var dl = ce('button', 'st-primary', 'Télécharger le JSON');
     dl.type = 'button';

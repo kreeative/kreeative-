@@ -65,7 +65,9 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | `jcolor.js`, `jcolor.css` | The colour picker of the Studio and of the editor (never a native `<input type="color">`): HSV square, hue, alpha, Hex / RGB / HSL, pipette, palette and recent chips, a « Dégradé » tab; popover or inline, dark or light, mouse or finger. | `window.JeereColor` |
 | `quickstyle.js` | The editor's quick-style bottom sheet: a tap on a button, a title, a text, an image or an icon of the phone preview (see [Element styles](#element-styles-elementstyles)). | `window.JeereQuickStyle` |
 | `img/demo/` | The demo photos of the example stores (WebP), with `CREDITS.md`: see [Demo photos](#demo-photos). 69 photos from Unsplash: 8 per niche (6 products, the hero, the about section) and 5 in `landing/` for the mock-ups of the landing page. | — |
-| `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (prototype: nothing is published). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
+| `index.html`, `builder.css`, `editor.js` | The start screen and the editor: tabs Sections, Produits, Thème, Boutique, Qualité; the page selector; device toggle; undo/redo; autosave to `localStorage` (`jeere-studio-config`); the « Fiche boutique » modal (copy, download, import); the « Publier » dialog (the real publication of `publish.js`, under the quality score). `index.html` holds the logo's SVG symbols. | `window.JeereBuilder` |
+| `publish.js`, `publish.css` | Publishing for real: the address rules and its live check (`rpc/slug_available`), the Supabase session, publish / update / unpublish (`public.stores`), the live link with copy and WhatsApp share, and the public read of a published fiche. One panel, mounted in the editor's, the Studio's and the dashboard's « Publier ». See `../README.md`, « Domaines ». | `window.JeerePublish` |
+| `domains.js` | A seller's own domain: validation, the DNS records to add, registrar guides, the DNS-over-HTTPS check, the resale prices in FCFA, the `domains` Edge Function client, domain search. Loaded by the dashboard and the checkout. | `window.JeereDomains` |
 | `tour.js`, `tour.css` | The guided tour shared by the editor and the dashboard: a spotlight on one area, a short bubble with the cloud as the guide, « Suivant » / « Retour » / « Passer », « 2/8 ». See [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas). Styles scoped under `.jt`. | `window.JeereTour` |
 | `fontfile.js`, `brotli-dict.bin` | Reads a font file the seller imports (« Mes polices »): its family name, weight and style from the `name`, `OS/2`, `head`, `fvar` tables, its letters from `cmap`; TTF, OTF, WOFF (zlib through `DecompressionStream`) and WOFF2 (its own Brotli decoder, RFC 7932; `brotli-dict.bin` is Brotli's static dictionary, RFC 7932 Appendix A, 122 784 bytes, MIT, fetched only for a WOFF2 that uses it); packs a TTF / OTF as WOFF (`toWoff`, `CompressionStream`). Pure, no DOM, loads in Node. Editor only. See [Her own fonts](#her-own-fonts-mes-polices-themecustomfonts). | `window.JeereFontFile` |
 | `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jeere assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
@@ -538,9 +540,9 @@ JeereRender.render(config, rootEl, { device, page: 'page', pageId: 'pg3' });
   is edited in the dashboard, not in the editor. **In the dashboard**: `#pages` lists, adds, edits
   (title, slug auto-filled and editable, body with a counter, menu, footer), reorders and deletes
   them; `#boutique` › « Navigation » toggles `inMenu` / `inFooter`.
-- **Address**: a page is shown everywhere as `<store>.jeere.shop/pages/<slug>` (the dashboard's
+- **Address**: a page is shown everywhere as `jeere.kreeative.xyz/b/<store>/pages/<slug>` (the dashboard's
   address field, the editor's desktop frame and its « Vos pages » rows), like Shopify's
-  `/pages/…`. `<store>.jeere.shop` follows the store's name until the seller confirms an address
+  `/pages/…`. `jeere.kreeative.xyz/b/<store>` follows the store's name until the seller publishes at an address
   or adds her own domain in the dashboard (Paramètres › Domaine); the editor's frame then shows
   that one (it reads `'jeere-admin'`, never writes it).
 
@@ -1322,7 +1324,7 @@ is there for tests.
 | `#paiements` | « Encaissement » first (a strong note and « Connecter le paiement mobile money » when Wave / Orange Money / MTN MoMo are on but cannot be collected; each « À connecter » chip opens it), the 6 methods on or off (`fiche.payments`), « Argent chez les livreurs » (cash-on-delivery orders on the road, « Reçu du livreur »), the plan's Jeere fee per sale and the partner's fee (« par exemple 1,95 % pour le mobile money »), how fees are taken (by the partner at payout; nothing on cash on delivery: to confirm with the founder), « Versements » (each online sale and what is paid out after the fees), « Jeere ne garde jamais votre argent » |
 | `#livraison` | Delivery zones and fees (the delivery section's `settings.zones`, a delivery section is created if there is none), delays, couriers (« Mes livreurs », Yango, Gozem) |
 | `#connecteurs` | The connectors catalogue (below): category chips that jump to each group, « Pour bien démarrer » (mobile money, WhatsApp, Mes livreurs) first, compact rows for the rest on the phone; « Démo : aucune connexion réelle n'est faite. » |
-| `#parametres` | A hub: Paiements, Livraison, Connecteurs (their own pages), then Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`<slug>.jeere.shop`, a custom domain with DNS instructions, « À vérifier »), Équipe (invite by name, phone and role; the signed-in seller cannot remove herself), Abonnement (the 4 plans, change, what happens at the order limit, mois/semaine for paid plans, « Mettre en pause », « Payer par mobile money »: a demo dialog), Studio avancé (`#parametres/studio`: the Studio subscription — plan, renewal, cancel / resume, a move down, seats, demo invoices; see `../studio/README.md`, « Abonnements Studio »), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
+| `#parametres` | A hub: Paiements, Livraison, Connecteurs (their own pages), then Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`admin/domaines.js`: the free address `jeere.kreeative.xyz/b/<slug>` and « Publier », her own domain with the exact DNS records, guides per registrar and a real DNS check, and « Acheter un nom de domaine »: see `../README.md`, « Domaines »), Équipe (invite by name, phone and role; the signed-in seller cannot remove herself), Abonnement (the 4 plans, change, what happens at the order limit, mois/semaine for paid plans, « Mettre en pause », « Payer par mobile money »: a demo dialog), Studio avancé (`#parametres/studio`: the Studio subscription — plan, renewal, cancel / resume, a move down, seats, demo invoices; see `../studio/README.md`, « Abonnements Studio »), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
 
 Every phone number typed in the dashboard (WhatsApp, payout, team, couriers, a new order, payment) follows the
 account page's rule: `+` and 8 to 15 digits, and exactly 10 digits after +225. « ? Aide » (top bar) and « Aide · une
@@ -1348,14 +1350,17 @@ JEERE_DATA.ADMIN_DEFAULTS = {            // the settings; subdomain '' = fill wi
   team: [],                              // { name, phone, role: 'proprietaire' | 'gestion' | 'livraison' }
   billing: { cycle: 'mois', paused: false }  // or 'semaine'
 };
-JEERE_DATA.subdomainFor('Awa Beauté');  // 'awa-beaute.jeere.shop'
+JEERE_DATA.subdomainFor('Awa Beauté');  // 'jeere.kreeative.xyz/b/awa-beaute' (storeAddress(storeSlugFor(name)))
 JEERE_DATA.adminDefaults(config, account, now);   // a fresh 'jeere-admin': settings (subdomain, payout
                                                   // number, the owner in the team), {} connectors, 14 demo orders
 JEERE_DATA.normalizeAdmin(saved, config, now);    // repairs any saved value; keeps unknown keys (stock…)
 ```
 
 `TEAM_ROLES` gives the three roles with a French hint, `OPERATOR_OPTIONS` the four payout
-operators (plain text), `DNS_TARGET` the CNAME target (`boutiques.jeere.shop`, a placeholder).
+operators (plain text), `DNS_APEX_A` (`76.76.21.21`) and `DNS_TARGET` (`cname.vercel-dns.com`), the generic Vercel
+records of a seller's own domain. The store address: `PUBLIC_HOST`, `STORE_PATH`, `ADDRESS_MODE` (`'path'` today,
+`'subdomain'` once jeere.shop is Jeere's), `storeAddress(slug)`, `storeUrl(slug)`, `storeSlug(any old address)`,
+`storeSlugFor(name)`, `checkStoreSlug(slug)` and `STORE_SLUG_RESERVED` (the same list as the database).
 `ADMIN_DEFAULTS` is shared: clone it before changing it.
 
 ## Connectors
@@ -1386,7 +1391,7 @@ JEERE_DATA.CONNECTORS = [{ id, category, name, description, icon, fields: [{ key
 | Mesure d'audience | `google-analytics` | Google Analytics | measurement id |
 | | `meta-pixel` | Pixel Meta | pixel id |
 | | `tiktok-pixel` | Pixel TikTok | pixel id |
-| Nom de domaine | `domain` | Nom de domaine | domain (CNAME `www` → `boutiques.jeere.shop`) |
+| Nom de domaine | `domain` | Nom de domaine | domain (A `@` → `76.76.21.21`, CNAME `www` → `cname.vercel-dns.com`; the whole flow is Paramètres › Domaine) |
 | Intelligence artificielle | `assistant` | Assistant Jeere (writes descriptions, answers customers on WhatsApp) | none: `soon: true`, « Bientôt » |
 
 Every connector has a one-sentence French `description`; `note` carries the honest small print
@@ -1459,6 +1464,7 @@ throws still works for the session.
 | `jeere-admin` | `{ version: 1, orders, settings, connectors, stock? }`, created from `ADMIN_DEFAULTS` and `demoOrders(config)` | dashboard | dashboard (`normalizeAdmin`) |
 | `jeere-studio-open` | One-shot `{ page, pageId?, productId?, view? }`: the editor opens directly on that page, then deletes the key. `page` is `'home'`, `'product'` (with `productId`) or `'page'` (with `pageId`); the optional `view` (`'preview'` or `'edit'`) says what to show first: the dashboard sends `'preview'` for « Voir la boutique » / « Voir dans la boutique » (a phone opens on the preview; a computer shows the storefront alone, without the panel, until « Modifier la boutique ») | dashboard | editor |
 | `jeere-tour` | `{ version: 1, seen: { editor?: iso date, admin?: iso date } }`: the guided tours already shown in this browser (`JeereTour.seen(id)`), written when a tour first shows, so it starts by itself only once | `tour.js` (editor, dashboard) | `tour.js` |
+| `jeere-publish` | `{ version: 1, slug, storeId, ownerId, published, publishedAt, hash }`: the store this browser published (`publish.js`); `hash` tells « your last changes are not online yet ». `jeere-admin` also gets `domain` (`{ status, checkedAt, records }`) and `domainOrders` (demo domain purchases) | `publish.js` (editor, Studio, dashboard), the checkout (`domainOrders`) | the same, the dashboard |
 
 What each app adds around these keys:
 
@@ -1588,9 +1594,10 @@ boutique ».
   by code, the self-improvement loop (Supabase nightly job, no retraining), the TypeScript Edge
   Function with the Anthropic SDK (`claude-haiku-5-5` by default), and a cost estimate (about
   $0.007 per generated store with Claude Haiku 5.5).
-- **Nothing is published and nothing leaves the browser.** « Publier » opens a dialog that
-  explains this and points to the waitlist (`../#liste`). The work is saved in `localStorage` on
-  this device only.
+- **Publishing is real, once the seller is signed in to Supabase.** « Publier » writes the fiche to
+  `public.stores` and the store is online at `https://jeere.kreeative.xyz/b/<adresse>` (`../b/`). Until the
+  account page signs sellers in with Supabase Auth, the dialog says the store is saved in this browser only;
+  the editor still autosaves to `localStorage` on this device. See `../README.md`, « Domaines ».
 - **The account is a demo.** No SMS or WhatsApp message is sent and any 6-digit code is
   accepted (the screen says so); the account is a `localStorage` entry on this device, not a
   login anyone could use elsewhere.
@@ -1598,7 +1605,8 @@ boutique ».
   fiche (labelled « Données d'exemple »); changing a status only changes this browser's copy.
   Its WhatsApp buttons open `wa.me` links to made-up numbers. **Connectors connect nothing**
   (« Démo : aucune connexion réelle n'est faite. »); the custom domain is never verified;
-  changing plan and « Payer par mobile money » open a demo dialog and charge nobody. What the
+  changing plan and « Payer par mobile money » open a demo dialog and charge nobody. The custom domain's DNS check
+  is real (dns.google); attaching it needs the Vercel token on the server, and buying a domain is a demo checkout. What the
   dashboard writes to the fiche (products, pages, payments, delivery zones, store preferences)
   is real fiche data: the editor shows it.
 - **The cart, the checkout and the confirmation are a demo inside the preview.** The cart is held
@@ -1773,8 +1781,8 @@ value).
 3. Start the « il se nourrit lui-même » loop: anonymised kept stores (opt-in), the nightly job that
    updates the defaults library (template, palette and intensity per niche), the few-shot examples
    and the keyword lists.
-4. A real public store page that renders a saved fiche with `render.js` at its own address, with
-   its five pages at real URLs.
+4. ~~A real public store page~~: done (`../b/`, `jeere.kreeative.xyz/b/<adresse>`, pages in the hash). Next: render
+   the meta tags on a server so WhatsApp and Facebook previews show the store.
 5. « Partir de zéro », then real orders: the checkout creates the order and sends it on WhatsApp,
    delivery by commune, and mobile-money payments through a payment partner approved by the BCEAO.
 

@@ -1,0 +1,46 @@
+/* Jeere — « Paramètres › Domaine » (domaines.js). Built on admin.css (tokens, cards, buttons, pills). */
+.dm-steps { margin: 16px 0 0; padding: 0 0 0 22px; display: grid; gap: 18px; }
+.dm-steps > li::marker { font-weight: 600; }
+.dm-recs { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.dm-rec { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--white); min-width: 0; }
+.dm-rec__grid { display: grid; grid-template-columns: 4.5em 6em minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; }
+.dm-k { display: block; font-size: 11.5px; color: var(--muted); letter-spacing: .02em; }
+.dm-v { display: block; font-family: var(--a-mono, ui-monospace, monospace); font-size: 14px; overflow-wrap: anywhere; }
+.dm-rec__val .dm-v { font-weight: 500; }
+.dm-copy { min-height: 44px; }
+.dm-rec__foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 6px; }
+.dm-ok, .dm-ko { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 500; }
+.dm-ok { color: var(--ok-ink); }
+.dm-ko { color: var(--err-ink); }
+.dm-ok .a-ico, .dm-ko .a-ico { width: 16px; height: 16px; }
+.dm-code { font-family: var(--a-mono, ui-monospace, monospace); background: var(--grey-1); border-radius: 6px; padding: 1px 6px; overflow-wrap: anywhere; }
+.dm-guide { border: 1px solid var(--line); border-radius: 12px; margin-top: 8px; background: var(--white); }
+.dm-guide > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 14px; cursor: pointer; font-weight: 500; }
+.dm-guide > summary::-webkit-details-marker { display: none; }
+.dm-guide > summary .a-ico { width: 18px; height: 18px; transition: transform .15s ease; }
+.dm-guide[open] > summary .a-ico { transform: rotate(180deg); }
+.dm-guide ol, .dm-guide ul { margin: 0; padding: 0 16px 14px 34px; display: grid; gap: 6px; font-size: 14px; line-height: 1.5; }
+.dm-why { margin-top: 14px; }
+.dm-search { display: flex; gap: 8px; flex-wrap: wrap; }
+.dm-search .a-input { flex: 1 1 12em; min-width: 0; }
+.dm-results { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.dm-res { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.dm-res__main { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.dm-res__name { font-weight: 500; overflow-wrap: anywhere; }
+.dm-res__price { display: grid; text-align: right; }
+.dm-res__price b { font-weight: 600; white-space: nowrap; }
+.dm-res__note { max-width: 22em; }
+.dm-orders ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.dm-orders li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 10px 12px; background: var(--grey-1); border-radius: 12px; }
+@media (max-width: 640px) {
+  .dm-rec__grid { grid-template-columns: 1fr 1fr; }
+  .dm-rec__val { grid-column: 1 / -1; }
+  .dm-copy { grid-column: 1 / -1; width: 100%; }
+  .dm-res { grid-template-columns: minmax(0, 1fr); }
+  .dm-res__price { text-align: left; }
+  .dm-res .a-btn { width: 100%; }
+  .dm-steps { padding-left: 18px; }
+  .dm-search .a-btn { flex: 1 1 100%; }
+}
+#a-dm .a-domain { flex-wrap: wrap; }
+#a-dm .a-domain__name { flex: 1 1 12em; }

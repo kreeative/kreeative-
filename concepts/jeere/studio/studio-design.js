@@ -2569,9 +2569,9 @@
       // référencement
       var gr = group('seo', t);
       seoRows(gr.body, null);
-      var sub = 'ma-boutique.jeere.shop';
+      var sub = 'jeere.kreeative.xyz/b/ma-boutique';
       try { sub = S.storeAddress ? S.storeAddress() : (typeof D.subdomainFor === 'function' ? D.subdomainFor((cfg().store || {}).name) || sub : sub); } catch (e) { /* default */ }
-      gr.body.appendChild(row('Adresse', [ce('span', 'dz-note', esc(String(sub).indexOf('.') === -1 ? sub + '.jeere.shop' : sub))]));
+      gr.body.appendChild(row('Adresse', [ce('span', 'dz-note', esc(sub))]));
       frag.appendChild(gr);
       // stats
       var gst = group('stats', t);

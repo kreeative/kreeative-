@@ -325,6 +325,132 @@
     }
   }
 
+  /* ---------------------------------------------------------------- a domain name (product type « domain »)
+   * ?domaine=awabeaute.com#domaine (from the dashboard's « Acheter »): the domain, its price for a year and
+   * at renewal (JeereDomains, computed here, never read from the URL), whose name it is registered in, the
+   * payment through JeereBilling.startProductCheckout (demo provider today), then an honest confirmation.
+   * The order is kept in 'jeere-admin'.domainOrders; the real purchase is a server call by the team. */
+  var dk = null; // { step, domain, tld, price, holder, email, method, phone, error, result }
+  function domainOffer(d) {
+    var J = window.JeereDomains;
+    if (!J) return null;
+    var v = J.validate(d);
+    if (!v.ok || v.kind !== 'apex') return null;
+    var tld = v.domain.slice(v.domain.indexOf('.') + 1);
+    var pr = J.price(tld);
+    return pr ? { domain: v.domain, tld: tld, price: pr } : null;
+  }
+  function openDomainCheckout(d) {
+    var offer = domainOffer(d);
+    var s = P.state();
+    dk = { step: offer ? 'dom' : 'bad', domain: offer ? offer.domain : String(d || ''), tld: offer && offer.tld, price: offer && offer.price,
+      holder: s.account && s.account.firstName ? s.account.firstName : '', email: '', method: 'wave', phone: s.account ? fmtPhone(s.account.phone) : '', error: '', result: null };
+    if (offer && !s.signedIn) dk.step = 'account';
+    renderDk();
+    var dl = dlg();
+    if (!dl.open) { try { dl.showModal(); } catch (e) { dl.setAttribute('open', ''); } }
+    doc.documentElement.classList.add('ab-locked');
+    focusCk();
+  }
+  function dkHead(title) {
+    return '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">' + esc(title) + '</h2><button class="ab-x" type="button" data-dk="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
+      '<p class="ab-ribbon">' + ico('info') + '<span><b>Mode démo</b> · aucun prélèvement réel, aucun domaine n’est acheté.</span></p>';
+  }
+  function dkSum() {
+    var promo = dk.price.renew > dk.price.buy;
+    return '<dl class="ab-sum"><div><dt>Domaine</dt><dd>' + esc(dk.domain) + '</dd></div>' +
+      '<div><dt>Première année</dt><dd>' + esc(P.fcfa(dk.price.buy)) + '</dd></div>' +
+      '<div><dt>Puis, chaque année</dt><dd>' + esc(P.fcfa(dk.price.renew)) + (promo ? ' (prix normal de l’extension)' : '') + '</dd></div>' +
+      '<div class="ab-sum__due"><dt>À payer aujourd’hui</dt><dd>' + esc(P.fcfa(dk.price.buy)) + '</dd></div></dl>';
+  }
+  function renderDk() {
+    var card = $('ab-checkout-card');
+    var h = '';
+    if (dk.step === 'bad') {
+      h += dkHead('Ce domaine ne peut pas être acheté ici');
+      h += '<p class="ab-p">' + esc((dk.domain ? '« ' + dk.domain + ' »' + NB + ': ' : '') + 'choisissez un nom sans « www », dans une extension proposée par Jeere (.com, .shop, .store, .online, .net, .co, .site, .boutique). Le .ci se commande sur demande.') + '</p>' +
+        '<div class="ab-dlg__foot"><a class="btn ab-btn ab-btn--primary" data-autofocus href="../admin/#parametres/domaine">Chercher un autre nom</a></div>';
+    } else if (dk.step === 'account') {
+      var back = encodeURIComponent('abonnements') + '&domaine=' + encodeURIComponent(dk.domain);
+      h += '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">Votre compte Jeere d’abord</h2><button class="ab-x" type="button" data-dk="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
+        '<p class="ab-p">Le domaine ' + esc(dk.domain) + ' sera relié à votre boutique' + NB + ': connectez-vous d’abord (compte gratuit, avec votre numéro WhatsApp).</p>' +
+        '<div class="ab-dlg__foot ab-dlg__foot--col"><a class="btn ab-btn ab-btn--primary" data-autofocus href="../compte/?suite=' + back + '#connexion">Se connecter</a><a class="btn ab-btn ab-btn--ghost" href="../compte/?suite=' + back + '#inscription">Créer mon compte</a></div>';
+    } else if (dk.step === 'dom') {
+      h += dkHead('Votre nom de domaine');
+      h += dkSum();
+      h += '<p class="ab-p">Le domaine est enregistré <b>à votre nom</b>' + NB + ': il est à vous, vous pouvez le garder ou le transférer. Jeere l’achète, le relie à votre boutique (cadenas https compris) et vous prévient sur WhatsApp avant chaque renouvellement.</p>';
+      h += '<div class="ab-field"><label for="dk-holder">Nom et prénom du titulaire</label><input id="dk-holder" autocomplete="name" value="' + esc(dk.holder) + '"' + (dk.error && !dk.holder.trim() ? ' aria-invalid="true" aria-describedby="dk-err"' : '') + ' data-autofocus></div>' +
+        '<div class="ab-field"><label for="dk-email">E-mail du titulaire</label><input id="dk-email" type="email" inputmode="email" autocomplete="email" value="' + esc(dk.email) + '" placeholder="awa@exemple.com" aria-describedby="dk-email-h"' + (dk.error && !/^\S+@\S+\.\S+$/.test(dk.email) ? ' aria-invalid="true"' : '') + '><p class="ab-hint" id="dk-email-h">Les registres de noms de domaine l’exigent' + NB + ': ils y envoient les avis importants.</p></div>';
+      if (dk.error) h += '<p class="ab-err" id="dk-err" role="alert">' + esc(dk.error) + '</p>';
+      h += '<div class="ab-dlg__foot"><a class="btn ab-btn ab-btn--ghost" href="../admin/#parametres/domaine">Retour</a><button class="btn ab-btn ab-btn--primary" type="button" data-dk="next">Continuer</button></div>';
+    } else if (dk.step === 'pay') {
+      h += dkHead('Paiement');
+      h += '<fieldset class="ab-methods"><legend class="ab-legend">Moyen de paiement</legend>' + B.METHODS.map(function (x) {
+        return '<label class="ab-method"><input type="radio" name="dk-method" value="' + esc(x.id) + '"' + (dk.method === x.id ? ' checked' : '') + '>' + ico(x.kind === 'card' ? 'card' : 'phone') + '<span>' + esc(x.name) + '</span></label>';
+      }).join('') + '</fieldset>';
+      var m = B.methodById(dk.method) || B.METHODS[0];
+      if (m.kind === 'mobile') h += '<div class="ab-field"><label for="dk-phone">Numéro ' + esc(m.name) + ' qui paie</label><input id="dk-phone" type="tel" inputmode="tel" autocomplete="tel" value="' + esc(dk.phone) + '" placeholder="07 07 12 34 56"' + (dk.error ? ' aria-invalid="true" aria-describedby="dk-err"' : '') + '><p class="ab-hint">' + esc(m.hint) + '</p></div>';
+      else h += '<p class="ab-p ab-card">' + ico('card') + '<span>' + esc(m.hint) + ' Jeere ne voit jamais votre numéro de carte.</span></p>';
+      if (dk.error) h += '<p class="ab-err" id="dk-err" role="alert">' + esc(dk.error) + '</p>';
+      h += dkSum();
+      h += '<div class="ab-dlg__foot"><button class="btn ab-btn ab-btn--ghost" type="button" data-dk="back">' + ico('back') + 'Retour</button><button class="btn ab-btn ab-btn--primary" type="button" data-dk="pay" data-autofocus>Payer ' + esc(P.fcfa(dk.price.buy)) + '</button></div>';
+    } else if (dk.step === 'processing') {
+      h += dkHead('Paiement en cours…');
+      h += '<div class="ab-wait" role="status"><span class="ab-spin" aria-hidden="true"></span><p>Demande de ' + esc(P.fcfa(dk.price.buy)) + ' envoyée. Validez-la avec votre code secret, que vous ne donnez jamais à personne.</p><p class="ab-hint">Démo' + NB + ': validé automatiquement, rien n’est prélevé.</p></div>';
+    } else if (dk.step === 'done') {
+      h += dkHead('Commande enregistrée');
+      h += '<div class="ab-done"><span class="ab-done__ico">' + ico('check') + '</span><p class="ab-p"><b>' + esc(dk.domain) + '</b>' + NB + ': votre commande est notée' + (dk.result && dk.result.demo ? ' (démo' + NB + ': rien n’a été prélevé et aucun domaine n’est acheté)' : '') + '.</p></div>';
+      h += '<p class="ab-p">Dans Jeere, l’équipe vérifie que le nom est toujours libre, l’achète à votre nom et le relie à votre boutique, en général sous 24' + NB + 'h. Si le nom n’est plus libre, vous êtes remboursée.</p>';
+      h += '<dl class="ab-sum"><div><dt>Référence</dt><dd>' + esc(dk.result ? dk.result.reference : '') + '</dd></div><div><dt>Payé</dt><dd>' + esc(P.fcfa(dk.price.buy)) + ' · ' + esc((B.methodById(dk.method) || {}).name || '') + (dk.result && dk.result.demo ? ' (démo)' : '') + '</dd></div></dl>';
+      h += '<div class="ab-dlg__foot"><a class="btn ab-btn ab-btn--primary" href="../admin/#parametres/domaine" data-autofocus>Voir mon domaine' + ico('arrow') + '</a></div>';
+    }
+    card.innerHTML = h;
+    card.setAttribute('data-step', 'domain-' + dk.step);
+  }
+  function readDk() {
+    var c = $('ab-checkout-card');
+    var x = $('dk-holder'); if (x) dk.holder = x.value;
+    var y = $('dk-email'); if (y) dk.email = y.value.trim();
+    var z = $('dk-phone'); if (z) dk.phone = z.value;
+    var m = c.querySelector('input[name="dk-method"]:checked'); if (m) dk.method = m.value;
+  }
+  function recordDomainOrder(res) {
+    var key = (window.JEERE_DATA && window.JEERE_DATA.STORAGE_KEYS && window.JEERE_DATA.STORAGE_KEYS.admin) || 'jeere-admin';
+    try {
+      var a = JSON.parse(window.localStorage.getItem(key) || 'null');
+      if (!a || typeof a !== 'object') a = { version: 1 };
+      var list = Array.isArray(a.domainOrders) ? a.domainOrders : [];
+      list.unshift({ id: res.reference, domain: dk.domain, years: 1, amount: dk.price.buy, renew: dk.price.renew, method: dk.method, holder: dk.holder.trim(), email: dk.email, demo: !!res.demo, status: res.demo ? 'démo' : 'à acheter par l’équipe', at: new Date().toISOString() });
+      a.domainOrders = list.slice(0, 20);
+      window.localStorage.setItem(key, JSON.stringify(a));
+    } catch (e) { /* the confirmation still shows */ }
+  }
+  function onDkClick(e) {
+    var t = e.target.closest ? e.target.closest('[data-dk]') : null;
+    if (!t || !dk) return false;
+    var a = t.getAttribute('data-dk');
+    if (a === 'close') { closeCheckout(); return true; }
+    readDk();
+    if (a === 'next') {
+      if (!dk.holder.trim() || !/^\S+@\S+\.\S+$/.test(dk.email)) { dk.error = 'Indiquez le nom du titulaire et un e-mail valide.'; renderDk(); var f = $(dk.holder.trim() ? 'dk-email' : 'dk-holder'); if (f) f.focus(); return true; }
+      dk.error = ''; dk.step = 'pay'; renderDk(); focusCk(); return true;
+    }
+    if (a === 'back') { dk.error = ''; dk.step = 'dom'; renderDk(); focusCk(); return true; }
+    if (a === 'pay') {
+      dk.error = '';
+      dk.step = 'processing'; renderDk(); focusCk();
+      B.startProductCheckout({ type: 'domain', label: 'domaine ' + dk.domain, amount: dk.price.buy, metadata: { domain: dk.domain, years: 1, renew: dk.price.renew } }, dk.method, { phone: dk.phone }).then(function (res) {
+        if (!dk) return;
+        if (!res.ok) { dk.step = res.reason === 'account' || res.reason === 'login' ? 'account' : 'pay'; dk.error = res.message; renderDk(); focusCk(); return; }
+        dk.result = res;
+        recordDomainOrder(res);
+        dk.step = 'done'; renderDk(); focusCk();
+      });
+      return true;
+    }
+    return true;
+  }
+
   /* ---------------------------------------------------------------- wiring */
 
   function onPageClick(e) {
@@ -356,14 +482,15 @@
     renderStatus();
     doc.addEventListener('click', onPageClick);
     var d = dlg();
-    d.addEventListener('click', onCkClick);
-    d.addEventListener('change', onCkChange);
+    d.addEventListener('click', function (e) { if (dk) { if (!onDkClick(e) && e.target === d) closeCheckout(); return; } onCkClick(e); });
+    d.addEventListener('change', function (e) { if (dk) { if (e.target && e.target.name === 'dk-method') { readDk(); dk.error = ''; renderDk(); var r = $('ab-checkout-card').querySelector('input[name="dk-method"]:checked'); if (r) r.focus(); } return; } onCkChange(e); });
     d.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'ck-phone') { e.preventDefault(); pay(); } });
-    d.addEventListener('close', function () { ck = null; doc.documentElement.classList.remove('ab-locked'); if (/#paiement$/.test(window.location.hash)) { try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ } } });
+    d.addEventListener('close', function () { ck = null; dk = null; doc.documentElement.classList.remove('ab-locked'); if (/#paiement$/.test(window.location.hash)) { try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ } } });
     P.onChange(function () { renderAll(); });
     var s = P.state();
     var acct = $('ab-account');
     if (acct && s.signedIn) acct.textContent = s.account.firstName ? s.account.firstName : 'Mon compte';
+    if (params.domaine) { openDomainCheckout(params.domaine); return; }
     if (window.location.hash === '#paiement') {
       var want = P.planById(params.plan);
       openCheckout(want && want.paid ? want.id : 'pro', period, want && want.paid ? 'pay' : 'plan');
@@ -372,5 +499,5 @@
 
   init();
 
-  window.JeereAbonnements = { openCheckout: openCheckout, closeCheckout: closeCheckout, setPeriod: setPeriod, state: function () { return ck ? JSON.parse(JSON.stringify(ck)) : null; } };
+  window.JeereAbonnements = { openCheckout: openCheckout, openDomainCheckout: openDomainCheckout, domainState: function () { return dk ? JSON.parse(JSON.stringify(dk)) : null; }, closeCheckout: closeCheckout, setPeriod: setPeriod, state: function () { return ck ? JSON.parse(JSON.stringify(ck)) : null; } };
 })();
