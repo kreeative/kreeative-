@@ -550,3 +550,14 @@ html:not([data-theme="dark"]) .sk-badge--warn { color: var(--warn-ink); }
 /* links in black and white: underlined so they read as links */
 .sk-sitehead__t a, .sk-pubhead__url a, .sk-pubpage a, .sk-card__links a { text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; }
 .sk-sitehead__t a:hover, .sk-pubhead__url a:hover, .sk-card__links a:hover { text-decoration-color: currentColor; }
+
+/* The breadcrumb, with room to breathe: Mes sites › Kreeative › [page ▾] */
+.sk-top { padding-left: var(--sp-4); }
+.sk-crumbs { gap: var(--sp-2); }
+.sk-crumbs a, .sk-crumbs span { padding: 4px var(--sp-2); }
+.sk-crumbs i { padding: 0 2px; }
+.sk-crumbs .sk-pagepick { margin-left: 2px; height: 32px; padding: 0 var(--sp-2) 0 var(--sp-3); gap: var(--sp-2); }
+.sk-crumbs .sk-pagepick span { padding: 0; }
+/* a soft focus ring instead of a black frame */
+.sk-pagepick:focus-visible { outline: 2px solid rgba(0, 0, 0, 0.18); outline-offset: 2px; }
+.sk-pagepick:focus:not(:focus-visible) { outline: none; }
