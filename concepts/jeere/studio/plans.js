@@ -44,7 +44,8 @@
 
   /* ------------------------------------------------------------------ the plans
    * Prices in whole FCFA (XOF). month = billed monthly; year = the price per month billed yearly
-   * (about 20 % less). EUR at the fixed CFA peg; USD indicative (README). Every paid plan (and the
+   * (about 30 % less, like Framer). Set just under Framer, Webflow and Figma (README, « Abonnements Studio »).
+   * EUR at the fixed CFA peg; USD indicative (README). Every paid plan (and the
    * trial) unlocks the whole Studio: the plans differ only by how many stores and seats, and the
    * support — the same rule as Jeere's store plans, where you move up because you grow.
    */
@@ -62,7 +63,7 @@
     {
       id: 'solo', name: 'Solo', label: 'Studio Solo', paid: true,
       for: 'Pour une vendeuse ou un designer indépendant',
-      month: 4900, year: 3900, sites: 1, seats: 1, seatsMax: 1, extraSeat: 0, extraSeatYear: 0,
+      month: 7900, year: 5400, sites: 1, seats: 1, seatsMax: 1, extraSeat: 0, extraSeatYear: 0,
       limits: { blocks: 20, versions: 15 },
       support: 'Aide humaine sur WhatsApp',
       points: ['Tout le Studio débloqué, sur 1 boutique', 'Export du code et des images, commentaires', 'Sans le badge « Fait avec Jeere »']
@@ -70,7 +71,7 @@
     {
       id: 'pro', name: 'Pro', label: 'Studio Pro', paid: true, recommended: true,
       for: 'Pour les marques qui soignent chaque détail',
-      month: 9900, year: 7900, sites: 3, seats: 2, seatsMax: 2, extraSeat: 0, extraSeatYear: 0,
+      month: 24900, year: 16900, sites: 3, seats: 2, seatsMax: 2, extraSeat: 0, extraSeatYear: 0,
       limits: { blocks: 20, versions: 15 },
       support: 'Support prioritaire : réponse en moins de 2 h ouvrées',
       points: ['Tout le Studio débloqué, sur 3 boutiques', '2 places : vous et une personne de votre équipe', 'Support prioritaire sur WhatsApp']
@@ -78,10 +79,10 @@
     {
       id: 'agence', name: 'Agence', label: 'Studio Agence', paid: true,
       for: 'Pour les agences qui créent les boutiques de leurs clients',
-      month: 24900, year: 19900, sites: 10, seats: 5, seatsMax: 25, extraSeat: 2500, extraSeatYear: 2000,
+      month: 79900, year: 54900, sites: 10, seats: 5, seatsMax: 25, extraSeat: 10900, extraSeatYear: 9900,
       limits: { blocks: 20, versions: 15 },
       support: 'Un interlocuteur dédié sur WhatsApp',
-      points: ['Tout le Studio débloqué, sur 10 boutiques clientes', '5 places incluses, puis 2 500 FCFA par place et par mois', 'Un interlocuteur dédié']
+      points: ['Tout le Studio débloqué, sur 10 boutiques clientes', '5 places incluses, puis dès 9 900 FCFA par place et par mois', 'Un interlocuteur dédié']
     }
   ];
 
@@ -111,7 +112,7 @@
     ['Export en image (PNG)', false, true, true, true],
     { group: 'Équipe' },
     ['Places incluses', '1', '1', '2', '5'],
-    ['Places en plus', false, false, false, '2 500 FCFA / mois'],
+    ['Places en plus', false, false, false, 'dès 9 900 FCFA / mois'],
     ['Commentaires épinglés', false, true, true, true],
     { group: 'Votre boutique en ligne' },
     ['Badge « Fait avec Jeere »', 'Affiché', 'Retiré', 'Retiré', 'Retiré'],

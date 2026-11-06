@@ -96,6 +96,30 @@
   if (!ui.locked || typeof ui.locked !== 'object') ui.locked = {};
 
   function isLocked(id) { return !!ui.locked[id]; }
+  /* the layers tree: which branches are unfolded (« page:home » is open by default; a section opens on demand) */
+  if (!ui.treeOpen || typeof ui.treeOpen !== 'object') ui.treeOpen = { 'page:home': true };
+  function treeIsOpen(key) { return !!ui.treeOpen[key]; }
+  function treeToggle(key, open) {
+    if (typeof open !== 'boolean') open = !ui.treeOpen[key];
+    if (open) ui.treeOpen[key] = true; else delete ui.treeOpen[key];
+    saveUI();
+    buildTree();
+    var r = $('layersPanel') && $('layersPanel').querySelector('[data-tw="' + cssEsc(key) + '"]');
+    if (r && r.closest('.st-row')) { r.closest('.st-row').tabIndex = 0; r.closest('.st-row').focus(); }
+  }
+  /* the disclosure arrow of a row (or an empty slot of the same width, so the names line up) */
+  function twisty(key, hasKids, open) {
+    if (!hasKids) return ce('span', 'st-row__tw is-empty');
+    var b = ce('button', 'st-row__tw' + (open ? ' is-open' : ''), '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4.5 9.5 8 6 11.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    b.type = 'button';
+    b.tabIndex = -1;
+    b.setAttribute('data-tw', key);
+    b.setAttribute('aria-label', open ? 'Replier' : 'Déplier');
+    b.title = open ? 'Replier' : 'Déplier';
+    b.addEventListener('click', function (e) { e.stopPropagation(); treeToggle(key); });
+    b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    return b;
+  }
 
   /* ------------------------------------------------------------------ device presets (artboards) */
 
@@ -1307,6 +1331,7 @@
   function select(sel, opts) {
     opts = opts || {};
     state.sel = sel;
+    revealInTree(sel);
     if (sel && isMulti(sel) && state.page !== 'home') showPage('home');
     if (sel && sel.kind === 'section' && state.page !== 'home') {
       var s = sectionById(sel.id);
@@ -1774,16 +1799,24 @@
     PAGES.forEach(function (pg) {
       var row = ce('div', 'st-row is-page' + (state.page === pg.id ? ' is-on' : ''));
       row.setAttribute('data-page', pg.id);
+      var homeOpen = pg.id === 'home' && treeIsOpen('page:home');
+      row.appendChild(twisty('page:' + pg.id, pg.id === 'home' && sections().length > 0, homeOpen));
+      if (pg.id === 'home') row.setAttribute('aria-expanded', homeOpen ? 'true' : 'false');
       row.appendChild(ce('span', 'st-row__icon', icon('page')));
       row.appendChild(ce('span', 'st-row__name', esc(pg.label)));
       row.addEventListener('click', function () { showPage(pg.id); });
       g1.appendChild(row);
-      if (pg.id === 'home') {
+      if (pg.id === 'home' && homeOpen) {
         sections().forEach(function (s) {
           g1.appendChild(sectionRow(s));
+          /* a detached section's own nodes (DualEngine) belong to its branch: hidden while it is folded */
+          var before = g1.children.length;
           if (hooks.treeSection) { try { hooks.treeSection(s, g1); } catch (e) { /* module error */ } }
+          if (!sectionOpen(s)) while (g1.children.length > before) g1.removeChild(g1.lastChild);
         });
         if (!sections().length) g1.appendChild(ce('div', 'st-tree__empty', 'Aucune section. Ajoutez-en depuis l’onglet « Ajouter ».'));
+      } else if (pg.id === 'home' && !sections().length) {
+        g1.appendChild(ce('div', 'st-tree__empty', 'Aucune section. Ajoutez-en depuis l’onglet « Ajouter ».'));
       }
     });
     panel.appendChild(g1);
@@ -1795,6 +1828,7 @@
       var row = ce('div', 'st-row is-page' + (state.page === 'page' && state.pageId === pg.id ? ' is-on' : '') +
         (state.sel && state.sel.kind === 'page' && state.sel.id === pg.id ? ' is-sel' : ''));
       row.setAttribute('data-page-id', pg.id);
+      row.appendChild(twisty('', false));
       row.appendChild(ce('span', 'st-row__icon', icon('page')));
       var name = ce('span', 'st-row__name', esc(pg.title || 'Page'));
       row.appendChild(name);
@@ -1882,6 +1916,12 @@
     var inMulti = isMulti(state.sel) && state.sel.ids.indexOf(s.id) !== -1;
     var row = ce('div', 'st-row st-row--child st-row--section' + ((selOn && state.sel.kind === 'section') || inMulti ? ' is-sel' : '') + (s.enabled === false ? ' is-off' : ''));
     row.setAttribute('data-section-row', s.id);
+    var sOpen = sectionOpen(s);
+    var firstProd = sections().filter(function (x) { return x.type === 'products'; })[0];
+    var hasProds = s.type === 'products' && firstProd && firstProd.id === s.id && products().length > 0;
+    var elDefs = treeElements(s.type);
+    row.appendChild(twisty('sec:' + s.id, elDefs.length > 0 || hasProds || isDetachedSec(s), sOpen));
+    row.setAttribute('aria-expanded', sOpen ? 'true' : 'false');
     row.appendChild(ce('span', 'st-row__icon', icon(s.type)));
     var name = ce('span', 'st-row__name', esc(sectionName(s)));
     row.appendChild(name);
@@ -1938,11 +1978,25 @@
       startTreeDrag(e, s.id, row);
     });
 
-    /* products as children of the first products section */
+    /* its elements (title, text, photo, button…), then the products of the first products section */
     var frag = document.createDocumentFragment();
     frag.appendChild(row);
+    if (sOpen && !isDetachedSec(s)) elDefs.forEach(function (d) {
+      var on = state.sel && state.sel.kind === 'section' && state.sel.id === s.id && state.sel.el === d.key;
+      var er = ce('div', 'st-row st-row--child st-row--el' + (on ? ' is-sel' : ''));
+      er.setAttribute('data-el-row', s.id + '|' + d.key);
+      er.appendChild(ce('span', 'st-row__icon', EL_ICONS[d.kind] || EL_ICONS.container));
+      er.appendChild(ce('span', 'st-row__name', esc(d.label)));
+      er.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var nsel = { kind: 'section', id: s.id, el: d.key };
+        if (d.field && hasField(s.type, d.field)) { nsel.field = d.field; nsel.fieldType = s.type; }
+        select(nsel, { fromTree: true, pan: true });
+      });
+      frag.appendChild(er);
+    });
     var firstProducts = sections().filter(function (x) { return x.type === 'products'; })[0];
-    if (s.type === 'products' && firstProducts && firstProducts.id === s.id) {
+    if (sOpen && s.type === 'products' && firstProducts && firstProducts.id === s.id) {
       products().forEach(function (p) {
         var pr = ce('div', 'st-row st-row--child st-row--prod' + (state.sel && state.sel.kind === 'product' && state.sel.id === p.id ? ' is-sel' : ''));
         pr.style.marginLeft = '40px';
@@ -1970,6 +2024,30 @@
     }
     return frag;
   }
+
+  /* a section's branch is unfolded when she opened it; selecting something inside it (on the canvas) opens it once,
+   * and she can fold it again */
+  function sectionOpen(s) { return treeIsOpen('sec:' + s.id); }
+  function revealInTree(sel) {
+    if (!sel || !ui.treeOpen) return;
+    if (sel.kind === 'section' || sel.kind === 'product' || isMulti(sel)) ui.treeOpen['page:home'] = true;
+    if (sel.kind === 'section' && (sel.el || sel.field)) ui.treeOpen['sec:' + sel.id] = true;
+    if (sel.kind === 'product') { var fp = sections().filter(function (x) { return x.type === 'products'; })[0]; if (fp) ui.treeOpen['sec:' + fp.id] = true; }
+  }
+  function isDetachedSec(s) { return !!(s && s.engine && s.engine.nodes); }
+  /* the elements listed under a section: its design elements on the page (not the section itself) */
+  function treeElements(type) {
+    return esElements(type).filter(function (d) { return d && d.sel && d.key !== 'section' && d.kind !== 'section'; });
+  }
+  var EL_ICONS = {
+    text: '<svg viewBox="0 0 16 16"><path d="M3.5 4h9M8 4v8.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+    image: ICONS.hero,
+    button: '<svg viewBox="0 0 16 16"><rect x="1.8" y="4.5" width="12.4" height="7" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>',
+    icon: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg>',
+    container: '<svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1.6"/></svg>',
+    card: ICONS.product,
+    badge: '<svg viewBox="0 0 16 16"><rect x="2.5" y="5" width="11" height="6" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>'
+  };
 
   function startRename(nameEl, current, max, done) {
     var input = document.createElement('input');
@@ -3300,6 +3378,58 @@
   }
 
   /* Ctrl+\ : masquer / afficher les panneaux (le plan de travail en grand) */
+  /* each side panel folds on its own, like Claude's sidebar: a button in the panel, and one at the edge of the canvas
+   * to bring it back (Ctrl/⌘ Alt [ for the left one, Ctrl/⌘ Alt ] for the right one) */
+  var PANEL_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="2.5" width="12.4" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M6 2.8v10.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+  var PANEL_ICON_R = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="2.5" width="12.4" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 2.8v10.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+  function setPanel(side, off, quiet) {
+    if (!ui.panels || typeof ui.panels !== 'object') ui.panels = {};
+    ui.panels[side] = !!off;
+    document.body.classList.toggle('st-' + side + '-off', !!off);
+    saveUI();
+    var label = side === 'left' ? 'le panneau de gauche' : 'le panneau de droite';
+    var tb = $(side + 'Toggle'), rb = $(side + 'Reopen');
+    if (tb) tb.setAttribute('aria-expanded', off ? 'false' : 'true');
+    if (rb) rb.hidden = !off;
+    if (!quiet) {
+      if (off && rb) rb.focus();
+      else if (!off && tb) tb.focus();
+    }
+    // the canvas gets the room: overlays (selection, toolbars) follow once the panel has moved
+    setTimeout(function () { if (hooks.viewChanged) { try { hooks.viewChanged(); } catch (e) { /* module error */ } } applyDecor && applyDecor(); }, 230);
+    return label;
+  }
+  function buildPanelToggles() {
+    var lt = document.querySelector('.st-left__tabs'), rh = document.querySelector('.st-right__head'), body = document.querySelector('.st-body');
+    if (!lt || !rh || !body || $('leftToggle')) return;
+    function btn(id, cls, html, label, kbd, fn) {
+      var b = ce('button', cls, html);
+      b.type = 'button';
+      b.id = id;
+      b.setAttribute('aria-label', label);
+      b.title = label + ' (' + kbd + ')';
+      b.addEventListener('click', fn);
+      return b;
+    }
+    lt.appendChild(btn('leftToggle', 'st-paneltoggle', PANEL_ICON, 'Replier le panneau de gauche', 'Ctrl Alt [', function () { setPanel('left', true); }));
+    rh.appendChild(btn('rightToggle', 'st-paneltoggle', PANEL_ICON_R, 'Replier le panneau de droite', 'Ctrl Alt ]', function () { setPanel('right', true); }));
+    var rl = btn('leftReopen', 'st-reopen st-reopen--l', PANEL_ICON, 'Afficher le panneau de gauche', 'Ctrl Alt [', function () { setPanel('left', false); });
+    var rr = btn('rightReopen', 'st-reopen st-reopen--r', PANEL_ICON_R, 'Afficher le panneau de droite', 'Ctrl Alt ]', function () { setPanel('right', false); });
+    rl.hidden = true; rr.hidden = true;
+    body.appendChild(rl);
+    body.appendChild(rr);
+    var p = ui.panels || {};
+    if (p.left) setPanel('left', true, true);
+    if (p.right) setPanel('right', true, true);
+    window.addEventListener('keydown', function (e) {
+      if (!(e.ctrlKey || e.metaKey) || !e.altKey || e.shiftKey) return;
+      if (e.code !== 'BracketLeft' && e.code !== 'BracketRight') return;
+      e.preventDefault();
+      var side = e.code === 'BracketLeft' ? 'left' : 'right';
+      setPanel(side, !document.body.classList.contains('st-' + side + '-off'));
+    });
+  }
+
   function toggleChrome(force) {
     var on = typeof force === 'boolean' ? force : !document.body.classList.contains('st-chrome-off');
     document.body.classList.toggle('st-chrome-off', on);
@@ -3748,6 +3878,7 @@
     rebuildArtboards();
     buildHelp();
     buildInsertPanel();
+    buildPanelToggles();
     buildTree();
     buildInspector();
     syncTopBar();
@@ -3784,6 +3915,14 @@
         e.stopPropagation();
         var j = clamp(i + (e.key === 'ArrowDown' ? 1 : -1), 0, rows.length - 1);
         if (rows[j] && rows[j] !== t) { t.tabIndex = -1; rows[j].tabIndex = 0; rows[j].focus(); }
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        var tw = t.querySelector('.st-row__tw[data-tw]');
+        if (!tw) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var open = tw.classList.contains('is-open');
+        if (e.key === 'ArrowRight' && !open) treeToggle(tw.getAttribute('data-tw'), true);
+        else if (e.key === 'ArrowLeft' && open) treeToggle(tw.getAttribute('data-tw'), false);
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         e.stopPropagation();

@@ -1093,3 +1093,38 @@ input[type="number"], .st-zoombtn, .st-count, .st-token__val, .st-inlinecount, .
 .st-coach { width: 470px; }
 .st-selbar__name { max-width: 240px; }
 .st-pop.is-leaving { opacity: 0; pointer-events: none; transition: opacity var(--dur-1) var(--ease); }
+
+/* ---------------------------------------------------------------- folding side panels (like Claude's sidebar) */
+.st-body { position: relative; }
+.st-left, .st-right { transition: width .2s cubic-bezier(.2, .8, .2, 1); }
+.st-left-off .st-left, .st-right-off .st-right { width: 0 !important; border: 0; overflow: hidden; visibility: hidden; }
+.st-paneltoggle {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin: auto 6px auto 2px; padding: 0;
+  border: 0; border-radius: 6px; background: transparent; color: var(--st-ink-dim); cursor: pointer;
+}
+.st-paneltoggle svg, .st-reopen svg { width: 16px; height: 16px; }
+.st-paneltoggle:hover { color: var(--st-ink); background: var(--st-chrome-2); }
+.st-paneltoggle:focus-visible, .st-reopen:focus-visible { outline: 2px solid var(--st-blue); outline-offset: 1px; }
+.st-right__head { display: flex; align-items: center; gap: 6px; }
+.st-right__head .st-paneltoggle { margin-left: auto; }
+.st-reopen {
+  position: absolute; top: 10px; z-index: 40; display: grid; place-items: center; width: 32px; height: 32px; padding: 0;
+  border: 1px solid var(--st-line-d); border-radius: 8px; background: var(--st-chrome); color: var(--st-ink-dim); cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+}
+.st-reopen:hover { color: var(--st-ink); background: var(--st-chrome-2); }
+.st-reopen[hidden] { display: none; }
+.st-reopen--l { left: 10px; }
+.st-reopen--r { right: 10px; }
+
+/* ---------------------------------------------------------------- layers tree: disclosure arrows and element rows */
+.st-row__tw {
+  flex: none; display: grid; place-items: center; width: 16px; height: 16px; margin: 0 2px 0 -6px; padding: 0;
+  border: 0; background: none; color: var(--st-ink-dim); cursor: pointer; border-radius: 4px;
+}
+.st-row__tw.is-empty { cursor: default; }
+.st-row__tw svg { width: 12px; height: 12px; transition: transform .15s ease; }
+.st-row__tw.is-open svg { transform: rotate(90deg); }
+.st-row__tw:hover { color: var(--st-ink); background: var(--st-chrome-3); }
+.st-row--el { margin-left: 44px; }
+.st-row--el .st-row__icon { color: var(--st-ink-dim); }

@@ -485,34 +485,32 @@ Sources :
 
 | | Découverte | Solo | Pro (le plus choisi) | Agence |
 | --- | --- | --- | --- | --- |
-| Annuel, par mois | 0 | **3 900 FCFA** | **7 900 FCFA** | **19 900 FCFA** |
-| Facturé par an | — | 46 800 FCFA | 94 800 FCFA | 238 800 FCFA |
-| Mensuel | 0 | 4 900 FCFA | 9 900 FCFA | 24 900 FCFA |
-| ≈ € / mois (annuel · mensuel) | — | 5,95 · 7,47 | 12,04 · 15,09 | 30,34 · 37,96 |
-| ≈ $ / mois (annuel · mensuel) | — | 6,78 · 8,52 | 13,74 · 17,22 | 34,61 · 43,30 |
+| Annuel, par mois | 0 | **5 400 FCFA** | **16 900 FCFA** | **54 900 FCFA** |
+| Facturé par an | — | 64 800 FCFA | 202 800 FCFA | 658 800 FCFA |
+| Mensuel | 0 | 7 900 FCFA | 24 900 FCFA | 79 900 FCFA |
+| ≈ € / mois (annuel · mensuel) | — | 8,23 · 12,04 | 25,76 · 37,96 | 83,69 · 121,81 |
+| ≈ $ / mois (annuel · mensuel) | — | 9,39 · 13,74 | 29,39 · 43,30 | 95,48 · 138,96 |
 | Boutiques dans le Studio | 1 | 1 | 3 | 10 |
-| Places | 1 | 1 | 2 | 5, puis 2 500 FCFA (2 000 en annuel) par place, jusqu’à 25 |
+| Places | 1 | 1 | 2 | 5, puis 10 900 FCFA par place et par mois (9 900 en annuel), jusqu’à 25 |
 | Studio | tout l’éditeur, avec les verrous ci-dessous | **tout débloqué** | **tout débloqué** | **tout débloqué** |
 | Support | WhatsApp | WhatsApp | prioritaire (< 2 h ouvrées) | interlocuteur dédié |
 
 Plus un **essai de 14 jours** de tout le Studio (au niveau Pro), une fois par compte, **sans moyen
 de paiement** : à la fin, retour en Découverte, rien n’est effacé, rien n’est prélevé.
 
-**Pourquoi ces prix.**
-- Solo coûte 32 % de moins que Framer Basic en annuel (43 % en mensuel) et 55 % de moins que
-  Webflow Basic.
-- Pro coûte 54 % de moins que Framer Pro et 45 % de moins que Webflow Premium.
-- Agence, 5 places et 10 boutiques comprises, coûte moins qu’un seul espace Agency de Webflow
-  (35 $) avant ses places à 39 $. Chez Framer, quatre éditeurs en plus coûtent déjà 80 $.
-- Les prix restent assez proches pour la diaspora (≈ 6 à 35 €), et assez bas pour Abidjan. Solo
-  se place à côté du plan boutique Essentiel (3 000 FCFA), Agence au niveau de Business
-  (25 000 FCFA).
-- L’hébergement, les pages et la bande passante sont déjà dans la formule boutique. Le Studio ne
-  facture que l’éditeur : c’est ce qui permet d’être nettement moins cher.
-- Les montants ronds en « 900 » sont lisibles et faciles à payer par mobile money.
-- L’annuel coûte 20 % de moins (−20,4 %, −20,2 %, −20,1 %), moins que Framer (−33 %) et Webflow
-  (−40 % sur Basic) : à Abidjan, une grosse somme d’un coup se vend mal, donc l’écart reste
-  modéré et le mensuel garde sa place.
+**Pourquoi ces prix (6 novembre 2026, à la demande de la fondatrice : « juste en dessous » de Framer, Webflow et
+Figma, parce que la vue avancée vaut ces outils).** Références (en dollars, par mois) : Framer Basic 10 $ à l’année /
+15 $ au mois, Framer Pro 30 $ / 45 $, éditeur en plus 20 $ ; Figma Professional, place complète 16 $ / 20 $ ; Webflow
+Basic 15 $, Premium 25 $. Sources : https://siter.io/framer-pricing, https://saascrmreview.com/?p=14254,
+https://saascrmreview.com/figma-pricing/, https://webflow.com/pricing.
+- **Solo** (≈ 9,39 $ à l’année, 13,74 $ au mois) : juste sous Framer Basic (10 $ / 15 $) et sous Figma Professional
+  (16 $ / 20 $).
+- **Pro** (≈ 29,39 $ / 43,30 $) : juste sous Framer Pro (30 $ / 45 $).
+- **Agence** (≈ 95,48 $ / 138,96 $, 5 places et 10 boutiques comprises) : sous ce que coûtent 5 éditeurs chez Framer
+  (Pro + 4 × 20 $ = 110 $ à l’année) et sous un espace Agency Webflow avec ses places. La place en plus
+  (9 900 FCFA ≈ 17 $) reste sous les 20 $ de Framer.
+- **L’annuel** coûte environ 30 % de moins (−32 %, −32 %, −31 %), comme Framer (−33 %).
+- Les montants restent en « 900 », lisibles et faciles à payer par mobile money.
 
 **Le principe des formules** est celui des formules boutique de Jeere : on monte quand on
 grandit, pas pour débloquer une fonction. **N’importe quel abonnement payant, et l’essai,
