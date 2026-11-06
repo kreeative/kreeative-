@@ -102,3 +102,11 @@
   .jp-input { padding: 0 12px 4px; min-height: 44px; }
   .jp-actions .jp-btn, .jp-row .jp-btn { flex: 1 1 100%; }
 }
+
+/* Published versions (wave 2: store_versions, « Restaurer ») */
+.jp-hist { margin: 14px 0 0; border-top: 1px solid var(--jp-line, rgba(0, 0, 0, .1)); padding-top: 10px; }
+.jp-hist__t { padding-left: 0; }
+.jp-hist__l { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.jp-hist__l li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; font-size: 13.5px; }
+.jp-hist__l li b.jp-pill { margin-left: 6px; }
+.jp-state .jp-pill + .jp-pill, .jp-state .jp-muted + .jp-pill { margin-left: 8px; }

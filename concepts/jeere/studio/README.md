@@ -66,6 +66,7 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 | `engine/` | DualEngine (phase A + les ajouts de la phase B : références nominales, piles de polices) : le modèle, l’historique RFC 6902, le solveur Flex / Grid / absolu, le générateur HTML / CSS. Voir `engine/README.md`. |
 | `studio-engine.js` | Le pont fiche ↔ document DualEngine, « Détacher » / « Rattacher », un document et un historique DualEngine par section détachée, la mise en page par artboard, l’export HTML / CSS. `window.JeereStudioEngine`. |
 | `studio-canvas.js` | Le canevas des nœuds DualEngine : sélection, poignées, déplacement / redimensionnement / rotation, magnétisme, guides, règles, grilles, outils F R O T I, raccourcis, tactile. `window.JeereStudioCanvas`. |
+| `studio-preview.js` | Le mode **Aperçu** (vague 2) : `P` ou ▶ « Aperçu », la boutique plein écran à la largeur choisie, interactive. `window.JeereStudioPreview`. |
 | `studio-inspector.js`, `studio-engine.css` | L’inspecteur des nœuds DualEngine (module 3), leurs calques, les actions Détacher / Rattacher / Exporter, le CSS de l’onglet Code. `window.JeereStudioInspector`. |
 
 ## Les fonctions avancées (`studio-power.js`)
@@ -86,7 +87,8 @@ Toutes construites sur le même contrat, feature-détectées, et testées par `p
   cartes produit, texte d’annonce, « à propos », titre WhatsApp…) : le texte devient
   `contenteditable` **dans l’artboard**, avec un anneau de focus discret. `Entrée` ou le blur
   valident (via le même historique, coalescés) et l’inspecteur se reconstruit aussitôt (son champ
-  n’est jamais périmé), `Échap` annule, les `maxlength` du contrat sont respectées, le collage est
+  n’est jamais périmé), `Échap` **valide aussi** et sort (comme Figma, Framer et Webflow ; un Ctrl Z
+  défait toute la saisie, vague 2), les `maxlength` du contrat sont respectées, le collage est
   aplati en texte brut. Marche dans tous les artboards.
 - **Sélection multiple** — `Maj`+clic (canevas et calques) sélectionne plusieurs sections
   (contours + badge « 3 sections »). Actions groupées : masquer/afficher, dupliquer, supprimer
@@ -512,12 +514,53 @@ focus itinérant), ↑/↓ passent de ligne en ligne, Entrée ou Espace sélecti
 
 ## Publier, partager
 
-« Publier » **valide la fiche** (`JEERE_DATA.validate`) et ouvre le dialogue : statut
-(APPROUVÉ / À CORRIGER), score sur 100, les premiers points à corriger, l’adresse
-`<boutique>.jeere.shop` (`subdomainFor`), et la vérité du prototype : *la mise en ligne arrive
-avec le backend, rien n’est publié pour l’instant*. « Partager » ouvre un dialogue distinct,
-tourné vers la fiche-fichier : adresse, télécharger (action principale) / copier / importer le
-JSON, ouvrir l’éditeur simple. Dans chaque dialogue, une seule action est primaire.
+« Publier » ouvre le dialogue de **publication réelle** (`../creer/publish.js`, Supabase) : le score
+qualité, l’adresse `jeere.kreeative.xyz/b/<slug>` vérifiée en direct, « Publier ma boutique » /
+« Mettre à jour la boutique ». Vague 2 :
+- **Brouillon et en ligne** sont dits à part : « Brouillon = en ligne » ou « Brouillon modifié » (ce que
+  le Studio édite est le brouillon, le lien montre la dernière version publiée).
+- **Versions publiées** : les 10 dernières publications (table `store_versions`, migration
+  `jeere_wave2`) ; « Restaurer » remet une version en ligne et le brouillon la reprend (un Ctrl Z).
+- **Photos** : connectée, une photo importée part tout de suite dans Supabase Storage (bucket
+  `store-media`, son dossier) en 640 / 1280 / 2048 px WebP avec `srcset` ; sinon elle reste en data URL
+  (1280 px) et part à la publication (`../creer/media.js`).
+- **« Se connecter pour publier »** mène à `compte/?suite=studio-publier` : un compte local ou de démo y
+  trouve une vraie connexion (la boutique du navigateur est gardée), puis revient ici sur `#publier`,
+  dialogue rouvert.
+- Une seule action primaire : « Télécharger le JSON » y est secondaire.
+
+« Partager » ouvre un dialogue distinct, tourné vers la fiche-fichier : télécharger (action
+principale) / copier / importer le JSON, ouvrir l’éditeur simple.
+
+## Vague 2 de l’audit (6 novembre 2026)
+
+- **Aperçu** (`studio-preview.js`) : `P` ou le bouton ▶ « Aperçu » de la barre du haut ouvre la boutique en
+  plein écran, à la largeur choisie (Téléphone 390, Tablette 768, Ordinateur 1200, Large 1440, Fenêtre),
+  **interactive** (menu, pages, fiche produit, panier, paiement), sans rien éditer. `Échap` ou `P` ferment.
+  L’outil Main laisse aussi cliquer la boutique : le pointeur n’est capturé qu’après 3 px de mouvement.
+- **Points de rupture uniques** (`JEERE_DATA.BREAKPOINTS`) : téléphone < 768, tablette 768–1199,
+  ordinateur ≥ 1200, pour les artboards, la boutique en ligne (`b/b.js`), les styles d’éléments et les
+  sections détachées. À 820 px, la boutique en ligne est celle de l’artboard 768 (mise en page ordinateur,
+  valeurs Tablette).
+- **Unités** : les champs de longueur (taille du texte, marges, espacements, rayons, min / max, position)
+  acceptent `px`, `rem`, `em`, `%`, `vw`, `vh` et `clamp(min, idéal, max)`, gardés tels quels dans la
+  fiche et affichés tels quels ; une unité inconnue ou qui ne va pas au champ est refusée avec un message
+  (plus de conversion silencieuse). Largeur / Hauteur : « 50% » ou « 80vh » choisit aussi l’unité. Dans le
+  Studio, `vw` se mesure sur l’artboard (unités de conteneur `cqw`), comme sur un écran de cette largeur.
+- **Gestes Figma** : `Alt` + glisser dépose une copie (l’original reste, une étape d’annulation) ;
+  `Ctrl Alt T` range les éléments libres sélectionnés en lignes et colonnes régulières ; les lignes de nœuds
+  des calques se réordonnent au glisser (avant / après un frère, ou dans un cadre) ; `Ctrl` + clic sur une
+  section du modèle va droit à l’élément sous le pointeur ; X et Y suivent le glisser dans l’inspecteur, et
+  la position déposée est entière. Ctrl D dit « Élément dupliqué ».
+- **Section Produits détachée = une collection** (`creer/engine-sections.js`, `boundSection`) : la grille
+  suit le catalogue (`settings.limit` produits) ; un nouveau produit reçoit une copie de la première carte,
+  un produit supprimé perd la sienne ; une carte d’un produit qui est toujours là garde ses retouches.
+- **Ouvrir une section** : `studio/#section=<id>` la sélectionne (le lien « Ouvrir dans le Studio » de
+  l’éditeur simple).
+- **Performance** (grande boutique : 36 sections, 54 produits, 5 artboards) : dupliquer, supprimer et
+  annuler une section ne redessinent plus l’artboard entier — les sections de `<main>` sont retrouvées par
+  leur id et seules les nouvelles entrent (0 tâche longue, contre 5 de 53 à 122 ms) ; pendant un zoom à la
+  molette, `--inv` (hérité par tout le magasin) attend la fin du geste (p95 16,8 ms, contre 67 à 83 ms).
 
 ## Abonnements Studio
 

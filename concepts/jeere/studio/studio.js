@@ -611,6 +611,40 @@
      * is the copy's (the cache compares copies, never the fitted live header) */
     function full() { live.__stParts = nextCache; scratch.innerHTML = ''; return false; }
     if (!same && seedOnly) { live.__stParts = nextCache; scratch.innerHTML = ''; return true; } // the live artboard is already this render
+    /* wave 2: sections added, removed or moved on the same page (duplicate, delete, undo of those, a drag):
+     * the parts around stay, and the sections of <main> are matched by their id — the ones that did not
+     * change are kept as they are (no new style or layout), only the new ones go in. One section's layout
+     * instead of the whole page's, on every artboard. */
+    var topSame = !same && cache && mainIdx >= 0 && lk.length === nk.length && cache.sig.join('\n') === nsig.join('\n') && cache.mainShell === mainShell &&
+      lk.every(function (c, i) { return sigOf(c) === nsig[i]; }) && lk[mainIdx].children.length === cache.mainHtml.length;
+    if (topSame) {
+      for (var t = 0; t < nk.length; t++) {
+        if (t === mainIdx || html[t] === cache.html[t]) continue;
+        if (opts.device === 'desktop' && /jst-header/.test(nk[t].className || '')) return full();
+        morph(lk[t], nk[t]);
+      }
+      var lmain = lk[mainIdx];
+      var olds = Array.prototype.slice.call(lmain.children).map(function (el, j) { return { el: el, sig: cache.mainSig[j], html: cache.mainHtml[j], used: false }; });
+      var order = mainKids.map(function (nkid, j) {
+        var sg = nsig ? sigOf(nkid) : '';
+        var hit = null;
+        for (var q = 0; q < olds.length; q++) if (!olds[q].used && olds[q].sig === sg && sg.split('|')[1]) { hit = olds[q]; break; }
+        if (!hit) return nkid;
+        hit.used = true;
+        if (hit.html !== mainHtml[j]) morph(hit.el, nkid);
+        return hit.el.parentNode === lmain ? hit.el : nkid;
+      });
+      olds.forEach(function (o) { if (!o.used && o.el.parentNode === lmain) lmain.removeChild(o.el); });
+      var ref = lmain.firstChild;
+      order.forEach(function (el) {
+        if (el === ref) { ref = ref.nextSibling; return; }
+        lmain.insertBefore(el, ref);
+      });
+      while (ref) { var nx = ref.nextSibling; if (order.indexOf(ref) === -1) lmain.removeChild(ref); ref = nx; }
+      live.__stParts = nextCache;
+      scratch.innerHTML = '';
+      return true;
+    }
     if (!same) {
       /* another page, sections added / removed / moved: every part is swapped (still no reparse) */
       if (opts.device === 'desktop') return full();
@@ -663,6 +697,7 @@
         var nm = ce('div', 'st-ab__name', esc(p.name) + ' <span>' + p.width + '</span>');
         var frame = ce('div', 'st-ab__frame');
         frame.style.width = p.width + 'px';
+        frame.setAttribute('data-jst-cq', ''); // vw / vh of the element styles = the artboard's (elstyles.js, wave 2)
         var rootEl = ce('div', 'st-ab__root');
         rootEl.id = abRootId(p.key);
         frame.appendChild(rootEl);
@@ -1005,9 +1040,27 @@
   /* 10 % to 25 600 % (SPEC-DUALENGINE §1.1) */
   var ZOOM_MIN = 0.1, ZOOM_MAX = 256;
 
-  function applyTransform() {
-    world.style.transform = 'translate(' + state.panX + 'px,' + state.panY + 'px) scale(' + state.zoom + ')';
+  /* During a wheel zoom (wave 2, perf): --inv (the hairlines' 1 / zoom, an inherited custom property, so a
+   * style recalculation of every node of every artboard) waits until the gesture settles, 140 ms after the
+   * last step. A large store zooms at the frame rate (p95 16.8 ms, was 67–83); the frames' hairlines and the
+   * selection's strokes catch up when it stops. (A will-change layer was tried: its promotion costs more.) */
+  var zoomSettle = null;
+  function settleZoom() {
+    zoomSettle = null;
+    world.classList.remove('is-zooming');
     world.style.setProperty('--inv', String(1 / state.zoom));
+    if (hooks.viewChanged) { try { hooks.viewChanged(); } catch (e) { /* module error */ } }
+  }
+  function applyTransform(gesture) {
+    world.style.transform = 'translate(' + state.panX + 'px,' + state.panY + 'px) scale(' + state.zoom + ')';
+    if (gesture === true) {
+      if (!zoomSettle) world.classList.add('is-zooming');
+      else clearTimeout(zoomSettle);
+      zoomSettle = setTimeout(settleZoom, 140);
+    } else {
+      if (zoomSettle) { clearTimeout(zoomSettle); zoomSettle = null; world.classList.remove('is-zooming'); }
+      world.style.setProperty('--inv', String(1 / state.zoom));
+    }
     stage.style.backgroundPosition = state.panX + 'px ' + state.panY + 'px';
     var d = clamp(24 * state.zoom, 8, 96);
     stage.style.backgroundSize = d + 'px ' + d + 'px';
@@ -1035,7 +1088,7 @@
     }, 220);
   }
 
-  function setZoom(z, cx, cy) {
+  function setZoom(z, cx, cy, gesture) {
     z = clamp(z, ZOOM_MIN, ZOOM_MAX);
     var r = stage.getBoundingClientRect();
     var px = (cx == null ? r.width / 2 : cx - r.left);
@@ -1045,7 +1098,7 @@
     state.zoom = z;
     state.panX = px - wx * z;
     state.panY = py - wy * z;
-    applyTransform();
+    applyTransform(gesture === true);
   }
 
   function visiblePresets() {
@@ -1154,7 +1207,7 @@
     closeCtx();
     if (e.ctrlKey || e.metaKey) {
       var factor = Math.exp(-e.deltaY * 0.0022);
-      setZoom(state.zoom * factor, e.clientX, e.clientY);
+      setZoom(state.zoom * factor, e.clientX, e.clientY, true);
     } else {
       state.panX -= e.shiftKey ? e.deltaY : e.deltaX;
       state.panY -= e.shiftKey ? 0 : e.deltaY;
@@ -1176,10 +1229,12 @@
     if (onStageUI(e.target)) return;
     if (insideFrame(e.target)) setActiveAbFrom(e.target);
     if (e.button === 1 || spaceHeld || state.tool === 'hand') {
-      pan = { x: e.clientX, y: e.clientY, px: state.panX, py: state.panY, moved: false };
+      // The pointer is captured only once the hand really moves (3 px, wave 2): a plain click with the
+      // Hand tool reaches the store, so its links, cards and cart work (the audit's « outil Main »)
+      pan = { x: e.clientX, y: e.clientY, px: state.panX, py: state.panY, moved: false, pid: e.pointerId, captured: false };
       stage.classList.add('is-panning');
-      stage.setPointerCapture && stage.setPointerCapture(e.pointerId);
-      e.preventDefault();
+      if (e.button === 1 || spaceHeld) { stage.setPointerCapture && stage.setPointerCapture(e.pointerId); pan.captured = true; }
+      if (e.button === 1 || spaceHeld || !insideFrame(e.target)) e.preventDefault();
       return;
     }
     if (e.button === 0 && state.tool === 'select') maybeStartCanvasDrag(e);
@@ -1306,6 +1361,8 @@
     if (!pan) return;
     var dx = e.clientX - pan.x, dy = e.clientY - pan.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) pan.moved = true;
+    if (!pan.moved) return;
+    if (!pan.captured) { try { stage.setPointerCapture(pan.pid); } catch (er) { /* released already */ } pan.captured = true; try { window.getSelection().removeAllRanges(); } catch (er) { /* none */ } }
     state.panX = pan.px + dx;
     state.panY = pan.py + dy;
     applyTransform();
@@ -1420,7 +1477,7 @@
   function onStageClickCapture(e) {
     lastPt = { x: e.clientX, y: e.clientY, target: e.target };
     if (onStageUI(e.target)) return;
-    if (suppressClick || pan) { e.stopPropagation(); e.preventDefault(); return; }
+    if (suppressClick || (pan && pan.moved)) { e.stopPropagation(); e.preventDefault(); return; }
     if (insideFrame(e.target)) setActiveAbFrom(e.target);
     if (state.tool === 'text') { onTextToolClick(e); return; }
     if (state.tool === 'comment') {
@@ -1451,6 +1508,18 @@
     var id = secEl.getAttribute('data-section-id');
     if (isLocked(id)) { if (!e.shiftKey) select(null); return; }
     if (e.shiftKey) { toggleMulti(id); return; }
+    // Ctrl (⌘) + click: straight to the deepest element under the pointer, as Figma's deep select (wave 2)
+    if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+      var dtp = secEl.getAttribute('data-section-type') || '';
+      var cardEl = e.target.closest ? e.target.closest('[data-product-id]') : null;
+      if (cardEl && secEl.contains(cardEl)) {
+        var inCardEl = designElAt(cardEl, dtp, e.target);
+        if (inCardEl && inCardEl.key !== 'card') { select({ kind: 'section', id: id, el: inCardEl.key }); return; }
+      }
+      state.sel = { kind: 'section', id: id };
+      if (!drillInto(secEl, e.target)) select({ kind: 'section', id: id });
+      return;
+    }
     var sel = state.sel;
     if (isMulti(sel)) { select({ kind: 'section', id: id }); return; }
     if (sel && sel.kind === 'section' && sel.id === id && !isSubSel(sel)) {
@@ -1752,7 +1821,8 @@
   function onInlineKey(e) {
     e.stopPropagation();
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finishInlineEdit(true); }
-    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finishInlineEdit(false); }
+    // Escape ends editing and KEEPS the text (Figma, Framer, Webflow; wave 2): one Ctrl Z undoes the whole edit
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finishInlineEdit(true); }
     else if (e.key === ' ' && inlineEdit && inlineEdit.el.closest && inlineEdit.el.closest('button, a')) {
       /* inside a button, the browser turns Space into a click: insert the space ourselves */
       e.preventDefault();
@@ -2817,12 +2887,21 @@
 
   function readFileAsImage(file, done) {
     if (!file || !/^image\//.test(file.type)) { toast('Choisissez une image (JPEG, PNG, WebP).', 'warn'); return; }
+    // Signed in: hosted in Supabase Storage at full size, 640 / 1280 / 2048 px WebP with a srcset; else a
+    // 1280 px data URL kept in this browser and sent at publication (creer/media.js, wave 2)
+    if (window.JeereMedia && typeof window.JeereMedia.importFile === 'function') {
+      window.JeereMedia.importFile(file).then(function (r) {
+        if (r.hosted) toast('Photo envoyée en haute définition.', 'ok');
+        done(r.src);
+      }, function () { toast('L’image n’a pas pu être lue.', 'err'); });
+      return;
+    }
     var reader = new FileReader();
     reader.onload = function () {
       var img = new Image();
       img.onload = function () {
         try {
-          var maxW = 800;
+          var maxW = 1280;
           var scale = Math.min(1, maxW / img.width);
           var cv = document.createElement('canvas');
           cv.width = Math.max(1, Math.round(img.width * scale));
@@ -3871,10 +3950,24 @@
     if (livePublish) {
       var pub = ce('div', 'st-publish');
       body.appendChild(pub);
-      window.JeerePublish.mount(pub, { getConfig: function () { return state.config; }, theme: 'dark', showScore: false, onPublished: function () { toast('Boutique en ligne !', 'ok'); } });
+      window.JeerePublish.mount(pub, { getConfig: function () { return state.config; }, theme: 'dark', showScore: false, onPublished: function () { toast('Boutique en ligne !', 'ok'); },
+        // « Restaurer » a published version: it is live again, and the draft takes it (one undo step, wave 2)
+        onRestore: function (fiche) {
+          var normalized;
+          try { normalized = D.normalizeConfig(fiche); } catch (e) { return false; }
+          commit('Version publiée restaurée', function (c) {
+            Object.keys(c).forEach(function (k) { delete c[k]; });
+            Object.keys(normalized).forEach(function (k) { c[k] = normalized[k]; });
+          }, { structure: true });
+          state.sel = null;
+          showPage('home');
+          buildInspector();
+          return true;
+        } });
     }
     var row = ce('div', 'st-share__row');
-    var dl = ce('button', 'st-primary', 'Télécharger le JSON');
+    // one primary action per dialog: when publishing, the JSON is the secondary way out
+    var dl = ce('button', livePublish ? 'st-ghostbtn' : 'st-primary', 'Télécharger le JSON');
     dl.type = 'button';
     dl.addEventListener('click', exportJSON);
     row.appendChild(dl);
@@ -4183,6 +4276,10 @@
   }
 
   var opDigit = null; // { d, at }: the first of two digits typed quickly
+  // any other key in between ends the pair (« 5 », Ctrl Z, « 0 » = 100 %, not 50 %: wave 2, B-21)
+  window.addEventListener('keydown', function (e) {
+    if (opDigit && !(/^(Digit|Numpad)[0-9]$/.test(e.code || '') && !e.ctrlKey && !e.metaKey && !e.altKey) && !/^(Shift|Control|Alt|Meta)$/.test(e.key)) opDigit = null;
+  }, true);
   function opacityDigit(d) {
     var now = Date.now(), pct;
     if (opDigit && now - opDigit.at < 650) { pct = opDigit.d * 10 + d; opDigit = null; }
@@ -4402,6 +4499,13 @@
     });
     $('shareBtn').addEventListener('click', function () { openShare(false); });
     $('publishBtn').addEventListener('click', function () { openShare(true); });
+    // Back from « Se connecter pour publier » (compte/?suite=studio-publier): the publish dialog again (wave 2)
+    // « Ouvrir dans le Studio » from the simple editor (a detached section): that section, selected and in view
+    try {
+      var hs = /^#section=([\w-]{1,40})$/.exec(location.hash);
+      if (hs) { history.replaceState(null, '', location.pathname + location.search); setTimeout(function () { if (sectionById(hs[1])) select({ kind: 'section', id: hs[1] }, { pan: true }); }, 500); }
+    } catch (e) { /* ignore */ }
+    try { if (location.hash === '#publier') { history.replaceState(null, '', location.pathname + location.search); setTimeout(function () { openShare(true); }, 400); } } catch (e) { /* ignore */ }
     $('helpBtn').addEventListener('click', toggleHelp);
     $('tabLayers').addEventListener('click', function () { switchLeftTab('layers'); });
     $('tabInsert').addEventListener('click', function () { switchLeftTab('insert'); });

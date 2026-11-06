@@ -2470,8 +2470,13 @@
 
   var PAYMENT_KEYS = PAYMENTS.map(function (p) { return p.key; });
   var IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
+  /* A seller's photo hosted in Supabase Storage (wave 2 of the Studio audit): the public bucket store-media,
+   * her own folder, a content hash and the largest width made (creer/media.js uploads 640, 1280 and 2048 px
+   * WebP; render.js writes the srcset from the name). Data URLs stay for the demo and offline work. */
+  var MEDIA_RE = /^https:\/\/aezchxfvzfoqlvzchqyk\.supabase\.co\/storage\/v1\/object\/public\/store-media\/[0-9a-f-]{36}\/[a-z0-9]{8,64}-\d{2,4}\.(webp|jpg|png)$/;
+  function isMediaUrl(v) { return typeof v === 'string' && v.length < 300 && MEDIA_RE.test(v); }
 
-  function isImage(v) { return typeof v === 'string' && v.length < 12000000 && IMAGE_RE.test(v); }
+  function isImage(v) { return typeof v === 'string' && ((v.length < 12000000 && IMAGE_RE.test(v)) || isMediaUrl(v)); }
 
   function str(v, def) {
     if (typeof v === 'string') return v;
@@ -2830,8 +2835,9 @@
    *   sections[].settings.buttonNewTab true: the link opens in a new tab
    *   sections[].settings.imageAlt     the alternative text of the section's picture (hero, about)
    *   products[].alt                   the alternative text of the product's photo
-   *   store.seo / pages[].seo          { title (70), description (160) }: the search engines' title and
-   *                                    description, apart from the store's name and tagline */
+   *   store.seo / pages[].seo          { title (70), description (160), image (https, og:image), noindex }:
+   *                                    the search engines' title and description, apart from the store's
+   *                                    name and tagline; read by the live store (b/b.js, api/store.js) */
   var LINK_RE = /^(home|cart|whatsapp|(page|product|section):[\w-]{1,40}|https:\/\/[^\s"'<>]{1,300})$/i;
   function oneLine(v, n) { return typeof v === 'string' ? v.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n) : ''; }
   function normSectionExtras(src, out) {
@@ -2845,6 +2851,9 @@
     var t = oneLine(v.title, 70), d = oneLine(v.description, 160);
     if (t) o.title = t;
     if (d) o.description = d;
+    // the share image (og:image, wave 2): a public https address (a Storage photo, her own site), 500 max
+    var im = typeof v.image === 'string' ? v.image.trim() : '';
+    if (im && /^https:\/\/[^\s"'<>]{1,500}$/i.test(im)) o.image = im;
     if (v.noindex === true) o.noindex = true;
     return Object.keys(o).length ? o : null;
   }
@@ -3354,6 +3363,16 @@
     open: 'jeere-studio-open', // one-shot { page, pageId?, productId? } read and deleted by the editor
     tour: 'jeere-tour' // { version: 1, seen: { editor: iso, admin: iso } }: the guided tours already shown (tour.js)
   };
+
+  /* The breakpoints, the same everywhere (wave 2 of the Studio audit): the Studio's artboards, the live
+   * store (b/b.js, api/store.js), the element styles (elstyles.js) and the detached sections
+   * (engine-sections.js, container queries).
+   *   phone    < 768 px      store layout « phone »;  element styles: phone (inherits tablet, then base)
+   *   tablet   768–1199 px   store layout « desktop » (the Studio's 768 artboard);  element styles: tablet
+   *   desktop  ≥ 1200 px     store layout « desktop »;  element styles: desktop */
+  var BREAKPOINTS = { tablet: 768, desktop: 1200 };
+  function layoutForWidth(w) { return Number(w) >= BREAKPOINTS.tablet ? 'desktop' : 'phone'; }
+  function bpForWidth(w) { w = Number(w) || 0; return w < BREAKPOINTS.tablet ? 'phone' : (w < BREAKPOINTS.desktop ? 'tablet' : 'desktop'); }
 
   /* The free address of every store (README « Domaines »). Jeere does not own jeere.shop yet, so a
    * store lives on a path of the free Jeere host: https://jeere.kreeative.xyz/b/<slug>. To move every
@@ -4078,6 +4097,12 @@
     storeAddress: storeAddress,
     storeUrl: storeUrl,
     storeSlug: storeSlug,
+    // wave 2 of the Studio audit: the breakpoints (the same everywhere) and the hosted photos
+    BREAKPOINTS: BREAKPOINTS,
+    layoutForWidth: layoutForWidth,
+    bpForWidth: bpForWidth,
+    MEDIA_RE: MEDIA_RE,
+    isMediaUrl: isMediaUrl,
     subdomainFor: subdomainFor,
     PLANS: PLANS,
     PLAN_FEATURES: PLAN_FEATURES,

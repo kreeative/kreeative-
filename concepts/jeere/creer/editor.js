@@ -1226,6 +1226,7 @@
   function sectionSummary(sec) {
     const def = typeDef(sec.type);
     if (!def) return '';
+    if (sec.engine) return 'Composée dans le Studio Pro';
     const st = sec.settings || {};
     const parts = [];
     const tf = def.fields.find((f) => (f.type === 'text' || f.type === 'textarea') && String(st[f.key] || '').trim());
@@ -1280,7 +1281,7 @@
     const inner = [
       el('span', { class: 'b-item__ico' }, icon(SECTION_ICONS[sec.type] || 'i-layers')),
       el('span', { class: 'b-item__txt' },
-        el('span', { class: 'b-item__name' }, el('span', { class: 'b-item__name-t', text: def.name }), sec.enabled ? null : el('span', { class: 'b-tag', text: 'Masquée' })),
+        el('span', { class: 'b-item__name' }, el('span', { class: 'b-item__name-t', text: def.name }), sec.engine ? el('span', { class: 'b-tag b-tag--studio', text: 'Studio Pro' }) : null, sec.enabled ? null : el('span', { class: 'b-tag', text: 'Masquée' })),
         el('span', { class: 'b-item__sum', text: sectionSummary(sec) }))
     ];
     const up = `Monter la section ${guil(def.name)}`;
@@ -1301,7 +1302,40 @@
     return li;
   }
 
+  // A section detached in the Studio Pro (sections[].engine, a DualEngine composition): its look and its
+  // words live in the Studio now, so the simple form would edit nothing visible. Say so, and offer the two
+  // ways out (wave 2 of the Studio audit): open it in the Studio, or re-attach it to the template.
+  function detachedForm(sec, bodyId, def, i, n) {
+    const body = el('div', { class: 'b-item__body', id: bodyId, 'data-detached': '' });
+    body.append(el('div', { class: 'b-note-box b-note-box--studio', role: 'note', 'data-fk': 'sdn-' + sec.id }, icon('i-pro'),
+      el('span', {},
+        el('b', { text: 'Section modifiée dans le Studio Pro' }),
+        el('span', { class: 'b-note-box__p', text: `Elle a été détachée du modèle${NB}: son design et ses textes se règlent dans le Studio. Ici, vous pouvez la déplacer, la masquer ou la supprimer.` }))));
+    const studio = el('a', { class: 'b-btn b-btn--primary b-btn--sm', href: '../studio/#section=' + encodeURIComponent(sec.id), 'data-leave': '', 'data-fk': 'sds-' + sec.id,
+      on: { click: () => { flush(); } } }, icon('i-pro'), 'Ouvrir dans le Studio');
+    const attach = el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--sm', 'data-fk': 'sda-' + sec.id, on: { click: () => reattachSection(sec.id) } },
+      icon('i-layers'), 'Rattacher');
+    attach.title = 'Revenir au modèle de la boutique : la section reprend les réglages de ce formulaire (Annuler la défait)';
+    body.append(el('div', { class: 'b-item__acts' }, studio, attach));
+    body.append(el('div', { class: 'b-item__foot' },
+      el('div', { class: 'b-item__moves' }, moveBtns(i, n, `Monter la section ${guil(def.name)}`, `Descendre la section ${guil(def.name)}`,
+        (d) => moveSection(sec.id, d, 'sf'), 'sfu-' + sec.id, 'sfd-' + sec.id, true)),
+      el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', 'data-fk': 'sx-' + sec.id, on: { click: () => deleteSection(sec.id) } },
+        icon('i-trash'), 'Supprimer')));
+    return body;
+  }
+  function reattachSection(id) {
+    const s = findSection(id);
+    if (!s || !s.engine) return;
+    delete s.engine;
+    change({ now: true });
+    renderTab({ focus: 'sm-' + id });
+    toast(`Section rattachée${NB}: elle suit de nouveau le modèle. Annuler la détache à nouveau.`, 3200);
+    revealInPreview({ kind: 'section', id });
+  }
+
   function sectionForm(sec, bodyId, def, i, n) {
+    if (sec.engine) return detachedForm(sec, bodyId, def, i, n);
     const body = el('div', { class: 'b-item__body', id: bodyId });
     if (def.description) body.append(el('p', { class: 'b-item__desc', text: def.description }));
     if (sec.type === 'categories') {
@@ -3561,6 +3595,9 @@
   /* ------------------------------------------------------------------ images */
 
   function readImage(file) {
+    // Signed in: hosted in Supabase Storage (640 / 1280 / 2048 px WebP, srcset); else a data URL kept here
+    // and sent at publication (media.js, wave 2 of the Studio audit)
+    if (window.JeereMedia && typeof window.JeereMedia.importFile === 'function') return window.JeereMedia.importFile(file).then((r) => r.src);
     return new Promise((resolve, reject) => {
       if (!file || (file.type && !/^image\//.test(file.type))) { reject(new Error('type')); return; }
       let url;
@@ -3724,7 +3761,17 @@
     if (panel && window.JeerePublish) {
       const fresh = panel.cloneNode(false);
       panel.replaceWith(fresh);
-      window.JeerePublish.mount(fresh, { getConfig: () => S.config, showScore: false, onPublished: () => toast(`Boutique en ligne${NB}!`, 3000, 'ok') });
+      window.JeerePublish.mount(fresh, { getConfig: () => S.config, showScore: false, onPublished: () => toast(`Boutique en ligne${NB}!`, 3000, 'ok'),
+        // « Restaurer » a published version: it is live again and the draft takes it (Annuler undoes it, wave 2)
+        onRestore: (fiche) => {
+          let cfg;
+          try { cfg = D.normalizeConfig(fiche); } catch (e) { return false; }
+          S.config = cfg;
+          S.openSection = null; S.openProduct = null; S.openItem = {};
+          change({ now: true });
+          renderTab({ top: true });
+          return true;
+        } });
     }
     openModal('m-publish');
   }
@@ -4378,6 +4425,15 @@
     // The dashboard sent the seller here to see or customise a page (« Personnaliser », « Voir dans la
     // boutique »…): open the editor straight on it. The instruction is used once (deleted when read);
     // a link to …/creer/#assistant is for the assistant (wizard.js) instead.
+    // Back from the account page after « Se connecter pour publier » (compte/?suite=publier): the store,
+    // then its publish dialog, now with the real session (wave 2 of the Studio audit)
+    let wantPublish = false;
+    try { wantPublish = location.hash === '#publier'; } catch (e) { wantPublish = false; }
+    if (wantPublish) {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+      const saved = readSaved();
+      if (saved) { openEditor(saved, { replace: true }); setTimeout(openPublish, 60); return; }
+    }
     const ins = takeOpen();
     let assistant = false;
     try { assistant = location.hash === '#assistant'; } catch (e) { assistant = false; }

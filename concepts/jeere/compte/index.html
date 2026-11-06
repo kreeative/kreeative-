@@ -364,7 +364,13 @@
             <div><dt>Studio</dt><dd id="c-sum-studio">Découverte (gratuit)</dd></div>
           </dl>
           <p class="c-studio" id="c-studio-line"><a class="c-link" href="../admin/#parametres/studio" id="c-studio-manage">Gérer mon abonnement Studio</a> · <a class="c-link" href="../studio/" id="c-studio-open">Ouvrir le Studio</a></p>
+          <!-- a local or demo account (no Supabase user): the way to a real one, keeping this browser's store (wave 2) -->
+          <div class="c-notice" id="c-real" role="group" aria-labelledby="c-real-t" hidden>
+            <svg class="c-ico" aria-hidden="true"><use href="#i-alert"/></svg>
+            <p id="c-real-t">Ce compte reste dans ce navigateur. Pour publier votre boutique, connectez-vous à votre compte Jeere&nbsp;: la boutique de ce navigateur est gardée et reliée à votre compte.</p>
+          </div>
           <div class="c-acts">
+            <a class="c-btn c-btn--primary c-btn--block" href="#connexion" id="c-real-login" hidden><svg class="c-ico" aria-hidden="true"><use href="#i-mail"/></svg><span>Me connecter pour publier</span></a>
             <a class="c-btn c-btn--primary c-btn--block" href="../studio/?essai=1" id="c-studio-next" hidden><svg class="c-ico" aria-hidden="true"><use href="#i-sparkle"/></svg><span id="c-studio-next-t">Continuer vers le Studio</span></a>
             <a class="c-btn c-btn--primary c-btn--block" href="../admin/"><svg class="c-ico" aria-hidden="true"><use href="#i-dash"/></svg>Aller au tableau de bord</a>
             <a class="c-btn c-btn--ghost c-btn--block" href="../creer/"><svg class="c-ico" aria-hidden="true"><use href="#i-edit"/></svg>Ouvrir l’éditeur</a>

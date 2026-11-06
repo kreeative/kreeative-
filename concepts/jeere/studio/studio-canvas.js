@@ -496,6 +496,9 @@
       var p = toFrame(d.ab, e.clientX, e.clientY);
       var dx = p.x - d.p0.x, dy = p.y - d.p0.y;
       if (!d.moved) { if (Math.abs(dx) * p.k + Math.abs(dy) * p.k < 3) return; d.moved = true; S.closeCtx(); stage.classList.add('st-eng-dragging'); }
+      // Alt held (at any time of the drag): a copy is dropped, the original stays (Figma, wave 2)
+      d.alt = !!e.altKey;
+      stage.classList.toggle('st-eng-altcopy', d.alt);
       snapLines = []; measures = []; insertLine = null;
       var s0 = d.starts[0];
       var union = unionOf(d.starts);
@@ -537,7 +540,17 @@
       }
       // the preview: only the dragged elements move (a transform), the rest of the store stays put
       d.els.forEach(function (el) { if (el) el.style.transform = 'translate(' + round(d.dx, 2) + 'px,' + round(d.dy, 2) + 'px)'; });
+      liveXY(d);
       draw();
+    }
+    /* X and Y of the inspector follow the drag (wave 2: Figma shows the position live), whole pixels */
+    function liveXY(d) {
+      if (d.ids.length !== 1 || d.flowMove) return;
+      var s0 = d.starts[0];
+      [['X (px', s0.gx + d.dx], ['Y (px', s0.gy + d.dy]].forEach(function (f) {
+        var inp = document.querySelector('.st-right input[aria-label^="' + f[0] + '"]');
+        if (inp && document.activeElement !== inp) inp.value = String(Math.round(f[1]));
+      });
     }
     function unionOf(list) {
       var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -561,12 +574,56 @@
       if (best.btm) measures.push({ ab: d.ab, x1: cx, y1: ay + b.y + b.h, x2: cx, y2: ay + b.y + b.h + best.btm.v, v: best.btm.v });
     }
     /* the drop: ONE transaction — new x / y at the artboard's breakpoint, or a new place in the stack */
+    /* Alt + drag (wave 2): copies of the dragged nodes at the dropped place (or the dropped rank in a stack),
+     * the originals untouched; one transaction, the copies selected — Figma's « Alt-drag to duplicate » */
+    function endAltCopy(d) {
+      var sid = d.sid, e = E.ed(sid);
+      var parent = E.node(sid, d.parentId);
+      var ordered = d.ids.slice().sort(function (a, b) { return parent.children.indexOf(a) - parent.children.indexOf(b); });
+      var at = parent.children.length;
+      if (d.flowMove) {
+        var l = lay(sid, d.ab);
+        var flowKids = parent.children.filter(function (c) { return l.world.get(c) && (E.value(sid, c, 'layoutChild', d.bp) || {}).position !== 'absolute' && E.value(sid, c, 'visible', d.bp) !== false; });
+        var kidsNoSel = flowKids.filter(function (c) { return !d.skip[c]; });
+        var before = kidsNoSel[d.insertAt];
+        at = before ? parent.children.indexOf(before) : (kidsNoSel.length ? parent.children.indexOf(kidsNoSel[kidsNoSel.length - 1]) + 1 : parent.children.length);
+      }
+      var patches = [], newIds = [];
+      ordered.forEach(function (id) {
+        var list = E.subtreeIds(sid, id).map(function (x) { return clone(e.doc.nodes[x]); });
+        var map = {};
+        list.forEach(function (n) { map[n.id] = E.newId(); });
+        var copies = list.map(function (n0, i) {
+          var n = clone(n0);
+          n.id = map[n0.id];
+          n.parent = i === 0 ? d.parentId : map[n0.parent];
+          if (n.children) n.children = n.children.map(function (x) { return map[x]; });
+          return n;
+        });
+        if (!d.flowMove) {
+          var st = d.starts.filter(function (x) { return x.id === id; })[0];
+          var g = { x: round(st.gx + d.dx, 2), y: round(st.gy + d.dy, 2) };
+          var top = copies[0];
+          if (d.bp === 'base') top.geometry = Object.assign({}, top.geometry, g);
+          else { top.overrides = top.overrides || {}; top.overrides[d.bp] = Object.assign({}, top.overrides[d.bp] || {}); top.overrides[d.bp].geometry = Object.assign({}, top.overrides[d.bp].geometry || {}, g); }
+        }
+        copies.forEach(function (n) { patches.push({ op: 'add', path: E.path(n.id), value: n }); });
+        patches.push({ op: 'add', path: E.path(d.parentId, 'children/' + at), value: copies[0].id });
+        at++;
+        newIds.push(copies[0].id);
+      });
+      E.apply(sid, patches, newIds.length > 1 ? 'Éléments dupliqués (Alt)' : 'Élément dupliqué (Alt)', { structure: true });
+      selectNodes(sid, newIds);
+      return true;
+    }
     function endMove(e) {
       var d = drag;
       d.els.forEach(function (el) { if (el) el.style.transform = ''; });
       stage.classList.remove('st-eng-dragging');
+      stage.classList.remove('st-eng-altcopy');
       snapLines = []; measures = []; insertLine = null;
       if (!d.moved) return false;
+      if ((d.alt || (e && e.altKey)) && !(d.parentMode !== 'absolute' && !d.flowMove)) return endAltCopy(d);
       var patches = [];
       if (d.flowMove) {
         var parent = E.node(d.sid, d.parentId);
@@ -583,7 +640,9 @@
       } else {
         var toAbs = d.parentMode !== 'absolute';
         d.starts.forEach(function (s) {
-          var g = { x: round(s.gx + d.dx, 2), y: round(s.gy + d.dy, 2) };
+          // whole pixels on the drop (wave 2), unless the document asks for sub-pixels
+          var whole = E.ed(d.sid).doc.settings.snapToPixel !== false;
+          var g = { x: whole ? Math.round(s.gx + d.dx) : round(s.gx + d.dx, 2), y: whole ? Math.round(s.gy + d.dy) : round(s.gy + d.dy, 2) };
           if (toAbs) {
             // Ctrl held in a stack: the child leaves the flow, absolute at the dropped place (§1.3)
             var lc = clone(E.value(d.sid, s.id, 'layoutChild', 'base'));
@@ -932,7 +991,8 @@
     }
     function onEditKey(e) {
       e.stopPropagation();
-      if (e.key === 'Escape') { e.preventDefault(); finishEdit(false); }
+      // Escape ends editing and KEEPS the text, as in Figma, Framer and Webflow (wave 2); Ctrl Z undoes it
+      if (e.key === 'Escape') { e.preventDefault(); finishEdit(true); }
       else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finishEdit(true); }
     }
     function onEditBlur() { finishEdit(true); }
@@ -1008,11 +1068,11 @@
       E.apply(c.sid, [{ op: 'replace', path: E.path(p.id, 'children'), value: next }], delta > 0 ? (extreme ? 'Mis au premier plan' : 'Avancé d’un plan') : (extreme ? 'Mis à l’arrière-plan' : 'Reculé d’un plan'));
     }
     var clip = null;
-    function copy(c) {
+    function copy(c, silent) {
       if (c.root) return false;
       var e = E.ed(c.sid);
       clip = { nodes: c.ids.map(function (id) { return E.subtreeIds(c.sid, id).map(function (x) { return clone(e.doc.nodes[x]); }); }), assets: clone(e.doc.assets) };
-      toast(c.ids.length > 1 ? c.ids.length + ' éléments copiés.' : 'Élément copié.', 'info');
+      if (!silent) toast(c.ids.length > 1 ? c.ids.length + ' éléments copiés.' : 'Élément copié.', 'info');
       return true;
     }
     function paste(c, offset) {
@@ -1044,7 +1104,7 @@
       selectNodes(sid, newIds);
       return true;
     }
-    function duplicate(c) { if (c.root) return false; var keep = clip; copy(c); paste(c, true); clip = keep || clip; return true; }
+    function duplicate(c) { if (c.root) return false; var keep = clip; var n = c.ids.length; copy(c, true); paste(c, true); clip = keep || clip; toast(n > 1 ? n + ' éléments dupliqués.' : 'Élément dupliqué.', 'info'); return true; }
     function autoLayout(c) {
       var id = c.ids.length === 1 ? c.ids[0] : null;
       var n = id ? E.node(c.sid, id) : null;
@@ -1175,6 +1235,53 @@
       });
       if (!patches.length) { toast('Déjà réparti.', 'info'); return true; }
       E.apply(c.sid, patches, hz ? 'Espacement horizontal réparti' : 'Espacement vertical réparti');
+      return true;
+    }
+
+    /* Ranger / Tidy up (Ctrl Alt T, wave 2): the selected free nodes in a tidy grid — the rows and columns
+     * they are roughly in, aligned, with one spacing (the average of the gaps they have, never negative),
+     * from the top-left corner of the selection. A single row or column is spaced evenly. Like Figma. */
+    function tidy(c) {
+      c = c || current();
+      if (!c || c.root) return false;
+      var A = alignItems(c);
+      var list = A ? A.list.filter(function (it) { return it.abs; }) : [];
+      if (list.length < 2) { toast('Ranger : sélectionnez au moins 2 éléments à position libre.', 'info'); return false; }
+      // rows: centres closer than half the smallest height belong to the same row
+      var byY = list.slice().sort(function (a, b) { return (a.wb.y + a.wb.h / 2) - (b.wb.y + b.wb.h / 2); });
+      var rows = [];
+      byY.forEach(function (it) {
+        var cy = it.wb.y + it.wb.h / 2, r = rows[rows.length - 1];
+        if (r && Math.abs(cy - r.cy) <= Math.min(r.h, it.wb.h) / 2) { r.items.push(it); r.h = Math.max(r.h, it.wb.h); }
+        else rows.push({ cy: cy, h: it.wb.h, items: [it] });
+      });
+      rows.forEach(function (r) { r.items.sort(function (a, b) { return a.wb.x - b.wb.x; }); });
+      var cols = Math.max.apply(null, rows.map(function (r) { return r.items.length; }));
+      var gapsX = [], gapsY = [];
+      rows.forEach(function (r, ri) {
+        r.items.forEach(function (it, i) { if (i) gapsX.push(it.wb.x - (r.items[i - 1].wb.x + r.items[i - 1].wb.w)); });
+        if (ri) gapsY.push(Math.min.apply(null, r.items.map(function (it) { return it.wb.y; })) - Math.max.apply(null, rows[ri - 1].items.map(function (it) { return it.wb.y + it.wb.h; })));
+      });
+      var avg = function (a) { return a.length ? Math.max(0, Math.round(a.reduce(function (s, v) { return s + v; }, 0) / a.length)) : 0; };
+      var gx = avg(gapsX), gy = rows.length > 1 ? avg(gapsY) : 0;
+      if (rows.length === 1 && !gapsX.length) gx = 16;
+      var colW = [];
+      for (var ci = 0; ci < cols; ci++) colW[ci] = Math.max.apply(null, rows.map(function (r) { return r.items[ci] ? r.items[ci].wb.w : 0; }));
+      var x0 = Math.min.apply(null, list.map(function (it) { return it.wb.x; }));
+      var y = Math.min.apply(null, list.map(function (it) { return it.wb.y; }));
+      var patches = [];
+      rows.forEach(function (r) {
+        var x = x0;
+        r.items.forEach(function (it, i) {
+          var dx = x - it.wb.x, dy = y - it.wb.y;
+          if (Math.abs(dx) > 0.005 || Math.abs(dy) > 0.005) patches = patches.concat(geomPatch(c.sid, it.id, A.bp, { x: Math.round(it.lb.x + dx), y: Math.round(it.lb.y + dy) }));
+          x += colW[i] + gx;
+        });
+        y += r.h + gy;
+      });
+      if (!patches.length) { toast('Déjà rangé.', 'info'); return true; }
+      E.apply(c.sid, patches, 'Éléments rangés');
+      toast('Rangé : ' + rows.length + ' ligne' + (rows.length > 1 ? 's' : '') + ' × ' + cols + ' colonne' + (cols > 1 ? 's' : '') + ', espacement ' + gx + (rows.length > 1 ? ' × ' + gy : '') + ' px.', 'ok');
       return true;
     }
 
@@ -1763,6 +1870,8 @@
         var L = letterOf(e);
         // align (Alt A D W S H V) and distribute (Ctrl Alt H / V, or Alt Maj H / V)
         if (e.altKey && !mod && !e.shiftKey && ALIGN_KEYS[L]) { done(); align(c, ALIGN_KEYS[L]); return; }
+        // Ctrl Alt T: Ranger (Figma's Tidy up), by e.code so AZERTY works too
+        if (mod && e.altKey && !e.shiftKey && (L === 't' || e.code === 'KeyT')) { done(); tidy(c); return; }
         // Figma: Alt ⇧ H / V (Windows), Ctrl ⌥ H / V (Mac, the Control key); Ctrl Alt H too. On Windows Ctrl Alt V
         // stays « coller le style » (Figma's paste properties), on a Mac that is ⌘ ⌥ V
         var macCtrl = IS_MAC && e.ctrlKey && !e.metaKey;

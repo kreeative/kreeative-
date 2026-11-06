@@ -29,8 +29,10 @@
  *     hideBadge: boolean                                « Fait avec Jeere » removed (paid plans)
  *   }
  *
- * In the real product the subscription row lives in Supabase and changes only from the payment
- * provider's webhook (see studio/README.md, « Abonnements Studio »).
+ * The server's copy is the reference (wave 2): public.profiles.studio, written only by the `studio-plan`
+ * Edge Function (browsers cannot write the column). compte/auth.js sends what this module writes there —
+ * kept only while billing is in demo mode — and writes the server's answer back here. In live mode only the
+ * payment provider's webhook changes it (see studio/README.md, « Abonnements Studio »).
  */
 (function (root) {
   'use strict';
@@ -355,6 +357,9 @@
     sub.trialUsed = true;
     sub.trialEndsAt = new Date(now() + TRIAL_DAYS * DAY).toISOString();
     if (!writeSub(sub)) return { ok: false, reason: 'storage', message: 'La mémoire de ce navigateur est pleine ou bloquée.' };
+    // A real account: the server starts it too (the `studio-plan` Edge Function, one trial per account,
+    // in every billing mode); its answer replaces this copy (wave 2 of the Studio audit)
+    try { if (root.JeereAuth && typeof root.JeereAuth.startTrial === 'function') root.JeereAuth.startTrial().then(function () { emit(); }, function () { /* offline: kept here */ }); } catch (e) { /* no auth module */ }
     return { ok: true, state: state() };
   }
 

@@ -393,6 +393,11 @@
 /* wider screens: the stage grows with the width (680 to 820 px) so a wide window still shows most of the photo */
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-sec--hero { container-type: inline-size; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img { min-height: 680px; min-height: clamp(680px, 44cqw, 820px); }
+/* the tablet range (768–1199 px, the Studio's 768 artboard; wave 2, B-23): the title scales with the hero's width
+   down to 42 px at 768 (it was 66 px: five lines for eight words); 1200 px and wider are unchanged */
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-sec--hero:not([data-eng]) .jst-hero-title:not([class*="de-"]) { font-size: calc(clamp(42px, 5.556cqw - 0.667px, 66px) * var(--st-hs, 1)); }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-sec--hero:not([data-eng]) .jst-hero-title:not([class*="de-"])[data-len="s"] { font-size: calc(clamp(50px, 6.944cqw - 3.333px, 80px) * var(--st-hs, 1)); }
+.jst[data-tpl="plateau"][data-device="desktop"] .jst-sec--hero:not([data-eng]) .jst-hero-title:not([class*="de-"])[data-len="l"] { font-size: calc(clamp(36px, 4.167cqw + 4px, 54px) * var(--st-hs, 1)); }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img .jst-hero-img { position: absolute; top: 0; bottom: 0; left: 44%; right: 0; width: 56%; height: 100%; aspect-ratio: auto; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-stage.has-img .jst-hero-copy { grid-column: 1; padding-top: 96px; }
 .jst[data-tpl="plateau"][data-device="desktop"] .jst-hero-scrim { top: 0; bottom: 0; left: 44%; right: 0; aspect-ratio: auto; background: linear-gradient(90deg, #1C1A17 0%, #1C1A17 6%, rgba(28, 26, 23, .55) 18%, rgba(28, 26, 23, 0) 34%); }

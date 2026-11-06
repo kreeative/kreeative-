@@ -8,9 +8,20 @@
  *                                                stores.custom_domain is location.host)
  *   …/concepts/jeere/b/?domaine=<domain>        (on a Jeere host: what her domain will show)
  * The published fiche comes from Supabase (REST, publishable key, JeerePublish.fetchPublished) and is
- * drawn by creer/render.js + store.css: home, product, cart, checkout, the seller's pages. The page in
- * view is in the hash (#produit/p2, #panier, #paiement, #page/a-propos), so Back works and a product
- * link can be shared. Detached Studio sections load the DualEngine on demand (creer/engine-sections.js).
+ * drawn by creer/render.js + store.css: home, product, cart, checkout, the seller's pages.
+ * The page in view is in the address (wave 2 of the Studio audit), one format end to end — render.js
+ * writes the links, this file reads them and pushes them (history.pushState), so Back works and a
+ * product or page link can be shared, opened in a new tab or indexed:
+ *   jeere.kreeative.xyz/b/<slug>/produits/<id> · /pages/<slug> · /panier · /paiement   (linkBase '/b/<slug>')
+ *   <her domain>/produits/<id> …                                                     (linkBase '')
+ *   …/b/?s=<slug>#/produits/<id> …   (any other host: fragments; linkBase '<path>?s=<slug>#')
+ * Older links still open the right view: #/produits/<id>, #/pages/<slug>, #produit/<id>, #page/<slug>,
+ * #panier, #paiement. vercel.json sends those paths to api/store.js, which serves this page with the
+ * store's own title, description and image already in the HTML (for WhatsApp and Facebook, which do not
+ * run JavaScript) and the store row inline (#jb-data): then no second request is made here.
+ * Breakpoints: JEERE_DATA.BREAKPOINTS, the Studio's — under 768 px the phone layout, from 768 px the
+ * computer layout (the Studio's 768 artboard), with the element styles' tablet values under 1200 px.
+ * Detached Studio sections load the DualEngine on demand (creer/engine-sections.js).
  *
  * Ordering: the store's checkout has no real payment yet, so « Payer » / « Confirmer la commande »
  * prepares the order as a WhatsApp message to the shop (its number from the fiche) and says so; the
@@ -40,37 +51,72 @@
     var q = {};
     location.search.slice(1).split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) { try { q[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); } catch (e) { /* bad escape */ } } });
     var host = location.hostname.toLowerCase();
-    if (!JEERE_HOST.test(host)) return { host: host };
+    // Her own domain: every path is her store, the links are paths from the root
+    if (!JEERE_HOST.test(host)) return { host: host, base: '', rest: location.pathname };
     var s = q.s || '';
-    if (!s) { var m = /\/b\/([A-Za-z0-9-]+)\/?$/.exec(location.pathname); if (m) s = m[1]; }
-    if (!s && q.domaine) return { host: String(q.domaine).toLowerCase() };
-    return { slug: String(s).toLowerCase() };
+    if (s) return { slug: String(s).toLowerCase(), base: null };
+    var m = /\/b\/([A-Za-z0-9-]+)(\/.*)?$/.exec(location.pathname);
+    if (m) {
+      var i = location.pathname.indexOf('/b/' + m[1]);
+      return { slug: m[1].toLowerCase(), base: location.pathname.slice(0, i) + '/b/' + m[1], rest: m[2] || '' };
+    }
+    if (q.domaine) return { host: String(q.domaine).toLowerCase(), base: null };
+    return { slug: '' };
+  }
+  // The links' root for render.js (options.linkBase): a path, or this address + '#' (fragments)
+  function linkBase() {
+    var t = S.target || {};
+    if (typeof t.base === 'string') return t.base;
+    return location.pathname + location.search + '#';
   }
 
   /* ---------------------------------------------------------------- the page in view (hash) */
 
-  function fromHash() {
-    var h = decodeURIComponent(location.hash.replace(/^#/, ''));
+  // '/produits/p1', 'produits/p1', 'produit/p1', '/pages/a-propos', 'page/a-propos', '/panier', 'paiement' → the view
+  function viewOf(route) {
     var cfg = S.config || {};
-    if (/^produit\//.test(h)) { var id = h.slice(8); if ((cfg.products || []).some(function (p) { return p.id === id; })) return { page: 'product', productId: id, pageId: null }; }
+    var h = String(route || '').replace(/^#/, '').replace(/^\/+|\/+$/g, '');
+    try { h = decodeURIComponent(h); } catch (e) { /* keep it raw */ }
+    var m = /^(?:produits?)\/(.+)$/.exec(h);
+    if (m) { var id = m[1]; if ((cfg.products || []).some(function (p) { return p.id === id; })) return { page: 'product', productId: id, pageId: null }; }
     if (h === 'panier') return { page: 'cart', productId: null, pageId: null };
     if (h === 'paiement') return { page: 'checkout', productId: null, pageId: null };
-    if (/^page\//.test(h)) {
-      var slug = h.slice(5);
+    m = /^(?:pages?)\/(.+)$/.exec(h);
+    if (m) {
+      var slug = m[1];
       var pg = (cfg.pages || []).filter(function (x) { return x.slug === slug || x.id === slug; })[0];
       if (pg) return { page: 'page', productId: null, pageId: pg.id };
     }
     return { page: 'home', productId: null, pageId: null };
   }
-  function hashFor(v) {
-    if (v.page === 'product' && v.productId) return '#produit/' + v.productId;
-    if (v.page === 'cart') return '#panier';
-    if (v.page === 'checkout') return '#paiement';
+  // The view from the address: the path after the store's root (Jeere's host, her domain), else the hash
+  function fromLocation() {
+    var t = S.target || {};
+    if (typeof t.base === 'string') {
+      var p = location.pathname;
+      var rest = t.base && p.indexOf(t.base) === 0 ? p.slice(t.base.length) : (t.base ? '' : p);
+      if (rest && rest !== '/') return viewOf(rest);
+    }
+    return viewOf(location.hash);
+  }
+  // The view → the route part of its address ('/produits/p1', '' for the home)
+  function routeFor(v) {
+    var enc = function (x) { return encodeURIComponent(String(x)); };
+    if (v.page === 'product' && v.productId) return '/produits/' + enc(v.productId);
+    if (v.page === 'cart') return '/panier';
+    if (v.page === 'checkout') return '/paiement';
     if (v.page === 'page' && v.pageId) {
       var pg = ((S.config && S.config.pages) || []).filter(function (x) { return x.id === v.pageId; })[0];
-      return '#page/' + (pg && pg.slug ? pg.slug : v.pageId);
+      return '/pages/' + enc(pg && pg.slug ? pg.slug : v.pageId);
     }
     return '';
+  }
+  // The view → the full address to push (same format as render.js's hrefs)
+  function urlFor(v) {
+    var t = S.target || {};
+    var r = routeFor(v);
+    if (typeof t.base === 'string') return (t.base || '') + (r || (t.base ? '' : '/')) + location.search;
+    return location.pathname + location.search + (r ? '#' + r : '');
   }
 
   /* ---------------------------------------------------------------- states */
@@ -110,37 +156,57 @@
 
   /* ---------------------------------------------------------------- the store */
 
-  function deviceFor() { return window.innerWidth >= 900 ? 'desktop' : 'phone'; }
+  // The Studio's breakpoints (JEERE_DATA.BREAKPOINTS): phone layout under 768 px, computer from 768 px
+  function deviceFor() {
+    var w = window.innerWidth;
+    if (D && typeof D.layoutForWidth === 'function') return D.layoutForWidth(w);
+    return w >= 768 ? 'desktop' : 'phone';
+  }
   function draw(scrollTop) {
     if (!S.root || !S.config) return;
-    try { R.render(S.config, S.root, { device: S.device, page: S.view.page, productId: S.view.productId, pageId: S.view.pageId }); } catch (e) { /* render never throws, but stay safe */ }
+    try { R.render(S.config, S.root, { device: S.device, page: S.view.page, productId: S.view.productId, pageId: S.view.pageId, linkBase: linkBase() }); } catch (e) { /* render never throws, but stay safe */ }
     orderBar();
+    viewMeta();
     if (scrollTop) try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
   }
 
-  function headMeta(cfg, store) {
+  function abs(u) { try { return new URL(u, document.baseURI).href; } catch (e) { return ''; } }
+  function linkTag(rel, href) {
+    var l = document.head.querySelector('link[rel="' + rel + '"]');
+    if (!href) { if (l) l.remove(); return; }
+    if (!l) { l = document.createElement('link'); l.rel = rel; document.head.appendChild(l); }
+    l.href = href;
+  }
+  function metaFor(cfg, view) {
+    if (R && typeof R.storeMeta === 'function') return R.storeMeta(cfg, view, { abs: abs });
     var st = cfg.store || {};
-    var name = st.name || 'Boutique';
-    var desc = st.tagline || (cfg.sections || []).map(function (s) { return s && s.settings && (s.settings.subtitle || s.settings.text); }).filter(Boolean)[0] || ('Boutique en ligne' + (st.city ? ' à ' + st.city : '') + ' : commandez sur WhatsApp, payez par mobile money ou à la livraison.');
-    desc = String(desc).replace(/\s+/g, ' ').slice(0, 160);
-    setTitle(name + (st.city ? ' · ' + st.city : '') + ' · Boutique en ligne');
-    meta('description', desc);
-    meta('og:title', name, true);
-    meta('og:description', desc, true);
-    meta('og:url', location.href.replace(/#.*$/, ''), true);
-    // A share image must be a public URL: a demo photo of the store, else Jeere's
-    var img = '';
-    try {
-      var hero = (cfg.sections || []).filter(function (s) { return s && s.type === 'hero'; })[0];
-      var id = hero && hero.settings ? hero.settings.photo : '';
-      var p0 = (cfg.products || []).filter(function (p) { return p && p.photo; })[0];
-      var info = (id && R.photoInfo(id)) || (p0 && R.photoInfo(p0.photo));
-      if (info && info.src) img = new URL(info.src, document.baseURI).href;
-    } catch (e) { img = ''; }
-    meta('og:image', img || 'https://jeere.kreeative.xyz/img/og.jpg', true);
+    return { title: (st.name || 'Boutique') + ' · Boutique en ligne', description: st.tagline || '', image: '', noindex: false, type: 'website', name: st.name || 'Boutique' };
+  }
+  function canonical() {
+    var t = S.target || {};
+    if (typeof t.base !== 'string') return location.href.replace(/#.*$/, '');
+    return location.origin + urlFor(S.view).replace(/\?.*$/, '');
+  }
+  function viewMeta() {
+    if (!S.config) return;
+    var m = metaFor(S.config, S.view);
+    setTitle(m.title);
+    meta('description', m.description);
+    meta('og:type', m.type, true);
+    meta('og:site_name', m.name, true);
+    meta('og:title', m.title, true);
+    meta('og:description', m.description, true);
+    meta('og:url', canonical(), true);
+    meta('og:image', m.image || 'https://jeere.kreeative.xyz/img/og.jpg', true);
+    meta('twitter:title', m.title);
+    meta('twitter:description', m.description);
+    meta('robots', m.noindex ? 'noindex' : 'index, follow');
+    linkTag('canonical', canonical());
+  }
+  function headMeta(cfg, store) {
+    viewMeta();
     var color = (S.root && S.root.style.getPropertyValue('--st-bg').trim()) || '#FFFFFF';
     meta('theme-color', color);
-    if (!store.show_badge) document.body.classList.add('jb-nobadge');
   }
 
   function badgeRow(show) {
@@ -280,7 +346,7 @@
     S.config = cfg;
     S.status = 'ready';
     S.device = deviceFor();
-    S.view = fromHash();
+    S.view = fromLocation();
     main.innerHTML = '';
     main.setAttribute('aria-busy', 'false');
     var root = document.createElement('div');
@@ -291,16 +357,39 @@
     root.addEventListener('jst:navigate', function (e) {
       var d = e.detail || {};
       S.view = { page: d.page || 'home', productId: d.productId || null, pageId: d.pageId || null };
-      var h = hashFor(S.view);
-      if (h !== location.hash && !(h === '' && !location.hash)) {
-        try { history.pushState(null, '', location.pathname + location.search + h); } catch (x) { location.hash = h; }
+      var u = urlFor(S.view);
+      var now = location.pathname + location.search + location.hash;
+      if (u !== now && !(u === location.pathname + location.search && !location.hash)) {
+        try { history.pushState(null, '', u); } catch (x) { var r = routeFor(S.view); location.hash = r ? '#' + r : ''; }
       }
       orderBar();
+      viewMeta();
     });
     draw(false);
+    // An older link (#produit/p2, #page/a-propos) on a path address: shown, and the address cleaned up
+    if (typeof S.target.base === 'string' && location.hash && S.view.page !== 'home') {
+      try { history.replaceState(null, '', urlFor(S.view)); } catch (x) { /* keep it */ }
+    }
     root.classList.add('jb-store');
     headMeta(cfg, store);
-    badgeRow(store.show_badge !== false);
+    // The badge: decided by the server from the owner's plan (stores.badge), else the row's show_badge
+    var badgeOn = typeof store.badge === 'boolean' ? store.badge : store.show_badge !== false;
+    if (!badgeOn) document.body.classList.add('jb-nobadge'); else document.body.classList.remove('jb-nobadge');
+    badgeRow(badgeOn);
+  }
+
+  // The store row api/store.js put in the page (<script type="application/json" id="jb-data">), if it is this one
+  function preloaded() {
+    var el = document.getElementById('jb-data');
+    if (!el) return null;
+    var row = null;
+    try { row = JSON.parse(el.textContent || 'null'); } catch (e) { row = null; }
+    el.remove();
+    if (!row || typeof row !== 'object' || !row.fiche || row.published === false) return null;
+    var t = S.target || {};
+    if (t.slug && String(row.slug || '').toLowerCase() === t.slug) return row;
+    if (t.host) { var d = String(row.custom_domain || '').toLowerCase(), h = t.host.replace(/^www\./, ''); if (d && d.replace(/^www\./, '') === h) return row; }
+    return null;
   }
 
   function load() {
@@ -308,6 +397,9 @@
     main.setAttribute('aria-busy', 'true');
     if (!D || !R || !P) { stateView('network'); return; }
     if (!S.target.host && !S.target.slug) { stateView('notfound'); return; }
+    // Served by api/store.js: the row is already in the page (no second request)
+    var pre = preloaded();
+    if (pre) { show(pre); return; }
     var loading = document.getElementById('jb-loading');
     if (!loading) main.innerHTML = '<div class="jb-state jb-state--load" id="jb-loading" role="status"><span class="jb-spin" aria-hidden="true"></span><p>Chargement de la boutique…</p></div>';
     P.fetchPublished(S.target).then(function (r) {
@@ -316,14 +408,14 @@
     }, function () { stateView('network'); });
   }
 
-  window.addEventListener('popstate', function () { if (S.status === 'ready') { S.view = fromHash(); draw(true); } });
-  window.addEventListener('hashchange', function () { if (S.status === 'ready') { var v = fromHash(); if (v.page !== S.view.page || v.productId !== S.view.productId || v.pageId !== S.view.pageId) { S.view = v; draw(true); } } });
+  window.addEventListener('popstate', function () { if (S.status === 'ready') { S.view = fromLocation(); draw(true); } });
+  window.addEventListener('hashchange', function () { if (S.status === 'ready') { var v = fromLocation(); if (v.page !== S.view.page || v.productId !== S.view.productId || v.pageId !== S.view.pageId) { S.view = v; draw(true); } } });
   var rt = null;
   window.addEventListener('resize', function () {
     clearTimeout(rt);
     rt = setTimeout(function () { if (S.status === 'ready' && deviceFor() !== S.device) { S.device = deviceFor(); draw(false); } }, 150);
   });
 
-  window.JeereStorePage = { state: function () { return { status: S.status, target: S.target, view: S.view, device: S.device, slug: S.store && S.store.slug, badge: S.store && S.store.show_badge }; }, reload: load };
+  window.JeereStorePage = { state: function () { return { status: S.status, target: S.target, view: S.view, device: S.device, slug: S.store && S.store.slug, badge: S.store && (typeof S.store.badge === 'boolean' ? S.store.badge : S.store.show_badge) }; }, reload: load };
   load();
 })();

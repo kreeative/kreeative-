@@ -1231,6 +1231,17 @@ engine path for a section that has it, and the engine is not even loaded).
   - image nodes: `crop.fx` / `crop.fy` (the focal point; with them `crop.w < 1` is a zoom of `1 / w`,
     drawn as a scale about the focal point clipped back to the box) and `adjust { brightness, contrast,
     saturate (0–200, %), grayscale, sepia (0–100), hue (−180–180°) }` (CSS filters).
+- **Wave 2 of the Studio audit**:
+  - **A product grid is a collection**: `boundSection` finds the cards again (the children of one frame,
+    each bound to one product and showing its name), takes the first as the template and shows the
+    catalogue as it is now (`settings.limit`, 8 by default, like the template): a new product gets a copy of
+    the template card, a deleted one loses its card, a card of a product still there keeps its own edits.
+    The fiche is not changed, only the markup (the Studio's editing document is built from it too).
+  - **In the simple editor** (`editor.js`, `detachedForm`): a detached section opens on the notice « Section
+    modifiée dans le Studio Pro », with « Ouvrir dans le Studio » (`../studio/#section=<id>`) and
+    « Rattacher » (removes `engine`, one undo step), plus move / hide / delete — not the template form,
+    whose edits would show nowhere. Its row says « Studio Pro » and « Composée dans le Studio Pro ».
+  - Images: a hosted photo (`JEERE_DATA.MEDIA_RE`, Supabase Storage `store-media`) is accepted as an asset.
 
 ## Links, alternative texts, buttons and SEO (wave 1 of the Studio audit)
 
@@ -1245,7 +1256,19 @@ engine path for a section that has it, and the engine is not even loaded).
   `product:<id>` | `section:<id>` | `https://…`, `settings.buttonNewTab: true`. With it the button is an
   `<a class="jst-btn" href>`; without it, exactly the template's `<button>` as before.
 - **SEO** apart from the store's name and tagline: `store.seo` and `pages[].seo` =
-  `{ title (70), description (160), noindex }`. Empty: the name, the tagline, the page's title and text.
+  `{ title (70), description (160), image (https, the share image, wave 2), noindex }`. Empty: the name,
+  the tagline, the page's title and text. Read by the live store (`b/b.js`) and by `api/store.js` through
+  `JeereRender.storeMeta(config, view)` (wave 2).
+- **Seller photos** (wave 2, `media.js`, `window.JeereMedia`): signed in, an imported photo is uploaded at
+  once to Supabase Storage (public bucket `store-media`, her folder `<user id>/`, row level security) in
+  640 / 1280 / 2048 px WebP (never above the original); the fiche keeps the URL of the largest
+  (`…/<hash>-2048.webp`, `JEERE_DATA.isMediaUrl`) and `render.js` writes `srcset` / `sizes`. Without a session
+  (demo, offline) the photo stays a data URL (1280 px JPEG at most) and is uploaded at publication
+  (`JeerePublish.publish` → `JeereMedia.migrate`: every inline image of the fiche, deduplicated, remembered in
+  `'jeere-media-map'`). The published fiche is then text: the 0,9 MB cap stays, photos no longer count.
+- **Element styles in CSS lengths** (wave 2, `elstyles.js` type `len`): `fontSize`, margins, paddings, `gap`,
+  radii, min / max sizes, `contentW` and the position offsets take a number (px, as before) or, as typed,
+  `<n>rem|em|%|vw|vh` or `clamp(a, b, c)` (radii: px, rem, em, %). Anything else is dropped by the sanitiser.
 - All of them are optional keys, repaired by `normalizeConfig` (`normSectionExtras`, `normSeo`) and never
   added: a fiche without them is unchanged.
 

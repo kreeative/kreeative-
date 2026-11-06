@@ -3,7 +3,7 @@
  * Turns a fiche boutique (store config v1) into a store page, with one of three tested templates:
  * Plateau (editorial), Cocody (soft) and Treichville (bold).
  *
- * Global: window.JeereRender = { render, ensureFonts, fontLinks, artSVG, pages, PAGES, photoSrc, photoInfo, PHOTO_BASE }
+ * Global: window.JeereRender = { render, ensureFonts, fontLinks, artSVG, pages, PAGES, photoSrc, photoInfo, PHOTO_BASE, brand, storeMeta }
  *
  * photoSrc(id) / photoInfo(id): the URL (or the catalogue entry with its src) of a demo photo of
  *   JEERE_DATA.DEMO_PHOTOS, null for an unknown id. Demo photos live in img/demo/ next to this
@@ -142,7 +142,19 @@
   }
 
   const IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
-  const validImage = (v) => (typeof v === 'string' && v.length < 16000000 && IMAGE_RE.test(v) ? v.replace(/\s+/g, '') : null);
+  // A seller's photo in Supabase Storage (JEERE_DATA.MEDIA_RE, wave 2): '<hash>-<largest width>.webp'
+  const MEDIA_RE = /^https:\/\/aezchxfvzfoqlvzchqyk\.supabase\.co\/storage\/v1\/object\/public\/store-media\/[0-9a-f-]{36}\/[a-z0-9]{8,64}-(\d{2,4})\.(webp|jpg|png)$/;
+  const validImage = (v) => (typeof v === 'string' && v.length < 300 && MEDIA_RE.test(v) ? v : (typeof v === 'string' && v.length < 16000000 && IMAGE_RE.test(v) ? v.replace(/\s+/g, '') : null));
+  const MEDIA_WIDTHS = [640, 1280, 2048];
+  // srcset / sizes of a hosted photo (the widths creer/media.js made, up to the one in its name); '' otherwise
+  function srcsetAttr(src, sizes) {
+    const m = typeof src === 'string' ? MEDIA_RE.exec(src) : null;
+    if (!m) return '';
+    const max = Number(m[1]);
+    const ws = MEDIA_WIDTHS.filter((w) => w < max).concat([max]);
+    if (ws.length < 2) return '';
+    return ' srcset="' + esc(ws.map((w) => src.replace(/-\d{2,4}\.(webp|jpg|png)$/, '-' + w + '.$1') + ' ' + w + 'w').join(', ')) + '" sizes="' + esc(sizes) + '"';
+  }
 
   /* Demo photos (JEERE_DATA.DEMO_PHOTOS): real photos hosted in img/demo/ next to this file. The
    * folder comes from this script's own address, read once while it loads, so the same id gives
@@ -1024,7 +1036,10 @@
    * an href, so it takes the keyboard focus, opens in a new tab with a middle click and can be indexed.
    * options.linkBase (a published store's root, e.g. '/b/awa-beaute') gives path addresses
    * (<base>/produits/<id>, <base>/pages/<slug>, <base>/panier…); without it they are in-page fragments
-   * (#/produits/p1…). The previews keep intercepting the clicks (onClick), nothing changes there. */
+   * (#/produits/p1…). The previews keep intercepting the clicks (onClick), nothing changes there.
+   * The live store (b/b.js) passes it: '/b/<slug>' on Jeere's host, '' on her own domain, and
+   * '<path>?s=<slug>#' on any other host (fragments then), and understands every one of these forms
+   * plus the older #produit/<id>, #page/<slug>. The base is kept in the view, so a navigation keeps it. */
   let LINK_BASE = null;
   let LINK_PAGES = null; // pageId → slug
   function hrefOf(page, productId, pageId) {
@@ -1094,7 +1109,7 @@
   // so their picture is decorative (alt=""); the product page (named) gives it the product's name.
   function media(p, cls, extra, named) {
     const inner = p.image
-      ? '<img src="' + esc(p.image) + '" alt="' + esc(p.alt || p.name || (p.photo ? p.photo.alt : '')) + '"' + photoAttrs(p.photo) + ' loading="lazy" decoding="async">'
+      ? '<img src="' + esc(p.image) + '"' + srcsetAttr(p.image, '(min-width: 768px) 30vw, 50vw') + ' alt="' + esc(p.alt || p.name || (p.photo ? p.photo.alt : '')) + '"' + photoAttrs(p.photo) + ' loading="lazy" decoding="async">'
       : artSVG(p.art, p.color);
     return '<div class="jst-tile' + (p.image ? ' has-photo' : '') + (cls ? ' ' + cls : '') + '" style="' + tileStyle(p.color) + '">' + inner + (extra || '') + '</div>';
   }
@@ -1359,7 +1374,7 @@
     const pic = sectionImage(st);
     const img = pic ? pic.src : null;
     const p = m.lead;
-    const imgTag = img ? '<img class="jst-hero-img" src="' + esc(img) + '" alt="' + esc(picAlt(st, pic)) + '"' + photoAttrs(pic) + ' decoding="async">' : '';
+    const imgTag = img ? '<img class="jst-hero-img" src="' + esc(img) + '"' + srcsetAttr(img, '100vw') + ' alt="' + esc(picAlt(st, pic)) + '"' + photoAttrs(pic) + ' decoding="async">' : '';
 
     if (m.tpl === 'cocody') {
       const visual = img
@@ -1474,7 +1489,7 @@
 
   // pic: the section's image or demo photo ({ src, focus }), else a composition of the first products.
   function aboutVisual(m, pic, st) {
-    if (pic) return '<div class="jst-about-media has-img"><img src="' + esc(pic.src) + '" alt="' + esc(picAlt(st, pic)) + '"' + photoAttrs(pic) + ' loading="lazy" decoding="async"></div>';
+    if (pic) return '<div class="jst-about-media has-img"><img src="' + esc(pic.src) + '"' + srcsetAttr(pic.src, '(min-width: 768px) 50vw, 100vw') + ' alt="' + esc(picAlt(st, pic)) + '"' + photoAttrs(pic) + ' loading="lazy" decoding="async"></div>';
     const a = m.lead, b = m.second;
     const t = tileColors(a.color);
     const art = (p, cls) => '<div class="jst-about-art ' + cls + '">' + leadPic(p) + '</div>';
@@ -2057,7 +2072,7 @@
   function refresh(rootEl) {
     const v = rootEl.__jstView;
     if (!v) return;
-    render(v.config, rootEl, { device: v.device, page: v.page, productId: v.productId, pageId: v.pageId });
+    render(v.config, rootEl, { device: v.device, page: v.page, productId: v.productId, pageId: v.pageId, linkBase: v.linkBase });
   }
 
   // Desktop nav: when the links do not fit beside the logo (a long store name), the templates hide
@@ -2140,7 +2155,7 @@
     const v = rootEl.__jstView;
     if (!v) return;
     rootEl.__jstMenu = false;
-    render(v.config, rootEl, { device: v.device, page: page, productId: productId || null, pageId: pageId || null });
+    render(v.config, rootEl, { device: v.device, page: page, productId: productId || null, pageId: pageId || null, linkBase: v.linkBase });
     const nv = rootEl.__jstView || {};
     const detail = {
       page: nv.page || 'home',
@@ -2339,7 +2354,7 @@
       LINK_PAGES = null;
     }
     try {
-      rootEl.__jstView = { config: config, device: device, page: page, productId: j ? j.productId : productId, pageId: j ? j.pageId : (page === 'page' ? pageId : null) };
+      rootEl.__jstView = { config: config, device: device, page: page, productId: j ? j.productId : productId, pageId: j ? j.pageId : (page === 'page' ? pageId : null), linkBase: typeof o.linkBase === 'string' ? o.linkBase : null };
       rootEl.className = 'jst';
       if (rootEl.dataset) {
         rootEl.dataset.tpl = m ? m.tpl : 'plateau';
@@ -2430,6 +2445,72 @@
     return rootEl;
   }
 
+  /* The <head> of a live store's view (wave 2 of the Studio audit), shared by the store page (b/b.js) and
+   * the server (api/store.js), so the HTML WhatsApp reads and the page a customer sees say the same thing.
+   * The Studio's référencement first (store.seo, pages[].seo: title, description, image, noindex), then
+   * the store's name and tagline, the page's or the product's own words.
+   *   storeMeta(config, view, { abs(url) }) → { title, description, image, noindex, type, name, product? }
+   * view: { page: 'home' | 'product' | 'page' | 'cart' | 'checkout', productId, pageId }. Never throws. */
+  function storeMeta(config, view, opts) {
+    const o = isObj(opts) ? opts : {};
+    const absUrl = typeof o.abs === 'function' ? o.abs : (u) => u;
+    const line = (v, n) => str(v).replace(/\s+/g, ' ').trim().slice(0, n);
+    const v = isObj(view) ? view : { page: 'home' };
+    try {
+      const cfg = isObj(config) ? config : {};
+      const st = isObj(cfg.store) ? cfg.store : {};
+      const seo = isObj(st.seo) ? st.seo : {};
+      const d = DATA();
+      const fmt = (n) => { try { return d.formatPrice(n).replace(/\s/g, NBSP); } catch (e) { return Math.round(num(n) || 0) + NBSP + 'FCFA'; } };
+      const products = Array.isArray(cfg.products) ? cfg.products : [];
+      const pages = Array.isArray(cfg.pages) ? cfg.pages : [];
+      const httpsImg = (u) => (typeof u === 'string' && /^https:\/\/[^\s"'<>]{1,600}$/i.test(u) ? u : '');
+      const photoOf = (p) => { if (!isObj(p)) return ''; const a = httpsImg(p.image); if (a) return a; const i = photoInfo(p.photo); return i ? absUrl(i.src) : ''; };
+      const name = line(st.name, 80) || 'Boutique';
+      const city = line(st.city, 60);
+      let title = line(seo.title, 70) || (name + (city ? ' · ' + city : '') + ' · Boutique en ligne');
+      let desc = line(seo.description, 160) || line(st.tagline, 160) ||
+        line((Array.isArray(cfg.sections) ? cfg.sections : []).map((s) => (isObj(s) && isObj(s.settings) ? (s.settings.subtitle || s.settings.text) : '')).filter(Boolean)[0], 160) ||
+        ('Boutique en ligne' + (city ? ' à ' + city : '') + ' : commandez sur WhatsApp, payez par mobile money ou à la livraison.');
+      let noindex = seo.noindex === true;
+      let type = 'website';
+      let image = '';
+      let product = null;
+      if (v.page === 'page') {
+        const pg = pages.filter((x) => isObj(x) && x.id === v.pageId)[0];
+        if (pg) {
+          const ps = isObj(pg.seo) ? pg.seo : {};
+          title = line(ps.title, 70) || ((line(pg.title, 60) || 'Page') + ' · ' + name);
+          desc = line(ps.description, 160) || line(pg.body, 155) || desc;
+          if (ps.noindex === true) noindex = true;
+          image = httpsImg(ps.image);
+        }
+      } else if (v.page === 'product') {
+        const pr = products.filter((x) => isObj(x) && x.id === v.productId)[0];
+        if (pr) {
+          title = (line(pr.name, 70) || 'Produit') + ' · ' + fmt(pr.price) + ' · ' + name;
+          desc = line(pr.description, 155) || desc;
+          type = 'product';
+          image = photoOf(pr);
+          product = { name: line(pr.name, 120) || 'Produit', price: Math.max(0, Math.round(num(pr.price) || 0)), description: line(pr.description, 500), image: image };
+        }
+      } else if (v.page === 'cart' || v.page === 'checkout') {
+        title = (v.page === 'cart' ? 'Panier' : 'Commande') + ' · ' + name;
+        noindex = true;
+      }
+      if (!image) image = httpsImg(seo.image);
+      if (!image) {
+        const hero = (Array.isArray(cfg.sections) ? cfg.sections : []).filter((x) => isObj(x) && x.type === 'hero')[0];
+        const hs = hero && isObj(hero.settings) ? hero.settings : {};
+        image = httpsImg(hs.image) || (photoInfo(hs.photo) ? absUrl(photoInfo(hs.photo).src) : '');
+      }
+      if (!image) image = photoOf(products.filter((p) => isObj(p) && (p.photo || httpsImg(p.image)))[0]);
+      return { title: line(title, 120), description: line(desc, 160), image: image, noindex: noindex, type: type, name: name, product: product };
+    } catch (e) {
+      return { title: 'Boutique en ligne · Jeere', description: '', image: '', noindex: false, type: 'website', name: 'Boutique', product: null };
+    }
+  }
+
   // For the host page (the editor's address bar, the dashboard, a published store's <link rel="icon">):
   // the tab icon (the seller's icon, else her logo) or her initial on the accent colour. Never throws.
   function brandInfo(config) {
@@ -2446,6 +2527,6 @@
 
   root.JeereRender = {
     render: render, ensureFonts: ensureFonts, fontLinks: fontLinks, artSVG: artSVG, pages: pagesList, PAGES: PAGES_FALLBACK,
-    photoSrc: photoSrc, photoInfo: photoInfo, PHOTO_BASE: PHOTO_BASE, brand: brandInfo
+    photoSrc: photoSrc, photoInfo: photoInfo, PHOTO_BASE: PHOTO_BASE, brand: brandInfo, storeMeta: storeMeta
   };
 })();

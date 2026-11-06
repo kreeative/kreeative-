@@ -447,7 +447,14 @@
         return v;
       }
       function placeholderV() { return o.ph ? o.ph() : (o.prop ? live(t, o.prop) : null); }
+      // CSS lengths (wave 2 of the Studio audit): a property of type 'len' (elstyles.js) takes px, rem, em, %,
+      // vw, vh and clamp(); the value is stored as typed ('5vw'), shown as typed, never converted
+      var ESX = window.JeereElStyles;
+      var lenSpec = !o.set && o.prop && ESX && ESX.PROPS && ESX.PROPS[o.prop] && ESX.PROPS[o.prop].t === 'len' ? ESX.PROPS[o.prop] : null;
+      function splitLen(v) { var m = typeof v === 'string' ? /^(-?(?:\d+(?:\.\d+)?|\.\d+))(rem|em|%|vw|vh)$/.exec(v) : null; return m ? { n: Number(m[1]), u: m[2] } : null; }
+      var UNIT_ALIAS = { '°': 'deg', 'deg': 'deg', 'px': 'px', '%': '%', 'ms': 'ms', 'x': 'x', 'em': 'em', 'rem': 'rem', 'vw': 'vw', 'vh': 'vh' };
       function set(v, isLive) {
+        if (typeof v === 'string') { var patch0 = {}; patch0[o.prop] = v; setProps(t, patch0, o.labelText ? o.labelText + ' modifié' : 'Design modifié', o.co || o.prop); return; }
         if (v !== null && v !== undefined) v = clamp(v, o.min == null ? -1e9 : o.min, o.max == null ? 1e9 : o.max);
         if (o.set) o.set(v, isLive);
         else {
@@ -456,15 +463,39 @@
           setProps(t, patch, o.labelText ? o.labelText + ' modifié' : 'Design modifié', o.co || o.prop);
         }
       }
-      scrub(h, { get: function () { var v = get(); return v === undefined || v === null ? (placeholderV() || 0) : v; }, set: set, step: o.step || 1, min: o.min, max: o.max });
+      var scrubUnit = null; // scrubbing a '5vw' moves the 5, the unit stays
+      scrub(h, { get: function () { var v = get(); var sl = splitLen(v); scrubUnit = sl ? sl.u : null; if (sl) return sl.n; if (typeof v === 'string') return NaN; return v === undefined || v === null ? (placeholderV() || 0) : v; },
+        set: function (v, isLive) { if (scrubUnit && typeof v === 'number') { var lv = lenSpec ? ESX.parseLen(round(v, 2) + scrubUnit, lenSpec) : null; if (lv !== null) set(lv, isLive); return; } set(v, isLive); }, step: o.step || 1, min: o.min, max: o.max });
       var before = '';
       inp.addEventListener('focus', function () { before = inp.value; setTimeout(function () { try { inp.select(); } catch (e) { /* ok */ } }, 0); });
       function commitText() {
         var raw = inp.value.trim();
         if (raw === before) return;
         if (!raw) { set(null); return; }
-        var n = parseExpr(raw);
-        if (n === null) { inp.value = before; toast('Valeur non comprise : un nombre, ou un calcul comme « 24*2 ».', 'warn'); return; }
+        // a unit typed after the number: what the field really takes, or a clear refusal — never a silent conversion
+        var low = raw.toLowerCase().replace(/(\d),(\d)/g, '$1.$2');
+        var um = /^\s*[-+*/().\d\s]+?\s*([a-z%°]+)\s*$/i.exec(low);
+        var typedUnit = /^clamp\(/.test(low) ? 'clamp' : (um ? um[1] : '');
+        if (typedUnit && typedUnit !== 'px') {
+          if (lenSpec) {
+            var lv = ESX.parseLen(low, lenSpec);
+            if (typeof lv === 'string') { set(lv); inp.value = lv; before = inp.value; return; }
+            if (lv === null) { inp.value = before; toast('« ' + raw + ' » n’est pas une longueur comprise ici : ' + lenSpec.units.join(', ') + ' ou clamp(min, idéal, max), par exemple « 3rem » ou « clamp(32px, 5vw, 66px) ».', 'warn'); return; }
+          } else if (o.units && o.setWithUnit && o.units.indexOf(typedUnit) !== -1) {
+            // Largeur « 50% », Hauteur « 80vh »: the number and its unit together (the unit switch follows)
+            var nu = parseExpr(low.replace(/[a-z%°]+\s*$/, ''));
+            if (nu === null) { inp.value = before; toast('Valeur non comprise : « ' + raw + ' ».', 'warn'); return; }
+            o.setWithUnit(round(clamp(nu, o.min == null ? -1e9 : o.min, o.max == null ? 1e9 : o.max), 2), typedUnit);
+            before = inp.value;
+            return;
+          } else {
+            var want = o.unit && typeof o.unit !== 'function' ? UNIT_ALIAS[String(o.unit).toLowerCase()] || String(o.unit).toLowerCase() : '';
+            if (typeof o.unit === 'function') want = UNIT_ALIAS[String(o.unit()).toLowerCase()] || String(o.unit()).toLowerCase();
+            if (!want || (UNIT_ALIAS[typedUnit] || typedUnit) !== want) { inp.value = before; toast('« ' + raw + ' » : ce champ se règle ' + (want ? 'en ' + (o.unit === '°' ? 'degrés' : o.unit) : 'avec un nombre') + ', sans autre unité.', 'warn'); return; }
+          }
+        }
+        var n = parseExpr(low);
+        if (n === null) { inp.value = before; toast('Valeur non comprise : un nombre, ou un calcul comme « 24*2 »' + (lenSpec ? ', ou une longueur comme « 3rem », « 5vw », « clamp(32px, 5vw, 66px) »' : '') + '.', 'warn'); return; }
         set(round(n, o.dec == null ? 2 : o.dec));
         before = inp.value;
       }
@@ -473,9 +504,16 @@
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); inp.value = before; inp.blur(); return; }
         if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
           e.preventDefault();
+          var step = (e.shiftKey ? 10 : e.altKey ? 0.1 : 1) * (o.kstep || 1);
+          // '5vw' + ↑ = '6vw' (the unit stays); a clamp() is left as it is
+          var gs = get(), sl = splitLen(gs);
+          if (lenSpec && (sl || (typeof gs === 'string' && gs === inp.value))) {
+            if (sl) { var lv2 = ESX.parseLen(round(sl.n + (e.key === 'ArrowUp' ? step : -step), 2) + sl.u, lenSpec); if (lv2 !== null) { set(lv2); inp.value = String(lv2); before = inp.value; } }
+            e.stopPropagation();
+            return;
+          }
           var cur = parseExpr(inp.value);
           if (cur === null) { var g = get(); cur = g === undefined || g === null ? (placeholderV() || 0) : g; }
-          var step = (e.shiftKey ? 10 : e.altKey ? 0.1 : 1) * (o.kstep || 1);
           var nv = round(cur + (e.key === 'ArrowUp' ? step : -step), 2);
           set(nv);
           inp.value = fmt(clamp(nv, o.min == null ? -1e9 : o.min, o.max == null ? 1e9 : o.max), o.dec);
@@ -941,6 +979,11 @@
             var p = {}; p[unitP] = nu; p[modeP] = 'fixed';
             if (val(t, ax) === undefined) p[ax] = nu === 'px' ? (live(t, ax) || 100) : 100;
             setProps(t, p, (ax === 'w' ? 'Largeur' : 'Hauteur') + ' : unité ' + nu, null);
+          },
+          units: axUnits,
+          setWithUnit: function (v, u) {
+            var p = {}; p[ax] = v; p[modeP] = 'fixed'; p[unitP] = u === 'px' ? null : u;
+            setProps(t, p, (ax === 'w' ? 'Largeur' : 'Hauteur') + ' modifiée', ax);
           },
           get: function () { return val(t, modeP) === 'fixed' ? val(t, ax) : undefined; },
           ph: function () { return live(t, ax); },

@@ -44,8 +44,11 @@
   var SUITE = (function () {
     var q = '';
     try { q = root.location.search || ''; } catch (e) { q = ''; }
-    var m = /[?&]suite=(studio|abonnements)(?:&|$)/.exec(q);
+    var m = /[?&]suite=(studio-publier|publier|studio|abonnements)(?:&|$)/.exec(q);
     if (!m) return null;
+    // « Se connecter pour publier » (creer/publish.js): back to the editor or the Studio, the publish dialog open
+    if (m[1] === 'publier') return { id: 'publier', publish: true, url: '../creer/#publier', title: 'Publier ma boutique', text: 'Retour à l’éditeur, la publication est ouverte.', cta: 'Publier ma boutique' };
+    if (m[1] === 'studio-publier') return { id: 'studio-publier', publish: true, url: '../studio/#publier', title: 'Publier ma boutique', text: 'Retour au Studio, la publication est ouverte.', cta: 'Publier ma boutique' };
     if (m[1] === 'studio') return { id: 'studio', url: '../studio/?essai=1', title: 'Démarrer mon essai du Studio', text: '14 jours de Studio complet, gratuits. Aucun moyen de paiement demandé.', cta: 'Démarrer mon essai du Studio' };
     var plan = /[?&]plan=(solo|pro|agence)(?:&|$)/.exec(q);
     var per = /[?&]periode=(mois|an)(?:&|$)/.exec(q);
@@ -363,7 +366,8 @@
     start: 'Bienvenue', session: 'Votre compte', wait: 'Connexion'
   };
   var FLOWS = { inscription: ['signup', 'code', 'name', 'start'], connexion: ['login', 'code'] };
-  var providers = { email: true, sms: true, whatsapp: true };
+  // SMS and WhatsApp count as off until the project's settings say its phone provider is on (probe())
+  var providers = { email: true, sms: false, whatsapp: false };
 
   /* ------------------------------------------------------------------ messages and errors */
 
@@ -459,8 +463,28 @@
         ? 'Mode démo Jeere' + NB + ': votre compte reste dans ce navigateur, rien n’est envoyé. Un concept Kreeative.'
         : 'Votre compte Jeere est enregistré de façon sécurisée (Supabase, serveurs à Paris). Un concept Kreeative.';
     }
+    drawProviders();
     drawMethod('signup');
     drawMethod('login');
+  }
+  // « bientôt »: SMS and WhatsApp shown but not offered while the phone provider is off (real mode only;
+  // the demo sends nothing, so every method works there). The e-mail is chosen instead (wave 2).
+  function drawProviders() {
+    ['method', 'lmethod'].forEach(function (name) {
+      radios(name).forEach(function (r) {
+        if (r.value === 'email') return;
+        var off = !demo() && !providers[r.value];
+        var lab = r.closest ? r.closest('label') : null;
+        var span = lab ? lab.querySelector('span') : null;
+        var tag = span ? span.querySelector('.c-soon') : null;
+        r.disabled = off;
+        if (lab) lab.classList.toggle('is-soon', off);
+        if (off && span && !tag) { tag = doc.createElement('small'); tag.className = 'c-soon'; tag.textContent = 'bientôt'; span.appendChild(tag); }
+        if (!off && tag) tag.parentNode.removeChild(tag);
+        if (lab) { if (off) lab.setAttribute('title', (r.value === 'whatsapp' ? 'WhatsApp' : 'SMS') + NB + ': bientôt sur Jeere. Recevez votre code par e-mail pour l’instant.'); else lab.removeAttribute('title'); }
+        if (off && r.checked) { r.checked = false; radios(name).forEach(function (x) { if (x.value === 'email') x.checked = true; }); }
+      });
+    });
   }
 
   /* ------------------------------------------------------------------ « Recevoir mon code par » */
@@ -540,11 +564,14 @@
   function stateStep() {
     try { var s = root.history.state; return s && typeof s.jc === 'string' ? s.jc : ''; } catch (e) { return ''; }
   }
+  // A local or demo account (no Supabase user) while the real Jeere answers: it cannot publish, so
+  // « connexion » is a real sign-in for it, not « Bonjour Test » (wave 2 of the Studio audit)
+  function localOnly(acc) { return !!(acc && acc.loggedIn && !acc.userId && !demo()); }
   function resolve() {
     var acc = readAccount();
     var r = hashRoute();
-    if (!r) r = acc ? (acc.loggedIn ? 'session' : 'connexion') : 'inscription';
-    if (r === 'connexion' && acc && acc.loggedIn) r = 'session';
+    if (!r) r = acc ? (acc.loggedIn && !(localOnly(acc) && SUITE && SUITE.publish) ? 'session' : 'connexion') : 'inscription';
+    if (r === 'connexion' && acc && acc.loggedIn && !localOnly(acc)) r = 'session';
     var want = stateStep();
     var step;
     if (r === 'inscription') {
@@ -795,6 +822,12 @@
     } else {
       el.known.hidden = true;
       el.knownOr.hidden = true;
+    }
+    // Her local account: its address or number is ready, and she is told her store stays (wave 2)
+    if (localOnly(acc)) {
+      if (acc.email) { setMethod('login', 'email'); if (!el.lemail.value) el.lemail.value = acc.email; }
+      else if (acc.phone && (providers.sms || providers.whatsapp)) setMethod('login', providers.whatsapp ? 'whatsapp' : 'sms');
+      loginNote('Votre compte de démonstration reste dans ce navigateur, avec votre boutique. Connectez-vous à votre compte Jeere (ou créez-le, c’est gratuit)' + NB + ': la boutique y sera reliée et vous pourrez la publier.');
     }
     drawMethod('login');
   };
@@ -1210,6 +1243,16 @@
     el.meAv.textContent = initial(acc.firstName || acc.storeName);
     el.sessionT.textContent = 'Bonjour' + (acc.firstName ? ' ' + acc.firstName : '');
     if (el.meSub) el.meSub.textContent = acc.userId ? 'Votre compte Jeere est ouvert sur cet appareil.' : 'Compte de démonstration' + NB + ': il reste dans ce navigateur.';
+    // A local or demo account: the way to a real sign-in that keeps this browser's store (wave 2)
+    var real = $('c-real'), realBtn = $('c-real-login');
+    if (real && realBtn) {
+      real.hidden = realBtn.hidden = !!acc.userId;
+      if (!acc.userId) {
+        var keep = SUITE ? '?suite=' + SUITE.id : '';
+        // in demo mode (local version, ?demo=1) the real Jeere is one parameter away
+        realBtn.setAttribute('href', demo() ? (keep ? keep + '&' : '?') + 'demo=0#connexion' : keep + '#connexion');
+      }
+    }
     el.sumStore.textContent = acc.storeName || ficheName() || 'Pas encore de nom';
     if (el.sumEmailRow) { el.sumEmailRow.hidden = !acc.email; el.sumEmail.textContent = acc.email || ''; }
     el.sumPhone.textContent = acc.phone ? formatPhone(acc.phone) : 'Pas encore ajouté';
@@ -1396,6 +1439,7 @@
       try { root.history.replaceState({ jc: v.step }, '', LINK ? urlFor(v.route) : root.location.href); } catch (e) { /* ignore */ }
       show(v, { focus: 'none' });
     }
+    drawProviders();
     startReal();
   }
 

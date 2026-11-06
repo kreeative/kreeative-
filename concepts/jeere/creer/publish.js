@@ -20,8 +20,11 @@
  *   JeerePublish.session()              → Promise { token, userId } | null
  *   JeerePublish.publish(cfg, slug)     → Promise { ok, store } | { ok: false, code, message }
  *   JeerePublish.unpublish()            → Promise { ok } | { ok: false, code, message }
+ *   JeerePublish.history()              → Promise { ok, versions: [{ id, slug, published_at, bytes }] } (last 10)
+ *   JeerePublish.restore(versionId)     → Promise { ok, fiche } : that version is live again (a new version too)
  *   JeerePublish.fetchPublished({ slug } | { host }) → Promise { ok, store } | { ok: false, code: 'notfound' | 'network' }
- *   JeerePublish.mount(el, { getConfig, theme, showScore, onClose }) → the panel (address, publish, live link)
+ *   JeerePublish.mount(el, { getConfig, theme, showScore, onClose, onRestore(fiche) }) → the panel (address,
+ *        publish, live link, draft / live state, the published versions with « Restaurer »)
  *   JeerePublish.local()                → this browser's record, 'jeere-publish':
  *        { version: 1, slug, storeId, ownerId, published, publishedAt, hash }
  */
@@ -231,15 +234,31 @@
     var fiche = ficheOf(cfg);
     var text = '';
     try { text = JSON.stringify(fiche); } catch (e) { return Promise.resolve({ ok: false, code: 'format', message: 'Cette fiche ne peut pas être lue.' }); }
-    var size = bytes(text);
-    if (size > MAX_BYTES) {
-      return Promise.resolve({ ok: false, code: 'too_big', size: size, message: fr('Votre boutique pèse ' + (size / 1e6).toFixed(1).replace('.', ',') + ' Mo, surtout à cause des photos : 0,9 Mo au plus pour l’instant. Retirez quelques photos ou importez-les plus petites, puis publiez.') });
-    }
     var badge = badgeShown();
+    var M = window.JeereMedia;
+    var media = { uploaded: 0, failed: 0 };
     return session().then(function (s) {
-      if (!s) return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour publier : votre boutique est pour l’instant enregistrée dans ce navigateur seulement.' };
+      if (!s) {
+        var sz = bytes(text);
+        if (sz > MAX_BYTES && !M) return { ok: false, code: 'too_big', size: sz, message: fr('Votre boutique pèse ' + (sz / 1e6).toFixed(1).replace('.', ',') + ' Mo, surtout à cause des photos : 0,9 Mo au plus. Retirez quelques photos, puis publiez.') };
+        return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour publier : votre boutique est pour l’instant enregistrée dans ce navigateur seulement.' };
+      }
+      // Her photos still inline go to Storage first (media.js, wave 2): the published fiche holds URLs, so
+      // the 1 MB of the table is text, not pictures. `text` stays the local fiche's (« not online yet »).
+      var migrated = M && typeof M.migrate === 'function' ? M.migrate(fiche).then(function (r) { media = r; return r.fiche; }, function () { return fiche; }) : Promise.resolve(fiche);
+      return migrated.then(function (pubFiche) {
+        var out = '';
+        try { out = JSON.stringify(pubFiche); } catch (e) { out = text; }
+        var size = bytes(out);
+        if (size > MAX_BYTES) {
+          return { ok: false, code: 'too_big', size: size, message: fr('Votre boutique pèse ' + (size / 1e6).toFixed(1).replace('.', ',') + ' Mo, surtout à cause des photos' + (media.failed ? ' (' + media.failed + ' n’ont pas pu être envoyées : vérifiez votre connexion et réessayez)' : '') + ' : 0,9 Mo au plus. Retirez quelques photos, puis publiez.') };
+        }
+        return write(s, pubFiche);
+      });
+    });
+    function write(s, pubFiche) {
       var rec = local();
-      var body = { slug: slug, fiche: fiche, published: true, show_badge: badge };
+      var body = { slug: slug, fiche: pubFiche, published: true, show_badge: badge };
       var sel = '?select=id,slug,published,published_at,show_badge,updated_at';
       var pickId = rec && rec.storeId && (!rec.ownerId || !s.userId || rec.ownerId === s.userId) ? Promise.resolve(rec.storeId)
         : myStores(s.token).then(function (rows) { var m = rows.filter(function (x) { return x.slug === slug; })[0] || rows[0]; return m ? m.id : ''; });
@@ -256,9 +275,9 @@
         if (!r.ok || !Array.isArray(r.body) || !r.body[0]) return errorFrom(r);
         var row = r.body[0];
         saveLocal({ slug: row.slug, storeId: row.id, ownerId: s.userId, published: true, publishedAt: row.published_at || new Date().toISOString(), hash: hash(text) });
-        return { ok: true, store: row, url: url(row.slug) };
+        return { ok: true, store: row, url: url(row.slug), media: media };
       });
-    });
+    }
   }
 
   function unpublish() {
@@ -272,6 +291,38 @@
           saveLocal({ published: false });
           return { ok: true };
         });
+    });
+  }
+
+  /* Publish history (wave 2 of the Studio audit, table store_versions, migration jeere_wave2): the last 10
+   * published fiches of her store, newest first, and « Restaurer » = publish that version again. */
+  function history() {
+    var rec = local();
+    if (!rec || !rec.storeId) return Promise.resolve({ ok: false, code: 'none', versions: [] });
+    return session().then(function (s) {
+      if (!s) return { ok: false, code: 'login', versions: [] };
+      return request('/rest/v1/rpc/store_history', { method: 'POST', token: s.token, body: { p_store: rec.storeId } }).then(function (r) {
+        if (!r.ok || !Array.isArray(r.body)) return { ok: false, code: r.status === 404 ? 'unavailable' : 'server', versions: [] };
+        return { ok: true, versions: r.body };
+      });
+    });
+  }
+  function restore(versionId) {
+    var rec = local();
+    if (!rec || !rec.storeId) return Promise.resolve({ ok: false, code: 'none', message: 'Cette boutique n’est pas en ligne.' });
+    return session().then(function (s) {
+      if (!s) return { ok: false, code: 'login', message: 'Connectez-vous pour restaurer une version.' };
+      return request('/rest/v1/store_versions?select=fiche,published_at&id=eq.' + encodeURIComponent(versionId) + '&limit=1', { token: s.token }).then(function (r) {
+        if (!r.ok || !Array.isArray(r.body) || !r.body[0]) return errorFrom(r.ok ? { status: 404, body: null } : r);
+        var fiche = r.body[0].fiche;
+        return request('/rest/v1/stores?id=eq.' + rec.storeId + '&select=id,slug,published,published_at,updated_at', { method: 'PATCH', token: s.token, body: { fiche: fiche, published: true }, headers: { Prefer: 'return=representation' } }).then(function (w) {
+          if (!w.ok || !Array.isArray(w.body) || !w.body[0]) return errorFrom(w);
+          var text = '';
+          try { text = JSON.stringify(ficheOf(fiche)); } catch (e) { text = ''; }
+          saveLocal({ published: true, publishedAt: w.body[0].published_at || new Date().toISOString(), hash: text ? hash(text) : '' });
+          return { ok: true, fiche: fiche, from: r.body[0].published_at };
+        });
+      });
     });
   }
 
@@ -289,7 +340,10 @@
       if (!checkSlug(s).ok) return Promise.resolve({ ok: false, code: 'notfound' });
       path = '/rest/v1/stores?select=' + PUBLIC_COLS + '&published=is.true&slug=eq.' + encodeURIComponent(s) + '&limit=1';
     }
-    return request(path).then(function (r) {
+    // `badge`: the owner's plan decides, on the server (migration jeere_wave2); before it, show_badge alone
+    return request(path.replace('select=' + PUBLIC_COLS, 'select=' + PUBLIC_COLS + ',badge')).then(function (r) {
+      return r.status === 400 ? request(path) : r;
+    }).then(function (r) {
       if (r.status === 0 || r.status >= 500) return { ok: false, code: 'network' };
       if (!r.ok || !Array.isArray(r.body) || !r.body.length) return { ok: false, code: 'notfound' };
       var row = r.body[0];
@@ -319,7 +373,7 @@
     var o = opts || {};
     var id = 'jp' + (++uid);
     var getConfig = typeof o.getConfig === 'function' ? o.getConfig : function () { return null; };
-    var st = { signedIn: null, userId: '', rec: local(), slug: '', check: null, busy: false, error: '', info: '', edit: false, sugg: [], confirmOff: false };
+    var st = { signedIn: null, userId: '', rec: local(), slug: '', check: null, busy: false, error: '', info: '', edit: false, sugg: [], confirmOff: false, versions: null, histOpen: false, restoring: '' };
     var timer = null, seq = 0;
 
     function cfg() { var c = null; try { c = getConfig(); } catch (e) { c = null; } return c; }
@@ -369,16 +423,53 @@
         '<a class="jp-btn jp-btn--ghost" href="' + esc(wa) + '" target="_blank" rel="noopener" data-jp="wa">' + icon('chat') + 'Partager sur WhatsApp</a>' +
         '<a class="jp-btn jp-btn--quiet" href="' + esc(link) + '" target="_blank" rel="noopener">' + icon('open') + 'Ouvrir</a></div></div>';
     }
+    function historyBox() {
+      if (!st.signedIn) return '';
+      var v = st.versions;
+      var head = '<button type="button" class="jp-btn jp-btn--quiet jp-hist__t" data-jp="hist" aria-expanded="' + (st.histOpen ? 'true' : 'false') + '">' + icon('globe') + 'Versions publiées' + (v && v.length ? ' (' + v.length + ')' : '') + '</button>';
+      if (!st.histOpen) return '<div class="jp-hist">' + head + '</div>';
+      var body;
+      if (v === null) body = '<p class="jp-hint"><span class="jp-spin" aria-hidden="true"></span>Chargement…</p>';
+      else if (v === false) body = '<p class="jp-hint">' + esc(fr('L’historique n’est pas encore disponible : réessayez dans un instant.')) + '</p>';
+      else if (!v.length) body = '<p class="jp-hint">' + esc(fr('Les 10 dernières publications apparaîtront ici.')) + '</p>';
+      else body = '<ol class="jp-hist__l">' + v.map(function (x, i) {
+        var d = new Date(x.published_at);
+        var when = isFinite(d.getTime()) ? dateFr(x.published_at) + ' à ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) : '';
+        return '<li><span>' + esc(when) + (i === 0 ? ' <b class="jp-pill jp-pill--ok">en ligne</b>' : '') + '</span>' +
+          (i === 0 ? '' : '<button type="button" class="jp-btn jp-btn--ghost" data-jp="restore" data-v="' + esc(x.id) + '"' + (st.restoring ? ' disabled' : '') + '>' + (st.restoring === String(x.id) ? '<span class="jp-spin" aria-hidden="true"></span>' : '') + 'Restaurer</button>') + '</li>';
+      }).join('') + '</ol>';
+      return '<div class="jp-hist">' + head + body + '</div>';
+    }
+    function loadHistory() {
+      st.versions = null; render();
+      history().then(function (r) { st.versions = r.ok ? r.versions : false; render(); });
+    }
+    function doRestore(vid) {
+      if (st.restoring) return;
+      st.restoring = String(vid); st.error = ''; st.info = ''; render();
+      restore(vid).then(function (r) {
+        st.restoring = '';
+        if (!r.ok) { st.error = r.message; render(); return; }
+        st.rec = local();
+        var loaded = false;
+        if (typeof o.onRestore === 'function') { try { loaded = o.onRestore(r.fiche) !== false; } catch (e) { loaded = false; } }
+        st.info = fr('Cette version est de nouveau en ligne' + (loaded ? ', et le brouillon la reprend (Annuler la défait).' : '.'));
+        loadHistory();
+      });
+    }
     function render() {
       var h = '';
       var on = online();
       h += scoreHtml();
       if (on) {
         var stale = st.rec.hash && st.rec.hash !== currentHash();
+        // Draft and live, said apart (wave 2): what she edits here is the draft, the link shows the live version
         h += '<p class="jp-state"><span class="jp-pill jp-pill--ok">' + icon('check') + 'En ligne</span>' +
-          (st.rec.publishedAt ? '<span class="jp-muted">' + esc(fr('depuis le ' + dateFr(st.rec.publishedAt))) + '</span>' : '') + '</p>';
-        if (stale) h += '<p class="jp-note jp-note--warn">' + icon('alert') + '<span>' + esc(fr('Vos dernières modifications ne sont pas encore en ligne : « Mettre à jour » les publie.')) + '</span></p>';
+          (st.rec.publishedAt ? '<span class="jp-muted">' + esc(fr('version publiée le ' + dateFr(st.rec.publishedAt))) + '</span>' : '') +
+          '<span class="jp-pill ' + (stale ? 'jp-pill--warn' : 'jp-pill--ok') + '" data-jp-draft="' + (stale ? 'changed' : 'same') + '">' + icon(stale ? 'alert' : 'check') + (stale ? 'Brouillon modifié' : 'Brouillon = en ligne') + '</span></p>';
+        if (stale) h += '<p class="jp-note jp-note--warn">' + icon('alert') + '<span>' + esc(fr('Vos dernières modifications sont dans le brouillon, pas encore en ligne : « Mettre à jour » les publie.')) + '</span></p>';
         h += liveBox(st.rec.slug);
+        h += historyBox();
         if (st.edit) h += chooser();
       } else {
         if (st.signedIn === false) {
@@ -405,9 +496,11 @@
             '<button type="button" class="jp-btn jp-btn--quiet" data-jp="off">Retirer de la ligne</button>';
         }
       } else if (st.signedIn === false) {
-        var back = encodeURIComponent(location.pathname.indexOf('/studio/') !== -1 ? 'studio' : 'publier');
+        // The account page signs her in for real (a local or demo account too: wave 2), keeps this
+        // browser's store, then brings her back here with the publish dialog open (#publier)
+        var back = encodeURIComponent(location.pathname.indexOf('/studio/') !== -1 ? 'studio-publier' : 'publier');
         h += '<a class="jp-btn jp-btn--primary" href="' + esc(compteUrl()) + '?suite=' + back + '#connexion">Se connecter pour publier</a>' +
-          '<a class="jp-btn jp-btn--ghost" href="' + esc(compteUrl()) + '?suite=' + back + '#inscription">Créer mon compte</a>';
+          '<a class="jp-btn jp-btn--quiet" href="' + esc(compteUrl()) + '?suite=' + back + '#inscription">Créer mon compte</a>';
       } else {
         h += '<button type="button" class="jp-btn jp-btn--primary" data-jp="publish"' + (st.busy || st.signedIn !== true ? ' disabled' : '') + '>' + (st.busy ? '<span class="jp-spin" aria-hidden="true"></span>Publication…' : 'Publier ma boutique') + '</button>';
       }
@@ -471,7 +564,8 @@
         st.rec = local();
         st.edit = false;
         st.info = online() ? fr('C’est en ligne ! Partagez votre lien : vos clients peuvent commander dès maintenant.') : '';
-        render();
+        if (r.media && r.media.uploaded) st.info += ' ' + fr(r.media.uploaded + ' photo' + (r.media.uploaded > 1 ? 's' : '') + ' en haute définition.');
+        if (st.histOpen) loadHistory(); else render();
         var link = document.getElementById(id + '-link');
         if (link) link.focus();
         if (typeof o.onPublished === 'function') { try { o.onPublished(r); } catch (e) { /* host error */ } }
@@ -512,6 +606,8 @@
       else if (a === 'off') { st.confirmOff = true; render(); var y = el.querySelector('[data-jp="off-no"]'); if (y) y.focus(); }
       else if (a === 'off-no') { st.confirmOff = false; render(); }
       else if (a === 'off-yes') doUnpublish();
+      else if (a === 'hist') { st.histOpen = !st.histOpen; if (st.histOpen) loadHistory(); else render(); }
+      else if (a === 'restore') doRestore(t.getAttribute('data-v'));
     });
     el.addEventListener('input', function (e) {
       if (e.target && e.target.id === id + '-slug') {
@@ -549,6 +645,7 @@
     SB_URL: SB_URL, SB_KEY: SB_KEY, LOCAL_KEY: LOCAL_KEY, MAX_BYTES: MAX_BYTES, PREFIX: PREFIX, SLUG_MESSAGES: SLUG_MESSAGES,
     address: address, url: url, checkSlug: checkSlug, normalizeInput: normalizeInput,
     available: available, suggestions: suggestions, session: session, local: local,
-    publish: publish, unpublish: unpublish, fetchPublished: fetchPublished, mount: mount, badgeShown: badgeShown, hash: hash
+    publish: publish, unpublish: unpublish, fetchPublished: fetchPublished, mount: mount, badgeShown: badgeShown, hash: hash,
+    history: history, restore: restore
   };
 })();

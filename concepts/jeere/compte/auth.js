@@ -16,9 +16,11 @@
  * The bridge: after a real login the profile row is written to 'jeere-account' in the same shape
  * as before ({ version: 1, firstName, phone, storeName, createdAt, plan, loggedIn, studio? }) plus
  * email, userId and method, so the editor, the dashboard, the Studio and the plans keep working
- * unchanged. Every change those pages make to the account (store name, plan, Studio subscription,
- * log-out) is sent back to public.profiles (first_name, phone, store_name, plan, studio): a
- * snapshot of what the server has ('jeere-auth-sync') says what changed. A log-out or a removed
+ * unchanged. Every change those pages make to the account (store name, number, log-out) is sent back
+ * to public.profiles (first_name, phone, store_name): a snapshot of what the server has
+ * ('jeere-auth-sync') says what changed. The plan and the Studio subscription are the server's (wave 2):
+ * the `studio-plan` Edge Function reads them, starts the trial and, in demo billing only, keeps what the
+ * demo checkout made (syncPlan); its answer overwrites the local copy. A log-out or a removed
  * account ends the Supabase session too.
  *
  * window.JeereAuth = { isDemo, why, forceDemo, probe, sendCode, verifyCode, session, completeLogin,
@@ -276,15 +278,17 @@
 
   /* ------------------------------------------------------------------ the profile and the bridge */
 
+  // The profile columns a browser writes (first_name, phone, store_name). plan and studio are not among
+  // them any more (wave 2 of the Studio audit): the `studio-plan` Edge Function writes them (planOf, syncPlan).
   function fromAccount(acc) {
-    var studio = isObj(acc.studio) ? acc.studio : null;
     return {
       first_name: clip(acc.firstName, 40),
       phone: /^\+\d{8,15}$/.test(acc.phone || '') ? acc.phone : null,
-      store_name: clip(acc.storeName, 40),
-      plan: PLANS.indexOf(acc.plan) !== -1 ? acc.plan : 'gratuit',
-      studio: studio
+      store_name: clip(acc.storeName, 40)
     };
+  }
+  function planOf(acc) {
+    return { plan: PLANS.indexOf(acc && acc.plan) !== -1 ? acc.plan : 'gratuit', studio: acc && isObj(acc.studio) ? acc.studio : null };
   }
   function same(a, b) { try { return JSON.stringify(a) === JSON.stringify(b); } catch (e) { return false; } }
   function readSync() { var o = parse(lsGet(SYNC_KEY)); return o && typeof o.userId === 'string' && isObj(o.data) ? o : null; }
@@ -325,7 +329,7 @@
         };
         if (user.email) acc.email = String(user.email).toLowerCase();
         if (isObj(p.studio)) acc.studio = p.studio;
-        var server = fromAccount(acc);
+        var server = Object.assign(fromAccount(acc), planOf(acc));
         // The same seller's local account (same user id, or the same address or number before the first real login)
         var local = readAccount();
         var mine = local && (local.userId === user.id || (!local.userId && ((local.email && local.email === acc.email) || (local.phone && (local.phone === acc.phone || local.phone === authPhone)))));
@@ -342,7 +346,9 @@
         if (!acc.phone && authPhone) acc.phone = authPhone;
         writeSync(user.id, server);
         var written = writeAccount(acc) || acc;
-        return syncNow().then(function () { return written; });
+        // her profile first, then the entitlements: the server's word (a demo subscription of this browser
+        // goes up only in demo billing mode, see syncPlan)
+        return syncNow().then(syncPlan).then(function () { return readAccount() || written; });
       });
     });
   }
@@ -356,7 +362,7 @@
     if (!acc || !acc.userId || !acc.loggedIn || !snap || snap.userId !== acc.userId) return Promise.resolve(false);
     var now = fromAccount(acc);
     var patch = {};
-    Object.keys(now).forEach(function (k) { if (!same(now[k], snap.data[k])) patch[k] = now[k]; });
+    Object.keys(now).forEach(function (k) { if (snap.data[k] === undefined && now[k] === null) return; if (!same(now[k], snap.data[k])) patch[k] = now[k]; });
     if (!Object.keys(patch).length) return Promise.resolve(true);
     syncing = client().then(function (sb) {
       return savePatch(sb, acc.userId, patch).then(function (ok) {
@@ -367,6 +373,56 @@
     syncing.then(function () { syncing = null; }, function () { syncing = null; });
     return syncing;
   }
+  /* The entitlements (wave 2): profiles.plan and profiles.studio belong to the server. The Edge Function
+   * `studio-plan` answers what they are ('get'), starts the one trial ('trial'), and — only while billing is
+   * in demo mode (no real payment yet) — keeps the subscription the demo checkout made ('sync', demo: true).
+   * Its answer is written back to 'jeere-account': a subscription typed into localStorage by hand does not
+   * survive the next sync, and the badge on her stores is decided by the database from the server's copy. */
+  var FN_PLAN = CONFIG.url + '/functions/v1/studio-plan';
+  function accessToken() {
+    var t = parse(lsGet(CONFIG.storageKey));
+    if (t && isObj(t.currentSession)) t = t.currentSession;
+    return t && typeof t.access_token === 'string' ? t.access_token : '';
+  }
+  function callPlan(body) {
+    var tok = accessToken();
+    if (!tok) return Promise.resolve(null);
+    return withTimeout(fetch(FN_PLAN, { method: 'POST', headers: { apikey: CONFIG.key, Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), CONFIG.timeoutMs, 'plan')
+      .then(function (r) { return r.json().catch(function () { return null; }); }, function () { return null; });
+  }
+  function applyPlan(userId, r) {
+    if (!isObj(r) || !('studio' in r)) return false;
+    var acc = readAccount();
+    if (!acc || acc.userId !== userId) return false;
+    if (PLANS.indexOf(r.plan) !== -1) acc.plan = r.plan;
+    if (isObj(r.studio)) acc.studio = r.studio; else delete acc.studio;
+    var snap = readSync();
+    if (snap && snap.userId === userId) writeSync(userId, Object.assign({}, snap.data, planOf(acc)));
+    if (!same(planOf(readAccount()), planOf(acc))) writeAccount(acc);
+    return true;
+  }
+  var planSyncing = null;
+  function syncPlan() {
+    if (planSyncing) return planSyncing;
+    var acc = readAccount();
+    var snap = readSync();
+    if (!acc || !acc.userId || !acc.loggedIn || !snap || snap.userId !== acc.userId) return Promise.resolve(false);
+    var want = planOf(acc);
+    var had = { plan: snap.data.plan, studio: snap.data.studio === undefined ? null : snap.data.studio };
+    var demoBilling = true;
+    try { if (root.JeereBilling && typeof root.JeereBilling.isDemo === 'function') demoBilling = root.JeereBilling.isDemo(); } catch (e) { demoBilling = true; }
+    var body = same(want, had) ? { action: 'get' } : { action: 'sync', demo: demoBilling, plan: want.plan, studio: want.studio };
+    planSyncing = callPlan(body).then(function (r) { return applyPlan(acc.userId, r); });
+    planSyncing.then(function () { planSyncing = null; }, function () { planSyncing = null; });
+    return planSyncing;
+  }
+  // The one 14-day trial, started by the server (any billing mode) → Promise { ok, studio } | null (offline)
+  function startTrial() {
+    var acc = readAccount();
+    if (!acc || !acc.userId) return Promise.resolve(null);
+    return callPlan({ action: 'trial' }).then(function (r) { if (r) applyPlan(acc.userId, r); return r; });
+  }
+
   // The same, for one field set at once from the account page (the store name after sign-up)
   function saveProfile(fields) {
     var acc = readAccount();
@@ -417,6 +473,8 @@
     var acc = readAccount();
     if (!acc || !acc.userId || !acc.loggedIn) { signOut(); return; }
     syncNow();
+    var snap = readSync();
+    if (snap && snap.userId === acc.userId && !same(planOf(acc), { plan: snap.data.plan, studio: snap.data.studio === undefined ? null : snap.data.studio })) syncPlan();
   }
   function watch() {
     if (watching) return;
@@ -433,6 +491,7 @@
         }
       });
       check();
+      syncPlan(); // the server's entitlements, once per page
     }, function () { /* offline: the snapshot keeps the changes for later */ });
     // Changes made by the page itself do not fire 'storage': look when it writes the account
     try {
@@ -456,7 +515,7 @@
     CONFIG: CONFIG,
     isDemo: isDemo, why: why, forceDemo: forceDemo, probe: probe,
     sendCode: sendCode, verifyCode: verifyCode, session: session, completeLogin: completeLogin,
-    saveProfile: saveProfile, syncNow: syncNow, signOut: signOut, forgetSession: forgetSession,
+    saveProfile: saveProfile, syncNow: syncNow, syncPlan: syncPlan, startTrial: startTrial, signOut: signOut, forgetSession: forgetSession,
     describeError: describeError, maskEmail: maskEmail, watch: watch,
     _fromAccount: fromAccount
   };

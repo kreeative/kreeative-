@@ -14,7 +14,7 @@
       var b = document.createElement('base');
       b.href = base;
       h.appendChild(b);
-      document.documentElement.className += ' js';
+      document.documentElement.className += ' js' + (window.innerWidth >= 768 ? ' jb-wide' : '');
       ['creer/store.css', 'b/b.css'].forEach(function (f) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + f; h.appendChild(l); });
       var ic = document.createElement('link'); ic.rel = 'icon'; ic.type = 'image/svg+xml'; ic.href = base + 'favicon.svg'; h.appendChild(ic);
       ['creer/data.js', 'creer/render.js', 'creer/elstyles.js', 'creer/engine-sections.js', 'creer/publish.js', 'b/b.js'].forEach(function (f) {
@@ -22,6 +22,7 @@
       });
     })();
   </script>
+  <!-- jb:meta (api/store.js writes the store's own title, description, image, canonical and JSON-LD here) -->
   <title>Boutique en ligne · Jeere</title>
   <meta name="description" content="Une boutique en ligne faite avec Jeere : commandez sur WhatsApp, payez par mobile money ou à la livraison.">
   <meta property="og:type" content="website">
@@ -31,21 +32,27 @@
   <meta property="og:image" content="https://jeere.kreeative.xyz/img/og.jpg">
   <meta property="og:locale" content="fr_CI">
   <meta name="twitter:card" content="summary_large_image">
+  <!-- /jb:meta -->
   <meta name="theme-color" content="#FFFFFF">
   <link rel="preconnect" href="https://aezchxfvzfoqlvzchqyk.supabase.co" crossorigin>
   <style>
     /* before b.css arrives: the loading state, centred, no flash of unstyled text */
     body { margin: 0; font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; color: #111111; background: #FFFFFF; }
     .jb-state--load { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #5E5E5E; }
+    /* the HTML api/store.js draws (phone layout, for link previews and readers without JavaScript): a wide
+       screen with JavaScript waits for b.js's own render at its width instead of a flash of the phone layout */
+    .jb-wide .jb-ssr[data-device="phone"] { visibility: hidden; }
   </style>
 </head>
 <body class="jb">
   <main id="jb-main" class="jb-main" aria-busy="true">
+    <!-- jb:body (api/store.js puts the rendered store here) -->
     <div class="jb-state jb-state--load" id="jb-loading" role="status">
       <span class="jb-spin" aria-hidden="true"></span>
       <p>Chargement de la boutique…</p>
     </div>
     <noscript><div class="jb-state"><h1 class="jb-title">Cette boutique a besoin de JavaScript</h1><p>Activez JavaScript dans votre navigateur pour voir les produits et commander.</p></div></noscript>
+    <!-- /jb:body -->
   </main>
 </body>
 </html>

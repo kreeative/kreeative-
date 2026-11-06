@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /compte/
+
+Sitemap: https://jeere.kreeative.xyz/b/sitemap.xml

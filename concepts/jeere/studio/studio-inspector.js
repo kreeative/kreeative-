@@ -987,6 +987,82 @@
       image: '<rect x="2.5" y="3.5" width="11" height="9" rx="1.5"/><circle cx="6" cy="7" r="1"/><path d="M3 11.5l3-2.5 2 1.6 2-1.6 3 2.4"/>', line: '<path d="M3 13L13 3"/>'
     };
     var openRows = {};
+    /* Reorder the layers by dragging their rows (wave 2, Figma): before / after a sibling (upper / lower half
+     * of its row), or into a frame (the middle of a frame's row: last child). One undo step. A node never goes
+     * into itself or its own children. */
+    var rowDrag = null, rowEat = false;
+    function isFrameNode(n) { return !!n && (n.type === 'frame' || n.type === 'stack' || n.type === 'grid'); }
+    function rowDown(ev, sid, cid, r) {
+      if (ev.button !== 0 || (ev.target.closest && ev.target.closest('.st-row__btn, input'))) return;
+      rowDrag = { sid: sid, cid: cid, row: r, y: ev.clientY, x: ev.clientX, moved: false, drop: null, line: null };
+      window.addEventListener('pointermove', rowMove);
+      window.addEventListener('pointerup', rowUp);
+      window.addEventListener('pointercancel', rowUp);
+    }
+    function rowTarget(ev) {
+      var d = rowDrag, e = E.ed(d.sid);
+      var el = document.elementFromPoint(ev.clientX, ev.clientY);
+      var tr = el && el.closest ? el.closest('[data-eng-row]') : null;
+      if (!tr || !e) return null;
+      var parts = tr.getAttribute('data-eng-row').split('|');
+      if (parts[0] !== d.sid || parts[1] === d.cid) return null;
+      var tid = parts[1], tn = e.doc.nodes[tid];
+      if (!tn) return null;
+      if (E.subtreeIds(d.sid, d.cid).indexOf(tid) !== -1) return null; // not into its own children
+      var b = tr.getBoundingClientRect(), f = (ev.clientY - b.top) / Math.max(1, b.height);
+      if (isFrameNode(tn) && f > 0.3 && f < 0.7) return { row: tr, into: tid, b: b };
+      return { row: tr, parent: tn.parent, ref: tid, after: f >= 0.5, b: b };
+    }
+    function rowMove(ev) {
+      var d = rowDrag;
+      if (!d) return;
+      if (!d.moved) { if (Math.abs(ev.clientY - d.y) + Math.abs(ev.clientX - d.x) < 5) return; d.moved = true; d.row.classList.add('is-dragging'); document.body.classList.add('st-rowdragging'); }
+      var t = rowTarget(ev);
+      d.drop = t;
+      if (!d.line) { d.line = ce('div', 'st-erow-drop'); document.body.appendChild(d.line); }
+      if (!t) { d.line.hidden = true; return; }
+      d.line.hidden = false;
+      d.line.classList.toggle('is-into', !!t.into);
+      d.line.style.left = t.b.left + 'px';
+      d.line.style.width = t.b.width + 'px';
+      if (t.into) { d.line.style.top = t.b.top + 'px'; d.line.style.height = t.b.height + 'px'; }
+      else { d.line.style.top = (t.after ? t.b.bottom : t.b.top) - 1 + 'px'; d.line.style.height = '2px'; }
+    }
+    function rowUp() {
+      var d = rowDrag;
+      rowDrag = null;
+      window.removeEventListener('pointermove', rowMove);
+      window.removeEventListener('pointerup', rowUp);
+      window.removeEventListener('pointercancel', rowUp);
+      if (!d) return;
+      if (d.line) d.line.remove();
+      d.row.classList.remove('is-dragging');
+      document.body.classList.remove('st-rowdragging');
+      if (!d.moved) return;
+      rowEat = true; setTimeout(function () { rowEat = false; }, 0);
+      var t = d.drop, e = E.ed(d.sid);
+      if (!t || !e) return;
+      var n = e.doc.nodes[d.cid], from = e.doc.nodes[n.parent];
+      var toId = t.into || t.parent, to = e.doc.nodes[toId];
+      if (!from || !to) return;
+      var patches = [];
+      if (toId === n.parent) {
+        var order = from.children.filter(function (x) { return x !== d.cid; });
+        var at = order.indexOf(t.ref) + (t.after ? 1 : 0);
+        order.splice(Math.max(0, at), 0, d.cid);
+        if (JSON.stringify(order) === JSON.stringify(from.children)) return;
+        patches.push({ op: 'replace', path: E.path(from.id, 'children'), value: order });
+      } else {
+        var dest = to.children.slice();
+        var at2 = t.into ? dest.length : dest.indexOf(t.ref) + (t.after ? 1 : 0);
+        dest.splice(Math.max(0, at2), 0, d.cid);
+        patches.push({ op: 'replace', path: E.path(from.id, 'children'), value: from.children.filter(function (x) { return x !== d.cid; }) });
+        patches.push({ op: 'replace', path: E.path(toId, 'children'), value: dest });
+        patches.push({ op: 'replace', path: E.path(d.cid, 'parent'), value: toId });
+      }
+      E.apply(d.sid, patches, t.into ? 'Calque déplacé dans un cadre' : 'Calques réordonnés', { structure: true });
+      C.selectNodes(d.sid, [d.cid]);
+    }
     hooks.treeSection = (function (prev) {
       return function (s, container) {
         if (prev) { try { prev(s, container); } catch (e) { /* module */ } }
@@ -1019,7 +1095,9 @@
             eye.title = c.visible === false ? 'Afficher' : 'Masquer';
             eye.addEventListener('click', function (ev) { ev.stopPropagation(); E.apply(s.id, [{ op: 'replace', path: E.path(cid, 'visible'), value: c.visible === false }], c.visible === false ? 'Élément affiché' : 'Élément masqué'); });
             r.appendChild(eye);
+            r.addEventListener('pointerdown', function (ev) { rowDown(ev, s.id, cid, r); });
             r.addEventListener('click', function (ev) {
+              if (rowEat) return;
               var c0 = C.current();
               if (ev.shiftKey && c0 && c0.sid === s.id && !c0.root) { var ids = c0.ids.slice(); var at = ids.indexOf(cid); if (at === -1) ids.push(cid); else ids.splice(at, 1); C.selectNodes(s.id, ids.length ? ids : [rid]); }
               else C.selectNodes(s.id, [cid], { fromTree: true });

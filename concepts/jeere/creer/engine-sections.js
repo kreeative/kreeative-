@@ -58,6 +58,8 @@
   var FAMILY_RE = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,59}(?:, ?[A-Za-z0-9][A-Za-z0-9 ._-]{0,59}){0,5}$/;
   var DEMO_RE = /^demo:[a-z0-9]+(?:-[a-z0-9]+)*$/;
   var DATA_RE = /^data:image\/(?:png|jpeg|webp|gif|avif|svg\+xml);base64,[A-Za-z0-9+/]+=*$/;
+  // a seller's photo hosted in Supabase Storage (JEERE_DATA.MEDIA_RE, wave 2)
+  var MEDIA_RE = /^https:\/\/aezchxfvzfoqlvzchqyk\.supabase\.co\/storage\/v1\/object\/public\/store-media\/[0-9a-f-]{36}\/[a-z0-9]{8,64}-\d{2,4}\.(webp|jpg|png)$/;
 
   function color(c) {
     if (!isObj(c)) return null;
@@ -306,7 +308,7 @@
     Object.keys(a).forEach(function (id) {
       if (n >= LIMITS.assets || !ASSET_ID_RE.test(id) || !isObj(a[id])) return;
       var src = typeof a[id].src === 'string' ? a[id].src : '';
-      if (!(DEMO_RE.test(src) || (DATA_RE.test(src) && src.length <= LIMITS.assetBytes))) return;
+      if (!(DEMO_RE.test(src) || MEDIA_RE.test(src) || (DATA_RE.test(src) && src.length <= LIMITS.assetBytes))) return;
       if (DATA_RE.test(src)) { if (bytes + src.length > LIMITS.assetBytes * 4) return; bytes += src.length; }
       var e = { src: src };
       if (typeof a[id].w === 'number' && a[id].w > 0) e.w = Math.round(num(a[id].w, 1, 20000, 1));
@@ -458,7 +460,7 @@
   function assetSrc(a) {
     if (!a || typeof a.src !== 'string') return BLANK;
     if (DEMO_RE.test(a.src)) return photoUrl(a.src.slice(5)) || BLANK;
-    return DATA_RE.test(a.src) ? a.src : BLANK;
+    return DATA_RE.test(a.src) || MEDIA_RE.test(a.src) ? a.src : BLANK;
   }
 
   /** A DualEngine document for a (sanitised) engine key: one page, the section's root frame. */
@@ -543,18 +545,97 @@
     var t = D && typeof D.formatNumber === 'function' ? D.formatNumber(n) : String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202F');
     return t + '\u00A0FCFA';
   }
+  /* The product grid of a detached section is a COLLECTION (wave 2 of the Studio audit), like a Webflow
+   * Collection List or a Framer CMS list: the cards are found again (the children of one frame, each bound
+   * to one product — its name, price, photo, its « Ajouter »), the first card is the template, and the grid
+   * shows the catalogue as it is now: settings.limit products (8 by default, as render.js), a new product
+   * gets its card (a copy of the template), a deleted one loses it. A card made for a product that is still
+   * there keeps its own edits. The fiche is never changed: this is the markup only. */
+  function pidsIn(nodes, id, out, depth) {
+    var n = nodes[id];
+    if (!isObj(n) || depth > 40) return out;
+    if (isObj(n.bind) && typeof n.bind.product === 'string') { out[n.bind.product] = 1; if (n.bind.field === 'name') out.__name = 1; }
+    var a = isObj(n.semantic) && isObj(n.semantic.attrs) ? n.semantic.attrs : null;
+    if (a && typeof a['data-product'] === 'string' && a['data-product']) out[a['data-product']] = 1;
+    (Array.isArray(n.children) ? n.children : []).forEach(function (c) { pidsIn(nodes, c, out, depth + 1); });
+    return out;
+  }
+  function hex8(t) { var h = 2166136261; t = String(t); for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = (h * 16777619) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); }
+  // the product of a card: one product in the whole subtree, and its name among the texts (a photo frame alone is not a card)
+  function cardPid(nodes, id) { var o = pidsIn(nodes, id, {}, 0); if (!o.__name) return null; delete o.__name; var k = Object.keys(o); return k.length === 1 ? k[0] : null; }
+  function subtree(nodes, id, out) { out.push(id); var n = nodes[id]; (n && Array.isArray(n.children) ? n.children : []).forEach(function (c) { subtree(nodes, c, out); }); return out; }
+  function cloneCard(nodes, tplId, parentId, fromPid, p, k) {
+    var map = {}, ids = subtree(nodes, tplId, []);
+    // ids free in the document (a card copied earlier and kept by the Studio may already hold '-r1')
+    for (var tries = 0; tries < 500; tries++, k++) {
+      var clash = false;
+      map = {};
+      // the engine names a node's CSS class after the first 8 characters of its id: a fresh 8-hex prefix,
+      // the same for the same card and product (so the export cache keeps working between renders)
+      ids.forEach(function (id) { var nid = hex8(id + '|' + p.id + '|' + k) + '-' + String(id).replace(/^[^-]*-?/, '').slice(0, 26).replace(/-+$/, '') + (tries ? '-' + tries : ''); if (!ID_RE.test(nid)) nid = hex8(id + '|' + p.id + '|' + k) + '-card-' + k; map[id] = nid; if (nodes[nid]) clash = true; });
+      if (!clash) break;
+    }
+    Object.keys(map).forEach(function (id) {
+      var n = JSON.parse(JSON.stringify(nodes[id]));
+      n.id = map[id];
+      n.parent = id === tplId ? parentId : map[n.parent];
+      if (Array.isArray(n.children)) n.children = n.children.map(function (c) { return map[c]; });
+      if (isObj(n.bind) && n.bind.product === fromPid) n.bind.product = p.id;
+      var a = isObj(n.semantic) && isObj(n.semantic.attrs) ? n.semantic.attrs : null;
+      if (a) {
+        if (a['data-product'] === fromPid) a['data-product'] = p.id;
+        if (typeof a.href === 'string') a.href = a.href.split('/' + encodeURIComponent(fromPid)).join('/' + encodeURIComponent(p.id));
+        if (typeof a['aria-label'] === 'string' && p.name && nodes[tplId].__name) a['aria-label'] = a['aria-label'].split(nodes[tplId].__name).join(p.name);
+      }
+      nodes[n.id] = n;
+    });
+    return map[tplId];
+  }
+  function repeatCollections(copy, m) {
+    var nodes = copy.engine.nodes;
+    var limit = Math.max(2, Math.min(24, Math.round(Number(copy.settings && copy.settings.limit) || 8)));
+    var list = m.products.filter(function (p) { return p && typeof p.id === 'string'; }).slice(0, limit);
+    var byId = {};
+    list.forEach(function (p) { byId[p.id] = p; });
+    var names = {};
+    m.products.forEach(function (p) { if (p && p.id) names[p.id] = p.name || ''; });
+    Object.keys(nodes).forEach(function (gid) {
+      var g = nodes[gid];
+      if (!isObj(g) || !Array.isArray(g.children) || !g.children.length) return;
+      var cards = g.children.map(function (c) { return { id: c, pid: cardPid(nodes, c) }; });
+      var bound = cards.filter(function (c) { return c.pid; });
+      var distinct = {};
+      bound.forEach(function (c) { distinct[c.pid] = 1; });
+      // a collection: every child is a card of its own product (2 at least, or the only child of a products section)
+      if (bound.length !== cards.length || Object.keys(distinct).length !== bound.length || (bound.length < 2 && copy.type !== 'products')) return;
+      var tpl = bound[0];
+      nodes[tpl.id].__name = names[tpl.pid] || '';
+      var keep = {};
+      bound.forEach(function (c) { if (byId[c.pid]) keep[c.pid] = c.id; });
+      var k = 0;
+      var next = list.map(function (p) { return keep[p.id] || cloneCard(nodes, tpl.id, gid, tpl.pid, p, ++k); });
+      bound.forEach(function (c) { if (next.indexOf(c.id) === -1 && c.id !== tpl.id) subtree(nodes, c.id, []).forEach(function (id) { delete nodes[id]; }); });
+      if (next.indexOf(tpl.id) === -1) subtree(nodes, tpl.id, []).forEach(function (id) { delete nodes[id]; });
+      else delete nodes[tpl.id].__name;
+      g.children = next;
+    });
+    Object.keys(nodes).forEach(function (id) { if (nodes[id] && nodes[id].__name !== undefined) delete nodes[id].__name; });
+  }
   function boundSection(s, m) {
     var nodes = s.engine && s.engine.nodes;
     if (!nodes || !m || !Array.isArray(m.products)) return s;
-    var ids = Object.keys(nodes).filter(function (id) { return isObj(nodes[id]) && isObj(nodes[id].bind); });
-    if (!ids.length) return s;
+    var ids0 = Object.keys(nodes).filter(function (id) { return isObj(nodes[id]) && isObj(nodes[id].bind); });
+    if (!ids0.length) return s;
     var copy = JSON.parse(JSON.stringify(s));
+    try { repeatCollections(copy, m); } catch (e) { copy = JSON.parse(JSON.stringify(s)); }
+    nodes = copy.engine.nodes;
+    var ids = Object.keys(nodes).filter(function (id) { return isObj(nodes[id]) && isObj(nodes[id].bind); });
     ids.forEach(function (id) {
       var n = copy.engine.nodes[id], b = n.bind;
       var p = m.products.filter(function (x) { return x && x.id === b.product; })[0];
       if (!p) return;
       if (b.field === 'image') {
-        var src = p.photo && p.photo.id && !p.ownImage ? 'demo:' + p.photo.id : (typeof p.image === 'string' && DATA_RE.test(p.image) ? p.image : null);
+        var src = p.photo && p.photo.id && !p.ownImage ? 'demo:' + p.photo.id : (typeof p.image === 'string' && (DATA_RE.test(p.image) || MEDIA_RE.test(p.image)) ? p.image : null);
         if (!src) return;
         var aid = 'bind-' + String(b.product).slice(0, 30);
         copy.engine.assets = isObj(copy.engine.assets) ? copy.engine.assets : {};
@@ -607,7 +688,7 @@
       if (!ok || !rootEl.isConnected || !rootEl.querySelector('[data-eng-pending]')) return;
       var R = root.JeereRender, v = rootEl.__jstView;
       if (!R || !v) return;
-      try { R.render(v.config, rootEl, { device: v.device, page: v.page, productId: v.productId, pageId: v.pageId }); } catch (e) { /* the store stays as it is */ }
+      try { R.render(v.config, rootEl, { device: v.device, page: v.page, productId: v.productId, pageId: v.pageId, linkBase: v.linkBase }); } catch (e) { /* the store stays as it is */ }
     });
   }
 

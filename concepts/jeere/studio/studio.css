@@ -1139,3 +1139,38 @@ body:has(.st-eng-has-rulers) .st-toasts { top: 80px; }
 /* wave 1 (audit item 24): the inspector's fields grow to 36 px under the finger (iPad) */
 .st-touch .dz-num, .st-touch .dz-text:not(textarea), .st-touch .dz-select, .st-touch .st-eng-num, .st-touch .st-eng-select, .st-touch .st-eng-input { height: 36px; }
 .st-touch .dz-num input, .st-touch .st-eng-num input { height: 34px; }
+
+/* ------------------------------------------------------------------ Aperçu (Preview mode, wave 2: studio-preview.js)
+   The store full-screen at the chosen width, interactive; nothing to edit. */
+.st-previewbtn { display: inline-flex; align-items: center; gap: 6px; }
+.st-previewbtn svg { width: 12px; height: 12px; }
+.st-previewbtn[aria-pressed="true"] { color: #FFFFFF; border-color: var(--st-blue); }
+.st-preview { position: fixed; inset: 0; z-index: 9000; display: flex; flex-direction: column; background: #141414; color: var(--st-ink); }
+.st-preview[hidden] { display: none; }
+.st-preview__bar { flex: none; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 12px; background: var(--st-chrome); border-bottom: 1px solid var(--st-line-d, #333); flex-wrap: wrap; }
+.st-preview__t { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; }
+.st-preview__t svg { width: 12px; height: 12px; color: var(--st-blue); }
+.st-preview__seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--st-chrome-2); }
+.st-preview__w { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 72px; min-height: 36px; padding: 2px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--st-ink-dim); font: inherit; cursor: pointer; }
+.st-preview__w b { font-size: 12px; font-weight: 600; color: inherit; }
+.st-preview__w small { font-size: 10.5px; opacity: .8; }
+.st-preview__w:hover { color: var(--st-ink); background: var(--st-chrome-3); }
+.st-preview__w.is-on { color: #FFFFFF; background: var(--st-blue); }
+.st-preview__w:focus-visible, .st-preview__close:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }
+.st-preview__info { flex: 1 1 auto; min-width: 0; font-size: 12px; color: var(--st-ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-preview__close { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: 1px solid var(--st-line-d, #444); border-radius: 6px; background: transparent; color: var(--st-ink); font: inherit; cursor: pointer; }
+.st-preview__close kbd { font-size: 10.5px; }
+.st-preview__stage { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; justify-content: center; padding: 16px; }
+.st-preview__frame { flex: none; min-height: 100%; background: #FFFFFF; box-shadow: 0 10px 40px rgba(0, 0, 0, .45); border-radius: 6px; overflow: hidden; }
+.st-preview__frame.is-full { border-radius: 0; }
+.st-preview__stage:has(.is-full) { padding: 0; }
+html.st-previewing { overflow: hidden; }
+
+/* element styles in vw / vh (wave 2): measured against the artboard, as on a screen that wide */
+[data-jst-cq].jst-cq-on { container-type: inline-size; }
+
+/* layers: dragging a node's row (wave 2) */
+.st-erow-drop { position: fixed; z-index: 9500; pointer-events: none; background: var(--st-blue); border-radius: 2px; }
+.st-erow-drop.is-into { background: transparent; box-shadow: inset 0 0 0 2px var(--st-blue); border-radius: 4px; }
+.st-row.is-dragging { opacity: .5; }
+body.st-rowdragging, body.st-rowdragging * { cursor: grabbing !important; user-select: none; }

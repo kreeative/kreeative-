@@ -131,8 +131,15 @@ After a real login, the profile is written to `localStorage['jeere-account']` in
 so the editor, the dashboard, the Studio and the plans work unchanged (`JEERE_DATA.normalizeAccount` now accepts an
 account with an e-mail and no number; `phone` is then `''`). The server wins; what it does not have yet (a store name,
 a number, a Studio subscription already on this device for the same seller) is taken from the device and sent up.
-Then every change those pages make (store name, plan, Studio subscription) is sent to `profiles`: a snapshot of what the
-server has (`jeere-auth-sync`) says what changed. « Se déconnecter » (account page or dashboard) and « Supprimer mon
+Then every change those pages make to the profile (store name, number) is sent to `profiles`: a snapshot of what the
+server has (`jeere-auth-sync`) says what changed. **The plan and the Studio subscription are the server's** (wave 2):
+browsers cannot write `profiles.plan` / `profiles.studio` any more (migration `jeere_wave2`); the Edge Function
+**`studio-plan`** reads them (`get`), starts the one 14-day trial (`trial`) and, only while billing is in demo mode
+(`JEERE_BILLING_MODE` ≠ `live`), keeps the subscription the demo checkout made (`sync`, `demo: true`, cleaned and
+marked `source: 'demo'`); its answer overwrites the local copy. Trade-off, said plainly: in demo mode anyone signed in
+can still give herself a plan, as before, but only through that function; set `JEERE_BILLING_MODE=live` once
+Paystack / Wave are connected and only the payment webhook (to be written) changes a plan. The badge on her stores
+is decided by the database from the server's copy (`stores.badge`, trigger `stores_badge`). « Se déconnecter » (account page or dashboard) and « Supprimer mon
 compte » end the Supabase session too. Real deletion of the user needs a service-role Edge Function (not built yet):
 today « Supprimer mon compte » clears the device and signs out.
 
@@ -469,18 +476,40 @@ supabase-js client at `window.jeereSupabase`, else supabase-js's own storage key
 (`../compte/?suite=publier#connexion`); she can still choose and check her address.
 
 **The public store page** (`b/index.html`, `b/b.js`, `b/b.css`): reads the host and the path, fetches the published
-fiche (REST, publishable key), and draws it with `creer/render.js` + `store.css`, phone layout under 900 px,
-desktop above. Detached Studio sections render (`engine-sections.js` loads the DualEngine on demand). The page in
-view is in the hash (`#produit/p2`, `#panier`, `#paiement`, `#page/a-propos`), so Back works and a product can be
-shared. `<title>`, description, Open Graph and `theme-color` come from the fiche; « Fait avec Jeere » sits under
-the store unless `show_badge` is false (then « Propulsé par Jeere » goes too). A loading state, a friendly
+fiche (REST, publishable key) — or takes it from the page itself when `api/store.js` served it (below) — and draws
+it with `creer/render.js` + `store.css`. **Breakpoints** (`JEERE_DATA.BREAKPOINTS`, the Studio's, wave 2): the phone
+layout under 768 px, the computer layout from 768 px (the Studio's 768 artboard), the element styles' tablet values
+under 1200 px. Detached Studio sections render (`engine-sections.js` loads the DualEngine on demand).
+**Addresses** (wave 2, one format end to end: `render.js` writes the links with `options.linkBase`, `b.js` reads and
+pushes them): `jeere.kreeative.xyz/b/<slug>/produits/<id>`, `/pages/<slug>`, `/panier`, `/paiement`; on her own
+domain the same from the root (`/produits/<id>`…); on any other host `…/b/?s=<slug>#/produits/<id>`. Older links
+(`#/produits/…`, `#produit/p2`, `#page/a-propos`, `#panier`) still open the right view and the address is cleaned.
+Back works, a link can be shared, opened in a new tab or indexed. **The `<head>`**: the Studio's référencement
+first (`store.seo`, `pages[].seo`: title, description, share image, `noindex`), then the store's name and tagline;
+a product page says « name · price · store » with its photo; canonical, `robots`, `og:*`, `twitter:*`
+(`JeereRender.storeMeta`, shared with the server). « Fait avec Jeere » follows `stores.badge` (computed by the
+database from the owner's plan, migration `jeere_wave2`), else `show_badge`. A loading state, a friendly
 « Boutique introuvable » (noindex) for unknown or unpublished addresses, and « Connexion impossible » with
 « Réessayer ». **Ordering**: the store's checkout has no real payment yet, so « Payer » / « Confirmer la commande »
 opens WhatsApp to the shop's number with the order written (items, commune and fee, total, payment method, name)
 and says so; the preview's demo confirmation is never shown to a customer. Assets are added by the page's first
 script with the right base (`/` on jeere.kreeative.xyz, `/concepts/jeere/` elsewhere), never as relative links.
-Known limit: WhatsApp and Facebook do not run JavaScript, so a shared link shows the page's default preview
-(« Boutique en ligne · Jeere ») until a server renders the meta tags (a Vercel function or an Edge Function).
+
+**Link previews and crawlers** (`api/store.js`, a Vercel serverless function, Node, no dependency; wave 2): WhatsApp,
+Facebook and X do not run JavaScript, so `jeere.kreeative.xyz/b/<slug>…` and every page of her own domain go
+through this function. It reads the published row (REST, publishable key), and serves `b/index.html` with the
+store's own `<title>`, description, `og:*`, `twitter:*`, canonical (her verified domain if any), `robots`, JSON-LD
+(`Store`, and `Product` with its price in XOF on a product page), the store drawn by `render.js` in the phone
+layout (for readers without JavaScript; hidden on a wide screen until `b.js` redraws at its width), and the row
+inline (`<script type="application/json" id="jb-data">`) so `b.js` makes no second request. Cached 60 s at
+Vercel's edge (`stale-while-revalidate` 10 min). Any failure serves the static page as it is, and `b.js` loads
+the store itself as before. Why not a Supabase Edge Function: Supabase serves every `GET` that returns `text/html`
+as `text/plain` (documented), so a browser would show the source. Vercel serves `api/*.js` for a project without
+a framework; `vercel.json › functions › includeFiles` ships `b/index.html`, `creer/data.js` and `creer/render.js`
+with it. **Sitemap**: `jeere.kreeative.xyz/b/sitemap.xml` → `api/sitemap.js`, which serves as `application/xml`
+the list made by the Edge Function **`store-sitemap`** (every published store, its pages and products; a
+store on her verified domain is listed there; `noindex` pages left out). `jeere.kreeative.xyz/robots.txt`
+(`concepts/jeere/robots.txt`) points to it.
 
 ### vercel.json: `routes`, not `rewrites`
 
@@ -491,9 +520,9 @@ else to convert). In order:
 
 1. `jeere.kreeative.xyz` + `/concepts/jeere/…` → 308 to `/…` (old links).
 2. `jeere.kreeative.xyz` + `/creer`, `/admin`, `/compte`, `/abonnements`, `/studio`, `/b` → 308 with the final slash.
-3. `jeere.kreeative.xyz` + `/b/<slug>` (letters, digits, hyphens; optional final slash) → `/concepts/jeere/b/index.html`.
+3. `jeere.kreeative.xyz` + `/b/sitemap.xml` → `/api/sitemap` (wave 2); `/b/<slug>` with an optional `/produits/<id>`, `/pages/<slug>`, `/panier` or `/paiement` (optional final slash) → `/api/store?slug=<slug>&path=<rest>` (wave 2; before: `b/index.html` directly).
 4. `jeere.kreeative.xyz` + `/` → `/concepts/jeere/index.html`; a path ending in `/` → its `index.html`; any other path → `/concepts/jeere/<path>`.
-5. **Any other host** that is not `kreeative.xyz`, `*.kreeative.xyz` (www, jeere), `*.vercel.app` (kreeative-site.vercel.app, previews) or `localhost`, for a path without a dot outside `/concepts/jeere/` → `/concepts/jeere/b/index.html` (a seller's domain; its files, `/concepts/jeere/creer/render.js`…, have a dot and fall through to the filesystem).
+5. **Any other host** that is not `kreeative.xyz`, `*.kreeative.xyz` (www, jeere), `*.vercel.app` (kreeative-site.vercel.app, previews) or `localhost`, for a path without a dot outside `/concepts/jeere/` → `/api/store?path=/<path>` (wave 2: a seller's domain, the host says which store; its files, `/concepts/jeere/creer/render.js`…, have a dot and fall through to the filesystem).
 
 | Host | Path | Result |
 | --- | --- | --- |
@@ -501,10 +530,13 @@ else to convert). In order:
 | kreeative-site.vercel.app, `*-<team>.vercel.app` previews | everything | unchanged |
 | jeere.kreeative.xyz | `/` | the Jeere landing (before: the portfolio's `index.html`) |
 | jeere.kreeative.xyz | `/creer` · `/creer/` · `/creer/render.js` | 308 `/creer/` · editor · the file |
-| jeere.kreeative.xyz | `/b/awa-beaute`, `/b/awa-beaute/` | the store page |
+| jeere.kreeative.xyz | `/b/awa-beaute`, `/b/awa-beaute/`, `/b/awa-beaute/produits/p1`, `/b/awa-beaute/pages/a-propos`, `/b/awa-beaute/panier` | `api/store.js` (the store page with its own `<head>`) |
+| jeere.kreeative.xyz | `/b/sitemap.xml` | `api/sitemap.js` (the `store-sitemap` Edge Function, as XML) |
+| jeere.kreeative.xyz | `/b/awa-beaute/autre` | 404 |
 | jeere.kreeative.xyz | `/b/b.js`, `/style.css`, `/studio/engine/model.js` | the Jeere files |
-| jeere.kreeative.xyz | `/robots.txt` | 404 (Jeere has none) |
-| awabeaute.com, www.awabeaute.com, boutique.awabeaute.ci | `/`, `/une/page` | the store page, which finds the store by its host |
+| jeere.kreeative.xyz | `/robots.txt` | `concepts/jeere/robots.txt` (wave 2: allow, sitemap) |
+| awabeaute.com, www.awabeaute.com, boutique.awabeaute.ci | `/`, `/produits/p1`, `/une/page` | `api/store.js`, which finds the store by its host |
+| kreeative.xyz | `/api/store` | the function, which serves the static page (no store asked) |
 | awabeaute.com | `/concepts/jeere/creer/render.js`, demo photos | the files |
 
 `vroute.js` (a model of this router) and `vroute-test.js` (scratchpad `publish/`) check each line; `vserver.js`

@@ -9,7 +9,7 @@
  *   elementStyles: {
  *     "<sectionId>/<elementKey>": {            // "s2/button", "s4/card", "s4/card~p3", "@header/logo"
  *       base:    { ...props },                   // every screen (« Toutes »)
- *       desktop: { ...props },                   // computer only (>= 1024 px, desktop layout)
+ *       desktop: { ...props },                   // computer only (>= 1200 px, desktop layout)
  *       tablet:  { ...props },                   // tablet AND phone (cascade: the phone inherits it)
  *       phone:   { ...props },                   // phone only (the phone layout)
  *       hover:   { ...props },                   // :hover (under @media (hover: hover))
@@ -247,21 +247,44 @@
   var EASES = ['ease', 'ease-out', 'ease-in-out', 'expo', 'linear', 'spring', 'bounce'];
 
   function N(min, max, int) { return { t: 'num', min: min, max: max, int: !!int }; }
+  /* A CSS length (wave 2 of the Studio audit): a number = px (as before, clamped to min / max), or, as
+   * written by the designer, '<n><unit>' with one of `units`, or clamp(a, b, c) whose terms are such
+   * lengths (the middle one may be '<len> + <len>'). Never silently converted: '5vw' stays '5vw'. */
+  function L(min, max, units) { return { t: 'len', min: min, max: max, units: units || LEN_ALL }; }
+  var LEN_ALL = ['px', 'rem', 'em', '%', 'vw', 'vh'];
+  var LEN_NUM = '-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)';
+  function lenTerm(units) { return LEN_NUM + '(?:' + units.map(function (u) { return u.replace('%', '%'); }).join('|') + ')'; }
+  // '5vw' | '1.5rem' | 'clamp(32px, 5vw, 66px)' | 'clamp(2rem, 1rem + 3vw, 4rem)' → the normalised string; a px
+  // value → its number; anything else (an unknown unit, a unit this property does not take, an expression) → null
+  function parseLen(v, spec) {
+    if (typeof v === 'number') return normNum(v, spec);
+    if (typeof v !== 'string') return null;
+    var t = v.trim().toLowerCase().replace(/\s+/g, ' ').replace(/,(?=\S)/g, ', ').replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
+    if (!t || t.length > 80) return null;
+    if (/^-?(?:\d+(?:\.\d+)?|\.\d+)(px)?$/.test(t)) return normNum(parseFloat(t), spec);
+    var units = spec.units || LEN_ALL;
+    var one = new RegExp('^' + lenTerm(units) + '$');
+    if (one.test(t)) { var n = parseFloat(t); return Math.abs(n) <= 10000 ? String(round(n, 3)) + t.replace(/^[-\d.]+/, '') : null; }
+    var term = lenTerm(units.concat(units.indexOf('vw') === -1 ? ['vw'] : []));
+    var m = new RegExp('^clamp\\((' + term + '), (' + term + '(?: [+-] ' + term + ')?), (' + term + ')\\)$').exec(t);
+    return m ? t : null;
+  }
+  function lenCss(v) { return typeof v === 'number' ? px(v) : String(v); }
   function E(v) { return { t: 'enum', v: v }; }
   var PROPS = {
     // layout
     wMode: E(['hug', 'fill', 'fixed']), w: N(0, 4000), wUnit: E(['px', '%', 'vw']),
     hMode: E(['hug', 'fill', 'fixed']), h: N(0, 4000), hUnit: E(['px', '%', 'vh']),
-    minW: N(0, 4000), maxW: N(0, 4000), minH: N(0, 4000), maxH: N(0, 4000),
-    pt: N(0, 600), pr: N(0, 600), pb: N(0, 600), pl: N(0, 600),
-    mt: N(-600, 600), mr: N(-600, 600), mb: N(-600, 600), ml: N(-600, 600),
-    gap: N(0, 400), stack: E(['col', 'row']), alignX: E(['start', 'center', 'end', 'stretch']),
+    minW: L(0, 4000), maxW: L(0, 4000), minH: L(0, 4000), maxH: L(0, 4000),
+    pt: L(0, 600), pr: L(0, 600), pb: L(0, 600), pl: L(0, 600),
+    mt: L(-600, 600), mr: L(-600, 600), mb: L(-600, 600), ml: L(-600, 600),
+    gap: L(0, 400), stack: E(['col', 'row']), alignX: E(['start', 'center', 'end', 'stretch']),
     alignY: E(['start', 'center', 'end', 'between']), wrap: { t: 'bool' },
-    textAlign: E(['left', 'center', 'right', 'justify']), contentW: N(240, 2400),
-    pos: E(['relative', 'absolute']), top: N(-2000, 2000), right: N(-2000, 2000), bottom: N(-2000, 2000), left: N(-2000, 2000),
+    textAlign: E(['left', 'center', 'right', 'justify']), contentW: L(240, 2400),
+    pos: E(['relative', 'absolute']), top: L(-2000, 2000), right: L(-2000, 2000), bottom: L(-2000, 2000), left: L(-2000, 2000),
     z: N(-10, 100, true), overflow: E(['visible', 'hidden']),
     // radius
-    rTL: N(0, 999), rTR: N(0, 999), rBR: N(0, 999), rBL: N(0, 999), smooth: N(0, 100),
+    rTL: L(0, 999, ['px', 'rem', 'em', '%']), rTR: L(0, 999, ['px', 'rem', 'em', '%']), rBR: L(0, 999, ['px', 'rem', 'em', '%']), rBL: L(0, 999, ['px', 'rem', 'em', '%']), smooth: N(0, 100),
     // fill
     fillType: E(['solid', 'linear', 'radial', 'image', 'none']), fill: { t: 'color' },
     gradAngle: N(0, 360), gradStops: { t: 'stops' }, gradShape: E(['circle', 'ellipse']), gradX: N(0, 100), gradY: N(0, 100),
@@ -276,7 +299,7 @@
     blur: N(0, 100), bblur: N(0, 100), rotate: N(-360, 360), scale: N(10, 400), skewX: N(-80, 80), skewY: N(-80, 80),
     tx: N(-2000, 2000), ty: N(-2000, 2000),
     // typography
-    font: { t: 'font' }, fontSize: N(6, 240), fontWeight: N(100, 900, true), italic: { t: 'bool' }, lh: N(0.5, 4),
+    font: { t: 'font' }, fontSize: L(6, 240), fontWeight: N(100, 900, true), italic: { t: 'bool' }, lh: N(0.5, 4),
     ls: N(-20, 100), textCase: E(['none', 'upper', 'lower', 'capitalize']), deco: E(['none', 'underline', 'line-through']),
     color: { t: 'color' },
     // image
@@ -392,6 +415,7 @@
   }
   var DATA_IMG_RE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/;
   var MAX_IMG = 1600 * 1024;
+  var MEDIA_URL_RE = /^https:\/\/aezchxfvzfoqlvzchqyk\.supabase\.co\/storage\/v1\/object\/public\/store-media\/[0-9a-f-]{36}\/[a-z0-9]{8,64}-\d{2,4}\.(webp|jpg|png)$/;
   function normImage(v) {
     if (typeof v !== 'string') return null;
     if (v.indexOf('demo:') === 0) {
@@ -401,6 +425,7 @@
       if (d && d.DEMO_PHOTOS && !Object.prototype.propertyIsEnumerable.call(d.DEMO_PHOTOS, id)) return null;
       return 'demo:' + id;
     }
+    if (MEDIA_URL_RE.test(v)) return v; // a hosted photo (Supabase Storage, wave 2)
     if (v.length > MAX_IMG || v.indexOf('data:image/') !== 0) return null;
     return DATA_IMG_RE.test(v) ? v : null;
   }
@@ -413,7 +438,7 @@
       try { src = R && typeof R.photoSrc === 'function' ? R.photoSrc(v.slice(5)) : null; } catch (e) { src = null; }
       return typeof src === 'string' && SAFE_URL_RE.test(src) ? src : null;
     }
-    return DATA_IMG_RE.test(v) ? v : null;
+    return DATA_IMG_RE.test(v) || MEDIA_URL_RE.test(v) ? v : null;
   }
 
   /* ------------------------------------------------------------------ sanitiser */
@@ -456,6 +481,7 @@
     if (!spec || v === null || v === undefined) return null;
     switch (spec.t) {
       case 'num': return normNum(v, spec);
+      case 'len': return parseLen(v, spec);
       case 'enum': return typeof v === 'string' && spec.v.indexOf(v) !== -1 ? v : null;
       case 'bool': return typeof v === 'boolean' ? v : null;
       case 'color': return normColor(v);
@@ -586,29 +612,29 @@
     if (P.hMode === 'hug') add('', 'height', 'auto');
     else if (P.hMode === 'fill') add('', 'height', '100%');
     else if (P.hMode === 'fixed' && P.h !== undefined) add('', 'height', P.hUnit === '%' ? pct(P.h) : P.hUnit === 'vh' ? round(P.h, 2) + 'vh' : px(P.h));
-    if (P.minW !== undefined) add('', 'min-width', px(P.minW));
-    if (P.maxW !== undefined) add('', 'max-width', px(P.maxW));
-    if (P.minH !== undefined) add('', 'min-height', px(P.minH));
-    if (P.maxH !== undefined) add('', 'max-height', px(P.maxH));
-    if (P.contentW !== undefined) add(' .jst-wrap', 'max-width', px(P.contentW));
+    if (P.minW !== undefined) add('', 'min-width', lenCss(P.minW));
+    if (P.maxW !== undefined) add('', 'max-width', lenCss(P.maxW));
+    if (P.minH !== undefined) add('', 'min-height', lenCss(P.minH));
+    if (P.maxH !== undefined) add('', 'max-height', lenCss(P.maxH));
+    if (P.contentW !== undefined) add(' .jst-wrap', 'max-width', lenCss(P.contentW));
     [['pt', 'padding-top'], ['pr', 'padding-right'], ['pb', 'padding-bottom'], ['pl', 'padding-left'],
       ['mt', 'margin-top'], ['mr', 'margin-right'], ['mb', 'margin-bottom'], ['ml', 'margin-left']].forEach(function (p) {
-      if (P[p[0]] !== undefined) add('', p[1], px(P[p[0]]));
+      if (P[p[0]] !== undefined) add('', p[1], lenCss(P[p[0]]));
     });
-    if (P.gap !== undefined) add('', 'gap', px(P.gap));
+    if (P.gap !== undefined) add('', 'gap', lenCss(P.gap));
     if (P.textAlign) add('', 'text-align', P.textAlign);
     if (P.pos) add('', 'position', P.pos);
-    ['top', 'right', 'bottom', 'left'].forEach(function (k) { if (P[k] !== undefined) add('', k, px(P[k])); });
+    ['top', 'right', 'bottom', 'left'].forEach(function (k) { if (P[k] !== undefined) add('', k, lenCss(P[k])); });
     if (P.z !== undefined) add('', 'z-index', String(P.z));
     if (P.overflow) add('', 'overflow', P.overflow === 'hidden' ? 'hidden' : 'visible');
     // radius
     var R = [P.rTL, P.rTR, P.rBR, P.rBL];
-    if (R.every(function (r) { return r !== undefined; }) && R[0] === R[1] && R[1] === R[2] && R[2] === R[3]) add('', 'border-radius', px(R[0]));
+    if (R.every(function (r) { return r !== undefined; }) && R[0] === R[1] && R[1] === R[2] && R[2] === R[3]) add('', 'border-radius', lenCss(R[0]));
     else {
-      if (P.rTL !== undefined) add('', 'border-top-left-radius', px(P.rTL));
-      if (P.rTR !== undefined) add('', 'border-top-right-radius', px(P.rTR));
-      if (P.rBR !== undefined) add('', 'border-bottom-right-radius', px(P.rBR));
-      if (P.rBL !== undefined) add('', 'border-bottom-left-radius', px(P.rBL));
+      if (P.rTL !== undefined) add('', 'border-top-left-radius', lenCss(P.rTL));
+      if (P.rTR !== undefined) add('', 'border-top-right-radius', lenCss(P.rTR));
+      if (P.rBR !== undefined) add('', 'border-bottom-right-radius', lenCss(P.rBR));
+      if (P.rBL !== undefined) add('', 'border-bottom-left-radius', lenCss(P.rBL));
     }
     if (P.smooth !== undefined) add('', 'corner-shape', P.smooth > 0 ? 'superellipse(' + round(1 + P.smooth / 100, 2) + ')' : 'round');
     if (kind === 'image' && mediaSub && (R.some(function (r) { return r !== undefined; }))) add(mediaSub, 'border-radius', 'inherit');
@@ -688,7 +714,7 @@
       var z = P.zoom / 100, zk = 1 - 1 / z;
       var fx = P.focusX === undefined ? 50 : P.focusX, fy = P.focusY === undefined ? 50 : P.focusY;
       var zsub = mediaSub || '';
-      var rr = [P.rTL, P.rTR, P.rBR, P.rBL].filter(function (r) { return r !== undefined; });
+      var rr = [P.rTL, P.rTR, P.rBR, P.rBL].filter(function (r) { return typeof r === 'number'; });
       add(zsub, 'transform-origin', pct(fx) + ' ' + pct(fy));
       add(zsub, 'clip-path', 'inset(' + [fy * zk, (100 - fx) * zk, (100 - fy) * zk, fx * zk].map(function (v) { return pct(round(v, 3)); }).join(' ') +
         (!zsub && rr.length ? ' round ' + px(round(Math.max.apply(null, rr) / z, 2)) : '') + ')');
@@ -758,7 +784,7 @@
       if (!stack) { var f = fontInfo(P.font); stack = f && f.stack ? f.stack : (f ? "'" + f.family + "', sans-serif" : null); }
       if (stack) add('', 'font-family', stack);
     }
-    if (P.fontSize !== undefined) add('', 'font-size', px(P.fontSize));
+    if (P.fontSize !== undefined) add('', 'font-size', lenCss(P.fontSize));
     if (P.fontWeight !== undefined) add('', 'font-weight', String(P.fontWeight));
     if (P.italic !== undefined) add('', 'font-style', P.italic ? 'italic' : 'normal');
     if (P.lh !== undefined) add('', 'line-height', String(round(P.lh, 3)));
@@ -955,7 +981,10 @@
     var dev = rootEl && rootEl.getAttribute ? rootEl.getAttribute('data-device') : null;
     if (dev === 'phone') return 'tablet phone';
     var w = rootEl ? (rootEl.clientWidth || 0) : 0;
-    return w && w < 1024 ? 'tablet' : 'desktop';
+    // the same thresholds everywhere (JEERE_DATA.BREAKPOINTS, wave 2): tablet below 1200 px
+    var D = window.JEERE_DATA;
+    var top = D && D.BREAKPOINTS ? D.BREAKPOINTS.desktop : 1200;
+    return w && w < top ? 'tablet' : 'desktop';
   }
   function setBp(rootEl) {
     var bp = bpOf(rootEl);
@@ -1020,6 +1049,12 @@
       var text = css({ elementStyles: clean, sections: config.sections }, {
         scope: '[data-jst-es="' + id + '"]', trusted: true, labels: false, force: o.force, noTransition: o.noTransition
       });
+      // An artboard of the Studio (or the Preview) is not the window: there, 5vw means 5 % of the artboard,
+      // as the live store will draw it on a screen that wide (its frame is a size container, data-jst-cq)
+      var cqHost = rootEl.parentElement && rootEl.parentElement.hasAttribute('data-jst-cq') ? rootEl.parentElement : null;
+      var cqOn = !!cqHost && /\dvw\b/.test(text);
+      if (cqOn) text = text.replace(/(\d)vw\b/g, '$1cqw');
+      if (cqHost) cqHost.classList.toggle('jst-cq-on', cqOn);
       if (!styleEl) {
         styleEl = document.createElement('style');
         styleEl.setAttribute('data-jst-es', '');
@@ -1047,7 +1082,7 @@
     REGISTRY: REGISTRY, KINDS: KINDS, CHROME: CHROME, PROPS: PROPS, LAYERS: LAYERS, BPS: BPS, STATES: STATES,
     TOKENS: TOKENS, EASES: EASES, EASE_LABELS: EASE_LABELS, EASE_CSS: EASE_CSS, BLEND: BLEND, SHADOW_PRESETS: SHADOW_PRESETS,
     elementsFor: elementsFor, elementDef: elementDef, parseKey: parseKey, keyOf: keyOf, selectorFor: selectorFor,
-    sanitize: sanitize, sanitizeProps: sanitizeProps, normProp: normProp,
+    sanitize: sanitize, sanitizeProps: sanitizeProps, normProp: normProp, parseLen: parseLen, lenCss: lenCss, LEN_UNITS: LEN_ALL,
     resolve: resolve, merged: merged, chain: chain,
     css: css, decls: decls, apply: apply, bpOf: bpOf, springLinear: springLinear,
     color: { parse: parseColor, norm: normColor, css: colorCss, hex: formatHex, hslToRgb: hslToRgb },

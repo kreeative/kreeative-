@@ -459,6 +459,12 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   border-radius: 12px; background: var(--grey-1); font-size: 13px; line-height: 1.45;
 }
 .b-note-box .b-ico { width: 18px; height: 18px; margin-top: 1px; }
+/* a section detached in the Studio Pro (wave 2): the notice and its two ways out */
+.b-note-box--studio { background: var(--grey-1); border: 1px solid var(--line, rgba(17, 17, 17, .12)); }
+.b-note-box--studio b { display: block; font-weight: 600; margin-bottom: 2px; }
+.b-note-box__p { display: block; }
+.b-item__acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.b-tag--studio { background: var(--ink, #111111); color: var(--white, #FFFFFF); }
 .b-foot-note { display: flex; align-items: flex-start; gap: 10px; margin: 22px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
 .b-foot-note .b-ico { width: 17px; height: 17px; margin-top: 1px; }
 
