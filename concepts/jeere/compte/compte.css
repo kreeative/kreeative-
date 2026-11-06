@@ -342,28 +342,17 @@ a { color: inherit; }
     margin: 0 20px 20px 0; padding: 52px 52px 48px; border-radius: 30px; background: var(--ink); color: var(--white);
     isolation: isolate;
   }
-  /* the cloud, large and quiet, behind the frosted message */
-  .c-aside__bg {
-    position: absolute; z-index: -1; right: -120px; top: 50%; width: auto; height: 420px; aspect-ratio: 600 / 446;
-    transform: translateY(-30%); fill: #FFFFFF; opacity: .08;
-  }
+  /* small products drawn with the brush all over the black (doodles.js): faint, so the text stays first */
+  .c-aside__ink { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; color: #FFFFFF; opacity: .2; pointer-events: none; }
+  .c-ink__p.is-dim { opacity: .3; }
+  .c-ink__s { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .6s cubic-bezier(.45, .05, .3, 1); }
+  .c-ink__dot { opacity: 0; transition: opacity .25s ease; }
+  .c-aside__ink.is-drawn .c-ink__s { stroke-dashoffset: 0; }
+  .c-aside__ink.is-drawn .c-ink__dot { opacity: 1; }
   .c-aside__k { font-size: 12.5px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: rgba(255, 255, 255, .62); }
   .c-aside__t { margin-top: 16px; max-width: 13em; font-size: 40px; line-height: 1.1; font-weight: 500; letter-spacing: -.025em; }
   .c-aside__p { margin-top: 16px; max-width: 30em; font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, .72); }
 
-  .c-msg { max-width: 360px; }
-  .c-msg__bubble {
-    padding: 16px 18px 18px; border-radius: 20px 20px 20px 6px; background: rgba(255, 255, 255, .08);
-    border: 1px solid rgba(255, 255, 255, .14); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  }
-  .c-msg__head { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
-  .c-msg__av { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--white); }
-  .c-msg__av svg { display: block; width: auto; height: 15px; aspect-ratio: 600 / 446; fill: #111111; }
-  .c-msg__from { font-weight: 500; }
-  .c-msg__when { margin-left: auto; color: rgba(255, 255, 255, .55); font-size: 12.5px; }
-  .c-msg__body { margin-top: 10px; font-size: 15px; line-height: 1.55; color: rgba(255, 255, 255, .88); }
-  .c-msg__body strong { color: var(--white); font-weight: 600; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
-  .c-msg__cap { margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: rgba(255, 255, 255, .55); }
 
   .c-perks { display: grid; gap: 12px; }
   .c-perks li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 400; color: rgba(255, 255, 255, .9); }

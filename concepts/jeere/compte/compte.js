@@ -499,8 +499,6 @@
     var lead = doc.getElementById('c-signup-lead');
     if (lead) lead.innerHTML = one ? 'Votre prénom et votre adresse e-mail&nbsp;: vous recevez un code de connexion. Pas de mot de passe à retenir.'
       : 'Votre prénom, puis où recevoir votre code de connexion. Pas de mot de passe à retenir.';
-    var cap = doc.querySelector('.c-msg__cap');
-    if (cap) cap.textContent = 'Exemple du message, ' + channelsText() + '.';
     // with e-mail alone, the line under the (hidden) choice repeats the e-mail field's hint: hidden too
     ['c-method-hint', 'c-l-method-hint'].forEach(function (id) { var h = doc.getElementById(id); if (h) h.hidden = one; });
   }
