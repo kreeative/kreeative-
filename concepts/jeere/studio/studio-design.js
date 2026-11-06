@@ -2204,7 +2204,11 @@
       if (!t || (t.def.kind !== 'image' && !cropTargetOk(t))) return;
       var ab = e.target && e.target.closest ? e.target.closest('.st-ab') : null;
       var rootEl = ab ? S.roots()[ab.getAttribute('data-ab')] : null;
-      var el = rootEl ? nodesIn(rootEl, t).filter(function (n) { return n.contains(e.target); })[0] : null;
+      var el = rootEl ? nodesIn(rootEl, t).filter(function (n) {
+        if (n.contains(e.target)) return true;
+        var r = n.getBoundingClientRect();   // under a scrim or a veil: the pointer is still on the photo
+        return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      })[0] : null;
       if (!el) return;
       e.preventDefault();
       e.stopPropagation();
@@ -2932,6 +2936,11 @@
     };
     hooks.openDesign = function () {
       if (S.switchInspTab) S.switchInspTab('design');
+    };
+    /* « Recadrer et zoomer » (Réglages, under the photo): the selected photo, straight into the crop mode */
+    hooks.cropImage = function () {
+      if (S.switchInspTab) S.switchInspTab('design');
+      startCrop();
     };
     /* clicking an element (a button, a title, an image, an icon, the header) opens its Design panel at
      * once; climbing back to a section returns to the tab she was on, unless she chose a tab herself */

@@ -124,6 +124,7 @@
   function products() { return Array.isArray(state.config.products) ? state.config.products : []; }
   function customPages() { return Array.isArray(state.config.pages) ? state.config.pages : []; }
   function sectionById(id) { return sections().filter(function (s) { return s && s.id === id; })[0] || null; }
+  function sectionType(id) { var s = sectionById(id); return (s && s.type) || ''; }
   function productById(id) { return products().filter(function (p) { return p && p.id === id; })[0] || null; }
   function pageById(id) { return customPages().filter(function (p) { return p && p.id === id; })[0] || null; }
 
@@ -500,7 +501,30 @@
       if (!n || !scopeEl.contains(n) || n === scopeEl) return;
       if (!bestNode || bestNode.contains(n)) { best = d; bestNode = n; }
     });
+    if (!best && lastPt && lastPt.target === target) best = imageUnder(scopeEl, type, lastPt.x, lastPt.y);
     return best;
+  }
+  /* a photo under a decorative layer (the hero's scrim, a veil): what is under the pointer, top first; the first
+   * layer that belongs to a design element decides, so a title or a button over the photo still wins */
+  var lastPt = null;
+  function imageUnder(scopeEl, type, x, y) {
+    if (!document.elementsFromPoint || x == null) return null;
+    var stack = document.elementsFromPoint(x, y), defs = esElements(type).filter(function (d) { return !!d.sel; });
+    for (var i = 0; i < stack.length; i++) {
+      var n = stack[i];
+      if (n === scopeEl || !scopeEl.contains(n)) return null;
+      var hit = null, hitNode = null;
+      defs.forEach(function (d) {
+        var m = null;
+        try { m = n.closest(d.sel); } catch (e) { m = null; }
+        if (!m || m === scopeEl || !scopeEl.contains(m)) return;
+        if (!hitNode || hitNode.contains(m)) { hit = d; hitNode = m; }
+      });
+      if (hit) return hit.kind === 'image' ? hit : null;
+      // something readable on top (a title, a price…): not a photo click. Only empty decorative layers are seen through
+      if (n.tagName !== 'IMG' && (n.textContent || '').trim()) return null;
+    }
+    return null;
   }
   function hitChrome(t) { return t && t.closest ? t.closest('.jst-header, .jst-footer') : null; }
 
@@ -1102,6 +1126,7 @@
   }
 
   function onStageClickCapture(e) {
+    lastPt = { x: e.clientX, y: e.clientY, target: e.target };
     if (onStageUI(e.target)) return;
     if (suppressClick || pan) { e.stopPropagation(); e.preventDefault(); return; }
     if (insideFrame(e.target)) setActiveAbFrom(e.target);
@@ -1142,9 +1167,10 @@
       // a click inside while a sub-element is selected: try a new sub-element, else keep the section
       drillInto(secEl, e.target) || select({ kind: 'section', id: id });
     } else {
-      /* a button or an icon is selected on the first click, like Framer: its style is what she wants */
+      /* a button, an icon or a photo is selected on the first click, like Framer: its style (or its crop) is what
+       * she wants; a double-click on a photo then crops it */
       var direct = designElAt(secEl, secEl.getAttribute('data-section-type') || '', e.target);
-      if (direct && (direct.kind === 'button' || direct.kind === 'icon')) {
+      if (direct && (direct.kind === 'button' || direct.kind === 'icon' || direct.kind === 'image')) {
         var dsel = { kind: 'section', id: id, el: direct.key };
         var dtype = secEl.getAttribute('data-section-type') || '';
         if (direct.field && hasField(dtype, direct.field)) { dsel.field = direct.field; dsel.fieldType = dtype; }
@@ -1536,6 +1562,7 @@
   /* double-click on text in the canvas: edit it right there (contenteditable); texts without a
    * fiche field fall back to the old reflex — drill in and focus the inspector field */
   function onStageDblClick(e) {
+    lastPt = { x: e.clientX, y: e.clientY, target: e.target };
     if ((state.tool !== 'select' && state.tool !== 'text') || pan) return;
     var frame = insideFrame(e.target);
     if (!frame) return;
@@ -2515,6 +2542,21 @@
       row.appendChild(rm);
     }
     w.appendChild(row);
+    /* crop and zoom: the section's photo, straight into the crop mode on the canvas (Design › Image et recadrage) */
+    var cs = state.sel;
+    var cdef = cs && cs.kind === 'section' && !cs.el ? esElements(sectionType(cs.id)).filter(function (d) { return d.kind === 'image'; })[0] : null;
+    if (cdef && (image || (info && info.src)) && hooks.cropImage) {
+      var cb = ce('button', 'st-ghostbtn st-imgfield__crop', '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4.5 1.5v10h10M1.5 4.5h10v10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span>Recadrer et zoomer</span>');
+      cb.type = 'button';
+      cb.title = 'Recadrer et zoomer la photo (double-clic sur la photo)';
+      cb.addEventListener('click', function () {
+        var nsel = { kind: 'section', id: cs.id, el: cdef.key };
+        if (cdef.field && hasField(sectionType(cs.id), cdef.field)) { nsel.field = cdef.field; nsel.fieldType = sectionType(cs.id); }
+        select(nsel);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { hooks.cropImage(); }); });
+      });
+      w.appendChild(cb);
+    }
     return w;
   }
 
