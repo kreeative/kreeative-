@@ -551,3 +551,6 @@ body { font-size: 12px; -webkit-font-smoothing: antialiased; font-feature-settin
 .st-logomenu .st-mi { width: 18px; height: 18px; }
 .st-logomenu__sites.has-sites { padding-bottom: 8px; margin-bottom: 8px; }
 .st-menu button { padding: 9px 12px; font-size: 13px; }
+
+/* Icons (Iconly): Curved at rest, Bold on what is selected */
+.st-rail__btn.is-on, .st [aria-pressed="true"], .st [aria-selected="true"], .st-left__tabs button.is-on { --ic-b: 1; --ic-sw: 2; }

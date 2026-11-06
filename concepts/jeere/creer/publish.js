@@ -381,13 +381,13 @@
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
     alert: '<path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9L2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
-    copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
+    copy: '<path d="M9 14.5C9 10.38 10.38 9 14.5 9C18.62 9 20 10.38 20 14.5C20 18.62 18.62 20 14.5 20C10.38 20 9 18.62 9 14.5Z"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
     chat: '<path d="M4 20l1.4-4.2A8 8 0 1 1 8.3 18.7z"/>',
     open: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/>',
-    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
+    lock: '<path d="M5 16C5 12.25 6.75 11 12 11C17.25 11 19 12.25 19 16C19 19.75 17.25 21 12 21C6.75 21 5 19.75 5 16Z"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
   };
-  function icon(n) { return '<svg class="jp-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[n] || '') + '</svg>'; }
+  function icon(n) { return '<svg class="jp-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[n] || '') + '</svg>'; }
 
   var uid = 0;
   function mount(el, opts) {

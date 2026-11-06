@@ -3040,7 +3040,7 @@
     var tplName = '';
     try { D.templates.forEach(function (t) { if (t.id === state.config.template) tplName = t.name; }); } catch (e) { /* no templates */ }
     var promise = ce('div', 'st-promise',
-      svg24('<rect width="14" height="10" x="2" y="4" rx="2"/><rect width="5" height="10" x="17" y="9" rx="1.5"/><path d="M6 18h6"/>') +
+      svg24('<path d="M2 9C2 5.25 3.75 4 9 4C14.25 4 16 5.25 16 9C16 12.75 14.25 14 9 14C3.75 14 2 12.75 2 9Z"/><path d="M17 14C17 10.25 17.62 9 19.5 9C21.38 9 22 10.25 22 14C22 17.75 21.38 19 19.5 19C17.62 19 17 17.75 17 14Z"/><path d="M6 18h6"/>') +
       '<div><b>Responsive, de 360 à 1440 px</b><span>La mise en page de cette section suit le modèle' + (tplName ? ' « ' + esc(tplName) + ' »' : '') +
       ' : impossible de casser l’affichage sur téléphone. Pour la changer, choisissez un autre modèle.</span></div>');
     var tplLink = ce('button', 'st-linkbtn', 'Changer de modèle…');
@@ -3767,10 +3767,10 @@
   }
 
   /* Ctrl+\ : masquer / afficher les panneaux (le plan de travail en grand) */
-  /* each side panel folds on its own, like Claude's sidebar: a button in the panel, and one at the edge of the canvas
+  /* each side panel folds on its own, like a chat app's sidebar: a button in the panel, and one at the edge of the canvas
    * to bring it back (Ctrl/⌘ Alt [ for the left one, Ctrl/⌘ Alt ] for the right one) */
-  var PANEL_ICON = svg24('<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M9 3v18"/>');
-  var PANEL_ICON_R = svg24('<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M15 3v18"/>');
+  var PANEL_ICON = svg24('<path d="M3 12C3 5.25 5.25 3 12 3C18.75 3 21 5.25 21 12C21 18.75 18.75 21 12 21C5.25 21 3 18.75 3 12Z"/><path d="M9 3v18"/>');
+  var PANEL_ICON_R = svg24('<path d="M3 12C3 5.25 5.25 3 12 3C18.75 3 21 5.25 21 12C21 18.75 18.75 21 12 21C5.25 21 3 18.75 3 12Z"/><path d="M15 3v18"/>');
   function setPanel(side, off, quiet) {
     if (!ui.panels || typeof ui.panels !== 'object') ui.panels = {};
     ui.panels[side] = !!off;

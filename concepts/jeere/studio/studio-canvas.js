@@ -1428,7 +1428,7 @@
         c.bar.setAttribute('role', 'toolbar');
         c.bar.setAttribute('aria-label', 'Recadrage de la photo');
         c.bar.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-        var zl = ce('label', 'dz-cropbar__z', '<span class="dz-cropbar__l"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5L8.5 7.5"/><rect x="2.5" y="8.5" width="5" height="5" rx="1"/></svg></span>');
+        var zl = ce('label', 'dz-cropbar__z', '<span class="dz-cropbar__l"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5L8.5 7.5"/><path d="M2.5 11C2.5 9.12 3.12 8.5 5 8.5C6.88 8.5 7.5 9.12 7.5 11C7.5 12.88 6.88 13.5 5 13.5C3.12 13.5 2.5 12.88 2.5 11Z"/></svg></span>');
         var range = ce('input');
         range.type = 'range'; range.min = '100'; range.max = '400'; range.step = '1';
         range.setAttribute('aria-label', 'Zoom (%)');
@@ -1943,7 +1943,7 @@
       if (!ftb || !anchor || ftb.querySelector('[data-tool="frame"]')) return;
       var defs = [
         ['frame', 'Cadre', 'F', 'Dessiner un cadre libre (détache la section)', '<path d="M22 6H2M22 18H2M6 2v20M18 2v20"/>'],
-        ['rect', 'Rectangle', 'R', 'Dessiner un rectangle', '<rect width="18" height="18" x="3" y="3" rx="2.5"/>'],
+        ['rect', 'Rectangle', 'R', 'Dessiner un rectangle', '<path d="M3 12C3 5.25 5.25 3 12 3C18.75 3 21 5.25 21 12C21 18.75 18.75 21 12 21C5.25 21 3 18.75 3 12Z"/>'],
         ['ellipse', 'Ellipse', 'O', 'Dessiner une ellipse', '<circle cx="12" cy="12" r="9"/>']
       ];
       var after = anchor;

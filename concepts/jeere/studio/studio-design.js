@@ -957,8 +957,8 @@
         positionRows(t, b);
       }
       b.appendChild(row('Débord', [seg({ t: t, prop: 'overflow', labelText: 'Débord', toggle: true, options: [
-        { v: 'visible', html: svg('<rect x="3.5" y="3.5" width="9" height="9" rx="1.5" stroke-dasharray="2 1.6"/><path d="M8 1v14"/>'), tip: 'Visible : le contenu peut dépasser' },
-        { v: 'hidden', html: svg('<rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/><path d="M8 3.5v9"/>'), tip: 'Rogner ce qui dépasse (et les coins arrondis)' }] })], t, ['overflow']));
+        { v: 'visible', html: svg('<path d="M3.5 8C3.5 4.62 4.62 3.5 8 3.5C11.38 3.5 12.5 4.62 12.5 8C12.5 11.38 11.38 12.5 8 12.5C4.62 12.5 3.5 11.38 3.5 8Z" stroke-dasharray="2 1.6"/><path d="M8 1v14"/>'), tip: 'Visible : le contenu peut dépasser' },
+        { v: 'hidden', html: svg('<path d="M3.5 8C3.5 4.62 4.62 3.5 8 3.5C11.38 3.5 12.5 4.62 12.5 8C12.5 11.38 11.38 12.5 8 12.5C4.62 12.5 3.5 11.38 3.5 8Z"/><path d="M8 3.5v9"/>'), tip: 'Rogner ce qui dépasse (et les coins arrondis)' }] })], t, ['overflow']));
       return g;
     }
     function sizeRows(t, b, k) {
@@ -970,7 +970,7 @@
         var modeSeg = seg({ t: t, prop: modeP, labelText: ax === 'w' ? 'Largeur' : 'Hauteur', toggle: true, cls: 'dz-seg--modes', options: [
           { v: 'hug', html: svg('<path d="M2.5 4v8M13.5 4v8M5 8h6M6.6 6.4L5 8l1.6 1.6M9.4 6.4L11 8 9.4 9.6"/>', rot), tip: ax === 'w' ? 'Auto : la largeur du contenu' : 'Auto : la hauteur du contenu' },
           { v: 'fill', html: svg('<path d="M2.5 4v8M13.5 4v8M4.6 8h6.8M6.2 6.4L4.6 8l1.6 1.6M9.8 6.4L11.4 8 9.8 9.6"/>', rot), tip: ax === 'w' ? 'Plein : toute la largeur disponible' : 'Plein : toute la hauteur du parent' },
-          { v: 'fixed', html: svg('<rect x="2" y="5.5" width="12" height="5" rx="1"/><path d="M5 5.5v2M8 5.5v2.5M11 5.5v2"/>', rot), tip: 'Fixe : une valeur précise' }] });
+          { v: 'fixed', html: svg('<path d="M2 8C2 6.12 3.5 5.5 8 5.5C12.5 5.5 14 6.12 14 8C14 9.88 12.5 10.5 8 10.5C3.5 10.5 2 9.88 2 8Z"/><path d="M5 5.5v2M8 5.5v2.5M11 5.5v2"/>', rot), tip: 'Fixe : une valeur précise' }] });
         var nf = num({ t: t, letter: ax === 'w' ? 'L' : 'H', min: 0, max: 4000, labelText: ax === 'w' ? 'Largeur' : 'Hauteur', co: ax,
           unit: function () { var u = val(t, unitP); return u || 'px'; },
           onUnit: function () {
@@ -1039,8 +1039,8 @@
     function positionRows(t, b) {
       var pos = val(t, 'pos');
       b.appendChild(row('Position', [seg({ t: t, prop: 'pos', labelText: 'Position', toggle: true, structural: true, options: [
-        { v: 'relative', html: svg('<rect x="2.5" y="5.5" width="7" height="7" rx="1" stroke-dasharray="1.6 1.4"/><rect x="6.5" y="3" width="7" height="7" rx="1"/>'), tip: 'Relative : décalée de sa place dans le flux' },
-        { v: 'absolute', html: svg('<rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><rect x="8" y="4" width="4" height="4" rx=".6" fill="currentColor"/>'), tip: 'Absolue : posée librement dans son bloc' }] }),
+        { v: 'relative', html: svg('<path d="M2.5 9C2.5 6.38 3.38 5.5 6 5.5C8.62 5.5 9.5 6.38 9.5 9C9.5 11.62 8.62 12.5 6 12.5C3.38 12.5 2.5 11.62 2.5 9Z" stroke-dasharray="1.6 1.4"/><path d="M6.5 6.5C6.5 3.88 7.38 3 10 3C12.62 3 13.5 3.88 13.5 6.5C13.5 9.12 12.62 10 10 10C7.38 10 6.5 9.12 6.5 6.5Z"/>'), tip: 'Relative : décalée de sa place dans le flux' },
+        { v: 'absolute', html: svg('<path d="M2.5 8C2.5 3.88 3.88 2.5 8 2.5C12.12 2.5 13.5 3.88 13.5 8C13.5 12.12 12.12 13.5 8 13.5C3.88 13.5 2.5 12.12 2.5 8Z"/><rect x="8" y="4" width="4" height="4" rx=".6" fill="currentColor"/>'), tip: 'Absolue : posée librement dans son bloc' }] }),
         num({ t: t, prop: 'z', letter: 'Z', min: -10, max: 100, dec: 0, labelText: 'Plan', title: 'Plan (z-index) : plus haut = devant' })], t, ['pos', 'z']));
       if (!pos) return;
       var gq = ce('div', 'dz-grid2');
@@ -1395,9 +1395,9 @@
       var perSide = ['bWT', 'bWR', 'bWB', 'bWL'].some(function (p) { return val(t, p) !== undefined; });
       var dashed = (val(t, 'bStyle') || 'solid') !== 'solid';
       var alRow = row('Position', [seg({ t: t, prop: 'bAlign', labelText: 'Position de la bordure', dflt: 'inside', options: [
-        { v: 'inside', html: svg('<rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke-dasharray="1.4 1.4"/><rect x="4.5" y="4.5" width="7" height="7" rx=".5" stroke-width="2"/>'), tip: 'Intérieure : dans la boîte (ne déplace rien)' },
-        { v: 'center', html: svg('<rect x="3.5" y="3.5" width="9" height="9" rx="1" stroke-width="2.2"/>'), tip: 'Centrée : à cheval sur le bord' },
-        { v: 'outside', html: svg('<rect x="5" y="5" width="6" height="6" rx=".5" stroke-dasharray="1.4 1.4"/><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke-width="2"/>'), tip: 'Extérieure : autour de la boîte (ne déplace rien)' }] })], t, ['bAlign']);
+        { v: 'inside', html: svg('<path d="M2.5 8C2.5 3.88 3.88 2.5 8 2.5C12.12 2.5 13.5 3.88 13.5 8C13.5 12.12 12.12 13.5 8 13.5C3.88 13.5 2.5 12.12 2.5 8Z" stroke-dasharray="1.4 1.4"/><path d="M4.5 8C4.5 5.38 5.38 4.5 8 4.5C10.62 4.5 11.5 5.38 11.5 8C11.5 10.62 10.62 11.5 8 11.5C5.38 11.5 4.5 10.62 4.5 8Z" stroke-width="2"/>'), tip: 'Intérieure : dans la boîte (ne déplace rien)' },
+        { v: 'center', html: svg('<path d="M3.5 8C3.5 4.62 4.62 3.5 8 3.5C11.38 3.5 12.5 4.62 12.5 8C12.5 11.38 11.38 12.5 8 12.5C4.62 12.5 3.5 11.38 3.5 8Z" stroke-width="2.2"/>'), tip: 'Centrée : à cheval sur le bord' },
+        { v: 'outside', html: svg('<path d="M5 8C5 5.75 5.75 5 8 5C10.25 5 11 5.75 11 8C11 10.25 10.25 11 8 11C5.75 11 5 10.25 5 8Z" stroke-dasharray="1.4 1.4"/><path d="M2.5 8C2.5 3.88 3.88 2.5 8 2.5C12.12 2.5 13.5 3.88 13.5 8C13.5 12.12 12.12 13.5 8 13.5C3.88 13.5 2.5 12.12 2.5 8Z" stroke-width="2"/>'), tip: 'Extérieure : autour de la boîte (ne déplace rien)' }] })], t, ['bAlign']);
       if (perSide || dashed) { alRow.classList.add('is-soft'); tip(alRow.lab, 'Une bordure en tirets, en pointillés ou par côté est toujours intérieure.'); }
       b.appendChild(alRow);
       return g;
@@ -2937,7 +2937,7 @@
     function emptyState(sel) {
       var box = ce('div', 'dz-empty');
       var multi = sel && S.isMulti(sel);
-      box.appendChild(ce('div', 'dz-empty__ill', '<svg viewBox="0 0 64 48" aria-hidden="true"><rect x="6" y="6" width="52" height="36" rx="8"/><rect x="14" y="14" width="22" height="6" rx="3"/><rect x="14" y="24" width="34" height="4" rx="2"/><rect x="14" y="31" width="16" height="5" rx="2.5"/><path d="M44 26l10 4-4 1.6L48 36z" fill="currentColor"/></svg>'));
+      box.appendChild(ce('div', 'dz-empty__ill', '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M6 24C6 10.5 12.5 6 32 6C51.5 6 58 10.5 58 24C58 37.5 51.5 42 32 42C12.5 42 6 37.5 6 24Z"/><rect x="14" y="14" width="22" height="6" rx="3"/><rect x="14" y="24" width="34" height="4" rx="2"/><rect x="14" y="31" width="16" height="5" rx="2.5"/><path d="M44 26l10 4-4 1.6L48 36z" fill="currentColor"/></svg>'));
       box.appendChild(ce('h3', '', multi ? 'Un élément à la fois' : sel && sel.kind === 'page' ? 'Les pages suivent le modèle' : 'Le design de chaque élément'));
       box.appendChild(ce('p', '', multi
         ? 'Le design se règle élément par élément : sélectionnez une seule section, un titre, un bouton…'

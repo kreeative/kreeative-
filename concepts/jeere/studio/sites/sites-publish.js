@@ -1,7 +1,7 @@
 /* Jeere Studio › Mes sites — « Publier »: the changed files of the open site go to GitHub in one
  * commit, through the Edge Function `sites-publish` (it alone holds the GitHub token: the browser
  * only sends her Supabase session). « Mettre en ligne » commits on the site's branch (the default
- * branch claude/kreeative-portfolio-design-n2a770 is what kreeative.xyz serves); « Brouillon » on a
+ * branch of the portfolio, the one kreeative.xyz serves); « Brouillon » on a
  * branch studio/… of her choosing, created from it (Vercel builds a preview of it). Author: always
  * Anne-Kelly Kouyate <annklyy@gmail.com>, with her own message, no other trailer.
  *

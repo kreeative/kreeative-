@@ -1586,13 +1586,13 @@
     /* the palette's glyphs, one per category: 24 × 24 grid, 1.5 stroke, round caps and joins */
     var CMD_ICONS = {
       'Ajouter': '<path d="M5 12h14M12 5v14"/>',
-      'Mes blocs': '<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M3 9h18"/>',
+      'Mes blocs': '<path d="M3 12C3 5.25 5.25 3 12 3C18.75 3 21 5.25 21 12C21 18.75 18.75 21 12 21C5.25 21 3 18.75 3 12Z"/><path d="M3 9h18"/>',
       'Aller à': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
-      'Modèle': '<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M3 9h18M9 21V9"/>',
+      'Modèle': '<path d="M3 12C3 5.25 5.25 3 12 3C18.75 3 21 5.25 21 12C21 18.75 18.75 21 12 21C5.25 21 3 18.75 3 12Z"/><path d="M3 9h18M9 21V9"/>',
       'Palette': '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6 17.46 2 12 2z"/>',
       'Style': '<path d="m4 20 8-16 8 16"/><path d="M7.5 13h9"/>',
-      'Appareils': '<rect width="14" height="10" x="2" y="4" rx="2"/><rect width="5" height="10" x="17" y="9" rx="1.5"/><path d="M6 18h6"/>',
-      'Panneaux': '<rect width="18" height="18" x="3" y="3" rx="2.5"/><path d="M9 3v18"/>',
+      'Appareils': '<path d="M2 9C2 5.25 3.75 4 9 4C14.25 4 16 5.25 16 9C16 12.75 14.25 14 9 14C3.75 14 2 12.75 2 9Z"/><path d="M17 14C17 10.25 17.62 9 19.5 9C21.38 9 22 10.25 22 14C22 17.75 21.38 19 19.5 19C17.62 19 17 17.75 17 14Z"/><path d="M6 18h6"/>',
+      'Panneaux': '<path d="M3 12C3 5.25 5.25 3 12 3C18.75 3 21 5.25 21 12C21 18.75 18.75 21 12 21C5.25 21 3 18.75 3 12Z"/><path d="M9 3v18"/>',
       'Vérifier': '<path d="M20 6 9 17l-5-5"/>',
       'Sélection': '<path d="M4.04 4.69a.5.5 0 0 1 .65-.65l16 6.5a.5.5 0 0 1-.06.95l-6.13 1.58a2 2 0 0 0-1.43 1.43l-1.58 6.13a.5.5 0 0 1-.95.06z"/>',
       'Historique': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3.5 2"/>',

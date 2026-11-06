@@ -1459,3 +1459,6 @@ a.a-proj__item { text-decoration: none; }
 }
 .a-mini__shot { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 .a-gate__visual:has(.a-mini__shot) { background: #fdf7dc; }
+
+/* Icons (Iconly): Curved at rest, Bold on what is selected */
+.a-nav__link[aria-current="page"], .a-tab[aria-current="page"], .a-tab.is-current, [aria-pressed="true"], .a-proj__item[aria-current="true"] { --ic-b: 1; --ic-sw: 2; }

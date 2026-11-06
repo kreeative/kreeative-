@@ -95,7 +95,7 @@
     back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>',
     button: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="5"/><path d="M8.5 12h7"/></svg>',
     text: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7V5h14v2M12 5v14M9 19h6"/></svg>',
-    image: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.4"/><circle cx="9" cy="10" r="1.8"/><path d="M3.6 17.4l5-4.4 3.6 3 3.1-2.7 5 4.3"/></svg>',
+    image: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12C3 6.38 5.25 4.5 12 4.5C18.75 4.5 21 6.38 21 12C21 17.62 18.75 19.5 12 19.5C5.25 19.5 3 17.62 3 12Z"/><circle cx="9" cy="10" r="1.8"/><path d="M3.6 17.4l5-4.4 3.6 3 3.1-2.7 5 4.3"/></svg>',
     icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
     badge: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3-8.7 8.7z"/></svg>'
   };

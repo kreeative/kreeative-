@@ -28,7 +28,7 @@
     var last = P.state();
 
     // 24 × 24, round caps and joins, like the Studio's other glyphs (the lock is drawn small: a heavier stroke)
-    var LOCK = '<svg class="st-lock" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="11" x="4" y="11" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+    var LOCK = '<svg class="st-lock" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5C4 12.38 6 11 12 11C18 11 20 12.38 20 16.5C20 20.62 18 22 12 22C6 22 4 20.62 4 16.5Z"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
     var CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
     /* ---------------------------------------------------------------- the bridge */
