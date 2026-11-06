@@ -471,7 +471,7 @@
     if (head) {
       var live = site.liveUrl || null;
       head.innerHTML =
-        '<a class="sk-sitehead__all" href="#/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5L9 12l5.5 5.5"/></svg>Tous mes sites</a>' +
+        '<a class="sk-sitehead__all" href="#/"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"/></g></svg>Tous mes sites</a>' +
         '<div class="sk-sitehead__row"><img class="sk-sitehead__img" alt="" src="' + esc(site.thumbnail) + '" onerror="this.remove()">' +
         '<div class="sk-sitehead__t"><b>' + esc(site.title) + '</b>' +
         (live ? '<a href="' + esc(live) + '" target="_blank" rel="noopener" data-tip="Ouvrir le site en ligne">' + esc(live.replace(/^https?:\/\//, '').replace(/\/$/, '')) + ' ↗</a>' : '<small>Pas encore en ligne</small>') +
@@ -500,7 +500,7 @@
         var head = ce('button', 'sk-pagesec');
         head.type = 'button';
         head.setAttribute('aria-expanded', String(!shut));
-        head.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4.5L9.5 8 6 11.5"/></svg><span>' + esc(sec) + '</span><small>' + items.length + '</small>';
+        head.innerHTML = '<svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></g></svg><span>' + esc(sec) + '</span><small>' + items.length + '</small>';
         head.addEventListener('click', function () {
           var opening = head.getAttribute('aria-expanded') !== 'true';
           if (opening) sectionsOpen[sec] = true; else delete sectionsOpen[sec];
@@ -579,7 +579,7 @@
       var rel = p.subPath ? p.path : (site.path ? p.path.slice(site.path.length + 1) : p.path);
       // a client site or concept with one page: its name; with several, « Name · page title »
       var name = pageName(p);
-      b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.5h4.8l2.2 2.2v8.8h-7z"/><path d="M9 2.5v2.5h2.5"/></svg>' +
+      b.innerHTML = '<svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"/></g></svg>' +
         '<span class="sk-page__t"><b>' + esc(name) + '</b><small>' + esc(rel.replace(/(^|\/)index\.html$/, '$1') || '/') + (p.isNew ? ' · nouvelle' : '') + '</small></span>' +
         (dirty ? '<span class="sk-page__dot" title="Modifications non publiées"></span>' : '');
       b.addEventListener('click', function () { location.hash = '#/site/' + site.id + '/' + p.path; closeDrawers(); });
@@ -897,13 +897,13 @@
   /* ---------------------------------------------------------------- the floating actions of the selection */
 
   var ICON = {
-    text: '<svg viewBox="0 0 16 16"><path d="M3.5 4.5v-1h9v1M8 3.5v9M6 12.5h4"/></svg>',
-    img: '<svg viewBox="0 0 16 16"><rect x="2.5" y="3" width="11" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1.2"/><path d="M3 11.5l3-3 2.5 2 1.8-1.6 2.7 2.4"/></svg>',
-    link: '<svg viewBox="0 0 16 16"><path d="M7 9a2.6 2.6 0 003.7 0l2-2A2.6 2.6 0 009 3.3l-.8.8M9 7a2.6 2.6 0 00-3.7 0l-2 2A2.6 2.6 0 007 12.7l.8-.8"/></svg>',
-    dup: '<svg viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M3.5 10.5h-.5a.5.5 0 01-.5-.5V3a.5.5 0 01.5-.5h7a.5.5 0 01.5.5v.5"/></svg>',
-    hide: '<svg viewBox="0 0 16 16"><path d="M2 8s2.2-4 6-4 6 4 6 4-2.2 4-6 4-6-4-6-4z"/><circle cx="8" cy="8" r="1.8"/></svg>',
-    del: '<svg viewBox="0 0 16 16"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/></svg>',
-    up: '<svg viewBox="0 0 16 16"><path d="M8 12.5v-9M4.5 7L8 3.5 11.5 7"/></svg>'
+    text: '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M208,56V88a8,8,0,0,1-16,0V64H136V192h24a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16h24V64H64V88a8,8,0,0,1-16,0V56a8,8,0,0,1,8-8H200A8,8,0,0,1,208,56Z"/></g></svg>',
+    img: '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"/></g></svg>',
+    link: '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M240,88.23a54.43,54.43,0,0,1-16,37L189.25,160a54.27,54.27,0,0,1-38.63,16h-.05A54.63,54.63,0,0,1,96,119.84a8,8,0,0,1,16,.45A38.62,38.62,0,0,0,150.58,160h0a38.39,38.39,0,0,0,27.31-11.31l34.75-34.75a38.63,38.63,0,0,0-54.63-54.63l-11,11A8,8,0,0,1,135.7,59l11-11A54.65,54.65,0,0,1,224,48,54.86,54.86,0,0,1,240,88.23ZM109,185.66l-11,11A38.41,38.41,0,0,1,70.6,208h0a38.63,38.63,0,0,1-27.29-65.94L78,107.31A38.63,38.63,0,0,1,144,135.71a8,8,0,0,0,16,.45A54.86,54.86,0,0,0,144,96a54.65,54.65,0,0,0-77.27,0L32,130.75A54.62,54.62,0,0,0,70.56,224h0a54.28,54.28,0,0,0,38.64-16l11-11A8,8,0,0,0,109,185.66Z"/></g></svg>',
+    dup: '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></g></svg>',
+    hide: '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></g></svg>',
+    del: '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></g></svg>',
+    up: '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M205.66,117.66a8,8,0,0,1-11.32,0L136,59.31V216a8,8,0,0,1-16,0V59.31L61.66,117.66a8,8,0,0,1-11.32-11.32l72-72a8,8,0,0,1,11.32,0l72,72A8,8,0,0,1,205.66,117.66Z"/></g></svg>'
   };
   function placeSelbar() {
     var bar = $('skSelbar');
@@ -1483,7 +1483,7 @@
       r.style.paddingLeft = (4 + depth * 12) + 'px';
       r.innerHTML = '<button type="button" class="sk-row__tw' + (kids.length ? '' : ' sk-row__tw--none') + '" aria-expanded="' + open + '" aria-label="Déplier"><svg viewBox="0 0 12 12"><path d="M4.5 3l3 3-3 3"/></svg></button>' +
         '<span class="sk-row__name">' + label(e) + '</span>' +
-        (e.tag !== 'body' ? '<button type="button" class="sk-row__eye" aria-label="' + (isHidden(e) ? 'Afficher' : 'Masquer') + '">' + (isHidden(e) ? '<svg viewBox="0 0 16 16"><path d="M2.5 2.5l11 11M6.4 4.2A6.4 6.4 0 018 4c3.8 0 6 4 6 4a10.4 10.4 0 01-1.6 2.1M10.4 11.4A6 6 0 018 12c-3.8 0-6-4-6-4a10.6 10.6 0 012.8-3"/></svg>' : ICON.hide.replace('<svg ', '<svg ')) + '</button>' : '');
+        (e.tag !== 'body' ? '<button type="button" class="sk-row__eye" aria-label="' + (isHidden(e) ? 'Afficher' : 'Masquer') + '">' + (isHidden(e) ? '<svg viewBox="0 0 256 256"><g fill="currentColor" stroke="none"><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z"/></g></svg>' : ICON.hide.replace('<svg ', '<svg ')) + '</button>' : '');
       if (e === selSrc) r.id = 'skTreeSel';
       r.querySelector('.sk-row__tw').addEventListener('click', function (ev) { ev.stopPropagation(); if (open) treeOpen.delete(key); else treeOpen.add(key); renderTree(); });
       var eye = r.querySelector('.sk-row__eye');
