@@ -3,26 +3,21 @@
  * ≥ 4.5:1 on the dialogs and panels of both. */
 
 /* the plan chip in the top bar (replaces the old « Formule Avancée » badge; never hidden) */
-.st-planchip {
-  display: inline-flex; align-items: center; gap: 5px; flex: none; max-width: 150px;
-  font: 600 11px var(--st-font); letter-spacing: 0.02em; white-space: nowrap;
-  color: var(--st-badge-ink); background: var(--st-badge-bg); border: 1px solid var(--st-badge-line);
-  padding: 3px 9px 3px 7px; border-radius: 999px; cursor: pointer;
-}
-.st-planchip span { overflow: hidden; text-overflow: ellipsis; }
-.st-planchip:hover { background: var(--st-badge-bg-h); }
-.st-planchip__ico { width: 12px; height: 12px; flex: none; }
-.st-planchip[data-state="free"] { color: var(--st-ink); background: var(--st-chrome-2); border-color: var(--st-line-d); }
-.st-planchip[data-state="free"]:hover { background: var(--st-chrome-3); }
-.st-planchip[data-state="trial"] { color: var(--st-warn-ink); background: rgba(245, 184, 0, 0.16); border-color: rgba(245, 184, 0, 0.5); }
-.st-planchip[data-state="due"] { color: var(--st-due-ink); background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.5); }
-.st-touch .st-planchip { min-height: 34px; padding: 4px 11px 4px 9px; }
+
+
+
+
+
+
+
+
+
 
 /* a lock on what Découverte does not include: visible, never hidden */
 .st-lock { width: 11px; height: 11px; flex: none; vertical-align: -1px; margin-left: 4px; opacity: 0.9; }
 .st-right__tabs button.is-locked { color: var(--st-ink-dim); }
 .st-ftb__btn.is-locked > .st-lock { position: absolute; right: 3px; bottom: 3px; width: 10px; height: 10px; margin: 0; color: var(--st-lock-ink); }
-.st-ftb__btn { position: relative; }
+
 .st-share__row button.is-locked { display: inline-flex; align-items: center; }
 .dz-fontmenu__i.is-locked span { opacity: 0.75; }
 .dz-fontmenu__lock { width: 12px; height: 12px; flex: none; margin-left: 6px; color: var(--st-ink-dim); }

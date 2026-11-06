@@ -1,0 +1,39 @@
+/* Jeere Studio › « Tous mes sites ». The page is the dashboard's (../../admin/admin.css: a-app, a-side,
+ * a-top, a-card, a-filter, a-chip, a-btn, Poppins, black and white, the rainbow of rainbow.css): only the
+ * grid of sites and what a card shows on top of an .a-card are drawn here. */
+
+.ms-grid { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .ms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1180px) { .ms-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
+@media (min-width: 1600px) { .ms-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* a card: the whole of it opens the site (its main link); « Voir en ligne » sits above that link */
+.ms-card { position: relative; display: flex; flex-direction: column; transition: border-color .15s, box-shadow .15s; }
+.ms-card:hover { border-color: var(--line-2); box-shadow: 0 10px 30px -18px rgba(17, 17, 17, .35); }
+.ms-card:has(.ms-card__open:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.ms-card__open { display: flex; flex-direction: column; flex: 1 1 auto; color: var(--ink); text-decoration: none; }
+.ms-card__open:focus-visible { outline: none; }
+.ms-card__shot { position: relative; display: block; aspect-ratio: 16 / 10; background: var(--grey-1); overflow: hidden; border-bottom: 1px solid var(--line); }
+.ms-card__shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.ms-card__mono { position: absolute; inset: 0; display: grid; place-items: center; font: 500 44px/1 var(--a-font); color: var(--ink); }
+.ms-card__mono img { position: static; width: 46%; height: 46%; object-fit: contain; }
+.ms-card__body { display: grid; gap: 3px; padding: 14px 16px 6px; min-width: 0; }
+.ms-card__title { font-size: 15.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-card__meta { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* the kind of site, in the corner: storefront = « Boutique en ligne », globe = « Site web » */
+.ms-card__type { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--white); color: var(--ink); box-shadow: 0 1px 2px rgba(17, 17, 17, .18), inset 0 0 0 1px var(--line); pointer-events: auto; }
+.ms-card__type .a-ico { width: 18px; height: 18px; }
+.ms-card__type--shop { background: var(--ink); color: var(--white); box-shadow: 0 1px 2px rgba(17, 17, 17, .3); }
+.ms-card__chips { position: absolute; top: 12px; left: 12px; right: 52px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+.ms-card__chips .a-chip { box-shadow: 0 1px 2px rgba(17, 17, 17, .12); }
+.ms-card__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 0 16px 14px; }
+.ms-card__live { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: 13.5px; font-weight: 500; }
+.ms-card__live .a-ico { width: 14px; height: 14px; }
+.ms-card__live:hover { opacity: .7; }
+.ms-foot { margin-top: 18px; }
+.a-filter .a-ico { flex: none; }
+
+/* the search lives in the top bar from 960 px, as the dashboard's */
+@media (min-width: 960px) { .ms-toolbar { display: none; } }
+.a-acct__btn { color: var(--ink); text-decoration: none; }

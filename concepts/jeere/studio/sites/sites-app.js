@@ -1,7 +1,12 @@
 /* Jeere Studio › Mes sites — the founder's own websites, opened, edited visually and published.
  *
- *   Home      a grid of every site of kreeative/kreeative- (sites.json, built from git by
- *             build-manifest.mjs): thumbnail, title, live link, last change, unpublished edits.
+ *   Home      « Tous mes sites » (../mes-sites/, in the dashboard's look): every site of
+ *             kreeative/kreeative- (sites.json, built from git by build-manifest.mjs) and her Jeere
+ *             boutiques. This page is the editor only: #/ goes back there.
+ *   Chrome    the boutique editor's own (../studio-shell.css): the rail and its logo menu, the top bar
+ *             (Studio + pill, site › page, Aperçus, status, undo / redo, Aperçu, Partager, Publier, ?),
+ *             the panels (Pages / Calques on the left, Réglages / Design / Code on the right), the
+ *             dotted canvas, the floating tool bar. Same keys: V H T I, Espace, P, Ctrl \, Ctrl Alt [ ].
  *   Editor    each page in artboard iframes (390 / 768 / 1440), same-origin with the static server
  *             (or srcdoc + <base> for a page that has unpublished edits, a new page, or a site that
  *             lives only on another branch). Click to select, breadcrumb, structure tree, inline
@@ -62,7 +67,7 @@
 
   function toast(msg, tone, action) {
     var box = $('skToasts');
-    var t = ce('div', 'sk-toast');
+    var t = ce('div', 'st-toast');
     t.setAttribute('data-tone', tone || 'info');
     t.appendChild(ce('span', null, esc(msg)));
     if (action) { var b = ce('button', null, esc(action.label)); b.type = 'button'; b.addEventListener('click', function () { action.run(); t.remove(); }); t.appendChild(b); }
@@ -76,7 +81,8 @@
     clearTimeout(tipTimer);
     if (!el || e.pointerType === 'touch') { tip.hidden = true; return; }
     tipTimer = setTimeout(function () {
-      tip.innerHTML = esc(el.getAttribute('data-tip')) + (el.getAttribute('data-kbd') ? '<kbd>' + esc(el.getAttribute('data-kbd')) + '</kbd>' : '');
+      tip.innerHTML = '<span class="st-tip__main"><span>' + esc(el.getAttribute('data-tip')) + '</span>' + (el.getAttribute('data-kbd') ? '<kbd>' + esc(el.getAttribute('data-kbd')) + '</kbd>' : '') + '</span>' +
+        (el.getAttribute('data-sub') ? '<span class="st-tip__sub">' + esc(el.getAttribute('data-sub')) + '</span>' : '');
       tip.hidden = false;
       var r = el.getBoundingClientRect();
       var w = tip.offsetWidth;
@@ -167,17 +173,23 @@
   var tab = 'content';
   var treeOpen = new Set();  // source keys (start offsets are not stable: tag paths) of expanded rows
   var who = null;            // { email, github } from whoami
-  var WIDTHS = [
+  var WIDTHS = [   // the same five as the boutique editor (Aperçus 360 390 768 1200 1440), the same names
+    { w: 360, h: 780, name: 'Petit téléphone' },
     { w: 390, h: 844, name: 'Téléphone' },
     { w: 768, h: 1024, name: 'Tablette' },
-    { w: 1440, h: 900, name: 'Ordinateur' }
+    { w: 1200, h: 800, name: 'Ordinateur' },
+    { w: 1440, h: 900, name: 'Grand écran' }
   ];
   var shown = (function () {
-    try { var v = JSON.parse(localStorage.getItem('jeere-sites-widths')); if (Array.isArray(v) && v.length) return v; } catch (e) { /* default */ }
+    try { var v = JSON.parse(localStorage.getItem('jeere-sites-widths')); if (Array.isArray(v)) { v = v.filter(function (w) { return WIDTHS.some(function (x) { return x.w === w; }); }); if (v.length) return v; } } catch (e) { /* default */ }
     return [390, 1440];
   })();
 
-  function setView(v) { $('sk').setAttribute('data-view', v); $('skHome').hidden = v !== 'home'; $('skEditor').hidden = v !== 'edit'; $('skGate').hidden = v !== 'gate'; }
+  function setView(v) { $('sk').setAttribute('data-view', v); $('skEditor').hidden = v !== 'edit'; $('skGate').hidden = v !== 'gate'; }
+  // « Tous mes sites »: the projects home, in the dashboard's look (the demo flag goes along)
+  var HOME = '../mes-sites/' + (DEMO ? '?demo=1' : '');
+  if ($('skAllSites')) $('skAllSites').href = HOME;
+  doc.querySelectorAll('a[href="../mes-sites/"]').forEach(function (a) { a.href = HOME; });
 
   /* ================================================================ access */
 
@@ -214,7 +226,7 @@
     return sessionToken().then(function (tok) {
       if (!tok) {
         gate('Mes sites', 'Connectez-vous avec votre compte Jeere (celui de la fondatrice) pour ouvrir vos sites.', [
-          link('sk-primary', '../../compte/?suite=studio#connexion', 'Me connecter'), link('sk-ghost', '../', 'Retour au Studio')
+          link('st-primary', '../../compte/?suite=studio#connexion', 'Me connecter'), link('st-ghostbtn', '../', 'Retour au Studio')
         ]);
         return false;
       }
@@ -225,10 +237,10 @@
           return true;
         }
         try { sessionStorage.setItem('jeere-sites-editor', '0'); } catch (e) { /* ok */ }
-        gate('Accès réservé', '« Mes sites » est l’espace de la fondatrice de Jeere pour ses propres sites web. Il n’est pas ouvert sur ce compte.', [link('sk-primary', '../', 'Retour au Studio')]);
+        gate('Accès réservé', '« Mes sites » est l’espace de la fondatrice de Jeere pour ses propres sites web. Il n’est pas ouvert sur ce compte.', [link('st-primary', '../', 'Retour au Studio')]);
         return false;
       }, function () {
-        gate('Connexion impossible', 'Le serveur de Jeere ne répond pas : vérifiez la connexion, puis réessayez.', [link('sk-primary', location.href, 'Réessayer')]);
+        gate('Connexion impossible', 'Le serveur de Jeere ne répond pas : vérifiez la connexion, puis réessayez.', [link('st-primary', location.href, 'Réessayer')]);
         return false;
       });
     });
@@ -245,8 +257,7 @@
       M.flat = M.sites;
       M.sites = groupSites(M.sites);
       if (!res[1]) return;
-      $('skWho').hidden = false;
-      $('skWho').textContent = DEMO ? 'Mode démo' : who.email;
+      $('skWho').textContent = DEMO ? 'Mode démo' : who.email;   // shown in « Partager »
       route();
       window.addEventListener('hashchange', route);
     }, function () {
@@ -267,7 +278,9 @@
         return;
       }
     }
-    showHome();
+    // no site named: « Tous mes sites », the home in the dashboard's look
+    leaveEditor();
+    location.replace(HOME);
   }
 
   /* ================================================================ groups: one site, all its pages
@@ -307,79 +320,19 @@
   function pageSrc(p) { return (p && p.src) || site; }   // the branch a page lives on (a group can span two)
   function ownerOf(path) { var p = pageByPath(path); return (p && p.owner) || (site && site.id); }
 
-  /* ================================================================ home */
-
-  var filter = 'all', query = '';
-  var pendingBySite = new Map();
-  function showHome() {
-    leaveEditor();
-    setView('home');
-    $('skCrumbs').innerHTML = '<span>Mes sites</span>';
-    DB.all().then(function (recs) {
-      pendingBySite = new Map();
-      recs.forEach(function (r) {
-        if (r.kind !== 'page') return;
-        var g = M.sites.find(function (x) { return x.id === r.siteId || (x.members && x.members.indexOf(r.siteId) >= 0); });
-        var id = g ? g.id : r.siteId;
-        pendingBySite.set(id, (pendingBySite.get(id) || 0) + 1);
-      });
-      renderGrid();
-    });
-    renderGrid();
-  }
-  function siteMatches(s) {
-    if (filter !== 'all' && s.kind !== filter && !(filter === 'client' && s.kind === 'personal')) return false;
-    if (!query) return true;
-    var q = query.toLowerCase();
-    var hay = s.title + ' ' + s.path + ' ' + s.kindLabel + ' ' + s.pages.map(function (p) { return (p.sub || '') + ' ' + p.title; }).join(' ');
-    return hay.toLowerCase().indexOf(q) >= 0;
-  }
+  /* the address of a page online (kreeative.xyz, or the preview of its branch) */
   function pageLiveUrl(s, p) {
     var u = p.path.replace(/(^|\/)index\.html$/, '$1'), b = (p && p.src) || s;
     if (b.branch === M.defaultBranch && !b.onlyOnBranch) return 'https://' + CFG.liveOrigin + '/' + u;
     return b.previewBase ? b.previewBase + u : null;
   }
-  function renderGrid() {
-    if (!M) return;
-    var g = $('skGrid');
-    g.innerHTML = '';
-    var list = M.sites.filter(siteMatches);
-    list.forEach(function (s) {
-      var card = ce('div', 'sk-card');
-      card.setAttribute('role', 'listitem');
-      card.tabIndex = 0;
-      card.setAttribute('data-site', s.id);
-      card.setAttribute('aria-label', 'Ouvrir ' + s.title);
-      var pend = pendingBySite.get(s.id) || 0;
-      var badges = '';
-      if (pend) badges += '<span class="sk-badge sk-badge--warn">' + plural(pend, 'page modifiée', 'pages modifiées') + '</span>';
-      if (s.onlyOnBranch) badges += '<span class="sk-badge sk-badge--info" title="' + esc(branchLabel(s.branch)) + '">Version de travail · ' + esc(branchLabel(s.branch)) + '</span>';
-      card.innerHTML =
-        '<div class="sk-card__shot"><img loading="lazy" alt="" src="' + esc(s.thumbnail) + '" onerror="var p=this.parentNode;this.remove();p.classList.add(\'sk-card__shot--none\');p.insertAdjacentText(\'afterbegin\',\'Pas encore d’aperçu\')">' +
-        '<div class="sk-card__badges">' + badges + '</div></div>' +
-        '<div class="sk-card__body">' +
-        '<div class="sk-card__title">' + esc(s.title) + '</div>' +
-        '<div class="sk-card__meta"><span>' + esc(s.kindLabel) + '</span><span>' + plural(s.pages.length, 'page', 'pages') + '</span>' +
-        (s.subsites ? '<span>dont ' + plural(s.subsites, 'projet client', 'projets clients, concepts et études de cas') + '</span>' : '') +
-        (s.updated && s.updated.date ? '<span>Modifié le ' + esc(fmtDate(s.updated.date)) + '</span>' : '') + '</div>' +
-        '<div class="sk-card__links">' +
-        (s.liveUrl ? '<a href="' + esc(s.liveUrl) + '" target="_blank" rel="noopener" data-live>Voir en ligne ↗</a>' : '<span class="sk-note">Pas encore en ligne</span>') +
-        (s.externalUrl && s.externalUrl !== s.liveUrl ? '<a href="' + esc(s.externalUrl) + '" target="_blank" rel="noopener" title="Le site déployé à part (son propre projet)">Site du client ↗</a>' : '') +
-        '</div></div>';
-      card.addEventListener('click', function (e) { if (e.target.closest('a')) return; location.hash = '#/site/' + s.id; });
-      card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.hash = '#/site/' + s.id; } });
-      g.appendChild(card);
-    });
-    $('skHomeFoot').textContent = plural(list.length, 'site', 'sites') + (list.length !== M.sites.length ? ' sur ' + M.sites.length : '') + ' · liste du ' + fmtDate(M.generated) + '';
+  // E-commerce or not (sites.json « commerce », from the pages: Jeere Connect): the pill of the top bar
+  // says it for the page that is open (a page of the Kreeative group belongs to one of its sites)
+  function commerceOf(p) {
+    var id = (p && p.owner) || (site && site.id);
+    var x = M && (M.flat || M.sites).find(function (y) { return y.id === id; });
+    return !!(x ? x.commerce : site && site.commerce);
   }
-  if ($('skFilter')) $('skFilter').addEventListener('click', function (e) {
-    var b = e.target.closest('button[data-f]');
-    if (!b) return;
-    filter = b.getAttribute('data-f');
-    this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
-    renderGrid();
-  });
-  $('skSearch').addEventListener('input', function () { query = this.value.trim(); renderGrid(); });
 
   /* ================================================================ opening a site and its pages */
 
@@ -463,9 +416,7 @@
   function renderCrumbs() {
     var c = $('skCrumbs');
     c.innerHTML = '';
-    var h = ce('a', 'sk-crumbs__home', 'Mes sites'); h.href = '#/'; c.appendChild(h);
-    c.appendChild(ce('i', null, '›'));
-    var s = ce('span', null, esc(site.title)); c.appendChild(s);
+    var s = ce('span', 'sk-crumbs__site', esc(site.title)); s.title = site.title; c.appendChild(s);
     if (cur && cur.page) {
       c.appendChild(ce('i', null, '›'));
       var pk = ce('button', 'sk-pagepick');
@@ -476,14 +427,21 @@
       pk.addEventListener('click', function (e) { e.stopPropagation(); togglePageMenu(pk); });
       c.appendChild(pk);
     }
-    var live = $('skRailLive');
-    if (live) { var u = cur && cur.page ? pageLiveUrl(site, cur.page) : site.liveUrl; live.href = u || '#'; live.setAttribute('data-tip', u ? 'Voir cette page en ligne' : 'Pas encore en ligne'); live.classList.toggle('is-off', !u); }
-    // the head of the left panel: back to all the sites, this site and its address
+    // the pill after « Studio »: a shop or a plain website (the boutique editor shows its plan there)
+    var com = commerceOf(cur && cur.page), kind = $('skKind');
+    if (kind) {
+      kind.setAttribute('data-kind', com ? 'shop' : 'site');
+      $('skKindLabel').textContent = com ? 'Boutique en ligne' : 'Site web';
+      kind.setAttribute('data-tip', com ? 'Boutique en ligne' : 'Site web');
+      kind.setAttribute('data-sub', com ? 'Ce site vend en ligne (Jeere Connect)' : 'Un site sur mesure, publié depuis ses fichiers');
+      var ic = kind.querySelector('svg');
+      if (ic && window.PHI) ic.outerHTML = window.PHI(com ? 'shopping-bag' : 'globe', ' class="st-planchip__ico"');
+    }
+    // the head of the left panel: this site and its address
     var head = $('skSiteHead');
     if (head) {
       var live = site.liveUrl || null;
       head.innerHTML =
-        '<a class="sk-sitehead__all" href="#/"><svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"/></g></svg>Tous mes sites</a>' +
         '<div class="sk-sitehead__row"><img class="sk-sitehead__img" alt="" src="' + esc(site.thumbnail) + '" onerror="this.remove()">' +
         '<div class="sk-sitehead__t"><b>' + esc(site.title) + '</b>' +
         (live ? '<a href="' + esc(live) + '" target="_blank" rel="noopener" data-tip="Ouvrir le site en ligne">' + esc(live.replace(/^https?:\/\//, '').replace(/\/$/, '')) + ' ↗</a>' : '<small>Pas encore en ligne</small>') +
@@ -638,7 +596,7 @@
     WIDTHS.filter(function (w) { return shown.indexOf(w.w) >= 0; }).forEach(function (w) {
       var ab = ce('div', 'sk-ab is-loading');
       ab.setAttribute('data-w', w.w);
-      ab.innerHTML = '<div class="sk-ab__label"><b>' + w.name + '</b><span>' + w.w + NB + 'px</span></div>' +
+      ab.innerHTML = '<div class="st-ab__name">' + w.name + ' <span>' + w.w + '</span></div>' +
         '<div class="sk-ab__frame" style="width:' + w.w + 'px;height:' + w.h + 'px"><iframe title="Aperçu ' + w.name + '" width="' + w.w + '" height="' + w.h + '" style="width:' + w.w + 'px;height:' + w.h + 'px"></iframe><div class="sk-ov"><div class="sk-box sk-box--hover" hidden></div><div class="sk-box sk-box--sel" hidden><span class="sk-box__tag"></span></div></div></div>';
       world.appendChild(ab);
       var f = { key: String(w.w), w: w.w, h: w.h, el: ab, iframe: ab.querySelector('iframe'), ov: ab.querySelector('.sk-ov'), hbox: ab.querySelector('.sk-box--hover'), sbox: ab.querySelector('.sk-box--sel'), map: null, ready: false, vh: w.h };
@@ -646,7 +604,7 @@
       f.iframe.addEventListener('load', function () { frameLoaded(f); });
       loadFrame(f);
     });
-    $('skWidths').querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(shown.indexOf(+b.getAttribute('data-w')) >= 0)); });
+    $('skWidths').querySelectorAll('button').forEach(function (b) { var on = shown.indexOf(+b.getAttribute('data-w')) >= 0; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('is-on', on); });
     layout();
   }
   function withBase(text, base, extra) {
@@ -759,7 +717,7 @@
     var cs = getComputedStyle(world), padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
     var gap = parseFloat(cs.columnGap) || 48;
     var ww = padX + frames.reduce(function (n, f) { return n + f.w; }, 0) + gap * (frames.length - 1);
-    var wh = padY + 24 + Math.max.apply(null, frames.map(function (f) { return f.h; }));
+    var wh = padY + Math.max.apply(null, frames.map(function (f) { return f.h; }));
     var z = zoom;
     if (z == null) z = clamp((stage.clientWidth - 16) / ww, 0.1, 1);   // fit the width: a long page scrolls on the canvas
     world.style.transform = 'scale(' + z + ')';
@@ -768,7 +726,6 @@
     sizer.style.height = Math.ceil(wh * z) + 'px';
     world._z = z;
     $('skZoom').textContent = Math.round(z * 100) + NB + '%';
-    if ($('skZoom2')) $('skZoom2').textContent = $('skZoom').textContent;
     paintBoxes();
   }
   window.addEventListener('resize', function () { if (cur) layout(); });
@@ -849,6 +806,11 @@
 
   function counterpart(f, src) { return f.map && src ? f.map.s2l.get(src) || null : null; }
   function srcOf(s) { s = s || sel; return s && s.frame && s.frame.map ? s.frame.map.l2s.get(s.el) || null : null; }
+  // what the selection is, in words (the head of the right panel)
+  var KIND_NAME = { h1: 'Titre', h2: 'Titre', h3: 'Titre', h4: 'Titre', h5: 'Titre', h6: 'Titre', p: 'Texte', span: 'Texte', strong: 'Texte', em: 'Texte', a: 'Lien', button: 'Bouton',
+    img: 'Image', picture: 'Image', svg: 'Dessin', video: 'Vidéo', section: 'Section', header: 'En-tête', footer: 'Pied de page', nav: 'Menu', ul: 'Liste', ol: 'Liste', li: 'Élément de liste',
+    form: 'Formulaire', input: 'Champ', textarea: 'Champ', label: 'Libellé', main: 'Contenu', article: 'Article', aside: 'Encadré', figure: 'Figure', body: 'Page' };
+  function kindName(tag) { return KIND_NAME[tag] || 'Bloc'; }
   function describe(el) {
     if (!el) return '';
     var n = String(el.localName);
@@ -900,7 +862,7 @@
         if (c && o.win) { try { var r = c.getBoundingClientRect(); if (r.top < 0 || r.bottom > o.h) c.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch (e) { /* ok */ } }
       });
       if (!keepTab && tab === 'code') { /* keep */ }
-      if (innerWidth < 900) $('sk').classList.add('is-right-open');
+      if (innerWidth < 900) { $('sk').classList.add('is-right-open'); syncPanels(); }
     }
     paintBoxes();
     refreshPanel(true);
@@ -1526,20 +1488,27 @@
 
   function setTab(t) {
     tab = t;
-    doc.querySelectorAll('.sk-tabs button').forEach(function (b) { var on = b.getAttribute('data-tab') === t; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', String(on)); });
+    doc.querySelectorAll('#skTabs button').forEach(function (b) { var on = b.getAttribute('data-tab') === t; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', String(on)); });
     refreshPanel(true);
   }
-  doc.querySelector('.sk-tabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-tab]'); if (b) setTab(b.getAttribute('data-tab')); });
+  $('skTabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-tab]'); if (b) setTab(b.getAttribute('data-tab')); });
 
   function renderPath() {
     var box = $('skPath');
     box.innerHTML = '';
     var src = srcOf();
     if (!cur) return;
+    // the head, like the boutique editor's « Boutique · rien n'est sélectionné »
+    var ti = $('skInspTitle'), su = $('skInspSub');
     if (!sel || !src) {
-      box.appendChild(ce('span', 'sk-path__page', esc(shortTitle(cur.page && cur.page.title) || cur.path)));
+      if (ti) ti.textContent = 'Page';
+      if (su) su.textContent = 'rien n’est sélectionné';
+      box.hidden = true;
       return;
     }
+    box.hidden = false;
+    if (ti) ti.textContent = kindName(src.tag);
+    if (su) su.textContent = describe(sel.el);
     var chain = [];
     for (var n = src; n && n.type === 'el' && n.tag !== 'html'; n = n.parent) chain.unshift(n);
     var text = cur.text;
@@ -2037,7 +2006,8 @@
     if (mod && k === 'd') { e.preventDefault(); opDuplicate(); return; }
     if (mod && e.shiftKey && k === 'h') { e.preventDefault(); opHide(); return; }
     if (mod) return;
-    if (k === 'escape') { e.preventDefault(); if (sel) selectParent(); return; }
+    if (k === 'escape') { e.preventDefault(); if (mode === 'nav') setMode('edit'); else if (sel) selectParent(); return; }
+    if (e.key === '?') { e.preventDefault(); openHelp(); return; }
     if ((k === 'delete' || k === 'backspace') && sel) { e.preventDefault(); opDelete(); return; }
     if (k === 'enter' && sel) { e.preventDefault(); startEdit(sel.el, sel.frame); return; }
     if (k === 'v') { setMode('edit'); return; }
@@ -2049,16 +2019,23 @@
   }
   var spaceHand = null;
   doc.addEventListener('keyup', function (e) { if (e.key === ' ' && spaceHand) { var back = spaceHand; spaceHand = null; setMode(back); } });
-  // Ctrl/⌘ + \ : fold or unfold both side panels at once (Figma's « show / hide UI »)
+  // Ctrl/⌘ + \ : the rail and both panels go, the canvas takes the window (the boutique editor's
+  // « show / hide UI », same body class, same words); Ctrl Alt [ / ] fold one side
   doc.addEventListener('keydown', function (e) {
-    if (!(e.ctrlKey || e.metaKey) || e.key !== '\\' || $('sk').getAttribute('data-view') !== 'edit') return;
-    e.preventDefault();
-    var skEl = $('sk'), hide = !(skEl.classList.contains('is-left-hidden') && skEl.classList.contains('is-right-hidden'));
-    skEl.classList.toggle('is-left-hidden', hide); skEl.classList.toggle('is-right-hidden', hide);
-    doc.querySelectorAll('.sk-rail__btn[data-rail]').forEach(function (b, i) { b.setAttribute('aria-pressed', String(!hide && i === 0)); });
-    if ($('skRightBtn')) $('skRightBtn').setAttribute('aria-expanded', String(!hide));
-    if (cur) layout();
-    toast(hide ? 'Panneaux masqués · Ctrl \\ pour les rouvrir' : 'Panneaux affichés', 'info');
+    if (!(e.ctrlKey || e.metaKey) || $('sk').getAttribute('data-view') !== 'edit') return;
+    if (e.key === '\\' && !e.altKey) {
+      e.preventDefault();
+      var on = !doc.body.classList.contains('st-chrome-off');
+      doc.body.classList.toggle('st-chrome-off', on);
+      if (cur) layout();
+      toast(on ? 'Panneaux masqués — Ctrl \\ pour les rétablir.' : 'Panneaux affichés.', 'info');
+      return;
+    }
+    if (e.altKey && !e.shiftKey && (e.code === 'BracketLeft' || e.code === 'BracketRight')) {
+      e.preventDefault();
+      var side = e.code === 'BracketLeft' ? 'left' : 'right';
+      setPanel(side, !panelOff(side));
+    }
   });
   // Texte / Image in the toolbar act on the selection
   function toolText() {
@@ -2095,72 +2072,163 @@
     $('sk').classList.toggle('is-hand', m === 'hand');
     if (m === 'nav') { hover = null; }
     paintBoxes();
-    if (m === 'nav') toast('Mode Naviguer : le site réagit comme en ligne. V pour revenir à Modifier.', 'info');
+    if (m === 'nav') toast('Aperçu : le site réagit comme en ligne (menus, liens). V ou Échap pour revenir.', 'info');
   }
   $('skModeEdit').addEventListener('click', function () { setMode('edit'); });
   if ($('skModeHand')) $('skModeHand').addEventListener('click', function () { setMode('hand'); });
   if ($('skToolText')) $('skToolText').addEventListener('click', toolText);
   if ($('skToolImage')) $('skToolImage').addEventListener('click', toolImage);
-  doc.querySelectorAll('[data-zoomproxy]').forEach(function (b) { b.addEventListener('click', function () { var t = doc.querySelector('.sk-zoom [data-zoom="' + b.getAttribute('data-zoomproxy') + '"]'); if (t) t.click(); }); });
-  $('skModeNav').addEventListener('click', function () { setMode('nav'); });
+  // « Aperçu » (top bar, P): the page reacts as online; a second click, V or Échap come back
+  $('skModeNav').addEventListener('click', function () { setMode(mode === 'nav' ? 'edit' : 'nav'); });
   $('skUndo').addEventListener('click', undo);
   $('skRedo').addEventListener('click', redo);
-  /* ---------------------------------------------------------------- the rail */
+  /* ---------------------------------------------------------------- the rail and the panels
+     The boutique editor's way: the rail switches the left panel (Pages / Calques) and a click on the
+     current one folds it; each panel folds from the button of its head and comes back from the button
+     on the canvas' edge (body.st-left-off / st-right-off, the shell's classes). Narrower than 1200 px
+     (900 px for the right one) a panel is a drawer over the canvas instead (.sk.is-left-open …). */
+  var LEFT = { pages: ['skPanePages', 'Pages'], layers: ['skPaneLayers', 'Calques'] };
+  var leftTab = 'pages';
+  function dockL() { return innerWidth >= 1200; }
+  function dockR() { return innerWidth >= 900; }
+  function panelOff(side) {
+    if (side === 'left') return dockL() ? doc.body.classList.contains('st-left-off') : !$('sk').classList.contains('is-left-open');
+    return dockR() ? doc.body.classList.contains('st-right-off') : !$('sk').classList.contains('is-right-open');
+  }
+  function setPanel(side, off) {
+    if (side === 'left' ? dockL() : dockR()) doc.body.classList.toggle('st-' + side + '-off', off);
+    else $('sk').classList.toggle('is-' + side + '-open', !off);
+    syncPanels();
+    if (cur) setTimeout(layout, 220);
+  }
+  function syncPanels() {
+    var lo = panelOff('left'), ro = panelOff('right');
+    $('skLeftToggle').setAttribute('aria-expanded', String(!lo));
+    $('skRightBtn').setAttribute('aria-expanded', String(!ro));
+    $('skLeftReopen').hidden = !lo || !dockL();
+    $('skRightReopen').hidden = !ro;
+    doc.querySelectorAll('.st-rail__btn[data-rail]').forEach(function (b) {
+      var on = b.getAttribute('data-rail') === leftTab;
+      b.classList.toggle('is-on', on && !lo);
+      b.setAttribute('aria-selected', String(on));
+      if (on) b.setAttribute('aria-expanded', String(!lo)); else b.removeAttribute('aria-expanded');
+    });
+  }
+  function showLeft(which) {
+    leftTab = which;
+    $('sk').setAttribute('data-left', which);
+    Object.keys(LEFT).forEach(function (k) { $(LEFT[k][0]).hidden = k !== which; });
+    $('skLeftTitle').textContent = LEFT[which][1];
+  }
   function railShow(which) {
-    var wide = innerWidth >= 1200, skEl = $('sk');
-    var btns = doc.querySelectorAll('.sk-rail__btn[data-rail]');
-    var on = doc.querySelector('.sk-rail__btn[data-rail="' + which + '"]');
-    var open = wide ? !skEl.classList.contains('is-left-hidden') : skEl.classList.contains('is-left-open');
-    // clicking the active one folds the panel (like Figma); another one opens it on its part
-    var fold = open && on.getAttribute('aria-pressed') === 'true';
-    btns.forEach(function (b) { b.setAttribute('aria-pressed', String(!fold && b === on)); });
-    if (wide) skEl.classList.toggle('is-left-hidden', fold); else skEl.classList.toggle('is-left-open', !fold);
-    if (!wide) $('skPagesBtn').setAttribute('aria-expanded', String(!fold));
-    if (fold) { if (cur) layout(); return; }
-    if (cur) layout();
-    if (which === 'layers') { var t = $('skTree'); if (t) { t.scrollIntoView({ block: 'nearest' }); var r = t.querySelector('[role="treeitem"]'); if (r) r.focus(); } }
+    // a click on the current tab folds the panel (like Figma); another one opens it on its part
+    if (!panelOff('left') && which === leftTab) { setPanel('left', true); return; }
+    showLeft(which);
+    if (panelOff('left')) setPanel('left', false); else syncPanels();
+    if (which === 'layers') { var t = $('skTree'); if (t) { var r = t.querySelector('[aria-selected="true"]') || t.querySelector('[role="treeitem"]'); if (r) { r.scrollIntoView({ block: 'nearest' }); r.focus(); } } }
     else { var f = $('skPageFind'); if (f) f.focus(); }
   }
-  doc.querySelectorAll('.sk-rail__btn[data-rail]').forEach(function (b) { b.addEventListener('click', function () { railShow(b.getAttribute('data-rail')); }); });
+  doc.querySelectorAll('.st-rail__btn[data-rail]').forEach(function (b) { b.addEventListener('click', function () { railShow(b.getAttribute('data-rail')); }); });
+  $('skLeftToggle').addEventListener('click', function () { setPanel('left', true); });
+  $('skRightBtn').addEventListener('click', function () { setPanel('right', true); });
+  $('skLeftReopen').addEventListener('click', function () { setPanel('left', false); });
+  $('skRightReopen').addEventListener('click', function () { setPanel('right', false); });
+  var wasDock = [dockL(), dockR()];
+  window.addEventListener('resize', function () { if (dockL() !== wasDock[0] || dockR() !== wasDock[1]) { wasDock = [dockL(), dockR()]; syncPanels(); } });
+  function closeDrawers() { var k = $('sk'); if (!dockL() && k.classList.contains('is-left-open')) { k.classList.remove('is-left-open'); syncPanels(); } }
+  showLeft('pages');
+  syncPanels();
+  $('skStage').addEventListener('pointerdown', function (e) { if (e.target === $('skScroll') || e.target === $('skSizer') || e.target === $('skWorld')) { endEdit(false); select(null); } closeDrawers(); });
+  // a finger: the shell's touch sizes (html.st-touch, as in the boutique editor)
+  try { if (matchMedia('(pointer: coarse)').matches) doc.documentElement.classList.add('st-touch'); } catch (e) { /* old browser */ }
+  doc.addEventListener('touchstart', function () { doc.documentElement.classList.add('st-touch'); }, { once: true, passive: true });
+
+  /* ---------------------------------------------------------------- the theme (one choice for both editors) */
   function drawTheme() {
     var dark = doc.documentElement.getAttribute('data-theme') === 'dark', b = $('skTheme');
     if (!b) return;
-    b.querySelector('use').setAttribute('href', dark ? '#ic-sun' : '#ic-moon');
-    b.setAttribute('aria-label', dark ? 'Thème clair' : 'Thème sombre');
-    b.setAttribute('data-tip', dark ? 'Passer en thème clair' : 'Passer en thème sombre');
+    b.setAttribute('aria-pressed', String(dark));
+    b.setAttribute('data-tip', dark ? 'Thème clair' : 'Thème sombre');
   }
   if ($('skTheme')) $('skTheme').addEventListener('click', function () {
-    var dark = doc.documentElement.getAttribute('data-theme') !== 'dark';
-    if (dark) doc.documentElement.setAttribute('data-theme', 'dark'); else doc.documentElement.removeAttribute('data-theme');
-    try { localStorage.setItem('jeere-studio-theme', dark ? 'dark' : 'light'); } catch (e) { /* ok */ }
+    var T = window.JeereStudioTheme;
+    var t = T ? T.toggle() : 'light';
     drawTheme();
+    toast(t === 'dark' ? 'Thème sombre.' : 'Thème clair.', 'info');
   });
   drawTheme();
+
+  /* ---------------------------------------------------------------- the logo menu: Tous mes sites, Tableau de bord, Mon compte */
   (function () {
     var btn = $('skLogo'), menu = $('skLogoMenu');
     if (!btn || !menu) return;
-    function close() { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); doc.removeEventListener('pointerdown', out, true); }
-    function out(e) { if (!menu.contains(e.target) && !btn.contains(e.target)) close(); }
-    btn.addEventListener('click', function () {
-      if (!menu.hidden) { close(); return; }
+    function items() { return Array.prototype.slice.call(menu.querySelectorAll('[role="menuitem"]')); }
+    function close(refocus) { if (menu.hidden) return; menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); doc.removeEventListener('pointerdown', out, true); if (refocus) btn.focus(); }
+    function open(last) {
       menu.hidden = false; btn.setAttribute('aria-expanded', 'true');
-      var first = menu.querySelector('a'); if (first) first.focus();
+      var l = items(), f = last ? l[l.length - 1] : l[0]; if (f) f.focus();
       doc.addEventListener('pointerdown', out, true);
+    }
+    function out(e) { if (!menu.contains(e.target) && !btn.contains(e.target)) close(false); }
+    btn.addEventListener('click', function () { if (menu.hidden) open(false); else close(true); });
+    btn.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); open(false); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); open(true); }
     });
-    menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(false); });
     menu.addEventListener('keydown', function (e) {
-      var items = Array.prototype.slice.call(menu.querySelectorAll('a')), k = items.indexOf(doc.activeElement);
-      if (e.key === 'Escape') { close(); btn.focus(); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); items[(k + 1) % items.length].focus(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(k - 1 + items.length) % items.length].focus(); }
+      var l = items(), k = l.indexOf(doc.activeElement);
+      if (e.key === 'Tab') { close(false); return; }
+      e.stopPropagation();
+      if (e.key === 'Escape') { e.preventDefault(); close(true); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); l[(k + 1) % l.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); l[(k - 1 + l.length) % l.length].focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); l[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); l[l.length - 1].focus(); }
+      else if (e.key === ' ') { e.preventDefault(); doc.activeElement.click(); }
     });
   })();
 
-  $('skPagesBtn').addEventListener('click', function () { var o = $('sk').classList.toggle('is-left-open'); this.setAttribute('aria-expanded', String(o)); });
-  $('skRightBtn') && innerWidth >= 900 && $('skRightBtn').addEventListener('click', function (e) { e.stopImmediatePropagation(); var h = $('sk').classList.toggle('is-right-hidden'); this.setAttribute('aria-expanded', String(!h)); if (cur) layout(); }, true);
-  $('skRightBtn') && $('skRightBtn').addEventListener('click', function () { if (innerWidth >= 900) return; var o = $('sk').classList.toggle('is-right-open'); this.setAttribute('aria-expanded', String(o)); });
-  function closeDrawers() { $('sk').classList.remove('is-left-open'); $('skPagesBtn').setAttribute('aria-expanded', 'false'); }
-  $('skStage').addEventListener('pointerdown', function (e) { if (e.target === $('skScroll') || e.target === $('skSizer') || e.target === $('skWorld')) { endEdit(false); select(null); } closeDrawers(); });
+  /* ---------------------------------------------------------------- « Partager »: the page and the site online */
+  function openShare() {
+    if (!site) return;
+    var page = cur && cur.page, pu = page ? pageLiveUrl(site, page) : null, su = site.liveUrl || null;
+    var box = ce('div', 'sk-share');
+    function row(label, url, hint) {
+      return '<div class="sk-share__row"><span class="sk-share__l">' + esc(label) + '</span>' +
+        (url ? '<div class="sk-share__addr"><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url.replace(/^https?:\/\//, '').replace(/\/$/, '')) + ' ↗</a>' +
+          '<button type="button" class="st-ghostbtn" data-copy="' + esc(url) + '">Copier le lien</button></div>' : '<p class="sk-note">' + esc(hint) + '</p>') + '</div>';
+    }
+    box.innerHTML = row('Cette page en ligne', pu, 'Cette page n’est pas encore en ligne : publiez-la pour avoir son lien.') +
+      (su && su !== pu ? row('Le site', su, '') : '') +
+      (site.externalUrl && site.externalUrl !== su ? row('Le site du client (déployé à part)', site.externalUrl, '') : '') +
+      '<p class="sk-note">' + (dirtyCount() ? plural(dirtyCount(), 'fichier modifié', 'fichiers modifiés') + ' sur cet appareil : ils partent en ligne avec « Publier ».' : 'Tout ce que vous voyez ici est en ligne.') +
+      (who && who.email ? ' · ' + esc(DEMO ? 'Mode démo' : who.email) : '') + '</p>' +
+      '<div class="sk-actions"><button type="button" class="st-ghostbtn" data-close>Fermer</button><button type="button" class="st-primary" data-pub>Publier…</button></div>';
+    box.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-copy]');
+      if (c) { var u = c.getAttribute('data-copy'); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { toast('Lien copié.', 'ok'); }, function () { toast(u, 'info'); }); }
+      if (e.target.closest('[data-pub]')) { closeModal(); openPublish(); }
+    });
+    openModal('Partager', box, { width: '480px' });
+  }
+  $('skShare').addEventListener('click', openShare);
+
+  /* ---------------------------------------------------------------- « ? »: the keys (the same as the boutique editor's where both apply) */
+  function openHelp() {
+    var G = [
+      ['Outils', [['V', 'Déplacer : choisir un élément'], ['H', 'Main : déplacer la vue'], ['Espace', 'Main, le temps de glisser'], ['T', 'Texte : réécrire le texte choisi'], ['I', 'Image : changer la photo choisie'], ['P', 'Aperçu : le site réagit comme en ligne']]],
+      ['Sélection', [['Entrée', 'Modifier le texte'], ['Échap', 'Choisir le parent'], ['Ctrl D', 'Dupliquer'], ['Ctrl ⇧ H', 'Masquer / afficher'], ['Suppr', 'Supprimer']]],
+      ['Affichage', [['Ctrl \\', 'Masquer / afficher les panneaux'], ['Ctrl Alt [', 'Replier le panneau de gauche'], ['Ctrl Alt ]', 'Replier le panneau de droite'], ['+ / −', 'Zoom (le pourcentage : ajuster)']]],
+      ['Fichiers', [['Ctrl Z', 'Annuler'], ['Ctrl ⇧ Z', 'Rétablir'], ['Ctrl S', 'Les fichiers modifiés'], ['?', 'Cette aide']]]
+    ];
+    var box = ce('div', 'sk-help');
+    box.innerHTML = '<p class="sk-note">Sur Mac, Ctrl se lit ⌘ Cmd. Les mêmes touches que dans l’éditeur des boutiques.</p>' + G.map(function (g) {
+      return '<div class="sk-help__g"><h3>' + esc(g[0]) + '</h3>' + g[1].map(function (r) { return '<div class="sk-help__r"><span>' + esc(r[1]) + '</span><kbd>' + esc(r[0]) + '</kbd></div>'; }).join('') + '</div>';
+    }).join('');
+    openModal('Raccourcis clavier', box, { width: '620px' });
+  }
+  $('skHelp').addEventListener('click', openHelp);
 
   /* ================================================================ changes: what « Enregistrer » and « Publier » send */
 
