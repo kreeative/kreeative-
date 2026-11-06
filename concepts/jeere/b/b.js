@@ -26,6 +26,8 @@
  * Ordering: the store's checkout has no real payment yet, so « Payer » / « Confirmer la commande »
  * prepares the order as a WhatsApp message to the shop (its number from the fiche) and says so; the
  * preview's demo confirmation (« Commande n° 1042 ») is never shown to a real customer.
+ * A seller's own site (Jeere Connect, ../connect/jeere-connect.js) sends its cart as …/panier?panier=p1:2,p3:1:
+ * the cart is filled with the store's products in it (1 to 20 each) and the parameter leaves the address.
  * Global: window.JeereStorePage (for tests): { state, reload }.
  */
 (function () {
@@ -338,6 +340,27 @@
     }
   }
 
+  // ?panier=p1:2,p3:1 (Jeere Connect: the seller's own site sends her buyer to this cart): the store's own
+  // products only, 1 to 20 each; the parameter then leaves the address, so a reload or a shared link does not
+  // fill the cart again. null without the parameter.
+  function cartFromUrl(cfg) {
+    var m = /[?&]panier=([^&#]*)/.exec(location.search);
+    if (!m) return null;
+    var raw = '';
+    try { raw = decodeURIComponent(m[1].replace(/\+/g, ' ')); } catch (e) { raw = ''; }
+    var ids = Object.create(null), cart = {};
+    (cfg.products || []).forEach(function (p) { if (p && typeof p.id === 'string') ids[p.id] = true; });
+    raw.split(',').forEach(function (kv) {
+      var i = kv.lastIndexOf(':');
+      var id = (i > 0 ? kv.slice(0, i) : kv).trim();
+      var q = i > 0 ? parseInt(kv.slice(i + 1), 10) : 1;
+      if (ids[id] === true && q > 0) cart[id] = Math.min(20, (cart[id] || 0) + q);
+    });
+    var search = location.search.replace(/([?&])panier=[^&#]*&?/, '$1').replace(/[?&]$/, '');
+    try { history.replaceState(history.state, '', location.pathname + search + location.hash); } catch (e) { /* keep it */ }
+    return cart;
+  }
+
   function show(store) {
     var cfg;
     try { cfg = D.normalizeConfig(store.fiche); } catch (e) { cfg = null; }
@@ -346,13 +369,21 @@
     S.config = cfg;
     S.status = 'ready';
     S.device = deviceFor();
+    var fromSite = cartFromUrl(cfg);
     S.view = fromLocation();
+    // On an address with fragments (…/b/?s=<slug>&panier=…) the cart opens too
+    if (fromSite && S.view.page === 'home') {
+      S.view = { page: 'cart', productId: null, pageId: null };
+      try { history.replaceState(null, '', urlFor(S.view)); } catch (e) { /* keep it */ }
+    }
     main.innerHTML = '';
     main.setAttribute('aria-busy', 'false');
     var root = document.createElement('div');
     root.id = 'jb-store';
     main.appendChild(root);
     S.root = root;
+    // The cart the site sent (none of its products here: an empty cart, not render.js's sample line)
+    if (fromSite) { root.__jstCart = fromSite; root.__jstCartCleared = !Object.keys(fromSite).length; }
     root.addEventListener('click', intercept, true);
     root.addEventListener('jst:navigate', function (e) {
       var d = e.detail || {};

@@ -3,6 +3,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="img/leaf-green.webp"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="fonts/fonts.css">
+<script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="joshua-cooker" data-default-cart="p1:1,p2:1" defer></script>
 <style>
 :root{--bg:#fbfaf6;--ink:#0b0b0a;--gr:#0e3b2c;--gr2:#1d6b4c;--gr3:#e4efe8;--mut:rgba(11,11,10,.6);--line:rgba(11,11,10,.1);--cream:#fbfaf6}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -63,7 +64,7 @@ section{padding:120px 0}
 .order h4{font:400 30px Anton;text-transform:uppercase}
 .line{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:14.5px}
 .qty{display:flex;gap:10px;align-items:center;font-weight:600}
-.qty span{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:14px}
+.qty button{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:14px}
 .seg{display:flex;background:#222220;border-radius:999px;padding:4px;margin:16px 0 12px}
 .seg span{flex:1;text-align:center;font-size:13px;padding:8px 0;border-radius:999px;color:rgba(255,255,255,.7)}
 .seg .on{background:#fff;color:#111}
@@ -181,11 +182,25 @@ footer .wrap{display:block}
 .fbot .links{display:flex;gap:26px}
 @media (max-width:600px){.ftop{grid-template-columns:1fr;gap:30px}.ftop h3{font-size:44px}.socs{grid-template-columns:1fr}.soc.wa{grid-column:auto}.fbot{display:block}.fbot .links{flex-wrap:wrap;gap:14px;margin-bottom:16px}}
 html,body{overflow-x:hidden}
+/* Jeere Connect: the real buttons and links look like the mockup's spans */
+html{scroll-behavior:smooth}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+button.btn{font:600 15px Outfit}
+a.btn,nav ul a,.fbot a{color:inherit;text-decoration:none}
+.add{display:block;padding:0}
+.qty b{font-weight:inherit}
+.line.empty{color:rgba(255,255,255,.5)}
+button:focus-visible,a:focus-visible{outline:2px solid #7fd3a8;outline-offset:3px}
+.order .btn[disabled]{opacity:.45;cursor:not-allowed}
+.dish[data-jeere-state="off"] .add{opacity:.35;cursor:not-allowed}
+.dish[data-jeere-state="off"] .pr:after{content:" · Épuisé";font-weight:400;opacity:.7}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style></head><body>
 <nav><div class="wrap">
  <img class="logoimg" src="img/logo-green.webp">
- <ul><li>À propos</li><li>La carte</li><li>Nos lieux</li><li>La tournée</li><li>Collabs</li><li>Booker le chef</li></ul>
- <div class="cart"><span class="btn or">Commander <span class="cnt">2</span></span></div>
+ <ul><li><a href="#about">À propos</a></li><li><a href="#carte">La carte</a></li><li><a href="#lieux">Nos lieux</a></li><li><a href="#tour">La tournée</a></li><li><a href="#collabs">Collabs</a></li><li><a href="#booker">Booker le chef</a></li></ul>
+ <div class="cart"><a class="btn or" href="#commande">Commander <span class="cnt" data-jeere-count>2</span><span class="sr"> plats dans ta commande</span></a></div>
 </div></nav>
 
 <header class="hero" id="hero"><div class="wrap">
@@ -193,7 +208,7 @@ html,body{overflow-x:hidden}
   <div class="k">Chef culinaire professionnel · Abidjan</div>
   <h1 class="disp">Poulet <span>persil</span></h1>
   <p class="lead">Le plat signature de Joshua Cooker. Commandez-le à Abidjan, ou venez le manger sur place dans ses lieux.</p>
-  <div class="ctas"><span class="btn or">Commander maintenant →</span><span class="btn gh">Voir la tournée</span></div>
+  <div class="ctas"><a class="btn or" href="#carte">Commander maintenant →</a><a class="btn gh" href="#tour">Voir la tournée</a></div>
   <div class="stats"><div><b>366K</b><small>abonnés Instagram</small></div><div><b>Abidjan</b><small>ses lieux</small></div></div>
  </div>
  <img loading="lazy" decoding="async" class="leafbg" src="img/leaf-green.webp">
@@ -206,20 +221,24 @@ html,body{overflow-x:hidden}
 <section id="carte"><div class="wrap">
  <div class="sh"><div><div class="k">La carte</div><h2 class="disp">Commande <em>en 2 minutes</em></h2></div><p>Choisis ton plat, ton créneau, et paie avec Wave ou Orange Money. Plus besoin d'écrire sur WhatsApp.</p></div>
  <div class="menu">
-  <div class="dish star"><span class="badge">Signature</span><img loading="lazy" decoding="async" src="img/leaf-cream.webp" style="position:absolute;right:18px;top:16px;width:46px;opacity:.5;z-index:2"><div class="ph"><img loading="lazy" decoding="async" class="pop" src="img/plate6b.webp"></div><div class="bd"><h3>Poulet persil</h3><p>Poulet doré, sauce crémeuse au persil, salade d'oignons, piment.</p><div class="row"><span class="pr">7 000 FCFA</span><span class="add">+</span></div></div></div>
-  <div class="dish"><div class="ph"><img loading="lazy" decoding="async" src="img/plat4-crop.webp" style="object-position:50% 62%"></div><div class="bd"><h3>La formule complète</h3><p>Poulet persil, attiéké, salade d'oignons et piment maison.</p><div class="row"><span class="pr">9 000 FCFA</span><span class="add">+</span></div></div></div>
-  <div class="dish"><div class="ph"><img loading="lazy" decoding="async" src="img/plat3-crop.webp" style="object-position:50% 55%"></div><div class="bd"><h3>Le plateau à partager</h3><p>Le grand plat pour la table, avec attiéké pour 4 personnes.</p><div class="row"><span class="pr">25 000 FCFA</span><span class="add">+</span></div></div></div>
-  <div class="order">
+  <article class="dish star" id="poulet-persil" data-jeere-product="p1"><span class="badge">Signature</span><img loading="lazy" decoding="async" src="img/leaf-cream.webp" alt="" style="position:absolute;right:18px;top:16px;width:46px;opacity:.5;z-index:2"><div class="ph"><img loading="lazy" decoding="async" class="pop" src="img/plate6b.webp" alt="Poulet persil" data-jeere-photo></div><div class="bd"><h3 data-jeere-name>Poulet persil</h3><p data-jeere-desc>Poulet doré, sauce crémeuse au persil, salade d'oignons, piment.</p><div class="row"><span class="pr" data-jeere-price>7 000 FCFA</span><button type="button" class="add" data-jeere-add data-jeere-soldout="+" aria-label="Ajouter un poulet persil">+</button></div></div></article>
+  <article class="dish" id="formule-complete" data-jeere-product="p2"><div class="ph"><img loading="lazy" decoding="async" src="img/plat4-crop.webp" alt="La formule complète" data-jeere-photo style="object-position:50% 62%"></div><div class="bd"><h3 data-jeere-name>La formule complète</h3><p data-jeere-desc>Poulet persil, attiéké, salade d'oignons et piment maison.</p><div class="row"><span class="pr" data-jeere-price>9 000 FCFA</span><button type="button" class="add" data-jeere-add data-jeere-soldout="+" aria-label="Ajouter la formule complète">+</button></div></div></article>
+  <article class="dish" id="plateau-partage" data-jeere-product="p3"><div class="ph"><img loading="lazy" decoding="async" src="img/plat3-crop.webp" alt="Le plateau à partager" data-jeere-photo style="object-position:50% 55%"></div><div class="bd"><h3 data-jeere-name>Le plateau à partager</h3><p data-jeere-desc>Le grand plat pour la table, avec attiéké pour 4 personnes.</p><div class="row"><span class="pr" data-jeere-price>25 000 FCFA</span><button type="button" class="add" data-jeere-add data-jeere-soldout="+" aria-label="Ajouter le plateau à partager">+</button></div></div></article>
+  <div class="order" id="commande">
    <h4>Ta commande</h4>
-   <div class="line"><span>Poulet persil</span><span class="qty"><span>−</span>1<span>+</span></span></div>
-   <div class="line"><span>La formule complète</span><span class="qty"><span>−</span>1<span>+</span></span></div>
+   <div data-jeere-lines>
+    <template data-jeere-line><div class="line"><span data-jeere-name></span><span class="qty"><button type="button" data-jeere-dec aria-label="Un de moins : {name}">−</button><b data-jeere-qty></b><button type="button" data-jeere-inc aria-label="Un de plus : {name}">+</button></span></div></template>
+    <template data-jeere-empty><div class="line empty"><span>Choisis un plat à la carte</span></div></template>
+    <div class="line"><span>Poulet persil</span><span class="qty"><button type="button" data-jeere-dec="p1" aria-label="Un de moins : Poulet persil">−</button><b>1</b><button type="button" data-jeere-inc="p1" aria-label="Un de plus : Poulet persil">+</button></span></div>
+    <div class="line"><span>La formule complète</span><span class="qty"><button type="button" data-jeere-dec="p2" aria-label="Un de moins : La formule complète">−</button><b>1</b><button type="button" data-jeere-inc="p2" aria-label="Un de plus : La formule complète">+</button></span></div>
+   </div>
    <div class="seg"><span class="on">Livraison</span><span>À emporter</span><span>Sur place</span></div>
    <div class="lbl">Créneau · aujourd'hui</div>
    <div class="slots"><span>12h00</span><span class="on">12h30</span><span>13h00</span><span>19h30</span></div>
    <div class="lbl">Paiement</div>
    <div class="pay"><span class="on"><i class="dot" style="background:#1dc4ff"></i>Wave</span><span><i class="dot" style="background:#ff7900"></i>Orange Money</span><span><i class="dot" style="background:#ffcc00"></i>MTN MoMo</span><span><i class="dot" style="background:#111"></i>À la livraison</span></div>
-   <div class="tot"><span>Total</span><span>16 000 FCFA</span></div>
-   <span class="btn or">Payer avec Wave</span>
+   <div class="tot" aria-live="polite"><span>Total</span><span data-jeere-total>16 000 FCFA</span></div>
+   <button type="button" class="btn or" data-jeere-checkout>Payer avec Wave</button>
    <small>Confirmation par SMS et WhatsApp</small>
   </div>
  </div>
@@ -234,7 +253,7 @@ html,body{overflow-x:hidden}
   <p>Sa cuisine se vit ensemble : dans ses lieux à Abidjan, où l'on vient manger entre amis et apparaître dans ses vidéos, et pendant sa tournée, en Afrique de l'Ouest, au Cameroun et en France.</p>
   <p>Influenceurs, artistes et marques passent derrière ses fourneaux. Aujourd'hui, toute sa cuisine est à portée de clic.</p>
   <div class="facts"><div><b>366K</b><small>abonnés Instagram</small></div><div><b>1 400+</b><small>vidéos et posts</small></div><div><b>4 pays</b><small>Côte d'Ivoire, Burkina, Cameroun, France</small></div></div>
-  <div class="asig"><img loading="lazy" decoding="async" src="img/logo-green.webp"><span class="btn or">Booker le chef →</span></div>
+  <div class="asig"><img loading="lazy" decoding="async" src="img/logo-green.webp" alt="Joshua Cooker"><a class="btn or" href="#booker">Booker le chef →</a></div>
  </div>
 </div></div></section>
 
@@ -264,7 +283,7 @@ html,body{overflow-x:hidden}
   <div class="cc"><img loading="lazy" decoding="async" src="img/collab3-crop.webp" style="object-position:50% 45%"><span class="play"></span><span class="nm">Avec Aromate</span></div>
   <div class="cc"><img loading="lazy" decoding="async" src="img/collab4-crop.webp" style="object-position:50% 35%"><span class="play"></span><span class="nm">@nom_cheffe</span></div>
  </div>
- <div class="book">
+ <div class="book" id="booker">
   <div><h3>Booker Joshua Cooker</h3><p>Mariage, anniversaire, pop-up, collab de marque ou vidéo : dis-nous ce que tu prépares.</p></div>
   <div class="form"><span>Nom</span><span>Téléphone / WhatsApp</span><span>Type d'événement</span><span>Ville et date</span><span class="w">Nombre d'invités, budget, détails…</span><span class="btn">Envoyer la demande</span></div>
  </div>

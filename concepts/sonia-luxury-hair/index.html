@@ -28,6 +28,8 @@
   <script>document.documentElement.classList.add('js', 'motion-pending'); setTimeout(function () { document.documentElement.classList.remove('motion-pending'); }, 3000);</script>
   <script src="https://cdn.jsdelivr.net/npm/motion@13.4.3/dist/motion.js" defer></script>
   <script src="i18n.js" defer></script>
+  <!-- Jeere Connect: names, prices and the bag come from the Jeere store « sonia-luxury-hair » (before site.js) -->
+  <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="sonia-luxury-hair" defer></script>
   <script src="site.js" defer></script>
 </head>
 <body>
@@ -120,49 +122,49 @@
       <h2 class="title" id="col-title" data-i18n="col.title">Nos best-sellers</h2>
     </div>
     <div class="products" data-stagger>
-      <article class="product" data-product data-id="wave" data-price="52000" data-photo="img/cut/prod-wave-400.webp">
+      <article class="product" data-product data-jeere-product="p1" data-id="wave" data-price="52000" data-photo="img/cut/prod-wave-400.webp">
         <div class="product__media">
           <span class="tag" data-i18n="tag.best">Best-seller</span>
           <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
           <img src="img/cut/prod-wave-600.webp" srcset="img/cut/prod-wave-400.webp 400w, img/cut/prod-wave-600.webp 600w, img/cut/prod-wave-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Trois mèches body wave noires sur fond blanc" data-i18n-attr="alt:alt.wave" loading="lazy">
         </div>
-        <h3 class="product__name" data-i18n="n.wave">Mèches Body Wave</h3>
-        <p class="product__meta" data-i18n="m.wave">Ondulé · 12″ à 30″</p>
-        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="52000"></span></p>
-        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+        <h3 class="product__name" data-jeere-name data-i18n="n.wave">Mèches Body Wave</h3>
+        <p class="product__meta" data-jeere-desc data-i18n="m.wave">Ondulé · 12″ à 30″</p>
+        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="52000" data-jeere-price></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-jeere-add data-i18n="add">Ajouter au panier</button>
       </article>
-      <article class="product" data-product data-id="lisse" data-price="45000" data-photo="img/cut/prod-lisse-400.webp">
+      <article class="product" data-product data-jeere-product="p2" data-id="lisse" data-price="45000" data-photo="img/cut/prod-lisse-400.webp">
         <div class="product__media">
           <span class="tag" data-i18n="tag.new">Nouveau</span>
           <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
           <img src="img/cut/prod-lisse-600.webp" srcset="img/cut/prod-lisse-400.webp 400w, img/cut/prod-lisse-600.webp 600w, img/cut/prod-lisse-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Trois mèches lisses noires sur fond blanc" data-i18n-attr="alt:alt.lisse" loading="lazy">
         </div>
-        <h3 class="product__name" data-i18n="n.lisse">Mèches Lisses</h3>
-        <p class="product__meta" data-i18n="m.lisse">Lisse · 12″ à 30″</p>
-        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="45000"></span></p>
-        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+        <h3 class="product__name" data-jeere-name data-i18n="n.lisse">Mèches Lisses</h3>
+        <p class="product__meta" data-jeere-desc data-i18n="m.lisse">Lisse · 12″ à 30″</p>
+        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="45000" data-jeere-price></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-jeere-add data-i18n="add">Ajouter au panier</button>
       </article>
-      <article class="product" data-product data-id="frontal" data-price="68000" data-photo="img/cut/prod-frontal-400.webp">
+      <article class="product" data-product data-jeere-product="p3" data-id="frontal" data-price="68000" data-photo="img/cut/prod-frontal-400.webp">
         <div class="product__media">
           <span class="tag" data-i18n="tag.hd">Lace HD</span>
           <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
           <img src="img/cut/prod-frontal-600.webp" srcset="img/cut/prod-frontal-400.webp 400w, img/cut/prod-frontal-600.webp 600w, img/cut/prod-frontal-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Un frontal lace 13×4 aux cheveux noirs body wave" data-i18n-attr="alt:alt.frontal" loading="lazy">
         </div>
-        <h3 class="product__name" data-i18n="n.frontal">Frontal 13×4 Body Wave</h3>
-        <p class="product__meta" data-i18n="m.frontal">Lace HD transparente · 14″ à 22″</p>
-        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="68000"></span></p>
-        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+        <h3 class="product__name" data-jeere-name data-i18n="n.frontal">Frontal 13×4 Body Wave</h3>
+        <p class="product__meta" data-jeere-desc data-i18n="m.frontal">Lace HD transparente · 14″ à 22″</p>
+        <p class="product__price"><span data-i18n="price.from">À partir de</span> <span data-money="68000" data-jeere-price></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-jeere-add data-i18n="add">Ajouter au panier</button>
       </article>
-      <article class="product" data-product data-id="perruque" data-price="185000" data-photo="img/cut/prod-perruque-400.webp">
+      <article class="product" data-product data-jeere-product="p4" data-id="perruque" data-price="185000" data-photo="img/cut/prod-perruque-400.webp">
         <div class="product__media">
           <span class="tag" data-i18n="tag.ready">Prête à porter</span>
           <button class="product__wish" type="button" data-wish aria-pressed="false"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>
           <img src="img/cut/prod-perruque-600.webp" srcset="img/cut/prod-perruque-400.webp 400w, img/cut/prod-perruque-600.webp 600w, img/cut/prod-perruque-800.webp 800w" sizes="(max-width: 700px) 44vw, (max-width: 1100px) 23vw, 270px" width="800" height="1000" alt="Une perruque noire body wave avec raie de côté, sur une tête de présentation" data-i18n-attr="alt:alt.perruque" loading="lazy">
         </div>
-        <h3 class="product__name" data-i18n="n.perruque">Perruque Body Wave</h3>
-        <p class="product__meta" data-i18n="m.perruque">Lace frontale · 24″ · densité 200 %</p>
-        <p class="product__price"><span data-money="185000"></span></p>
-        <button class="btn btn--line product__add" type="button" data-add data-i18n="add">Ajouter au panier</button>
+        <h3 class="product__name" data-jeere-name data-i18n="n.perruque">Perruque Body Wave</h3>
+        <p class="product__meta" data-jeere-desc data-i18n="m.perruque">Lace frontale · 24″ · densité 200 %</p>
+        <p class="product__price"><span data-money="185000" data-jeere-price></span></p>
+        <button class="btn btn--line product__add" type="button" data-add data-jeere-add data-i18n="add">Ajouter au panier</button>
       </article>
     </div>
   </section>
@@ -455,7 +457,7 @@
   <p class="foot__word" aria-hidden="true">Sonia</p>
   <div class="foot__bottom">
     <span data-i18n="foot.rights">© 2026 Sonia Luxury Hair · concept</span>
-    <span data-i18n-html="foot.kreeative">Concept de site par <a href="https://kreeative.xyz">Kreeative</a>. Proposition de design, pas une boutique officielle&nbsp;: rien n’est vendu, envoyé ni enregistré.</span>
+    <span data-i18n-html="foot.kreeative">Concept de site par <a href="https://kreeative.xyz">Kreeative</a>. Proposition de design, pas encore la boutique officielle&nbsp;: les commandes passent par Jeere.</span>
   </div>
 </footer>
 
@@ -470,8 +472,8 @@
   <ul class="bag__items" data-bag-items></ul>
   <div class="bag__foot">
     <p class="bag__total"><span data-i18n="bag.total">Sous-total</span> <span data-bag-total></span></p>
-    <button class="btn btn--ink" type="button" disabled data-i18n="bag.checkout">Paiement désactivé (concept)</button>
-    <p class="bag__note" data-i18n="bag.note">Ceci est un concept : le panier se calcule ici, rien n’est envoyé ni payé.</p>
+    <button class="btn btn--ink" type="button" disabled data-jeere-checkout data-i18n="bag.checkout">Passer la commande</button>
+    <p class="bag__note" data-i18n="bag.note">Commande avec Jeere&nbsp;: vous la confirmez sur WhatsApp, puis payez par mobile money ou à la livraison.</p>
   </div>
 </aside>
 <p class="sr-only" data-live aria-live="polite"></p>

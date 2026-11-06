@@ -12,8 +12,11 @@ Live (unlisted): https://kreeative.xyz/concepts/sonia-luxury-hair/
 
 - Private proposal: `<meta name="robots" content="noindex, nofollow">`, not linked from the
   portfolio and not in the sitemap. Keep the concept bar and the footer note.
-- Nothing is sent or stored. The bag adds up prices in the page and checkout is switched off;
-  the newsletter and “Rejoindre le Cercle” only show a message.
+- The shop runs on Jeere (Jeere Connect, `concepts/jeere/README.md`): names and prices come from the Jeere
+  store `sonia-luxury-hair` (products `p1` to `p4` = `data-jeere-product`; `data-id` stays for the texts), the
+  bag is the Jeere cart (kept on the device, one line per product) and « Passer la commande » opens the store's
+  Jeere cart, where the order leaves on WhatsApp. If Jeere cannot be reached the page keeps its own prices;
+  without the script the bag only adds up here. The newsletter and “Rejoindre le Cercle” only show a message.
 - The reviews are samples written for the concept, and the page says so.
 
 ## Identity
