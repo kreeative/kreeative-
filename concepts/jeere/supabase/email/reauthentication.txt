@@ -52,7 +52,7 @@
               <tr>
                 <td style="padding-top:16px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#5E5E5E;">
                   Jeere, du comptoir à Internet.<br>
-                  Une question&nbsp;? Écrivez à <a href="mailto:jeere@kreeative.xyz?subject=Jeere" style="color:#111111;">jeere@kreeative.xyz</a>.<br>
+                  Une question&nbsp;? Écrivez à <a href="mailto:contact.jeere@kreeative.xyz?subject=Jeere" style="color:#111111;">contact.jeere@kreeative.xyz</a>.<br>
                   <a href="https://jeere.kreeative.xyz/" style="color:#111111;">jeere.kreeative.xyz</a>
                 </td>
               </tr>
