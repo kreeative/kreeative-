@@ -23,7 +23,6 @@
     linear-gradient(100deg, rgba(var(--jr-d1), var(--jr-tint)) 0%, rgba(var(--jr-d2), var(--jr-tint)) 17%, rgba(var(--jr-d3), var(--jr-tint)) 33%, rgba(var(--jr-d4), var(--jr-tint)) 50%, rgba(var(--jr-d5), var(--jr-tint)) 67%, rgba(var(--jr-d6), var(--jr-tint)) 83%, rgba(var(--jr-d7), var(--jr-tint)) 100%) !important;
   background-size: 140px 140px, 100% 100% !important;
   background-blend-mode: soft-light, normal;
-  white-space: nowrap;
   -webkit-backdrop-filter: blur(16px) saturate(1.25); backdrop-filter: blur(16px) saturate(1.25);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 0 0 1px var(--jr-edge) !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, .35) !important;
@@ -48,7 +47,6 @@
   box-shadow: inset 0 0 0 1.5px transparent, 0 0 0 1px rgba(0, 0, 0, .1) !important;
   border: 1.5px solid transparent !important;
   background: linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(100deg, rgb(var(--jr-c1)), rgb(var(--jr-c2)), rgb(var(--jr-c3)), rgb(var(--jr-c4)), rgb(var(--jr-c5)), rgb(var(--jr-c6)), rgb(var(--jr-c7))) border-box !important;
-  white-space: nowrap;
 }
 .jr-rainbow-ink > span, .jr-rainbow-ink:not(:has(> span)) {
   /* the words themselves in a slightly deeper rainbow, so they read on white */
