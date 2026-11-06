@@ -19,8 +19,8 @@
   --bg-hover: rgba(0, 0, 0, 0.045); --bg-active: rgba(0, 0, 0, 0.08); --bg-input: rgba(0, 0, 0, 0.04);
   --fg-1: #1E1E1E; --fg-2: #4B4B4B; --fg-3: #6E6E6E; --fg-disabled: #A8A8A8;
   --line-1: rgba(0, 0, 0, 0.08); --line-2: rgba(0, 0, 0, 0.12); --line-3: rgba(0, 0, 0, 0.22); --highlight-top: rgba(255, 255, 255, 0.7);
-  --accent: #3657FF; --accent-hover: #2945E6; --accent-fg: #FFFFFF; --accent-soft: rgba(54, 87, 255, 0.10); --accent-ink: #2A47E0;
-  --focus-ring: #3657FF;
+  --accent: #1E1E1E; --accent-hover: #000000; --accent-fg: #FFFFFF; --accent-soft: rgba(0, 0, 0, 0.06); --accent-ink: #1E1E1E;
+  --focus-ring: #1E1E1E; --sel: #3657FF; --sel-soft: rgba(54, 87, 255, 0.16);
   --ok: #16A34A; --warn: #E8A600; --err: #DC2626; --err-ink: #B42318; --ok-ink: #15803D; --warn-ink: #8A5300;
   --elev-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.05);
   --elev-2: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.08), 0 12px 28px rgba(0, 0, 0, 0.06);
@@ -43,6 +43,7 @@ html[data-theme="dark"] {
   --elev-2: 0 1px 2px rgba(0, 0, 0, 0.30), 0 4px 10px rgba(0, 0, 0, 0.20), 0 12px 24px rgba(0, 0, 0, 0.16);
   --elev-3: 0 2px 4px rgba(0, 0, 0, 0.32), 0 8px 16px rgba(0, 0, 0, 0.24), 0 24px 48px rgba(0, 0, 0, 0.24), 0 48px 96px rgba(0, 0, 0, 0.16);
   --bg-float: rgba(48, 48, 48, 0.86);
+  --sel: #3657FF; --sel-soft: rgba(54, 87, 255, 0.2);
   --shot-bg: #111; --diff-bg: #151515; --ab-edge: rgba(0, 0, 0, 0.6); --badge-info: #DDE4FF;
   color-scheme: dark;
 }
@@ -249,10 +250,10 @@ kbd { font: var(--fw-medium) 11px/16px var(--font-ui); color: var(--fg-3); backg
 .sk-ov { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sk-box { position: absolute; left: 0; top: 0; pointer-events: none; transform-origin: 0 0; }
 .sk-world { --inv: 1; }
-.sk-box--hover { box-shadow: 0 0 0 calc(1px * var(--inv)) var(--accent); }
-.sk-box--sel { box-shadow: 0 0 0 calc(2px * var(--inv)) var(--accent); }
-.sk-box--editing { box-shadow: 0 0 0 calc(2px * var(--inv)) var(--accent), 0 0 0 calc(6px * var(--inv)) var(--accent-soft); }
-.sk-box__tag { position: absolute; left: 0; bottom: 100%; transform: scale(var(--inv)); transform-origin: 0 100%; margin-bottom: calc(4px * var(--inv)); padding: 0 var(--sp-1); height: var(--ctl-xs); display: flex; align-items: center; background: var(--accent); color: var(--accent-fg); border-radius: var(--r-xs); font: var(--fw-semibold) 11px/16px var(--font-ui); white-space: nowrap; }
+.sk-box--hover { box-shadow: 0 0 0 calc(1px * var(--inv)) var(--sel); }
+.sk-box--sel { box-shadow: 0 0 0 calc(2px * var(--inv)) var(--sel); }
+.sk-box--editing { box-shadow: 0 0 0 calc(2px * var(--inv)) var(--sel), 0 0 0 calc(6px * var(--inv)) var(--sel-soft); }
+.sk-box__tag { position: absolute; left: 0; bottom: 100%; transform: scale(var(--inv)); transform-origin: 0 100%; margin-bottom: calc(4px * var(--inv)); padding: 0 var(--sp-1); height: var(--ctl-xs); display: flex; align-items: center; background: var(--sel); color: #FFFFFF; border-radius: var(--r-xs); font: var(--fw-semibold) 11px/16px var(--font-ui); white-space: nowrap; }
 .sk-box__tag--below { bottom: auto; top: 100%; transform-origin: 0 0; margin: calc(4px * var(--inv)) 0 0; }
 .sk-ab__label { transform: scale(var(--inv)); transform-origin: 0 100%; width: calc(100% / var(--inv)); overflow: hidden; }
 .sk-ab.is-loading .sk-ab__frame::after { content: 'Chargement…'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.9); color: #555; font-size: 13px; }
@@ -543,3 +544,7 @@ html:not([data-theme="dark"]) .dz-hint.is-state { color: #7B3FE4; }
 .sk-pagemenu__sec { padding: var(--sp-2) var(--sp-2) 2px; color: var(--fg-3); font: var(--fw-semibold) 11px/16px var(--font-ui); }
 html:not([data-theme="dark"]) .sk-badge { background: rgba(255, 255, 255, 0.94); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), inset 0 0 0 var(--hair) var(--line-1); }
 html:not([data-theme="dark"]) .sk-badge--warn { color: var(--warn-ink); }
+
+/* links in black and white: underlined so they read as links */
+.sk-sitehead__t a, .sk-pubhead__url a, .sk-pubpage a, .sk-card__links a { text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; }
+.sk-sitehead__t a:hover, .sk-pubhead__url a:hover, .sk-card__links a:hover { text-decoration-color: currentColor; }
