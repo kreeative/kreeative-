@@ -288,13 +288,14 @@
      live in its folders (websites/…, concepts/…, portfolio/…) on the same branch. They open as ONE site
      whose page list is sorted in sections; a site that lives on another branch stays on its own. Each
      page keeps its owner (the manifest's site id) for what is saved on this device and for its image folder. */
-  var SECTION = { kreeative: 'Pages du site', client: 'Sites clients', personal: 'Sites clients', concept: 'Concepts', portfolio: 'Études de cas' };
-  var SECTION_ORDER = ['Pages du site', 'Sites clients', 'Concepts', 'Études de cas'];
+  // a site of its own (sites.json « ownSite »: the concept sites, Aïssa Kee) is not a member: it opens on its own
+  var SECTION = { kreeative: 'Pages du site', client: 'Sites réalisés', concept: 'Concepts', portfolio: 'Études de cas', audit: 'Mini-audits' };
+  var SECTION_ORDER = ['Pages du site', 'Sites réalisés', 'Études de cas', 'Mini-audits', 'Concepts'];
   function groupSites(list) {
     var main = list.find(function (x) { return x.kind === 'kreeative'; });
     if (!main) return list;
     // kreeative.xyz's folders, wherever they live: on its branch, or only on another one so far (they keep it)
-    var members = list.filter(function (x) { return x !== main && x.path && ((!x.onlyOnBranch && x.branch === main.branch) || /^(websites|concepts|portfolio)\//.test(x.path)); });
+    var members = list.filter(function (x) { return x !== main && x.path && !x.ownSite && ((!x.onlyOnBranch && x.branch === main.branch) || /^(websites|concepts|portfolio)\//.test(x.path)); });
     var g = JSON.parse(JSON.stringify(main));
     g.title = 'Kreeative';
     g.kindLabel = 'Studio de design';

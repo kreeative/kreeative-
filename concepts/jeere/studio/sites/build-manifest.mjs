@@ -84,7 +84,13 @@ const PREVIEW = {
 };
 const ROOT_FOLDERS = ['about', 'access', 'pricing', 'shop', 'signature', 'teach', 'the-kreeative-designer-newsletter'];
 const CONCEPTS_EXCLUDE = new Set(['jeere']);
-const KIND_LABEL = { kreeative: 'kreeative.xyz', client: 'Site client', concept: 'Concept', portfolio: 'Étude de cas', personal: 'Marque personnelle' };
+const KIND_LABEL = { kreeative: 'kreeative.xyz', client: 'Site réalisé', concept: 'Concept', portfolio: 'Étude de cas', audit: 'Mini-audit', personal: 'Marque personnelle' };
+// What is a site of its own and what is a page of kreeative.xyz. The « Websites I built » pages (websites/…)
+// tell the story of a site; the site itself lives elsewhere (its own address) or in concepts/. The case
+// studies (portfolio/…) and the mini-audits are pages too. A site of its own (ownSite) gets its own card in
+// « Mes sites » and opens on its own in the editor; every other folder is a page of the Kreeative site.
+const AUDITS = new Set(['concepts/ririfood', 'concepts/sao']);
+function ownSiteOf(folder, kind) { return kind === 'concept' || kind === 'personal'; }
 
 const local = new Map(tree(JEERE_BRANCH).map((e) => [e.path, e.sha]));
 const branches = git('for-each-ref', '--format=%(refname:short)', 'refs/remotes/origin').split('\n').filter(Boolean)
@@ -115,6 +121,7 @@ function siteFrom(branch, entries, folder, kind, extra = {}) {
     id,
     title: shortTitle(main.title) || folder,
     kind, kindLabel: KIND_LABEL[kind],
+    ownSite: folder !== '' && ownSiteOf(folder, kind),
     commerce: folder in COMMERCE ? !!COMMERCE[folder] : sellsOnJeere(branch, pages),
     path: folder,
     branch,
@@ -141,7 +148,7 @@ const dirsOf = (entries, prefix) => [...new Set(entries.filter((e) => e.path.sta
 
 sites.push(siteFrom(DEFAULT, def, '', 'kreeative', { title: 'kreeative.xyz' }));
 for (const d of dirsOf(def, 'websites/')) sites.push(siteFrom(DEFAULT, def, 'websites/' + d, 'client'));
-for (const d of dirsOf(def, 'concepts/')) if (!CONCEPTS_EXCLUDE.has(d)) sites.push(siteFrom(DEFAULT, def, 'concepts/' + d, 'concept'));
+for (const d of dirsOf(def, 'concepts/')) if (!CONCEPTS_EXCLUDE.has(d)) sites.push(siteFrom(DEFAULT, def, 'concepts/' + d, AUDITS.has('concepts/' + d) ? 'audit' : 'concept'));
 for (const d of dirsOf(def, 'portfolio/')) sites.push(siteFrom(DEFAULT, def, 'portfolio/' + d, 'portfolio'));
 
 // Sites that live only on another branch: a folder with an index.html that the default branch does not have
@@ -158,7 +165,7 @@ for (const b of branches) {
   }
   for (const folder of candidates) {
     if (sites.some((s) => s && s.path === folder)) continue;
-    const kind = folder.startsWith('websites/') ? 'client' : folder.startsWith('concepts/') ? 'concept' : folder.startsWith('portfolio/') ? 'portfolio' : 'personal';
+    const kind = folder.startsWith('websites/') ? 'client' : folder.startsWith('concepts/') ? (AUDITS.has(folder) ? 'audit' : 'concept') : folder.startsWith('portfolio/') ? 'portfolio' : 'personal';
     sites.push(siteFrom(b, t, folder, kind, { headSha: git('rev-parse', refOf(b)).trim() }));
   }
 }

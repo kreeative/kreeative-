@@ -120,9 +120,9 @@
     return Promise.all([fetch('../sites/sites.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }), pendingBySite()]).then(function (res) {
       var M = res[0], pend = res[1], list = M.sites || [];
       var main = list.find(function (x) { return x.kind === 'kreeative'; });
-      // kreeative.xyz and the folders it serves are ONE site in the editor (its pages in sections): its card
-      // counts them all; each client site and concept also has its own card, which opens on its page there
-      var members = main ? list.filter(function (x) { return x !== main && x.path && ((!x.onlyOnBranch && x.branch === main.branch) || /^(websites|concepts|portfolio)\//.test(x.path)); }) : [];
+      // kreeative.xyz and the folders it serves are ONE site (its pages in sections): one card counts them all.
+      // Only a site of its own (sites.json « ownSite »: Jessica's Secrets, Joshua Cooker, Aïssa Kee…) has a card
+      var members = main ? list.filter(function (x) { return x !== main && x.path && !x.ownSite && ((!x.onlyOnBranch && x.branch === main.branch) || /^(websites|concepts|portfolio)\//.test(x.path)); }) : [];
       var cards = [];
       function card(s, extra) {
         var com = !!s.commerce;
@@ -141,7 +141,7 @@
           pending: all.reduce(function (n, x) { return n + (pend.get(x.id) || 0); }, 0) }));
       }
       list.forEach(function (s) {
-        if (s === main || s.kind === 'portfolio') return; // the case studies are pages of kreeative.xyz, not sites
+        if (s === main || members.indexOf(s) >= 0) return; // pages of kreeative.xyz (Websites I built, case studies, mini-audits), not sites
         cards.push(card(s));
       });
       return { cards: cards, generated: M.generated };
@@ -223,7 +223,7 @@
         '<span class="ms-card__shot">' + shot + '</span>' +
         '<span class="ms-card__body"><span class="a-card__title ms-card__title">' + esc(c.title) + '</span>' +
         '<span class="a-card__sub ms-card__meta">' + esc(meta.filter(Boolean).join(' · ')) + '</span>' +
-        (c.sub ? '<span class="a-small a-muted">dont ' + plural(c.sub, 'site client, concept ou étude de cas', 'sites clients, concepts et études de cas') + '</span>' : '') +
+        (c.sub ? '<span class="a-small a-muted">dont ' + plural(c.sub, 'page de projet (site réalisé, étude de cas, mini-audit)', 'pages de projets : sites réalisés, études de cas, mini-audits') + '</span>' : '') +
         (c.addr && !c.live ? '<span class="a-small a-muted">' + esc(c.addr) + '</span>' : '') +
         '</span></a>' +
       '<span class="ms-card__type ms-card__type--' + c.kind + '" role="img" aria-label="' + type + '" title="' + type + '" data-tip="' + type + '">' + ico(shop ? 'i-store' : 'i-globe') + '</span>' +
