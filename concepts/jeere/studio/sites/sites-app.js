@@ -280,7 +280,8 @@
   function groupSites(list) {
     var main = list.find(function (x) { return x.kind === 'kreeative'; });
     if (!main) return list;
-    var members = list.filter(function (x) { return x !== main && !x.onlyOnBranch && x.branch === main.branch && x.path; });
+    // kreeative.xyz's folders, wherever they live: on its branch, or only on another one so far (they keep it)
+    var members = list.filter(function (x) { return x !== main && x.path && ((!x.onlyOnBranch && x.branch === main.branch) || /^(websites|concepts|portfolio)\//.test(x.path)); });
     var g = JSON.parse(JSON.stringify(main));
     g.title = 'Kreeative';
     g.kindLabel = 'Studio de design';
@@ -289,12 +290,14 @@
     g.pages = main.pages.map(function (p) { return Object.assign({}, p, { owner: main.id, section: SECTION.kreeative, uploads: main.uploads }); });
     members.forEach(function (x) {
       x.pages.forEach(function (p) {
-        g.pages.push(Object.assign({}, p, { owner: x.id, section: SECTION[x.kind] || 'Autres pages', sub: x.title.replace(/\s+·\s+.*$/, ''), subPath: x.path, uploads: x.uploads, subLive: x.liveUrl, subExternal: x.externalUrl }));
+        g.pages.push(Object.assign({}, p, { owner: x.id, section: SECTION[x.kind] || 'Autres pages', sub: x.title.replace(/\s+·\s+.*$/, ''), subPath: x.path, uploads: x.uploads, subLive: x.liveUrl, subExternal: x.externalUrl,
+          src: x.branch === main.branch && !x.onlyOnBranch ? null : { branch: x.branch, onlyOnBranch: !!x.onlyOnBranch, headSha: x.headSha || null, previewBase: x.previewBase || null } }));
       });
       if (x.updated && x.updated.date && (!g.updated || !g.updated.date || x.updated.date > g.updated.date)) g.updated = x.updated;
     });
     return [g].concat(list.filter(function (x) { return x !== main && members.indexOf(x) < 0; }));
   }
+  function pageSrc(p) { return (p && p.src) || site; }   // the branch a page lives on (a group can span two)
   function ownerOf(path) { var p = pageByPath(path); return (p && p.owner) || (site && site.id); }
 
   /* ================================================================ home */
@@ -325,9 +328,9 @@
     return hay.toLowerCase().indexOf(q) >= 0;
   }
   function pageLiveUrl(s, p) {
-    var u = p.path.replace(/(^|\/)index\.html$/, '$1');
-    if (s.branch === M.defaultBranch) return 'https://' + CFG.liveOrigin + '/' + u;
-    return s.previewBase ? s.previewBase + u : null;
+    var u = p.path.replace(/(^|\/)index\.html$/, '$1'), b = (p && p.src) || s;
+    if (b.branch === M.defaultBranch && !b.onlyOnBranch) return 'https://' + CFG.liveOrigin + '/' + u;
+    return b.previewBase ? b.previewBase + u : null;
   }
   function renderGrid() {
     if (!M) return;
@@ -415,14 +418,16 @@
   }
 
   function sourceUrl(p) {
-    if (site.onlyOnBranch || !ROOT || !p.local) {
-      return 'https://raw.githubusercontent.com/' + M.repo + '/' + (site.headSha || 'refs/heads/' + site.branch) + '/' + p.path;
+    var b = pageSrc(p);
+    if (b.onlyOnBranch || !ROOT || !p.local) {
+      return 'https://raw.githubusercontent.com/' + M.repo + '/' + (b.headSha || 'refs/heads/' + b.branch) + '/' + p.path;
     }
     return ROOT + p.path;
   }
   function assetBase(p) { // where the page's relative URLs resolve
-    if (!site.onlyOnBranch && ROOT && (p.local || p.isNew)) return ROOT + C.dirOf(p.from || p.path);
-    if (site.previewBase) return site.previewBase + C.dirOf(p.from || p.path);
+    var b = pageSrc(p);
+    if (!b.onlyOnBranch && ROOT && (p.local || p.isNew)) return ROOT + C.dirOf(p.from || p.path);
+    if (b.previewBase) return b.previewBase + C.dirOf(p.from || p.path);
     // not served here (the jeere.kreeative.xyz host, or a branch without a preview): the live site's own files
     return 'https://' + CFG.liveOrigin + '/' + C.dirOf(p.from || p.path);
   }
@@ -580,7 +585,7 @@
       // a client site or concept with one page: its name; with several, « Name · page title »
       var name = pageName(p);
       b.innerHTML = '<svg viewBox="0 0 256 256" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"/></g></svg>' +
-        '<span class="sk-page__t"><b>' + esc(name) + '</b><small>' + esc(rel.replace(/(^|\/)index\.html$/, '$1') || '/') + (p.isNew ? ' · nouvelle' : '') + '</small></span>' +
+        '<span class="sk-page__t"><b>' + esc(name) + '</b><small>' + esc(rel.replace(/(^|\/)index\.html$/, '$1') || '/') + (p.isNew ? ' · nouvelle' : '') + (p.src && p.src.onlyOnBranch ? ' · pas encore en ligne' : '') + '</small></span>' +
         (dirty ? '<span class="sk-page__dot" title="Modifications non publiées"></span>' : '');
       b.addEventListener('click', function () { location.hash = '#/site/' + site.id + '/' + p.path; closeDrawers(); });
       return b;
@@ -603,8 +608,8 @@
       renderPages();
       buildFrames();
       refreshAll();
-      if (d.stale) banner('Cette copie de la page diffère de la version de la branche ' + site.branch + ' enregistrée dans la liste : la publication vérifiera qu’elle n’a pas changé entre-temps.', 'warn');
-      else if (site.onlyOnBranch) banner('Ce site n’existe que sur la branche ' + site.branch + ' : il s’affiche depuis GitHub, et la publication va sur cette branche.', 'info');
+      if (d.stale) banner('Cette copie de la page diffère de la version de la branche ' + pageSrc(p).branch + ' enregistrée dans la liste : la publication vérifiera qu’elle n’a pas changé entre-temps.', 'warn');
+      else if (pageSrc(p).onlyOnBranch) banner((p.sub ? '« ' + p.sub + ' » n’est' : 'Ce site n’est') + ' pas encore sur kreeative.xyz : il vit sur la branche ' + pageSrc(p).branch + ', s’affiche depuis GitHub, et sa publication va sur cette branche.', 'info');
     }, function (e) {
       banner('La page « ' + path + ' » n’a pas pu être lue (' + (e && e.message) + ').', 'warn');
     });
@@ -652,7 +657,7 @@
     var d = cur, p = d.page;
     var ifr = f.iframe;
     if (d.noScripts) ifr.setAttribute('sandbox', 'allow-same-origin'); else ifr.removeAttribute('sandbox');
-    var direct = !d.noScripts && !d.isNew && d.text === d.original && !site.onlyOnBranch && ROOT && p.local;
+    var direct = !d.noScripts && !d.isNew && d.text === d.original && !pageSrc(p).onlyOnBranch && ROOT && p.local;
     f.direct = direct;
     if (direct) { ifr.removeAttribute('srcdoc'); f.expect = ROOT + p.path; ifr.src = ROOT + p.path; }
     else { ifr.removeAttribute('src'); f.expect = null; ifr.srcdoc = withBase(d.text, assetBase(p)); }
@@ -1986,7 +1991,7 @@
     pk.addEventListener('click', function () {
       pickImage(function (rel) {
         var rp = C.repoPathOf(cur.path, rel, null);
-        var abs = site.branch === M.defaultBranch ? 'https://' + CFG.liveOrigin + '/' + rp : (site.previewBase ? site.previewBase + rp : rel);
+        var cb = pageSrc(cur.page), abs = cb.branch === M.defaultBranch && !cb.onlyOnBranch ? 'https://' + CFG.liveOrigin + '/' + rp : (cb.previewBase ? cb.previewBase + rp : rel);
         opSEO('ogImage', abs);
       });
     });
@@ -2109,10 +2114,14 @@
       var d = docs.get(p.path);
       if (!d) return;
       if (!d.isNew && d.text === d.original) return;
-      out.push({ path: d.path, kind: d.isNew ? 'added' : 'modified', encoding: 'utf-8', text: d.text, original: d.original, baseSha: d.isNew ? null : d.baseSha, bytes: C.utf8(d.text), stats: C.lineStats(d.original || '', d.text) });
+      out.push({ path: d.path, kind: d.isNew ? 'added' : 'modified', encoding: 'utf-8', text: d.text, original: d.original, baseSha: d.isNew ? null : d.baseSha, bytes: C.utf8(d.text), stats: C.lineStats(d.original || '', d.text), branch: pageSrc(p).branch });
     });
     var refd = referencedUploads();
-    uploads.forEach(function (u, p) { if (refd.has(p)) out.push({ path: p, kind: 'image', encoding: 'base64', bytes: u.bytes, mime: u.mime, baseSha: null }); });
+    uploads.forEach(function (u, p) {
+      if (!refd.has(p)) return;
+      var owner = site.pages.find(function (pg) { return pg.uploads && p.indexOf(pg.uploads) === 0; });
+      out.push({ path: p, kind: 'image', encoding: 'base64', bytes: u.bytes, mime: u.mime, baseSha: null, branch: pageSrc(owner).branch });
+    });
     return out;
   }
   function diffText(a, b) {

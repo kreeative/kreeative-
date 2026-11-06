@@ -145,7 +145,9 @@
     return h;
   }
 
-  function show(html) { var s = $('skPubStatus'); if (s) s.innerHTML = html; }
+  // several branches in one go (Kreeative and a client site not on kreeative.xyz yet): one status line each
+  var multi = null;
+  function show(html) { var s = $('skPubStatus'); if (!s) return; if (multi) { var d = multi.lines[multi.k]; if (!d) { d = multi.lines[multi.k] = S().ce('div'); s.appendChild(d); } d.innerHTML = html; } else s.innerHTML = html; }
   function busy(on) { var g = $('skGo'); if (g) { g.disabled = on; g.innerHTML = on ? '<span class="sk-spin"></span> Publication…' : 'Réessayer'; } }
 
   function payloadFor(site, files, target) {
@@ -160,13 +162,31 @@
     };
   }
 
+  // One publication per branch: the files of each page go to the branch that page lives on
   function send(site, files, target) {
     var A = S();
     if (!files.length) { A.toast('Cochez au moins un fichier.', 'info'); return; }
+    var groups = {}, keys = [];
+    files.forEach(function (f) { var b = f.branch || site.branch; if (!groups[b]) { groups[b] = []; keys.push(b); } groups[b].push(f); });
+    if (keys.length === 1) { multi = null; return sendOne(Object.assign({}, site, { branch: keys[0] }), files, target, ''); }
+    multi = { lines: {}, k: 0 };
+    var st = $('skPubStatus'); if (st) st.innerHTML = '';
+    var i = 0;
+    (function next() {
+      if (i >= keys.length) return;
+      var k = keys[i++];
+      multi.k = k;
+      sendOne(Object.assign({}, site, { branch: k }), groups[k], target, i > 1 ? '-' + i : '', next);
+    })();
+  }
+
+  function sendOne(site, files, target, draftSuffix, then) {
+    var A = S();
     if (files.length > MAX_FILES) { show('<div class="sk-alert sk-alert--warn">Au plus ' + MAX_FILES + ' fichiers par publication : décochez-en quelques-uns.</div>'); return; }
     var total = files.reduce(function (n, f) { return n + f.bytes.length; }, 0);
     if (total > MAX_TOTAL) { show('<div class="sk-alert sk-alert--warn">Publication trop lourde (' + Math.round(total / 1048576) + NB + 'Mo) : publiez les images en plusieurs fois.</div>'); return; }
     var body = payloadFor(site, files, target);
+    if (draftSuffix && body.target === 'draft') body.branch = body.branch.slice(0, 60 - draftSuffix.length) + draftSuffix;
     if (!body.message) { show('<div class="sk-alert sk-alert--warn">Écrivez un message pour cette publication.</div>'); return; }
     if (body.target === 'draft' && !/^studio\/[a-z0-9][a-z0-9-]{0,60}$/.test(body.branch)) { show('<div class="sk-alert sk-alert--warn">Le nom du brouillon commence par « studio/ », puis des lettres minuscules, des chiffres et des tirets.</div>'); return; }
     busy(true);
@@ -174,8 +194,8 @@
     var tokP = A.demo ? Promise.resolve(null) : A.sessionToken();
     tokP.then(function (tok) { return A.callFn(body, tok); }).then(function (r) {
       busy(false);
-      if (r && r.ok && r.commit) return done(site, r, body);
-      if (r && r.ok && r.nothing) { show('<div class="sk-alert sk-alert--ok">' + A.esc(r.message || 'GitHub a déjà ces fichiers.') + '</div>'); return A.markPublished(r.files, body.target); }
+      if (r && r.ok && r.commit) { done(site, r, body); if (then) then(); return; }
+      if (r && r.ok && r.nothing) { show('<div class="sk-alert sk-alert--ok">' + A.esc(r.message || 'GitHub a déjà ces fichiers.') + '</div>'); A.markPublished(r.files, body.target); if (then) then(); return; }
       fail(site, files, r || {});
     }, function () {
       busy(false);
