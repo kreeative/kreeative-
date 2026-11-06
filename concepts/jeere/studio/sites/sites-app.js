@@ -409,7 +409,7 @@
   function leaveEditor() {
     endEdit(true);
     sel = null; hover = null;
-    frames.forEach(function (f) { f.el.remove(); });
+    frames.forEach(function (f) { if (f.ro) f.ro.disconnect(); f.el.remove(); });
     frames = [];
     cur = null;
   }
@@ -454,7 +454,18 @@
     var h = ce('a', 'sk-crumbs__home', 'Mes sites'); h.href = '#/'; c.appendChild(h);
     c.appendChild(ce('i', null, '›'));
     var s = ce('span', null, esc(site.title)); c.appendChild(s);
-    if (cur && cur.page && cur.page.sub) { c.appendChild(ce('i', null, '›')); c.appendChild(ce('span', null, esc(cur.page.sub))); }
+    if (cur && cur.page) {
+      c.appendChild(ce('i', null, '›'));
+      var pk = ce('button', 'sk-pagepick');
+      pk.type = 'button'; pk.id = 'skPagePick';
+      pk.setAttribute('aria-haspopup', 'listbox'); pk.setAttribute('aria-expanded', 'false');
+      pk.setAttribute('data-tip', 'Changer de page');
+      pk.innerHTML = '<span>' + esc(pageName(cur.page)) + '</span><svg class="sk-ic" aria-hidden="true"><use href="#ic-chev"/></svg>';
+      pk.addEventListener('click', function (e) { e.stopPropagation(); togglePageMenu(pk); });
+      c.appendChild(pk);
+    }
+    var live = $('skRailLive');
+    if (live) { var u = cur && cur.page ? pageLiveUrl(site, cur.page) : site.liveUrl; live.href = u || '#'; live.setAttribute('data-tip', u ? 'Voir cette page en ligne' : 'Pas encore en ligne'); live.classList.toggle('is-off', !u); }
     // the head of the left panel: back to all the sites, this site and its address
     var head = $('skSiteHead');
     if (head) {
@@ -505,6 +516,57 @@
       items.forEach(function (p) { target.appendChild(pageRow(p)); });
     });
   }
+  function pageName(p) {
+    var rel = p.subPath ? p.path : (site.path ? p.path.slice(site.path.length + 1) : p.path);
+    var one = p.sub && site.pages.filter(function (x) { return x.owner === p.owner; }).length === 1;
+    return p.sub ? (one ? p.sub : p.sub + ' · ' + (shortTitle(p.title) || rel)) : (shortTitle(p.title) || rel);
+  }
+  // The page menu at the top: a search, then every page by section; picking one opens it
+  function togglePageMenu(btn) {
+    var old = $('skPageMenu');
+    if (old) { closePageMenu(); return; }
+    var m = ce('div', 'sk-pagemenu');
+    m.id = 'skPageMenu';
+    m.innerHTML = '<input class="sk-pagefind" type="search" placeholder="Chercher une page…" aria-label="Chercher une page" autocomplete="off" spellcheck="false"><div class="sk-pagemenu__list" role="listbox" aria-label="Pages du site"></div>';
+    doc.body.appendChild(m);
+    var r = btn.getBoundingClientRect();
+    m.style.left = Math.max(8, Math.min(r.left, innerWidth - 348)) + 'px';
+    m.style.top = (r.bottom + 6) + 'px';
+    var inp = m.querySelector('input'), list = m.querySelector('.sk-pagemenu__list');
+    function draw() {
+      var q = inp.value.trim().toLowerCase();
+      list.innerHTML = '';
+      var items = site.pages.filter(function (p) { return !q || ((p.sub || '') + ' ' + p.title + ' ' + p.path).toLowerCase().indexOf(q) >= 0; });
+      var secs = [];
+      items.forEach(function (p) { var k = p.section || ''; if (secs.indexOf(k) < 0) secs.push(k); });
+      secs.sort(function (a, b) { return (SECTION_ORDER.indexOf(a) + 1 || 99) - (SECTION_ORDER.indexOf(b) + 1 || 99); });
+      secs.forEach(function (sec) {
+        if (sec) list.appendChild(ce('div', 'sk-pagemenu__sec', esc(sec)));
+        items.filter(function (p) { return (p.section || '') === sec; }).forEach(function (p) { var b = pageRow(p); b.addEventListener('click', closePageMenu); list.appendChild(b); });
+      });
+      if (!items.length) list.appendChild(ce('p', 'sk-pages__none', 'Aucune page ne correspond.'));
+    }
+    inp.addEventListener('input', draw);
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closePageMenu(); btn.focus(); }
+      if (e.key === 'Enter') { var f = list.querySelector('.sk-page'); if (f) f.click(); }
+    });
+    draw();
+    btn.setAttribute('aria-expanded', 'true');
+    var sel0 = list.querySelector('.sk-page[aria-selected="true"]');
+    if (sel0) sel0.scrollIntoView({ block: 'center' });
+    inp.focus();
+    setTimeout(function () { doc.addEventListener('pointerdown', outside, true); }, 0);
+    function outside(e) { if (!m.contains(e.target) && e.target !== btn && !btn.contains(e.target)) closePageMenu(); }
+    m._off = function () { doc.removeEventListener('pointerdown', outside, true); };
+  }
+  function closePageMenu() {
+    var m = $('skPageMenu');
+    if (!m) return;
+    if (m._off) m._off();
+    m.remove();
+    var b = $('skPagePick'); if (b) b.setAttribute('aria-expanded', 'false');
+  }
   function pageRow(p) {
     {
       var b = ce('button', 'sk-page');
@@ -516,8 +578,7 @@
       var dirty = d && (d.isNew || d.text !== d.original);
       var rel = p.subPath ? p.path : (site.path ? p.path.slice(site.path.length + 1) : p.path);
       // a client site or concept with one page: its name; with several, « Name · page title »
-      var one = p.sub && site.pages.filter(function (x) { return x.owner === p.owner; }).length === 1;
-      var name = p.sub ? (one ? p.sub : p.sub + ' · ' + (shortTitle(p.title) || rel)) : (shortTitle(p.title) || rel);
+      var name = pageName(p);
       b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.5h4.8l2.2 2.2v8.8h-7z"/><path d="M9 2.5v2.5h2.5"/></svg>' +
         '<span class="sk-page__t"><b>' + esc(name) + '</b><small>' + esc(rel.replace(/(^|\/)index\.html$/, '$1') || '/') + (p.isNew ? ' · nouvelle' : '') + '</small></span>' +
         (dirty ? '<span class="sk-page__dot" title="Modifications non publiées"></span>' : '');
@@ -531,6 +592,7 @@
   function openPage(path) {
     var p = pageByPath(path);
     if (!p) return;
+    closePageMenu();
     endEdit(false);
     sel = null; hover = null;
     var label = $('skBanner');
@@ -558,7 +620,7 @@
   /* ================================================================ artboards */
 
   function buildFrames() {
-    frames.forEach(function (f) { f.el.remove(); });
+    frames.forEach(function (f) { if (f.ro) f.ro.disconnect(); f.el.remove(); });
     frames = [];
     var world = $('skWorld');
     WIDTHS.filter(function (w) { return shown.indexOf(w.w) >= 0; }).forEach(function (w) {
@@ -567,7 +629,7 @@
       ab.innerHTML = '<div class="sk-ab__label"><b>' + w.name + '</b><span>' + w.w + NB + 'px</span></div>' +
         '<div class="sk-ab__frame" style="width:' + w.w + 'px;height:' + w.h + 'px"><iframe title="Aperçu ' + w.name + '" width="' + w.w + '" height="' + w.h + '" style="width:' + w.w + 'px;height:' + w.h + 'px"></iframe><div class="sk-ov"><div class="sk-box sk-box--hover" hidden></div><div class="sk-box sk-box--sel" hidden><span class="sk-box__tag"></span></div></div></div>';
       world.appendChild(ab);
-      var f = { key: String(w.w), w: w.w, h: w.h, el: ab, iframe: ab.querySelector('iframe'), ov: ab.querySelector('.sk-ov'), hbox: ab.querySelector('.sk-box--hover'), sbox: ab.querySelector('.sk-box--sel'), map: null, ready: false };
+      var f = { key: String(w.w), w: w.w, h: w.h, el: ab, iframe: ab.querySelector('iframe'), ov: ab.querySelector('.sk-ov'), hbox: ab.querySelector('.sk-box--hover'), sbox: ab.querySelector('.sk-box--sel'), map: null, ready: false, vh: w.h };
       frames.push(f);
       f.iframe.addEventListener('load', function () { frameLoaded(f); });
       loadFrame(f);
@@ -613,12 +675,61 @@
     f.map = C.align(cur.tree, fd);
     patchUploadsLive(f);
     installFrame(f);
+    fullHeight(f);
     f.ready = true;
     f.el.classList.remove('is-loading');
     if (sel && sel.frame === f) sel = null;
     paintBoxes();
     if (frames.every(function (x) { return x.ready; })) { refreshTree(); refreshPanel(); }
   }
+  /* The whole page in each artboard, like a design tool: the artboard grows to the page's height and
+     the canvas scrolls, instead of a screen-sized window to scroll inside. vh units are first frozen to
+     the device's screen height (390 × 844, 1440 × 900…), so a 100vh hero keeps its real size instead of
+     growing with the artboard. Watched while fonts and images arrive, and after each edit. */
+  var MAX_PAGE_H = 16000;
+  function freezeVh(f) {
+    var vh = f.vh, re = /(-?\d*\.?\d+)(?:s|d|l)?vh\b/g;
+    function fix(rules) {
+      for (var i = 0; i < rules.length; i++) {
+        var r = rules[i];
+        if (r.cssRules && r.cssRules.length) fix(r.cssRules);       // @media, @supports, @layer, nesting
+        var st = r.style;
+        if (!st) continue;
+        for (var j = 0; j < st.length; j++) {
+          var prop = st[j], v = st.getPropertyValue(prop);
+          if (v && /vh\b/.test(v)) st.setProperty(prop, v.replace(re, function (m, n) { return (parseFloat(n) * vh / 100) + 'px'; }), st.getPropertyPriority(prop));
+        }
+      }
+    }
+    Array.prototype.forEach.call(f.doc.styleSheets, function (sh) { try { fix(sh.cssRules); } catch (e) { /* a sheet from another origin (fonts) */ } });
+  }
+  function measure(f) {
+    if (!f.doc || !f.doc.documentElement) return;
+    var d = f.doc, b = d.body;
+    if (!b) return;
+    // the content's own height (not the artboard's), so the artboard can shrink after a deletion too
+    var H = b.getBoundingClientRect().top + (f.win.scrollY || 0) + b.scrollHeight + (parseFloat(f.win.getComputedStyle(b).marginBottom) || 0);
+    H = clamp(Math.ceil(H), f.vh, MAX_PAGE_H);
+    if (Math.abs(H - f.h) < 2) return;
+    f.h = H;
+    f.el.querySelector('.sk-ab__frame').style.height = H + 'px';
+    f.iframe.style.height = H + 'px';
+    f.iframe.setAttribute('height', H);
+    layout();
+  }
+  function fullHeight(f) {
+    try { freezeVh(f); } catch (e) { /* keep the screen height */ }
+    measure(f);
+    var raf = 0, again = function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { measure(f); }); };
+    try {
+      var RO = f.win.ResizeObserver || window.ResizeObserver;
+      if (f.ro) f.ro.disconnect();
+      if (RO && f.doc.body) { f.ro = new RO(again); f.ro.observe(f.doc.body); }
+    } catch (e) { /* ok */ }
+    f.win.addEventListener('load', again);
+    [400, 1200, 2500].forEach(function (t) { setTimeout(again, t); });
+  }
+
   function patchUploadsLive(f) {
     if (!uploads.size || !f.doc) return;
     f.doc.querySelectorAll('img[src], source[srcset]').forEach(function (el) {
@@ -638,7 +749,7 @@
     var ww = padX + frames.reduce(function (n, f) { return n + f.w; }, 0) + gap * (frames.length - 1);
     var wh = padY + 24 + Math.max.apply(null, frames.map(function (f) { return f.h; }));
     var z = zoom;
-    if (z == null) z = clamp(Math.min((stage.clientWidth - 16) / ww, (stage.clientHeight - 16) / wh), 0.1, 1);
+    if (z == null) z = clamp((stage.clientWidth - 16) / ww, 0.1, 1);   // fit the width: a long page scrolls on the canvas
     world.style.transform = 'scale(' + z + ')';
     world.style.setProperty('--inv', String(1 / z));
     sizer.style.width = Math.ceil(ww * z) + 'px';
@@ -1933,6 +2044,57 @@
   $('skModeNav').addEventListener('click', function () { setMode('nav'); });
   $('skUndo').addEventListener('click', undo);
   $('skRedo').addEventListener('click', redo);
+  /* ---------------------------------------------------------------- the rail */
+  function railShow(which) {
+    var wide = innerWidth >= 1200, skEl = $('sk');
+    var btns = doc.querySelectorAll('.sk-rail__btn[data-rail]');
+    var on = doc.querySelector('.sk-rail__btn[data-rail="' + which + '"]');
+    var open = wide ? !skEl.classList.contains('is-left-hidden') : skEl.classList.contains('is-left-open');
+    // clicking the active one folds the panel (like Figma); another one opens it on its part
+    var fold = open && on.getAttribute('aria-pressed') === 'true';
+    btns.forEach(function (b) { b.setAttribute('aria-pressed', String(!fold && b === on)); });
+    if (wide) skEl.classList.toggle('is-left-hidden', fold); else skEl.classList.toggle('is-left-open', !fold);
+    if (!wide) $('skPagesBtn').setAttribute('aria-expanded', String(!fold));
+    if (fold) { if (cur) layout(); return; }
+    if (cur) layout();
+    if (which === 'layers') { var t = $('skTree'); if (t) { t.scrollIntoView({ block: 'nearest' }); var r = t.querySelector('[role="treeitem"]'); if (r) r.focus(); } }
+    else { var f = $('skPageFind'); if (f) f.focus(); }
+  }
+  doc.querySelectorAll('.sk-rail__btn[data-rail]').forEach(function (b) { b.addEventListener('click', function () { railShow(b.getAttribute('data-rail')); }); });
+  function drawTheme() {
+    var dark = doc.documentElement.getAttribute('data-theme') === 'dark', b = $('skTheme');
+    if (!b) return;
+    b.querySelector('use').setAttribute('href', dark ? '#ic-sun' : '#ic-moon');
+    b.setAttribute('aria-label', dark ? 'Thème clair' : 'Thème sombre');
+    b.setAttribute('data-tip', dark ? 'Passer en thème clair' : 'Passer en thème sombre');
+  }
+  if ($('skTheme')) $('skTheme').addEventListener('click', function () {
+    var dark = doc.documentElement.getAttribute('data-theme') !== 'dark';
+    if (dark) doc.documentElement.setAttribute('data-theme', 'dark'); else doc.documentElement.removeAttribute('data-theme');
+    try { localStorage.setItem('jeere-studio-theme', dark ? 'dark' : 'light'); } catch (e) { /* ok */ }
+    drawTheme();
+  });
+  drawTheme();
+  (function () {
+    var btn = $('skLogo'), menu = $('skLogoMenu');
+    if (!btn || !menu) return;
+    function close() { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); doc.removeEventListener('pointerdown', out, true); }
+    function out(e) { if (!menu.contains(e.target) && !btn.contains(e.target)) close(); }
+    btn.addEventListener('click', function () {
+      if (!menu.hidden) { close(); return; }
+      menu.hidden = false; btn.setAttribute('aria-expanded', 'true');
+      var first = menu.querySelector('a'); if (first) first.focus();
+      doc.addEventListener('pointerdown', out, true);
+    });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+    menu.addEventListener('keydown', function (e) {
+      var items = Array.prototype.slice.call(menu.querySelectorAll('a')), k = items.indexOf(doc.activeElement);
+      if (e.key === 'Escape') { close(); btn.focus(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); items[(k + 1) % items.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(k - 1 + items.length) % items.length].focus(); }
+    });
+  })();
+
   $('skPagesBtn').addEventListener('click', function () { var o = $('sk').classList.toggle('is-left-open'); this.setAttribute('aria-expanded', String(o)); });
   $('skRightBtn') && $('skRightBtn').addEventListener('click', function () { var o = $('sk').classList.toggle('is-right-open'); this.setAttribute('aria-expanded', String(o)); });
   function closeDrawers() { $('sk').classList.remove('is-left-open'); $('skPagesBtn').setAttribute('aria-expanded', 'false'); }
