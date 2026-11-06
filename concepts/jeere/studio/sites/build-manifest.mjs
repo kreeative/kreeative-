@@ -48,8 +48,14 @@ function titleOf(branch, p) {
 }
 // E-commerce or not, from the pages themselves: a site that sells through Jeere (Jeere Connect: it loads
 // jeere-connect.js or marks a store with data-store) is a « Boutique en ligne », any other a « Site web ».
-// COMMERCE forces the answer for a site that sells some other way (none yet). Never guessed from a title.
-const COMMERCE = {};
+// COMMERCE forces the answer: the Jeere Connect sites (their storefront code is on the Jeere branch before it
+// reaches the branch kreeative.xyz serves) and The Ivory Sukundu (sells, its back office lives elsewhere).
+// Never guessed from a title.
+const COMMERCE = {
+  'concepts/joshua-cooker': true,
+  'concepts/sonia-luxury-hair': true,
+  'websites/the-ivory-sukundu': true,
+};
 function sellsOnJeere(branch, pages) {
   return pages.some((pg) => {
     try {

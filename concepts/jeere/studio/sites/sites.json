@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated": "2026-11-06T08:16:02.806Z",
+ "generated": "2026-11-06T20:45:38.448Z",
  "repo": "kreeative/kreeative-",
  "defaultBranch": "claude/kreeative-portfolio-design-n2a770",
  "defaultHead": "2fdd50f98aa221698eb44d3587190da6330296d0",
@@ -570,7 +570,7 @@
     "commit": "238cf58",
     "subject": "Add private Nanawax proposal page and email preview images"
    },
-   "local": true,
+   "local": false,
    "previewBase": null,
    "writable": [
     "concepts/joshua-cooker/"
@@ -583,7 +583,7 @@
      "url": "",
      "sha": "c0d0c1dad78796950823e9248dcd841a248fc3d3",
      "size": 26878,
-     "local": true
+     "local": false
     }
    ],
    "images": [
@@ -785,7 +785,7 @@
     "commit": "238cf58",
     "subject": "Add private Nanawax proposal page and email preview images"
    },
-   "local": true,
+   "local": false,
    "previewBase": null,
    "writable": [
     "concepts/sonia-luxury-hair/"
@@ -798,7 +798,7 @@
      "url": "",
      "sha": "7183f61376ebb762270af80042d8b285ad6f9e9c",
      "size": 40216,
-     "local": true
+     "local": false
     }
    ],
    "images": [
@@ -993,7 +993,7 @@
    "title": "The Ivory Sukundu",
    "kind": "client",
    "kindLabel": "Site client",
-   "commerce": false,
+   "commerce": true,
    "path": "websites/the-ivory-sukundu",
    "branch": "claude/add-tabouret-site",
    "onlyOnBranch": true,
