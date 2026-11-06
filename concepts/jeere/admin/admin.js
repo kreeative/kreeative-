@@ -3950,8 +3950,10 @@
       if (p1) { p1.textContent = 'Créer un compte'; p1.setAttribute('href', COMPTE_URL + '#inscription'); }
       if (p2) { p2.textContent = 'Se connecter'; p2.setAttribute('href', COMPTE_URL + '#connexion'); }
     }
+    // the cover: The Bakery (a picture in index.html); a live store is drawn only if that picture is gone
     let mini = null;
-    try { mini = S.config || D.defaultConfig('cocody', 'beauty'); } catch (e) { mini = null; }
+    if (!$('#a-gate-mini .a-mini__shot')) { try { mini = S.config || D.defaultConfig('cocody', 'beauty'); } catch (e) { mini = null; } }
+    if (!mini) { const st = $('#a-gate .a-gate__visual'); if (st) st.setAttribute('inert', ''); }
     if (mini && window.matchMedia && window.matchMedia('(min-width: 900px)').matches) {
       const stage = $('#a-gate .a-gate__visual');
       const screen = $('#a-gate-mini .a-mini__screen');

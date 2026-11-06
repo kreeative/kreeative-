@@ -1457,3 +1457,5 @@ a.a-proj__item { text-decoration: none; }
   .a-side__top { justify-content: center; }
   .a-side__top .a-logo { padding: 6px 12px; }
 }
+.a-mini__shot { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.a-gate__visual:has(.a-mini__shot) { background: #fdf7dc; }
