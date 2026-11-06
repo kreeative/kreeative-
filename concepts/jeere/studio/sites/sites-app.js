@@ -242,6 +242,8 @@
     var mf = fetch('sites.json', { cache: 'no-cache' }).then(function (r) { return r.json(); });
     Promise.all([mf, checkAccess()]).then(function (res) {
       M = res[0];
+      M.flat = M.sites;
+      M.sites = groupSites(M.sites);
       if (!res[1]) return;
       $('skWho').hidden = false;
       $('skWho').textContent = DEMO ? 'Mode démo' : who.email;
@@ -257,9 +259,43 @@
     if (m) {
       var s = M.sites.find(function (x) { return x.id === m[1]; });
       if (s) { openSite(s, m[2] || null); return; }
+      // an older link to a site that now lives inside a group (#/site/websites--tabouret): open the group on its page
+      var g = M.sites.find(function (x) { return x.members && x.members.indexOf(m[1]) >= 0; });
+      if (g) {
+        var first = g.pages.find(function (p) { return p.owner === m[1]; });
+        location.replace('#/site/' + g.id + '/' + (m[2] || (first && first.path) || ''));
+        return;
+      }
     }
     showHome();
   }
+
+  /* ================================================================ groups: one site, all its pages
+     kreeative.xyz is one website: its own pages, and the client sites, concepts and case studies that
+     live in its folders (websites/…, concepts/…, portfolio/…) on the same branch. They open as ONE site
+     whose page list is sorted in sections; a site that lives on another branch stays on its own. Each
+     page keeps its owner (the manifest's site id) for what is saved on this device and for its image folder. */
+  var SECTION = { kreeative: 'Pages du site', client: 'Sites clients', personal: 'Sites clients', concept: 'Concepts', portfolio: 'Études de cas' };
+  var SECTION_ORDER = ['Pages du site', 'Sites clients', 'Concepts', 'Études de cas'];
+  function groupSites(list) {
+    var main = list.find(function (x) { return x.kind === 'kreeative'; });
+    if (!main) return list;
+    var members = list.filter(function (x) { return x !== main && !x.onlyOnBranch && x.branch === main.branch && x.path; });
+    var g = JSON.parse(JSON.stringify(main));
+    g.title = 'Kreeative';
+    g.kindLabel = 'Studio de design';
+    g.members = [main.id].concat(members.map(function (x) { return x.id; }));
+    g.subsites = members.length;
+    g.pages = main.pages.map(function (p) { return Object.assign({}, p, { owner: main.id, section: SECTION.kreeative, uploads: main.uploads }); });
+    members.forEach(function (x) {
+      x.pages.forEach(function (p) {
+        g.pages.push(Object.assign({}, p, { owner: x.id, section: SECTION[x.kind] || 'Autres pages', sub: x.title.replace(/\s+·\s+.*$/, ''), subPath: x.path, uploads: x.uploads, subLive: x.liveUrl, subExternal: x.externalUrl }));
+      });
+      if (x.updated && x.updated.date && (!g.updated || !g.updated.date || x.updated.date > g.updated.date)) g.updated = x.updated;
+    });
+    return [g].concat(list.filter(function (x) { return x !== main && members.indexOf(x) < 0; }));
+  }
+  function ownerOf(path) { var p = pageByPath(path); return (p && p.owner) || (site && site.id); }
 
   /* ================================================================ home */
 
@@ -271,7 +307,12 @@
     $('skCrumbs').innerHTML = '<span>Mes sites</span>';
     DB.all().then(function (recs) {
       pendingBySite = new Map();
-      recs.forEach(function (r) { if (r.kind === 'page') pendingBySite.set(r.siteId, (pendingBySite.get(r.siteId) || 0) + 1); });
+      recs.forEach(function (r) {
+        if (r.kind !== 'page') return;
+        var g = M.sites.find(function (x) { return x.id === r.siteId || (x.members && x.members.indexOf(r.siteId) >= 0); });
+        var id = g ? g.id : r.siteId;
+        pendingBySite.set(id, (pendingBySite.get(id) || 0) + 1);
+      });
       renderGrid();
     });
     renderGrid();
@@ -280,7 +321,8 @@
     if (filter !== 'all' && s.kind !== filter && !(filter === 'client' && s.kind === 'personal')) return false;
     if (!query) return true;
     var q = query.toLowerCase();
-    return (s.title + ' ' + s.path + ' ' + s.kindLabel).toLowerCase().indexOf(q) >= 0;
+    var hay = s.title + ' ' + s.path + ' ' + s.kindLabel + ' ' + s.pages.map(function (p) { return (p.sub || '') + ' ' + p.title; }).join(' ');
+    return hay.toLowerCase().indexOf(q) >= 0;
   }
   function pageLiveUrl(s, p) {
     var u = p.path.replace(/(^|\/)index\.html$/, '$1');
@@ -308,6 +350,7 @@
         '<div class="sk-card__body">' +
         '<div class="sk-card__title">' + esc(s.title) + '</div>' +
         '<div class="sk-card__meta"><span>' + esc(s.kindLabel) + '</span><span>' + plural(s.pages.length, 'page', 'pages') + '</span>' +
+        (s.subsites ? '<span>dont ' + plural(s.subsites, 'projet client', 'projets clients, concepts et études de cas') + '</span>' : '') +
         (s.updated && s.updated.date ? '<span>Modifié le ' + esc(fmtDate(s.updated.date)) + '</span>' : '') + '</div>' +
         '<div class="sk-card__links">' +
         (s.liveUrl ? '<a href="' + esc(s.liveUrl) + '" target="_blank" rel="noopener" data-live>Voir en ligne ↗</a>' : '<span class="sk-note">Pas encore en ligne</span>') +
@@ -317,9 +360,9 @@
       card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.hash = '#/site/' + s.id; } });
       g.appendChild(card);
     });
-    $('skHomeFoot').textContent = list.length + ' sur ' + M.sites.length + ' sites · liste du ' + fmtDate(M.generated) + ' · dépôt ' + M.repo + ' (branche principale ' + M.defaultBranch + ')';
+    $('skHomeFoot').textContent = plural(list.length, 'site', 'sites') + (list.length !== M.sites.length ? ' sur ' + M.sites.length : '') + ' · liste du ' + fmtDate(M.generated) + ' · dépôt ' + M.repo + ' (branche principale ' + M.defaultBranch + ')';
   }
-  $('skFilter').addEventListener('click', function (e) {
+  if ($('skFilter')) $('skFilter').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-f]');
     if (!b) return;
     filter = b.getAttribute('data-f');
@@ -331,7 +374,7 @@
   /* ================================================================ opening a site and its pages */
 
   function pageByPath(p) { return site && site.pages.find(function (x) { return x.path === p; }); }
-  function docKey(s, p) { return s.id + '|' + p; }
+  function docKey(s, p) { return (ownerOf(p) || s.id) + '|' + p; }
 
   function openSite(s, pagePath) {
     var same = site && site.id === s.id;
@@ -344,9 +387,12 @@
     }
     setView('edit');
     var load = same ? Promise.resolve() : DB.all().then(function (recs) {
-      recs.filter(function (r) { return r.siteId === site.id; }).forEach(function (r) {
+      recs.filter(function (r) { return r.siteId === site.id || (site.members && site.members.indexOf(r.siteId) >= 0); }).forEach(function (r) {
         if (r.kind === 'page') {
-          if (r.isNew && !pageByPath(r.path)) site.pages.push({ path: r.path, title: r.title || r.path, url: '', sha: null, isNew: true, local: false, from: r.from });
+          if (r.isNew && !pageByPath(r.path)) {
+            var fromPg = r.from && pageByPath(r.from);
+            site.pages.push(Object.assign({}, fromPg ? { owner: fromPg.owner, section: fromPg.section, sub: fromPg.sub, subPath: fromPg.subPath, uploads: fromPg.uploads } : {}, { path: r.path, title: r.title || r.path, url: '', sha: null, isNew: true, local: false, from: r.from }));
+          }
           docs.set(r.path, { path: r.path, original: r.original, text: r.text, baseSha: r.baseSha, isNew: !!r.isNew, from: r.from, undo: [], redo: [], restored: true });
         } else if (r.kind === 'image') {
           var blob = new Blob([r.bytes], { type: r.mime });
@@ -408,12 +454,59 @@
     var h = ce('a', 'sk-crumbs__home', 'Mes sites'); h.href = '#/'; c.appendChild(h);
     c.appendChild(ce('i', null, '›'));
     var s = ce('span', null, esc(site.title)); c.appendChild(s);
+    if (cur && cur.page && cur.page.sub) { c.appendChild(ce('i', null, '›')); c.appendChild(ce('span', null, esc(cur.page.sub))); }
+    // the head of the left panel: back to all the sites, this site and its address
+    var head = $('skSiteHead');
+    if (head) {
+      var live = site.liveUrl || null;
+      head.innerHTML =
+        '<a class="sk-sitehead__all" href="#/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5L9 12l5.5 5.5"/></svg>Tous mes sites</a>' +
+        '<div class="sk-sitehead__row"><img class="sk-sitehead__img" alt="" src="' + esc(site.thumbnail) + '" onerror="this.remove()">' +
+        '<div class="sk-sitehead__t"><b>' + esc(site.title) + '</b>' +
+        (live ? '<a href="' + esc(live) + '" target="_blank" rel="noopener" data-tip="Ouvrir le site en ligne">' + esc(live.replace(/^https?:\/\//, '').replace(/\/$/, '')) + ' ↗</a>' : '<small>Pas encore en ligne</small>') +
+        '</div></div>';
+    }
   }
+  var pageQuery = '';
+  // a section opens with the page that is open in it; the others stay folded until clicked (remembered)
+  var sectionsOpen = (function () { try { return JSON.parse(localStorage.getItem('jeere-sites-sections-open')) || {}; } catch (e) { return {}; } })();
   function renderPages() {
     renderCrumbs();
     var box = $('skPages');
     box.innerHTML = '';
-    site.pages.forEach(function (p) {
+    var q = pageQuery.toLowerCase();
+    var list = site.pages.filter(function (p) { return !q || ((p.sub || '') + ' ' + p.title + ' ' + p.path).toLowerCase().indexOf(q) >= 0; });
+    var grouped = site.pages.some(function (p) { return p.section; });
+    var sections = grouped ? SECTION_ORDER.concat(list.map(function (p) { return p.section; }).filter(function (x, i, a) { return x && SECTION_ORDER.indexOf(x) < 0 && a.indexOf(x) === i; })) : [null];
+    if (!list.length) box.appendChild(ce('p', 'sk-pages__none', 'Aucune page ne correspond.'));
+    sections.forEach(function (sec) {
+      var items = list.filter(function (p) { return !grouped || p.section === sec; });
+      if (!items.length) return;
+      var target = box;
+      if (grouped) {
+        var hasCur = !!cur && items.some(function (p) { return p.path === cur.path; });
+        var shut = !q && !hasCur && !sectionsOpen[sec];
+        var head = ce('button', 'sk-pagesec');
+        head.type = 'button';
+        head.setAttribute('aria-expanded', String(!shut));
+        head.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4.5L9.5 8 6 11.5"/></svg><span>' + esc(sec) + '</span><small>' + items.length + '</small>';
+        head.addEventListener('click', function () {
+          var opening = head.getAttribute('aria-expanded') !== 'true';
+          if (opening) sectionsOpen[sec] = true; else delete sectionsOpen[sec];
+          try { localStorage.setItem('jeere-sites-sections-open', JSON.stringify(sectionsOpen)); } catch (e) { /* ok */ }
+          if (!opening && hasCur) { head.setAttribute('aria-expanded', 'false'); head.nextSibling.hidden = true; return; }
+          renderPages();
+        });
+        box.appendChild(head);
+        target = ce('div', 'sk-pagesec__list');
+        target.hidden = shut;
+        box.appendChild(target);
+      }
+      items.forEach(function (p) { target.appendChild(pageRow(p)); });
+    });
+  }
+  function pageRow(p) {
+    {
       var b = ce('button', 'sk-page');
       b.type = 'button';
       b.setAttribute('role', 'option');
@@ -421,14 +514,18 @@
       b.setAttribute('aria-selected', String(!!cur && cur.path === p.path));
       var d = docs.get(p.path);
       var dirty = d && (d.isNew || d.text !== d.original);
-      var rel = site.path ? p.path.slice(site.path.length + 1) : p.path;
+      var rel = p.subPath ? p.path : (site.path ? p.path.slice(site.path.length + 1) : p.path);
+      // a client site or concept with one page: its name; with several, « Name · page title »
+      var one = p.sub && site.pages.filter(function (x) { return x.owner === p.owner; }).length === 1;
+      var name = p.sub ? (one ? p.sub : p.sub + ' · ' + (shortTitle(p.title) || rel)) : (shortTitle(p.title) || rel);
       b.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.5h4.8l2.2 2.2v8.8h-7z"/><path d="M9 2.5v2.5h2.5"/></svg>' +
-        '<span class="sk-page__t"><b>' + esc(shortTitle(p.title) || rel) + '</b><small>' + esc(rel) + (p.isNew ? ' · nouvelle' : '') + '</small></span>' +
+        '<span class="sk-page__t"><b>' + esc(name) + '</b><small>' + esc(rel.replace(/(^|\/)index\.html$/, '$1') || '/') + (p.isNew ? ' · nouvelle' : '') + '</small></span>' +
         (dirty ? '<span class="sk-page__dot" title="Modifications non publiées"></span>' : '');
       b.addEventListener('click', function () { location.hash = '#/site/' + site.id + '/' + p.path; closeDrawers(); });
-      box.appendChild(b);
-    });
+      return b;
+    }
   }
+  if ($('skPageFind')) $('skPageFind').addEventListener('input', function () { pageQuery = this.value.trim(); renderPages(); });
   function shortTitle(t) { return String(t || '').replace(/\s+[—|·-]\s+(Kreeative|kreeative)\s*$/, '').trim(); }
 
   function openPage(path) {
@@ -797,7 +894,7 @@
     docs.forEach(function (d) {
       var key = docKey(site, d.path);
       if (d.isNew || d.text !== d.original) {
-        all.push(DB.put({ key: key, kind: 'page', siteId: site.id, path: d.path, text: d.text, original: d.original, baseSha: d.baseSha, isNew: d.isNew, from: d.from || null, title: (d.page && d.page.title) || '', at: Date.now() }));
+        all.push(DB.put({ key: key, kind: 'page', siteId: ownerOf(d.path), path: d.path, text: d.text, original: d.original, baseSha: d.baseSha, isNew: d.isNew, from: d.from || null, title: (d.page && d.page.title) || '', at: Date.now() }));
       } else all.push(DB.del(key));
     });
     var refd = referencedUploads();
@@ -1057,7 +1154,7 @@
     prepareImage(file).then(function (img) {
       return C.gitBlobSha(img.bytes).then(function (sha) {
         var base = C.slugify(file.name.replace(/\.[a-z0-9]+$/i, '')) || 'image';
-        var path = site.uploads + base + '-' + sha.slice(0, 8) + img.ext;
+        var path = ((cur && cur.page && cur.page.uploads) || site.uploads) + base + '-' + sha.slice(0, 8) + img.ext;
         if (!uploads.has(path)) uploads.set(path, { bytes: img.bytes, mime: img.mime, url: URL.createObjectURL(new Blob([img.bytes], { type: img.mime })) });
         var rel = C.relPath(cur.path, path);
         if (target.bg) setBackground(target.src, rel, uploads.get(path).url);
@@ -1216,7 +1313,8 @@
         hits.forEach(function (e) { text = C.setAttr(text, e, e.tag === 'link' ? 'href' : 'content', newUrl); });
       }
       var from = cur.page.from || cur.path;
-      site.pages.push({ path: path, title: title, url: '', sha: null, isNew: true, local: false, from: from });
+      var cp = cur.page || {};   // the copy sits next to its model: same section, same client site, same image folder
+      site.pages.push({ path: path, title: title, url: '', sha: null, isNew: true, local: false, from: from, owner: cp.owner, section: cp.section, sub: cp.sub, subPath: cp.subPath, uploads: cp.uploads });
       docs.set(path, { path: path, original: '', text: text, tree: C.parse(text), baseSha: null, isNew: true, from: from, undo: [], redo: [] });
       closeModal();
       persist();
@@ -1915,7 +2013,7 @@
   $('skChanges').addEventListener('click', showChanges);
   function discardAll() {
     docs.forEach(function (d) { DB.del(docKey(site, d.path)); });
-    uploads.forEach(function (u, p) { DB.del(site.id + '|img|' + p); });
+    uploads.forEach(function (u, p) { (site.members || [site.id]).forEach(function (id) { DB.del(id + '|img|' + p); }); });
     closeModal();
     var id = site.id, p = cur && !cur.isNew ? cur.path : null;
     site = null;
@@ -1972,7 +2070,7 @@
     markPublished: markPublished, pageLiveUrl: function (p) { return pageLiveUrl(site, p || cur.page); },
     addPage: addPage, openPage: function (p) { location.hash = '#/site/' + site.id + '/' + p; },
     who: function () { return who; }, callFn: callFn, sessionToken: sessionToken,
-    toast: toast, openModal: openModal, closeModal: closeModal, fileRows: fileRows, esc: esc, ce: ce, plural: plural,
+    fmtDate: fmtDate, toast: toast, openModal: openModal, closeModal: closeModal, fileRows: fileRows, esc: esc, ce: ce, plural: plural,
     setMode: setMode, uploads: function () { return Array.from(uploads.keys()); }
   };
 

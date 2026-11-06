@@ -44,7 +44,8 @@
     var blob = new Blob([bytes], { type: 'application/zip' });
     var a = doc.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'kreeative-' + (C.slugify(site.title) || site.id) + '-' + stamp(new Date()) + '.zip';
+    var slug = C.slugify(site.title) || site.id;
+    a.download = 'kreeative-' + (slug === 'kreeative' ? '' : slug + '-') + stamp(new Date()) + '.zip';
     doc.body.appendChild(a);
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
@@ -56,14 +57,21 @@
     var site = A.site();
     if (!site) return;
     var list = A.changes();
-    if (!list.length) {
-      A.openModal('Publier', '<p>Rien à publier : aucune modification sur ce site.</p><div class="sk-actions"><button class="sk-primary" type="button" data-close>OK</button></div>');
-      return;
-    }
     var M = A.manifest();
     var isDefault = site.branch === M.defaultBranch;
     var box = A.ce('div');
-    box.innerHTML = '<p>' + A.plural(list.length, 'fichier part', 'fichiers partent') + ' en <b>une seule</b> publication. Tout le reste du site reste identique.</p>';
+    box.appendChild(head(site, list));
+    if (!list.length) {
+      // nothing new: the site, its address and its state, and a way to open it
+      var none = A.ce('div');
+      none.innerHTML = '<p>Le site en ligne est à jour : aucune modification à publier. Modifiez une page, puis revenez ici.</p>' +
+        '<div class="sk-actions"><button class="sk-ghost" type="button" data-close>Fermer</button>' +
+        (site.liveUrl ? '<a class="sk-primary sk-btnlink" href="' + A.esc(site.liveUrl) + '" target="_blank" rel="noopener">Voir le site ↗</a>' : '') + '</div>';
+      box.appendChild(none);
+      A.openModal('Publier', box, { width: '560px' });
+      return;
+    }
+    box.appendChild(A.ce('p', null, A.plural(list.length, 'fichier part', 'fichiers partent') + ' en <b>une seule</b> publication. Tout le reste du site reste identique.'));
     box.appendChild(A.fileRows(list, true));
     var draftName = 'studio/brouillon-' + (C.slugify(site.id).slice(0, 30) || 'site') + '-' + stamp(new Date());
     var dest = A.ce('div', 'sk-dest');
@@ -106,6 +114,35 @@
       A.toast('Fichiers téléchargés (.zip) : à déposer à leur place sur github.com (Add file › Upload files).', 'ok');
     });
     $('skGo').addEventListener('click', function () { send(site, chosen(), target()); });
+  }
+
+  // The top of the dialog: the site, its address (to open or copy), the open page, and where it stands
+  function head(site, list) {
+    var A = S();
+    var live = site.liveUrl || null;
+    var page = A.pageLiveUrl();
+    var h = A.ce('div');
+    var bar = A.ce('div', 'sk-pubhead');
+    var state = !live ? '<i class="is-off"></i>Pas encore en ligne' + (site.onlyOnBranch ? ' · branche ' + A.esc(site.branch) : '') :
+      list.length ? '<i class="is-warn"></i>En ligne · ' + A.plural(list.length, 'modification non publiée', 'modifications non publiées') :
+      '<i></i>En ligne · à jour';
+    bar.innerHTML = '<img class="sk-pubhead__img" alt="" src="' + A.esc(site.thumbnail) + '" onerror="this.remove()">' +
+      '<div class="sk-pubhead__t"><b>' + A.esc(site.title) + '</b>' +
+      (live ? '<div class="sk-pubhead__url"><a href="' + A.esc(live) + '" target="_blank" rel="noopener">' + A.esc(live.replace(/^https?:\/\//, '').replace(/\/$/, '')) + ' ↗</a>' +
+        '<button class="sk-linkbtn" type="button" data-copy>Copier le lien</button></div>' : '') +
+      '<div class="sk-pubhead__state">' + state + (site.updated && site.updated.date ? ' · dernière mise à jour le ' + A.esc(A.fmtDate(site.updated.date)) : '') + '</div></div>';
+    h.appendChild(bar);
+    if (page && page !== live) {
+      var cur = A.page();
+      h.appendChild(A.ce('p', 'sk-pubpage', 'Page ouverte : <a href="' + A.esc(page) + '" target="_blank" rel="noopener">' + A.esc(page.replace(/^https?:\/\//, '')) + ' ↗</a>' + (cur && cur.isNew ? ' (pas encore publiée)' : '')));
+    }
+    var cp = bar.querySelector('[data-copy]');
+    if (cp) cp.addEventListener('click', function () {
+      var done = function () { cp.textContent = 'Copié'; setTimeout(function () { cp.textContent = 'Copier le lien'; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(live).then(done, function () { A.toast(live, 'info'); });
+      else A.toast(live, 'info');
+    });
+    return h;
   }
 
   function show(html) { var s = $('skPubStatus'); if (s) s.innerHTML = html; }

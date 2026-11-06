@@ -82,16 +82,9 @@
       <div class="sk-home__head">
         <div>
           <h1 id="skHomeTitle">Mes sites</h1>
-          <p class="sk-home__sub">Tous les sites web que vous avez faits. Ouvrez-en un, modifiez-le sur place, publiez quand vous voulez.</p>
+          <p class="sk-home__sub">Tous vos sites web. Ouvrez-en un : toutes ses pages sont à gauche, modifiez sur place, publiez quand vous voulez.</p>
         </div>
         <div class="sk-home__tools">
-          <div class="sk-seg" id="skFilter" role="group" aria-label="Filtrer">
-            <button type="button" data-f="all" aria-pressed="true">Tous</button>
-            <button type="button" data-f="client" aria-pressed="false">Sites clients</button>
-            <button type="button" data-f="concept" aria-pressed="false">Concepts</button>
-            <button type="button" data-f="portfolio" aria-pressed="false">Études de cas</button>
-            <button type="button" data-f="kreeative" aria-pressed="false">kreeative.xyz</button>
-          </div>
           <input class="sk-search" id="skSearch" type="search" placeholder="Rechercher un site…" aria-label="Rechercher un site" autocomplete="off" spellcheck="false">
         </div>
       </div>
@@ -102,8 +95,10 @@
     <!-- ============================================================ the editor -->
     <div class="sk-ed" id="skEditor" hidden>
       <aside class="sk-left" id="skLeft" aria-label="Pages et structure">
-        <div class="sk-left__sec">
-          <div class="sk-left__head"><span>Pages</span><button class="sk-linkbtn" id="skAddPage" type="button" data-tip="Copie la page ouverte sous un nouveau nom">Dupliquer la page</button></div>
+      <div class="sk-sitehead" id="skSiteHead"></div>
+      <div class="sk-left__sec sk-left__sec--pages">
+        <div class="sk-left__head"><span>Pages</span><button class="sk-linkbtn" id="skAddPage" type="button" data-tip="Copie la page ouverte sous un nouveau nom">Dupliquer la page</button></div>
+        <input class="sk-pagefind" id="skPageFind" type="search" placeholder="Chercher une page…" aria-label="Chercher une page" autocomplete="off" spellcheck="false">
           <div class="sk-pages" id="skPages" role="listbox" aria-label="Pages du site"></div>
         </div>
         <div class="sk-left__sec sk-left__sec--grow">
