@@ -935,4 +935,14 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
   .bt__stage.is-done ~ .bt__copy :is(.eyebrow, .bt__t1, .bt__t2, .lead, .bt__acts),
   .bt.is-focus .bt__stage ~ .bt__copy :is(.eyebrow, .bt__t1, .bt__t2, .lead, .bt__acts) { opacity: 1; transform: none; }
 }
-}
+
+/* ------------------------------------------------------------------ contact */
+.contact__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.contact__card { display: grid; align-content: start; gap: 6px; height: 100%; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-lg); color: var(--ink); text-decoration: none; background: var(--paper); transition: border-color .15s, transform .15s; }
+.contact__card:hover { border-color: var(--ink); transform: translateY(-2px); }
+.contact__card .ico { width: 26px; height: 26px; margin-bottom: 6px; }
+.contact__t { font-weight: 600; font-size: 18px; }
+.contact__d { color: var(--muted); font-size: 15.5px; line-height: 1.5; }
+.contact__mail { margin-top: 22px; color: var(--muted); }
+.contact__mail a { color: var(--ink); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .contact__card { transition: none; } .contact__card:hover { transform: none; } }

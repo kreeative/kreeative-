@@ -1,0 +1,49 @@
+/* Jeere — legal pages (mentions légales, confidentialité). On top of ../style.css. */
+.lg { background: var(--paper); color: var(--ink); }
+.lg-head { border-bottom: 1px solid var(--line); background: var(--paper); }
+.lg-head__in { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: var(--head-h); }
+.lg-head .logo__cloud { width: 46px; height: auto; display: block; color: var(--ink); }
+.lg-nav { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 15px; }
+.lg-nav a { color: var(--ink); text-decoration: none; padding: 10px 0; }
+.lg-nav a:hover { text-decoration: underline; }
+.lg-nav a[aria-current="page"] { font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+
+.lg-main { padding: 48px 0 72px; }
+.lg-doc { max-width: 720px; }
+.lg-doc h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.12; font-weight: 600; letter-spacing: -.02em; }
+.lg-doc .lg-date { margin-top: 12px; color: var(--muted); font-size: 15px; }
+.lg-draft { margin: 24px 0 8px; padding: 14px 16px; border: 1.5px dashed var(--ink); border-radius: var(--r); background: var(--grey-1); font-size: 15px; line-height: 1.5; }
+.lg-draft strong { font-weight: 600; }
+.lg-toc { margin: 28px 0 8px; padding: 18px 20px; background: var(--grey-1); border-radius: var(--r); }
+.lg-toc p { font-weight: 600; font-size: 15px; }
+.lg-toc ol { margin: 8px 0 0; padding-left: 1.3em; display: grid; gap: 4px; font-size: 15px; }
+.lg-toc a { color: var(--ink); }
+.lg-doc h2 { margin-top: 44px; font-size: clamp(21px, 3vw, 25px); line-height: 1.25; font-weight: 600; scroll-margin-top: 24px; }
+.lg-doc h3 { margin-top: 22px; font-size: 17px; font-weight: 600; }
+.lg-doc p, .lg-doc li { font-size: 16.5px; line-height: 1.65; text-wrap: pretty; }
+.lg-doc p { margin-top: 12px; }
+.lg-doc ul { margin: 10px 0 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.lg-doc a { color: var(--ink); text-underline-offset: 3px; }
+.lg-doc dl { margin-top: 14px; display: grid; grid-template-columns: minmax(0, 12em) minmax(0, 1fr); border-top: 1px solid var(--line); }
+.lg-doc dt, .lg-doc dd { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 16px; line-height: 1.5; }
+.lg-doc dt { color: var(--muted); padding-right: 16px; }
+@media (max-width: 560px) {
+  .lg-doc dl { grid-template-columns: 1fr; }
+  .lg-doc dt { border-bottom: 0; padding-bottom: 0; }
+}
+.lg-doc table { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 15px; line-height: 1.45; }
+.lg-doc th, .lg-doc td { text-align: left; vertical-align: top; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); }
+.lg-doc th { font-weight: 600; }
+.lg-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.lg-scroll table { min-width: 560px; }
+/* « [À compléter] » : what the founder (and a lawyer) must fill in before launch */
+.todo { background: #FFE8A3; color: var(--ink); padding: 0 .25em; border-radius: 4px; font-style: normal; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+
+.lg-foot { border-top: 1px solid var(--line); padding: 28px 0 40px; font-size: 14px; color: var(--muted); }
+.lg-foot nav { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 10px; }
+.lg-foot a { color: var(--ink); padding: 8px 0; display: inline-block; }
+@media (max-width: 520px) {
+  .lg-head__in { flex-wrap: wrap; gap: 0 12px; padding-top: 6px; padding-bottom: 6px; }
+  .lg-nav { gap: 2px 14px; font-size: 14.5px; }
+  .lg-head .logo__cloud { width: 40px; }
+}

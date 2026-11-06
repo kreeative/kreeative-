@@ -8,7 +8,7 @@
       "headers": { "Location": "/$1" }
     },
     {
-      "src": "^/(creer|admin|compte|abonnements|studio|b)$",
+      "src": "^/(creer|admin|compte|abonnements|studio|b|mentions-legales|confidentialite)$",
       "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
       "status": 308,
       "headers": { "Location": "/$1/" }

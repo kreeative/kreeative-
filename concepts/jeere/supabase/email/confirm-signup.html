@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
+<title>Bienvenue sur Jeere</title>
+<!-- Jeere — Confirm signup. Paste into Supabase › Authentication › Emails. Inline styles, tables, no web font: it reads the same in Gmail, Outlook and Apple Mail. -->
+</head>
+<body style="margin:0;padding:0;background-color:#F3EEE4;-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F3EEE4;">Votre code pour créer votre compte Jeere.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F3EEE4;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background-color:#FFFFFF;border-radius:20px;">
+        <tr>
+          <td align="left" style="padding:32px 32px 8px 32px;">
+            <a href="https://jeere.kreeative.xyz/" style="text-decoration:none;"><img src="https://jeere.kreeative.xyz/img/brand/email-logo.png" width="152" height="48" alt="Jeere" style="display:block;border:0;width:152px;height:auto;"></a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 32px 0 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111111;">
+            <h1 style="margin:0 0 12px 0;font-size:24px;line-height:1.25;font-weight:700;color:#111111;">Bienvenue sur Jeere</h1>
+            <p style="margin:0;font-size:16px;line-height:1.55;color:#111111;">Bonjour{{ if .Data.first_name }} {{ .Data.first_name }}{{ end }}, voici votre code pour créer votre compte. Tapez-le (ou collez-le) sur la page Jeere restée ouverte.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 32px 0 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F3EEE4;border-radius:14px;">
+              <tr>
+                <td align="center" style="padding:20px 12px 8px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.4;color:#5E5E5E;">Votre code</td>
+              </tr>
+              <tr>
+                <td align="center" style="padding:0 12px 20px 12px;font-family:'SFMono-Regular',Menlo,Consolas,'Courier New',monospace;font-size:34px;line-height:1.2;font-weight:700;letter-spacing:6px;color:#111111;">{{ .Token }}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px 0 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#111111;">
+            <p style="margin:0 0 12px 0;">Ensuite, choisissez le nom de votre boutique&nbsp;: elle est en ligne en quelques minutes.</p>
+            <p style="margin:0;color:#5E5E5E;">Ce code est valable 1&nbsp;heure. Si vous n’avez rien demandé, ignorez cet e-mail&nbsp;: personne ne peut entrer sans ce code.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 32px 32px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr><td style="border-top:1px solid #EBEBE8;font-size:0;line-height:0;">&nbsp;</td></tr>
+              <tr>
+                <td style="padding-top:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#5E5E5E;">
+                  Jeere, du comptoir à Internet.<br>
+                  Une question&nbsp;? Écrivez à <a href="mailto:annklyy@gmail.com?subject=Jeere" style="color:#111111;">annklyy@gmail.com</a>.<br>
+                  <a href="https://jeere.kreeative.xyz/" style="color:#111111;">jeere.kreeative.xyz</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
