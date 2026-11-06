@@ -297,6 +297,13 @@
     });
     return [g].concat(list.filter(function (x) { return x !== main && members.indexOf(x) < 0; }));
   }
+  // A branch as the founder reads it: the live one is « kreeative.xyz », the others a plain name, without
+  // the tooling prefix and the random suffix (« aissa-kee-personal-brand »)
+  function branchLabel(b) {
+    b = String(b || '');
+    if (M && b === M.defaultBranch) return 'la version en ligne (kreeative.xyz)';
+    return b.replace(/^[a-z]+\//, '').replace(/-[a-z0-9]{6}$/, '').replace(/-/g, ' ') || 'une version de travail';
+  }
   function pageSrc(p) { return (p && p.src) || site; }   // the branch a page lives on (a group can span two)
   function ownerOf(path) { var p = pageByPath(path); return (p && p.owner) || (site && site.id); }
 
@@ -346,7 +353,7 @@
       var pend = pendingBySite.get(s.id) || 0;
       var badges = '';
       if (pend) badges += '<span class="sk-badge sk-badge--warn">' + plural(pend, 'page modifiée', 'pages modifiées') + '</span>';
-      if (s.onlyOnBranch) badges += '<span class="sk-badge sk-badge--info" title="' + esc(s.branch) + '">Branche ' + esc(s.branch.replace(/^claude\//, '').replace(/-[a-z0-9]{6}$/, '')) + '</span>';
+      if (s.onlyOnBranch) badges += '<span class="sk-badge sk-badge--info" title="' + esc(branchLabel(s.branch)) + '">Version de travail · ' + esc(branchLabel(s.branch)) + '</span>';
       card.innerHTML =
         '<div class="sk-card__shot"><img loading="lazy" alt="" src="' + esc(s.thumbnail) + '" onerror="var p=this.parentNode;this.remove();p.classList.add(\'sk-card__shot--none\');p.insertAdjacentText(\'afterbegin\',\'Pas encore d’aperçu\')">' +
         '<div class="sk-card__badges">' + badges + '</div></div>' +
@@ -363,7 +370,7 @@
       card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.hash = '#/site/' + s.id; } });
       g.appendChild(card);
     });
-    $('skHomeFoot').textContent = plural(list.length, 'site', 'sites') + (list.length !== M.sites.length ? ' sur ' + M.sites.length : '') + ' · liste du ' + fmtDate(M.generated) + ' · dépôt ' + M.repo + ' (branche principale ' + M.defaultBranch + ')';
+    $('skHomeFoot').textContent = plural(list.length, 'site', 'sites') + (list.length !== M.sites.length ? ' sur ' + M.sites.length : '') + ' · liste du ' + fmtDate(M.generated) + '';
   }
   if ($('skFilter')) $('skFilter').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-f]');
@@ -608,8 +615,8 @@
       renderPages();
       buildFrames();
       refreshAll();
-      if (d.stale) banner('Cette copie de la page diffère de la version de la branche ' + pageSrc(p).branch + ' enregistrée dans la liste : la publication vérifiera qu’elle n’a pas changé entre-temps.', 'warn');
-      else if (pageSrc(p).onlyOnBranch) banner((p.sub ? '« ' + p.sub + ' » n’est' : 'Ce site n’est') + ' pas encore sur kreeative.xyz : il vit sur la branche ' + pageSrc(p).branch + ', s’affiche depuis GitHub, et sa publication va sur cette branche.', 'info');
+      if (d.stale) banner('Cette copie de la page diffère de ' + branchLabel(pageSrc(p).branch) + ' enregistrée dans la liste : la publication vérifiera qu’elle n’a pas changé entre-temps.', 'warn');
+      else if (pageSrc(p).onlyOnBranch) banner((p.sub ? '« ' + p.sub + ' » n’est' : 'Ce site n’est') + ' pas encore sur kreeative.xyz : il vit dans une version de travail (« ' + branchLabel(pageSrc(p).branch) + ' »), et ses publications vont là, sans toucher au site en ligne.', 'info');
     }, function (e) {
       banner('La page « ' + path + ' » n’a pas pu être lue (' + (e && e.message) + ').', 'warn');
     });
@@ -2214,6 +2221,7 @@
 
   /* ================================================================ public API (publish module + tests) */
 
+  window.JeereSitesBranchLabel = branchLabel;
   window.JeereSites = {
     demo: DEMO, local: LOCAL, root: ROOT,
     config: CFG,

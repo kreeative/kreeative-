@@ -77,11 +77,11 @@
     var dest = A.ce('div', 'sk-dest');
     dest.innerHTML =
       '<label><b><input type="radio" name="skTarget" value="live" checked> Mettre en ligne</b><small>' +
-      (isDefault ? 'Sur la branche principale (' + A.esc(site.branch) + ') : kreeative.xyz se met à jour en une ou deux minutes.' : 'Sur la branche ' + A.esc(site.branch) + ', la seule où vit ce site (aperçu Vercel).') + '</small></label>' +
-      '<label><b><input type="radio" name="skTarget" value="draft"> Brouillon</b><small>Sur une branche à part, créée depuis ' + A.esc(site.branch) + ' : Vercel en fait un aperçu, le site en ligne ne change pas.</small></label>';
+      (isDefault ? 'Sur kreeative.xyz : le site se met à jour en une ou deux minutes.' : 'Dans ' + A.esc(bl(site.branch)) + ', la seule où vit ce site (aperçu Vercel).') + '</small></label>' +
+      '<label><b><input type="radio" name="skTarget" value="draft"> Brouillon</b><small>Une copie à part de ' + A.esc(bl(site.branch)) + ' : Vercel en fait un aperçu, le site en ligne ne change pas.</small></label>';
     box.appendChild(dest);
     var bwrap = A.ce('label', 'sk-field');
-    bwrap.innerHTML = '<span>Nom de la branche du brouillon</span><input class="sk-input" id="skDraft" spellcheck="false" autocomplete="off">';
+    bwrap.innerHTML = '<span>Nom du brouillon</span><input class="sk-input" id="skDraft" spellcheck="false" autocomplete="off">';
     bwrap.hidden = true;
     box.appendChild(bwrap);
     var msg = A.ce('label', 'sk-field');
@@ -123,7 +123,7 @@
     var page = A.pageLiveUrl();
     var h = A.ce('div');
     var bar = A.ce('div', 'sk-pubhead');
-    var state = !live ? '<i class="is-off"></i>Pas encore en ligne' + (site.onlyOnBranch ? ' · branche ' + A.esc(site.branch) : '') :
+    var state = !live ? '<i class="is-off"></i>Pas encore en ligne' + (site.onlyOnBranch ? ' · ' + A.esc(bl(site.branch)) : '') :
       list.length ? '<i class="is-warn"></i>En ligne · ' + A.plural(list.length, 'modification non publiée', 'modifications non publiées') :
       '<i></i>En ligne · à jour';
     bar.innerHTML = '<img class="sk-pubhead__img" alt="" src="' + A.esc(site.thumbnail) + '" onerror="this.remove()">' +
@@ -147,6 +147,7 @@
 
   // several branches in one go (Kreeative and a client site not on kreeative.xyz yet): one status line each
   var multi = null;
+  function bl(b) { return (window.JeereSitesBranchLabel || function (x) { return x; })(b); }
   function show(html) { var s = $('skPubStatus'); if (!s) return; if (multi) { var d = multi.lines[multi.k]; if (!d) { d = multi.lines[multi.k] = S().ce('div'); s.appendChild(d); } d.innerHTML = html; } else s.innerHTML = html; }
   function busy(on) { var g = $('skGo'); if (g) { g.disabled = on; g.innerHTML = on ? '<span class="sk-spin"></span> Publication…' : 'Réessayer'; } }
 
@@ -208,7 +209,7 @@
     var code = r.code || '', st = r.httpStatus;
     if (code === 'github_not_connected' || st === 503) {
       show('<div class="sk-alert sk-alert--warn"><div><b>GitHub pas encore connecté.</b> La publication directe attend le jeton GitHub (une seule fois, quelques minutes) :</div></div>' + setupSteps() +
-        '<p class="sk-note">En attendant : « Télécharger les fichiers (.zip) », puis sur github.com › kreeative/kreeative- › branche ' + A.esc(site.branch) + ' › Add file › Upload files, en gardant les dossiers.</p>');
+        '<p class="sk-note">En attendant : « Télécharger les fichiers (.zip) », puis sur github.com › kreeative/kreeative- › ' + A.esc(bl(site.branch)) + ' › Add file › Upload files, en gardant les dossiers.</p>');
       return;
     }
     if (st === 401 || code === 'no_session') {
@@ -227,14 +228,14 @@
   function done(site, r, body) {
     var A = S();
     var live = body.target === 'live' && site.branch === A.manifest().defaultBranch ? A.pageLiveUrl() : null;
-    show('<div class="sk-alert sk-alert--ok"><div><b>Publié.</b> ' + A.plural(r.files.filter(function (f) { return f.status !== 'unchanged'; }).length, 'fichier', 'fichiers') + ' dans un seul commit sur <code>' + A.esc(r.branch) + '</code>' + (r.created ? ' (branche créée)' : '') + '. ' +
+    show('<div class="sk-alert sk-alert--ok"><div><b>Publié.</b> ' + A.plural(r.files.filter(function (f) { return f.status !== 'unchanged'; }).length, 'fichier', 'fichiers') + ' en une seule publication' + (r.created ? ' (brouillon créé)' : '') + '. ' +
       '<a href="' + A.esc(r.commit.url) + '" target="_blank" rel="noopener">Voir le commit</a>' +
       (live ? ' · <a href="' + A.esc(live) + '" target="_blank" rel="noopener">Voir la page en ligne ↗</a>' : '') +
       '<div class="sk-note" id="skDeploy" style="margin-top:4px">Vercel : en attente du déploiement…</div></div></div>');
     var g = $('skGo');
     if (g) { var g2 = g.cloneNode(false); g2.textContent = 'Fermer'; g2.disabled = false; g.replaceWith(g2); g2.addEventListener('click', function () { A.closeModal(); }); }
     A.markPublished(r.files, body.target);
-    A.toast(body.target === 'draft' ? 'Brouillon publié sur ' + r.branch + '.' : 'Publié sur ' + r.branch + '.', 'ok');
+    A.toast(body.target === 'draft' ? 'Brouillon publié.' : 'Publié.', 'ok');
     pollDeploy(r.commit.sha, 0);
   }
   function pollDeploy(sha, n) {
