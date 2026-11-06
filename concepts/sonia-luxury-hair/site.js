@@ -21,7 +21,14 @@
     if (q) return q[1];
     try { return localStorage.getItem('slh-lang'); } catch (e) { return null; }
   }
-  function nameOf(p) { return t('n.' + p.getAttribute('data-id')); }
+  // Jeere Connect (jeere-connect.js, loaded just before this file): the shop's names, prices and the bag come
+  // from the Jeere store « sonia-luxury-hair ». Without it (not loaded), the page works as before, on its own prices.
+  var JC = window.JeereConnect || null;
+  if (JC) JC.formatPrice = function (v) { return numbers ? price(v) : ''; };
+  // The fiche is written in French: in English the page keeps its own translations
+  function jeereOf(p) { return JC && lang === 'fr' && p ? JC.product(p.getAttribute('data-jeere-product')) : null; }
+  function nameOf(p) { var j = jeereOf(p); return (j && j.name) || t('n.' + p.getAttribute('data-id')); }
+  function metaOf(p) { var j = jeereOf(p); return (j && j.description) || t('m.' + p.getAttribute('data-id')); }
 
   function applyLang(next) {
     lang = next === 'en' ? 'en' : 'fr';
@@ -43,6 +50,7 @@
     });
     $$('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false'); });
     renderWish();
+    if (JC) JC.refresh(); // the shop's names and prices again, over the strings just written
     renderBag();
     renderLength(false);
     if (newsMsg && newsMsg.getAttribute('data-key')) newsMsg.textContent = t(newsMsg.getAttribute('data-key'));
@@ -114,7 +122,8 @@
     });
   });
 
-  // Bag: a drawer that adds up the pieces. Nothing is sent, stored or charged.
+  // Bag: a drawer that adds up the pieces. With Jeere Connect it is the Jeere cart (kept on this device, one
+  // line per product) and « Passer la commande » opens the store's Jeere cart; without it, it only adds up here.
   var FREE_DELIVERY = 100000;
   var bag = [];
   var bagEl = $('#bag');
@@ -123,13 +132,29 @@
   var lastFocus = null;
   var live = $('[data-live]');
 
+  // The bag's lines: the Jeere cart's, with the page's own photo and texts for each product
+  function bagItems() {
+    if (!JC) return bag;
+    return JC.cart().lines.map(function (l) {
+      var p = $('[data-jeere-product="' + String(l.id).replace(/["\\]/g, '') + '"]');
+      return { jid: l.id, id: p ? p.getAttribute('data-id') : l.id, el: p, name: l.name, price: l.price, photo: p ? p.getAttribute('data-photo') : l.image, qty: l.qty };
+    });
+  }
+  function setQty(item, i, qty) {
+    if (JC) { JC.set(item.jid, qty); return; } // 'jeere:cart' redraws the bag
+    item.qty = qty;
+    if (item.qty < 1) bag.splice(i, 1);
+    renderBag();
+  }
+  document.addEventListener('jeere:cart', function () { renderBag(); });
+
   function renderBag() {
     if (!itemsEl) return;
     var count = 0, total = 0;
     itemsEl.innerHTML = '';
-    bag.forEach(function (item, i) {
+    bagItems().forEach(function (item, i) {
       count += item.qty; total += item.qty * item.price;
-      var name = t('n.' + item.id);
+      var name = item.el ? nameOf(item.el) : (item.name || t('n.' + item.id));
       var li = document.createElement('li');
       li.className = 'bag__item';
       li.innerHTML =
@@ -139,7 +164,7 @@
         '<div><span class="bag__price"></span><button type="button" class="bag__remove"></button></div>';
       $('.bag__thumb img', li).src = item.photo;
       $('.bag__name', li).textContent = name;
-      $('.bag__type', li).textContent = t('m.' + item.id);
+      $('.bag__type', li).textContent = item.el ? metaOf(item.el) : t('m.' + item.id);
       $('.qty', li).setAttribute('aria-label', t('bag.qty'));
       $('.qty span', li).textContent = item.qty;
       $('[data-qty="-1"]', li).setAttribute('aria-label', fill(t('bag.dec'), { name: name }));
@@ -149,13 +174,11 @@
       $$('[data-qty]', li).forEach(function (b) {
         b.addEventListener('click', function () {
           var which = b.getAttribute('data-qty');
-          item.qty += +which;
-          if (item.qty < 1) bag.splice(i, 1);
-          renderBag();
+          setQty(item, i, item.qty + +which);
           refocus(i, '[data-qty="' + which + '"]');
         });
       });
-      $('.bag__remove', li).addEventListener('click', function () { bag.splice(i, 1); renderBag(); refocus(i, '.bag__remove'); });
+      $('.bag__remove', li).addEventListener('click', function () { setQty(item, i, 0); refocus(i, '.bag__remove'); });
       itemsEl.appendChild(li);
     });
     var badge = $('[data-bag-count]');
@@ -212,10 +235,13 @@
     b.addEventListener('click', function () {
       var p = b.closest('[data-product]');
       var id = p.getAttribute('data-id');
-      var found = bag.filter(function (x) { return x.id === id; })[0];
-      if (found) found.qty += 1;
-      else bag.push({ id: id, price: +p.getAttribute('data-price'), photo: p.getAttribute('data-photo'), qty: 1 });
-      renderBag();
+      // With Jeere Connect, the button's data-jeere-add puts it in the Jeere cart (then 'jeere:cart' redraws the bag)
+      if (!JC) {
+        var found = bag.filter(function (x) { return x.id === id; })[0];
+        if (found) found.qty += 1;
+        else bag.push({ id: id, price: +p.getAttribute('data-price'), photo: p.getAttribute('data-photo'), qty: 1 });
+        renderBag();
+      }
       if (live) live.textContent = fill(t('bag.added'), { name: nameOf(p) });
       openBag();
       if (motion) M.animate('[data-bag-count]', { scale: [0.4, 1.3, 1] }, { duration: 0.5, ease: 'easeOut' });

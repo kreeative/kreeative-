@@ -676,6 +676,40 @@ curl -X POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains \
 4. Set `ADDRESS_MODE = 'subdomain'` in `creer/data.js`: every screen shows `awa-beaute.jeere.shop`; old
    `jeere.kreeative.xyz/b/…` links keep working (keep rule 3).
 
+## Jeere Connect (a custom-designed site on a Jeere store)
+
+For sites the studio designs by hand (`concepts/joshua-cooker/`, `concepts/sonia-luxury-hair/`): they keep their
+own design, and their products, prices and cart come from a Jeere store, edited in the Jeere editor.
+
+```html
+<script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="<slug>" defer></script>
+```
+
+- `connect/jeere-connect.js` reads the store's **published** fiche (`GET /rest/v1/stores?slug=eq.<slug>&published=is.true&select=slug,fiche`,
+  publishable key; RLS only shows published rows) and fills the site's markup by product id:
+  `[data-jeere-product="p1"]` (gets `data-jeere-state="on" | "off"`), inside it `[data-jeere-name]`, `[data-jeere-price]`
+  (« 7 000 FCFA »), `[data-jeere-desc]`, `[data-jeere-photo]` (an `<img>`, from an https `image`), `[data-jeere-add]`.
+  A product missing from the fiche or out of stock is « off »: its add button is disabled, « Épuisé ».
+- Cart: `[data-jeere-add]`, `[data-jeere-inc]`, `[data-jeere-dec]`, `[data-jeere-remove]`, `[data-jeere-count]`,
+  `[data-jeere-total]`, `[data-jeere-lines]` (filled from its `<template data-jeere-line>` / `<template data-jeere-empty>`),
+  `[data-jeere-checkout]`. Kept in `localStorage['jeere-connect:<slug>']`; `data-default-cart="p1:1,p2:1"` on the script
+  fills a first visit (Joshua's mockup shows two dishes). A `jeere:cart` event on `document` after each change (and
+  `jeere:ready` once the fiche is read), and `window.JeereConnect = { ready, status(), products(), product(id), cart(),
+  add(id, q), set(id, q), clear(), checkoutUrl(), refresh(), formatPrice }` for a site's own script (Sonia's bag).
+- Checkout: same tab to `https://jeere.kreeative.xyz/b/<slug>/panier?panier=p1:2,p3:1`. `b/b.js` fills the store's cart
+  from it (its own product ids only, 1 to 20 each), opens the cart, and takes the parameter out of the address. The
+  order then leaves on WhatsApp, as on every Jeere store: the store needs its WhatsApp number in the fiche.
+- Never breaks the site: Supabase unreachable, store not published, or the script not loading → the hard-coded
+  names and prices stay, and the cart still works on the page's prices.
+- Ids are the fiche's (`p1`, `p2`…): `normalizeConfig` renumbers any other id, in the store page and on every publish,
+  so the site binds to those. Deleting a product in the editor frees its id for the next new product: check the
+  site's `data-jeere-product` after removing one. Names and descriptions are only written where the page is in
+  French (`lang`), the fiche's language; prices everywhere (a site may set `JeereConnect.formatPrice`).
+- Photos: Jeere keeps only photos uploaded to Jeere (Supabase Storage) or data URLs; an https photo elsewhere
+  (`kreeative.xyz/…`) is shown by Jeere Connect but not by the Jeere store page, and the editor drops it on publish.
+- Demo stores: `connect/seed-stores.sql` (`joshua-cooker`, `sonia-luxury-hair`, owner 706a1f96…), to run once in the
+  SQL editor; it says what to set before sharing (WhatsApp number, delivery fees).
+
 ## To do before sharing
 
 - Pick the domain: `jeere.com` is taken; `jeere.shop`, `jeere.app` and `getjeere.com` were
