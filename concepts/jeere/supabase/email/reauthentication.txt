@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light only">
-<title>Bienvenue sur Jeere</title>
-<!-- Jeere — Confirm signup. Paste into Supabase › Authentication › Emails. Inline styles, tables, Poppins like the site, Helvetica/Arial where a mail app blocks web fonts (Gmail): it reads the same in Gmail, Outlook and Apple Mail. -->
+<title>Confirmez que c’est vous</title>
+<!-- Jeere — Reauthentication. Copy everything into Supabase › Authentication › Emails › Message body. Inline styles, tables, Poppins like the site, Helvetica/Arial where a mail app blocks web fonts (Gmail): it reads the same in Gmail, Outlook and Apple Mail. -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');</style>
 </head>
 <body style="margin:0;padding:0;background-color:#F3EEE4;-webkit-text-size-adjust:100%;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F3EEE4;">Votre code pour créer votre compte Jeere.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F3EEE4;">Votre code de confirmation Jeere.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F3EEE4;">
   <tr>
     <td align="center" style="padding:32px 16px;">
@@ -23,8 +23,8 @@
         </tr>
         <tr>
           <td style="padding:24px 32px 0 32px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;color:#111111;">
-            <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-0.5px;color:#111111;">Bienvenue sur Jeere</h1>
-            <p style="margin:0;font-size:16px;line-height:1.55;color:#111111;">Bonjour{{ if .Data.first_name }} {{ .Data.first_name }}{{ end }}, voici votre code pour créer votre compte. Tapez-le (ou collez-le) sur la page Jeere restée ouverte.</p>
+            <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-0.5px;color:#111111;">Confirmez que c’est vous</h1>
+            <p style="margin:0;font-size:16px;line-height:1.55;color:#111111;">Bonjour{{ if .Data.first_name }} {{ .Data.first_name }}{{ end }}, une action sensible a été demandée sur votre compte Jeere. Tapez ce code pour la confirmer.</p>
           </td>
         </tr>
         <tr>
@@ -41,7 +41,7 @@
         </tr>
         <tr>
           <td style="padding:20px 32px 0 32px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#111111;">
-            <p style="margin:0 0 12px 0;">Ensuite, choisissez le nom de votre boutique&nbsp;: elle est en ligne en quelques minutes.</p>
+            <p style="margin:0 0 12px 0;">Si ce n’est pas vous, ne communiquez ce code à personne, même à quelqu’un qui dit travailler pour Jeere.</p>
             <p style="margin:0;color:#5E5E5E;">Ce code est valable 1&nbsp;heure. Si vous n’avez rien demandé, ignorez cet e&#8209;mail&nbsp;: personne ne peut entrer sans ce code.</p>
           </td>
         </tr>
@@ -52,7 +52,7 @@
               <tr>
                 <td style="padding-top:16px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#5E5E5E;">
                   Jeere, du comptoir à Internet.<br>
-                  Une question&nbsp;? Écrivez à <a href="mailto:annklyy@gmail.com?subject=Jeere" style="color:#111111;">annklyy@gmail.com</a>.<br>
+                  Une question&nbsp;? Écrivez à <a href="mailto:jeere@kreeative.xyz?subject=Jeere" style="color:#111111;">jeere@kreeative.xyz</a>.<br>
                   <a href="https://jeere.kreeative.xyz/" style="color:#111111;">jeere.kreeative.xyz</a>
                 </td>
               </tr>

@@ -39,7 +39,7 @@ sign-ups in Supabase → Table Editor → `jeere_waitlist`.
 | `consent` | must be true (WhatsApp contact about the launch) |
 
 Numbers are personal data: keep the table private, and delete a row when someone asks
-(the FAQ gives annklyy@gmail.com for that). A hidden honeypot field drops most bots.
+(the FAQ gives jeere@kreeative.xyz for that). A hidden honeypot field drops most bots.
 
 ## Seller accounts (Supabase Auth)
 

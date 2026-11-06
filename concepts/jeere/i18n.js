@@ -285,7 +285,7 @@ window.JEERE_EN = {
   'faq.q6': 'I sell digital products (e-books, courses).',
   'faq.a6': 'Physical products come first. Automatic downloads and payment links for digital products will follow later.',
   'faq.q7': 'What do you do with my number?',
-  'faq.a7': 'We only use it to message you about Jeere. It is never sold or shared. To delete your sign-up, write to <a href="mailto:annklyy@gmail.com?subject=Jeere%20%C2%B7%20waitlist">annklyy@gmail.com</a>.',
+  'faq.a7': 'We only use it to message you about Jeere. It is never sold or shared. To delete your sign-up, write to <a href="mailto:jeere@kreeative.xyz?subject=Jeere%20%C2%B7%20waitlist">jeere@kreeative.xyz</a>.',
 
   'join.eyebrow': 'Waitlist',
   'join.title': 'Join the first 50 stores.',
@@ -343,6 +343,6 @@ window.JEERE_EN = {
   'contact.or': 'Or directly:',
   'foot.tag': 'The all-in-one platform to sell online and in person.',
   'foot.nav': 'Footer',
-  'foot.small': 'Jeere is in the works: features and prices may change before launch. Payments will be handled by a partner licensed by the BCEAO; Jeere will never hold sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:annklyy@gmail.com?subject=Jeere">annklyy@gmail.com</a>',
+  'foot.small': 'Jeere is in the works: features and prices may change before launch. Payments will be handled by a partner licensed by the BCEAO; Jeere will never hold sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:jeere@kreeative.xyz?subject=Jeere">jeere@kreeative.xyz</a>',
   'foot.photos': 'Sample photos: <a href="https://unsplash.com/" target="_blank" rel="noopener">Unsplash</a>'
 };
