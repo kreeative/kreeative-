@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Asset paths: '/' on jeere.kreeative.xyz (vercel.json maps it onto /concepts/jeere/), the folder itself
+       under /concepts/jeere/ (any host, ?s=<slug>), /concepts/jeere/ on a seller's own domain. The files are
+       added from here, not as relative links in the markup, so no request goes to a wrong path first. -->
+  <script>
+    (function () {
+      var p = location.pathname, k = '/concepts/jeere/', i = p.indexOf(k);
+      var base = i !== -1 ? p.slice(0, i + k.length) : (location.hostname === 'jeere.kreeative.xyz' ? '/' : k);
+      var h = document.head;
+      var b = document.createElement('base');
+      b.href = base;
+      h.appendChild(b);
+      document.documentElement.className += ' js';
+      ['creer/store.css', 'b/b.css'].forEach(function (f) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + f; h.appendChild(l); });
+      var ic = document.createElement('link'); ic.rel = 'icon'; ic.type = 'image/svg+xml'; ic.href = base + 'favicon.svg'; h.appendChild(ic);
+      ['creer/data.js', 'creer/render.js', 'creer/elstyles.js', 'creer/engine-sections.js', 'creer/publish.js', 'b/b.js'].forEach(function (f) {
+        var s = document.createElement('script'); s.src = base + f; s.async = false; h.appendChild(s);
+      });
+    })();
+  </script>
+  <title>Boutique en ligne · Jeere</title>
+  <meta name="description" content="Une boutique en ligne faite avec Jeere : commandez sur WhatsApp, payez par mobile money ou à la livraison.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Jeere">
+  <meta property="og:title" content="Boutique en ligne · Jeere">
+  <meta property="og:description" content="Une boutique en ligne faite avec Jeere : commandez sur WhatsApp, payez par mobile money ou à la livraison.">
+  <meta property="og:image" content="https://jeere.kreeative.xyz/img/og.jpg">
+  <meta property="og:locale" content="fr_CI">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#FFFFFF">
+  <link rel="preconnect" href="https://aezchxfvzfoqlvzchqyk.supabase.co" crossorigin>
+  <style>
+    /* before b.css arrives: the loading state, centred, no flash of unstyled text */
+    body { margin: 0; font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; color: #111111; background: #FFFFFF; }
+    .jb-state--load { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #5E5E5E; }
+  </style>
+</head>
+<body class="jb">
+  <main id="jb-main" class="jb-main" aria-busy="true">
+    <div class="jb-state jb-state--load" id="jb-loading" role="status">
+      <span class="jb-spin" aria-hidden="true"></span>
+      <p>Chargement de la boutique…</p>
+    </div>
+    <noscript><div class="jb-state"><h1 class="jb-title">Cette boutique a besoin de JavaScript</h1><p>Activez JavaScript dans votre navigateur pour voir les produits et commander.</p></div></noscript>
+  </main>
+</body>
+</html>

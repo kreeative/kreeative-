@@ -632,7 +632,7 @@
     let a = null;
     try { a = JSON.parse(readRaw(ADMIN_KEY) || 'null'); } catch (e) { a = null; }
     const st = a && typeof a === 'object' && a.settings && typeof a.settings === 'object' ? a.settings : null;
-    const host = (v) => (typeof v === 'string' && /^[a-z0-9.-]{3,120}$/i.test(v.trim()) ? v.trim().toLowerCase() : '');
+    const host = (v) => (typeof v === 'string' && /^[a-z0-9.-]{3,120}(\/[a-z0-9/-]{1,60})?$/i.test(v.trim()) ? v.trim().toLowerCase() : '');
     S.site = st ? (host(st.customDomain) || (a.subdomainChosen === true ? host(st.subdomain) : '')) || null : null;
   }
   // The store's address in the desktop frame, with the path of the seller's page shown
@@ -643,7 +643,7 @@
       const pg = findCustomPage(S.pageId);
       if (pg && typeof pg.slug === 'string' && pg.slug) path = '/pages/' + pg.slug;
     }
-    els.url.textContent = (S.site || (typeof D.subdomainFor === 'function' ? D.subdomainFor(storeName()) : slug(storeName()) + '.jeere.shop')) + path;
+    els.url.textContent = (S.site || (typeof D.subdomainFor === 'function' ? D.subdomainFor(storeName()) : 'jeere.kreeative.xyz/b/' + slug(storeName()))) + path;
     updateFav();
   }
   // The tab icon in the address bar: the seller's icon, else her logo, else her initial on her colour
@@ -3719,6 +3719,13 @@
       el('span', { class: 'b-status b-tone--' + scoreTone(v) + (ok ? ' b-status--ok' : '') }, icon(ok ? 'i-check' : (scoreTone(v) === 'err' ? 'i-x' : 'i-alert'), 'b-status__ico'), v.status),
       el('span', { text: ok ? ` Score qualité${NB}: ${v.score}/100. Votre fiche est prête.` : ` Score qualité${NB}: ${v.score}/100. Il reste des points à corriger dans l’onglet Qualité.` })
     ]);
+    // The address, the real publication and the live link (publish.js); the score stays above it
+    const panel = document.getElementById('m-publish-panel');
+    if (panel && window.JeerePublish) {
+      const fresh = panel.cloneNode(false);
+      panel.replaceWith(fresh);
+      window.JeerePublish.mount(fresh, { getConfig: () => S.config, showScore: false, onPublished: () => toast(`Boutique en ligne${NB}!`, 3000, 'ok') });
+    }
     openModal('m-publish');
   }
 

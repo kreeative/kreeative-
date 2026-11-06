@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="jcolor.css">
   <link rel="stylesheet" href="wizard.css">
   <link rel="stylesheet" href="tour.css">
+  <link rel="stylesheet" href="publish.css">
   <script src="data.js" defer></script>
   <script src="render.js" defer></script>
   <script src="elstyles.js" defer></script>
@@ -29,6 +30,8 @@
   <script src="jcolor.js" defer></script>
   <script src="tour.js" defer></script>
   <script src="fontfile.js" defer></script>
+  <script src="../studio/plans.js" defer></script>
+  <script src="publish.js" defer></script>
   <script src="editor.js" defer></script>
   <script src="quickstyle.js" defer></script>
   <script src="wizard.js" defer></script>
@@ -286,7 +289,7 @@
             <div class="b-device b-device--phone" id="b-device">
               <div class="b-device__chrome" aria-hidden="true">
                 <span class="b-device__dots"><i></i><i></i><i></i></span>
-                <span class="b-device__url"><span class="b-device__fav" id="b-device-fav" hidden></span><svg class="b-ico" aria-hidden="true"><use href="#i-lock"/></svg><span id="b-device-url">ma-boutique.jeere.shop</span></span>
+                <span class="b-device__url"><span class="b-device__fav" id="b-device-fav" hidden></span><svg class="b-ico" aria-hidden="true"><use href="#i-lock"/></svg><span id="b-device-url">jeere.kreeative.xyz/b/ma-boutique</span></span>
               </div>
               <div class="b-device__notch" aria-hidden="true"></div>
               <div class="b-device__screen" id="b-screen">
@@ -342,7 +345,7 @@
   </div>
 </div>
 
-<div class="b-modal" id="m-publish" role="dialog" aria-modal="true" aria-labelledby="m-publish-t" aria-describedby="m-publish-d" hidden>
+<div class="b-modal" id="m-publish" role="dialog" aria-modal="true" aria-labelledby="m-publish-t" hidden>
   <div class="b-modal__card">
     <div class="b-modal__head">
       <h2 class="b-modal__title" id="m-publish-t">Publier votre boutique</h2>
@@ -350,12 +353,10 @@
     </div>
     <div class="b-modal__body">
       <p class="b-pubscore" id="m-publish-score"></p>
-      <p class="b-modal__lead" id="m-publish-d">Ceci est un prototype&nbsp;: rien n’est publié, et votre boutique reste dans ce navigateur. Dans Jeere, ce bouton mettra votre boutique en ligne, avec les paiements Wave, Orange Money, MTN MoMo, Moov Money et à la livraison.</p>
-      <p class="b-modal__text">Jeere ouvre bientôt à Abidjan. Rejoignez la liste d’attente pour faire partie des 50 premières boutiques.</p>
+      <div id="m-publish-panel"><p class="b-modal__lead">Votre boutique est enregistrée dans ce navigateur seulement.</p></div>
     </div>
     <div class="b-modal__foot">
       <button class="b-btn b-btn--ghost" type="button" data-close>Continuer à modifier</button>
-      <a class="b-btn b-btn--primary" href="../#liste">Rejoindre la liste d’attente<svg class="b-ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </div>
   </div>
 </div>

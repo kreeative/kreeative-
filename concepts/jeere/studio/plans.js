@@ -610,6 +610,42 @@
     });
   }
 
+  /* Another product than a Studio plan, through the same provider adapter: today a domain name
+   * (../creer/domains.js, README « Domaines »). product = { type: 'domain', label, amount (FCFA), metadata }.
+   * → Promise { ok, reference, provider, demo, amount } | { ok: false, reason, message }. It only takes the
+   * payment: what was bought is recorded by the caller (the domain checkout writes 'jeere-admin'.domainOrders),
+   * and the real domain purchase is a server call made after a real payment, never from here. */
+  var PRODUCT_TYPES = ['domain'];
+  function startProductCheckout(product, method, opts) {
+    var o = opts || {};
+    var n = needAccount();
+    if (n) return Promise.resolve(n);
+    var pr = product && typeof product === 'object' ? product : {};
+    if (PRODUCT_TYPES.indexOf(pr.type) === -1) return Promise.resolve({ ok: false, reason: 'product', message: 'Produit inconnu.' });
+    var amount = int(pr.amount, 0, 1e8, 0);
+    if (!amount) return Promise.resolve({ ok: false, reason: 'amount', message: 'Montant invalide.' });
+    var m = methodById(method);
+    if (!m) return Promise.resolve({ ok: false, reason: 'method', message: 'Choisissez un moyen de paiement.' });
+    var phone = str(o.phone, 24);
+    if (m.kind === 'mobile') {
+      var d = phone.replace(/\D/g, '');
+      if (d.length < 8 || d.length > 15) return Promise.resolve({ ok: false, reason: 'phone', message: 'Indiquez le numéro qui paie, par exemple 07 07 12 34 56.' });
+    }
+    var s = state();
+    var intent = {
+      amount: amount, currency: 'XOF', method: m.id, phone: phone, reference: rid('j' + pr.type.slice(0, 3) + '_'),
+      description: 'Jeere ' + str(pr.label, 80), customer: { name: s.account && s.account.firstName, phone: s.account && s.account.phone },
+      metadata: pr.metadata || {}
+    };
+    var prov = providerFor(m.id);
+    return Promise.resolve(prov.charge(intent)).then(function (res) {
+      if (!res || !res.ok) return { ok: false, reason: (res && res.reason) || 'declined', message: (res && res.message) || 'Le paiement n’a pas abouti. Rien n’a été prélevé.' };
+      return { ok: true, reference: res.reference || intent.reference, provider: res.provider || prov.id, demo: !!prov.demo, amount: amount, method: m.id };
+    }, function () {
+      return { ok: false, reason: 'network', message: 'La connexion a été coupée. Rien n’a été prélevé : réessayez.' };
+    });
+  }
+
   root.JeerePlans = {
     PLANS: PLANS, FEATURES: FEATURES, COMPARE: COMPARE, PERIODS: PERIODS, FX: FX,
     TRIAL_DAYS: TRIAL_DAYS, GRACE_DAYS: GRACE_DAYS, ACCOUNT_KEY: ACCOUNT_KEY,
@@ -628,6 +664,8 @@
     provider: function () { return activeProvider; },
     isDemo: function () { return activeProvider === 'demo'; },
     useProvider: function (id) { if (id === 'demo' || providers[id]) activeProvider = id; return activeProvider; },
-    startCheckout: startCheckout
+    startCheckout: startCheckout,
+    PRODUCT_TYPES: PRODUCT_TYPES,
+    startProductCheckout: startProductCheckout
   };
 })(typeof window !== 'undefined' ? window : globalThis);

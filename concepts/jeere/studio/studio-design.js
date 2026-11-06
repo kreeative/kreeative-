@@ -2402,9 +2402,9 @@
         tip(r.lab, f[2]);
         gr.body.appendChild(r);
       });
-      var sub = 'jeere.shop';
+      var sub = 'jeere.kreeative.xyz/b/ma-boutique';
       try { if (typeof D.subdomainFor === 'function') sub = D.subdomainFor(cfg()) || sub; } catch (e) { /* default */ }
-      gr.body.appendChild(row('Adresse', [ce('span', 'dz-note', esc(String(sub).indexOf('.') === -1 ? sub + '.jeere.shop' : sub))]));
+      gr.body.appendChild(row('Adresse', [ce('span', 'dz-note', esc(String(sub).indexOf('.') === -1 ? 'jeere.kreeative.xyz/b/' + sub : sub))]));
       frag.appendChild(gr);
       // stats
       var gst = group('stats', t);

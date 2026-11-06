@@ -2815,7 +2815,7 @@
         if (t) t.title = v;
       }, { coalesce: 'pg:' + pg.id + ':title' });
     }, false));
-    var sub = (typeof D.subdomainFor === 'function' && state.config.store) ? D.subdomainFor(state.config.store.name) : 'ma-boutique.jeere.shop';
+    var sub = (typeof D.subdomainFor === 'function' && state.config.store) ? D.subdomainFor(state.config.store.name) : 'jeere.kreeative.xyz/b/ma-boutique';
     g.body.appendChild(ce('div', 'st-credit', 'Adresse : <code>' + esc(sub + '/pages/' + (pg.slug || '')) + '</code>'));
     g.body.appendChild(fieldText('Texte de la page', pg.body, (D.PAGE_LIMITS && D.PAGE_LIMITS.body) || 4000, function (v) {
       commit('Texte modifié (page)', function (c) {
@@ -3402,7 +3402,7 @@
     if (titleEl) titleEl.textContent = publish ? 'Publier la boutique' : 'Partager la fiche';
     var v = null;
     try { v = D.validate(D.normalizeConfig(state.config)); } catch (e) { v = null; }
-    var sub = 'ma-boutique.jeere.shop';
+    var sub = 'jeere.kreeative.xyz/b/ma-boutique';
     try { if (D.subdomainFor && state.config.store) sub = D.subdomainFor(state.config.store.name); } catch (e) { /* default */ }
     var html = '';
     if (publish) {
@@ -3423,9 +3423,20 @@
     } else {
       html += '<p>La fiche boutique est un simple fichier JSON : exportez-la, partagez-la, ou ouvrez-la dans l’éditeur simple — c’est la même fiche, dans les deux sens.</p>';
     }
-    html += '<div class="st-share__addr"><code>' + esc(sub) + '</code><span style="color:var(--st-ink-dim);font-size:11px">votre adresse Jeere</span></div>';
-    html += '<p class="st-modal__note">Prototype : l’enregistrement est local à ce navigateur. La publication en un clic, le domaine et les connecteurs s’activent à l’ouverture du backend.</p>';
+    // Publier: the real publication (../creer/publish.js) replaces the prototype's text, the score stays
+    var livePublish = publish && window.JeerePublish;
+    if (livePublish) {
+      html = v ? '<div class="st-share__score"><span class="st-pill ' + (v.status === 'APPROUVÉ' ? 'st-pill--ok' : 'st-pill--err') + '">' + esc(v.status || '') + '</span><span>Qualité : <b>' + esc(String(v.score != null ? v.score : '—')) + ' / 100</b></span></div>' : '';
+    } else {
+      html += '<div class="st-share__addr"><code>' + esc(sub) + '</code><span style="color:var(--st-ink-dim);font-size:11px">votre adresse Jeere</span></div>';
+      html += '<p class="st-modal__note">Prototype : l’enregistrement est local à ce navigateur. La publication en un clic, le domaine et les connecteurs s’activent à l’ouverture du backend.</p>';
+    }
     body.innerHTML = html;
+    if (livePublish) {
+      var pub = ce('div', 'st-publish');
+      body.appendChild(pub);
+      window.JeerePublish.mount(pub, { getConfig: function () { return state.config; }, theme: 'dark', showScore: false, onPublished: function () { toast('Boutique en ligne !', 'ok'); } });
+    }
     var row = ce('div', 'st-share__row');
     var dl = ce('button', 'st-primary', 'Télécharger le JSON');
     dl.type = 'button';
