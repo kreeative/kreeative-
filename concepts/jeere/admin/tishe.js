@@ -165,12 +165,24 @@
     { number: '1001', createdAt: '2026-07-29T16:34:51Z', total: 0, items: 1, id: '6821078991013' }
   ];
   var SHOPIFY_ADMIN = 'https://shop.theivorysukundu.com/admin/orders/';
+  // once the shop serves them in full (action legacyOrders), the old orders open here, with their details
+  function oldOrders() {
+    need('legacy', 'legacyOrders', function (j) { return j.orders || []; });
+    if (T.legacy && T.legacy.length) return T.legacy.map(function (o) {
+      return { number: o.number, createdAt: o.createdAt, total: (o.total || 0) / 100, items: (o.items || []).reduce(function (n, i) { return n + (i.quantity || 1); }, 0) || 1, href: '#commandes/' + encodeURIComponent(o.id), out: false };
+    });
+    return SHOPIFY.map(function (o) { return Object.assign({ href: SHOPIFY_ADMIN + o.id, out: true }, o); });
+  }
+  function oldRow(x, who) {
+    return '<li><a class="a-orow" href="' + x.href + '"' + (x.out ? ' target="_blank" rel="noopener"' : '') + '><span class="a-orow__top"><span class="a-orow__id">#' + esc(x.number) + (who ? ' <span class="a-orow__who">· ancienne boutique Shopify</span>' : '') + '</span><span class="a-pill a-tone--ok">Livrée</span></span>' +
+      '<span class="a-orow__line"><span>' + esc(day(x.createdAt)) + ' · ' + esc(plural(x.items, 'article', 'articles')) + (x.out ? ' · voir dans Shopify' : '') + '</span><span class="a-orow__amount">' + esc(dollars(x.total)) + '</span></span></a></li>';
+  }
   // every paid order, old store included: { at: Date, amount: CAD paid }
   function sales() {
     var live = ((T.overview && T.overview.orders) || []).filter(function (o) { return o.status !== 'cancelled' && !o.refunded; })
       .map(function (o) { return { at: new Date(o.createdAt), amount: (o.settled || o.total || 0) / 100 }; });
     // #1001 was a test at 0 $: it would only pull the average down
-    return live.concat(SHOPIFY.filter(function (o) { return o.total > 0; }).map(function (o) { return { at: new Date(o.createdAt), amount: o.total }; }));
+    return live.concat(oldOrders().filter(function (o) { return o.total > 0; }).map(function (o) { return { at: new Date(o.createdAt), amount: o.total }; }));
   }
   var PERIODS = [['mois', 'Ce mois-ci', 0], ['3m', '3 derniers mois', 3], ['6m', '6 derniers mois', 6], ['12m', '12 derniers mois', 12], ['tout', 'Depuis le début', -1]];
   var MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
@@ -220,10 +232,7 @@
     bk.forEach(function (b) { var xs = all.filter(function (x) { return x.at >= b.from && x.at < b.to; }); b.sum = xs.reduce(function (n, x) { return n + x.amount; }, 0); b.n = xs.length; });
     var tot = bk.reduce(function (n, b) { return n + b.sum; }, 0), cnt = bk.reduce(function (n, b) { return n + b.n; }, 0);
     var recent = (o.orders || []).slice(0, 5);
-    var shop = SHOPIFY.map(function (x) {
-      return '<li><a class="a-orow" href="' + SHOPIFY_ADMIN + x.id + '" target="_blank" rel="noopener"><span class="a-orow__top"><span class="a-orow__id">#' + x.number + ' <span class="a-orow__who">· ancienne boutique Shopify</span></span><span class="a-pill a-tone--ok">Livrée</span></span>' +
-        '<span class="a-orow__line"><span>' + esc(day(x.createdAt)) + ' · ' + esc(plural(x.items, 'article', 'articles')) + '</span><span class="a-orow__amount">' + esc(dollars(x.total)) + '</span></span></a></li>';
-    }).join('');
+    var shop = oldOrders().map(function (x) { return oldRow(x, true); }).join('');
     return page('The Ivory Sukundu', 'Vos ventes, ancienne boutique Shopify comprise. Montants payés, en dollars canadiens.',
       (warn.length ? '<section class="a-card tx-warn">' + warn.map(function (w) { return '<p>' + w + '</p>'; }).join('') + '</section>' : '') +
       '<div class="a-filters tx-periods" role="group" aria-label="Période">' + PERIODS.map(function (p) {
@@ -270,10 +279,7 @@
       }).join(' ') + '</div>' +
       (list.length ? '<div class="a-card a-card--flush"><ul class="a-rows">' + list.map(orderRow).join('') + '</ul></div>'
         : card('<p class="a-card__sub">Aucune commande ici.</p>')) +
-      (f === 'all' || f === 'delivered' ? card('<ul class="a-rows">' + SHOPIFY.map(function (x) {
-        return '<li><a class="a-orow" href="' + SHOPIFY_ADMIN + x.id + '" target="_blank" rel="noopener"><span class="a-orow__top"><span class="a-orow__id">#' + x.number + '</span><span class="a-pill a-tone--ok">Livrée</span></span>' +
-          '<span class="a-orow__line"><span>' + esc(day(x.createdAt)) + ' · ' + esc(plural(x.items, 'article', 'articles')) + ' · voir dans Shopify</span><span class="a-orow__amount">' + esc(dollars(x.total)) + '</span></span></a></li>';
-      }).join('') + '</ul>', 'Ancienne boutique Shopify') : ''),
+      (f === 'all' || f === 'delivered' ? card('<ul class="a-rows">' + oldOrders().map(function (x) { return oldRow(x, false); }).join('') + '</ul>', 'Ancienne boutique Shopify') : ''),
       '<button class="a-btn a-btn--ghost" type="button" data-tx="reload">' + ico('refresh') + 'Actualiser</button>');
   }
   function orderView(id) {
@@ -497,8 +503,9 @@
     if (!T.store) return loading('Boutique en ligne');
     var s = T.store.doc.site || {}, sale = s.sale, products = T.store.doc.products || [];
     var ann = (s.announcements || []).concat(['', '', '', '', '', '']).slice(0, 6);
-    return page('Boutique en ligne', 'Le bandeau en haut de theivorysukundu.com et les soldes.',
-      '<form data-txform="site" novalidate>' +
+    return page('Boutique en ligne', 'Cliquez un texte du site pour l’écrire sur place, une photo pour la remplacer. Les clientes ne voient rien avant « Enregistrer ».',
+      editorHTML() +
+      '<form data-txform="site" id="tx-siteform" novalidate>' +
         card(ann.map(function (a, i) { return field('tx-an' + i, 'Message ' + (i + 1), input('tx-an' + i, 'ann', a, ' maxlength="70"')); }).join('') +
           '<p class="a-hint">Les messages défilent l’un après l’autre. Laissez vide pour en retirer un.</p>', 'Bandeau d’annonces') +
         card(check('saleOn', !!sale, 'Des soldes en cours') +
@@ -510,6 +517,117 @@
           }).join('') + '</fieldset><p class="a-hint">Le prix barré de chaque option se règle dans le produit.</p>', 'Soldes') +
         '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('check') + 'Enregistrer sur la boutique</button>' +
         '<a class="a-btn a-btn--ghost" href="' + SITE + '" target="_blank" rel="noopener">' + ico('external') + 'Voir la boutique</a></div></form>');
+  }
+
+  /* ------------------------------------------------------------------ the site, edited in place (the shop's docs/jeere-editor.md) */
+
+  var ORIGIN = 'https://www.theivorysukundu.com';
+  var ED = { changes: {}, fields: [], pages: [], route: '/', imgKey: null, device: 'desktop' };
+  var LABELS = { hero: 'Accueil', campaign: 'Campagne', collection: 'Collection', reviews: 'Avis', lengths: 'Guide des longueurs', ourhair: 'Nos cheveux', circle: 'The Circle', contact: 'Contact', footer: 'Pied de page' };
+  function keyLabel(k) {
+    var parts = String(k).split('.'), sec = LABELS[parts[0]] || parts[0];
+    var rest = parts.slice(1).join(' ').replace(/(\d)/, ' $1').replace(/eyebrow/, 'surtitre').replace(/title/, 'titre').replace(/body/, 'texte').replace(/cta/, 'bouton').replace(/logo/, 'logo').replace(/note/, 'note').replace(/tip/, 'conseil').replace(/closing/, 'conclusion').replace(/motto/, 'devise').replace(/about/, 'à propos').replace(/reason/, 'raison').replace(/step/, 'étape').replace(/quiz/, 'quiz');
+    return sec + ' · ' + rest;
+  }
+  function editorHTML() {
+    return '<section class="a-card tx-ed" id="tx-ed">' +
+      '<div class="tx-ed__bar">' +
+        '<div class="a-selectwrap tx-ed__pages"><select class="a-input" id="tx-pages" aria-label="Page du site"><option value="/">Accueil</option></select>' + ico('down') + '</div>' +
+        '<div class="tx-ed__seg" role="group" aria-label="Appareil"><button type="button" data-tx="dev" data-dev="desktop" aria-pressed="' + (ED.device === 'desktop') + '">' + ico('desktop') + 'Ordinateur</button><button type="button" data-tx="dev" data-dev="phone" aria-pressed="' + (ED.device === 'phone') + '">' + ico('phone') + 'Téléphone</button></div>' +
+        '<label class="tx-check tx-ed__mode"><input type="checkbox" id="tx-editmode" checked><span>Mode édition</span></label>' +
+        '<span class="tx-ed__n" id="tx-n" aria-live="polite">Aucun changement</span>' +
+        '<button class="a-btn a-btn--quiet a-btn--sm" type="button" data-tx="cdiscard" id="tx-discard" disabled>' + ico('undo') + 'Annuler</button>' +
+        '<button class="a-btn a-btn--primary a-btn--sm" type="button" data-tx="csave" id="tx-save" disabled>' + ico('check') + 'Enregistrer</button>' +
+      '</div>' +
+      '<div class="tx-ed__body">' +
+        '<div class="tx-ed__stage"><div class="tx-ed__frame" data-dev="' + ED.device + '"><iframe id="tx-frame" src="' + ORIGIN + '/?jeere=edit#' + esc(ED.route || '/') + '" title="theivorysukundu.com, modifiable"></iframe></div></div>' +
+        '<aside class="tx-ed__side"><p class="tx-ed__h">Sur cette page</p><div id="tx-fields"><p class="a-hint">Chargement du site…</p></div></aside>' +
+      '</div><input type="file" accept="image/*" id="tx-imgpick" hidden></section>';
+  }
+  function frame() { var f = document.getElementById('tx-frame'); return f && f.contentWindow; }
+  function toShop(msg) { var w = frame(); if (w) w.postMessage(Object.assign({ source: 'jeere' }, msg), ORIGIN); }
+  function countChanges() {
+    var n = Object.keys(ED.changes).length, el = document.getElementById('tx-n');
+    if (el) el.textContent = n ? plural(n, 'changement pas encore enregistré', 'changements pas encore enregistrés') : 'Aucun changement';
+    ['tx-save', 'tx-discard'].forEach(function (id) { var b = document.getElementById(id); if (b) b.disabled = !n; });
+  }
+  function drawFields() {
+    var box = document.getElementById('tx-fields');
+    if (!box) return;
+    if (!ED.fields.length) { box.innerHTML = '<p class="a-hint">Rien à modifier sur cette page : les produits se règlent dans « Produits ».</p>'; return; }
+    box.innerHTML = ED.fields.map(function (f) {
+      var v = Object.prototype.hasOwnProperty.call(ED.changes, f.key) ? ED.changes[f.key] : f.value;
+      var cur = v === '' ? f.original : v;
+      var changed = Object.prototype.hasOwnProperty.call(ED.changes, f.key) || f.changed;
+      var head = '<button type="button" class="tx-field__k" data-tx="fsel" data-key="' + esc(f.key) + '">' + esc(keyLabel(f.key)) + (changed ? ' <span class="tx-field__dot" aria-label="modifié"></span>' : '') + '</button>';
+      if (f.kind === 'image') return '<div class="tx-field">' + head + '<div class="tx-field__img"><img alt="" src="' + esc(src(cur)) + '"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-tx="fimg" data-key="' + esc(f.key) + '">' + ico('camera') + 'Remplacer</button></div></div>';
+      return '<div class="tx-field">' + head + '<textarea class="a-input" rows="' + Math.min(6, Math.max(1, Math.ceil(String(cur || '').length / 34))) + '" data-tx-key="' + esc(f.key) + '">' + esc(cur) + '</textarea>' +
+        (changed ? '<button class="tx-field__reset" type="button" data-tx="freset" data-key="' + esc(f.key) + '">Revenir au texte d’origine</button>' : '') + '</div>';
+    }).join('');
+  }
+  window.addEventListener('message', function (e) {
+    if (e.origin !== ORIGIN || !e.data || e.data.source !== 'tishe' || !on()) return;
+    var d = e.data;
+    if (d.type === 'ready') {
+      ED.pages = d.pages || [];
+      var sel = document.getElementById('tx-pages');
+      if (sel) sel.innerHTML = ED.pages.map(function (p) { return '<option value="' + esc(p.route) + '">' + esc(p.name) + '</option>'; }).join('');
+    } else if (d.type === 'page') {
+      ED.route = d.route || '/'; ED.fields = d.fields || []; ED.changes = d.changes || ED.changes;
+      var s2 = document.getElementById('tx-pages'); if (s2) s2.value = ED.route;
+      drawFields(); countChanges();
+    } else if (d.type === 'change') {
+      ED.changes = d.changes || ED.changes;
+      var ta = document.querySelector('[data-tx-key="' + (window.CSS && CSS.escape ? CSS.escape(d.key) : d.key) + '"]');
+      if (ta && document.activeElement !== ta) ta.value = d.value;
+      countChanges();
+    } else if (d.type === 'select') {
+      if (d.kind === 'image') { ED.imgKey = d.key; var pick = document.getElementById('tx-imgpick'); if (pick) pick.click(); }
+      var row = document.querySelector('[data-tx-key="' + d.key + '"]');
+      if (row) row.scrollIntoView({ block: 'nearest' });
+    } else if (d.type === 'open') {
+      if (d.what === 'product' && d.id) go('#produits/' + encodeURIComponent(d.id));
+      else { var f = document.getElementById('tx-siteform'); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+  });
+  document.addEventListener('input', function (e) {
+    var ta = e.target.closest && e.target.closest('#tx-fields [data-tx-key]');
+    if (!ta || !on()) return;
+    var k = ta.getAttribute('data-tx-key');
+    ED.changes[k] = ta.value;
+    toShop({ type: 'set', key: k, value: ta.value });
+    countChanges();
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!on() || !t) return;
+    if (t.id === 'tx-pages') toShop({ type: 'navigate', route: t.value });
+    else if (t.id === 'tx-editmode') toShop({ type: 'edit', on: t.checked });
+    else if (t.id === 'tx-imgpick' && t.files && t.files[0] && ED.imgKey) {
+      var key = ED.imgKey, file = t.files[0];
+      t.value = '';
+      toast('Envoi de la photo…');
+      createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (img) {
+        var full = toJpeg(img, 1600, 0.84), thumb = toJpeg(img, 640, 0.8);
+        img.close();
+        return call('upload', { handle: 'site', full: full, thumb: thumb });
+      }).then(function (j) {
+        ED.changes[key] = j.url;
+        toShop({ type: 'set', key: key, value: j.url });
+        drawFields(); countChanges();
+        toast('Photo prête : pensez à enregistrer.');
+      }, function (x) { toast(x.message); });
+    }
+  });
+  function saveContent(btn) {
+    busy(btn, true);
+    call('saveContent', { content: ED.changes }).then(function (j) {
+      if (j.doc && T.store) T.store.doc = j.doc;
+      toShop({ type: 'store', doc: j.doc });
+      ED.changes = {};
+      drawFields(); countChanges();
+      toast('Enregistré : les clientes le voient d’ici une minute.');
+    }, function (x) { toast(x.message); }).then(function () { busy(btn, false); countChanges(); });
   }
 
   /* ------------------------------------------------------------------ Livraison */
@@ -575,7 +693,12 @@
 
   function busy(btn, on) { if (btn) { btn.disabled = on; btn.setAttribute('aria-busy', on ? 'true' : 'false'); } }
   function saveDoc(action, body, msg, after) {
-    return call(action, body).then(function (j) { if (j.doc && T.store) T.store.doc = j.doc; toast(msg); if (after) after(j); refresh(); }, function (e) { toast(e.message); });
+    return call(action, body).then(function (j) {
+      if (j.doc && T.store) T.store.doc = j.doc;
+      toast(msg);
+      if (after) after(j);
+      if (frame() && j.doc) toShop({ type: 'store', doc: j.doc }); else refresh();
+    }, function (e) { toast(e.message); });
   }
   document.addEventListener('submit', function (e) {
     var f = e.target.closest && e.target.closest('#a-main form[data-txform]');
@@ -622,6 +745,12 @@
     var b = e.target.closest && e.target.closest('#a-main [data-tx]');
     if (!b || !on()) return;
     var a = b.getAttribute('data-tx');
+    if (a === 'csave') { saveContent(b); return; }
+    if (a === 'cdiscard') { toShop({ type: 'discard' }); ED.changes = {}; drawFields(); countChanges(); return; }
+    if (a === 'fsel') { toShop({ type: 'select', key: b.getAttribute('data-key') }); return; }
+    if (a === 'fimg') { ED.imgKey = b.getAttribute('data-key'); var pk = document.getElementById('tx-imgpick'); if (pk) pk.click(); return; }
+    if (a === 'freset') { var rk = b.getAttribute('data-key'); ED.changes[rk] = ''; toShop({ type: 'set', key: rk, value: '' }); drawFields(); countChanges(); return; }
+    if (a === 'dev') { ED.device = b.getAttribute('data-dev'); var fr0 = document.querySelector('.tx-ed__frame'); if (fr0) fr0.setAttribute('data-dev', ED.device); document.querySelectorAll('[data-tx="dev"]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); return; }
     if (a === 'retry') { T.error = null; refresh(); }
     else if (a === 'reload') { T.overview = null; refresh(); }
     else if (a === 'setup') { busy(b, true); call('setup').then(function (j) { toast(j.webhook ? 'Les commandes payées arrivent maintenant toutes seules.' : 'La réparation n’a pas marché.'); T.overview = null; refresh(); }, function (x) { toast(x.message); busy(b, false); }); }

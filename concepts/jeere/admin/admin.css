@@ -1509,3 +1509,32 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
 .tx-chart__col:last-child:hover::after, .tx-chart__col:last-child:focus-visible::after { left: auto; right: 0; transform: none; }
 .tx-chart__axis { display: flex; gap: 2px; margin-top: 6px; }
 .tx-chart__axis span { flex: 1 1 0; min-width: 0; text-align: center; font-size: 12px; color: var(--muted); white-space: nowrap; }
+/* The Ivory Sukundu: the site, edited in place */
+.tx-ed { padding: 0; overflow: hidden; }
+.tx-ed__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.tx-ed__pages { min-width: 150px; flex: 0 1 200px; }
+.tx-ed__pages .a-input { height: 38px; }
+.tx-ed__seg { display: inline-flex; padding: 3px; border-radius: 11px; background: var(--grey-1); }
+.tx-ed__seg button { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: 13px; color: var(--muted); cursor: pointer; }
+.tx-ed__seg button .a-ico { width: 16px; height: 16px; }
+.tx-ed__seg button[aria-pressed="true"] { background: var(--white); color: var(--ink); box-shadow: var(--a-shadow-1); }
+.tx-ed__mode { min-height: 32px; }
+.tx-ed__n { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.tx-ed__body { display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1100px) { .tx-ed__body { grid-template-columns: minmax(0, 1fr) 300px; } }
+.tx-ed__stage { background: var(--grey-1); padding: 16px; display: flex; justify-content: center; }
+.tx-ed__frame { width: 100%; height: min(78vh, 900px); border-radius: 12px; overflow: hidden; background: var(--white); box-shadow: var(--a-shadow-1); transition: width .2s; }
+.tx-ed__frame[data-dev="phone"] { width: 390px; max-width: 100%; border-radius: 28px; border: 8px solid var(--ink); }
+.tx-ed__frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.tx-ed__side { border-left: 1px solid var(--line); padding: 16px; max-height: min(78vh, 900px); overflow-y: auto; }
+@media (max-width: 1099px) { .tx-ed__side { border-left: 0; border-top: 1px solid var(--line); max-height: none; } }
+.tx-ed__h { margin: 0 0 12px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tx-field { display: grid; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.tx-field:last-child { border-bottom: 0; }
+.tx-field__k { display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; font-size: 12.5px; color: var(--muted); text-align: left; cursor: pointer; }
+.tx-field__k:hover { color: var(--ink); }
+.tx-field__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); display: inline-block; }
+.tx-field textarea { min-height: 38px; resize: vertical; font-size: 13.5px; line-height: 1.45; padding: 8px 10px; }
+.tx-field__img { display: flex; align-items: center; gap: 10px; }
+.tx-field__img img { width: 64px; height: 64px; object-fit: contain; border-radius: 10px; background: var(--grey-1); }
+.tx-field__reset { justify-self: start; padding: 0; border: 0; background: none; font: inherit; font-size: 12px; color: var(--muted); text-decoration: underline; cursor: pointer; }
