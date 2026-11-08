@@ -326,7 +326,7 @@
     return isObj(c) ? c : { status: 'off', values: {}, connectedAt: '' };
   }
   // « Mes livreurs » is connected as soon as there is a courier in the team (role livraison)
-  const isOn = (id) => (id === 'livreurs' ? couriers().length > 0 : conn(id).status === 'connected');
+  const isOn = (id) => (id === 'livreurs' ? couriers().length > 0 : (id === 'card' && S.stripe && S.stripe.chargesEnabled) || conn(id).status === 'connected');
   const PAYMENTS = () => arr(D && D.PAYMENTS);
   const payLabel = (k) => { const p = PAYMENTS().find((x) => x.key === k); return p ? p.label : str(k); };
   const STATUSES = () => (D && arr(D.ORDER_STATUSES).length ? D.ORDER_STATUSES : [{ id: 'new', label: 'Nouvelle' }, { id: 'paid', label: 'Payée' }, { id: 'shipped', label: 'Expédiée' }, { id: 'delivered', label: 'Livrée' }, { id: 'cancelled', label: 'Annulée' }]);
@@ -3179,7 +3179,7 @@
           <section class="a-card" aria-labelledby="h-partners"><div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-partners">Encaissement</h2><p class="a-card__sub">Le partenaire de paiement agréé par la BCEAO verse l’argent sur votre numéro.</p></div></div>
             ${blocked ? H`<div class="a-note a-note--strong" style="margin-top:12px">${ico('alert')}<div><p>${esc(fr('Vos clients voient ' + listFr(mm.map(payLabel)) + ', mais vous ne pouvez pas encore encaisser.'))}</p>
               <div class="a-btnrow" style="margin-top:10px"><button class="a-btn a-btn--primary" type="button" data-act="connector-open" data-id="mobile-money">${ico('phone')}Connecter le paiement mobile money</button></div></div></div>` : ''}
-            ${connRow('mobile-money', blocked)}${connRow('card')}
+            ${connRow('mobile-money', blocked)}${connRow('card')}${stripeLine()}
             <p class="a-small" style="margin-top:6px">Démo : aucune connexion réelle n’est faite.</p>
           </section>
           <section class="a-card" aria-labelledby="h-methods"><div class="a-card__head" style="margin-bottom:4px"><div><h2 class="a-card__title" id="h-methods">Moyens de paiement</h2><p class="a-card__sub">Ceux que vos clients voient au moment de payer, dans cet ordre.</p></div></div>
@@ -3392,8 +3392,63 @@
     const tel = f.type === 'tel';
     return H`<div class="a-field"><label class="a-label" for="${id}">${esc(f.label)}</label><input class="a-input" id="${id}" name="${esc(f.key)}" type="${tel ? 'tel' : (f.type === 'email' ? 'email' : 'text')}"${tel ? ' inputmode="tel" autocomplete="tel"' : ' autocomplete="off"'} value="${esc(tel ? phoneFmt(val) : val)}" placeholder="${esc(f.placeholder || '')}"${f.key === 'sender' ? ' maxlength="11"' : ' maxlength="200"'}${f.key === 'domain' ? ' autocapitalize="off" spellcheck="false"' : ''}></div>`;
   }
+  /* ---------- card payments: the store's own Stripe account (the `payments` function) ---------- */
+  // A real store (published, on Supabase) with a signed-in seller: « Carte bancaire » opens Stripe's onboarding.
+  // Elsewhere (demo, a store of this browser only) the connector stays the prototype's form.
+  const PAY_FN = 'https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/payments';
+  const STRIPE_COUNTRIES = [['CA', 'Canada'], ['US', 'États-Unis'], ['FR', 'France'], ['BE', 'Belgique'], ['CH', 'Suisse'], ['GB', 'Royaume-Uni'], ['DE', 'Allemagne'], ['ES', 'Espagne'], ['IT', 'Italie'], ['NL', 'Pays-Bas'], ['PT', 'Portugal'], ['IE', 'Irlande'], ['LU', 'Luxembourg']];
+  function remoteStoreId() { try { const r = window.JeerePublish && window.JeerePublish.local(); return r && r.storeId ? r.storeId : ''; } catch (e) { return ''; } }
+  async function payCall(body) {
+    const A = window.JeereAuth;
+    const s = A && typeof A.session === 'function' ? await Promise.resolve(A.session()).catch(() => null) : null;
+    if (!s || !s.access_token) return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour connecter Stripe.' };
+    const r = await fetch(PAY_FN, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify(body) }).catch(() => null);
+    return r ? r.json().catch(() => ({ ok: false })) : { ok: false, message: 'Pas de connexion internet.' };
+  }
+  function stripeLine() {
+    const sid = remoteStoreId();
+    if (!sid) return '';
+    const st = S.stripe && S.stripe.storeId === sid ? S.stripe : null;
+    if (!st) {
+      S.stripe = { storeId: sid, loading: true };
+      payCall({ action: 'status', storeId: sid }).then((j) => { S.stripe = Object.assign({ storeId: sid }, j); if (S.route && S.route.name === 'paiements') refresh(); });
+      return '';
+    }
+    if (st.loading || !st.ok) return '';
+    let txt, tone;
+    if (!st.configured) { txt = 'Le paiement par carte sera bientôt activé sur Jeere.'; tone = 'muted'; }
+    else if (st.chargesEnabled) { txt = 'Stripe est connecté : vos clients paient par carte, depuis n’importe quel pays. L’argent arrive sur votre compte Stripe.'; tone = 'ok'; }
+    else if (st.connected) { txt = 'Stripe est connecté, mais votre inscription n’est pas terminée : Stripe demande encore des informations.'; tone = 'warn'; }
+    else return '';
+    return H`<div class="a-note${tone === 'warn' ? ' a-note--strong' : ''}" style="margin:6px 0 10px">${ico(tone === 'ok' ? 'check' : 'info')}<div><p>${esc(fr(txt))}</p>
+      ${st.connected ? H`<div class="a-btnrow" style="margin-top:8px">${st.chargesEnabled ? '' : H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-act="stripe-connect">Terminer sur Stripe</button>`}<button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="stripe-dashboard">${ico('external')}Mon compte Stripe</button></div>` : ''}</div></div>`;
+  }
+  function openStripe() {
+    const st = S.stripe || {};
+    if (st.connected) { stripeConnect(); return; }
+    openDialog(H`<form class="a-dialog__card" data-dform="stripe" novalidate>${dlgHead('sp-t', 'Accepter les cartes avec Stripe')}
+      <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Vos clients paient par carte (Visa, Mastercard…) depuis n’importe quel pays : France, Canada, États-Unis… Stripe verse l’argent sur votre compte bancaire. Jeere ne touche jamais votre argent.'))}</p>
+        <div class="a-field"><label class="a-label" for="sp-country">Pays où votre activité est enregistrée</label><div class="a-selectwrap"><select class="a-input" id="sp-country" name="country">${STRIPE_COUNTRIES.map(([v, l]) => H`<option value="${v}">${esc(l)}</option>`)}</select>${ico('down')}</div>
+          <p class="a-hint">${esc(fr('Stripe vous demande ensuite votre identité et le compte bancaire qui reçoit l’argent. Pour une activité en Côte d’Ivoire, le paiement par carte passera par un partenaire local (bientôt).'))}</p></div></div>
+      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="button" data-act="stripe-connect">${ico('external')}Continuer sur Stripe</button></div></form>`, { labelledby: 'sp-t' });
+  }
+  async function stripeConnect(el) {
+    const sid = remoteStoreId();
+    const sel = $('#sp-country');
+    if (el) { el.disabled = true; el.setAttribute('aria-busy', 'true'); }
+    const j = await payCall({ action: 'connect', storeId: sid, country: sel ? sel.value : '' });
+    if (j && j.ok && j.url) { window.location.href = j.url; return; }
+    if (el) { el.disabled = false; el.removeAttribute('aria-busy'); }
+    toast((j && j.message) || 'Stripe n’a pas pu s’ouvrir. Réessayez.');
+  }
+  async function stripeDashboard() {
+    const j = await payCall({ action: 'dashboard', storeId: remoteStoreId() });
+    if (j && j.ok && j.url) window.open(j.url, '_blank', 'noopener'); else toast((j && j.message) || 'Le compte Stripe n’a pas pu s’ouvrir.');
+  }
+
   function openConnector(id) {
     if (id === 'livreurs') { openCouriers(); return; }
+    if (id === 'card' && remoteStoreId()) { openStripe(); return; }
     const c = connector(id);
     if (!c || c.soon) return;
     const cur = conn(id);
@@ -4107,6 +4162,8 @@
     'projects': (el) => openProjects(el),
     'proj-switch': (el) => switchProject(el.getAttribute('data-id')),
     'proj-shop': (el) => openShopProject(el),
+    'stripe-connect': (el) => stripeConnect(el),
+    'stripe-dashboard': () => stripeDashboard(),
     'proj-ext': () => { if (S.dirty) { closeProj(); nudgeSave(); return; } closeProj(); closeDialog(true); window.JeereTishe.enter(); go('#accueil'); updateShell(); render(parseHash(), true); },
     'proj-new': () => openNewProject(),
     'proj-manage': () => openProject(),

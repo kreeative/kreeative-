@@ -270,6 +270,75 @@
     t += '(Commande depuis ' + location.host + location.pathname + ')';
     return { text: fr(t), lines: o.lines, total: o.total + fee, fee: fee, commune: f.commune || '' };
   }
+  /* ---------------------------------------------------------------- card payment (Stripe, the `payments` function)
+   * A store whose seller connected Stripe takes cards from anywhere: the order is recorded by the `orders`
+   * function (prices from the published fiche), then the customer pays on Stripe's page and comes back here
+   * with ?paiement=ok|annule&commande=<n>. Without it, the order leaves on WhatsApp as before. */
+  var FN = 'https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/';
+  var PUB_KEY = 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
+  function fn(name, body) {
+    return fetch(FN + name, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: PUB_KEY }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }); });
+  }
+  function checkCard() {
+    if (!S.store || !S.store.slug || S.store.preview === true) return;
+    var cfg = S.config || {};
+    if (!(cfg.payments && cfg.payments.card === true)) return;
+    fn('payments', { action: 'available', slug: S.store.slug }).then(function (j) { S.card = !!(j && j.card); orderBar(); }, function () { /* WhatsApp stays */ });
+  }
+  function msgSheet(title, text, actions) {
+    var old = document.getElementById('jb-sheet');
+    if (old) old.remove();
+    var sh = document.createElement('div');
+    sh.className = 'jb-sheet'; sh.id = 'jb-sheet';
+    sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-labelledby', 'jb-sheet-t');
+    sh.innerHTML = '<div class="jb-sheet__card"><h2 id="jb-sheet-t" tabindex="-1">' + esc(title) + '</h2><p>' + esc(fr(text)) + '</p>' +
+      '<div class="jb-actions">' + (actions || '') + '<button class="jb-btn jb-btn--ghost" type="button" data-jb="sheet-close">Revenir à la boutique</button></div></div>';
+    document.body.appendChild(sh);
+    var t = document.getElementById('jb-sheet-t'); if (t) t.focus();
+    sh.addEventListener('click', function (e) { if (e.target === sh || (e.target.closest && e.target.closest('[data-jb="sheet-close"]'))) sh.remove(); });
+    sh.addEventListener('keydown', function (e) { if (e.key === 'Escape') sh.remove(); });
+  }
+  function payByCard(btn) {
+    var f = (S.root && S.root.__jstForm) || {};
+    var cart = (S.root && S.root.__jstCart) || {};
+    if (!Object.keys(cart).length) { msgSheet('Votre panier est vide', 'Ajoutez un produit avant de payer.'); return; }
+    if (!String(f.first || '').trim() || String(f.phone || '').replace(/\D/g, '').length < 8) {
+      msgSheet('Il manque vos coordonnées', 'Écrivez votre nom et votre numéro de téléphone : la boutique en a besoin pour la livraison.');
+      return;
+    }
+    if (btn) { btn.setAttribute('aria-busy', 'true'); btn.disabled = true; }
+    var done = function () { if (btn) { btn.removeAttribute('aria-busy'); btn.disabled = false; } };
+    fn('orders', { action: 'place', slug: S.store.slug, cart: cart, payment: 'Carte bancaire', source: 'boutique',
+      customer: { name: f.first, phone: f.phone, email: f.email || '', commune: f.commune || '', address: f.address || '' } })
+      .then(function (o) {
+        if (!o || !o.ok) throw new Error((o && o.message) || 'La commande n’a pas pu être enregistrée.');
+        return fn('payments', { action: 'checkout', orderId: o.orderId, returnUrl: location.origin + location.pathname }).then(function (p) {
+          if (!p || !p.ok || !p.url) throw new Error((p && p.message) || 'Le paiement par carte n’a pas pu s’ouvrir.');
+          location.href = p.url;
+        });
+      })
+      .catch(function (err) {
+        done();
+        var link = waLink(orderMessage().text);
+        msgSheet('Le paiement par carte n’a pas pu s’ouvrir', (err && err.message ? err.message + ' ' : '') + (link ? 'Vous pouvez envoyer votre commande sur WhatsApp à la place.' : 'Réessayez dans un instant.'),
+          link ? '<a class="jb-btn jb-btn--wa" href="' + esc(link) + '" target="_blank" rel="noopener">' + WA_ICON + 'Commander sur WhatsApp</a>' : '');
+      });
+  }
+  // back from Stripe's page
+  function paidReturn() {
+    var m = /[?&]paiement=(ok|annule)(?:&commande=(\d+))?/.exec(location.search);
+    if (!m) return;
+    var n = m[2] ? ' n°' + NB + m[2] : '';
+    try { history.replaceState(history.state, '', location.pathname + location.search.replace(/([?&])paiement=[^&#]*&?/, '$1').replace(/([?&])commande=[^&#]*&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) { /* keep */ }
+    if (m[1] === 'ok') {
+      if (S.root) S.root.__jstCart = {};
+      msgSheet('Paiement reçu, merci' + NB + '!', 'Votre commande' + n + ' est payée. La boutique vous contacte pour la livraison.');
+    } else {
+      msgSheet('Paiement annulé', 'Votre commande' + n + ' est enregistrée mais pas encore payée. Vous pouvez réessayer, ou écrire à la boutique.');
+    }
+  }
+
   function waLink(text) { var n = waNumber(); return n ? 'https://wa.me/' + n + '?text=' + encodeURIComponent(text) : ''; }
 
   function orderBar() {
@@ -282,7 +351,7 @@
     bar.className = 'jb-order';
     bar.id = 'jb-order';
     bar.setAttribute('role', 'note');
-    bar.innerHTML = '<p>' + esc(fr(n ? 'Le paiement en ligne arrive bientôt : votre commande part sur WhatsApp, et vous payez avec la boutique (mobile money ou à la livraison).' : 'Cette boutique ne prend pas encore les commandes en ligne : contactez-la directement.')) + '</p>' +
+    bar.innerHTML = '<p>' + esc(fr(S.card ? 'Payez par carte bancaire (Visa, Mastercard, depuis n’importe quel pays) au moment de commander, ou envoyez votre commande sur WhatsApp.' : n ? 'Le paiement en ligne arrive bientôt : votre commande part sur WhatsApp, et vous payez avec la boutique (mobile money ou à la livraison).' : 'Cette boutique ne prend pas encore les commandes en ligne : contactez-la directement.')) + '</p>' +
       (n ? '<a class="jb-btn" href="' + esc(waLink(orderMessage().text)) + '" target="_blank" rel="noopener" data-jb="wa-order">' + WA_ICON + 'Commander sur WhatsApp</a>' : '');
     S.root.insertAdjacentElement('afterend', bar);
   }
@@ -324,6 +393,8 @@
       if (sel && !sel.value) return; // render.js asks for the commune first
       e.preventDefault();
       e.stopPropagation();
+      var form = (S.root && S.root.__jstForm) || {};
+      if (S.card && form.pay === 'card') { payByCard(a); return; }
       var msg = orderMessage();
       sentSheet(msg);
       var link = waLink(msg.text);
@@ -410,6 +481,8 @@
     var badgeOn = typeof store.badge === 'boolean' ? store.badge : store.show_badge !== false;
     if (!badgeOn) document.body.classList.add('jb-nobadge'); else document.body.classList.remove('jb-nobadge');
     badgeRow(badgeOn);
+    paidReturn();
+    checkCard();
   }
 
   // « Aperçu privé »: a quiet bar on top, the page kept out of search engines
