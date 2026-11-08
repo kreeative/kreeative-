@@ -77,7 +77,7 @@
     };
     return map[m] || m || '';
   }
-  function reset() { T.overview = T.store = T.customers = T.subscribers = null; T.orders = {}; }
+  function reset() { T.overview = T.store = T.customers = T.subscribers = null; T.orders = {}; T.autoTried = false; }
   // loads what a view needs once, then draws the page again
   function need(key, action, pick) {
     if (T[key] || T.busy[key] || !auth()) return;
@@ -106,7 +106,25 @@
     }, function (e) { T.error = e.message; }).then(function () { T.redeeming = false; refresh(); });
   })();
 
+  // Her Jeere account is enough: the store checks her Jeere session (Supabase) and opens a 30-day session,
+  // no email (action « jeere », see the store's api/admin.ts). The email link stays as the way in without it.
+  function autoConnect() {
+    if (T.autoTried || auth()) return;
+    T.autoTried = true;
+    var A = window.JeereAuth;
+    if (!A || typeof A.session !== 'function') return;
+    T.redeeming = true;
+    Promise.resolve(A.session()).then(function (s) {
+      if (!s || !s.access_token) throw new Error('');
+      return call('jeere', { accessToken: s.access_token });
+    }).then(function (j) {
+      lsSet(K_AUTH, JSON.stringify({ token: j.token, expiresAt: j.expiresAt, email: j.email }));
+      T.error = null;
+    }, function () { /* not signed in to Jeere, or the store does not know this door yet: the email link */ T.error = null; })
+      .then(function () { T.redeeming = false; refresh(); });
+  }
   function signInView() {
+    autoConnect();
     if (T.redeeming) return page('The Ivory Sukundu', '', card('<p class="a-card__sub">Connexion à la boutique…</p>'));
     return page('Connecter The Ivory Sukundu', 'Ses commandes, ses produits, ses codes promo et son bandeau, ici même.',
       '<section class="a-card"><form data-txform="link" novalidate>' +
