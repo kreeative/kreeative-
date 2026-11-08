@@ -157,28 +157,89 @@
 
   /* ------------------------------------------------------------------ Accueil */
 
-  function homeView() {
+  // The orders of the old Shopify store (July–September 2026), before the site took its own payments:
+  // numbers, dates and totals only (no names in this public file), as Shopify lists them
+  var SHOPIFY = [
+    { number: '1003', createdAt: '2026-09-21T11:15:00Z', total: 268.86, items: 3, id: '7178473734309' },
+    { number: '1002', createdAt: '2026-08-09T18:21:44Z', total: 419, items: 1, id: '6841148833957' },
+    { number: '1001', createdAt: '2026-07-29T16:34:51Z', total: 0, items: 1, id: '6821078991013' }
+  ];
+  var SHOPIFY_ADMIN = 'https://shop.theivorysukundu.com/admin/orders/';
+  // every paid order, old store included: { at: Date, amount: CAD paid }
+  function sales() {
+    var live = ((T.overview && T.overview.orders) || []).filter(function (o) { return o.status !== 'cancelled' && !o.refunded; })
+      .map(function (o) { return { at: new Date(o.createdAt), amount: (o.settled || o.total || 0) / 100 }; });
+    // #1001 was a test at 0 $: it would only pull the average down
+    return live.concat(SHOPIFY.filter(function (o) { return o.total > 0; }).map(function (o) { return { at: new Date(o.createdAt), amount: o.total }; }));
+  }
+  var PERIODS = [['mois', 'Ce mois-ci', 0], ['3m', '3 derniers mois', 3], ['6m', '6 derniers mois', 6], ['12m', '12 derniers mois', 12], ['tout', 'Depuis le début', -1]];
+  var MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  // the buckets of a period: days for this month, months otherwise (the current one included)
+  function buckets(key, all) {
+    var now = new Date(), out = [], i;
+    if (key === 'mois') {
+      var days = now.getDate();
+      for (i = 1; i <= days; i++) out.push({ from: new Date(now.getFullYear(), now.getMonth(), i), to: new Date(now.getFullYear(), now.getMonth(), i + 1), label: String(i), long: i + ' ' + MONTHS[now.getMonth()] });
+      return out;
+    }
+    var n = (PERIODS.find(function (p) { return p[0] === key; }) || PERIODS[1])[2];
+    if (n < 0) {
+      var first = all.reduce(function (d, x) { return x.at < d ? x.at : d; }, now);
+      n = (now.getFullYear() - first.getFullYear()) * 12 + now.getMonth() - first.getMonth() + 1;
+    }
+    for (i = n - 1; i >= 0; i--) {
+      var a = new Date(now.getFullYear(), now.getMonth() - i, 1), b = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+      out.push({ from: a, to: b, label: MONTHS[a.getMonth()], long: MONTHS[a.getMonth()] + ' ' + a.getFullYear() });
+    }
+    return out;
+  }
+  function chart(bk) {
+    var max = bk.reduce(function (m, b) { return Math.max(m, b.sum); }, 0) || 1;
+    var many = bk.length > 14;
+    return '<div class="tx-chart" role="img" aria-label="Ventes par ' + (many ? 'jour' : 'mois') + '">' +
+      '<div class="tx-chart__plot">' + bk.map(function (b, i) {
+        var h = b.sum ? Math.max(3, Math.round((b.sum / max) * 100)) : 0;
+        var tip = b.long + ' · ' + dollars(b.sum) + ' · ' + plural(b.n, 'commande', 'commandes');
+        return '<span class="tx-chart__col" tabindex="0" data-tip="' + esc(tip) + '" aria-label="' + esc(tip) + '"><span class="tx-chart__bar" style="height:' + h + '%"></span></span>';
+      }).join('') + '</div><div class="tx-chart__axis">' + bk.map(function (b, i) {
+        return '<span>' + (!many || i === 0 || (i + 1) % 5 === 0 || i === bk.length - 1 ? esc(b.label) : '') + '</span>';
+      }).join('') + '</div></div>';
+  }
+  function homeView(r) {
     need('overview', 'overview');
     var o = T.overview;
     if (!o) return loading('The Ivory Sukundu');
     var s = o.stats, setup = o.setup || {};
     var warn = [];
-    if (!setup.stripe) warn.push('Stripe n’est pas encore branché : aucune commande ne peut être payée.');
+    if (!setup.stripe) warn.push('<strong>La boutique ne peut pas encore encaisser.</strong> La clé Stripe n’est pas branchée sur le site : une cliente qui veut payer est bloquée. À ajouter sur Vercel (projet « tishe »), dans Settings › Environment Variables : <code>STRIPE_SECRET_KEY</code>.');
     else if (setup.testMode) warn.push('Stripe est en mode test : les paiements ne sont pas réels.');
     if (setup.stripe && !setup.webhook) warn.push('Les commandes payées n’arrivent pas toutes seules. <button class="a-btn a-btn--sm a-btn--ghost" type="button" data-tx="setup">Réparer</button>');
-    if (!setup.resend) warn.push('Les e-mails aux clientes ne partent pas (Resend n’est pas branché).');
-    var recent = (o.orders || []).slice(0, 6);
-    return page('The Ivory Sukundu', 'Vos ventes et vos commandes, en dollars canadiens, avant taxes.',
-      (warn.length ? '<section class="a-card a-tone--warn">' + warn.map(function (w) { return '<p class="a-card__sub">' + w + '</p>'; }).join('') + '</section>' : '') +
-      '<div class="a-kpis">' +
-        kpi('wallet', 'Ventes ce mois-ci', dollars(s.thisMonth.sales), plural(s.thisMonth.orders, 'commande', 'commandes')) +
-        kpi('chart', 'Mois dernier', dollars(s.lastMonth.sales), plural(s.lastMonth.orders, 'commande', 'commandes')) +
-        kpi('bag', 'Panier moyen', dollars(s.allTime.average), plural(s.allTime.orders, 'commande', 'commandes') + ' en tout', '') +
+    if (!setup.resend) warn.push('Les e-mails aux clientes ne partent pas (Resend n’est pas branché sur le site).');
+    var key = (r && r.query && r.query.periode) || '6m';
+    var all = sales(), bk = buckets(key, all);
+    bk.forEach(function (b) { var xs = all.filter(function (x) { return x.at >= b.from && x.at < b.to; }); b.sum = xs.reduce(function (n, x) { return n + x.amount; }, 0); b.n = xs.length; });
+    var tot = bk.reduce(function (n, b) { return n + b.sum; }, 0), cnt = bk.reduce(function (n, b) { return n + b.n; }, 0);
+    var recent = (o.orders || []).slice(0, 5);
+    var shop = SHOPIFY.map(function (x) {
+      return '<li><a class="a-orow" href="' + SHOPIFY_ADMIN + x.id + '" target="_blank" rel="noopener"><span class="a-orow__top"><span class="a-orow__id">#' + x.number + ' <span class="a-orow__who">· ancienne boutique Shopify</span></span><span class="a-pill a-tone--ok">Livrée</span></span>' +
+        '<span class="a-orow__line"><span>' + esc(day(x.createdAt)) + ' · ' + esc(plural(x.items, 'article', 'articles')) + '</span><span class="a-orow__amount">' + esc(dollars(x.total)) + '</span></span></a></li>';
+    }).join('');
+    return page('The Ivory Sukundu', 'Vos ventes, ancienne boutique Shopify comprise. Montants payés, en dollars canadiens.',
+      (warn.length ? '<section class="a-card tx-warn">' + warn.map(function (w) { return '<p>' + w + '</p>'; }).join('') + '</section>' : '') +
+      '<div class="a-filters tx-periods" role="group" aria-label="Période">' + PERIODS.map(function (p) {
+        return '<a class="a-filter" href="#accueil?periode=' + p[0] + '" aria-pressed="' + (p[0] === key) + '">' + esc(p[1]) + '</a>';
+      }).join('') + '</div>' +
+      '<section class="a-card"><div class="tx-sum">' +
+        '<div><span class="a-kpi__label">' + ico('wallet') + 'Ventes</span><span class="tx-sum__v">' + esc(dollars(tot)) + '</span></div>' +
+        '<div><span class="a-kpi__label">' + ico('receipt') + 'Commandes</span><span class="tx-sum__v">' + cnt + '</span></div>' +
+        '<div><span class="a-kpi__label">' + ico('bag') + 'Panier moyen</span><span class="tx-sum__v">' + esc(dollars(cnt ? tot / cnt : 0)) + '</span></div>' +
+      '</div>' + chart(bk) + '</section>' +
+      '<div class="a-kpis tx-kpis">' +
         kpi('clock', 'À commander chez le fournisseur', String(s.todo.toOrder), 'Commandes payées, pas encore passées', '#commandes?statut=new') +
         kpi('truck', 'En attente du suivi', String(s.todo.awaitingTracking), 'Commandées, sans numéro de suivi', '#commandes?statut=ordered') +
+        kpi('chart', 'Depuis le début', dollars(all.reduce(function (n, x) { return n + x.amount; }, 0)), plural(all.length, 'commande', 'commandes') + ', Shopify compris') +
       '</div>' +
-      card(recent.length ? '<ul class="a-rows">' + recent.map(orderRow).join('') + '</ul><div class="a-card__foot"><a class="a-btn a-btn--ghost" href="#commandes">Toutes les commandes</a></div>'
-        : '<p class="a-card__sub">Aucune commande pour l’instant.</p>', 'Dernières commandes'),
+      card('<ul class="a-rows">' + recent.map(orderRow).join('') + shop + '</ul><div class="a-card__foot"><a class="a-btn a-btn--ghost" href="#commandes">Toutes les commandes</a></div>', 'Dernières commandes'),
       '<a class="a-btn a-btn--ghost" href="' + SITE + '" target="_blank" rel="noopener">' + ico('external') + 'Voir la boutique</a>');
   }
   function kpi(i, label, value, sub, href) {
@@ -208,7 +269,11 @@
         return '<a class="a-filter" href="#commandes' + (t[0] === 'all' ? '' : '?statut=' + t[0]) + '" aria-pressed="' + (f === t[0]) + '">' + esc(t[1]) + '<span class="a-filter__n">' + n + '</span></a>';
       }).join(' ') + '</div>' +
       (list.length ? '<div class="a-card a-card--flush"><ul class="a-rows">' + list.map(orderRow).join('') + '</ul></div>'
-        : card('<p class="a-card__sub">Aucune commande ici.</p>')),
+        : card('<p class="a-card__sub">Aucune commande ici.</p>')) +
+      (f === 'all' || f === 'delivered' ? card('<ul class="a-rows">' + SHOPIFY.map(function (x) {
+        return '<li><a class="a-orow" href="' + SHOPIFY_ADMIN + x.id + '" target="_blank" rel="noopener"><span class="a-orow__top"><span class="a-orow__id">#' + x.number + '</span><span class="a-pill a-tone--ok">Livrée</span></span>' +
+          '<span class="a-orow__line"><span>' + esc(day(x.createdAt)) + ' · ' + esc(plural(x.items, 'article', 'articles')) + ' · voir dans Shopify</span><span class="a-orow__amount">' + esc(dollars(x.total)) + '</span></span></a></li>';
+      }).join('') + '</ul>', 'Ancienne boutique Shopify') : ''),
       '<button class="a-btn a-btn--ghost" type="button" data-tx="reload">' + ico('refresh') + 'Actualiser</button>');
   }
   function orderView(id) {
@@ -495,7 +560,7 @@
   function view(r) {
     if (!auth()) return signInView();
     switch (r.name) {
-      case 'accueil': return homeView();
+      case 'accueil': return homeView(r);
       case 'commandes': return ordersView(r);
       case 'produits': return productsView(r);
       case 'promos': return promosView(r);
