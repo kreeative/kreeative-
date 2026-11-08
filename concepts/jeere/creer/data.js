@@ -122,8 +122,7 @@
   var BADGES = { new: 'Nouveau', best: 'Best-seller', promo: 'Promo' };
 
   // Payment methods, in the order of the checkout. Always plain text: never the operators' logos or
-  // brand colours. kind: 'mobile' (mobile money), 'cod' (paid to the courier), 'card', or 'transfer' (a manual
-  // transfer the customer sends after ordering, like Interac e-Transfer: confirmed by the seller, like 'cod').
+  // brand colours. kind: 'mobile' (mobile money), 'cod' (paid to the courier) or 'card'.
   // hint: the line under the method on the checkout page. status: the line on the confirmation page.
   // On the checkout, 'cod' turns the main button into « Confirmer la commande », the others into « Payer 14 500 FCFA ».
   var PAYMENTS = [
@@ -132,8 +131,7 @@
     { key: 'mtn', label: 'MTN MoMo', kind: 'mobile', hint: 'Validez le paiement sur votre téléphone.', status: 'Paiement MTN MoMo reçu' },
     { key: 'moov', label: 'Moov Money', kind: 'mobile', hint: 'Validez le paiement sur votre téléphone.', status: 'Paiement Moov Money reçu' },
     { key: 'cod', label: 'Paiement à la livraison', kind: 'cod', hint: 'Vous payez le livreur en espèces ou par mobile money à la réception.', status: 'À payer à la livraison' },
-    { key: 'card', label: 'Carte bancaire', kind: 'card', hint: 'Visa, Mastercard ou carte Djamo, aussi depuis le Canada, les États-Unis ou l’Europe.', status: 'Paiement par carte reçu' },
-    { key: 'interac', label: 'Virement Interac (Canada)', kind: 'transfer', hint: 'Après la commande, la boutique vous donne l’adresse e-mail où envoyer le virement Interac.', status: 'Virement Interac à envoyer' }
+    { key: 'card', label: 'Carte bancaire', kind: 'card', hint: 'Visa, Mastercard ou carte Djamo, aussi depuis le Canada, les États-Unis ou l’Europe.', status: 'Paiement par carte reçu' }
   ];
 
   // The pages of a store, in the order of the buying journey. JeereRender.render(config, root,
@@ -3538,16 +3536,6 @@
         { key: 'statementName', label: 'Nom affiché sur le relevé du client', type: 'text', placeholder: 'AWA BEAUTE' }
       ],
       note: 'Activation après vérification de votre identité par le partenaire de paiement. Ses frais sont plus élevés pour la carte que pour le mobile money. Le versement sur un compte Djamo dépend du partenaire choisi.'
-    },
-    {
-      id: 'interac', category: 'paiements', name: 'Virement Interac (Canada)', icon: 'mail',
-      payments: ['interac'],
-      description: 'Vos clients au Canada vous paient par virement Interac, depuis leur banque. Vous confirmez la commande quand le virement est reçu.',
-      fields: [
-        { key: 'email', label: 'Adresse e-mail qui reçoit les virements Interac', type: 'email', placeholder: 'vous@exemple.com' },
-        { key: 'autoDeposit', label: 'Dépôt automatique activé sur cette adresse', type: 'toggle', default: 'true' }
-      ],
-      note: 'Sans frais Jeere. L’adresse est donnée au client dans le message de confirmation de la commande.'
     },
     {
       id: 'whatsapp', category: 'messagerie', name: 'WhatsApp Business', icon: 'chat',

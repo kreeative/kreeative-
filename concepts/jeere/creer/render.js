@@ -1916,8 +1916,7 @@
       '<div class="jst-summary-head"><h2 class="jst-h jst-summary-title">Votre commande</h2><a class="jst-link"' + go('cart') + '>Modifier</a></div>' +
       recap + '</aside>';
 
-    // Interac (a transfer sent after ordering) is confirmed like payment on delivery: no online payment step
-    const cod = !!j.pay && (j.pay.key === 'cod' || j.pay.key === 'interac');
+    const cod = !!j.pay && j.pay.key === 'cod';
     const label = cod ? 'Confirmer la commande' : 'Payer ' + money(j.needZone ? j.subtotal : j.total) + (j.needZone ? ' + livraison' : '');
     let note = '';
     if (cod) note = j.needZone ? 'Vous paierez le livreur à la réception, livraison comprise.' : 'Vous paierez ' + money(j.total) + ' au livreur, à la réception.';
@@ -1950,7 +1949,7 @@
     const pay = j.pay;
     let status;
     if (!pay) status = '<p class="jst-ok-status">' + icon('chat') + '<span>Paiement à convenir sur WhatsApp</span></p>';
-    else if (pay.key === 'cod' || pay.key === 'interac') status = '<p class="jst-ok-status is-cod">' + icon('cash') + '<span>' + esc(pay.status || 'À payer à la livraison') + ' · <b>' + money(j.total) + '</b></span></p>';
+    else if (pay.key === 'cod') status = '<p class="jst-ok-status is-cod">' + icon('cash') + '<span>' + esc(pay.status || 'À payer à la livraison') + ' · <b>' + money(j.total) + '</b></span></p>';
     else status = '<p class="jst-ok-status is-paid">' + icon('check') + '<span>' + esc(pay.status || (pay.key === 'card' ? 'Paiement par carte reçu' : 'Paiement ' + pay.label + ' reçu')) + ' · <b>' + money(j.total) + '</b></span></p>';
     const hero = '<div class="jst-ok-hero">' +
       '<span class="jst-ok-check" aria-hidden="true">' + icon('check') + '</span>' +

@@ -3094,10 +3094,9 @@
     mtn: 'Mobile money, par le partenaire de paiement agréé.',
     moov: 'Mobile money, par le partenaire de paiement agréé.',
     cod: 'Le livreur encaisse à la réception, en espèces ou par mobile money.',
-    card: 'Visa, Mastercard et Djamo, aussi pour vos clients au Canada, aux États-Unis ou en Europe.',
-    interac: 'Vos clients au Canada vous envoient un virement Interac ; vous confirmez à la réception.'
+    card: 'Visa, Mastercard et Djamo, aussi pour vos clients au Canada, aux États-Unis ou en Europe.'
   };
-  const PAY_CONN = { wave: 'mobile-money', orange: 'mobile-money', mtn: 'mobile-money', moov: 'mobile-money', card: 'card', interac: 'interac' };
+  const PAY_CONN = { wave: 'mobile-money', orange: 'mobile-money', mtn: 'mobile-money', moov: 'mobile-money', card: 'card' };
   function connValueLine(id) {
     const c = conn(id);
     const v = c.values || {};
@@ -3105,7 +3104,6 @@
     switch (id) {
       case 'mobile-money': return [phoneFmt(v.payoutPhone), opt('payoutOperator', v.payoutOperator)].filter(Boolean).join(' · ');
       case 'card': return [opt('payoutOperator', v.payoutOperator), phoneFmt(v.payoutPhone), v.statementName].filter(Boolean).join(' · ');
-      case 'interac': return str(v.email);
       case 'whatsapp': return phoneFmt(v.number);
       case 'sms': return v.sender ? 'Expéditeur : ' + v.sender : '';
       case 'yango': case 'gozem': return [phoneFmt(v.phone), v.pickup].filter(Boolean).join(' · ');
@@ -3181,7 +3179,7 @@
           <section class="a-card" aria-labelledby="h-partners"><div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-partners">Encaissement</h2><p class="a-card__sub">Le partenaire de paiement agréé par la BCEAO verse l’argent sur votre numéro.</p></div></div>
             ${blocked ? H`<div class="a-note a-note--strong" style="margin-top:12px">${ico('alert')}<div><p>${esc(fr('Vos clients voient ' + listFr(mm.map(payLabel)) + ', mais vous ne pouvez pas encore encaisser.'))}</p>
               <div class="a-btnrow" style="margin-top:10px"><button class="a-btn a-btn--primary" type="button" data-act="connector-open" data-id="mobile-money">${ico('phone')}Connecter le paiement mobile money</button></div></div></div>` : ''}
-            ${connRow('mobile-money', blocked)}${connRow('card')}${connRow('interac')}
+            ${connRow('mobile-money', blocked)}${connRow('card')}
             <p class="a-small" style="margin-top:6px">Démo : aucune connexion réelle n’est faite.</p>
           </section>
           <section class="a-card" aria-labelledby="h-methods"><div class="a-card__head" style="margin-bottom:4px"><div><h2 class="a-card__title" id="h-methods">Moyens de paiement</h2><p class="a-card__sub">Ceux que vos clients voient au moment de payer, dans cet ordre.</p></div></div>
