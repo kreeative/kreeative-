@@ -120,7 +120,7 @@
     }).then(function (j) {
       lsSet(K_AUTH, JSON.stringify({ token: j.token, expiresAt: j.expiresAt, email: j.email }));
       T.error = null;
-    }, function () { /* not signed in to Jeere, or the store does not know this door yet: the email link */ T.error = null; })
+    }, function () { /* not signed in to Jeere, or the store does not know this door yet: the email link */ T.error = null; T.autoTried = true; })
       .then(function () { T.redeeming = false; refresh(); });
   }
   function signInView() {
