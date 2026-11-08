@@ -332,8 +332,22 @@
   const STATUSES = () => (D && arr(D.ORDER_STATUSES).length ? D.ORDER_STATUSES : [{ id: 'new', label: 'Nouvelle' }, { id: 'paid', label: 'Payée' }, { id: 'shipped', label: 'Expédiée' }, { id: 'delivered', label: 'Livrée' }, { id: 'cancelled', label: 'Annulée' }]);
   const statusLabel = (id) => { const s = STATUSES().find((x) => x.id === id); return s ? s.label : id; };
   const channelLabel = (id) => { const c = arr(D && D.ORDER_CHANNELS).find((x) => x.id === id); return c ? c.label : str(id); };
-  const storeName = () => (S.config && S.config.store.name) || (S.account && S.account.storeName) || 'Ma boutique';
-  const subdomain = () => (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jeere.kreeative.xyz/b/ma-boutique');
+  // a store of hers that keeps its own site and data (The Ivory Sukundu, ./tishe.js): its views replace these while in view
+  // her own designs that sell through a Jeere store (../connect/jeere-connect.js, data-store): the dashboard shows
+  // that site, « Personnaliser » opens it in the website editor; the Jeere store holds the products and orders
+  const CUSTOM = {
+    'joshua-cooker': { site: 'concepts--joshua-cooker', live: 'https://kreeative.xyz/concepts/joshua-cooker/' },
+    'sonia-luxury-hair': { site: 'concepts--sonia-luxury-hair', live: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' }
+  };
+  function customSite() {
+    if (EXT()) return null;
+    let slug = '';
+    try { slug = (JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {}).slug || ''; } catch (e) { slug = ''; }
+    return CUSTOM[slug] || null;
+  }
+  const EXT = () => (window.JeereTishe && window.JeereTishe.on() ? window.JeereTishe : null);
+  const storeName = () => (EXT() ? EXT().name : (S.config && S.config.store.name) || (S.account && S.account.storeName) || 'Ma boutique');
+  const subdomain = () => EXT() ? EXT().url : (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jeere.kreeative.xyz/b/ma-boutique');
   const findOrder = (id) => S.admin.orders.find((o) => o.id === id) || null;
   const findProduct = (id) => (S.config ? S.config.products.find((p) => p.id === id) : null) || null;
   const findPage = (id) => (S.config ? arr(S.config.pages).find((p) => p.id === id) : null) || null;
@@ -649,7 +663,7 @@
     S.mounts = [];
     S.restored = null;
     let html;
-    try { html = VIEWS[r.name](r); } catch (e) { html = errorView(); }
+    try { html = EXT() ? EXT().view(r) : VIEWS[r.name](r); } catch (e) { html = errorView(); }
     S.rendering = true;
     try { main.innerHTML = html; } finally { S.rendering = false; }
     S.mounts.forEach((fn) => { try { fn(); } catch (e) { /* a view's extra never breaks the page */ } });
@@ -702,9 +716,10 @@
   /* ------------------------------------------------------------------ shell */
 
   function storeLogo() {
+    if (EXT()) return EXT().thumb;
     try { const b = D && typeof D.brand === 'function' && S.config ? D.brand(S.config) : null; return b && b.logo ? b.logo : null; } catch (e) { return null; }
   }
-  function todoCount() { return S.admin ? S.admin.orders.filter((o) => o.status === 'new' || o.status === 'paid').length : 0; }
+  function todoCount() { if (EXT()) return EXT().todo(); return S.admin ? S.admin.orders.filter((o) => o.status === 'new' || o.status === 'paid').length : 0; }
   function updateShell() {
     const name = storeName();
     $$('[data-bind="store-name"]').forEach((n) => { n.textContent = name; });
@@ -723,6 +738,7 @@
     });
     $$('[data-bind="store-url"]').forEach((n) => { n.textContent = subdomain(); });
     updateProjShell();
+    document.body.classList.toggle('is-ext', !!EXT());
     const acc = S.account || {};
     $$('[data-bind="user-name"]').forEach((n) => { n.textContent = acc.firstName || 'Mon compte'; });
     $$('[data-bind="user-initial"]').forEach((n) => { n.textContent = initials(acc.firstName || name).charAt(0) || 'J'; });
@@ -788,21 +804,32 @@
     return bits.join(' · ');
   }
   const MY_SHOPS = [
-    { name: 'The Ivory Sukundu', meta: 'Son tableau de bord · theivorysukundu.com', manage: 'https://www.theivorysukundu.com/admin', thumb: '../studio/sites/thumbs/live--the-ivory-sukundu.webp' },
-    { name: 'Sonia Luxury Hair', meta: 'Boutique Jeere', thumb: '../studio/sites/thumbs/concepts--sonia-luxury-hair.webp' },
-    { name: 'Joshua Cooker', meta: 'Boutique Jeere', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' }
+    { name: 'The Ivory Sukundu', meta: 'theivorysukundu.com · commandes, produits, codes', ext: true, thumb: '../studio/sites/thumbs/live--the-ivory-sukundu.webp' },
+    { name: 'Sonia Luxury Hair', slug: 'sonia-luxury-hair', meta: 'Son site · kreeative.xyz/concepts/sonia-luxury-hair', thumb: '../studio/sites/thumbs/concepts--sonia-luxury-hair.webp' },
+    { name: 'Joshua Cooker', slug: 'joshua-cooker', meta: 'Son site · kreeative.xyz/concepts/joshua-cooker', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' }
   ];
   // a boutique of hers not yet in the list: its project is made once (her name on it), then it is a project like the others
   function openShopProject(el) {
     if (S.dirty) { closeProj(); closeDialog(true); nudgeSave(); return; }
-    const name = el.getAttribute('data-name');
+    const name = el.getAttribute('data-name'), slug = el.getAttribute('data-slug');
     const norm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-    const found = projList().find((e) => norm(projName(e)) === norm(name));
-    if (found) { switchProject(found.id); return; }
     if (!PJ()) { toast('Les projets ne sont pas disponibles sur cette page.'); return; }
+    if (window.JeereTishe) window.JeereTishe.leave();
     closeProj(); closeDialog(true);
-    PJ().create({ clientName: name, template: el.getAttribute('data-template') || undefined }).then((r) => {
+    const fetchStore = () => !slug ? Promise.resolve(null) : fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/stores?select=id,slug,fiche,published,published_at&slug=eq.' + encodeURIComponent(slug) + '&limit=1',
+      { headers: { apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w' } }).then((r) => (r.ok ? r.json() : [])).then((rows) => (rows && rows[0]) || null, () => null);
+    const found = projList().find((e) => norm(projName(e)) === norm(name));
+    const open = found ? PJ().switchTo(found.id) : PJ().create({ clientName: name });
+    Promise.all([open, fetchStore()]).then(([r, row]) => {
       if (!r.ok) { toast(r.message || 'Cette boutique n’a pas pu s’ouvrir.'); return; }
+      // the store in this project is her real one: its fiche (products, prices, texts) and its address
+      if (row && row.fiche) {
+        try {
+          localStorage.setItem(KEYS.config, JSON.stringify(row.fiche));
+          const pub = JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {};
+          localStorage.setItem('jeere-publish', JSON.stringify(Object.assign(pub, { version: 1, slug: row.slug, storeId: row.id, published: !!row.published, publishedAt: row.published_at || '' })));
+        } catch (e) { /* storage full: the project keeps what it had */ }
+      } else if (slug) toast('La boutique en ligne n’a pas pu être lue : réessayez avec une connexion.');
       afterProjectChange('Boutique ouverte : ' + name + '.');
     });
   }
@@ -812,20 +839,21 @@
     // her boutiques: always in the list. The Ivory Sukundu has its own dashboard (its own site); the others open here
     const norm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
     const have = new Set(items.map((e) => norm(projName(e))));
-    const shops = MY_SHOPS.filter((x) => x.manage || !have.has(norm(x.name)));
+    const shops = MY_SHOPS.filter((x) => x.ext || x.slug || !have.has(norm(x.name)));
+    const shopNames = new Set(MY_SHOPS.map((x) => norm(x.name)));
     return H`<p class="a-proj__title" id="pj-sh">Mes boutiques</p>
-      <ul class="a-proj__list" aria-labelledby="pj-sh">${shops.map((x) => x.manage
-        ? H`<li><a class="a-proj__item" href="${esc(x.manage)}" target="_blank" rel="noopener">
+      <ul class="a-proj__list" aria-labelledby="pj-sh">${shops.map((x) => x.ext
+        ? H`<li><button class="a-proj__item" type="button" data-act="proj-ext"${EXT() ? ' aria-current="true"' : ''}>
           <span class="a-proj__av a-proj__av--img" aria-hidden="true"><img alt="" src="${esc(x.thumb)}"></span>
           <span class="a-proj__txt"><span class="a-proj__name">${esc(x.name)}</span><span class="a-proj__meta">${esc(x.meta)}</span></span>
-          ${ico('external', 'a-proj__check')}</a></li>`
-        : H`<li><button class="a-proj__item" type="button" data-act="proj-shop" data-name="${esc(x.name)}" data-template="${esc(x.template || '')}">
+          ${EXT() ? ico('check', 'a-proj__check') : ''}</button></li>`
+        : H`<li><button class="a-proj__item" type="button" data-act="proj-shop" data-name="${esc(x.name)}" data-slug="${esc(x.slug || '')}">
           <span class="a-proj__av a-proj__av--img" aria-hidden="true"><img alt="" src="${esc(x.thumb)}"></span>
           <span class="a-proj__txt"><span class="a-proj__name">${esc(x.name)}</span><span class="a-proj__meta">${esc(x.meta)}</span></span></button></li>`)}</ul>
       <div class="a-menu-sep" role="separator"></div>
       <p class="a-proj__title" id="pj-t">Projets</p>
-      ${items.length ? H`<ul class="a-proj__list" aria-labelledby="pj-t">${items.map((e) => {
-        const on = cur && cur.id === e.id;
+      ${items.filter((e) => !shopNames.has(norm(projName(e)))).length ? H`<ul class="a-proj__list" aria-labelledby="pj-t">${items.filter((e) => !shopNames.has(norm(projName(e)))).map((e) => {
+        const on = !EXT() && cur && cur.id === e.id;
         return H`<li><button class="a-proj__item" type="button" data-act="proj-switch" data-id="${esc(e.id)}"${on ? ' aria-current="true"' : ''}>
           <span class="a-proj__av" aria-hidden="true">${esc(initials(projName(e)).charAt(0) || 'J')}</span>
           <span class="a-proj__txt"><span class="a-proj__name">${esc(projName(e))}</span><span class="a-proj__meta">${esc(fr(projMeta(e)))}</span></span>
@@ -869,6 +897,7 @@
   function switchProject(id) {
     if (S.dirty) { closeProj(); closeDialog(true); nudgeSave(); return; }
     const cur = projCurrent();
+    if (EXT()) { window.JeereTishe.leave(); if (cur && cur.id === id) { afterProjectChange('Projet ouvert : ' + projName(cur) + '.'); return; } }
     if (cur && cur.id === id) { closeProj(); closeDialog(true); return; }
     closeDialog(true);
     PJ().switchTo(id).then((r) => {
@@ -1017,7 +1046,7 @@
   function updateProjShell() {
     const e = projCurrent();
     $$('[data-bind="proj-role"]').forEach((n) => {
-      const show = !!e && (e.role !== 'owner' || (!!e.clientName && !e.handoff));
+      const show = !!e && !customSite() && (e.role !== 'owner' || (!!e.clientName && !e.handoff));
       n.hidden = !show;
       n.textContent = show ? (e.role === 'owner' ? (STATUS_LABEL[e.status] || 'Client') : ROLE_LABEL[e.role]) : '';
     });
@@ -1166,11 +1195,22 @@
     const frame = $('.a-mini', stage);
     const screen = $('.a-mini__screen', stage);
     const R = window.JeereRender;
-    if (!frame || !screen || !R || !cfg) return;
+    if (!frame || !screen) return;
+    const cs = customSite();
+    if (cs) {
+      // her own design, live: the page itself in the phone
+      screen.innerHTML = '';
+      const f = document.createElement('iframe');
+      f.src = cs.live; f.title = 'Aperçu du site'; f.loading = 'lazy'; f.tabIndex = -1;
+      f.setAttribute('style', 'width:390px;height:820px;border:0;display:block;background:#fff');
+      screen.appendChild(f);
+    } else if (!R || !cfg) return;
+    else {
     // draw into a box of its own: the renderer renames the element it draws into, the screen keeps its frame
     let host = screen.firstElementChild;
     if (!host) { host = document.createElement('div'); screen.appendChild(host); }
     try { R.render(cfg, host, { device: 'phone', page: o.page || 'home', pageId: o.pageId, productId: o.productId }); } catch (e) { return; }
+    }
     const fit = () => {
       const w = stage.clientWidth || 300;
       const s = Math.max(0.3, Math.min(o.max || 0.62, (w - 24) / 406));
@@ -1431,7 +1471,7 @@
       </section>
       <div class="a-home__side">
         <section class="a-card a-preview a-home__preview" aria-labelledby="h-prev">
-          <div class="a-card__head" style="margin-bottom:0"><div style="min-width:0"><h2 class="a-card__title" id="h-prev">Votre boutique</h2><p class="a-preview__url">${ico('globe')}<span>${esc(subdomain())}</span></p></div><button class="a-chip a-chip--sample a-chip--btn" type="button" data-act="publish" aria-label="Pas en ligne : publier ma boutique">Pas en ligne</button></div>
+          <div class="a-card__head" style="margin-bottom:0"><div style="min-width:0"><h2 class="a-card__title" id="h-prev">Votre boutique</h2><p class="a-preview__url">${ico('globe')}<span>${esc(subdomain())}</span></p></div>${isPublished() || customSite() ? H`<span class="a-chip a-tone--ok">En ligne</span>` : H`<button class="a-chip a-chip--sample a-chip--btn" type="button" data-act="publish" aria-label="Pas en ligne : publier ma boutique">Pas en ligne</button>`}</div>
           ${miniStage('Aperçu de la page d’accueil de votre boutique')}
           <div class="a-card__foot a-preview__foot"><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('edit')}Personnaliser</button><button class="a-btn a-btn--ghost" type="button" data-act="view-store">${ico('eye')}Voir</button><button class="a-btn a-btn--ghost" type="button" data-act="share-store">${ico('share')}Partager</button></div>
         </section>
@@ -4045,8 +4085,8 @@
       <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close data-autofocus>J’ai compris</button></div></div>`, { labelledby: 'di-t' }),
     'more': () => { const m = $('#a-more'); if (!m) return; dlgReturn = document.activeElement; try { m.showModal(); } catch (e) { m.setAttribute('open', ''); } document.documentElement.classList.add('a-locked'); },
     'logout': () => logout(),
-    'view-store': () => openEditor({ page: 'home', view: 'preview' }),
-    'open-editor': (el, e) => { e.preventDefault(); openEditor({ page: el.getAttribute('data-page') || 'home', pageId: el.getAttribute('data-page-id'), productId: el.getAttribute('data-product-id'), focus: el.getAttribute('data-focus') }); },
+    'view-store': () => (EXT() ? window.open(EXT().site, '_blank', 'noopener') : customSite() ? window.open(customSite().live, '_blank', 'noopener') : openEditor({ page: 'home', view: 'preview' })),
+    'open-editor': (el, e) => { e.preventDefault(); if (customSite()) { window.location.href = '../studio/sites/#/site/' + customSite().site; return; } openEditor({ page: el.getAttribute('data-page') || 'home', pageId: el.getAttribute('data-page-id'), productId: el.getAttribute('data-product-id'), focus: el.getAttribute('data-focus') }); },
     'discard': () => { const h = S.hash; clearDirty(); if (S.drafts[h]) delete S.drafts[h]; refresh(); focusMain(); toast('Modifications ignorées.'); },
     'save': () => { const f = dirtyForm(); if (f) { if (typeof f.requestSubmit === 'function') f.requestSubmit(); else f.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); } },
     'start-example': () => startExample(),
@@ -4066,6 +4106,7 @@
     'projects': (el) => openProjects(el),
     'proj-switch': (el) => switchProject(el.getAttribute('data-id')),
     'proj-shop': (el) => openShopProject(el),
+    'proj-ext': () => { if (S.dirty) { closeProj(); nudgeSave(); return; } closeProj(); closeDialog(true); window.JeereTishe.enter(); go('#accueil'); updateShell(); render(parseHash(), true); },
     'proj-new': () => openNewProject(),
     'proj-manage': () => openProject(),
     'proj-copy': () => copyPreview(),
@@ -4352,6 +4393,13 @@
     window.addEventListener('afterprint', clearSlip);
     const gd = $('#a-gate-demo');
     if (gd) gd.addEventListener('click', startDemo);
+    // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jeere store here
+    const bm = /[#&]boutique=([a-z0-9-]+)/.exec(window.location.hash || '');
+    if (bm && CUSTOM[bm[1]]) {
+      const shop = MY_SHOPS.find((x) => x.slug === bm[1]);
+      try { history.replaceState(null, '', window.location.pathname + window.location.search + '#accueil'); } catch (e) { /* ignore */ }
+      if (shop) setTimeout(() => openShopProject({ getAttribute: (k) => (k === 'data-name' ? shop.name : k === 'data-slug' ? shop.slug : null) }), 0);
+    }
     // Dialogs: Esc and the backdrop close them
     [dialogEl(), $('#a-more')].forEach((dlg) => {
       if (!dlg) return;
@@ -4409,6 +4457,7 @@
 
   window.JeereAdmin = {
     go,
+    ui: { toast: (m) => toast(m), confirmBox: (o) => confirmBox(o), refresh: () => { if (S.inApp) { updateShell(); refresh(); } }, go: (h) => go(h) },
     state: () => S,
     startTour,
     reload: () => { loadAll(); if (isIn()) showApp(false); else showGate(); }

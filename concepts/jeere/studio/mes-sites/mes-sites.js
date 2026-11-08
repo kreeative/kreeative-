@@ -118,7 +118,7 @@
   }
   var LIVE = [
     { id: 'the-ivory-sukundu', kind: 'shop', title: 'The Ivory Sukundu', label: 'Boutique en ligne · theivorysukundu.com', live: 'https://www.theivorysukundu.com/',
-      manage: 'https://www.theivorysukundu.com/admin', manageLabel: 'Gérer la boutique' },
+      manage: '../../admin/#boutique=tishe', manageLabel: 'Gérer la boutique' },
     { id: 'rich-and-friends', kind: 'site', title: 'Rich & Friends', label: 'En ligne · richandfriends.xyz', live: 'https://richandfriends.xyz/' },
     { id: 'keewal-meere', kind: 'site', title: 'Keewal Meere', label: 'En ligne · keewaomeere.vercel.app', live: 'https://keewaomeere.vercel.app/' },
     { id: 'the-bakery', kind: 'site', title: 'The Bakery', label: 'En ligne · the-bakery-concept.vercel.app', live: 'https://the-bakery-concept.vercel.app/' },
@@ -156,7 +156,7 @@
       });
       // her sites already online, each in its own project (not in this repository): a card each, The Ivory Sukundu first
       var live = LIVE.map(function (x) {
-        return Object.assign({ thumb: '../sites/thumbs/live--' + x.id + '.webp', href: x.manage || x.live, ext: true, hay: x.live + ' ' + (x.label || '') }, x, { id: 'live--' + x.id });
+        return Object.assign({ thumb: '../sites/thumbs/live--' + x.id + '.webp', href: x.manage || x.live, ext: !x.manage || /^https?:/.test(x.manage), hay: x.live + ' ' + (x.label || '') }, x, { id: 'live--' + x.id });
       });
       return { cards: live.concat(cards), generated: M.generated };
     });
@@ -231,10 +231,10 @@
     if (c.here) chips += '<span class="a-chip a-chip--line">Dans le Studio</span>';
     var links = c.live ? '<a class="a-link ms-card__live" href="' + esc(c.live) + '" target="_blank" rel="noopener">Voir en ligne' + ico('i-external') + '</a>'
       : '<span class="a-small a-muted">Pas encore en ligne</span>';
-    if (c.manage) links = '<a class="a-link ms-card__live" href="' + esc(c.manage) + '" target="_blank" rel="noopener">' + esc(c.manageLabel || 'Gérer') + ico('i-external') + '</a>' + links;
+    if (c.manage) { var out = /^https?:/.test(c.manage); links = '<a class="a-link ms-card__live" href="' + esc(c.manage) + '"' + (out ? ' target="_blank" rel="noopener"' : '') + '>' + esc(c.manageLabel || 'Gérer') + (out ? ico('i-external') : '') + '</a>' + links; }
     if (c.external) links += '<a class="a-link ms-card__live" href="' + esc(c.external) + '" target="_blank" rel="noopener" title="Le site déployé à part (son propre projet)">Site du client' + ico('i-external') + '</a>';
     return '<li class="a-card a-card--flush ms-card" data-kind="' + c.kind + '" data-id="' + esc(c.id) + '">' +
-      '<a class="ms-card__open" href="' + esc(c.href) + '" data-open="' + esc(c.id) + '"' + (c.ext ? ' target="_blank" rel="noopener"' : '') + ' aria-label="' + (c.ext ? (c.manage ? 'Gérer ' + esc(c.title) + ' (son tableau de bord)' : 'Ouvrir ' + esc(c.title) + ' en ligne') : 'Ouvrir ' + esc(c.title) + ' dans le Studio (' + type + ')') + '">' +
+      '<a class="ms-card__open" href="' + esc(c.href) + '" data-open="' + esc(c.id) + '"' + (c.ext ? ' target="_blank" rel="noopener"' : '') + ' aria-label="' + (c.manage ? 'Gérer ' + esc(c.title) + ' (tableau de bord)' : c.ext ? 'Ouvrir ' + esc(c.title) + ' en ligne' : 'Ouvrir ' + esc(c.title) + ' dans le Studio (' + type + ')') + '">' +
         '<span class="ms-card__shot">' + shot + '</span>' +
         '<span class="ms-card__body"><span class="a-card__title ms-card__title">' + esc(c.title) + '</span>' +
         '<span class="a-card__sub ms-card__meta">' + esc(meta.filter(Boolean).join(' · ')) + '</span>' +
@@ -318,7 +318,25 @@
     }).then(function (res) {
       generated = res.sites.generated || null;
       // her own work first: the sites, then the boutiques (the e-commerce sites are among them, by their icon)
-      items = res.sites.cards.concat(res.shops);
+      // her designs that sell through a Jeere store: one card, the site's, with « Gérer la boutique » (its Jeere
+      // store in the dashboard); the store's own card would only say the same thing twice
+      var LINKED = { 'concepts--joshua-cooker': 'joshua-cooker', 'concepts--sonia-luxury-hair': 'sonia-luxury-hair', 'websites--the-ivory-sukundu': 'tishe' };
+      var norm = function (t) { return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); };
+      var linkedNames = {}, linkedSlugs = {};
+      res.sites.cards.forEach(function (c) {
+        var slug = LINKED[c.id];
+        if (!slug) return;
+        if (!c.manage) { c.manage = '../../admin/#boutique=' + slug; c.manageLabel = 'Gérer la boutique'; }
+        c.kind = 'shop';
+        linkedNames[norm(c.title)] = 1; linkedSlugs[slug] = 1;
+      });
+      var shops = res.shops.filter(function (c) {
+        var slug = (c.row && c.row.slug) || (c.addr || '').split('/').pop();
+        return !linkedSlugs[slug] && !linkedNames[norm(c.title)];
+      });
+      // The Ivory Sukundu has its live card (live--…): its case-study copy in the repository does not need one more
+      var cards = res.sites.cards.filter(function (c) { return c.id !== 'websites--the-ivory-sukundu'; });
+      items = cards.concat(shops);
       $('ms-sub').innerHTML = editor
         ? 'Les sites que vous avez faits et vos boutiques Jeere. Ouvrez-en un&nbsp;: il s’ouvre dans le Studio, prêt à modifier.'
         : 'Vos boutiques Jeere. Ouvrez-en une&nbsp;: elle s’ouvre dans le Studio, prête à modifier.';
