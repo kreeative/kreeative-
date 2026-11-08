@@ -478,7 +478,7 @@
     if (el.footTxt) {
       el.footTxt.textContent = d
         ? 'Mode démo Jeere' + NB + ': votre compte reste dans ce navigateur, rien n’est envoyé. Un concept Kreeative.'
-        : 'Votre compte Jeere est enregistré de façon sécurisée (Supabase, serveurs à Paris). Un concept Kreeative.';
+        : 'Votre compte Jeere est enregistré de façon sécurisée. Un concept Kreeative.';
     }
     drawProviders();
     drawMethod('signup');
