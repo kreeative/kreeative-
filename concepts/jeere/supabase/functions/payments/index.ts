@@ -1,5 +1,5 @@
 // Jeere — Edge Function `payments` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk): card payments with
-// Stripe Connect. Each store connects its own Stripe account (Express, under Jeere's platform account); the
+// Stripe Connect. Each store connects its own Stripe account (Accounts v2, « full » dashboard: her own Stripe); the
 // customer pays by card on Stripe's page, in FCFA (Stripe converts for a card from anywhere: Canada, France,
 // the United States…), and the money is paid out by Stripe to the store's account, never to Jeere.
 //
@@ -7,7 +7,7 @@
 //   headers: apikey: <publishable key>[, Authorization: Bearer <session> for the store's managers]
 //   body: { action: 'status', storeId }                 → { ok, configured, connected, chargesEnabled, ... }   managers
 //         { action: 'connect', storeId, country }       → { ok, url }  Stripe's onboarding page (create, or finish)  managers
-//         { action: 'dashboard', storeId }              → { ok, url }  the store's Stripe Express dashboard       managers
+//         { action: 'dashboard', storeId }              → { ok, url }  the seller's own Stripe dashboard        managers
 //         { action: 'disconnect', storeId }             → { ok }  forgets the account here (Stripe keeps it)       managers
 //         { action: 'available', slug }                 → { ok, card }  does this store take cards?                anyone
 //         { action: 'checkout', orderId, returnUrl }    → { ok, url }  Stripe Checkout for an order of the `orders`
@@ -67,11 +67,26 @@ async function canManage(store: Obj, userId: string) {
   return m.length > 0;
 }
 async function payRow(storeId: string) { return (await rows('store_payments?select=*&store_id=eq.' + storeId))[0] ?? null; }
+// A Stripe account (Accounts v2: configuration.merchant.capabilities, identity.country) or a v1 one
+function cardStatus(acct: Obj): { charges: boolean; payouts: boolean; country: string } {
+  const conf = isObj(acct.configuration) ? acct.configuration as Obj : null;
+  const merchant = conf && isObj(conf.merchant) ? conf.merchant as Obj : null;
+  const caps = merchant && isObj(merchant.capabilities) ? merchant.capabilities as Obj : null;
+  const st = (k: string) => (caps && isObj(caps[k]) ? String((caps[k] as Obj).status ?? '') : '');
+  const identity = isObj(acct.identity) ? acct.identity as Obj : {};
+  if (caps) {
+    const sb = isObj(caps.stripe_balance) ? caps.stripe_balance as Obj : null;
+    const payouts = sb && isObj(sb.payouts) ? String((sb.payouts as Obj).status ?? '') === 'active' : false;
+    return { charges: st('card_payments') === 'active', payouts, country: str(identity.country, 2).toUpperCase() };
+  }
+  return { charges: acct.charges_enabled === true, payouts: acct.payouts_enabled === true, country: str(acct.country, 2).toUpperCase() };
+}
 async function savePayRow(storeId: string, acct: Obj) {
+  const cs = cardStatus(acct);
   const row = {
-    store_id: storeId, provider: 'stripe', account_id: String(acct.id), country: str(acct.country, 2),
-    charges_enabled: acct.charges_enabled === true, payouts_enabled: acct.payouts_enabled === true,
-    details_submitted: acct.details_submitted === true, updated_at: new Date().toISOString()
+    store_id: storeId, provider: 'stripe', account_id: String(acct.id), country: cs.country,
+    charges_enabled: cs.charges, payouts_enabled: cs.payouts,
+    details_submitted: cs.charges, updated_at: new Date().toISOString()
   };
   await admin('store_payments?on_conflict=store_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(row) });
   return row;
@@ -101,6 +116,15 @@ async function stripe(method: string, path: string, body?: Obj, account?: string
   try { data = await r.json(); } catch { /* empty */ }
   return { ok: r.ok, status: r.status, data };
 }
+// Accounts v2 (JSON): the store's account and its onboarding links
+const V2 = '2026-10-28.endive';
+async function stripeV2(method: string, path: string, body?: unknown): Promise<{ ok: boolean; status: number; data: Obj }> {
+  const r = await fetch('https://api.stripe.com/v2/' + path, { method, headers: { Authorization: 'Bearer ' + STRIPE_KEY, 'Stripe-Version': V2, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  let data: Obj = {};
+  try { data = await r.json(); } catch { /* empty */ }
+  return { ok: r.ok, status: r.status, data };
+}
+const getAccount = (id: string) => stripeV2('GET', 'core/accounts/' + id + '?include[0]=configuration.merchant&include[1]=identity');
 const stripeError = (d: Obj) => (isObj(d.error) ? str(d.error.message, 300) : '') || 'Stripe a refusé la demande.';
 
 // Stripe-Signature: t=<time>,v1=<hex hmac of "t.payload">
@@ -161,7 +185,11 @@ Deno.serve(async (req: Request) => {
   if (action === 'available') {
     const slug = str(b.slug, 40).toLowerCase();
     const st = (await rows('stores?select=id&published=is.true&slug=eq.' + encodeURIComponent(slug)))[0];
-    const p = st ? await payRow(String(st.id)) : null;
+    let p = st ? await payRow(String(st.id)) : null;
+    if (STRIPE_KEY && p && !p.charges_enabled && Date.now() - Date.parse(String(p.updated_at)) > 60000) {
+      const r = await getAccount(String(p.account_id));
+      if (r.ok) p = await savePayRow(String(st.id), r.data);
+    }
     return json({ ok: true, card: !!(STRIPE_KEY && p && p.charges_enabled) });
   }
 
@@ -222,7 +250,7 @@ Deno.serve(async (req: Request) => {
 
   if (action === 'status') {
     if (STRIPE_KEY && p) {
-      const r = await stripe('GET', 'accounts/' + p.account_id);
+      const r = await getAccount(String(p.account_id));
       if (r.ok) p = await savePayRow(storeId, r.data);
     }
     return json({ ok: true, configured: !!STRIPE_KEY, countries: COUNTRIES, connected: !!p, accountId: p ? p.account_id : '', country: p ? p.country : '',
@@ -236,26 +264,30 @@ Deno.serve(async (req: Request) => {
       const country = str(b.country, 2).toUpperCase();
       if (!COUNTRIES.includes(country)) return json({ ok: false, code: 'country', message: 'Choisissez le pays où votre activité est enregistrée.' }, 400);
       const fiche = isObj(st.fiche) ? st.fiche : {};
-      const r = await stripe('POST', 'accounts', {
-        type: 'express', country, email: user.email || undefined,
-        capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
-        business_profile: { name: str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || undefined, url: SITE + '/b/' + st.slug },
-        metadata: { store_id: storeId }
+      const name = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
+      // The seller's own Stripe account (her full Stripe dashboard): Stripe collects its fees and covers the
+      // losses with her, as with a standard Stripe account; she onboards on Stripe's page
+      const r = await stripeV2('POST', 'core/accounts', {
+        contact_email: user.email || undefined, display_name: name,
+        identity: { country: country.toLowerCase() },
+        configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
+        defaults: { responsibilities: { fees_collector: 'stripe', losses_collector: 'stripe' } },
+        dashboard: 'full', metadata: { store_id: storeId, slug: String(st.slug) },
+        include: ['configuration.merchant', 'identity']
       });
       if (!r.ok) return json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502);
       p = await savePayRow(storeId, r.data);
     }
     const back = SITE + '/admin/#paiements';
-    const link = await stripe('POST', 'account_links', { account: p.account_id, type: 'account_onboarding', refresh_url: back + '?stripe=relancer', return_url: back + '?stripe=retour' });
+    const link = await stripeV2('POST', 'core/account_links', { account: p.account_id, use_case: { type: 'account_onboarding', account_onboarding: { return_url: back + '?stripe=retour', refresh_url: back + '?stripe=relancer' } } });
     if (!link.ok) return json({ ok: false, code: 'stripe', message: stripeError(link.data) }, 502);
     return json({ ok: true, url: link.data.url });
   }
 
   if (action === 'dashboard') {
+    // a « full » account: the seller signs in to her own Stripe dashboard
     if (!p) return json({ ok: false, code: 'not_connected', message: 'Connectez d’abord Stripe.' }, 409);
-    const r = await stripe('POST', 'accounts/' + p.account_id + '/login_links');
-    if (!r.ok) return json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502);
-    return json({ ok: true, url: r.data.url });
+    return json({ ok: true, url: 'https://dashboard.stripe.com/' });
   }
 
   if (action === 'disconnect') {
