@@ -173,6 +173,7 @@ a { color: inherit; }
 .c-switch { margin-top: 18px; text-align: center; font-size: 15px; color: var(--muted); }
 .c-switch .c-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
 .c-consent { margin-top: -6px; font-size: 13px; line-height: 1.45; color: var(--muted); text-align: center; }
+.c-consent a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
 .c-back {
   display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: -10px 0 10px -12px; padding: 0 12px;
