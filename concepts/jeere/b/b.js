@@ -337,7 +337,16 @@
     try { history.replaceState(history.state, '', location.pathname + location.search.replace(/([?&])paiement=[^&#]*&?/, '$1').replace(/([?&])commande=[^&#]*&?/, '$1').replace(/[?&]$/, '') + location.hash); } catch (e) { /* keep */ }
     if (m[1] === 'ok') {
       if (S.root) S.root.__jstCart = {};
-      msgSheet('Paiement reçu, merci' + NB + '!', 'Votre commande' + n + ' est payée. La boutique vous contacte pour la livraison.');
+      // « payée » only once Stripe says so (the server reads the session): a link alone proves nothing
+      msgSheet('Vérification du paiement…', 'Un instant : nous confirmons votre paiement auprès de Stripe.');
+      var ask = function (left) {
+        fn('payments', { action: 'confirm', slug: S.store && S.store.slug, number: Number(m[2]) || 0 }).then(function (j) {
+          if (j && j.paid) msgSheet('Paiement reçu, merci' + NB + '!', 'Votre commande' + n + ' est payée. La boutique vous contacte pour la livraison.');
+          else if (left > 0) setTimeout(function () { ask(left - 1); }, 2500);
+          else msgSheet('Paiement en cours de vérification', 'Votre commande' + n + ' est enregistrée. Si vous avez payé, la boutique le verra dans quelques minutes et vous contactera.');
+        }, function () { msgSheet('Paiement en cours de vérification', 'Votre commande' + n + ' est enregistrée. La boutique vous contacte pour la suite.'); });
+      };
+      if (m[2]) ask(3); else msgSheet('Merci' + NB + '!', 'La boutique vous contacte pour la suite.');
     } else {
       msgSheet('Paiement annulé', 'Votre commande' + n + ' est enregistrée mais pas encore payée. Vous pouvez réessayer, ou écrire à la boutique.');
     }

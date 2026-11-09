@@ -12,6 +12,7 @@
 //         { action: 'available', slug }                 → { ok, card }  does this store take cards?                anyone
 //         { action: 'checkout', orderId, returnUrl }    → { ok, url }  Stripe Checkout for an order of the `orders`
 //                                                         function (prices from the order, never from the browser) anyone
+//         { action: 'confirm', slug, number }           → { ok, paid }  the order's session read from Stripe, paid → payee  anyone
 //   Stripe's webhook (Connect events) POSTs here with a Stripe-Signature header: checkout.session.completed /
 //   async_payment_succeeded mark the order paid (orders.payment_status 'payee'), …expired / async_payment_failed
 //   'echouee'; account.updated refreshes store_payments.
@@ -210,6 +211,31 @@ Deno.serve(async (req: Request) => {
       if (r.ok) p = await savePayRow(String(st.id), r.data);
     }
     return json({ ok: true, card: !!(STRIPE_KEY && p && p.charges_enabled) });
+  }
+
+  // back from Stripe (?paiement=ok&commande=N): the payment read straight from Stripe, so an order never waits
+  // on the webhook. Only the session Jeere opened for this order, on this store's own account, for the full amount.
+  if (action === 'confirm') {
+    if (!STRIPE_KEY) return json({ ok: false, code: 'config' }, 503);
+    const slug = str(b.slug, 40).toLowerCase();
+    const number = Math.round(Number(b.number));
+    if (!/^[a-z0-9-]{3,40}$/.test(slug) || !(number > 0)) return json({ ok: false, code: 'order' }, 400);
+    const st = (await rows('stores?select=id&slug=eq.' + encodeURIComponent(slug)))[0];
+    if (!st) return json({ ok: false, code: 'order' }, 404);
+    const o = (await rows('orders?select=id,store_id,total,payment_ref,payment_status,status&store_id=eq.' + st.id + '&number=eq.' + number))[0];
+    if (!o) return json({ ok: false, code: 'order' }, 404);
+    if (o.payment_status === 'payee') return json({ ok: true, paid: true });
+    const p = await payRow(String(st.id));
+    const ref = String(o.payment_ref ?? '');
+    if (!p || !/^cs_[A-Za-z0-9_]+$/.test(ref)) return json({ ok: true, paid: false });
+    const r = await stripe('GET', 'checkout/sessions/' + ref, undefined, String(p.account_id));
+    const cs = r.ok ? r.data : {};
+    const paid = cs.payment_status === 'paid' && Math.round(Number(cs.amount_total)) === Math.round(Number(o.total)) && String(cs.currency ?? '').toLowerCase() === 'xof';
+    if (!paid) return json({ ok: true, paid: false });
+    const patch: Obj = { payment_status: 'payee', paid_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (o.status === 'nouvelle') patch.status = 'confirmee';
+    await admin('orders?id=eq.' + o.id, { method: 'PATCH', body: JSON.stringify(patch) });
+    return json({ ok: true, paid: true });
   }
 
   // a buyer pays an order placed by the `orders` function
