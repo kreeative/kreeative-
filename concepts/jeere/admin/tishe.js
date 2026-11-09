@@ -23,7 +23,16 @@
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* blocked */ } }
   function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* blocked */ } }
-  function auth() { try { var a = JSON.parse(lsGet(K_AUTH) || 'null'); return a && a.token && (!a.expiresAt || a.expiresAt > Date.now()) ? a : null; } catch (e) { return null; } }
+  // the Jeere account signed in on this device (the TISHE session belongs to ONE account)
+  function uid() { try { var a = JSON.parse(lsGet('jeere-account') || 'null'); return a && a.userId ? String(a.userId) : ''; } catch (e) { return ''; } }
+  function auth() {
+    try {
+      var a = JSON.parse(lsGet(K_AUTH) || 'null');
+      if (!a || !a.token || (a.expiresAt && a.expiresAt <= Date.now())) return null;
+      if (a.userId !== uid()) { lsDel(K_AUTH); return null; } // another account (or none): not hers
+      return a;
+    } catch (e) { return null; }
+  }
 
   var U = function () { return (window.JeereAdmin && window.JeereAdmin.ui) || null; };
   var ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -101,7 +110,7 @@
     lsSet(K_ON, 'tishe');
     T.redeeming = true;
     call('redeem', { token: m[1] }).then(function (j) {
-      lsSet(K_AUTH, JSON.stringify({ token: j.token, expiresAt: j.expiresAt, email: j.email }));
+      lsSet(K_AUTH, JSON.stringify({ token: j.token, expiresAt: j.expiresAt, email: j.email, userId: uid() }));
       toast('The Ivory Sukundu est connectée à votre tableau de bord.');
     }, function (e) { T.error = e.message; }).then(function () { T.redeeming = false; refresh(); });
   })();
@@ -118,7 +127,7 @@
       if (!s || !s.access_token) throw new Error('');
       return call('jeere', { accessToken: s.access_token });
     }).then(function (j) {
-      lsSet(K_AUTH, JSON.stringify({ token: j.token, expiresAt: j.expiresAt, email: j.email }));
+      lsSet(K_AUTH, JSON.stringify({ token: j.token, expiresAt: j.expiresAt, email: j.email, userId: uid() }));
       T.error = null;
     }, function () { /* not signed in to Jeere, or the store does not know this door yet: the email link */ T.error = null; T.autoTried = true; })
       .then(function () { T.redeeming = false; refresh(); });

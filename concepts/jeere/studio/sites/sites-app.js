@@ -65,6 +65,11 @@
 
   /* ================================================================ small UI helpers */
 
+  // the account a Supabase access token belongs to (its JWT's sub)
+  function uidOfToken(tok) {
+    try { var b = String(tok).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return String(JSON.parse(atob(b + '==='.slice((b.length + 3) % 4))).sub || ''); } catch (e) { return ''; }
+  }
+
   function toast(msg, tone, action) {
     var box = $('skToasts');
     var t = ce('div', 'st-toast');
@@ -233,10 +238,10 @@
       return callFn({ action: 'whoami' }, tok).then(function (r) {
         if (r && r.editor) {
           who = { email: r.email, github: !!r.github };
-          try { sessionStorage.setItem('jeere-sites-editor', '1'); } catch (e) { /* ok */ }
+          try { sessionStorage.setItem('jeere-sites-editor', '1:' + uidOfToken(tok)); } catch (e) { /* ok */ }
           return true;
         }
-        try { sessionStorage.setItem('jeere-sites-editor', '0'); } catch (e) { /* ok */ }
+        try { sessionStorage.setItem('jeere-sites-editor', '0:' + uidOfToken(tok)); } catch (e) { /* ok */ }
         gate('Accès réservé', '« Mes sites » est l’espace de la fondatrice de Jeere pour ses propres sites web. Il n’est pas ouvert sur ce compte.', [link('st-primary', '../', 'Retour au Studio')]);
         return false;
       }, function () {

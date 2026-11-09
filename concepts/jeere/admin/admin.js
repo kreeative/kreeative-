@@ -346,7 +346,31 @@
     try { slug = (JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {}).slug || ''; } catch (e) { slug = ''; }
     return CUSTOM[slug] || null;
   }
-  const EXT = () => (window.JeereTishe && window.JeereTishe.on() ? window.JeereTishe : null);
+  // The founder's own boutiques (MY_SHOPS, The Ivory Sukundu) are shown to HER account only: the `sites-publish`
+  // function says who she is (public.site_editors), the answer kept per account for this tab.
+  const founder = () => {
+    const uid = S.account && S.account.userId ? String(S.account.userId) : '';
+    if (!uid) return false;
+    try { return sessionStorage.getItem('jeere-sites-editor') === '1:' + uid; } catch (e) { return false; }
+  };
+  let founderAsked = '';
+  function checkFounder() {
+    const uid = S.account && S.account.userId ? String(S.account.userId) : '';
+    let cached = null;
+    try { cached = sessionStorage.getItem('jeere-sites-editor'); } catch (e) { cached = null; }
+    if (!uid || founderAsked === uid || cached === '1:' + uid || cached === '0:' + uid) return;
+    founderAsked = uid;
+    const A = window.JeereAuth;
+    Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then((s) => {
+      if (!s || !s.access_token) return null;
+      return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/sites-publish', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ action: 'whoami' }) }).then((r) => r.json());
+    }).then((j) => {
+      if (!j) return;
+      try { sessionStorage.setItem('jeere-sites-editor', (j.editor ? '1:' : '0:') + uid); } catch (e) { /* ok */ }
+      if (j.editor) refresh();
+    }, () => {});
+  }
+  const EXT = () => (founder() && window.JeereTishe && window.JeereTishe.on() ? window.JeereTishe : null);
   const storeName = () => (EXT() ? EXT().name : (S.config && S.config.store.name) || (S.account && S.account.storeName) || 'Ma boutique');
   const subdomain = () => EXT() ? EXT().url : (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jeere.kreeative.xyz/b/ma-boutique');
   const findOrder = (id) => S.admin.orders.find((o) => o.id === id) || null;
@@ -841,10 +865,12 @@
     // her boutiques: always in the list. The Ivory Sukundu has its own dashboard (its own site); the others open here
     const norm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
     const have = new Set(items.map((e) => norm(projName(e))));
-    const shops = MY_SHOPS.filter((x) => x.ext || x.slug || !have.has(norm(x.name)));
-    const shopNames = new Set(MY_SHOPS.map((x) => norm(x.name)));
-    return H`<p class="a-proj__title" id="pj-sh">Mes boutiques</p>
-      <ul class="a-proj__list" aria-labelledby="pj-sh">${shops.map((x) => x.ext
+    checkFounder();
+    const mine = founder() ? MY_SHOPS : [];
+    const shops = mine.filter((x) => x.ext || x.slug || !have.has(norm(x.name)));
+    const shopNames = new Set(mine.map((x) => norm(x.name)));
+    return H`${shops.length ? H`<p class="a-proj__title" id="pj-sh">Mes boutiques</p>` : ''}
+      <ul class="a-proj__list" aria-labelledby="pj-sh"${shops.length ? '' : ' hidden'}>${shops.map((x) => x.ext
         ? H`<li><button class="a-proj__item" type="button" data-act="proj-ext"${EXT() ? ' aria-current="true"' : ''}>
           <span class="a-proj__av a-proj__av--img" aria-hidden="true"><img alt="" src="${esc(x.thumb)}"></span>
           <span class="a-proj__txt"><span class="a-proj__name">${esc(x.name)}</span><span class="a-proj__meta">${esc(x.meta)}</span></span>
@@ -4517,7 +4543,7 @@
     // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jeere store here
     const bm = /[#&]boutique=([a-z0-9-]+)/.exec(window.location.hash || '');
     if (bm && CUSTOM[bm[1]]) {
-      const shop = MY_SHOPS.find((x) => x.slug === bm[1]);
+      const shop = founder() ? MY_SHOPS.find((x) => x.slug === bm[1]) : null;
       try { history.replaceState(null, '', window.location.pathname + window.location.search + '#accueil'); } catch (e) { /* ignore */ }
       if (shop) setTimeout(() => openShopProject({ getAttribute: (k) => (k === 'data-name' ? shop.name : k === 'data-slug' ? shop.slug : null) }), 0);
     }

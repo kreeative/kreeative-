@@ -82,8 +82,12 @@
     if (demo()) { show(); return; }
     var cached = null;
     try { cached = sessionStorage.getItem(KEY); } catch (e) { /* ok */ }
-    if (cached === '1') { show(); return; }
-    if (cached === '0') return;
+    // the answer is kept for one account only: another account on this device asks again
+    var acct = null;
+    try { acct = JSON.parse(localStorage.getItem('jeere-account') || 'null'); } catch (e) { acct = null; }
+    var uid = acct && acct.userId ? String(acct.userId) : '';
+    if (uid && cached === '1:' + uid) { show(); return; }
+    if (uid && cached === '0:' + uid) return;
     var A = window.JeereAuth;
     var key = (A && A.CONFIG && A.CONFIG.storageKey) || 'sb-aezchxfvzfoqlvzchqyk-auth-token';
     var raw = null;
@@ -98,7 +102,7 @@
       }).then(function (r) { return r.json(); });
     }).then(function (j) {
       if (!j) return;
-      try { sessionStorage.setItem(KEY, j.editor ? '1' : '0'); } catch (e) { /* ok */ }
+      try { sessionStorage.setItem(KEY, (j.editor ? '1:' : '0:') + uid); } catch (e) { /* ok */ }
       if (j.editor) show();
     }, function () { /* offline: try again on the next visit */ });
   }

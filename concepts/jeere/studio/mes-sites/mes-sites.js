@@ -85,15 +85,18 @@
   /* ---------------------------------------------------------------- may she see the websites? */
   function isEditor(s) {
     if (DEMO) return Promise.resolve(true);
+    if (!s || !s.access_token) return Promise.resolve(false);
+    // the answer is kept for THIS account only (another account on the same device asks again)
+    var uid = s.user && s.user.id ? String(s.user.id) : '';
     var cached = null;
     try { cached = sessionStorage.getItem('jeere-sites-editor'); } catch (e) { /* ok */ }
-    if (cached === '1') return Promise.resolve(true);
-    if (cached === '0' || !s) return Promise.resolve(false);
+    if (uid && cached === '1:' + uid) return Promise.resolve(true);
+    if (uid && cached === '0:' + uid) return Promise.resolve(false);
     return fetch(CFG.url + '/functions/v1/sites-publish', {
       method: 'POST', headers: { 'Content-Type': 'application/json', apikey: CFG.key, Authorization: 'Bearer ' + s.access_token },
       body: JSON.stringify({ action: 'whoami' })
     }).then(function (r) { return r.json(); }).then(function (j) {
-      try { sessionStorage.setItem('jeere-sites-editor', j && j.editor ? '1' : '0'); } catch (e) { /* ok */ }
+      try { sessionStorage.setItem('jeere-sites-editor', (j && j.editor ? '1:' : '0:') + uid); } catch (e) { /* ok */ }
       return !!(j && j.editor);
     }, function () { return false; });
   }

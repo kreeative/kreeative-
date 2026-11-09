@@ -334,6 +334,10 @@
         var server = Object.assign(fromAccount(acc), planOf(acc));
         // The same seller's local account (same user id, or the same address or number before the first real login)
         var local = readAccount();
+        // ANOTHER account on this device: the previous one's workspace is put aside (restored at its next
+        // log-in), and what only the founder may see (her websites, The Ivory Sukundu) is forgotten
+        if (local && local.userId && local.userId !== user.id) { switchWorkspace(local.userId, user.id); local = null; }
+        else if (!local || !local.userId) clearPrivate();
         var mine = local && (local.userId === user.id || (!local.userId && ((local.email && local.email === acc.email) || (local.phone && (local.phone === acc.phone || local.phone === authPhone)))));
         if (mine) {
           if (!acc.firstName && local.firstName) acc.firstName = local.firstName;
@@ -475,7 +479,37 @@
       } catch (e) { /* ignore */ }
     }
   }
+  /* What one account must never leave to the next one on a shared device */
+  var WORKSPACE = ['jeere-studio-config', 'jeere-admin', 'jeere-publish', 'jeere-studio-versions', 'jeere-studio-versions-saves', 'jeere-projects', 'jeere-studio-open'];
+  function clearPrivate() {
+    ['jeere-tishe-auth', 'jeere-ext', 'jeere-projects-notice'].forEach(lsDel);
+    try {
+      for (var i = sessionStorage.length - 1; i >= 0; i--) { var k = sessionStorage.key(i); if (k && k.indexOf('jeere-sites-editor') === 0) sessionStorage.removeItem(k); }
+    } catch (e) { /* ok */ }
+  }
+  function switchWorkspace(fromId, toId) {
+    clearPrivate();
+    var bundle = {};
+    var slots = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('jeere-project:') === 0) slots.push(k); }
+    } catch (e) { /* ok */ }
+    WORKSPACE.concat(slots).forEach(function (k) { var v = lsGet(k); if (v != null) bundle[k] = v; });
+    var saved = false;
+    try { localStorage.setItem('jeere-away:' + fromId, JSON.stringify(bundle)); saved = true; } catch (e) { saved = false; }
+    WORKSPACE.concat(slots).forEach(lsDel);
+    if (!saved) lsDel('jeere-away:' + fromId);
+    // her own workspace, if she worked on this device before
+    var mine = null;
+    try { mine = JSON.parse(lsGet('jeere-away:' + toId) || 'null'); } catch (e) { mine = null; }
+    if (isObj(mine)) {
+      Object.keys(mine).forEach(function (k) { if (typeof mine[k] === 'string' && (WORKSPACE.indexOf(k) >= 0 || k.indexOf('jeere-project:') === 0)) lsSet(k, mine[k]); });
+      lsDel('jeere-away:' + toId);
+    }
+  }
+
   function signOut() {
+    clearPrivate();
     if (!clientP) { forgetSession(); return Promise.resolve(true); }
     return clientP.then(function (sb) {
       return withTimeout(sb.auth.signOut({ scope: 'local' }), 5000, 'signout');
