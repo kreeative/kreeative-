@@ -443,3 +443,10 @@ a { color: inherit; }
 
 /* methods that are not switched on are not shown (compte.js drawProviders) */
 .c-seg__opt[hidden], .c-methods[hidden] { display: none; }
+
+/* signup consent: a real, required checkbox */
+.c-agree { margin-top: 2px; }
+.c-agree__row { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: var(--ink, #141414); cursor: pointer; }
+.c-agree__row input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: #141414; }
+.c-agree__row a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.c-agree .c-err { margin-top: 6px; }

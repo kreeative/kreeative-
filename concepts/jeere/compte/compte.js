@@ -793,6 +793,10 @@
     if (err1) return reportAt(el.first, err1);
     if (errE) return reportAt(el.email, errE);
     if (errP) return reportAt(el.phone, errP);
+    // her consent, required before the account exists (date kept with the account)
+    var agree = document.getElementById('c-agree');
+    if (agree && !agree.checked) { setError(agree, 'c-agree-err', 'Cochez la case pour accepter la politique de confidentialité et les conditions d’utilisation.'); return reportAt(agree, 'Acceptez les conditions pour créer votre compte.'); }
+    if (agree) { clearError(agree, 'c-agree-err'); try { localStorage.setItem('jeere-consent', JSON.stringify({ at: new Date().toISOString(), version: '2026-11' })); } catch (x) { /* ok */ } }
     var phone = p ? normWa(p.e164) : '';
     var f = {
       mode: 'signup', method: method, firstName: first, email: method === 'email' ? email : '',
