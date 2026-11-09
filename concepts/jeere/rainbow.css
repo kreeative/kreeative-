@@ -4,7 +4,8 @@
  *   On light pages: a white button, its edge and its words in the rainbow (readable, and bright).
  *   On dark pages and photos: the rainbow fill, matte with a fine grain, and white words.
  * The platform's primary buttons (formerly blue) wear it: .sk-primary (Mes sites), .st-primary (Studio
- * Pro), .jp-btn--primary (the publish panel), .a-btn--primary (the dashboard). Anywhere else:
+ * Pro), .jp-btn--primary (the publish panel), .a-btn--primary (the dashboard), .ab-btn--primary (Abonnements),
+ * .c-btn--primary (Compte), .btn--primary (the home page). Anywhere else:
  * class="… jr-rainbow"; on a dark surface add jr-on-dark (or sit under [data-theme="dark"] / .jr-dark).
  * The logo: class="jr-logo" on an <svg> whose page has <linearGradient id="jr-grad">. */
 :root {
@@ -17,7 +18,7 @@
 }
 
 /* light pages: white button, rainbow edge and words */
-:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary) {
+:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary, .ab-btn--primary, .c-btn--primary, .btn--primary) {
   border: 1.5px solid transparent !important;
   background-color: #FFFFFF !important;
   background-image: var(--jr-words), linear-gradient(#FFFFFF, #FFFFFF), var(--jr-edge) !important;
@@ -34,10 +35,10 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, .06) !important;
   transition: box-shadow .2s, transform .2s;
 }
-:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary):hover { box-shadow: 0 2px 10px -2px rgba(106, 76, 255, .28), 0 2px 10px -4px rgba(232, 70, 124, .22) !important; }
-:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary):active { transform: translateY(1px); }
-:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary):focus-visible { outline: 2px solid #141414; outline-offset: 2px; }
-:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary):is([disabled], [aria-disabled="true"]) { opacity: .5; box-shadow: none !important; }
+:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary, .ab-btn--primary, .c-btn--primary, .btn--primary):hover { box-shadow: 0 2px 10px -2px rgba(106, 76, 255, .28), 0 2px 10px -4px rgba(232, 70, 124, .22) !important; }
+:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary, .ab-btn--primary, .c-btn--primary, .btn--primary):active { transform: translateY(1px); }
+:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary, .ab-btn--primary, .c-btn--primary, .btn--primary):focus-visible { outline: 2px solid #141414; outline-offset: 2px; }
+:is(.jr-rainbow, .sk-primary, .st-primary, .jp .jp-btn--primary, .a-btn--primary, .ab-btn--primary, .c-btn--primary, .btn--primary):is([disabled], [aria-disabled="true"]) { opacity: .5; box-shadow: none !important; }
 
 /* dark pages and photos: the rainbow fill, matte, grain, white words */
 :is(.jr-on-dark.jr-rainbow, .jr-dark .jr-rainbow, [data-theme="dark"] :is(.jr-rainbow, .sk-primary, .st-primary), .jp--dark .jp-btn--primary) {
