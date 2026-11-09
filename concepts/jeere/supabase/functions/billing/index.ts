@@ -176,6 +176,12 @@ async function verify(payload: string, header: string): Promise<boolean> {
 }
 const iso = (sec: unknown) => (Number(sec) > 0 ? new Date(Number(sec) * 1000).toISOString() : '');
 
+// The period's end: on the subscription (API ≤ 2025-02), or on its first item (2025-03-31 « basil » and later)
+function periodEndOf(sub: Obj): unknown {
+  if (sub.current_period_end) return sub.current_period_end;
+  const items = isObj(sub.items) && Array.isArray((sub.items as Obj).data) ? (sub.items as Obj).data as Obj[] : [];
+  return items[0] && items[0].current_period_end ? items[0].current_period_end : null;
+}
 // A subscription's state → her entitlements
 async function applySubscription(sub: Obj) {
   const md = isObj(sub.metadata) ? sub.metadata : {};
@@ -197,7 +203,7 @@ async function applySubscription(sub: Obj) {
   const studio: Obj = {
     ...prev, version: 1, plan: live ? plan : 'decouverte', period: period === 'an' ? 'an' : 'mois',
     status: live ? 'active' : 'free', startedAt: iso(sub.start_date) || prev.startedAt || '',
-    periodEnd: iso(sub.current_period_end), cancelAtPeriodEnd: sub.cancel_at_period_end === true, pending: null,
+    periodEnd: iso(periodEndOf(sub)), cancelAtPeriodEnd: sub.cancel_at_period_end === true, pending: null,
     trialUsed: true, hideBadge: prev.hideBadge !== false, source: 'stripe',
     stripe: { customer: str(sub.customer, 60), subscription: str(sub.id, 60) }, syncedAt: new Date().toISOString()
   };
@@ -205,7 +211,10 @@ async function applySubscription(sub: Obj) {
 }
 async function addInvoice(inv: Obj) {
   const lines = isObj(inv.lines) && Array.isArray((inv.lines as Obj).data) ? (inv.lines as Obj).data as Obj[] : [];
-  const md = lines[0] && isObj(lines[0].metadata) ? lines[0].metadata as Obj : (isObj(inv.subscription_details) && isObj((inv.subscription_details as Obj).metadata) ? (inv.subscription_details as Obj).metadata as Obj : {});
+  // the subscription's metadata, wherever the webhook's API version puts it (line, subscription_details, parent)
+  const parent = isObj(inv.parent) && isObj((inv.parent as Obj).subscription_details) ? (inv.parent as Obj).subscription_details as Obj : null;
+  const subDet = isObj(inv.subscription_details) ? inv.subscription_details as Obj : parent;
+  const md = lines[0] && isObj(lines[0].metadata) && (lines[0].metadata as Obj).user_id ? lines[0].metadata as Obj : (subDet && isObj(subDet.metadata) ? subDet.metadata as Obj : {});
   const userId = str(md.user_id, 40);
   if (!UUID.test(userId) || md.kind !== 'studio') return;
   const pr = await profile(userId);
