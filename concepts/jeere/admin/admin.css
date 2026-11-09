@@ -1538,3 +1538,30 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
 .tx-field__img { display: flex; align-items: center; gap: 10px; }
 .tx-field__img img { width: 64px; height: 64px; object-fit: contain; border-radius: 10px; background: var(--grey-1); }
 .tx-field__reset { justify-self: start; padding: 0; border: 0; background: none; font: inherit; font-size: 12px; color: var(--muted); text-decoration: underline; cursor: pointer; }
+
+/* The Ivory Sukundu — an order page like Shopify's: actions, timeline */
+.tx-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
+.tx-tl { list-style: none; margin: 4px 0 0; padding: 0; position: relative; }
+.tx-tl::before { content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background: rgba(17, 17, 17, .12); border-radius: 2px; }
+.tx-tl__step { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 0 0 18px 26px; }
+.tx-tl__step:last-child { padding-bottom: 2px; }
+.tx-tl__dot { position: absolute; left: 0; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; border: 2px solid #141414; box-sizing: border-box; }
+.tx-tl__step:last-child .tx-tl__dot { background: #141414; }
+.tx-tl__title { margin: 0; font-weight: 600; font-size: 14.5px; line-height: 1.35; }
+.tx-tl__detail { margin: 2px 0 0; font-size: 13.5px; color: var(--a-muted, #6E6E6E); line-height: 1.4; word-break: break-word; }
+.tx-tl__at { font-size: 12.5px; color: var(--a-muted, #6E6E6E); white-space: nowrap; padding-top: 1px; }
+
+/* Motion: section change, order list ⇄ order page, a brief highlight on what changed */
+.tx-anim { animation: tx-in .2s ease-out both; }
+.tx-in-right { animation-name: tx-in-right; animation-duration: .22s; }
+.tx-in-left { animation-name: tx-in-left; animation-duration: .22s; }
+@keyframes tx-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@keyframes tx-in-right { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes tx-in-left { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+.tx-flash { animation: tx-flash 1.1s ease-out; }
+@keyframes tx-flash { 0% { box-shadow: 0 0 0 3px rgba(106, 76, 255, .35); } 100% { box-shadow: 0 0 0 3px rgba(106, 76, 255, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .tx-anim, .tx-in-right, .tx-in-left { animation: tx-fade .15s ease-out both; }
+  .tx-flash { animation: none; outline: 2px solid rgba(106, 76, 255, .35); outline-offset: 2px; }
+  @keyframes tx-fade { from { opacity: 0; } to { opacity: 1; } }
+}

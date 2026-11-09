@@ -143,7 +143,7 @@
         '<div class="a-field"><label class="a-label" for="tx-mail">Adresse e-mail de la boutique</label>' +
         '<input class="a-input" id="tx-mail" name="email" type="email" autocomplete="email" value="' + esc(OWNER) + '"></div>' +
         (T.error ? '<p class="a-error">' + ico('alert') + esc(T.error) + '</p>' : '') +
-        '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('mail') + (T.linkSent ? 'Renvoyer le lien' : 'Recevoir le lien de connexion') + '</button>' +
+        '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('message') + (T.linkSent ? 'Renvoyer le lien' : 'Recevoir le lien de connexion') + '</button>' +
         '<a class="a-btn a-btn--ghost" href="' + SITE + '" target="_blank" rel="noopener">' + ico('external') + 'Voir la boutique</a></div>' +
       '</form></section>');
   }
@@ -299,39 +299,77 @@
         .then(function () { T.busy['o:' + id] = false; refresh(); });
     }
     if (!d) return loading('Commande');
-    var o = d.order, a = o.shipping;
+    var o = d.order, a = o.shipping, cur = o.currency, ro = o.readOnly === true;
+    var money = function (n) { return esc(cents(n, cur)); };
+    var flash = function (k) { return T.flash === k ? ' tx-flash' : ''; };
     var items = (o.items || []).map(function (i) {
       return '<li class="a-row">' + (i.image ? '<span class="a-pthumb"><img alt="" src="' + esc(src(i.image)) + '"></span>' : '') +
-        '<span class="a-row__main"><span class="a-row__title">' + esc(i.title) + '</span><span class="a-row__meta">' + esc([i.variant, '× ' + i.quantity].filter(Boolean).join(' · ')) + '</span></span>' +
-        '<span class="a-num">' + esc(cents(i.total, o.currency)) + '</span></li>';
+        '<span class="a-row__main"><span class="a-row__title">' + esc(i.title) + '</span><span class="a-row__meta">' + esc([i.variant, i.unitAmount != null ? cents(i.unitAmount, cur) + ' × ' + i.quantity : '× ' + i.quantity].filter(Boolean).join(' · ')) + '</span></span>' +
+        '<span class="a-num">' + money(i.total) + '</span></li>';
     }).join('');
     var line = function (k, v) { return '<div class="tx-dl__row"><dt>' + esc(k) + '</dt><dd>' + v + '</dd></div>'; };
-    var totals = '<dl class="tx-dl">' + line('Sous-total', esc(cents(o.subtotal, o.currency))) +
-      (o.discount ? line('Réduction' + (o.code ? ' (' + o.code + ')' : ''), '−' + esc(cents(o.discount, o.currency))) : '') +
-      line('Livraison', esc(cents(o.shippingAmount, o.currency))) + (o.tax ? line(o.taxLabel || 'Taxes', esc(cents(o.tax, o.currency))) : '') +
-      line('Total', '<strong>' + esc(cents(o.total, o.currency)) + '</strong>') +
+    var left = Math.max(0, (Number(o.total) || 0) - (Number(o.refundedAmount) || 0));
+    var paid = '<dl class="tx-dl">' + line('Sous-total', money(o.subtotal)) +
+      (o.discount ? line('Réduction' + (o.code ? ' (' + o.code + ')' : ''), '−' + money(o.discount)) : '') +
+      line('Livraison', money(o.shippingAmount)) + (o.tax ? line(o.taxLabel || 'Taxes', money(o.tax)) : '') +
+      line('Total', '<strong>' + money(o.total) + '</strong>') +
+      (o.payment ? line('Payé avec', esc(o.payment)) : '') +
+      (o.refundedAmount ? line('Remboursé', '−' + money(o.refundedAmount)) : '') +
       (o.settled ? line('Reçu sur le compte', esc(cents(o.net, 'CAD')) + ' <span class="a-muted">(frais Stripe ' + esc(cents(o.fee, 'CAD')) + ')</span>') : '') + '</dl>';
-    var addr = a ? [a.name, a.line1, a.line2, [a.city, a.state, a.postalCode].filter(Boolean).join(' '), a.country].filter(Boolean).map(esc).join('<br>') : 'Adresse manquante';
+    var addrOf = function (x) { return x ? [x.name, x.line1, x.line2, [x.city, x.state, x.postalCode].filter(Boolean).join(' '), x.country].filter(Boolean).map(esc).join('<br>') : ''; };
+    var trk = (o.trackingNumbers || []).length ? '<p class="a-card__sub">' + esc(o.carrier || 'Suivi') + ' : ' + (o.trackingNumbers || []).map(esc).join(', ') +
+      (/^https:\/\//.test(o.trackingUrl || '') ? ' · <a href="' + esc(o.trackingUrl) + '" target="_blank" rel="noopener">Suivre le colis</a>' : '') + '</p>' : '';
+    // the history, oldest first, as Shopify draws it: a line, a dot and a date per step
+    var tl = (o.timeline || []).filter(function (t) { return t && t.title; });
+    var timeline = tl.length ? '<ol class="tx-tl">' + tl.map(function (t) {
+      return '<li class="tx-tl__step"><span class="tx-tl__dot" aria-hidden="true"></span><div class="tx-tl__body"><p class="tx-tl__title">' + esc(t.title) + '</p>' +
+        (t.detail ? '<p class="tx-tl__detail">' + esc(t.detail) + '</p>' : '') + '</div><time class="tx-tl__at" datetime="' + esc(t.at || '') + '">' + esc(t.at ? dayTime(t.at) : '') + '</time></li>';
+    }).join('') + '</ol>' : '<p class="a-card__sub">Pas encore d’historique.</p>';
+    var chips = pill(o.status) + (o.refunded ? ' <span class="a-pill a-tone--muted">Remboursée</span>' : (o.refundedAmount ? ' <span class="a-pill a-tone--muted">Remboursée en partie</span>' : '')) +
+      (ro ? ' <span class="a-pill a-tone--muted">Ancienne boutique Shopify</span>' : '');
+    var canRefund = !ro && o.paid !== false && !o.refunded && left > 0;
+    var actions = (canRefund ? '<button class="a-btn a-btn--ghost a-btn--sm" type="button" data-tx="refund-open" data-id="' + esc(o.id) + '">' + ico('refresh') + 'Rembourser</button>' : '') +
+      (o.email ? '<button class="a-btn a-btn--ghost a-btn--sm" type="button" data-tx="mail-open">' + ico('message') + 'Écrire à la cliente</button>' : '') +
+      (!ro && o.status !== 'delivered' && o.status !== 'cancelled' ? '<button class="a-btn a-btn--quiet a-btn--sm" type="button" data-tx="ostatus" data-id="' + esc(o.id) + '" data-v="delivered">' + ico('check') + 'Marquer livrée</button>' : '') +
+      (!ro && o.status !== 'cancelled' && o.status !== 'delivered' ? '<button class="a-btn a-btn--quiet a-btn--sm" type="button" data-tx="ostatus" data-id="' + esc(o.id) + '" data-v="cancelled">Annuler la commande</button>' : '') +
+      (/^https:\/\//.test(o.stripeUrl || '') ? '<a class="a-btn a-btn--quiet a-btn--sm" href="' + esc(o.stripeUrl) + '" target="_blank" rel="noopener">' + ico('external') + 'Ouvrir dans Stripe</a>' : '');
+    var refundCard = T.refundOpen === o.id && canRefund ? '<section class="a-card tx-flash"><div class="a-card__head"><h2 class="a-card__title">Rembourser</h2></div>' +
+      '<form data-txform="refund" data-id="' + esc(o.id) + '" novalidate>' +
+      field('tx-ra', 'Montant (' + esc(String(cur || 'CAD').toUpperCase()) + ')', input('tx-ra', 'amount', (left / 100).toFixed(2).replace('.', ','), ' inputmode="decimal"'), 'Au plus ' + money(left) + '. L’argent repart sur la carte de la cliente.') +
+      check('notify', true, 'Prévenir la cliente par e-mail') +
+      '<div class="a-btnrow"><button class="a-btn a-btn--ghost" type="button" data-tx="refund-close">Annuler</button><button class="a-btn a-btn--primary" type="submit">Rembourser</button></div></form></section>' : '';
+    var mailCard = T.mailOpen === o.id ? '<section class="a-card tx-flash"><div class="a-card__head"><h2 class="a-card__title">Écrire à ' + esc(o.name || 'la cliente') + '</h2></div>' +
+      '<form data-txform="email" novalidate>' + '<input type="hidden" name="to" value="' + esc(o.email) + '">' +
+      field('tx-ms', 'Objet', input('tx-ms', 'subject', 'Votre commande #' + (o.number || ''))) + field('tx-mm', 'Message', '<textarea class="a-input" id="tx-mm" name="message" rows="6"></textarea>') +
+      '<div class="a-btnrow"><button class="a-btn a-btn--ghost" type="button" data-tx="mail-close">Annuler</button><button class="a-btn a-btn--primary" type="submit">' + ico('message') + 'Envoyer depuis la boutique</button></div></form></section>' : '';
     var opts = Object.keys(STATUS).map(function (k) { return '<option value="' + k + '"' + (o.status === k ? ' selected' : '') + '>' + esc(STATUS[k][0]) + '</option>'; }).join('');
     var sup = (d.supplierMessages || []).map(function (m, i) {
       return '<div class="a-field"><label class="a-label" for="tx-sup' + i + '">Message pour ' + esc(m.name) + '</label><textarea class="a-input" id="tx-sup' + i + '" rows="7" readonly>' + esc(m.message) + '</textarea>' +
         '<div class="a-btnrow"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-tx="copy" data-target="tx-sup' + i + '">' + ico('copy') + 'Copier le message</button></div></div>';
     }).join('');
-    return page('Commande #' + (o.number || '—'), esc(dayTime(o.createdAt)) + ' · ' + pill(o.status) + (o.refunded ? ' <span class="a-pill a-tone--muted">Remboursée</span>' : ''),
-      '<div class="a-cols">' +
-        card('<ul class="a-rows">' + items + '</ul>' + totals, 'Articles') +
-        card('<p><strong>' + esc(o.name) + '</strong><br><a href="mailto:' + esc(o.email) + '">' + esc(o.email) + '</a>' + (o.phone ? '<br>' + esc(o.phone) : '') + '</p><p class="a-card__sub">' + addr + '</p>' +
-          (/^https:\/\//.test(o.stripeUrl || '') ? '<a class="a-btn a-btn--ghost a-btn--sm" href="' + esc(o.stripeUrl) + '" target="_blank" rel="noopener">' + ico('external') + 'Voir le paiement dans Stripe</a>' : ''), 'Cliente') +
-      '</div>' +
-      card('<form data-txform="order" data-id="' + esc(o.id) + '" novalidate>' +
+    var edit = ro ? '' : card('<form data-txform="order" data-id="' + esc(o.id) + '" novalidate>' +
         field('tx-st', 'Statut', '<div class="a-selectwrap"><select class="a-input" id="tx-st" name="status">' + opts + '</select>' + ico('down') + '</div>') +
         field('tx-ref', 'Référence chez le fournisseur', input('tx-ref', 'supplierRef', o.supplierRef)) +
         '<div class="a-cols">' + field('tx-car', 'Transporteur', input('tx-car', 'carrier', o.carrier, ' placeholder="DHL, Canada Post…"')) +
-        field('tx-trk', 'Numéro de suivi', input('tx-trk', 'tracking', o.tracking), /^https:\/\//.test(o.trackingUrl || '') ? '<a href="' + esc(o.trackingUrl) + '" target="_blank" rel="noopener">Suivre le colis</a>' : 'Avec un numéro, la commande passe en « Expédiée ».') + '</div>' +
+        field('tx-trk', 'Numéros de suivi', input('tx-trk', 'tracking', (o.trackingNumbers && o.trackingNumbers.length ? o.trackingNumbers.join(', ') : o.tracking)), 'Plusieurs numéros : séparez-les par une virgule. Avec un numéro, la commande passe en « Expédiée ».') + '</div>' +
         field('tx-note', 'Note (pour vous seulement)', '<textarea class="a-input" id="tx-note" name="note" rows="3">' + esc(o.note) + '</textarea>') +
         check('notify', !o.shippedAt, 'Envoyer à la cliente l’e-mail avec son numéro de suivi') +
-        '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('check') + 'Enregistrer</button></div></form>', 'Suivi de la commande') +
-      (sup ? card(sup, 'Commander chez le fournisseur') : ''),
+        '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('check') + 'Enregistrer</button></div></form>', 'Suivi de la commande');
+    var bill = o.billing === null ? '<p class="a-card__sub">Stripe n’a pris que le pays et le code postal de la carte.</p>' : (o.billing ? '<p class="a-card__sub">' + addrOf(o.billing) + '</p>' : '');
+    return page('Commande #' + (o.number || '—'), esc(dayTime(o.createdAt)) + ' · ' + chips,
+      '<div class="tx-actions">' + actions + '</div>' +
+      (ro ? '<p class="a-note a-note--line">' + ico('info') + '<span>Commande de l’ancienne boutique Shopify : elle se consulte seulement, elle ne se modifie plus.</span></p>' : '') +
+      refundCard + mailCard +
+      '<div class="a-cols">' +
+        '<div>' + '<section class="a-card' + flash('items') + '"><div class="a-card__head"><h2 class="a-card__title">Articles</h2></div><ul class="a-rows">' + items + '</ul>' + trk + '</section>' +
+        '<section class="a-card' + flash('paid') + '"><div class="a-card__head"><h2 class="a-card__title">' + (o.refunded ? 'Remboursée' : 'Payée') + '</h2></div>' + paid + '</section>' +
+        '<section class="a-card' + flash('timeline') + '"><div class="a-card__head"><h2 class="a-card__title">Chronologie</h2></div>' + timeline + '</section></div>' +
+        '<div>' + card('<p><strong>' + esc(o.name) + '</strong><br><a href="mailto:' + esc(o.email) + '">' + esc(o.email) + '</a>' + (o.phone ? '<br>' + esc(o.phone) : '') + '</p>', 'Cliente') +
+        card('<p class="a-card__sub">' + (a ? addrOf(a) : 'Adresse manquante') + '</p>', 'Adresse de livraison') +
+        (bill ? card(bill, 'Adresse de facturation') : '') +
+        (ro && o.note ? card('<p>' + esc(o.note) + '</p>', 'Note') : '') + '</div>' +
+      '</div>' +
+      edit + (!ro && sup ? card(sup, 'Commander chez le fournisseur') : ''),
       back('#commandes', 'Commandes'));
   }
 
@@ -667,7 +705,7 @@
       }).join('') + '</ul>' : '<p class="a-card__sub">Personne pour l’instant.</p>', 'Abonnées au Circle') +
       card('<form data-txform="email" novalidate>' + field('tx-mt', 'À', input('tx-mt', 'to', '', ' type="email" placeholder="cliente@exemple.com"')) +
         field('tx-ms', 'Objet', input('tx-ms', 'subject', '')) + field('tx-mm', 'Message', '<textarea class="a-input" id="tx-mm" name="message" rows="6"></textarea>') +
-        '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('mail') + 'Envoyer depuis la boutique</button></div></form>', 'Écrire à une cliente'));
+        '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('message') + 'Envoyer depuis la boutique</button></div></form>', 'Écrire à une cliente'));
   }
 
   /* ------------------------------------------------------------------ what the store manages elsewhere */
@@ -684,7 +722,18 @@
       '<button class="a-btn a-btn--quiet" type="button" data-tx="signout">' + ico('logout') + 'Déconnecter la boutique de ce navigateur</button></div>'));
   }
 
+  // Motion: a short fade and slide when the section changes; an order slides in from the right, back reverses it
   function view(r) {
+    var html = viewInner(r);
+    var key = r.name + '/' + (r.parts && r.parts[0] ? r.parts[0] : '');
+    var was = T.lastKey || '';
+    T.lastKey = key;
+    if (was === key) return html;
+    var detail = function (k) { return /^commandes\/./.test(k); };
+    var cls = detail(key) && /^commandes\/$/.test(was) ? 'tx-in-right' : (detail(was) && /^commandes\/$/.test(key) ? 'tx-in-left' : 'tx-in');
+    return '<div class="tx-anim ' + cls + '">' + html + '</div>';
+  }
+  function viewInner(r) {
     if (!auth()) return signInView();
     switch (r.name) {
       case 'accueil': return homeView(r);
@@ -746,14 +795,55 @@
       var rates = {};
       Array.prototype.forEach.call(f.querySelectorAll('[name^="zone:"]'), function (i) { rates[i.name.slice(5)] = Number(String(i.value).replace(',', '.')); });
       saveDoc('saveShipping', { rates: rates }, 'Tarifs de livraison enregistrés.').then(done);
+    } else if (kind === 'refund') {
+      var rid = f.getAttribute('data-id');
+      var amt = Math.round(Number(String(el.amount.value).replace(/\s/g, '').replace(',', '.')) * 100);
+      var od = T.orders[rid] && T.orders[rid].order;
+      var max = od ? Math.max(0, (Number(od.total) || 0) - (Number(od.refundedAmount) || 0)) : 0;
+      if (!(amt > 0) || amt > max) { toast('Montant invalide : entre 0 et ' + (od ? cents(max, od.currency) : '') + '.'); done(); return; }
+      var u = U(), txt = 'Rembourser ' + (od ? cents(amt, od.currency) : '') + ' à ' + ((od && od.name) || 'la cliente') + ' ? L’argent quitte votre compte Stripe.';
+      (u ? u.confirmBox({ title: 'Confirmer le remboursement', text: txt, ok: 'Rembourser' }) : Promise.resolve(confirm(txt))).then(function (ok) {
+        if (!ok) { done(); return; }
+        var body = { id: rid, notify: el.notify.checked };
+        if (amt < max) body.amount = amt;
+        call('refund', body).then(function (j) {
+          T.orders[rid] = { order: j.order, supplierMessages: j.supplierMessages || (T.orders[rid] && T.orders[rid].supplierMessages) };
+          if (T.overview) T.overview.orders = T.overview.orders.map(function (x) { return x.id === rid ? Object.assign({}, x, j.order) : x; });
+          T.refundOpen = null; T.flash = 'paid';
+          toast(j.notified ? 'Remboursement fait. La cliente est prévenue.' : 'Remboursement fait.');
+          refresh(); setTimeout(function () { T.flash = null; }, 1200);
+        }, function (x) { toast(x.message); }).then(done);
+      });
     } else if (kind === 'email') {
-      call('email', { to: el.to.value, subject: el.subject.value, message: el.message.value }).then(function () { toast('E-mail envoyé.'); f.reset(); }, function (x) { toast(x.message); }).then(done);
+      call('email', { to: el.to.value, subject: el.subject.value, message: el.message.value }).then(function () {
+        toast('E-mail envoyé.'); f.reset();
+        if (T.mailOpen) { var mo = T.mailOpen; T.mailOpen = null; delete T.orders[mo]; T.flash = 'timeline'; refresh(); setTimeout(function () { T.flash = null; }, 1200); }
+      }, function (x) { toast(x.message); }).then(done);
     } else done();
   });
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('#a-main [data-tx]');
     if (!b || !on()) return;
     var a = b.getAttribute('data-tx');
+    if (a === 'refund-open') { T.refundOpen = b.getAttribute('data-id'); T.mailOpen = null; refresh(); return; }
+    if (a === 'refund-close') { T.refundOpen = null; refresh(); return; }
+    if (a === 'mail-open') { var mm = /^#commandes\/([^/?#]+)/.exec(location.hash); T.mailOpen = mm ? decodeURIComponent(mm[1]) : null; T.refundOpen = null; refresh(); return; }
+    if (a === 'mail-close') { T.mailOpen = null; refresh(); return; }
+    if (a === 'ostatus') {
+      var oid = b.getAttribute('data-id'), v = b.getAttribute('data-v');
+      var go2 = function () {
+        busy(b, true);
+        call('update', { id: oid, status: v }).then(function (j) {
+          T.orders[oid] = { order: j.order, supplierMessages: j.supplierMessages };
+          if (T.overview) T.overview.orders = T.overview.orders.map(function (x) { return x.id === oid ? Object.assign({}, x, j.order) : x; });
+          T.flash = 'timeline'; toast(v === 'delivered' ? 'Commande marquée livrée.' : 'Commande annulée.');
+          refresh(); setTimeout(function () { T.flash = null; }, 1200);
+        }, function (x) { toast(x.message); busy(b, false); });
+      };
+      if (v === 'cancelled') { var uu = U(); (uu ? uu.confirmBox({ title: 'Annuler cette commande ?', text: 'Elle passe en « Annulée ». Pour rendre l’argent, utilisez aussi « Rembourser ».', ok: 'Annuler la commande' }) : Promise.resolve(confirm('Annuler cette commande ?'))).then(function (ok) { if (ok) go2(); }); }
+      else go2();
+      return;
+    }
     if (a === 'csave') { saveContent(b); return; }
     if (a === 'cdiscard') { toShop({ type: 'discard' }); ED.changes = {}; drawFields(); countChanges(); return; }
     if (a === 'fsel') { toShop({ type: 'select', key: b.getAttribute('data-key') }); return; }
@@ -802,7 +892,7 @@
   function on() { return lsGet(K_ON) === 'tishe'; }
   function enter() { lsSet(K_ON, 'tishe'); T.error = null; }
   function leave() { lsDel(K_ON); }
-  function todo() { return T.overview ? T.overview.stats.todo.toOrder : 0; }
+  function todo() { var st = T.overview && T.overview.stats; return st && st.todo ? Number(st.todo.toOrder) || 0 : 0; }
 
   window.JeereTishe = {
     on: on, enter: enter, leave: leave, view: view, todo: todo, signedIn: function () { return !!auth(); },
