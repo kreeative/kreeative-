@@ -11,7 +11,7 @@
 //         { action: 'trial' }                        → one 14-day trial per account, in every mode
 //         { action: 'sync', demo: true, studio, plan } → demo mode only (see below)
 //
-// Billing mode (secret JEERE_BILLING_MODE, default 'demo'):
+// Billing mode (secret JEERE_BILLING_MODE, default 'live' since the `billing` function takes real card payments):
 //   demo  there is no real payment yet (« Mode démo · aucun paiement réel »): the demo checkout of
 //         plans.js still works — it sends the subscription it made with `demo: true` and the server keeps
 //         it, cleaned and marked source: 'demo'. This is NOT a security boundary: anyone signed in can give
@@ -27,7 +27,7 @@ const PUBLISHABLE = (() => {
 const SECRET = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-const MODE = (Deno.env.get('JEERE_BILLING_MODE') ?? 'demo') === 'live' ? 'live' : 'demo';
+const MODE = (Deno.env.get('JEERE_BILLING_MODE') ?? 'live') === 'demo' ? 'demo' : 'live';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

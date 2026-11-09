@@ -210,7 +210,7 @@
       if (r && r.ok && r.configured && Array.isArray(r.results)) {
         return { ok: true, configured: true, label: label, results: r.results.map(function (x) {
           var tld = x.domain.slice(label.length + 1);
-          return { domain: x.domain, tld: tld, status: x.available ? 'free' : 'taken', buy: x.purchaseFcfa || (price(tld) || {}).buy, renew: x.renewalFcfa || (price(tld) || {}).renew, via: 'vercel' };
+          return { domain: x.domain, tld: tld, status: x.available ? 'free' : 'taken', buy: (x.purchaseUsd ? fcfa(x.purchaseUsd) : 0) || x.purchaseFcfa || (price(tld) || {}).buy, renew: (x.renewalUsd ? fcfa(x.renewalUsd) : 0) || x.renewalFcfa || (price(tld) || {}).renew, via: 'vercel' };
         }).concat(local) };
       }
       return Promise.all(TLDS.map(function (t) {

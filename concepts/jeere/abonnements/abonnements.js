@@ -167,7 +167,7 @@
   }
   function head(title) {
     return '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">' + esc(title) + '</h2><button class="ab-x" type="button" data-ck="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
-      stepsBar() + '<p class="ab-ribbon">' + ico('info') + '<span><b>Mode démo</b> · aucun prélèvement réel, rien n’est envoyé à votre opérateur.</span></p>';
+      stepsBar() + (B.isDemo() ? '<p class="ab-ribbon">' + ico('info') + '<span><b>Mode démo</b> · aucun prélèvement réel, rien n’est envoyé à votre opérateur.</span></p>' : '<p class="ab-ribbon">' + ico('info') + '<span><b>Paiement sécurisé</b> · par carte (Visa, Mastercard) sur la page de Stripe. Le mobile money arrive bientôt.</span></p>');
   }
   function summary(q) {
     return '<dl class="ab-sum"><div><dt>Formule</dt><dd>' + esc(q.label) + '</dd></div>' +
@@ -215,8 +215,10 @@
         h += '<p class="ab-p">Vous passez à <b>' + esc(P.planById(ck.plan).label) + '</b> (' + (ck.period === 'an' ? 'annuel' : 'mensuel') + ') le <b>' + esc(P.date(s.periodEnd)) + '</b>, à la fin de votre période payée. Rien à payer aujourd’hui&nbsp;: tout reste débloqué jusque-là.</p>';
         h += '<div class="ab-dlg__foot"><button class="btn ab-btn ab-btn--ghost" type="button" data-ck="back">' + ico('back') + 'Retour</button><button class="btn ab-btn ab-btn--primary" type="button" data-ck="schedule" data-autofocus>Programmer le changement</button></div>';
       } else {
-        var m = B.methodById(ck.method) || B.METHODS[0];
-        h += '<fieldset class="ab-methods"><legend class="ab-legend">Moyen de paiement</legend>' + B.METHODS.map(function (x) {
+        var MS = B.methods ? B.methods() : B.METHODS;
+        if (!MS.some(function (x) { return x.id === ck.method; })) ck.method = MS[0].id;
+        var m = B.methodById(ck.method) || MS[0];
+        h += '<fieldset class="ab-methods"><legend class="ab-legend">Moyen de paiement</legend>' + MS.map(function (x) {
           return '<label class="ab-method"><input type="radio" name="ck-method" value="' + esc(x.id) + '"' + (ck.method === x.id ? ' checked' : '') + '>' + ico(x.kind === 'card' ? 'card' : 'phone') + '<span>' + esc(x.name) + '</span></label>';
         }).join('') + '</fieldset>';
         if (m.kind === 'mobile') {
@@ -233,7 +235,7 @@
       h += head('Paiement en cours…');
       h += '<div class="ab-wait" role="status"><span class="ab-spin" aria-hidden="true"></span><p>' + (mm && mm.kind === 'mobile'
         ? 'Demande de ' + esc(P.fcfa(q.due)) + ' envoyée sur le ' + esc(ck.phone) + ' (' + esc(mm.name) + '). Validez-la avec votre code secret, que vous ne donnez jamais à personne.'
-        : 'Ouverture de la page sécurisée du partenaire de paiement…') + '</p><p class="ab-hint">Démo&nbsp;: validé automatiquement, rien n’est prélevé.</p></div>';
+        : 'Ouverture de la page sécurisée de paiement…') + '</p>' + (B.isDemo() ? '<p class="ab-hint">Démo&nbsp;: validé automatiquement, rien n’est prélevé.</p>' : '') + '</div>';
     } else if (ck.step === 'done') {
       var inv = ck.result.invoice;
       var ns = P.state();
@@ -275,7 +277,7 @@
     renderCk();
     focusCk();
     B.startCheckout(planId, per, ck.method, { phone: ck.phone, extraSeats: seats }).then(function (res) {
-      if (!ck) return;
+      if (!ck || (res && res.redirect)) return;
       if (!res.ok) {
         ck.step = res.reason === 'account' || res.reason === 'login' ? 'account' : 'pay';
         ck.error = res.message || 'Le paiement n’a pas abouti. Rien n’a été prélevé.';
@@ -355,7 +357,7 @@
   }
   function dkHead(title) {
     return '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">' + esc(title) + '</h2><button class="ab-x" type="button" data-dk="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
-      '<p class="ab-ribbon">' + ico('info') + '<span><b>Mode démo</b> · aucun prélèvement réel, aucun domaine n’est acheté.</span></p>';
+      (B.isDemo() ? '<p class="ab-ribbon">' + ico('info') + '<span><b>Mode démo</b> · aucun prélèvement réel, aucun domaine n’est acheté.</span></p>' : '<p class="ab-ribbon">' + ico('info') + '<span><b>Paiement sécurisé</b> · par carte (Visa, Mastercard) sur la page de Stripe. Le mobile money arrive bientôt.</span></p>');
   }
   function dkSum() {
     var promo = dk.price.renew > dk.price.buy;
@@ -386,10 +388,12 @@
       h += '<div class="ab-dlg__foot"><a class="btn ab-btn ab-btn--ghost" href="../admin/#parametres/domaine">Retour</a><button class="btn ab-btn ab-btn--primary" type="button" data-dk="next">Continuer</button></div>';
     } else if (dk.step === 'pay') {
       h += dkHead('Paiement');
-      h += '<fieldset class="ab-methods"><legend class="ab-legend">Moyen de paiement</legend>' + B.METHODS.map(function (x) {
+      var DMS = B.methods ? B.methods() : B.METHODS;
+      if (!DMS.some(function (x) { return x.id === dk.method; })) dk.method = DMS[0].id;
+      h += '<fieldset class="ab-methods"><legend class="ab-legend">Moyen de paiement</legend>' + DMS.map(function (x) {
         return '<label class="ab-method"><input type="radio" name="dk-method" value="' + esc(x.id) + '"' + (dk.method === x.id ? ' checked' : '') + '>' + ico(x.kind === 'card' ? 'card' : 'phone') + '<span>' + esc(x.name) + '</span></label>';
       }).join('') + '</fieldset>';
-      var m = B.methodById(dk.method) || B.METHODS[0];
+      var m = B.methodById(dk.method) || DMS[0];
       if (m.kind === 'mobile') h += '<div class="ab-field"><label for="dk-phone">Numéro ' + esc(m.name) + ' qui paie</label><input id="dk-phone" type="tel" inputmode="tel" autocomplete="tel" value="' + esc(dk.phone) + '" placeholder="07 07 12 34 56"' + (dk.error ? ' aria-invalid="true" aria-describedby="dk-err"' : '') + '><p class="ab-hint">' + esc(m.hint) + '</p></div>';
       else h += '<p class="ab-p ab-card">' + ico('card') + '<span>' + esc(m.hint) + ' Jeere ne voit jamais votre numéro de carte.</span></p>';
       if (dk.error) h += '<p class="ab-err" id="dk-err" role="alert">' + esc(dk.error) + '</p>';
@@ -397,7 +401,7 @@
       h += '<div class="ab-dlg__foot"><button class="btn ab-btn ab-btn--ghost" type="button" data-dk="back">' + ico('back') + 'Retour</button><button class="btn ab-btn ab-btn--primary" type="button" data-dk="pay" data-autofocus>Payer ' + esc(P.fcfa(dk.price.buy)) + '</button></div>';
     } else if (dk.step === 'processing') {
       h += dkHead('Paiement en cours…');
-      h += '<div class="ab-wait" role="status"><span class="ab-spin" aria-hidden="true"></span><p>Demande de ' + esc(P.fcfa(dk.price.buy)) + ' envoyée. Validez-la avec votre code secret, que vous ne donnez jamais à personne.</p><p class="ab-hint">Démo' + NB + ': validé automatiquement, rien n’est prélevé.</p></div>';
+      h += '<div class="ab-wait" role="status"><span class="ab-spin" aria-hidden="true"></span><p>' + (B.isDemo() ? 'Demande de ' + esc(P.fcfa(dk.price.buy)) + ' envoyée. Validez-la avec votre code secret, que vous ne donnez jamais à personne.</p><p class="ab-hint">Démo' + NB + ': validé automatiquement, rien n’est prélevé.' : 'Ouverture de la page sécurisée de paiement…') + '</p></div>';
     } else if (dk.step === 'done') {
       h += dkHead('Commande enregistrée');
       h += '<div class="ab-done"><span class="ab-done__ico">' + ico('check') + '</span><p class="ab-p"><b>' + esc(dk.domain) + '</b>' + NB + ': votre commande est notée' + (dk.result && dk.result.demo ? ' (démo' + NB + ': rien n’a été prélevé et aucun domaine n’est acheté)' : '') + '.</p></div>';
@@ -440,8 +444,8 @@
     if (a === 'pay') {
       dk.error = '';
       dk.step = 'processing'; renderDk(); focusCk();
-      B.startProductCheckout({ type: 'domain', label: 'domaine ' + dk.domain, amount: dk.price.buy, metadata: { domain: dk.domain, years: 1, renew: dk.price.renew } }, dk.method, { phone: dk.phone }).then(function (res) {
-        if (!dk) return;
+      B.startProductCheckout({ type: 'domain', label: 'domaine ' + dk.domain, amount: dk.price.buy, metadata: { domain: dk.domain, years: 1, renew: dk.price.renew } }, dk.method, { phone: dk.phone, storeId: storeIdHere() }).then(function (res) {
+        if (!dk || (res && res.redirect)) return;
         if (!res.ok) { dk.step = res.reason === 'account' || res.reason === 'login' ? 'account' : 'pay'; dk.error = res.message; renderDk(); focusCk(); return; }
         dk.result = res;
         recordDomainOrder(res);
@@ -454,7 +458,32 @@
 
   /* ---------------------------------------------------------------- wiring */
 
+  function storeIdHere() {
+    try { var r = JSON.parse(window.localStorage.getItem('jeere-publish') || '{}'); return r && r.storeId ? r.storeId : ''; } catch (e) { return ''; }
+  }
+  // Back from Stripe: ?abonnement=ok|annule, ?domaine=ok|annule. The plan itself comes from the server (Stripe's webhook).
+  function returnFromStripe() {
+    var q = window.location.search;
+    var m = /[?&](abonnement|domaine)=(ok|annule)/.exec(q);
+    if (!m) return;
+    params.domaine = '';
+    try { window.history.replaceState(null, '', window.location.pathname); } catch (e) { /* keep */ }
+    var ok = m[2] === 'ok';
+    var box = doc.createElement('div');
+    box.className = 'ab-flash';
+    box.setAttribute('role', 'status');
+    box.innerHTML = ico(ok ? 'check' : 'info') + '<span>' + (m[1] === 'abonnement'
+      ? (ok ? '<b>Paiement reçu, merci' + NB + '!</b> Votre abonnement s’active dans quelques secondes. Le reçu arrive par e-mail.' : 'Paiement annulé : rien n’a été prélevé.')
+      : (ok ? '<b>Paiement reçu' + NB + '!</b> Jeere achète votre domaine et le relie à votre boutique. Comptez quelques minutes (jusqu’à 24' + NB + 'h pour qu’il marche partout).' : 'Paiement annulé : aucun domaine n’a été acheté.')) + '</span>';
+    var main = doc.querySelector('main') || doc.body;
+    main.insertBefore(box, main.firstChild);
+    var A = window.JeereAuth;
+    if (ok && A && typeof A.syncPlan === 'function') { [3000, 8000, 15000].forEach(function (ms) { setTimeout(function () { A.syncPlan(); }, ms); }); }
+  }
+
   function onPageClick(e) {
+    var pl = e.target.closest ? e.target.closest('[data-portal]') : null;
+    if (pl) { e.preventDefault(); if (B.portal) B.portal().then(function (r) { if (r && !r.ok) window.alert(r.message || 'Votre espace de paiement n’a pas pu s’ouvrir.'); }); return; }
     var t = e.target.closest ? e.target.closest('[data-choose], [data-trial], [data-col-btn], .ab-toggle [data-period]') : null;
     if (!t) return;
     if (t.hasAttribute('data-choose')) { openCheckout(t.getAttribute('data-choose'), period, 'period'); return; }
@@ -488,6 +517,11 @@
     d.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'ck-phone') { e.preventDefault(); pay(); } });
     d.addEventListener('close', function () { ck = null; dk = null; doc.documentElement.classList.remove('ab-locked'); if (/#paiement$/.test(window.location.hash)) { try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ } } });
     P.onChange(function () { renderAll(); });
+    if (!B.isDemo()) {
+      var demoBox = doc.querySelector('.ab-demo');
+      if (demoBox) demoBox.innerHTML = ico('info') + '<span><b>Paiement par carte</b> (Visa, Mastercard, depuis n’importe quel pays) sur la page sécurisée de Stripe. Le mobile money (Wave, Orange, MTN, Moov) arrive bientôt. Vous gérez ou résiliez votre abonnement à tout moment' + NB + ': <a href="#" data-portal>mon espace de paiement</a>.</span>';
+    }
+    returnFromStripe();
     var s = P.state();
     var acct = $('ab-account');
     if (acct && s.signedIn) acct.textContent = s.account.firstName ? s.account.firstName : 'Mon compte';

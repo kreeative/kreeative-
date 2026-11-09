@@ -177,3 +177,7 @@
 .ab-done__ico { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--ink); color: var(--white); margin-top: 8px; }
 .ab-done__ico .ico { width: 24px; height: 24px; }
 @media (max-width: 399px) { .ab-method .ico { display: none; } }
+
+/* back from Stripe */
+.ab-flash { display: flex; gap: 10px; align-items: flex-start; max-width: 1160px; margin: 18px auto 0; padding: 14px 16px; border-radius: 14px; background: #F1FBF5; border: 1px solid #BFE8CF; font-size: 15px; color: var(--ink); }
+.ab-flash .ico { flex: none; margin-top: 2px; }

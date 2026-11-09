@@ -442,6 +442,7 @@
   function scheduleChange(planId, period) {
     var n = needAccount();
     if (n) return n;
+    if (realBilling() && !(state().sub && state().sub.lifetime)) { billingCall({ action: 'portal', returnUrl: here() }); return { ok: false, reason: 'portal', message: 'Ouverture de votre espace de paiement Stripe : changez ou résiliez votre abonnement là-bas.' }; }
     if (!isDowngrade(planId, period)) return { ok: false, reason: 'upgrade', message: 'Ce changement passe par le paiement.' };
     var s = state();
     var sub = s.sub;
@@ -456,6 +457,7 @@
   function cancel() {
     var n = needAccount();
     if (n) return n;
+    if (realBilling() && !(state().sub && state().sub.lifetime)) { billingCall({ action: 'portal', returnUrl: here() }); return { ok: false, reason: 'portal', message: 'Ouverture de votre espace de paiement Stripe : changez ou résiliez votre abonnement là-bas.' }; }
     var s = state();
     var sub = s.sub;
     if (s.status === 'trial') { return { ok: true, at: sub.trialEndsAt, trial: true, state: s }; }
@@ -469,6 +471,7 @@
   function resume() {
     var n = needAccount();
     if (n) return n;
+    if (realBilling() && !(state().sub && state().sub.lifetime)) { billingCall({ action: 'portal', returnUrl: here() }); return { ok: false, reason: 'portal', message: 'Ouverture de votre espace de paiement Stripe : changez ou résiliez votre abonnement là-bas.' }; }
     var s = state();
     if (s.status !== 'canceling' && !s.pending) return { ok: false, reason: 'none' };
     s.sub.cancelAtPeriodEnd = false;
@@ -479,6 +482,7 @@
 
   // Agence: places on top of the 5 included (billed from the next renewal in this demo)
   function setExtraSeats(n) {
+    if (realBilling()) { billingCall({ action: 'portal', returnUrl: here() }); return { ok: false, reason: 'portal', message: 'Ouverture de votre espace de paiement Stripe.' }; }
     var s = state();
     if (s.planId !== 'agence' || !(s.status === 'active' || s.status === 'canceling')) return { ok: false, reason: 'plan' };
     var p = planById('agence');
@@ -583,6 +587,28 @@
   var ROUTES = { wave: 'wave', orange: 'paystack', mtn: 'paystack', moov: 'paystack', card: 'paystack' };
   var activeProvider = 'demo';
 
+  /* Real billing (the `billing` Edge Function, Stripe): on Jeere with a real account (JeereAuth not in demo).
+   * The card only for now — mobile money comes with CinetPay. The browser never activates a plan: Stripe's
+   * webhook writes it on the server, and the page reads it back (JeereAuth.syncPlan) on return. */
+  var BILLING_URL = 'https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/billing';
+  var BILLING_KEY = 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
+  function realBilling() {
+    var A = root.JeereAuth;
+    try { return !!(A && typeof A.isDemo === 'function' && !A.isDemo()); } catch (e) { return false; }
+  }
+  function billingCall(body) {
+    var A = root.JeereAuth;
+    return Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then(function (s) {
+      if (!s || !s.access_token) return { ok: false, reason: 'login', message: 'Connectez-vous à votre compte Jeere pour payer.' };
+      return fetch(BILLING_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: BILLING_KEY, Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().catch(function () { return { ok: false }; }); });
+    }).then(function (j) {
+      if (j && j.ok && j.url) { try { root.location.assign(j.url); } catch (e) { root.location.href = j.url; } return { ok: true, redirect: true, url: j.url, message: j.message || '' }; }
+      return { ok: false, reason: (j && (j.reason || j.code)) || 'declined', message: (j && j.message) || 'Le paiement n’a pas pu s’ouvrir. Rien n’a été prélevé : réessayez.' };
+    }, function () { return { ok: false, reason: 'network', message: 'La connexion a été coupée. Rien n’a été prélevé : réessayez.' }; });
+  }
+  function here() { try { return root.location.origin + root.location.pathname; } catch (e) { return ''; } }
+
   function providerFor(method) { return activeProvider === 'demo' ? providers.demo : providers[ROUTES[method]] || providers.demo; }
 
   function startCheckout(planId, period, method, opts) {
@@ -591,6 +617,7 @@
     if (n) return Promise.resolve(n);
     var p = planById(planId);
     if (!p || !p.paid) return Promise.resolve({ ok: false, reason: 'plan', message: 'Choisissez une formule payante.' });
+    if (realBilling()) method = 'card';
     var m = methodById(method);
     if (!m) return Promise.resolve({ ok: false, reason: 'method', message: 'Choisissez un moyen de paiement.' });
     var phone = str(o.phone, 24);
@@ -600,6 +627,7 @@
     }
     if (isDowngrade(planId, period)) return Promise.resolve({ ok: false, reason: 'downgrade', message: 'Pour descendre de formule, le changement se fait à la fin de votre période : rien à payer.' });
     var q = quote(planId, period, o.extraSeats);
+    if (realBilling()) return billingCall({ action: 'subscribe', kind: 'studio', plan: q.plan.id, period: q.period, returnUrl: here() });
     var s = state();
     var intent = {
       amount: q.due, currency: 'XOF', method: m.id, phone: phone,
@@ -632,6 +660,7 @@
     if (PRODUCT_TYPES.indexOf(pr.type) === -1) return Promise.resolve({ ok: false, reason: 'product', message: 'Produit inconnu.' });
     var amount = int(pr.amount, 0, 1e8, 0);
     if (!amount) return Promise.resolve({ ok: false, reason: 'amount', message: 'Montant invalide.' });
+    if (realBilling() && pr.type === 'domain') return billingCall({ action: 'domain', domain: pr.metadata && pr.metadata.domain, storeId: o.storeId || '', returnUrl: here() });
     var m = methodById(method);
     if (!m) return Promise.resolve({ ok: false, reason: 'method', message: 'Choisissez un moyen de paiement.' });
     var phone = str(o.phone, 24);
@@ -670,7 +699,11 @@
   root.JeereBilling = {
     METHODS: METHODS, methodById: methodById, providers: providers, ROUTES: ROUTES,
     provider: function () { return activeProvider; },
-    isDemo: function () { return activeProvider === 'demo'; },
+    isDemo: function () { return !realBilling() && activeProvider === 'demo'; },
+    isReal: realBilling,
+    portal: function () { return billingCall({ action: 'portal', returnUrl: here() }); },
+    subscribeBoutique: function (plan, period) { return billingCall({ action: 'subscribe', kind: 'boutique', plan: plan, period: period, returnUrl: here() }); },
+    methods: function () { return realBilling() ? METHODS.filter(function (x) { return x.kind === 'card'; }) : METHODS; },
     useProvider: function (id) { if (id === 'demo' || providers[id]) activeProvider = id; return activeProvider; },
     startCheckout: startCheckout,
     PRODUCT_TYPES: PRODUCT_TYPES,

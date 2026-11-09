@@ -3354,7 +3354,7 @@
       <div class="a-card a-card--soft" style="margin-bottom:14px"><p class="a-summary">${startLeft
         ? H`<span class="a-big a-big--sm">Commencez par ces 3</span><span class="a-text">${esc(fr('Encaisser, recevoir les commandes, livrer : le reste peut attendre. ' + (3 - startLeft) + ' sur 3 fait' + (3 - startLeft > 1 ? 's' : '') + '.'))}</span>`
         : H`<span class="a-big">${on}<small class="a-muted" style="font-size:15px"> sur ${real.length}</small></span><span class="a-text">connectés</span>`}</p>
-        <div class="a-note a-note--line" style="margin-top:12px">${ico('info')}<p><strong>Démo : aucune connexion réelle n’est faite.</strong> Vos réglages restent dans ce navigateur. Dans Jeere, chaque connecteur passe par nos serveurs, et vos clés ne sont jamais visibles dans le navigateur.</p></div></div>
+        ${remoteStoreId() ? H`<div class="a-note a-note--line" style="margin-top:12px">${ico('info')}<p><strong>Mobile money, WhatsApp, carte bancaire et nom de domaine</strong> marchent pour de vrai sur votre boutique en ligne. Les connecteurs marqués « Bientôt » arrivent : touchez « Me prévenir ».</p></div>` : H`<div class="a-note a-note--line" style="margin-top:12px">${ico('info')}<p><strong>Votre boutique n’est pas encore publiée :</strong> vos réglages restent dans ce navigateur. Publiez-la pour que vos connecteurs marchent pour vos clients.</p></div>`}</div>
       <nav class="a-catnav" aria-label="Catégories de connecteurs"><button class="a-filter" type="button" data-act="conn-jump" data-cat="demarrer">Pour bien démarrer</button>${groups.map((g) => H`<button class="a-filter" type="button" data-act="conn-jump" data-cat="${esc(g.cat.id)}">${esc(g.cat.label)}</button>`)}</nav>
       <div class="a-conncats">
         <section aria-labelledby="cc-demarrer"><div class="a-conncat__head"><h2 class="a-conncat__title" id="cc-demarrer" tabindex="-1">Pour bien démarrer</h2><p class="a-conncat__hint">Le paiement mobile money, WhatsApp et vos livreurs.</p></div>
@@ -3720,8 +3720,8 @@
           <button class="a-seg__btn" type="button" data-act="cycle" data-v="semaine" aria-pressed="${b.cycle === 'semaine' && weekOk ? 'true' : 'false'}"${weekOk ? '' : ' disabled aria-describedby="h-week"'}>Par semaine</button></div>
           ${weekOk ? '' : H`<p class="a-hint" id="h-week">Le paiement à la semaine existe pour la formule Essentiel : 1 000 FCFA par semaine.</p>`}</div>` : ''}
         <div class="a-card__foot">
-          ${cur.priceMonth ? H`<button class="a-btn a-btn--primary" type="button" data-act="pay-mm">${ico('phone')}Payer par mobile money</button>` : H`<p class="a-small">Rien à payer avec la formule Gratuit : Jeere prend ${esc(fr(cur.fee + ' %'))} par vente en ligne.</p>`}
-          ${cur.priceMonth ? H`<button class="a-btn a-btn--ghost" type="button" data-act="pause">${ico(b.paused ? 'refresh' : 'pause')}${b.paused ? 'Reprendre l’abonnement' : 'Mettre en pause'}</button>` : ''}
+          ${cur.priceMonth ? (realBilling() ? H`<button class="a-btn a-btn--primary" type="button" data-act="billing-portal">${ico('card')}Mon espace de paiement</button>` : H`<button class="a-btn a-btn--primary" type="button" data-act="pay-mm">${ico('phone')}Payer par mobile money</button>`) : H`<p class="a-small">Rien à payer avec la formule Gratuit : Jeere prend ${esc(fr(cur.fee + ' %'))} par vente en ligne.</p>`}
+          ${cur.priceMonth && !realBilling() ? H`<button class="a-btn a-btn--ghost" type="button" data-act="pause">${ico(b.paused ? 'refresh' : 'pause')}${b.paused ? 'Reprendre l’abonnement' : 'Mettre en pause'}</button>` : ''}
         </div>
         ${cur.priceMonth ? H`<p class="a-small" style="margin-top:8px">${b.paused ? 'En pause : rien n’est prélevé. Reprenez quand vous voulez.' : esc(fr('Prochain paiement : ' + due + '. Rien n’est prélevé sans vous.'))}</p>` : ''}
       </section>
@@ -3788,7 +3788,7 @@
         <p class="a-big">${esc(paidNow ? P.fcfa(pr.perMonth) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${paidNow ? ' / mois' : (s.status === 'trial' ? ' pendant l’essai' : '')}</small></p>
         <dl class="a-dl" style="margin-top:14px">${rows}</dl>${pend}
         <div class="a-card__foot a-btnrow">${acts}</div>
-        <p class="a-small" style="margin-top:10px">Mode démo : rien n’est prélevé. Dans Jeere, le mobile money n’est jamais débité tout seul : une demande à valider arrive à chaque échéance, avec ${P.GRACE_DAYS} jours pour renouveler.</p></section>`;
+        <p class="a-small" style="margin-top:10px">${realBilling() ? H`Paiement par carte sur Stripe, renouvelé automatiquement. Factures, carte et résiliation : <button class="a-link" type="button" data-act="billing-portal">mon espace de paiement</button>.` : H`Mode démo : rien n’est prélevé. Dans Jeere, le mobile money n’est jamais débité tout seul : une demande à valider arrive à chaque échéance, avec ${P.GRACE_DAYS} jours pour renouveler.`}</p></section>`;
 
     // seats (Pro: 2, Agence: 5 and more)
     const owner = S.account || {};
@@ -3817,7 +3817,7 @@
     const inv = sub.invoices;
     const invoices = H`<section class="a-card" aria-labelledby="h-inv"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title" id="h-inv">Factures</h3><p class="a-card__sub">Démo : des reçus d’exemple, aucun paiement réel.</p></div></div>
       ${inv.length ? H`<ul class="a-invoices">${inv.map((v) => H`<li class="a-invoice"><span class="a-invoice__main"><span class="a-invoice__t">${esc(v.label)}</span><span class="a-invoice__m">${esc(v.id + ' · ' + P.date(v.date) + ' · ' + ((B && B.methodById(v.method) || {}).name || ''))}</span></span>
-        <span class="a-invoice__end"><strong>${esc(P.fcfa(v.amount))}</strong><span class="a-chip a-chip--soft">Payée (démo)</span></span></li>`)}</ul>` : H`<p class="a-small" style="margin-top:10px">Aucune facture pour l’instant.</p>`}</section>`;
+        <span class="a-invoice__end"><strong>${esc(P.fcfa(v.amount))}</strong><span class="a-chip a-chip--soft">${v.provider === 'stripe' ? 'Payée' : 'Payée (démo)'}</span></span></li>`)}</ul>` : H`<p class="a-small" style="margin-top:10px">Aucune facture pour l’instant.</p>`}</section>`;
 
     const feats = H`<section class="a-card" aria-labelledby="h-sf"><div class="a-card__head"><h3 class="a-card__title" id="h-sf">${s.unlocked ? 'Débloqué dans votre Studio' : 'Ce que débloque un abonnement'}</h3></div>
       <ul class="a-checks">${P.FEATURES.map((f) => H`<li>${ico(s.unlocked ? 'check' : 'lock')}<span><strong>${esc(f.name)}</strong> · ${esc(f.text)}</span></li>`)}</ul></section>`;
@@ -3893,9 +3893,33 @@
     clearDirty();
     afterStudio(name + ' a une place dans le Studio (démo : aucune invitation envoyée).', '#sm-name');
   }
+  // Real billing (the `billing` function, Stripe): Jeere with a real account. The plan itself is written by the
+  // server once Stripe confirms the payment; the page reads it back (JeereAuth.syncPlan).
+  const realBilling = () => !!(window.JeereBilling && typeof window.JeereBilling.isReal === 'function' && window.JeereBilling.isReal());
   async function choosePlan(id) {
     const p = PLANS().find((x) => x.id === id);
     if (!p || !S.account) return;
+    if (realBilling()) {
+      const B = window.JeereBilling;
+      if (!p.priceMonth) {
+        const ok = await confirmBox({ title: 'Revenir à la formule Gratuite ?', text: 'Vous résiliez votre abonnement dans votre espace de paiement Stripe. Il reste actif jusqu’à la fin de la période payée.', ok: 'Ouvrir mon espace de paiement' });
+        if (!ok) { focusMain(); return; }
+        const r = await B.portal();
+        if (r && !r.ok) toast(r.message || 'Votre espace de paiement n’a pas pu s’ouvrir.');
+        return;
+      }
+      const week = S.admin.settings.billing.cycle === 'semaine' && p.priceWeek;
+      const ok = await confirmBox({
+        title: 'Passer à la formule ' + p.name + ' ?',
+        html: H`<strong>${esc(week ? price(p.priceWeek) + ' par semaine' : price(p.priceMonth) + ' par mois')}</strong> · ${esc(fr(p.ordersLabel))} · ${esc(fr(p.feeLabel))}.<br><br>Vous payez par carte (Visa, Mastercard) sur la page sécurisée de Stripe. Résiliable à tout moment. Le mobile money arrive bientôt.`,
+        ok: 'Payer par carte'
+      });
+      if (!ok) { focusMain(); return; }
+      toast('Ouverture de la page de paiement…');
+      const r = await B.subscribeBoutique(p.id, week ? 'semaine' : 'mois');
+      if (r && !r.ok) toast(r.message || 'Le paiement n’a pas pu s’ouvrir.', { ms: 6000 });
+      return;
+    }
     const ok = await confirmBox({
       title: 'Passer à la formule ' + p.name + ' ?',
       html: H`<strong>${esc(p.priceMonth ? price(p.priceMonth) + ' par mois' : 'Gratuite')}</strong>${p.priceWeek ? esc(fr(' (ou ' + price(p.priceWeek) + ' par semaine)')) : ''} · ${esc(fr(p.ordersLabel))} · ${esc(fr(p.feeLabel))}.<br><br>Démo : rien n’est prélevé, la formule change seulement dans ce navigateur.`,
@@ -3912,6 +3936,7 @@
     toast('Vous êtes maintenant en formule ' + p.name + ' (démo).');
   }
   function payMobileMoney() {
+    if (realBilling()) { const r = window.JeereBilling.portal(); Promise.resolve(r).then((x) => { if (x && !x.ok) toast(x.message || 'Votre espace de paiement n’a pas pu s’ouvrir.'); }); return; }
     const cur = plan();
     const b = S.admin.settings.billing;
     const amount = b.cycle === 'semaine' && cur.priceWeek ? cur.priceWeek : cur.priceMonth;
@@ -4274,7 +4299,8 @@
     },
     'team-remove': (el) => removeMember(parseInt(el.getAttribute('data-i'), 10)),
     'plan': (el) => choosePlan(el.getAttribute('data-v')),
-    'cycle': (el) => { const v = el.getAttribute('data-v') === 'semaine' ? 'semaine' : 'mois'; if (S.admin.settings.billing.cycle === v) return; S.admin.settings.billing.cycle = v; saveAdmin(); refresh('[data-act="cycle"][data-v="' + v + '"]'); toast(v === 'semaine' ? 'Paiement à la semaine (démo).' : 'Paiement au mois (démo).'); },
+    'billing-portal': () => { Promise.resolve(window.JeereBilling && window.JeereBilling.portal()).then((x) => { if (x && !x.ok) toast(x.message || 'Votre espace de paiement n’a pas pu s’ouvrir.'); }); },
+    'cycle': (el) => { const v = el.getAttribute('data-v') === 'semaine' ? 'semaine' : 'mois'; if (S.admin.settings.billing.cycle === v) return; S.admin.settings.billing.cycle = v; saveAdmin(); refresh('[data-act="cycle"][data-v="' + v + '"]'); toast(v === 'semaine' ? 'Paiement à la semaine choisi' + (realBilling() ? ' : il s’applique à votre prochain abonnement.' : ' (démo).') : 'Paiement au mois choisi' + (realBilling() ? ' : il s’applique à votre prochain abonnement.' : ' (démo).')); },
     'pause': async () => {
       const b = S.admin.settings.billing;
       if (!b.paused) {
@@ -4477,6 +4503,17 @@
     window.addEventListener('afterprint', clearSlip);
     const gd = $('#a-gate-demo');
     if (gd) gd.addEventListener('click', startDemo);
+    // Back from Stripe (the `billing` function): ?abonnement=ok|annule, ?domaine=ok|annule. The plan comes from the server.
+    const back = /[?&](abonnement|domaine)=(ok|annule)/.exec(window.location.search);
+    if (back) {
+      try { history.replaceState(null, '', window.location.pathname + window.location.hash); } catch (e) { /* keep */ }
+      const ok = back[2] === 'ok';
+      setTimeout(() => toast(back[1] === 'abonnement'
+        ? (ok ? 'Paiement reçu, merci ! Votre nouvelle formule s’active dans quelques secondes.' : 'Paiement annulé : rien n’a été prélevé.')
+        : (ok ? 'Paiement reçu ! Jeere achète votre domaine et le relie à votre boutique : comptez quelques minutes.' : 'Paiement annulé : aucun domaine n’a été acheté.'), { ms: 8000 }), 600);
+      const A = window.JeereAuth;
+      if (ok && A && typeof A.syncPlan === 'function') [3000, 8000, 15000].forEach((ms) => setTimeout(() => { Promise.resolve(A.syncPlan()).then(() => { try { S.account = readAccount ? readAccount() : S.account; } catch (e) { /* keep */ } refresh(); }, () => {}); }, ms));
+    }
     // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jeere store here
     const bm = /[#&]boutique=([a-z0-9-]+)/.exec(window.location.hash || '');
     if (bm && CUSTOM[bm[1]]) {
