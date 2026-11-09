@@ -162,9 +162,9 @@
   var TLDS = ['com', 'shop', 'store', 'online', 'net', 'co', 'site', 'boutique'];
   // Not sold by Vercel: through an accredited Ivorian registrar (ARTCI), by the team, on request
   var LOCAL = { ci: { label: '.ci', approx: 15000, note: 'Par un bureau d’enregistrement agréé par l’ARTCI (NIC.CI) : l’équipe s’en occupe, écrivez-nous.' } };
-  // Jeere's price: USD × 600 FCFA (a safety margin on ~575), + 25 %, + 1 500 FCFA of handling, rounded up to 500 FCFA.
+  // Jeere's price: USD × 600 FCFA (a safety margin on ~575), + 40 %, + 2 000 FCFA of handling, rounded up to 500 FCFA.
   // Same formula as the Edge Function (supabase/functions/domains).
-  var FX = 600, MARGIN = 0.25, FIXED = 1500;
+  var FX = 600, MARGIN = 0.40, FIXED = 2000;
   function fcfa(usd) {
     var n = Number(usd);
     if (!isFinite(n) || n <= 0) return 0;

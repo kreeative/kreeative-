@@ -211,7 +211,7 @@ window.JEERE_EN = {
   'price.title': 'Every feature in every plan. The price follows your sales.',
   'price.lead': 'You move up a plan when you sell more, never to unlock a feature: Jeere wins when you win. In FCFA, by mobile money, weekly or monthly.',
   'price.p1': 'Free',
-  'price.fee3': '3% per online sale',
+  'price.fee3': '2% per online sale',
   'price.fee1': '1% per online sale',
   'price.fee0': '0% per online sale',
   'price.p1for': 'To get started',

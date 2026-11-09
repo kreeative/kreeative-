@@ -420,6 +420,12 @@
         var text = num ? ('Commande' + num) : 'Commande';
         S.ordered = true;
         if (S.root) S.root.__jstCart = {};
+        var how = payHow(f.pay, o.total, o.number);
+        if (how) {
+          if (wa) { try { wa.close(); } catch (x) { /* ignore */ } }
+          msgSheet(text + ' enregistrée' + NB + '!', how.text, how.actions + (link ? '<a class="jb-btn jb-btn--ghost" href="' + esc(waLink(msg.text.replace(/\n\(Commande depuis/, '\nCommande' + num + '\n(Commande depuis'))) + '" target="_blank" rel="noopener">' + WA_ICON + 'Écrire à la boutique</a>' : ''));
+          return;
+        }
         if (link) {
           var full = waLink(msg.text.replace(/\n\(Commande depuis/, '\nCommande' + num + '\n(Commande depuis'));
           if (wa) { try { wa.opener = null; wa.location.href = full; } catch (x) { wa = null; } }
@@ -435,6 +441,23 @@
         if (link) { sentSheet(msg); return; }
         msgSheet('La commande n’est pas partie', (err && err.message ? err.message + ' ' : '') + 'Réessayez dans un instant.');
       });
+  }
+  // Mobile money paid straight to the seller (store.pay, the « Paiement mobile money » connector): her Wave
+  // link with the amount, or her number, with the order number as the reason. null when she gave nothing for it.
+  function payHow(key, total, number) {
+    var pay = S.config && S.config.store && S.config.store.pay;
+    if (!pay || !key) return null;
+    var amount = price(total), ref = 'Commande ' + number;
+    var names = { wave: 'Wave', orange: 'Orange Money', mtn: 'MTN MoMo', moov: 'Moov Money' };
+    if (key === 'wave' && pay.wave) {
+      var u = pay.wave + (pay.wave.indexOf('?') >= 0 ? '&' : '?') + 'amount=' + Math.round(total);
+      return { text: 'Payez maintenant ' + amount + ' avec Wave : le lien ouvre Wave avec le montant. La boutique confirme dès que le paiement arrive.',
+        actions: '<a class="jb-btn" href="' + esc(u) + '" target="_blank" rel="noopener">Payer ' + esc(amount) + ' avec Wave</a>' };
+    }
+    var num = key === 'wave' ? pay.wavePhone : pay[key];
+    if (!num || !names[key]) return null;
+    return { text: 'Envoyez ' + amount + ' par ' + names[key] + ' au ' + num + ', avec « ' + ref + ' » en motif. La boutique confirme dès que le paiement arrive.',
+      actions: '' };
   }
   // ?retour=<page of the seller's own site> (Jeere Connect): kept for this store in this tab
   function siteBack() {

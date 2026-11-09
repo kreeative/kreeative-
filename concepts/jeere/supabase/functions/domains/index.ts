@@ -48,9 +48,9 @@ const PROTECTED = /(^|\.)(kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|sup
 // The TLDs Jeere resells through Vercel (Vercel does not offer .ci or .africa: see README « Domaines »)
 const TLDS = ['com', 'shop', 'store', 'online', 'net', 'co', 'site', 'boutique'];
 
-// Pricing in FCFA: Vercel's price in USD × 600 (a safety margin on ~575 FCFA per USD), + 25 %, + 1 500 FCFA,
+// Pricing in FCFA: Vercel's price in USD × 600 (a safety margin on ~575 FCFA per USD), + 40 %, + 2 000 FCFA,
 // rounded up to the next 500 FCFA. Same formula as JeereDomains.fcfa (creer/domains.js).
-const FX = 600, MARGIN = 0.25, FIXED = 1500;
+const FX = 600, MARGIN = 0.40, FIXED = 2000;
 function fcfa(usd: number): number {
   if (!isFinite(usd) || usd <= 0) return 0;
   return Math.ceil((usd * FX * (1 + MARGIN) + FIXED) / 500) * 500;

@@ -2912,6 +2912,15 @@
     // The brand keys are optional: kept (repaired) when the fiche has them, never added
     BRAND_KEYS.forEach(function (k) { if (has(srcStore, k)) store[k] = normBrand(k, srcStore[k]); });
     if (has(srcStore, 'seo')) { var storeSeo = normSeo(srcStore.seo); if (storeSeo) store.seo = storeSeo; }
+    // How buyers pay her by mobile money (the « Paiement mobile money » connector): her Wave payment link and
+    // the numbers that receive Wave, Orange Money, MTN MoMo and Moov Money. Shown to the buyer once the order is placed.
+    if (isObj(srcStore.pay)) {
+      var pay = {}, sp = srcStore.pay;
+      var wl = str(sp.wave, '').trim();
+      if (/^https:\/\/pay\.wave\.com\/[^\s"'<>]{3,200}$/i.test(wl)) pay.wave = wl;
+      ['wavePhone', 'orange', 'mtn', 'moov'].forEach(function (k) { var n = str(sp[k], '').replace(/[^\d+]/g, ''); if (/^\+?\d{8,15}$/.test(n)) pay[k] = n; });
+      if (Object.keys(pay).length) store.pay = pay;
+    }
 
     var srcTheme = isObj(src.theme) ? src.theme : {};
     var theme = {
@@ -3480,7 +3489,7 @@
   }
 
   var PLANS = [
-    plan('gratuit', 'Gratuit', 0, null, 20, 3, 'Pour démarrer'),
+    plan('gratuit', 'Gratuit', 0, null, 20, 2, 'Pour démarrer'),
     plan('essentiel', 'Essentiel', 3000, 1000, 150, 1, 'Pour les vendeurs actifs sur les réseaux', true),
     plan('pro', 'Pro', 10000, null, 600, 0, 'Pour les marques qui grandissent'),
     plan('business', 'Business', 25000, null, null, 0, 'Pour les boutiques installées')
@@ -3519,12 +3528,15 @@
     {
       id: 'mobile-money', category: 'paiements', name: 'Paiement mobile money', icon: 'phone',
       payments: ['wave', 'orange', 'mtn', 'moov'],
-      description: 'Encaissez Wave, Orange Money, MTN MoMo et Moov Money par un partenaire de paiement agréé par la BCEAO : l’argent arrive sur votre numéro, jamais chez Jeere.',
+      description: 'Vos clients vous paient directement sur votre Wave, Orange Money, MTN MoMo ou Moov Money, juste après leur commande. L’argent arrive chez vous, jamais chez Jeere, et sans frais Jeere.',
       fields: [
-        { key: 'payoutPhone', label: 'Numéro qui reçoit vos paiements', type: 'tel', placeholder: '07 07 12 34 56' },
-        { key: 'payoutOperator', label: 'Opérateur de ce numéro', type: 'select', options: OPERATOR_OPTIONS, default: 'wave' }
+        { key: 'wave', label: 'Votre lien de paiement Wave (conseillé)', type: 'url', placeholder: 'https://pay.wave.com/m/…', help: 'Dans l’application Wave Business : Encaisser › Lien de paiement. Le client paie le montant exact en un geste.' },
+        { key: 'wavePhone', label: 'Ou votre numéro Wave', type: 'tel', placeholder: '07 07 12 34 56' },
+        { key: 'orange', label: 'Numéro Orange Money', type: 'tel', placeholder: '07 07 12 34 56' },
+        { key: 'mtn', label: 'Numéro MTN MoMo', type: 'tel', placeholder: '05 05 12 34 56' },
+        { key: 'moov', label: 'Numéro Moov Money', type: 'tel', placeholder: '01 01 12 34 56' }
       ],
-      note: 'Frais du partenaire de paiement : par exemple 1,95 % par paiement mobile money. Jeere ne garde jamais votre argent.'
+      note: 'Remplissez au moins un moyen. Après sa commande, le client voit le montant, votre lien ou votre numéro, et le numéro de commande à mettre en motif. Quand l’argent arrive, marquez la commande « Payée » dans Commandes.'
     },
     {
       id: 'card', category: 'paiements', name: 'Carte bancaire et diaspora', icon: 'card',
@@ -3547,7 +3559,7 @@
       note: 'C’est aussi le numéro affiché sur votre boutique.'
     },
     {
-      id: 'sms', category: 'messagerie', name: 'SMS', icon: 'message',
+      id: 'sms', category: 'messagerie', name: 'SMS', icon: 'message', soon: true,
       description: 'Envoyez la confirmation et le suivi de commande par SMS aux clients qui n’ont pas WhatsApp.',
       fields: [
         { key: 'sender', label: 'Nom de l’expéditeur (11 caractères au plus)', type: 'text', placeholder: 'AWABEAUTE' },
@@ -3556,7 +3568,7 @@
       note: 'Les SMS sont facturés à l’envoi, au tarif du partenaire.'
     },
     {
-      id: 'instagram', category: 'reseaux', name: 'Instagram', icon: 'camera',
+      id: 'instagram', category: 'reseaux', name: 'Instagram', icon: 'camera', soon: true,
       description: 'Importez vos publications comme produits et mettez le lien de votre boutique dans votre bio.',
       fields: [
         { key: 'account', label: 'Compte Instagram', type: 'text', placeholder: '@awabeaute' },
@@ -3565,7 +3577,7 @@
       ]
     },
     {
-      id: 'tiktok', category: 'reseaux', name: 'TikTok', icon: 'video',
+      id: 'tiktok', category: 'reseaux', name: 'TikTok', icon: 'video', soon: true,
       description: 'Mettez le lien de votre boutique sur votre profil TikTok et voyez quelles vidéos vous apportent des commandes.',
       fields: [
         { key: 'account', label: 'Compte TikTok', type: 'text', placeholder: '@awabeaute' },
@@ -3573,7 +3585,7 @@
       ]
     },
     {
-      id: 'facebook', category: 'reseaux', name: 'Facebook', icon: 'people',
+      id: 'facebook', category: 'reseaux', name: 'Facebook', icon: 'people', soon: true,
       description: 'Montrez vos produits sur votre page Facebook et retrouvez dans Jeere les commandes reçues sur Messenger.',
       fields: [
         { key: 'page', label: 'Page Facebook', type: 'text', placeholder: 'facebook.com/awabeaute' },
@@ -3581,7 +3593,7 @@
       ]
     },
     {
-      id: 'yango', category: 'livraison', name: 'Yango', icon: 'scooter',
+      id: 'yango', category: 'livraison', name: 'Yango', icon: 'scooter', soon: true,
       description: 'Commandez un coursier Yango depuis la commande, avec le prix de la course affiché avant de valider.',
       fields: [
         { key: 'phone', label: 'Numéro de votre compte Yango', type: 'tel', placeholder: '07 07 12 34 56' },
@@ -3590,7 +3602,7 @@
       note: 'La course est payée à Yango, à son tarif.'
     },
     {
-      id: 'gozem', category: 'livraison', name: 'Gozem', icon: 'scooter',
+      id: 'gozem', category: 'livraison', name: 'Gozem', icon: 'scooter', soon: true,
       description: 'Envoyez vos colis avec un coursier Gozem et suivez la livraison jusqu’au client.',
       fields: [
         { key: 'phone', label: 'Numéro de votre compte Gozem', type: 'tel', placeholder: '07 07 12 34 56' },
@@ -3609,19 +3621,19 @@
       ]
     },
     {
-      id: 'google-analytics', category: 'mesure', name: 'Google Analytics', icon: 'chart',
+      id: 'google-analytics', category: 'mesure', name: 'Google Analytics', icon: 'chart', soon: true,
       description: 'Suivez vos visites, d’où viennent vos clients et ce qu’ils achètent.',
       fields: [{ key: 'measurementId', label: 'ID de mesure', type: 'text', placeholder: 'G-XXXXXXXXXX' }],
       note: CONSENT_NOTE
     },
     {
-      id: 'meta-pixel', category: 'mesure', name: 'Pixel Meta', icon: 'target',
+      id: 'meta-pixel', category: 'mesure', name: 'Pixel Meta', icon: 'target', soon: true,
       description: 'Mesurez les ventes apportées par vos publicités Facebook et Instagram.',
       fields: [{ key: 'pixelId', label: 'ID du pixel', type: 'text', placeholder: '123456789012345' }],
       note: CONSENT_NOTE
     },
     {
-      id: 'tiktok-pixel', category: 'mesure', name: 'Pixel TikTok', icon: 'target',
+      id: 'tiktok-pixel', category: 'mesure', name: 'Pixel TikTok', icon: 'target', soon: true,
       description: 'Mesurez les ventes apportées par vos publicités TikTok.',
       fields: [{ key: 'pixelId', label: 'ID du pixel', type: 'text', placeholder: 'CABC123DEF456GHI789J0' }],
       note: CONSENT_NOTE

@@ -3392,7 +3392,7 @@
       return H`<div class="a-field"><label class="a-label" for="${id}">${esc(f.label)}</label><div class="a-selectwrap"><select class="a-input" id="${id}" name="${esc(f.key)}">${arr(f.options).map((o) => H`<option value="${esc(o.value)}"${String(o.value) === String(val) ? ' selected' : ''}>${esc(o.label)}</option>`)}</select>${ico('down')}</div></div>`;
     }
     const tel = f.type === 'tel';
-    return H`<div class="a-field"><label class="a-label" for="${id}">${esc(f.label)}</label><input class="a-input" id="${id}" name="${esc(f.key)}" type="${tel ? 'tel' : (f.type === 'email' ? 'email' : 'text')}"${tel ? ' inputmode="tel" autocomplete="tel"' : ' autocomplete="off"'} value="${esc(tel ? phoneFmt(val) : val)}" placeholder="${esc(f.placeholder || '')}"${f.key === 'sender' ? ' maxlength="11"' : ' maxlength="200"'}${f.key === 'domain' ? ' autocapitalize="off" spellcheck="false"' : ''}></div>`;
+    return H`<div class="a-field"><label class="a-label" for="${id}">${esc(f.label)}</label><input class="a-input" id="${id}" name="${esc(f.key)}" type="${tel ? 'tel' : (f.type === 'email' ? 'email' : (f.type === 'url' ? 'url' : 'text'))}"${tel ? ' inputmode="tel" autocomplete="tel"' : ' autocomplete="off"'} value="${esc(tel ? phoneFmt(val) : val)}" placeholder="${esc(f.placeholder || '')}"${f.key === 'sender' ? ' maxlength="11"' : ' maxlength="200"'}${f.key === 'domain' || f.type === 'url' ? ' autocapitalize="off" spellcheck="false"' : ''}>${f.help ? H`<p class="a-small" style="margin-top:6px">${esc(fr(f.help))}</p>` : ''}</div>`;
   }
   /* ---------- card payments: the store's own Stripe account (the `payments` function) ---------- */
   // A real store (published, on Supabase) with a signed-in seller: « Carte bancaire » opens Stripe's onboarding.
@@ -3463,11 +3463,13 @@
         <div style="margin-top:14px">${c.fields.map((f) => connField(c, f, vals[f.key]))}</div>
         ${c.note ? H`<p class="a-small" style="margin-top:14px">${esc(fr(c.note))}</p>` : ''}
         ${id === 'domain' ? H`<table class="a-dns"><thead><tr><th>Type</th><th>Nom</th><th>Valeur</th></tr></thead><tbody><tr><td>A</td><td>@</td><td>${esc(D.DNS_APEX_A || '76.76.21.21')}</td></tr><tr><td>CNAME</td><td>www</td><td>${esc(D.DNS_TARGET || 'cname.vercel-dns.com')}</td></tr></tbody></table><p class="a-small" style="margin-top:8px"><a class="a-link" href="#parametres/domaine" data-close>Le pas à pas et la vérification : Paramètres › Domaine</a></p>` : ''}
-        <div class="a-note a-note--line" style="margin-top:14px">${ico('info')}<p>Démo : aucune connexion réelle n’est faite. Vos réglages restent dans ce navigateur.</p></div></div>
+        ${REAL_CONN.indexOf(id) >= 0 && remoteStoreId() ? H`<div class="a-note a-note--line" style="margin-top:14px">${ico('info')}<p>Enregistré sur votre boutique en ligne dès que vous touchez « ${on ? 'Enregistrer' : 'Connecter'} ».</p></div>` : H`<div class="a-note a-note--line" style="margin-top:14px">${ico('info')}<p>Cette boutique n’est pas encore publiée : ces réglages restent dans ce navigateur jusqu’à sa publication.</p></div>`}</div>
       <div class="a-dialog__foot">${on ? H`<button class="a-btn a-btn--quiet a-btn--left" type="button" data-act="connector-off" data-id="${esc(id)}">Déconnecter</button>` : ''}
         <button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="submit">${on ? 'Enregistrer' : 'Connecter'}</button></div></form>`;
     openDialog(html, { labelledby: 'cd-t' });
   }
+  // connectors that act on the published store (the rest are « Bientôt »)
+  const REAL_CONN = ['mobile-money', 'whatsapp', 'card', 'domain'];
   function saveConnectorForm(form) {
     const id = form.getAttribute('data-id');
     const c = connector(id);
@@ -3476,7 +3478,7 @@
     const v = serialize(form);
     const values = {};
     let ok = true;
-    const firstReq = c.fields.find((f) => f.type !== 'toggle' && f.type !== 'select');
+    const firstReq = id === 'mobile-money' ? null : c.fields.find((f) => f.type !== 'toggle' && f.type !== 'select');
     c.fields.forEach((f) => {
       const input = form.elements[f.key];
       if (f.type === 'toggle') { values[f.key] = v[f.key] === true ? 'true' : 'false'; return; }
@@ -3489,11 +3491,13 @@
         val = val.toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
         if (!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(val)) { ok = invalid(input, 'Écrivez le domaine sans espace, par exemple awabeaute.ci.') && ok; return; }
       }
+      if (f.type === 'url' && val && !/^https:\/\/pay\.wave\.com\/\S{3,}$/i.test(val)) { ok = invalid(input, 'Collez le lien Wave complet : il commence par https://pay.wave.com/') && ok; return; }
       if (f.type === 'email' && val && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) { ok = invalid(input, 'Écrivez une adresse e-mail complète, par exemple vous@exemple.com.') && ok; return; }
       if (f.key === 'sender') val = val.replace(/\s/g, '').slice(0, 11);
       if (f === firstReq && !val) { ok = invalid(input, 'Ce champ est nécessaire pour connecter ' + c.name + '.') && ok; return; }
       values[f.key] = val;
     });
+    if (ok && id === 'mobile-money' && !['wave', 'wavePhone', 'orange', 'mtn', 'moov'].some((k) => values[k])) ok = invalid(form.elements.wave, 'Remplissez au moins un moyen : votre lien Wave ou un numéro.') && ok;
     if (!ok) { focusFirstError(form); return; }
     const was = conn(id);
     S.admin.connectors[id] = { status: 'connected', values, connectedAt: was.status === 'connected' && was.connectedAt ? was.connectedAt : new Date().toISOString() };
@@ -3501,10 +3505,30 @@
     if (id === 'domain') S.admin.settings.customDomain = values.domain || '';
     saveAdmin();
     if (id === 'whatsapp' && values.number && S.config && S.config.store.whatsapp !== values.number) editConfig((cfg) => { cfg.store.whatsapp = values.number; });
+    if (id === 'mobile-money' && S.config) {
+      const digits = (x) => String(x || '').replace(/[^\d+]/g, '');
+      editConfig((cfg) => {
+        const pay = {};
+        if (values.wave) pay.wave = values.wave;
+        ['wavePhone', 'orange', 'mtn', 'moov'].forEach((k) => { if (values[k]) pay[k] = digits(values[k]); });
+        cfg.store.pay = pay;
+        cfg.payments = Object.assign({}, cfg.payments, { wave: !!(pay.wave || pay.wavePhone), orange: !!pay.orange, mtn: !!pay.mtn, moov: !!pay.moov });
+      });
+    }
     closeDialog(true);
     refresh('[data-act="connector-open"][data-id="' + id + '"]');
     if (document.activeElement === document.body) focusMain();
-    toast(c.name + (was.status === 'connected' ? ' : réglages enregistrés (démo).' : ' connecté (démo).'));
+    const live = REAL_CONN.indexOf(id) >= 0 && remoteStoreId();
+    if (live && (id === 'mobile-money' || id === 'whatsapp')) {
+      toast(c.name + (was.status === 'connected' ? ' : réglages enregistrés.' : ' connecté.') + ' Publiez pour que vos clients le voient.', { ms: 9000, action: 'Publier maintenant', onAction: publishNow });
+    } else toast(c.name + (was.status === 'connected' ? ' : réglages enregistrés' : ' connecté') + (live ? '.' : ' (dans ce navigateur).'));
+  }
+  function publishNow() {
+    const P = window.JeerePublish;
+    const r = P && P.local ? P.local() : null;
+    if (!P || !r || !r.slug) { toast('Ouvrez « Publier » pour mettre votre boutique en ligne.'); return; }
+    toast('Publication…');
+    P.publish(S.config, r.slug).then((x) => toast(x && x.ok ? 'C’est en ligne : vos clients voient vos nouveaux réglages.' : ((x && x.message) || 'La publication n’a pas abouti. Réessayez.'), { ms: 6000 }), () => toast('La publication n’a pas abouti. Vérifiez votre connexion.'));
   }
   function disconnect(id) {
     const c = connector(id);

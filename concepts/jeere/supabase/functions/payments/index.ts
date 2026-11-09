@@ -18,7 +18,7 @@
 //
 // Secrets (Supabase › Edge Functions › Secrets): STRIPE_SECRET_KEY (Jeere's platform key, sk_test_… to try it),
 // STRIPE_WEBHOOK_SECRET (the Connect webhook endpoint's whsec_…). Optional: JEERE_CARD_FEE_PCT (Jeere's
-// commission on card sales, 0 by default), JEERE_SITE (https://jeere.kreeative.xyz).
+// commission on card sales at most, 2 by default; each plan's own rate applies below it), JEERE_SITE (https://jeere.kreeative.xyz).
 // Deployed with verify_jwt = false (the publishable key is not a JWT; Stripe sends no JWT): checked here.
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? 'https://aezchxfvzfoqlvzchqyk.supabase.co';
@@ -30,7 +30,16 @@ const SECRET = (() => {
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
-const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '0') || 0));
+const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '2') || 0));
+// Jeere's commission by the seller's boutique plan (profiles.plan, written by the server since jeere_wave2):
+// the plan's own rate (creer/data.js PLANS), never more than FEE_PCT. Gratuit 2 %, Essentiel 1 %, Pro and Business 0 %.
+const PLAN_FEE: Record<string, number> = { gratuit: 2, essentiel: 1, pro: 0, business: 0 };
+async function feeFor(owner: string): Promise<number> {
+  if (!/^[0-9a-f-]{36}$/i.test(owner)) return FEE_PCT;
+  const pr = (await rows('profiles?select=plan&id=eq.' + owner))[0];
+  const plan = String(pr?.plan ?? 'gratuit');
+  return Math.min(FEE_PCT, plan in PLAN_FEE ? PLAN_FEE[plan] : FEE_PCT);
+}
 const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jeere.kreeative.xyz').replace(/\/$/, '');
 // Countries where a store's Stripe account can be opened (Stripe Connect Express)
 const COUNTRIES = ['CA', 'US', 'FR', 'BE', 'CH', 'GB', 'DE', 'ES', 'IT', 'NL', 'PT', 'IE', 'LU'];
@@ -201,8 +210,9 @@ Deno.serve(async (req: Request) => {
     const o = (await rows('orders?select=*&id=eq.' + orderId))[0];
     if (!o) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 404);
     if (o.payment_status === 'payee') return json({ ok: false, code: 'paid', message: 'Cette commande est déjà payée.' }, 409);
-    const st = (await rows('stores?select=id,slug,fiche&id=eq.' + o.store_id))[0];
+    const st = (await rows('stores?select=id,slug,fiche,owner&id=eq.' + o.store_id))[0];
     const p = st ? await payRow(String(st.id)) : null;
+    const pct = st ? await feeFor(String(st.owner ?? '')) : FEE_PCT;
     if (!st || !p || !p.charges_enabled) return json({ ok: false, code: 'not_connected', message: 'Cette boutique ne prend pas encore les cartes.' }, 409);
     const fiche = isObj(st.fiche) ? st.fiche : {};
     const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
@@ -228,7 +238,7 @@ Deno.serve(async (req: Request) => {
       payment_intent_data: {
         description: storeName + ' · commande n° ' + o.number,
         metadata: { order_id: orderId, number: String(o.number) },
-        ...(FEE_PCT > 0 ? { application_fee_amount: Math.round(total * FEE_PCT / 100) } : {})
+        ...(pct > 0 ? { application_fee_amount: Math.round(total * pct / 100) } : {})
       },
       locale: 'fr'
     };
