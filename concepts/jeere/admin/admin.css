@@ -1571,5 +1571,9 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
 .a-stripe-embed { margin-top: 14px; min-height: 320px; }
 
 .a-stripe-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-.a-stripe-tabs [aria-selected="true"] { background: #141414; color: #FFFFFF; border-color: #141414; }
+.a-stripe-tabs { margin: 0 0 14px; }
+.a-stripe-tabs [aria-current="page"] { background: #141414; color: #FFFFFF; border-color: #141414; }
+.a-stripe-page { padding: 18px; }
+.a-page--wide { max-width: 1100px; }
+.a-stripe-page .a-stripe-embed { margin-top: 0; min-height: 520px; }
 #a-stripe-banner:not(:empty) { margin-top: 12px; }
