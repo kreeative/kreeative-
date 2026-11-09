@@ -702,6 +702,18 @@
     isDemo: function () { return !realBilling() && activeProvider === 'demo'; },
     isReal: realBilling,
     portal: function () { return billingCall({ action: 'portal', returnUrl: here() }); },
+    // her subscriptions read from Stripe now (not only by the webhook), then the entitlements read back
+    sync: function () {
+      if (!realBilling()) return Promise.resolve(null);
+      var A = root.JeereAuth;
+      return Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then(function (s) {
+        if (!s || !s.access_token) return null;
+        return fetch(BILLING_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: BILLING_KEY, Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ action: 'sync' }) })
+          .then(function (r) { return r.json().catch(function () { return null; }); });
+      }).then(function (j) {
+        return Promise.resolve(A && typeof A.syncPlan === 'function' ? A.syncPlan() : null).then(function () { emit(); return j; });
+      }, function () { return null; });
+    },
     subscribeBoutique: function (plan, period) { return billingCall({ action: 'subscribe', kind: 'boutique', plan: plan, period: period, returnUrl: here() }); },
     methods: function () { return realBilling() ? METHODS.filter(function (x) { return x.kind === 'card'; }) : METHODS; },
     useProvider: function (id) { if (id === 'demo' || providers[id]) activeProvider = id; return activeProvider; },

@@ -9,6 +9,7 @@
 //                                                               → { ok, url } Stripe Checkout (subscription)
 //         { action: 'portal', returnUrl }                       → { ok, url } her Stripe billing portal (cards, invoices, cancel)
 //         { action: 'domain', domain, storeId?, returnUrl }     → { ok, url, price } Stripe Checkout (one payment)
+//         { action: 'sync' }                                    → her subscriptions read from Stripe and applied now
 //   Stripe's webhook (events of Jeere's own account) POSTs here with Stripe-Signature:
 //     customer.subscription.created / updated / deleted → profiles.plan (boutique) or profiles.studio (Studio)
 //     invoice.paid                                        → the invoice in profiles.studio.invoices
@@ -289,6 +290,24 @@ Deno.serve(async (req: Request) => {
   if (!user) return fail(401, 'login', 'Connectez-vous à votre compte Jeere pour payer.');
   const pr = await profile(user.id);
   const name = str(pr?.first_name, 40);
+
+  // Back from Stripe (or any visit): her subscriptions read straight from Stripe and applied, so a plan never
+  // waits on the webhook. Per kind, the live one wins; else the most recent (ended → back to the free plan).
+  if (action === 'sync') {
+    const customer = await customerFor(user, name);
+    if (!customer) return json({ ok: true, applied: 0 });
+    const subs = await stripe('GET', 'subscriptions', { customer, status: 'all', limit: 30 });
+    const list = (subs.ok && Array.isArray(subs.data.data) ? subs.data.data as Obj[] : []).filter((x) => isObj(x.metadata) && (x.metadata as Obj).user_id === user.id);
+    const liveSt = (x: Obj) => ['active', 'trialing', 'past_due'].includes(String(x.status));
+    let applied = 0;
+    for (const kind of ['boutique', 'studio']) {
+      const mine = list.filter((x) => (x.metadata as Obj).kind === kind).sort((a, c) => Number(c.created) - Number(a.created));
+      const pick = mine.find(liveSt) ?? mine[0];
+      if (pick) { await applySubscription(pick); applied++; }
+    }
+    const after = await profile(user.id);
+    return json({ ok: true, applied, plan: after?.plan ?? null, studio: after?.studio ?? null });
+  }
 
   if (action === 'subscribe') {
     const kind = b.kind === 'boutique' ? 'boutique' : 'studio';

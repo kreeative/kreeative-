@@ -477,8 +477,7 @@
       : (ok ? '<b>Paiement reçu' + NB + '!</b> Jeere achète votre domaine et le relie à votre boutique. Comptez quelques minutes (jusqu’à 24' + NB + 'h pour qu’il marche partout).' : 'Paiement annulé : aucun domaine n’a été acheté.')) + '</span>';
     var main = doc.querySelector('main') || doc.body;
     main.insertBefore(box, main.firstChild);
-    var A = window.JeereAuth;
-    if (ok && A && typeof A.syncPlan === 'function') { [3000, 8000, 15000].forEach(function (ms) { setTimeout(function () { A.syncPlan(); }, ms); }); }
+    if (ok && B.sync) { [500, 4000, 10000].forEach(function (ms) { setTimeout(function () { B.sync(); }, ms); }); }
   }
 
   function onPageClick(e) {
@@ -521,6 +520,7 @@
       var demoBox = doc.querySelector('.ab-demo');
       if (demoBox) demoBox.innerHTML = ico('info') + '<span><b>Paiement par carte</b> (Visa, Mastercard, depuis n’importe quel pays) sur la page sécurisée de Stripe. Le mobile money (Wave, Orange, MTN, Moov) arrive bientôt. Vous gérez ou résiliez votre abonnement à tout moment' + NB + ': <a href="#" data-portal>mon espace de paiement</a>.</span>';
     }
+    if (!/[?&](abonnement|domaine)=ok/.test(window.location.search) && B.sync) B.sync(); // a payment the webhook has not brought yet
     returnFromStripe();
     var s = P.state();
     var acct = $('ab-account');

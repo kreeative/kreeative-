@@ -4537,8 +4537,10 @@
       setTimeout(() => toast(back[1] === 'abonnement'
         ? (ok ? 'Paiement reçu, merci ! Votre nouvelle formule s’active dans quelques secondes.' : 'Paiement annulé : rien n’a été prélevé.')
         : (ok ? 'Paiement reçu ! Jeere achète votre domaine et le relie à votre boutique : comptez quelques minutes.' : 'Paiement annulé : aucun domaine n’a été acheté.'), { ms: 8000 }), 600);
-      const A = window.JeereAuth;
-      if (ok && A && typeof A.syncPlan === 'function') [3000, 8000, 15000].forEach((ms) => setTimeout(() => { Promise.resolve(A.syncPlan()).then(() => { try { S.account = readAccount ? readAccount() : S.account; } catch (e) { /* keep */ } refresh(); }, () => {}); }, ms));
+      if (ok) [500, 4000, 10000].forEach((ms) => setTimeout(() => { Promise.resolve(window.JeereBilling && window.JeereBilling.sync ? window.JeereBilling.sync() : null).then(() => { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); }, () => {}); }, ms));
+    } else if (window.JeereBilling && window.JeereBilling.sync) {
+      // a payment the webhook has not brought yet
+      Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
     }
     // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jeere store here
     const bm = /[#&]boutique=([a-z0-9-]+)/.exec(window.location.hash || '');
