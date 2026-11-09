@@ -350,7 +350,8 @@
     }
     // `badge`: the owner's plan decides, on the server (migration jeere_wave2); before it, show_badge alone
     return request(path.replace('select=' + PUBLIC_COLS, 'select=' + PUBLIC_COLS + ',badge')).then(function (r) {
-      return r.status === 400 ? request(path) : r;
+      // refused (400 before the migration, 401/403 when anon may not read the whole row): ask again without it
+      return r.status >= 400 && r.status < 500 ? request(path) : r;
     }).then(function (r) {
       if (r.status === 0 || r.status >= 500) return { ok: false, code: 'network' };
       if (!r.ok || !Array.isArray(r.body) || !r.body.length) return { ok: false, code: 'notfound' };

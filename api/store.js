@@ -130,7 +130,8 @@ async function fetchRow(q) {
       signal: AbortSignal.timeout(3500)
     });
     let r = await get(COLS + ',badge');
-    if (r.status === 400) r = await get(COLS);
+    // refused (400 before the migration, 401/403 when anon may not read the whole row): ask again without it
+    if (r.status >= 400 && r.status < 500) r = await get(COLS);
     if (r.status >= 500) return { ok: false, code: 'network' };
     const rows = r.ok ? await r.json() : null;
     if (!Array.isArray(rows) || !rows.length) return { ok: false, code: r.ok ? 'notfound' : 'network' };
