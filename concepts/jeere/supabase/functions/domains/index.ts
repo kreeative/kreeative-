@@ -117,10 +117,21 @@ async function loadStore(id: unknown): Promise<Store | null> {
   const rows = await r.json().catch(() => []);
   return Array.isArray(rows) && rows[0] ? rows[0] as Store : null;
 }
-async function domainTakenBy(domain: string): Promise<string | null> {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/stores?custom_domain=eq.${encodeURIComponent(domain)}&select=id`, { headers: adminHeaders() });
+// Another store using this name, its apex or its www twin (awabeaute.com and www.awabeaute.com are one domain)
+async function domainTakenBy(domain: string, exceptId = ''): Promise<string | null> {
+  const apex = apexOf(domain);
+  const names = Array.from(new Set([domain, apex, 'www.' + apex]));
+  const list = names.map((n) => '"' + n + '"').join(',');
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/stores?custom_domain=in.(${encodeURIComponent(list)})&select=id`, { headers: adminHeaders() });
   const rows = r.ok ? await r.json().catch(() => []) : [];
-  return Array.isArray(rows) && rows[0] ? rows[0].id : null;
+  const other = Array.isArray(rows) ? rows.find((x: any) => x && x.id !== exceptId) : null;
+  return other ? other.id : null;
+}
+// Is this name already on the Vercel project (another client's site, or kreeative.xyz's own)?
+async function onProject(name: string): Promise<boolean> {
+  if (!VERCEL_TOKEN) return false;
+  const r = await vercel(`/v9/projects/${PROJECT_ID}/domains/${encodeURIComponent(name)}`);
+  return r.ok;
 }
 async function patchStore(id: string, patch: Record<string, unknown>): Promise<boolean> {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/stores?id=eq.${id}`, {
@@ -192,8 +203,15 @@ async function attach(req: Request, b: Record<string, unknown>) {
   if ('error' in o) return o.error;
   const domain = cleanDomain(b.domain);
   if (!validDomain(domain)) return fail(400, 'format', 'Écrivez le domaine sans espace ni « https », par exemple awabeaute.com ou www.awabeaute.com.');
-  const other = await domainTakenBy(domain);
-  if (other && other !== o.store.id) return fail(409, 'taken', 'Ce domaine est déjà relié à une autre boutique Jeere. Si c’est le vôtre, écrivez-nous sur WhatsApp.');
+  const other = await domainTakenBy(domain, o.store.id);
+  if (other) return fail(409, 'taken', 'Ce domaine est déjà relié à une autre boutique Jeere. Si c’est le vôtre, écrivez-nous sur WhatsApp.');
+  // a name already served by the project and not this store's: never taken over (it could be removed by « detach »)
+  const mine = String(o.store.custom_domain ?? '');
+  const apex0 = apexOf(domain);
+  const mineSet = mine ? new Set([mine, apexOf(mine), 'www.' + apexOf(mine)]) : new Set<string>();
+  for (const n of Array.from(new Set([domain, apex0, 'www.' + apex0]))) {
+    if (!mineSet.has(n) && await onProject(n)) return fail(409, 'taken', 'Ce domaine est déjà utilisé par un autre site. Si c’est le vôtre, écrivez-nous sur WhatsApp.');
+  }
   const records = recordsFor(domain);
   if (!VERCEL_TOKEN) {
     const dns = await dnsPointsToVercel(domain);
@@ -203,7 +221,6 @@ async function attach(req: Request, b: Record<string, unknown>) {
   const apex = apexOf(domain);
   const primary = await addToProject(domain);
   if (!primary.ok) {
-    await patchStore(o.store.id, { custom_domain: domain, domain_status: 'error' });
     return fail(502, 'vercel', 'Vercel a refusé ce domaine : ' + String(primary.body?.error?.message ?? primary.status), { records });
   }
   // The other half redirects to the one she typed: apex ⇄ www
@@ -236,7 +253,8 @@ async function detach(req: Request, b: Record<string, unknown>) {
   const o = await ownedStore(req, b.storeId);
   if ('error' in o) return o.error;
   const domain = o.store.custom_domain;
-  if (domain && VERCEL_TOKEN && !PROTECTED.test(domain)) {
+  // removed from the project only when no other store uses it, and only for a store whose domain was attached
+  if (domain && VERCEL_TOKEN && !PROTECTED.test(domain) && o.store.domain_status !== 'error' && !(await domainTakenBy(domain, o.store.id))) {
     const apex = apexOf(domain);
     const twin = domain === apex ? 'www.' + apex : (domain === 'www.' + apex ? apex : '');
     for (const d of [twin, domain]) {
@@ -248,7 +266,7 @@ async function detach(req: Request, b: Record<string, unknown>) {
 }
 
 async function search(b: Record<string, unknown>) {
-  const label = String(b.name ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  const label = String(b.name ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/\.[a-z.]*$/, '').replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 63);
   if (label.length < 2) return fail(400, 'format', 'Écrivez au moins deux lettres, par exemple awabeaute.');
   const domains = TLDS.map((t) => label + '.' + t);
@@ -321,6 +339,6 @@ Deno.serve(async (req: Request) => {
       default: return fail(400, 'action', 'Action inconnue.');
     }
   } catch (e) {
-    return fail(500, 'error', 'Une erreur est survenue : ' + String((e as Error)?.message ?? e));
+    return fail(500, 'error', 'Une erreur est survenue.');
   }
 });

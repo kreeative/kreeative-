@@ -29,6 +29,8 @@ const SECRET = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
+// live key ⇒ only live events count (a connected account's test events reach a live Connect endpoint too)
+const LIVE = /_live_/.test(STRIPE_KEY);
 const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '2') || 0));
 // Jeere's commission by the seller's boutique plan (profiles.plan, written by the server since jeere_wave2):
@@ -170,8 +172,16 @@ async function webhook(req: Request) {
     if ((type === 'checkout.session.completed' && obj.payment_status === 'paid') || type === 'checkout.session.async_payment_succeeded') status = 'payee';
     else if (type === 'checkout.session.async_payment_failed' || type === 'checkout.session.expired') status = 'echouee';
     if (!status) return json({ ok: true });
-    const o = (await rows('orders?select=id,payment_status,status&id=eq.' + orderId))[0];
+    const o = (await rows('orders?select=id,store_id,total,payment_ref,payment_status,status&id=eq.' + orderId))[0];
     if (!o || o.payment_status === 'payee') return json({ ok: true });
+    // Only the session Jeere opened for THIS order, on THIS store's own Stripe account, for the full amount:
+    // a seller's own Stripe account (her API keys) could otherwise send a session naming another store's order.
+    const p = await payRow(String(o.store_id));
+    if (!p || String(ev.account ?? '') !== String(p.account_id)) return json({ ok: true, ignored: 'account' });
+    if (str(obj.id, 120) !== String(o.payment_ref ?? '')) return json({ ok: true, ignored: 'session' });
+    if (isObj(md) && md.store_id && String(md.store_id) !== String(o.store_id)) return json({ ok: true, ignored: 'store' });
+    if (ev.livemode !== LIVE) return json({ ok: true, ignored: 'mode' });
+    if (status === 'payee' && (Math.round(Number(obj.amount_total)) !== Math.round(Number(o.total)) || String(obj.currency ?? '').toLowerCase() !== 'xof')) return json({ ok: true, ignored: 'amount' });
     const patch: Obj = { payment_status: status, payment_ref: str(obj.id, 120), updated_at: new Date().toISOString() };
     if (status === 'payee') { patch.paid_at = new Date().toISOString(); if (o.status === 'nouvelle') patch.status = 'confirmee'; }
     await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify(patch) });
@@ -210,7 +220,8 @@ Deno.serve(async (req: Request) => {
     const o = (await rows('orders?select=*&id=eq.' + orderId))[0];
     if (!o) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 404);
     if (o.payment_status === 'payee') return json({ ok: false, code: 'paid', message: 'Cette commande est déjà payée.' }, 409);
-    const st = (await rows('stores?select=id,slug,fiche,owner&id=eq.' + o.store_id))[0];
+    if (o.status === 'annulee') return json({ ok: false, code: 'cancelled', message: 'Cette commande a été annulée.' }, 409);
+    const st = (await rows('stores?select=id,slug,fiche,owner,custom_domain&id=eq.' + o.store_id))[0];
     const p = st ? await payRow(String(st.id)) : null;
     const pct = st ? await feeFor(String(st.owner ?? '')) : FEE_PCT;
     if (!st || !p || !p.charges_enabled) return json({ ok: false, code: 'not_connected', message: 'Cette boutique ne prend pas encore les cartes.' }, 409);
@@ -226,7 +237,11 @@ Deno.serve(async (req: Request) => {
     const total = Math.round(Number(o.total) || 0);
     if (!items.length || total <= 0) return json({ ok: false, code: 'empty', message: 'Le panier est vide.' }, 400);
     // back to the store: its own page (or the seller's site, when the order came from it)
-    const back = /^https:\/\/[a-z0-9.-]+(\/[^\s]*)?$/i.test(str(b.returnUrl, 300)) ? str(b.returnUrl, 300) : SITE + '/b/' + st.slug + '/';
+    const want = str(b.returnUrl, 300);
+    const host = (/^https:\/\/([a-z0-9.-]+)(\/[^\s]*)?$/i.exec(want) || [])[1]?.toLowerCase() ?? '';
+    const cd = String(st.custom_domain ?? '').toLowerCase();
+    const okHost = host && (host === new URL(SITE).host || host === 'kreeative.xyz' || host === 'www.kreeative.xyz' || (cd && (host === cd || host === 'www.' + cd || 'www.' + host === cd)));
+    const back = okHost ? want.replace(/#.*$/, '') : SITE + '/b/' + st.slug + '/';
     const sep = back.includes('?') ? '&' : '?';
     const customer = isObj(o.customer) ? o.customer : {};
     const session: Obj = {
@@ -268,6 +283,11 @@ Deno.serve(async (req: Request) => {
   }
 
   if (!STRIPE_KEY) return json({ ok: false, code: 'config', message: NOT_CONFIGURED }, 503);
+
+  // where the money goes is the owner's decision only (an agency or an editor manages, never receives)
+  if ((action === 'connect' || action === 'disconnect') && st.owner !== user.id) {
+    return json({ ok: false, code: 'owner', message: 'Seule la propriétaire de la boutique peut connecter ou déconnecter son compte Stripe.' }, 403);
+  }
 
   if (action === 'connect') {
     if (!p) {

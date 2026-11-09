@@ -184,15 +184,18 @@ function compute(fiche: Obj, cart: Obj, commune: string) {
     const price = int(p.price, 0, 1e9, 0);
     lines.push({ id, name: str(p.name, 120) || 'Produit', qty, price, amount: price * qty });
   });
-  let fee = 0;
+  let fee = 0, hasZones = false, zoneFound = false;
   const secs = Array.isArray(fiche.sections) ? fiche.sections as Obj[] : [];
   secs.forEach((s) => {
-    if (!s || s.type !== 'delivery' || !isObj(s.settings) || !Array.isArray((s.settings as Obj).zones)) return;
-    const z = ((s.settings as Obj).zones as Obj[]).find((x) => x && x.name === commune);
-    if (z) fee = int(z.fee, 0, 1e7, 0);
+    if (!s || s.type !== 'delivery' || s.enabled === false || !isObj(s.settings) || !Array.isArray((s.settings as Obj).zones)) return;
+    const zones = ((s.settings as Obj).zones as Obj[]).filter((x) => x && typeof x.name === 'string' && x.name);
+    if (zones.length) hasZones = true;
+    const z = zones.find((x) => x.name === commune);
+    if (z) { fee = int(z.fee, 0, 1e7, 0); zoneFound = true; }
   });
   const subtotal = lines.reduce((n, l) => n + l.amount, 0);
-  return { lines, subtotal, fee, total: subtotal + fee };
+  // a store with delivery zones: the commune must be one of them (no free delivery by typing another name)
+  return { lines, subtotal, fee, total: subtotal + fee, zoneMissing: hasZones && !zoneFound };
 }
 
 /* ------------------------------------------------------------------ the handler */
@@ -220,18 +223,31 @@ Deno.serve(async (req: Request) => {
     const fiche = isObj(st.fiche) ? st.fiche : {};
     const o = compute(fiche, isObj(b.cart) ? b.cart : {}, customer.commune);
     if (!o.lines.length) return json({ ok: false, code: 'empty', message: 'Le panier est vide.' }, 400);
+    if (o.zoneMissing) return json({ ok: false, code: 'commune', message: 'Choisissez votre commune de livraison dans la liste.' }, 400);
+    // a little brake on robots: 3 orders per number per store in 10 minutes, 30 per store
+    const since = new Date(Date.now() - 10 * 60000).toISOString();
+    const recent = await rows('orders?select=customer&store_id=eq.' + st.id + '&created_at=gte.' + encodeURIComponent(since) + '&limit=40');
+    const digitsOf = (x: unknown) => String(x ?? '').replace(/\D/g, '').slice(-8);
+    if (recent.length >= 30 || recent.filter((r) => isObj(r.customer) && digitsOf((r.customer as Obj).phone) === digitsOf(customer.phone)).length >= 3) {
+      return json({ ok: false, code: 'rate', message: 'Trop de commandes en peu de temps. Réessayez dans quelques minutes, ou écrivez à la boutique.' }, 429);
+    }
     const numR = await admin('rpc/jeere_next_order_number', { method: 'POST', body: JSON.stringify({ p_store: st.id }) });
     const number = numR.ok ? Number(await numR.json()) : NaN;
     if (!isFinite(number)) return json({ ok: false, code: 'server', message: 'La commande n’a pas pu être enregistrée.' }, 500);
-    const order: Order & Obj = { number, customer, lines: o.lines, subtotal: o.subtotal, delivery_fee: o.fee, total: o.total, payment: str(b.payment, 40), note: str(b.note, 1000) };
-    const ins = await admin('orders', { method: 'POST', body: JSON.stringify({ store_id: st.id, ...order, source: str(b.source, 40) || 'boutique' }) });
+    // the payment and the source are chosen from lists (a free text could read « Payé » to the seller)
+    const PAYS = ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Paiement à la livraison', 'Carte bancaire'];
+    const pay = str(b.payment, 40);
+    const order: Order & Obj = { number, customer, lines: o.lines, subtotal: o.subtotal, delivery_fee: o.fee, total: o.total, payment: PAYS.includes(pay) ? pay : '', note: str(b.note, 1000) };
+    const ins = await admin('orders', { method: 'POST', body: JSON.stringify({ store_id: st.id, ...order, source: b.source === 'site' ? 'site' : 'boutique' }) });
     if (!ins.ok) return json({ ok: false, code: 'server', message: 'La commande n’a pas pu être enregistrée.' }, 500);
     const saved = (await ins.json())[0] as Obj;
     // the e-mails: the client (if an address was given) and the shop
     const shop = await ownerEmail(st);
     const sent: Obj[] = [];
     const rc = render(st, 'confirmation', order);
-    if (rc.on && customer.email) sent.push({ kind: 'confirmation', to: customer.email, at: new Date().toISOString(), ...(await send(st, customer.email, rc, shop)) });
+    // the buyer may answer the shop's PUBLIC contact address only, never its private log-in address
+    const publicReply = typeof st.contact_email === 'string' ? st.contact_email : '';
+    if (rc.on && customer.email) sent.push({ kind: 'confirmation', to: customer.email, at: new Date().toISOString(), ...(await send(st, customer.email, rc, publicReply)) });
     const rn = render(st, 'nouvelle', order);
     if (rn.on && shop) sent.push({ kind: 'nouvelle', to: shop, at: new Date().toISOString(), ...(await send(st, shop, rn, customer.email)) });
     if (sent.length) await admin('orders?id=eq.' + saved.id, { method: 'PATCH', body: JSON.stringify({ emails: sent }) });
@@ -243,7 +259,9 @@ Deno.serve(async (req: Request) => {
   if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere.' }, 401);
 
   if (action === 'status') {
-    const o = (await rows('orders?select=*&id=eq.' + str(b.orderId, 40)))[0];
+    const oid = str(b.orderId, 40);
+    if (!/^[0-9a-f-]{36}$/i.test(oid)) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 404);
+    const o = (await rows('orders?select=*&id=eq.' + oid))[0];
     const status = str(b.status, 20);
     if (!o || !STATUSES.includes(status)) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 404);
     const st = (await rows('stores?select=id,slug,owner,fiche,notifications,contact_email&id=eq.' + o.store_id))[0];
@@ -255,7 +273,7 @@ Deno.serve(async (req: Request) => {
     if ((status === 'expediee' || status === 'livree' || status === 'annulee') && typeof c.email === 'string' && c.email && !sent.some((x) => x.kind === status)) {
       const m = render(st, status as Kind, o as unknown as Order);
       if (m.on) {
-        sent.push({ kind: status, to: c.email, at: new Date().toISOString(), ...(await send(st, c.email as string, m, await ownerEmail(st))) });
+        sent.push({ kind: status, to: c.email, at: new Date().toISOString(), ...(await send(st, c.email as string, m, typeof st.contact_email === 'string' ? st.contact_email : '')) });
         await admin('orders?id=eq.' + o.id, { method: 'PATCH', body: JSON.stringify({ emails: sent }) });
       }
     }
@@ -263,7 +281,9 @@ Deno.serve(async (req: Request) => {
   }
 
   if (action === 'test' || action === 'render') {
-    const st = (await rows('stores?select=id,slug,owner,fiche,notifications,contact_email&id=eq.' + str(b.storeId, 40)))[0];
+    const sid = str(b.storeId, 40);
+    if (!/^[0-9a-f-]{36}$/i.test(sid)) return json({ ok: false, code: 'forbidden', message: 'Boutique introuvable.' }, 403);
+    const st = (await rows('stores?select=id,slug,owner,fiche,notifications,contact_email&id=eq.' + sid))[0];
     if (!st || !(await canManage(st, user.id))) return json({ ok: false, code: 'forbidden', message: 'Boutique introuvable.' }, 403);
     const kind = (KINDS as readonly string[]).includes(String(b.kind)) ? b.kind as Kind : 'confirmation';
     const m = render(st, kind, SAMPLE, isObj(b.template) ? b.template : undefined);

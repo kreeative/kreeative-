@@ -2,54 +2,128 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "^/(admin|compte|studio|creer|abonnements)(/.*)?$",
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "Content-Security-Policy": "frame-ancestors 'self'",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "continue": true
+    },
+    {
       "src": "^/concepts/jeere/(.*)$",
-      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
       "status": 308,
-      "headers": { "Location": "/$1" }
+      "headers": {
+        "Location": "/$1"
+      }
     },
     {
       "src": "^/(creer|admin|compte|abonnements|studio|b|mentions-legales|confidentialite)$",
-      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
       "status": 308,
-      "headers": { "Location": "/$1/" }
+      "headers": {
+        "Location": "/$1/"
+      }
     },
     {
       "src": "^/b/sitemap\\.xml$",
-      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
       "dest": "/api/sitemap"
     },
     {
       "src": "^/b/([A-Za-z0-9-]+)((?:/(?:produits|pages)/[^/.?]+|/panier|/paiement)?)/?$",
-      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
       "dest": "/api/store?slug=$1&path=$2"
     },
     {
       "src": "^/$",
-      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
       "dest": "/concepts/jeere/index.html"
     },
     {
       "src": "^/(.+/)$",
-      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
       "dest": "/concepts/jeere/$1index.html"
     },
     {
       "src": "^/(.+)$",
-      "has": [{ "type": "host", "value": "jeere.kreeative.xyz" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere.kreeative.xyz"
+        }
+      ],
       "dest": "/concepts/jeere/$1"
     },
     {
       "src": "^/((?!concepts/jeere/)[^.]*)$",
       "missing": [
-        { "type": "host", "value": "kreeative.xyz" },
-        { "type": "host", "value": { "suf": ".kreeative.xyz" } },
-        { "type": "host", "value": { "suf": ".vercel.app" } },
-        { "type": "host", "value": "localhost" }
+        {
+          "type": "host",
+          "value": "kreeative.xyz"
+        },
+        {
+          "type": "host",
+          "value": {
+            "suf": ".kreeative.xyz"
+          }
+        },
+        {
+          "type": "host",
+          "value": {
+            "suf": ".vercel.app"
+          }
+        },
+        {
+          "type": "host",
+          "value": "localhost"
+        }
       ],
       "dest": "/api/store?path=/$1"
     }
   ],
   "functions": {
-    "api/store.js": { "includeFiles": "concepts/jeere/{b/index.html,creer/data.js,creer/render.js}", "maxDuration": 10 }
+    "api/store.js": {
+      "includeFiles": "concepts/jeere/{b/index.html,creer/data.js,creer/render.js}",
+      "maxDuration": 10
+    }
   }
 }

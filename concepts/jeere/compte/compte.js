@@ -1109,7 +1109,8 @@
     }
     var acc = readAccount();
     if (!flow.real) {
-      if (!acc || !sameIdentity(acc, flow)) { verifying = false; el.code.readOnly = false; go('connexion', 'login', { replace: true, focus: 'title' }); return; }
+      // a real account (userId) is never reopened by a demo code: only a real log-in opens it
+      if (!acc || !sameIdentity(acc, flow) || acc.userId) { verifying = false; el.code.readOnly = false; go('connexion', 'login', { replace: true, focus: 'title' }); return; }
       acc.loggedIn = true;
       saveAccount(acc);
     }

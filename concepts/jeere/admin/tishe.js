@@ -321,13 +321,13 @@
       '<div class="a-cols">' +
         card('<ul class="a-rows">' + items + '</ul>' + totals, 'Articles') +
         card('<p><strong>' + esc(o.name) + '</strong><br><a href="mailto:' + esc(o.email) + '">' + esc(o.email) + '</a>' + (o.phone ? '<br>' + esc(o.phone) : '') + '</p><p class="a-card__sub">' + addr + '</p>' +
-          (o.stripeUrl ? '<a class="a-btn a-btn--ghost a-btn--sm" href="' + esc(o.stripeUrl) + '" target="_blank" rel="noopener">' + ico('external') + 'Voir le paiement dans Stripe</a>' : ''), 'Cliente') +
+          (/^https:\/\//.test(o.stripeUrl || '') ? '<a class="a-btn a-btn--ghost a-btn--sm" href="' + esc(o.stripeUrl) + '" target="_blank" rel="noopener">' + ico('external') + 'Voir le paiement dans Stripe</a>' : ''), 'Cliente') +
       '</div>' +
       card('<form data-txform="order" data-id="' + esc(o.id) + '" novalidate>' +
         field('tx-st', 'Statut', '<div class="a-selectwrap"><select class="a-input" id="tx-st" name="status">' + opts + '</select>' + ico('down') + '</div>') +
         field('tx-ref', 'Référence chez le fournisseur', input('tx-ref', 'supplierRef', o.supplierRef)) +
         '<div class="a-cols">' + field('tx-car', 'Transporteur', input('tx-car', 'carrier', o.carrier, ' placeholder="DHL, Canada Post…"')) +
-        field('tx-trk', 'Numéro de suivi', input('tx-trk', 'tracking', o.tracking), o.trackingUrl ? '<a href="' + esc(o.trackingUrl) + '" target="_blank" rel="noopener">Suivre le colis</a>' : 'Avec un numéro, la commande passe en « Expédiée ».') + '</div>' +
+        field('tx-trk', 'Numéro de suivi', input('tx-trk', 'tracking', o.tracking), /^https:\/\//.test(o.trackingUrl || '') ? '<a href="' + esc(o.trackingUrl) + '" target="_blank" rel="noopener">Suivre le colis</a>' : 'Avec un numéro, la commande passe en « Expédiée ».') + '</div>' +
         field('tx-note', 'Note (pour vous seulement)', '<textarea class="a-input" id="tx-note" name="note" rows="3">' + esc(o.note) + '</textarea>') +
         check('notify', !o.shippedAt, 'Envoyer à la cliente l’e-mail avec son numéro de suivi') +
         '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('check') + 'Enregistrer</button></div></form>', 'Suivi de la commande') +

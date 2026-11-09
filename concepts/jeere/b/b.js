@@ -467,12 +467,17 @@
     if (!u) return '';
     return S.ordered ? u + (u.indexOf('?') >= 0 ? '&' : '?') + 'jeere=commande' : u;
   }
-  function readSiteBack(slug) {
+  // only back to the seller's own sites: kreeative.xyz (the custom designs) or the store's own domain
+  // (any other address would let a shared link send buyers to a fake page right after a real order)
+  function readSiteBack(slug, store) {
     var m = /[?&]retour=([^&#]*)/.exec(location.search);
     if (!m) return;
     var u = '';
     try { u = decodeURIComponent(m[1]); } catch (e) { u = ''; }
-    var ok = /^https:\/\/[a-z0-9.-]+(:\d+)?\/[^\s"'<>]*$/i.test(u) && u.split('/')[2] !== location.host;
+    var host = (/^https:\/\/([a-z0-9.-]+)\/[^\s"'<>]*$/i.exec(u) || [])[1] || '';
+    host = host.toLowerCase();
+    var cd = String((store && store.custom_domain) || '').toLowerCase().replace(/^www\./, '');
+    var ok = !!host && host !== location.host && (host === 'kreeative.xyz' || host === 'www.kreeative.xyz' || (!!cd && host.replace(/^www\./, '') === cd));
     try { if (ok) sessionStorage.setItem('jeere-retour:' + slug, u.replace(/#.*$/, '')); } catch (e) { /* no storage */ }
     var search = location.search.replace(/([?&])retour=[^&#]*&?/, '$1').replace(/[?&]$/, '');
     try { history.replaceState(history.state, '', location.pathname + search + location.hash); } catch (e) { /* keep it */ }
@@ -543,7 +548,7 @@
     S.config = cfg;
     S.status = 'ready';
     S.device = deviceFor();
-    readSiteBack(store.slug);
+    readSiteBack(store.slug, store);
     var fromSite = cartFromUrl(cfg);
     S.view = fromLocation();
     // On an address with fragments (…/b/?s=<slug>&panier=…) the cart opens too

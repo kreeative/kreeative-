@@ -333,6 +333,8 @@
         if (isObj(p.studio)) acc.studio = p.studio;
         var server = Object.assign(fromAccount(acc), planOf(acc));
         // The same seller's local account (same user id, or the same address or number before the first real login)
+        // her own workspace, put aside when she signed out on this device: back in place
+        if (!readAccount()) restoreAway(user.id);
         var local = readAccount();
         // ANOTHER account on this device: the previous one's workspace is put aside (restored at its next
         // log-in), and what only the founder may see (her websites, The Ivory Sukundu) is forgotten
@@ -480,35 +482,44 @@
     }
   }
   /* What one account must never leave to the next one on a shared device */
-  var WORKSPACE = ['jeere-studio-config', 'jeere-admin', 'jeere-publish', 'jeere-studio-versions', 'jeere-studio-versions-saves', 'jeere-projects', 'jeere-studio-open'];
+  var WORKSPACE = ['jeere-studio-config', 'jeere-admin', 'jeere-publish', 'jeere-studio-versions', 'jeere-studio-versions-saves', 'jeere-projects', 'jeere-studio-open',
+    'jeere-studio-ui', 'jeere-studio-config-previous', 'jeere-media-map'];
   function clearPrivate() {
     ['jeere-tishe-auth', 'jeere-ext', 'jeere-projects-notice'].forEach(lsDel);
     try {
       for (var i = sessionStorage.length - 1; i >= 0; i--) { var k = sessionStorage.key(i); if (k && k.indexOf('jeere-sites-editor') === 0) sessionStorage.removeItem(k); }
     } catch (e) { /* ok */ }
   }
-  function switchWorkspace(fromId, toId) {
+  function restoreAway(id) {
+    var mine = null;
+    try { mine = JSON.parse(lsGet('jeere-away:' + id) || 'null'); } catch (e) { mine = null; }
+    if (!isObj(mine)) return;
+    Object.keys(mine).forEach(function (k) { if (typeof mine[k] === 'string' && (WORKSPACE.indexOf(k) >= 0 || k === ACCOUNT_KEY_AWAY || k.indexOf('jeere-project:') === 0)) lsSet(k, mine[k]); });
+    lsDel('jeere-away:' + id);
+  }
+  var ACCOUNT_KEY_AWAY = 'jeere-account';
+  function switchWorkspace(fromId, toId, withAccount) {
     clearPrivate();
     var bundle = {};
     var slots = [];
     try {
       for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('jeere-project:') === 0) slots.push(k); }
     } catch (e) { /* ok */ }
-    WORKSPACE.concat(slots).forEach(function (k) { var v = lsGet(k); if (v != null) bundle[k] = v; });
+    var keys = WORKSPACE.concat(slots).concat(withAccount ? [ACCOUNT_KEY_AWAY] : []);
+    keys.forEach(function (k) { var v = lsGet(k); if (v != null) bundle[k] = v; });
     var saved = false;
     try { localStorage.setItem('jeere-away:' + fromId, JSON.stringify(bundle)); saved = true; } catch (e) { saved = false; }
-    WORKSPACE.concat(slots).forEach(lsDel);
+    keys.forEach(lsDel);
     if (!saved) lsDel('jeere-away:' + fromId);
     // her own workspace, if she worked on this device before
-    var mine = null;
-    try { mine = JSON.parse(lsGet('jeere-away:' + toId) || 'null'); } catch (e) { mine = null; }
-    if (isObj(mine)) {
-      Object.keys(mine).forEach(function (k) { if (typeof mine[k] === 'string' && (WORKSPACE.indexOf(k) >= 0 || k.indexOf('jeere-project:') === 0)) lsSet(k, mine[k]); });
-      lsDel('jeere-away:' + toId);
-    }
+    if (toId) restoreAway(toId);
   }
 
   function signOut() {
+    // a real account signing out: its workspace and its account are put aside (back at its next log-in),
+    // so the next person on this device starts from nothing — not from her store, orders or name
+    var acc = readAccount();
+    if (acc && acc.userId) switchWorkspace(acc.userId, null, true);
     clearPrivate();
     if (!clientP) { forgetSession(); return Promise.resolve(true); }
     return clientP.then(function (sb) {
