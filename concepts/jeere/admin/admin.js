@@ -3458,16 +3458,64 @@
       <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Vos clients paient par carte (Visa, Mastercard…) depuis n’importe quel pays : France, Canada, États-Unis… Stripe verse l’argent sur votre compte bancaire. Jeere ne touche jamais votre argent.'))}</p>
         <div class="a-field"><label class="a-label" for="sp-country">Pays où votre activité est enregistrée</label><div class="a-selectwrap"><select class="a-input" id="sp-country" name="country">${STRIPE_COUNTRIES.map(([v, l]) => H`<option value="${v}">${esc(l)}</option>`)}</select>${ico('down')}</div>
           <p class="a-hint">${esc(fr('Stripe vous demande ensuite votre identité et le compte bancaire qui reçoit l’argent. Pour une activité en Côte d’Ivoire, le paiement par carte passera par un partenaire local (bientôt).'))}</p></div></div>
-      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="button" data-act="stripe-connect">${ico('external')}Continuer sur Stripe</button></div></form>`, { labelledby: 'sp-t' });
+      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="button" data-act="stripe-connect">Continuer</button></div></form>`, { labelledby: 'sp-t' });
+  }
+  // Stripe's onboarding INSIDE Jeere (Connect embedded components), in Jeere's look; Stripe's own page as a fallback
+  function loadConnectJs() {
+    if (window.StripeConnect && window.StripeConnect.init) return Promise.resolve(window.StripeConnect);
+    return new Promise((res, rej) => {
+      let sc = document.querySelector('script[data-stripe-connect]');
+      if (!sc) { sc = document.createElement('script'); sc.src = 'https://connect-js.stripe.com/v1.0/connect.js'; sc.async = true; sc.setAttribute('data-stripe-connect', ''); document.head.appendChild(sc); }
+      let n = 0;
+      const t = setInterval(() => { if (window.StripeConnect && window.StripeConnect.init) { clearInterval(t); res(window.StripeConnect); } else if (++n > 100) { clearInterval(t); rej(new Error('connect.js')); } }, 100);
+      sc.addEventListener('error', () => { clearInterval(t); rej(new Error('connect.js')); });
+    });
+  }
+  async function stripeEmbedded(country) {
+    const sid = remoteStoreId();
+    const j = await payCall({ action: 'session', storeId: sid, country: country || '' });
+    if (!j || !j.ok || !j.clientSecret || !j.publishableKey) return j || { ok: false };
+    const SC = await loadConnectJs();
+    openDialog(H`<div class="a-dialog__card a-dialog__card--wide">${dlgHead('se-t', 'Activer les paiements par carte')}
+      <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Stripe vérifie votre identité et le compte bancaire qui reçoit l’argent. Vos informations vont directement à Stripe : Jeere ne les voit pas.'))}</p>
+      <div id="a-stripe-embed" class="a-stripe-embed"><p class="a-small">Chargement du formulaire sécurisé…</p></div></div></div>`, { labelledby: 'se-t' });
+    let secret = j.clientSecret;
+    const inst = SC.init({
+      publishableKey: j.publishableKey,
+      fetchClientSecret: async () => {
+        if (secret) { const s0 = secret; secret = ''; return s0; }
+        const k = await payCall({ action: 'session', storeId: sid });
+        return k && k.clientSecret ? k.clientSecret : '';
+      },
+      locale: 'fr-FR',
+      appearance: {
+        overlays: 'dialog',
+        variables: {
+          fontFamily: 'Outfit, system-ui, sans-serif', colorPrimary: '#141414', colorText: '#141414', colorBackground: '#FFFFFF',
+          buttonPrimaryColorBackground: '#141414', buttonPrimaryColorText: '#FFFFFF', borderRadius: '12px', spacingUnit: '10px'
+        }
+      },
+      fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap' }]
+    });
+    const box = $('#a-stripe-embed');
+    const ob = inst.create('account-onboarding');
+    ob.setOnExit(() => { S.stripe = null; closeDialog(true); refresh(); toast('Merci ! Stripe vérifie vos informations : la carte s’active dès que c’est bon.'); });
+    if (box) { box.innerHTML = ''; box.appendChild(ob); }
+    return { ok: true, embedded: true };
   }
   async function stripeConnect(el) {
     const sid = remoteStoreId();
     const sel = $('#sp-country');
+    const country = sel ? sel.value : '';
     if (el) { el.disabled = true; el.setAttribute('aria-busy', 'true'); }
-    const j = await payCall({ action: 'connect', storeId: sid, country: sel ? sel.value : '' });
+    let e = null;
+    try { e = await stripeEmbedded(country); } catch (x) { e = null; }
+    if (e && e.embedded) return;
+    // Stripe's own page (no publishable key on the server yet, or connect.js blocked)
+    const j = await payCall({ action: 'connect', storeId: sid, country });
     if (j && j.ok && j.url) { window.location.href = j.url; return; }
     if (el) { el.disabled = false; el.removeAttribute('aria-busy'); }
-    toast((j && j.message) || 'Stripe n’a pas pu s’ouvrir. Réessayez.');
+    toast((j && j.message) || (e && e.message) || 'Stripe n’a pas pu s’ouvrir. Réessayez.');
   }
   async function stripeDashboard() {
     const j = await payCall({ action: 'dashboard', storeId: remoteStoreId() });

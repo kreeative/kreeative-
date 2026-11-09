@@ -1565,3 +1565,7 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
   .tx-flash { animation: none; outline: 2px solid rgba(106, 76, 255, .35); outline-offset: 2px; }
   @keyframes tx-fade { from { opacity: 0; } to { opacity: 1; } }
 }
+
+/* Stripe's onboarding inside Jeere (embedded components): a wider dialog, the form scrolls in it */
+.a-dialog:has(.a-dialog__card--wide) { width: min(720px, calc(100vw - 24px)); max-width: none; }
+.a-stripe-embed { margin-top: 14px; min-height: 320px; }

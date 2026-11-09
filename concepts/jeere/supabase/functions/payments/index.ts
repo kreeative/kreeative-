@@ -6,7 +6,9 @@
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/payments
 //   headers: apikey: <publishable key>[, Authorization: Bearer <session> for the store's managers]
 //   body: { action: 'status', storeId }                 → { ok, configured, connected, chargesEnabled, ... }   managers
-//         { action: 'connect', storeId, country }       → { ok, url }  Stripe's onboarding page (create, or finish)  managers
+//         { action: 'connect', storeId, country }       → { ok, url }  Stripe's onboarding page (create, or finish)  owner
+//         { action: 'session', storeId, country }       → { ok, clientSecret, publishableKey }  the same onboarding inside
+//                                                         Jeere (Stripe Connect embedded components)                owner
 //         { action: 'dashboard', storeId }              → { ok, url }  the seller's own Stripe dashboard        managers
 //         { action: 'disconnect', storeId }             → { ok }  forgets the account here (Stripe keeps it)       managers
 //         { action: 'available', slug }                 → { ok, card }  does this store take cards?                anyone
@@ -33,6 +35,8 @@ const STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 // live key ⇒ only live events count (a connected account's test events reach a live Connect endpoint too)
 const LIVE = /_live_/.test(STRIPE_KEY);
 const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
+// the publishable key (pk_test_… / pk_live_…, not a secret) for Stripe's embedded onboarding in Gérer
+const PUBLISHABLE_STRIPE = (Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? '').trim();
 const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '2') || 0));
 // Jeere's commission by the seller's boutique plan (profiles.plan, written by the server since jeere_wave2):
 // the plan's own rate (creer/data.js PLANS), never more than FEE_PCT. Gratuit 2 %, Essentiel 1 %, Pro and Business 0 %.
@@ -150,6 +154,24 @@ async function verify(payload: string, header: string): Promise<boolean> {
   const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(t + '.' + payload)));
   const hex = Array.from(mac).map((b) => b.toString(16).padStart(2, '0')).join('');
   return sigs.some((s) => s.length === hex.length && s.split('').reduce((d, c, i) => d | (c.charCodeAt(0) ^ hex.charCodeAt(i)), 0) === 0);
+}
+
+// The seller's own Stripe account (her full Stripe dashboard): Stripe collects its fees and covers the losses with
+// her, as with a standard Stripe account; she onboards on Stripe's page or inside Jeere (embedded components)
+async function createAccount(st: Obj, storeId: string, user: { email: string }, country: string): Promise<{ row: Obj } | { error: Response }> {
+  if (!COUNTRIES.includes(country)) return { error: json({ ok: false, code: 'country', message: 'Choisissez le pays où votre activité est enregistrée.' }, 400) };
+  const fiche = isObj(st.fiche) ? st.fiche : {};
+  const name = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
+  const r = await stripeV2('POST', 'core/accounts', {
+    contact_email: user.email || undefined, display_name: name,
+    identity: { country: country.toLowerCase() },
+    configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
+    defaults: { responsibilities: { fees_collector: 'stripe', losses_collector: 'stripe' } },
+    dashboard: 'full', metadata: { store_id: storeId, slug: String(st.slug) },
+    include: ['configuration.merchant', 'identity']
+  });
+  if (!r.ok) return { error: json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502) };
+  return { row: await savePayRow(storeId, r.data) };
 }
 
 /* ------------------------------------------------------------------ the webhook */
@@ -311,28 +333,35 @@ Deno.serve(async (req: Request) => {
   if (!STRIPE_KEY) return json({ ok: false, code: 'config', message: NOT_CONFIGURED }, 503);
 
   // where the money goes is the owner's decision only (an agency or an editor manages, never receives)
-  if ((action === 'connect' || action === 'disconnect') && st.owner !== user.id) {
+  if ((action === 'connect' || action === 'disconnect' || action === 'session') && st.owner !== user.id) {
     return json({ ok: false, code: 'owner', message: 'Seule la propriétaire de la boutique peut connecter ou déconnecter son compte Stripe.' }, 403);
+  }
+
+  // the onboarding inside Jeere (Stripe's embedded components): a short-lived session for the store's account
+  if (action === 'session') {
+    if (!p) {
+      const made = await createAccount(st, storeId, user, str(b.country, 2).toUpperCase());
+      if ('error' in made) return made.error;
+      p = made.row;
+    }
+    if (!PUBLISHABLE_STRIPE) return json({ ok: false, code: 'no_pk', message: 'Clé publique Stripe absente (STRIPE_PUBLISHABLE_KEY).' }, 503);
+    const r = await stripe('POST', 'account_sessions', {
+      account: String(p.account_id),
+      components: {
+        account_onboarding: { enabled: true, features: { external_account_collection: true } },
+        account_management: { enabled: true, features: { external_account_collection: true } },
+        notification_banner: { enabled: true, features: { external_account_collection: true } }
+      }
+    });
+    if (!r.ok) return json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502);
+    return json({ ok: true, clientSecret: r.data.client_secret, publishableKey: PUBLISHABLE_STRIPE, accountId: p.account_id });
   }
 
   if (action === 'connect') {
     if (!p) {
-      const country = str(b.country, 2).toUpperCase();
-      if (!COUNTRIES.includes(country)) return json({ ok: false, code: 'country', message: 'Choisissez le pays où votre activité est enregistrée.' }, 400);
-      const fiche = isObj(st.fiche) ? st.fiche : {};
-      const name = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
-      // The seller's own Stripe account (her full Stripe dashboard): Stripe collects its fees and covers the
-      // losses with her, as with a standard Stripe account; she onboards on Stripe's page
-      const r = await stripeV2('POST', 'core/accounts', {
-        contact_email: user.email || undefined, display_name: name,
-        identity: { country: country.toLowerCase() },
-        configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
-        defaults: { responsibilities: { fees_collector: 'stripe', losses_collector: 'stripe' } },
-        dashboard: 'full', metadata: { store_id: storeId, slug: String(st.slug) },
-        include: ['configuration.merchant', 'identity']
-      });
-      if (!r.ok) return json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502);
-      p = await savePayRow(storeId, r.data);
+      const made = await createAccount(st, storeId, user, str(b.country, 2).toUpperCase());
+      if ('error' in made) return made.error;
+      p = made.row;
     }
     const back = SITE + '/admin/#paiements';
     const link = await stripeV2('POST', 'core/account_links', { account: p.account_id, use_case: { type: 'account_onboarding', account_onboarding: { return_url: back + '?stripe=retour', refresh_url: back + '?stripe=relancer' } } });
