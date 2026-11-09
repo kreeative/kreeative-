@@ -3449,7 +3449,7 @@
     else if (st.connected) { txt = 'Stripe est connecté, mais votre inscription n’est pas terminée : Stripe demande encore des informations.'; tone = 'warn'; }
     else return '';
     return H`<div class="a-note${tone === 'warn' ? ' a-note--strong' : ''}" style="margin:6px 0 10px">${ico(tone === 'ok' ? 'check' : 'info')}<div><p>${esc(fr(txt))}</p>
-      ${st.connected ? H`<div class="a-btnrow" style="margin-top:8px">${st.chargesEnabled ? '' : H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-act="stripe-connect">Terminer sur Stripe</button>`}<button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="stripe-dashboard">${ico('external')}Mon compte Stripe</button></div>` : ''}</div></div>`;
+      ${st.connected ? H`<div class="a-btnrow" style="margin-top:8px">${st.chargesEnabled ? '' : H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-act="stripe-connect">Terminer l’activation</button>`}<button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="stripe-dashboard">${ico('card')}Gérer mes paiements</button></div>` : ''}</div></div>`;
   }
   function openStripe() {
     const st = S.stripe || {};
@@ -3517,9 +3517,40 @@
     if (el) { el.disabled = false; el.removeAttribute('aria-busy'); }
     toast((j && j.message) || (e && e.message) || 'Stripe n’a pas pu s’ouvrir. Réessayez.');
   }
-  async function stripeDashboard() {
-    const j = await payCall({ action: 'dashboard', storeId: remoteStoreId() });
-    if (j && j.ok && j.url) window.open(j.url, '_blank', 'noopener'); else toast((j && j.message) || 'Le compte Stripe n’a pas pu s’ouvrir.');
+  // Her Stripe account managed INSIDE Jeere: payments (refunds, disputes), payouts (bank, schedule), the account itself
+  async function stripeDashboard(tab) {
+    const sid = remoteStoreId();
+    const j = await payCall({ action: 'session', storeId: sid });
+    if (!j || !j.ok || !j.clientSecret || !j.publishableKey) {
+      const d = await payCall({ action: 'dashboard', storeId: sid });
+      if (d && d.ok && d.url) window.open(d.url, '_blank', 'noopener'); else toast((j && j.message) || (d && d.message) || 'Le compte Stripe n’a pas pu s’ouvrir.');
+      return;
+    }
+    let SC;
+    try { SC = await loadConnectJs(); } catch (e) { toast('Le module de paiement n’a pas pu se charger. Vérifiez votre connexion.'); return; }
+    const TABS = [['payments', 'Paiements'], ['payouts', 'Versements'], ['account-management', 'Mon compte']];
+    const cur = TABS.some((t) => t[0] === tab) ? tab : 'payments';
+    openDialog(H`<div class="a-dialog__card a-dialog__card--wide">${dlgHead('sd-t', 'Paiements par carte')}
+      <div class="a-dialog__body"><div class="a-stripe-tabs" role="tablist" aria-label="Rubriques">${TABS.map(([k, l]) => H`<button class="a-btn a-btn--ghost a-btn--sm" type="button" role="tab" data-act="stripe-tab" data-v="${k}" aria-selected="${k === cur ? 'true' : 'false'}">${esc(l)}</button>`)}</div>
+      <div id="a-stripe-banner"></div><div id="a-stripe-embed" class="a-stripe-embed"><p class="a-small">Chargement…</p></div></div></div>`, { labelledby: 'sd-t' });
+    let secret = j.clientSecret;
+    S.stripeInst = SC.init({
+      publishableKey: j.publishableKey,
+      fetchClientSecret: async () => { if (secret) { const s0 = secret; secret = ''; return s0; } const k = await payCall({ action: 'session', storeId: sid }); return k && k.clientSecret ? k.clientSecret : ''; },
+      locale: 'fr-FR',
+      appearance: { overlays: 'dialog', variables: { fontFamily: 'Outfit, system-ui, sans-serif', colorPrimary: '#141414', colorText: '#141414', colorBackground: '#FFFFFF', buttonPrimaryColorBackground: '#141414', buttonPrimaryColorText: '#FFFFFF', borderRadius: '12px', spacingUnit: '10px' } },
+      fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap' }]
+    });
+    const ban = $('#a-stripe-banner');
+    if (ban) ban.appendChild(S.stripeInst.create('notification-banner'));
+    stripeTab(cur);
+  }
+  function stripeTab(k) {
+    const box = $('#a-stripe-embed');
+    if (!box || !S.stripeInst) return;
+    $$('[data-act="stripe-tab"]').forEach((b) => b.setAttribute('aria-selected', String(b.getAttribute('data-v') === k)));
+    box.innerHTML = '';
+    box.appendChild(S.stripeInst.create(k));
   }
 
   function openConnector(id) {
@@ -4383,6 +4414,7 @@
       }
       b.paused = !b.paused; saveAdmin(); refresh('[data-act="pause"]'); toast(b.paused ? 'Abonnement en pause (démo).' : 'Abonnement repris (démo).');
     },
+    'stripe-tab': (el) => stripeTab(el.getAttribute('data-v')),
     'pay-mm': () => payMobileMoney(),
     'studio-trial': () => studioTrial(),
     'studio-cancel': () => studioCancel(),

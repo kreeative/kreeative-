@@ -348,9 +348,11 @@ Deno.serve(async (req: Request) => {
     const r = await stripe('POST', 'account_sessions', {
       account: String(p.account_id),
       components: {
-        account_onboarding: { enabled: true, features: { external_account_collection: true } },
-        account_management: { enabled: true, features: { external_account_collection: true } },
-        notification_banner: { enabled: true, features: { external_account_collection: true } }
+        account_onboarding: { enabled: true },
+        account_management: { enabled: true },
+        notification_banner: { enabled: true },
+        payments: { enabled: true, features: { refund_management: true, dispute_management: true } },
+        payouts: { enabled: true }
       }
     });
     if (!r.ok) return json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502);

@@ -1569,3 +1569,7 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
 /* Stripe's onboarding inside Jeere (embedded components): a wider dialog, the form scrolls in it */
 .a-dialog:has(.a-dialog__card--wide) { width: min(720px, calc(100vw - 24px)); max-width: none; }
 .a-stripe-embed { margin-top: 14px; min-height: 320px; }
+
+.a-stripe-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.a-stripe-tabs [aria-selected="true"] { background: #141414; color: #FFFFFF; border-color: #141414; }
+#a-stripe-banner:not(:empty) { margin-top: 12px; }
