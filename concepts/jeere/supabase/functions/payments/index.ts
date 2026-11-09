@@ -14,6 +14,8 @@
 //         { action: 'available', slug }                 → { ok, card }  does this store take cards?                anyone
 //         { action: 'checkout', orderId, returnUrl }    → { ok, url }  Stripe Checkout for an order of the `orders`
 //                                                         function (prices from the order, never from the browser) anyone
+//         { action: 'intent', orderId }                 → { ok, clientSecret, publishableKey, account }  the card form inside
+//                                                         the store's cart (Stripe Payment Element)                 anyone
 //         { action: 'confirm', slug, number }           → { ok, paid }  the order's session read from Stripe, paid → payee  anyone
 //   Stripe's webhook (Connect events) POSTs here with a Stripe-Signature header: checkout.session.completed /
 //   async_payment_succeeded mark the order paid (orders.payment_status 'payee'), …expired / async_payment_failed
@@ -187,6 +189,23 @@ async function webhook(req: Request) {
     if (r) await savePayRow(String(r.store_id), obj);
     return json({ ok: true });
   }
+  if (type === 'payment_intent.succeeded' || type === 'payment_intent.payment_failed') {
+    const md = isObj(obj.metadata) ? obj.metadata : {};
+    const orderId = str(md.order_id, 40);
+    if (!UUID.test(orderId)) return json({ ok: true });
+    const o = (await rows('orders?select=id,store_id,total,payment_ref,payment_status,status&id=eq.' + orderId))[0];
+    if (!o || o.payment_status === 'payee') return json({ ok: true });
+    const p = await payRow(String(o.store_id));
+    if (!p || String(ev.account ?? '') !== String(p.account_id)) return json({ ok: true, ignored: 'account' });
+    if (str(obj.id, 120) !== String(o.payment_ref ?? '')) return json({ ok: true, ignored: 'intent' });
+    if (ev.livemode !== LIVE) return json({ ok: true, ignored: 'mode' });
+    const ok = type === 'payment_intent.succeeded';
+    if (ok && (Math.round(Number(obj.amount_received ?? obj.amount)) !== Math.round(Number(o.total)) || String(obj.currency ?? '').toLowerCase() !== 'xof')) return json({ ok: true, ignored: 'amount' });
+    const patch: Obj = { payment_status: ok ? 'payee' : 'echouee', updated_at: new Date().toISOString() };
+    if (ok) { patch.paid_at = new Date().toISOString(); if (o.status === 'nouvelle') patch.status = 'confirmee'; }
+    await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify(patch) });
+    return json({ ok: true });
+  }
   if (type.startsWith('checkout.session.')) {
     const md = isObj(obj.metadata) ? obj.metadata : {};
     const orderId = str(md.order_id, 40);
@@ -249,15 +268,62 @@ Deno.serve(async (req: Request) => {
     if (o.payment_status === 'payee') return json({ ok: true, paid: true });
     const p = await payRow(String(st.id));
     const ref = String(o.payment_ref ?? '');
-    if (!p || !/^cs_[A-Za-z0-9_]+$/.test(ref)) return json({ ok: true, paid: false });
-    const r = await stripe('GET', 'checkout/sessions/' + ref, undefined, String(p.account_id));
-    const cs = r.ok ? r.data : {};
-    const paid = cs.payment_status === 'paid' && Math.round(Number(cs.amount_total)) === Math.round(Number(o.total)) && String(cs.currency ?? '').toLowerCase() === 'xof';
+    if (!p || !/^(cs|pi)_[A-Za-z0-9_]+$/.test(ref)) return json({ ok: true, paid: false });
+    let paid = false;
+    if (ref.startsWith('pi_')) {
+      const r = await stripe('GET', 'payment_intents/' + ref, undefined, String(p.account_id));
+      const pi = r.ok ? r.data : {};
+      paid = pi.status === 'succeeded' && Math.round(Number(pi.amount_received ?? pi.amount)) === Math.round(Number(o.total)) && String(pi.currency ?? '').toLowerCase() === 'xof';
+    } else {
+      const r = await stripe('GET', 'checkout/sessions/' + ref, undefined, String(p.account_id));
+      const cs = r.ok ? r.data : {};
+      paid = cs.payment_status === 'paid' && Math.round(Number(cs.amount_total)) === Math.round(Number(o.total)) && String(cs.currency ?? '').toLowerCase() === 'xof';
+    }
     if (!paid) return json({ ok: true, paid: false });
     const patch: Obj = { payment_status: 'payee', paid_at: new Date().toISOString(), updated_at: new Date().toISOString() };
     if (o.status === 'nouvelle') patch.status = 'confirmee';
     await admin('orders?id=eq.' + o.id, { method: 'PATCH', body: JSON.stringify(patch) });
     return json({ ok: true, paid: true });
+  }
+
+  // the card typed in the store's own cart (Stripe's Payment Element), on the store's own Stripe account: a
+  // PaymentIntent for the order's total, Jeere's fee taken by Stripe. Prices from the order, never from the browser.
+  if (action === 'intent') {
+    if (!STRIPE_KEY || !PUBLISHABLE_STRIPE) return json({ ok: false, code: 'config', message: NOT_CONFIGURED }, 503);
+    const orderId = str(b.orderId, 40);
+    if (!UUID.test(orderId)) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 400);
+    const o = (await rows('orders?select=*&id=eq.' + orderId))[0];
+    if (!o) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 404);
+    if (o.payment_status === 'payee') return json({ ok: false, code: 'paid', message: 'Cette commande est déjà payée.' }, 409);
+    if (o.status === 'annulee') return json({ ok: false, code: 'cancelled', message: 'Cette commande a été annulée.' }, 409);
+    const st = (await rows('stores?select=id,slug,fiche,owner&id=eq.' + o.store_id))[0];
+    const p = st ? await payRow(String(st.id)) : null;
+    if (!st || !p || !p.charges_enabled) return json({ ok: false, code: 'not_connected', message: 'Cette boutique ne prend pas encore les cartes.' }, 409);
+    const total = Math.round(Number(o.total) || 0);
+    if (total <= 0) return json({ ok: false, code: 'empty', message: 'Le panier est vide.' }, 400);
+    const pct = await feeFor(String(st.owner ?? ''));
+    const fiche = isObj(st.fiche) ? st.fiche : {};
+    const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
+    const customer = isObj(o.customer) ? o.customer : {};
+    // the same order asked twice (a second tap): the PaymentIntent already made is reused
+    const prev = String(o.payment_ref ?? '');
+    if (/^pi_[A-Za-z0-9_]+$/.test(prev)) {
+      const g = await stripe('GET', 'payment_intents/' + prev, undefined, String(p.account_id));
+      if (g.ok && Math.round(Number(g.data.amount)) === total && !['succeeded', 'canceled'].includes(String(g.data.status))) {
+        return json({ ok: true, clientSecret: g.data.client_secret, publishableKey: PUBLISHABLE_STRIPE, account: p.account_id, amount: total, currency: 'xof', number: o.number });
+      }
+    }
+    const r = await stripe('POST', 'payment_intents', {
+      amount: total, currency: 'xof',
+      automatic_payment_methods: { enabled: true },
+      description: storeName + ' · commande n° ' + o.number,
+      metadata: { order_id: orderId, store_id: String(st.id), number: String(o.number) },
+      ...(typeof customer.email === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email) ? { receipt_email: customer.email } : {}),
+      ...(pct > 0 ? { application_fee_amount: Math.round(total * pct / 100) } : {})
+    }, String(p.account_id));
+    if (!r.ok) return json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502);
+    await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify({ payment_status: 'en_attente', payment_ref: str(r.data.id, 120), payment: 'Carte bancaire', updated_at: new Date().toISOString() }) });
+    return json({ ok: true, clientSecret: r.data.client_secret, publishableKey: PUBLISHABLE_STRIPE, account: p.account_id, amount: total, currency: 'xof', number: o.number });
   }
 
   // a buyer pays an order placed by the `orders` function

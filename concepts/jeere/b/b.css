@@ -65,3 +65,8 @@ body.jb { margin: 0; min-height: 100vh; background: #FFFFFF; color: #111111; fon
 
 /* « Aperçu privé » (client projects): the link shows a store not yet online */
 .jb-preview { margin: 0; padding: 10px 16px; background: #111111; color: #FFFFFF; font-size: 14px; line-height: 1.45; text-align: center; }
+
+/* the card typed in the cart (Stripe Payment Element) */
+.jb-sheet__card--pay { width: min(520px, 100%); max-height: 92vh; overflow: auto; }
+.jb-payel { margin: 14px 0 6px; min-height: 120px; }
+.jb-payerr { margin: 8px 0 0; color: #B42318; font-size: 14px; }

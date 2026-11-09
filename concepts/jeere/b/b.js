@@ -317,9 +317,13 @@
       customer: { name: f.first, phone: f.phone, email: f.email || '', commune: f.commune || '', address: f.address || '' } })
       .then(function (o) {
         if (!o || !o.ok) throw new Error((o && o.message) || 'La commande n’a pas pu être enregistrée.');
-        return fn('payments', { action: 'checkout', orderId: o.orderId, returnUrl: location.origin + location.pathname }).then(function (p) {
-          if (!p || !p.ok || !p.url) throw new Error((p && p.message) || 'Le paiement par carte n’a pas pu s’ouvrir.');
-          location.href = p.url;
+        // the card form in the cart itself (Stripe Payment Element); Stripe's own page if it cannot open here
+        return fn('payments', { action: 'intent', orderId: o.orderId }).then(function (pi) {
+          if (pi && pi.ok && pi.clientSecret && pi.publishableKey) return cardSheet(pi, o, done);
+          return fn('payments', { action: 'checkout', orderId: o.orderId, returnUrl: location.origin + location.pathname }).then(function (p) {
+            if (!p || !p.ok || !p.url) throw new Error((p && p.message) || 'Le paiement par carte n’a pas pu s’ouvrir.');
+            location.href = p.url;
+          });
         });
       })
       .catch(function (err) {
@@ -329,6 +333,62 @@
           link ? '<a class="jb-btn jb-btn--wa" href="' + esc(link) + '" target="_blank" rel="noopener">' + WA_ICON + 'Commander sur WhatsApp</a>' : '');
       });
   }
+  function loadStripeJs() {
+    if (window.Stripe) return Promise.resolve(window.Stripe);
+    return new Promise(function (res, rej) {
+      var sc = document.createElement('script');
+      sc.src = 'https://js.stripe.com/v3/';
+      sc.onload = function () { if (window.Stripe) res(window.Stripe); else rej(new Error('stripe.js')); };
+      sc.onerror = function () { rej(new Error('stripe.js')); };
+      document.head.appendChild(sc);
+    });
+  }
+  // The card form, in the store's look: Stripe's Payment Element in a sheet over the cart
+  function cardSheet(pi, order, done) {
+    return loadStripeJs().then(function (StripeJs) {
+      var stripe = StripeJs(pi.publishableKey, { stripeAccount: pi.account, locale: 'fr' });
+      var css = getComputedStyle(S.root || document.body);
+      var accent = (css.getPropertyValue('--jst-accent') || css.getPropertyValue('--accent') || '').trim() || '#141414';
+      var font = (css.fontFamily || 'system-ui').split(',')[0].replace(/["']/g, '').trim();
+      var elements = stripe.elements({ clientSecret: pi.clientSecret, appearance: { theme: 'stripe', variables: { colorPrimary: accent, colorText: '#141414', fontFamily: font + ', system-ui, sans-serif', borderRadius: '12px' } } });
+      var old = document.getElementById('jb-sheet'); if (old) old.remove();
+      var sh = document.createElement('div');
+      sh.className = 'jb-sheet'; sh.id = 'jb-sheet';
+      sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-labelledby', 'jb-sheet-t');
+      sh.innerHTML = '<div class="jb-sheet__card jb-sheet__card--pay"><h2 id="jb-sheet-t" tabindex="-1">Payer ' + esc(price(pi.amount)) + '</h2>' +
+        '<p>Commande n°' + NB + esc(String(order.number)) + ' · paiement sécurisé par Stripe. La boutique ne voit jamais votre numéro de carte.</p>' +
+        '<form id="jb-payform" novalidate><div id="jb-payel" class="jb-payel"></div><p class="jb-payerr" id="jb-payerr" role="alert" hidden></p>' +
+        '<div class="jb-actions"><button class="jb-btn" type="submit" id="jb-paybtn">Payer ' + esc(price(pi.amount)) + '</button><button class="jb-btn jb-btn--ghost" type="button" data-jb="sheet-close">Annuler</button></div></form></div>';
+      document.body.appendChild(sh);
+      var payEl = elements.create('payment', { layout: 'tabs' });
+      payEl.mount('#jb-payel');
+      done();
+      var t = document.getElementById('jb-sheet-t'); if (t) t.focus();
+      sh.addEventListener('click', function (e) { if (e.target === sh || (e.target.closest && e.target.closest('[data-jb="sheet-close"]'))) sh.remove(); });
+      document.getElementById('jb-payform').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var b = document.getElementById('jb-paybtn'), er = document.getElementById('jb-payerr');
+        b.disabled = true; b.setAttribute('aria-busy', 'true'); er.hidden = true;
+        var back = location.origin + location.pathname + (location.search ? location.search + '&' : '?') + 'paiement=ok&commande=' + order.number;
+        stripe.confirmPayment({ elements: elements, confirmParams: { return_url: back }, redirect: 'if_required' }).then(function (r) {
+          if (r.error) { er.textContent = r.error.message || 'Le paiement n’a pas abouti.'; er.hidden = false; b.disabled = false; b.removeAttribute('aria-busy'); return; }
+          if (S.root) S.root.__jstCart = {};
+          S.ordered = true;
+          sh.remove();
+          msgSheet('Vérification du paiement…', 'Un instant : nous confirmons votre paiement auprès de Stripe.');
+          var ask = function (left) {
+            fn('payments', { action: 'confirm', slug: S.store && S.store.slug, number: order.number }).then(function (j) {
+              if (j && j.paid) msgSheet('Paiement reçu, merci' + NB + '!', 'Votre commande n°' + NB + order.number + ' est payée. La boutique vous contacte pour la livraison.');
+              else if (left > 0) setTimeout(function () { ask(left - 1); }, 2000);
+              else msgSheet('Paiement en cours de vérification', 'Votre commande n°' + NB + order.number + ' est enregistrée. La boutique verra le paiement dans quelques minutes.');
+            });
+          };
+          ask(4);
+        });
+      });
+    });
+  }
+
   // back from Stripe's page
   function paidReturn() {
     var m = /[?&]paiement=(ok|annule)(?:&commande=(\d+))?/.exec(location.search);
