@@ -626,11 +626,32 @@
     var direct = !d.noScripts && !d.isNew && d.text === d.original && !pageSrc(p).onlyOnBranch && ROOT && p.local;
     f.direct = direct;
     if (direct) { ifr.removeAttribute('srcdoc'); f.expect = ROOT + p.path; ifr.src = ROOT + p.path; }
-    else { ifr.removeAttribute('src'); f.expect = null; ifr.srcdoc = withBase(d.text, assetBase(p)); }
+    else { ifr.removeAttribute('src'); f.expect = null; ifr.srcdoc = withBase(noNav(d.text), assetBase(p)); }
+  }
+  /* A copy shown from its text (srcdoc) lives at about:srcdoc: a page script that « fixes » its own address
+     (the trailing-slash redirect of the concepts: location.replace(location.pathname + '/')) would send the
+     artboard to <site>/srcdoc/, a 404. In the artboard only, its location.replace / location.assign do nothing;
+     the file she edits and publishes is untouched. */
+  function noNav(text) {
+    return text.replace(/<script\b(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi, function (m, attrs, body) {
+      if (!/location\.(replace|assign)\s*\(/.test(body)) return m;
+      return '<script' + attrs + '>' + body.replace(/\blocation\.(replace|assign)\s*\(/g, '(function(){})(') + '</script>';
+    });
   }
   function frameLoaded(f) {
     var w, fd;
     try { w = f.iframe.contentWindow; fd = f.iframe.contentDocument; } catch (e) { w = null; }
+    // a copy shown from its text that went somewhere else all the same (another script moved it): again, without its scripts
+    if (!f.direct && cur && !cur.noScripts) {
+      var gone = !w || !fd;
+      try { gone = gone || !/^about:(srcdoc|blank)$/.test(w.location.href); } catch (e) { gone = true; }
+      if (gone) {
+        cur.noScripts = true;
+        banner('Cette page s’est redirigée ailleurs dès son ouverture : elle s’affiche ici sans ses scripts, pour pouvoir la modifier.', 'warn');
+        frames.forEach(loadFrame);
+        return;
+      }
+    }
     if (!w || !fd || !cur) return;
     // a page that sends the visitor elsewhere (a log-in wall…): shown without its scripts instead
     if (f.direct) {
