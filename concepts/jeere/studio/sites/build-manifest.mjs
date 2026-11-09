@@ -52,6 +52,7 @@ function titleOf(branch, p) {
 // reaches the branch kreeative.xyz serves) and The Ivory Sukundu (sells, its back office lives elsewhere).
 // Never guessed from a title.
 const COMMERCE = {
+  'concepts/anse': true,
   'concepts/joshua-cooker': true,
   'concepts/sonia-luxury-hair': true,
   'websites/the-ivory-sukundu': true,

@@ -1,9 +1,9 @@
 {
  "version": 1,
- "generated": "2026-11-06T20:45:38.448Z",
+ "generated": "2026-11-09T15:34:02.354Z",
  "repo": "kreeative/kreeative-",
  "defaultBranch": "claude/kreeative-portfolio-design-n2a770",
- "defaultHead": "2fdd50f98aa221698eb44d3587190da6330296d0",
+ "defaultHead": "af90d7e943614efb16f3a4f0bc0947d52f85d83f",
  "branches": [
   "claude/add-tabouret-site",
   "claude/aissa-kee-personal-brand-rgrggx",
@@ -246,9 +246,9 @@
    "externalUrl": "https://cameleon-concept.vercel.app/",
    "thumbnail": "thumbs/websites--cameleon.webp",
    "updated": {
-    "date": "2026-09-27T20:58:30+00:00",
-    "commit": "95593ed",
-    "subject": "Show Burgundy About Me page on carousel hook image"
+    "date": "2026-09-25T17:14:33+00:00",
+    "commit": "1ca5a86",
+    "subject": "Refresh link previews so shared links show the current studio"
    },
    "local": true,
    "previewBase": null,
@@ -354,9 +354,9 @@
    "externalUrl": "https://keewaomeere.vercel.app/",
    "thumbnail": "thumbs/websites--keewal-meere.webp",
    "updated": {
-    "date": "2026-09-27T20:58:30+00:00",
-    "commit": "95593ed",
-    "subject": "Show Burgundy About Me page on carousel hook image"
+    "date": "2026-09-25T17:14:33+00:00",
+    "commit": "1ca5a86",
+    "subject": "Refresh link previews so shared links show the current studio"
    },
    "local": true,
    "previewBase": null,
@@ -390,9 +390,9 @@
    "externalUrl": "https://richandfriends.xyz/",
    "thumbnail": "thumbs/websites--rich-and-friends.webp",
    "updated": {
-    "date": "2026-09-27T20:58:30+00:00",
-    "commit": "95593ed",
-    "subject": "Show Burgundy About Me page on carousel hook image"
+    "date": "2026-09-25T17:14:33+00:00",
+    "commit": "1ca5a86",
+    "subject": "Refresh link previews so shared links show the current studio"
    },
    "local": true,
    "previewBase": null,
@@ -426,9 +426,9 @@
    "externalUrl": "https://tabouret.vercel.app/",
    "thumbnail": "thumbs/websites--tabouret.webp",
    "updated": {
-    "date": "2026-09-27T20:58:30+00:00",
-    "commit": "95593ed",
-    "subject": "Show Burgundy About Me page on carousel hook image"
+    "date": "2026-09-25T17:14:33+00:00",
+    "commit": "1ca5a86",
+    "subject": "Refresh link previews so shared links show the current studio"
    },
    "local": true,
    "previewBase": null,
@@ -483,6 +483,51 @@
     }
    ],
    "images": []
+  },
+  {
+   "id": "concepts--anse",
+   "title": "ANSE — boutique de démonstration",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/anse",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/anse/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--anse.webp",
+   "updated": {
+    "date": "2026-11-09T15:03:36+00:00",
+    "commit": "af90d7e",
+    "subject": "Add ANSE concept: bag shop with handles breaking out of the frame, sold through Jeere Connect"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/anse/"
+   ],
+   "uploads": "concepts/anse/img/",
+   "pages": [
+    {
+     "path": "concepts/anse/index.html",
+     "title": "ANSE — boutique de démonstration",
+     "url": "",
+     "sha": "00dcbce7e731679b08beaa386c32f13c7db95225",
+     "size": 12013,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/anse/img/sac-anneau.webp",
+    "concepts/anse/img/sac-brume.webp",
+    "concepts/anse/img/sac-cacao.webp",
+    "concepts/anse/img/sac-citrine.webp",
+    "concepts/anse/img/sac-dragee.webp",
+    "concepts/anse/img/sac-menthe.webp",
+    "concepts/anse/img/sac-olivier.webp",
+    "concepts/anse/img/sac-ruban.webp"
+   ]
   },
   {
    "id": "concepts--jessicas-secrets",
@@ -876,9 +921,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/portfolio--designing-a-seamless-user-experience-for-taskflow.webp",
    "updated": {
-    "date": "2026-09-27T20:58:30+00:00",
-    "commit": "95593ed",
-    "subject": "Show Burgundy About Me page on carousel hook image"
+    "date": "2026-09-23T01:47:07+00:00",
+    "commit": "db1a2e6",
+    "subject": "Rebuild the Kreeative portfolio as a static site"
    },
    "local": true,
    "previewBase": null,
@@ -912,9 +957,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/portfolio--nexatech.webp",
    "updated": {
-    "date": "2026-09-27T20:58:30+00:00",
-    "commit": "95593ed",
-    "subject": "Show Burgundy About Me page on carousel hook image"
+    "date": "2026-09-23T01:47:07+00:00",
+    "commit": "db1a2e6",
+    "subject": "Rebuild the Kreeative portfolio as a static site"
    },
    "local": true,
    "previewBase": null,
@@ -984,9 +1029,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/portfolio--streamlining-e-commerce-for-zenithcart.webp",
    "updated": {
-    "date": "2026-09-27T20:58:30+00:00",
-    "commit": "95593ed",
-    "subject": "Show Burgundy About Me page on carousel hook image"
+    "date": "2026-09-23T01:47:07+00:00",
+    "commit": "db1a2e6",
+    "subject": "Rebuild the Kreeative portfolio as a static site"
    },
    "local": true,
    "previewBase": null,

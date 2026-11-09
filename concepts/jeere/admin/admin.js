@@ -336,6 +336,7 @@
   // her own designs that sell through a Jeere store (../connect/jeere-connect.js, data-store): the dashboard shows
   // that site, « Personnaliser » opens it in the website editor; the Jeere store holds the products and orders
   const CUSTOM = {
+    'anse': { site: 'concepts--anse', live: 'https://kreeative.xyz/concepts/anse/' },
     'joshua-cooker': { site: 'concepts--joshua-cooker', live: 'https://kreeative.xyz/concepts/joshua-cooker/' },
     'sonia-luxury-hair': { site: 'concepts--sonia-luxury-hair', live: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' }
   };
@@ -806,7 +807,8 @@
   const MY_SHOPS = [
     { name: 'The Ivory Sukundu', meta: 'theivorysukundu.com · commandes, produits, codes', ext: true, thumb: '../studio/sites/thumbs/live--the-ivory-sukundu.webp' },
     { name: 'Sonia Luxury Hair', slug: 'sonia-luxury-hair', meta: 'Son site · kreeative.xyz/concepts/sonia-luxury-hair', thumb: '../studio/sites/thumbs/concepts--sonia-luxury-hair.webp' },
-    { name: 'Joshua Cooker', slug: 'joshua-cooker', meta: 'Son site · kreeative.xyz/concepts/joshua-cooker', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' }
+    { name: 'Joshua Cooker', slug: 'joshua-cooker', meta: 'Son site · kreeative.xyz/concepts/joshua-cooker', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' },
+    { name: 'ANSE', slug: 'anse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/anse', thumb: '../studio/sites/thumbs/concepts--anse.webp' }
   ];
   // a boutique of hers not yet in the list: its project is made once (her name on it), then it is a project like the others
   function openShopProject(el) {

@@ -50,7 +50,7 @@ const AUTHOR = { name: 'Anne-Kelly Kouyate', email: 'annklyy@gmail.com' };
 const SITE_FOLDERS_DEFAULT: RegExp[] = [
   /^websites\/[a-z0-9][a-z0-9-]*\//,
   /^portfolio\/[a-z0-9][a-z0-9-]*\//,
-  /^concepts\/(jessicas-secrets|joshua-cooker|nanawax|ririfood|sao|sonia-luxury-hair)\//,
+  /^concepts\/(anse|jessicas-secrets|joshua-cooker|nanawax|ririfood|sao|sonia-luxury-hair)\//,
   /^(index|404)\.html$/,
   /^(about|access|pricing|shop|signature|teach|the-kreeative-designer-newsletter)\//,
   /^assets\/img\/studio\//
