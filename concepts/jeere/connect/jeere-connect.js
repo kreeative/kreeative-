@@ -148,6 +148,13 @@
     var cart = {};
     Object.keys(items).forEach(function (id) { var q = clampQ(items[id]); if (ID_RE.test(id) && q > 0) cart[id] = q; });
     S.cart = cart;
+    // back from the store's checkout with the order placed (?jeere=commande): the cart is empty again
+    if (/[?&]jeere=commande\b/.test(location.search)) {
+      S.cart = {};
+      try { window.localStorage.setItem(KEY, JSON.stringify({ v: 1, items: {}, at: Date.now() })); } catch (e) { /* ok */ }
+      var q = location.search.replace(/([?&])jeere=commande&?/, '$1').replace(/[?&]$/, '');
+      try { history.replaceState(history.state, '', location.pathname + q + location.hash); } catch (e) { /* keep it */ }
+    }
   }
   function saveCart() {
     try { window.localStorage.setItem(KEY, JSON.stringify({ v: 1, items: S.cart, at: Date.now() })); } catch (e) { /* private mode: the cart lives on the page */ }
@@ -173,7 +180,9 @@
   function checkoutUrl() {
     var ids = Object.keys(S.cart);
     var base = STORE_ORIGIN + '/b/' + encodeURIComponent(slug) + '/panier';
-    return ids.length ? base + '?panier=' + ids.map(function (id) { return encodeURIComponent(id) + ':' + S.cart[id]; }).join(',') : base;
+    // ?retour=: « Retour à la boutique » on the checkout comes back to this page of her site
+    var back = location.protocol === 'https:' ? '&retour=' + encodeURIComponent(location.origin + location.pathname) : '';
+    return ids.length ? base + '?panier=' + ids.map(function (id) { return encodeURIComponent(id) + ':' + S.cart[id]; }).join(',') + back : base;
   }
   function changed() { saveCart(); render(); emit('jeere:cart', cartDetail()); }
   function set(id, q) {

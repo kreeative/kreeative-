@@ -296,7 +296,11 @@
       '<div class="jb-actions">' + (actions || '') + '<button class="jb-btn jb-btn--ghost" type="button" data-jb="sheet-close">Revenir à la boutique</button></div></div>';
     document.body.appendChild(sh);
     var t = document.getElementById('jb-sheet-t'); if (t) t.focus();
-    sh.addEventListener('click', function (e) { if (e.target === sh || (e.target.closest && e.target.closest('[data-jb="sheet-close"]'))) sh.remove(); });
+    sh.addEventListener('click', function (e) {
+      var c = e.target.closest && e.target.closest('[data-jb="sheet-close"]');
+      if (c && S.ordered && siteBack()) { location.href = siteBack(); return; }
+      if (e.target === sh || c) sh.remove();
+    });
     sh.addEventListener('keydown', function (e) { if (e.key === 'Escape') sh.remove(); });
   }
   function payByCard(btn) {
@@ -351,7 +355,7 @@
     bar.className = 'jb-order';
     bar.id = 'jb-order';
     bar.setAttribute('role', 'note');
-    bar.innerHTML = '<p>' + esc(fr(S.card ? 'Payez par carte bancaire (Visa, Mastercard, depuis n’importe quel pays) au moment de commander, ou envoyez votre commande sur WhatsApp.' : n ? 'Le paiement en ligne arrive bientôt : votre commande part sur WhatsApp, et vous payez avec la boutique (mobile money ou à la livraison).' : 'Cette boutique ne prend pas encore les commandes en ligne : contactez-la directement.')) + '</p>' +
+    bar.innerHTML = '<p>' + esc(fr(S.card ? 'Payez par carte bancaire (Visa, Mastercard, depuis n’importe quel pays) au moment de commander, ou envoyez votre commande sur WhatsApp.' : n ? 'Commandez ici : la boutique reçoit votre commande, et WhatsApp s’ouvre pour discuter avec elle. Vous payez avec la boutique (mobile money ou à la livraison).' : 'Commandez ici : la boutique reçoit votre commande et vous appelle pour la livraison. Vous payez avec elle (mobile money ou à la livraison).')) + '</p>' +
       (n ? '<a class="jb-btn" href="' + esc(waLink(orderMessage().text)) + '" target="_blank" rel="noopener" data-jb="wa-order">' + WA_ICON + 'Commander sur WhatsApp</a>' : '');
     S.root.insertAdjacentElement('afterend', bar);
   }
@@ -382,6 +386,75 @@
     sh.addEventListener('keydown', function (e) { if (e.key === 'Escape') sh.remove(); });
   }
 
+  /* ---------------------------------------------------------------- the order (every payment but the card)
+   * Recorded by the `orders` function (prices recomputed from the published fiche): it lands in the
+   * dashboard (Gérer › Commandes) and the shop gets its « nouvelle commande » e-mail, WhatsApp number or not.
+   * With a number, WhatsApp then opens with the order written out, as before. A store preview records nothing. */
+  function payLabel() {
+    var f = (S.root && S.root.__jstForm) || {};
+    var p = D && Array.isArray(D.PAYMENTS) ? D.PAYMENTS.filter(function (x) { return x.key === f.pay; })[0] : null;
+    return p && p.label ? p.label : '';
+  }
+  function placeOrder(btn) {
+    var f = (S.root && S.root.__jstForm) || {};
+    var cart = (S.root && S.root.__jstCart) || {};
+    var msg = orderMessage();
+    var link = waLink(msg.text);
+    if (!S.store || S.store.preview === true || !S.store.slug) { sentSheet(msg); if (link) { try { window.open(link, '_blank', 'noopener'); } catch (x) { /* the sheet's button */ } } return; }
+    if (!Object.keys(cart).length) { msgSheet('Votre panier est vide', 'Ajoutez un produit avant de commander.'); return; }
+    if (!String(f.first || '').trim() || String(f.phone || '').replace(/\D/g, '').length < 8) {
+      msgSheet('Il manque vos coordonnées', 'Écrivez votre nom et votre numéro de téléphone : la boutique vous appelle pour la livraison.');
+      return;
+    }
+    // opened now, while the click still counts (a window opened after the answer would be blocked)
+    var wa = null;
+    if (link) { try { wa = window.open('', '_blank'); } catch (x) { wa = null; } }
+    if (btn) { btn.setAttribute('aria-busy', 'true'); btn.disabled = true; }
+    var done = function () { if (btn) { btn.removeAttribute('aria-busy'); btn.disabled = false; } };
+    fn('orders', { action: 'place', slug: S.store.slug, cart: cart, payment: payLabel(), source: siteBack() ? 'site' : 'boutique',
+      customer: { name: f.first, phone: f.phone, email: f.email || '', commune: f.commune || '', address: f.address || '' } })
+      .then(function (o) {
+        done();
+        if (!o || !o.ok) throw new Error((o && o.message) || 'La commande n’a pas pu être enregistrée.');
+        var num = ' n°' + NB + o.number;
+        var text = num ? ('Commande' + num) : 'Commande';
+        S.ordered = true;
+        if (S.root) S.root.__jstCart = {};
+        if (link) {
+          var full = waLink(msg.text.replace(/\n\(Commande depuis/, '\nCommande' + num + '\n(Commande depuis'));
+          if (wa) { try { wa.opener = null; wa.location.href = full; } catch (x) { wa = null; } }
+          msgSheet(text + ' envoyée' + NB + '!', 'La boutique l’a reçue. ' + (wa ? 'WhatsApp s’est ouvert avec votre commande : appuyez sur « Envoyer » pour discuter avec elle.' : 'Envoyez-la aussi sur WhatsApp pour discuter avec elle.') + ' Elle vous contacte au ' + f.phone + ' pour la livraison et le paiement.',
+            '<a class="jb-btn jb-btn--wa" href="' + esc(full) + '" target="_blank" rel="noopener" data-jb="wa-send">' + WA_ICON + 'Ouvrir WhatsApp</a>');
+        } else {
+          msgSheet(text + ' envoyée' + NB + '!', 'La boutique l’a reçue. Elle vous contacte au ' + f.phone + ' pour confirmer la livraison et le paiement.' + (f.email ? ' Un récapitulatif part à ' + f.email + '.' : ''));
+        }
+      })
+      .catch(function (err) {
+        done();
+        if (wa) { try { wa.close(); } catch (x) { /* ignore */ } }
+        if (link) { sentSheet(msg); return; }
+        msgSheet('La commande n’est pas partie', (err && err.message ? err.message + ' ' : '') + 'Réessayez dans un instant.');
+      });
+  }
+  // ?retour=<page of the seller's own site> (Jeere Connect): kept for this store in this tab
+  function siteBack() {
+    if (!S.store || !S.store.slug) return '';
+    var u = '';
+    try { u = sessionStorage.getItem('jeere-retour:' + S.store.slug) || ''; } catch (e) { u = ''; }
+    if (!u) return '';
+    return S.ordered ? u + (u.indexOf('?') >= 0 ? '&' : '?') + 'jeere=commande' : u;
+  }
+  function readSiteBack(slug) {
+    var m = /[?&]retour=([^&#]*)/.exec(location.search);
+    if (!m) return;
+    var u = '';
+    try { u = decodeURIComponent(m[1]); } catch (e) { u = ''; }
+    var ok = /^https:\/\/[a-z0-9.-]+(:\d+)?\/[^\s"'<>]*$/i.test(u) && u.split('/')[2] !== location.host;
+    try { if (ok) sessionStorage.setItem('jeere-retour:' + slug, u.replace(/#.*$/, '')); } catch (e) { /* no storage */ }
+    var search = location.search.replace(/([?&])retour=[^&#]*&?/, '$1').replace(/[?&]$/, '');
+    try { history.replaceState(history.state, '', location.pathname + search + location.hash); } catch (e) { /* keep it */ }
+  }
+
   // Before render.js sees the click: real WhatsApp links, and the order instead of the demo payment
   function intercept(e) {
     var t = e.target && e.target.closest ? e.target : null;
@@ -395,10 +468,15 @@
       e.stopPropagation();
       var form = (S.root && S.root.__jstForm) || {};
       if (S.card && form.pay === 'card') { payByCard(a); return; }
-      var msg = orderMessage();
-      sentSheet(msg);
-      var link = waLink(msg.text);
-      if (link) { try { window.open(link, '_blank', 'noopener'); } catch (x) { /* the sheet's button opens it */ } }
+      placeOrder(a);
+      return;
+    }
+    // a seller's own site (Jeere Connect) sent the buyer here: « Retour à la boutique » goes back to that site
+    var back = siteBack();
+    if (back && a && ((act === 'go' && (a.getAttribute('data-page') || 'home') === 'home') || act === 'done')) {
+      e.preventDefault();
+      e.stopPropagation();
+      location.href = back;
       return;
     }
     if (act === 'wa') {
@@ -442,6 +520,7 @@
     S.config = cfg;
     S.status = 'ready';
     S.device = deviceFor();
+    readSiteBack(store.slug);
     var fromSite = cartFromUrl(cfg);
     S.view = fromLocation();
     // On an address with fragments (…/b/?s=<slug>&panier=…) the cart opens too
