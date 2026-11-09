@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder (kreeative.xyz/concepts/anse/). Without the final slash the relative
+       links below would point one folder up, so add it before anything loads. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>ANSE — boutique de démonstration</title>
+  <meta name="description" content="Concept par Kreeative. ANSE : une boutique de sacs épurée où les anses sortent du cadre. Maquette de démonstration.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Reveal on scroll: hidden only once JS runs, and always shown after 3 s -->
+  <script>document.documentElement.classList.add('js'); setTimeout(function () { document.documentElement.classList.add('revealed'); }, 3000);</script>
+  <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="anse" defer></script>
+  <script src="site.js" defer></script>
+</head>
+<body>
+
+<div class="concept-bar" role="note">
+  <p><strong>Boutique de démonstration</strong> — Concept préparé par <a href="https://kreeative.xyz">Kreeative</a>. Les sacs présentés n'appartiennent pas à ce site et ne sont pas réellement vendus&nbsp;; les photos servent uniquement à illustrer la mise en scène. Marques et modèles&nbsp;: propriété de leurs détenteurs respectifs.</p>
+</div>
+
+<header class="head">
+  <a href="#" class="brand">ANSE</a>
+  <nav class="head__nav" aria-label="Menu principal">
+    <a href="#collection">Collection</a>
+    <a href="#atelier">Atelier</a>
+    <a href="#principe">Le principe</a>
+  </nav>
+  <button type="button" class="head__cart" data-cart-open aria-controls="panier">Panier (<span data-jeere-count>0</span>)</button>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__text reveal">
+      <p class="eyebrow">Collection Printemps</p>
+      <h1>Porter<br><span class="soft">la lumière.</span></h1>
+      <p class="lede">Des formes simples, des couleurs douces. Chaque sac est photographié de face, sur fond uni, pour laisser parler le dessin.</p>
+      <a href="#collection" class="link">Découvrir la collection</a>
+    </div>
+
+    <figure class="hero__piece reveal">
+      <div class="cadre cadre--hero" style="background-color:#f5eed3">
+        <img class="photo" src="img/sac-citrine.webp" alt="Sac Citrine, jaune beurre, vue de face" width="816" height="1034" style="width:76%; margin-top:-24%">
+      </div>
+      <figcaption><span class="hero__name">Citrine</span><span>Cuir lisse · Beurre</span></figcaption>
+    </figure>
+  </section>
+
+  <!-- COLLECTION : un sac = un produit Jeere (p1, p2…) -->
+  <section class="collection" id="collection">
+    <header class="section-head reveal">
+      <p class="eyebrow">01 — Collection</p>
+      <h2>Huit silhouettes, <span class="soft">un seul cadre.</span></h2>
+    </header>
+
+    <div class="grille">
+
+      <article class="sac reveal" data-jeere-product="p1">
+        <div class="cadre" style="background-color:#f5eed3">
+          <img class="photo" data-jeere-photo src="img/sac-citrine.webp" alt="Sac Citrine, jaune beurre" width="816" height="1034" loading="lazy" style="width:72%; margin-top:-36.7%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Citrine</h3>
+          <p class="sac__matiere">Cuir lisse · Beurre</p>
+          <p class="sac__prix" data-jeere-price>145&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+      <article class="sac reveal" data-jeere-product="p2">
+        <div class="cadre" style="background-color:#f6e3e6">
+          <img class="photo" data-jeere-photo src="img/sac-dragee.webp" alt="Sac Dragée, verni rose poudré" width="764" height="869" loading="lazy" style="width:77%; margin-top:-33.1%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Dragée</h3>
+          <p class="sac__matiere">Verni nacré · Rose poudré</p>
+          <p class="sac__prix" data-jeere-price>155&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+      <article class="sac reveal" data-jeere-product="p3">
+        <div class="cadre" style="background-color:#e2eaef">
+          <img class="photo" data-jeere-photo src="img/sac-brume.webp" alt="Sac Brume, daim bleu ciel" width="682" height="855" loading="lazy" style="width:70%; margin-top:-33.3%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Brume</h3>
+          <p class="sac__matiere">Daim · Bleu ciel</p>
+          <p class="sac__prix" data-jeere-price>140&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+      <article class="sac reveal" data-jeere-product="p4">
+        <div class="cadre" style="background-color:#e3eded">
+          <img class="photo" data-jeere-photo src="img/sac-ruban.webp" alt="Sac Ruban, bleu glacier à nœud" width="862" height="961" loading="lazy" style="width:69%; margin-top:-22.4%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Ruban</h3>
+          <p class="sac__matiere">Cuir souple · Glacier</p>
+          <p class="sac__prix" data-jeere-price>130&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+      <article class="sac reveal" data-jeere-product="p5">
+        <div class="cadre" style="background-color:#ebecd9">
+          <img class="photo" data-jeere-photo src="img/sac-olivier.webp" alt="Sac Olivier, vert olive à boucle dorée" width="569" height="791" loading="lazy" style="width:69%; margin-top:-41.4%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Olivier</h3>
+          <p class="sac__matiere">Cuir lisse · Olive</p>
+          <p class="sac__prix" data-jeere-price>120&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+      <article class="sac reveal" data-jeere-product="p6">
+        <div class="cadre" style="background-color:#f0ebe2">
+          <img class="photo" data-jeere-photo src="img/sac-anneau.webp" alt="Sac Anneau, ivoire à anse anneau dorée" width="625" height="456" loading="lazy" style="width:90%; margin-top:-7%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Anneau</h3>
+          <p class="sac__matiere">Agneau · Ivoire</p>
+          <p class="sac__prix" data-jeere-price>230&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+      <article class="sac reveal" data-jeere-product="p7">
+        <div class="cadre" style="background-color:#ede3d8">
+          <img class="photo" data-jeere-photo src="img/sac-cacao.webp" alt="Sac Cacao, brun chocolat à fermoir doré" width="739" height="1006" loading="lazy" style="width:72%; margin-top:-43.5%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Cacao</h3>
+          <p class="sac__matiere">Cuir box · Chocolat</p>
+          <p class="sac__prix" data-jeere-price>115&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+      <article class="sac reveal" data-jeere-product="p8">
+        <div class="cadre" style="background-color:#e5eedf">
+          <img class="photo" data-jeere-photo src="img/sac-menthe.webp" alt="Sac Menthe, demi-lune vert sauge" width="838" height="846" loading="lazy" style="width:80%; margin-top:-26.3%">
+        </div>
+        <div class="sac__info">
+          <h3 data-jeere-name>Menthe</h3>
+          <p class="sac__matiere">Cuir lisse · Sauge</p>
+          <p class="sac__prix" data-jeere-price>165&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="sac__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ATELIER -->
+  <section class="atelier" id="atelier">
+    <figure class="atelier__piece reveal">
+      <div class="cadre cadre--large" style="background-color:#e2eaef">
+        <img class="photo" src="img/sac-brume.webp" alt="Sac Brume en daim bleu ciel, vue de face" width="682" height="855" loading="lazy" style="width:44%; margin-top:-15.3%">
+      </div>
+    </figure>
+    <div class="atelier__text reveal">
+      <p class="eyebrow">02 — Atelier</p>
+      <h2>Le cadre retient le sac.<br><span class="soft">Les anses s'en échappent.</span></h2>
+      <p>Le corps du sac reste posé dans un aplat de couleur assorti&nbsp;; les anses débordent sur la page blanche. Un geste graphique simple qui donne du relief sans ajouter de décor.</p>
+    </div>
+  </section>
+
+  <!-- PRINCIPE PHOTO -->
+  <section class="principe" id="principe">
+    <header class="section-head reveal">
+      <p class="eyebrow">03 — Le principe photo</p>
+      <h2>Pour obtenir cet effet, <span class="soft">chaque photo suit la même règle.</span></h2>
+    </header>
+    <ol class="etapes">
+      <li class="reveal"><span>01</span><h3>Fond uni clair</h3><p>Blanc ou gris très pâle, sans texture ni décor, pour un détourage net.</p></li>
+      <li class="reveal"><span>02</span><h3>Vue de face</h3><p>Appareil à hauteur du sac, bien centré, sans angle ni perspective.</p></li>
+      <li class="reveal"><span>03</span><h3>Anses dressées</h3><p>Anses levées et visibles en entier — c'est elles qui sortent du cadre.</p></li>
+      <li class="reveal"><span>04</span><h3>Lumière douce</h3><p>Éclairage diffus, ombre au sol légère ou absente, couleurs fidèles.</p></li>
+    </ol>
+  </section>
+
+</main>
+
+<!-- PANIER (rempli par Jeere Connect) -->
+<aside class="panier" id="panier" aria-label="Panier" aria-hidden="true">
+  <div class="panier__head">
+    <h2>Panier</h2>
+    <button type="button" class="panier__close" data-cart-close aria-label="Fermer le panier">Fermer</button>
+  </div>
+  <div class="panier__lines" data-jeere-lines>
+    <template data-jeere-line>
+      <div class="ligne">
+        <img data-jeere-photo alt="{name}">
+        <div class="ligne__info">
+          <p data-jeere-name></p>
+          <p class="ligne__prix" data-jeere-line-total></p>
+          <div class="ligne__qty">
+            <button type="button" data-jeere-dec aria-label="Retirer un {name}">−</button>
+            <span data-jeere-qty></span>
+            <button type="button" data-jeere-inc aria-label="Ajouter un {name}">+</button>
+            <button type="button" class="ligne__remove" data-jeere-remove>Retirer</button>
+          </div>
+        </div>
+      </div>
+    </template>
+    <template data-jeere-empty>
+      <p class="panier__vide">Votre panier est vide.</p>
+    </template>
+  </div>
+  <div class="panier__foot">
+    <p class="panier__total"><span>Total</span><span data-jeere-total>0&nbsp;FCFA</span></p>
+    <a href="#" class="panier__checkout" data-jeere-checkout>Commander</a>
+  </div>
+</aside>
+<div class="voile" data-cart-close></div>
+
+<footer class="foot">
+  <span class="brand">ANSE</span>
+  <p>Boutique de démonstration par <a href="https://kreeative.xyz">Kreeative</a> — aucun sac n'est réellement vendu. Photos utilisées à titre d'illustration uniquement.</p>
+</footer>
+
+</body>
+</html>
