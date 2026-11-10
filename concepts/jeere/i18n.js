@@ -15,7 +15,7 @@ window.JEERE_EN = {
   'nav.contact': 'Contact',
   'nav.legal': 'Legal notice (French)',
   'nav.privacy': 'Privacy (French)',
-  'nav.cta': 'Join the waitlist',
+  'nav.cta': 'Create my account',
   'nav.ctaShort': 'Join',
   'lang.label': 'Language',
 

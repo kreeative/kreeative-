@@ -32,6 +32,17 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <!-- Added to the home screen: the app is called « Jeere » (iPhone shows « from Jeere » under each notification) -->
   <meta name="apple-mobile-web-app-title" content="Jeere">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <!-- Opened as the installed app (home screen): straight to the dashboard if signed in, else to the sign-in;
+       never the marketing page -->
+  <script>(function () { try {
+    var app = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (!app) return;
+    var signed = !!localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token');
+    location.replace(signed ? 'admin/' : 'compte/#connexion');
+  } catch (e) { /* the page */ } })();</script>
   <meta name="application-name" content="Jeere">
   <script>document.documentElement.classList.add('js');</script>
   <script src="i18n.js" defer></script>
@@ -97,7 +108,7 @@
         <button type="button" data-lang="fr" aria-pressed="true" lang="fr">FR</button>
         <button type="button" data-lang="en" aria-pressed="false" lang="en">EN</button>
       </div>
-      <a class="btn btn--primary btn--sm" href="#liste"><span class="only-wide" data-i18n="nav.cta">Rejoindre la liste</span><span class="only-narrow" data-i18n="nav.ctaShort">Rejoindre</span></a>
+      <a class="btn btn--primary btn--sm" href="compte/#inscription"><span class="only-wide" data-i18n="nav.cta">Créer mon compte</span><span class="only-narrow" data-i18n="nav.ctaShort">Rejoindre</span></a>
     </div>
   </div>
 </header>
@@ -944,7 +955,7 @@
         <a href="abonnements/" data-i18n="nav.studio">Le Studio</a>
         <a href="#faq" data-i18n="nav.faq">Questions</a>
       <a href="creer/" class="head__try" data-i18n="nav.try">Essayer l’éditeur</a>
-        <a href="#liste" data-i18n="nav.cta">Rejoindre la liste</a>
+        <a href="compte/#inscription" data-i18n="nav.cta">Créer mon compte</a>
         <a href="compte/#connexion" data-i18n="nav.login">Se connecter</a>
         <a href="#contact" data-i18n="nav.contact">Contact</a>
         <a href="a-propos/">À propos</a>
