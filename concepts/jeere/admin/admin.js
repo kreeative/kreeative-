@@ -3491,9 +3491,10 @@
         <div class="a-ph__actions"><a class="a-btn a-btn--quiet a-btn--sm" href="#paiements">${ico('back')}Paiements</a></div></header>
       <nav class="a-stripe-tabs" aria-label="Rubriques">${CARTE_TABS.filter((x) => active || x[0] === 'activer' || st.connected).map(([k, l]) => H`<a class="a-btn a-btn--ghost a-btn--sm" href="#paiements/carte/${k}"${k === t ? ' aria-current="page"' : ''}>${esc(l)}</a>`)}</nav>
       <div id="a-stripe-banner"></div>
-      ${needCountry ? H`<section class="a-card"><div class="a-field"><label class="a-label" for="sc-country">Pays où votre activité est enregistrée</label><div class="a-selectwrap"><select class="a-input" id="sc-country">${STRIPE_COUNTRIES.map(([v, l]) => H`<option value="${v}"${S.stripeCountry === v ? ' selected' : ''}>${esc(l)}</option>`)}</select>${ico('down')}</div></div>
-        <div class="a-btnrow"><button class="a-btn a-btn--primary" type="button" data-act="carte-start">Commencer</button></div></section>` : ''}
-      <section class="a-card a-stripe-page"><div id="a-stripe-embed" class="a-stripe-embed">${needCountry ? '' : H`<p class="a-small">Chargement du formulaire sécurisé…</p>`}</div></section></div>`;
+      ${needCountry ? H`<section class="a-card a-carte-start"><div class="a-field"><label class="a-label" for="sc-country">Pays où votre activité est enregistrée</label><div class="a-selectwrap"><select class="a-input" id="sc-country">${STRIPE_COUNTRIES.map(([v, l]) => H`<option value="${v}"${S.stripeCountry === v ? ' selected' : ''}>${esc(l)}</option>`)}</select>${ico('down')}</div>
+          <p class="a-hint">${esc(fr('Stripe vous demande ensuite votre identité et le compte bancaire qui reçoit l’argent.'))}</p></div>
+        <div class="a-btnrow a-btnrow--top"><button class="a-btn a-btn--primary" type="button" data-act="carte-start">Commencer</button></div></section>` : ''}
+      <section class="a-card a-stripe-page"${needCountry ? ' hidden' : ''}><div id="a-stripe-embed" class="a-stripe-embed"><p class="a-small">Chargement du formulaire sécurisé…</p></div></section></div>`;
   }
   async function stripeInstance(country) {
     const sid = remoteStoreId();
@@ -3519,16 +3520,26 @@
     const st = S.stripe || {};
     if (tab === 'activer' && !st.connected && !country) return; // the country first
     let inst;
+    const frame = box.closest('.a-stripe-page');
+    if (frame) frame.hidden = false;
     try { inst = await stripeInstance(country); } catch (e) {
-      // no publishable key yet, or Stripe refused: Stripe's own page
+      // Stripe refused (a missing permission on Jeere's key, no publishable key…): a clear message, then Stripe's own page
+      const raw = String((e && e.message) || '');
+      const why = /permission|lacks access|restricted/i.test(raw)
+        ? 'Le paiement par carte n’est pas encore ouvert sur Jeere : la clé Stripe de la plateforme n’a pas encore toutes ses autorisations. Réessayez un peu plus tard.'
+        : (/STRIPE_PUBLISHABLE_KEY|publique/i.test(raw) ? 'Le paiement par carte se termine sur la page de Stripe.' : 'Stripe n’a pas pu s’ouvrir ici. Réessayez dans un instant.');
       box.innerHTML = '';
-      const p = document.createElement('p'); p.className = 'a-small'; p.textContent = (e && e.message) || 'Stripe n’a pas pu s’ouvrir ici.';
+      box.classList.add('is-msg');
+      if (frame) frame.classList.add('is-msg');
+      const p = document.createElement('p'); p.className = 'a-note a-note--line'; p.textContent = why;
       box.appendChild(p);
+      if (raw) { const d = document.createElement('p'); d.className = 'a-small a-muted'; d.style.marginTop = '8px'; d.textContent = 'Détail technique : ' + raw.slice(0, 200); box.appendChild(d); }
       const j = tab === 'activer' ? await payCall({ action: 'connect', storeId: remoteStoreId(), country: country || '' }) : await payCall({ action: 'dashboard', storeId: remoteStoreId() });
       if (j && j.ok && j.url) { const a = document.createElement('a'); a.className = 'a-btn a-btn--primary'; a.href = j.url; a.textContent = 'Continuer sur Stripe'; if (tab !== 'activer') { a.target = '_blank'; a.rel = 'noopener'; } box.appendChild(a); }
       return;
     }
     if (!$('#a-stripe-embed')) return; // left the page meanwhile
+    box.classList.remove('is-msg'); if (frame) frame.classList.remove('is-msg');
     const ban = $('#a-stripe-banner');
     if (ban && !ban.firstChild) ban.appendChild(inst.create('notification-banner'));
     const def = CARTE_TABS.find((x) => x[0] === tab) || CARTE_TABS[0];
@@ -4312,7 +4323,7 @@
     'proj-switch': (el) => switchProject(el.getAttribute('data-id')),
     'proj-shop': (el) => openShopProject(el),
     'stripe-connect': (el) => stripeConnect(el),
-    'carte-start': () => { const c = $('#sc-country'); S.stripeCountry = c ? c.value : ''; const card = c && c.closest('.a-card'); if (card) card.remove(); mountCarte('activer', S.stripeCountry); },
+    'carte-start': () => { const c = $('#sc-country'); S.stripeCountry = c ? c.value : ''; const card = c && c.closest('.a-card'); if (card) card.hidden = true; mountCarte('activer', S.stripeCountry); },
     'stripe-dashboard': () => stripeDashboard(),
     'proj-ext': () => { if (S.dirty) { closeProj(); nudgeSave(); return; } closeProj(); closeDialog(true); window.JeereTishe.enter(); go('#accueil'); updateShell(); render(parseHash(), true); },
     'proj-new': () => openNewProject(),

@@ -1577,3 +1577,9 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
 .a-page--wide { max-width: 1100px; }
 .a-stripe-page .a-stripe-embed { margin-top: 0; min-height: 520px; }
 #a-stripe-banner:not(:empty) { margin-top: 12px; }
+
+.a-carte-start .a-hint { margin-top: 8px; }
+.a-btnrow--top { margin-top: 16px; }
+.a-stripe-page.is-msg .a-stripe-embed, .a-stripe-embed.is-msg { min-height: 0; }
+.a-stripe-embed .a-note { margin: 0; }
+.a-stripe-embed .a-btn { margin-top: 12px; }
