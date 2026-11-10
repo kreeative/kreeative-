@@ -3450,7 +3450,7 @@
     else if (st.connected) { txt = 'Stripe est connecté, mais votre inscription n’est pas terminée : Stripe demande encore des informations.'; tone = 'warn'; }
     else return '';
     return H`<div class="a-note${tone === 'warn' ? ' a-note--strong' : ''}" style="margin:6px 0 10px">${ico(tone === 'ok' ? 'check' : 'info')}<div><p>${esc(fr(txt))}</p>
-      ${st.connected ? H`<div class="a-btnrow" style="margin-top:8px">${st.chargesEnabled ? '' : H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-act="stripe-connect">Terminer l’activation</button>`}<button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="stripe-dashboard">${ico('card')}Gérer mes paiements</button></div>` : ''}</div></div>`;
+      ${st.connected ? H`<div class="a-btnrow" style="margin-top:8px">${st.chargesEnabled ? '' : H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-act="stripe-connect">Terminer l’activation</button>`}<button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="stripe-dashboard">${ico('card')}Mes paiements par carte</button></div>` : ''}</div></div>`;
   }
   function openStripe() {
     const st = S.stripe || {};
