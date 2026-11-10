@@ -112,7 +112,7 @@ Deno.serve(async (req: Request) => {
       const team = await rows('store_members?select=user_id&store_id=eq.' + sid);
       const url = str(b.url, 300);
       const sent = await sendTo([String(st.owner ?? ''), ...team.map((m) => String(m.user_id ?? ''))], {
-        title: str(b.title, 80) || 'Jeere', body: str(b.body, 200), tag: str(b.tag, 60) || undefined,
+        title: str(b.title, 80) || 'Nouvelle activité', body: str(b.body, 200), tag: str(b.tag, 60) || undefined,
         url: url.startsWith('/') ? url : '/admin/'
       });
       return json({ ok: true, sent });
@@ -138,7 +138,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === 'test') {
-      const sent = await sendTo([user.id], { title: 'Jeere', body: 'Les notifications marchent : vous serez prévenue à chaque commande.', tag: 'test', url: '/admin/' });
+      const sent = await sendTo([user.id], { title: 'Notifications activées', body: 'Vous serez prévenue à chaque nouvelle commande et à chaque paiement par carte.', tag: 'test', url: '/admin/' });
       return json({ ok: true, sent, message: sent ? 'Notification envoyée.' : 'Aucun appareil n’est inscrit pour ce compte.' });
     }
   } catch (e) {
