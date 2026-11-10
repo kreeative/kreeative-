@@ -1605,3 +1605,11 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
 @media (min-width: 900px) {
   .a-gate__visual:has(.a-iphone) { background: radial-gradient(120% 80% at 50% 100%, #efe9dd 0%, #f7f5f0 55%, #fbfaf7 100%); border-color: transparent; height: 600px; }
 }
+
+/* Touch: no grey box from Safari on tap (anywhere in the app); a light press instead, like a native app */
+html { -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after { -webkit-tap-highlight-color: transparent; }
+@media (hover: none) {
+  .a-btn:active, .a-ibtn:active, .a-storecard:active, .a-link:active { transform: scale(.97); }
+  .a-btn, .a-ibtn, .a-storecard { transition: transform .12s ease, background-color .15s, border-color .15s, color .15s; }
+}
