@@ -1619,8 +1619,9 @@ html { -webkit-tap-highlight-color: transparent; }
 .a-today__main { padding: 6px 10px; margin: -6px -10px; min-height: 0; }
 @media (min-width: 560px) { .a-today { padding: 14px 14px 14px 20px; } }
 
-/* « Premiers pas »: the bar fills in Jeere's rainbow, the whole spectrum in the part already done */
+/* « Premiers pas »: the rainbow is laid over the WHOLE bar (never squeezed); the fill uncovers it as the steps are done */
 .a-progress__fill--rainbow {
   background: linear-gradient(90deg, rgb(var(--jr-c1, 232, 70, 124)), rgb(var(--jr-c2, 240, 138, 60)), rgb(var(--jr-c3, 240, 196, 20)), rgb(var(--jr-c4, 34, 201, 126)), rgb(var(--jr-c5, 30, 155, 224)), rgb(var(--jr-c6, 106, 76, 255)), rgb(var(--jr-c7, 193, 60, 224)));
+  background-size: calc(100% * 100 / var(--p, 100)) 100%; background-repeat: no-repeat;
 }
 .a-progress:has(.a-progress__fill--rainbow) .a-progress__bar { height: 8px; border-radius: 4px; }
