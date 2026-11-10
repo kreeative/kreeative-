@@ -1002,15 +1002,22 @@
     const stepper = typeof f.min === 'number' && typeof f.max === 'number' && f.max - f.min <= 50;
     const clamp = (n) => Math.min(max, Math.max(min, n));
     const cur = acc.get();
+    // an amount in the store's currency: cents allowed in dollars and euros (« 24,99 »)
+    const money = !!(f.money || opts.money);
+    const cents = money && !!(D.currencyInfo && D.currencyInfo().decimals);
+    const show = (n) => (cents ? String(n).replace('.', ',') : String(n));
     const input = el('input', {
-      class: 'b-input b-input--num', id, type: 'text', inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off',
-      placeholder: f.placeholder || null, 'data-fk': id, value: typeof cur === 'number' ? String(cur) : '',
+      class: 'b-input b-input--num', id, type: 'text', inputmode: cents ? 'decimal' : 'numeric', pattern: cents ? null : '[0-9]*', autocomplete: 'off',
+      placeholder: cents && f.placeholder ? (f.key === 'price' ? '24,99' : '5') : (f.placeholder || null), 'data-fk': id, value: typeof cur === 'number' ? show(cur) : '',
       'aria-describedby': id + '-h'
     });
     const fmt = opts.format ? el('p', { class: 'b-hint', 'aria-live': 'off' }) : null;
     const showFmt = () => { if (fmt) { const v = acc.get(); fmt.textContent = typeof v === 'number' ? opts.format(v) : ''; } };
     showFmt();
-    const parse = () => { const d = input.value.replace(/\D/g, ''); return d ? parseInt(d, 10) : null; };
+    const parse = () => {
+      if (money && D.toMoney) { const m = D.toMoney(input.value); return m === null || m < 0 ? null : m; }
+      const d = input.value.replace(/\D/g, ''); return d ? parseInt(d, 10) : null;
+    };
     input.addEventListener('input', () => {
       const n = parse();
       if (n === null) return;
@@ -1021,7 +1028,7 @@
       let n = parse();
       if (n === null) n = typeof acc.get() === 'number' ? acc.get() : min;
       n = clamp(n);
-      input.value = String(n);
+      input.value = show(n);
       acc.set(n);
       showFmt();
     });
@@ -1114,7 +1121,7 @@
     (f.itemFields || []).forEach((sf) => {
       const v = item ? item[sf.key] : undefined;
       if (sf.type === 'text') { if (String(v || '').trim()) parts.push(shorten(v, 34)); }
-      else if (sf.type === 'number') { if (typeof v === 'number') parts.push(/fcfa/i.test(sf.label) ? D.formatPrice(v) : D.formatNumber(v)); }
+      else if (sf.type === 'number') { if (typeof v === 'number') parts.push(sf.money || /fcfa/i.test(sf.label) ? D.formatPrice(v) : D.formatNumber(v)); }
       else if (sf.type === 'select') {
         const o = (sf.options || []).find((x) => String(x.value) === String(v));
         if (o) parts.push(o.label);
@@ -1540,7 +1547,7 @@
 
     const badgeOpts = [{ value: '', label: 'Aucun' }].concat(Object.keys(D.BADGES).map((k) => ({ value: k, label: D.BADGES[k] })));
     body.append(el('div', { class: 'b-grid2' },
-      numberField({ key: 'price', label: 'Prix (FCFA)', type: 'number', placeholder: '6500' }, A('price'), fid('price'),
+      numberField({ key: 'price', label: 'Prix (' + (D.currencyInfo ? D.currencyInfo().short : 'FCFA') + ')', type: 'number', money: true, placeholder: '6500' }, A('price'), fid('price'),
         { format: (v) => `Affiché${NB}: ${D.formatPrice(v)}`, selectOnFocus: true }),
       selectField({ key: 'badge', label: 'Badge', type: 'select', options: badgeOpts },
         { get: () => { const x = findProduct(pid); return x && x.badge ? x.badge : ''; }, set: (v, o) => A('badge').set(v === '' ? null : v, o) }, fid('badge'))));

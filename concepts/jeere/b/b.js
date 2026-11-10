@@ -44,6 +44,10 @@
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fr(s) { return String(s).replace(/ ([:;!?»])/g, NB + '$1').replace(/« /g, '«' + NB); }
+  // an amount rounded to the store's currency (whole FCFA, cents of a dollar or a euro)
+  function money(n) { try { return D.roundMoney(n); } catch (e) { return Math.round(n); } }
+  // Stripe counts in the smallest unit (2499 = 24,99 $): back to the store's units
+  function fromMinor(n) { var k = 1; try { k = D.currencyInfo().minor || 1; } catch (e) { /* FCFA */ } return (Number(n) || 0) / k; }
   function price(n) { try { return D.formatPrice(n).replace(/\s/g, NB); } catch (e) { return Math.round(n) + NB + 'FCFA'; } }
   function landing() { return JEERE_HOST.test(location.hostname) ? document.baseURI.replace(/b\/?$/, '') : 'https://jeere.kreeative.xyz/'; }
 
@@ -241,9 +245,9 @@
       var p = prods.filter(function (x) { return x.id === id; })[0];
       var q = Math.max(1, Math.round(Number(cart[id]) || 1));
       if (!p) return;
-      var pr = Math.max(0, Math.round(Number(p.price) || 0));
-      total += pr * q;
-      lines.push({ name: p.name || 'Produit', qty: q, amount: pr * q });
+      var pr = Math.max(0, money(Number(p.price) || 0));
+      total = money(total + pr * q);
+      lines.push({ name: p.name || 'Produit', qty: q, amount: money(pr * q) });
     });
     return { lines: lines, total: total };
   }
@@ -256,19 +260,19 @@
     var o = orderLines();
     var f = (S.root && S.root.__jstForm) || {};
     var z = zones().filter(function (x) { return x && x.name === f.commune; })[0];
-    var fee = z && isFinite(Number(z.fee)) ? Math.round(Number(z.fee)) : 0;
+    var fee = z && isFinite(Number(z.fee)) ? money(Number(z.fee)) : 0;
     var pay = D && Array.isArray(D.PAYMENTS) ? (D.PAYMENTS.filter(function (x) { return x.key === f.pay; })[0] || {}).label : '';
     var name = (S.config.store && S.config.store.name) || 'la boutique';
     var t = 'Bonjour ' + name + ', je voudrais commander :\n';
     o.lines.forEach(function (l) { t += '• ' + l.qty + ' × ' + l.name + ' — ' + price(l.amount) + '\n'; });
     if (f.commune) t += 'Livraison : ' + f.commune + (fee ? ' (' + price(fee) + ')' : '') + '\n';
-    if (o.lines.length) t += 'Total : ' + price(o.total + fee) + '\n';
+    if (o.lines.length) t += 'Total : ' + price(money(o.total + fee)) + '\n';
     if (pay) t += 'Paiement : ' + pay + '\n';
     if (f.first) t += 'Nom : ' + f.first + '\n';
     if (f.phone) t += 'Téléphone : ' + f.phone + '\n';
     if (f.address) t += 'Adresse : ' + f.address + '\n';
     t += '(Commande depuis ' + location.host + location.pathname + ')';
-    return { text: fr(t), lines: o.lines, total: o.total + fee, fee: fee, commune: f.commune || '' };
+    return { text: fr(t), lines: o.lines, total: money(o.total + fee), fee: fee, commune: f.commune || '' };
   }
   /* ---------------------------------------------------------------- card payment (Stripe, the `payments` function)
    * A store whose seller connected Stripe takes cards from anywhere: the order is recorded by the `orders`
@@ -355,10 +359,10 @@
       var sh = document.createElement('div');
       sh.className = 'jb-sheet'; sh.id = 'jb-sheet';
       sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-labelledby', 'jb-sheet-t');
-      sh.innerHTML = '<div class="jb-sheet__card jb-sheet__card--pay"><h2 id="jb-sheet-t" tabindex="-1">Payer ' + esc(price(pi.amount)) + '</h2>' +
+      sh.innerHTML = '<div class="jb-sheet__card jb-sheet__card--pay"><h2 id="jb-sheet-t" tabindex="-1">Payer ' + esc(price(fromMinor(pi.amount))) + '</h2>' +
         '<p>Commande n°' + NB + esc(String(order.number)) + ' · paiement sécurisé par Stripe. La boutique ne voit jamais votre numéro de carte.</p>' +
         '<form id="jb-payform" novalidate><div id="jb-payel" class="jb-payel"></div><p class="jb-payerr" id="jb-payerr" role="alert" hidden></p>' +
-        '<div class="jb-actions"><button class="jb-btn" type="submit" id="jb-paybtn">Payer ' + esc(price(pi.amount)) + '</button><button class="jb-btn jb-btn--ghost" type="button" data-jb="sheet-close">Annuler</button></div></form></div>';
+        '<div class="jb-actions"><button class="jb-btn" type="submit" id="jb-paybtn">Payer ' + esc(price(fromMinor(pi.amount))) + '</button><button class="jb-btn jb-btn--ghost" type="button" data-jb="sheet-close">Annuler</button></div></form></div>';
       document.body.appendChild(sh);
       var payEl = elements.create('payment', { layout: 'tabs' });
       payEl.mount('#jb-payel');

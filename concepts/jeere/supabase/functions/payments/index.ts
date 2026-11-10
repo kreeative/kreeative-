@@ -42,6 +42,8 @@ const PUBLISHABLE_STRIPE = (Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? '').trim()
 const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '2') || 0));
 // Jeere's commission by the seller's boutique plan (profiles.plan, written by the server since jeere_wave2):
 // the plan's own rate (creer/data.js PLANS), never more than FEE_PCT. Gratuit 2 %, Essentiel 1 %, Pro and Business 0 %.
+// The order's currency for Stripe (« xof », « cad », « usd », « eur »); amounts are already in its smallest unit
+const curOf = (o: Obj | undefined) => { const c = String((o && o.currency) ?? 'XOF').toLowerCase(); return ['xof', 'cad', 'usd', 'eur'].includes(c) ? c : 'xof'; };
 const PLAN_FEE: Record<string, number> = { gratuit: 2, essentiel: 1, pro: 0, business: 0 };
 async function feeFor(owner: string): Promise<number> {
   if (!/^[0-9a-f-]{36}$/i.test(owner)) return FEE_PCT;
@@ -193,14 +195,14 @@ async function webhook(req: Request) {
     const md = isObj(obj.metadata) ? obj.metadata : {};
     const orderId = str(md.order_id, 40);
     if (!UUID.test(orderId)) return json({ ok: true });
-    const o = (await rows('orders?select=id,store_id,total,payment_ref,payment_status,status&id=eq.' + orderId))[0];
+    const o = (await rows('orders?select=id,store_id,total,currency,payment_ref,payment_status,status&id=eq.' + orderId))[0];
     if (!o || o.payment_status === 'payee') return json({ ok: true });
     const p = await payRow(String(o.store_id));
     if (!p || String(ev.account ?? '') !== String(p.account_id)) return json({ ok: true, ignored: 'account' });
     if (str(obj.id, 120) !== String(o.payment_ref ?? '')) return json({ ok: true, ignored: 'intent' });
     if (ev.livemode !== LIVE) return json({ ok: true, ignored: 'mode' });
     const ok = type === 'payment_intent.succeeded';
-    if (ok && (Math.round(Number(obj.amount_received ?? obj.amount)) !== Math.round(Number(o.total)) || String(obj.currency ?? '').toLowerCase() !== 'xof')) return json({ ok: true, ignored: 'amount' });
+    if (ok && (Math.round(Number(obj.amount_received ?? obj.amount)) !== Math.round(Number(o.total)) || String(obj.currency ?? '').toLowerCase() !== curOf(o))) return json({ ok: true, ignored: 'amount' });
     const patch: Obj = { payment_status: ok ? 'payee' : 'echouee', updated_at: new Date().toISOString() };
     if (ok) { patch.paid_at = new Date().toISOString(); if (o.status === 'nouvelle') patch.status = 'confirmee'; }
     await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify(patch) });
@@ -214,7 +216,7 @@ async function webhook(req: Request) {
     if ((type === 'checkout.session.completed' && obj.payment_status === 'paid') || type === 'checkout.session.async_payment_succeeded') status = 'payee';
     else if (type === 'checkout.session.async_payment_failed' || type === 'checkout.session.expired') status = 'echouee';
     if (!status) return json({ ok: true });
-    const o = (await rows('orders?select=id,store_id,total,payment_ref,payment_status,status&id=eq.' + orderId))[0];
+    const o = (await rows('orders?select=id,store_id,total,currency,payment_ref,payment_status,status&id=eq.' + orderId))[0];
     if (!o || o.payment_status === 'payee') return json({ ok: true });
     // Only the session Jeere opened for THIS order, on THIS store's own Stripe account, for the full amount:
     // a seller's own Stripe account (her API keys) could otherwise send a session naming another store's order.
@@ -223,7 +225,7 @@ async function webhook(req: Request) {
     if (str(obj.id, 120) !== String(o.payment_ref ?? '')) return json({ ok: true, ignored: 'session' });
     if (isObj(md) && md.store_id && String(md.store_id) !== String(o.store_id)) return json({ ok: true, ignored: 'store' });
     if (ev.livemode !== LIVE) return json({ ok: true, ignored: 'mode' });
-    if (status === 'payee' && (Math.round(Number(obj.amount_total)) !== Math.round(Number(o.total)) || String(obj.currency ?? '').toLowerCase() !== 'xof')) return json({ ok: true, ignored: 'amount' });
+    if (status === 'payee' && (Math.round(Number(obj.amount_total)) !== Math.round(Number(o.total)) || String(obj.currency ?? '').toLowerCase() !== curOf(o))) return json({ ok: true, ignored: 'amount' });
     const patch: Obj = { payment_status: status, payment_ref: str(obj.id, 120), updated_at: new Date().toISOString() };
     if (status === 'payee') { patch.paid_at = new Date().toISOString(); if (o.status === 'nouvelle') patch.status = 'confirmee'; }
     await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify(patch) });
@@ -263,7 +265,7 @@ Deno.serve(async (req: Request) => {
     if (!/^[a-z0-9-]{3,40}$/.test(slug) || !(number > 0)) return json({ ok: false, code: 'order' }, 400);
     const st = (await rows('stores?select=id&slug=eq.' + encodeURIComponent(slug)))[0];
     if (!st) return json({ ok: false, code: 'order' }, 404);
-    const o = (await rows('orders?select=id,store_id,total,payment_ref,payment_status,status&store_id=eq.' + st.id + '&number=eq.' + number))[0];
+    const o = (await rows('orders?select=id,store_id,total,currency,payment_ref,payment_status,status&store_id=eq.' + st.id + '&number=eq.' + number))[0];
     if (!o) return json({ ok: false, code: 'order' }, 404);
     if (o.payment_status === 'payee') return json({ ok: true, paid: true });
     const p = await payRow(String(st.id));
@@ -273,11 +275,11 @@ Deno.serve(async (req: Request) => {
     if (ref.startsWith('pi_')) {
       const r = await stripe('GET', 'payment_intents/' + ref, undefined, String(p.account_id));
       const pi = r.ok ? r.data : {};
-      paid = pi.status === 'succeeded' && Math.round(Number(pi.amount_received ?? pi.amount)) === Math.round(Number(o.total)) && String(pi.currency ?? '').toLowerCase() === 'xof';
+      paid = pi.status === 'succeeded' && Math.round(Number(pi.amount_received ?? pi.amount)) === Math.round(Number(o.total)) && String(pi.currency ?? '').toLowerCase() === curOf(o);
     } else {
       const r = await stripe('GET', 'checkout/sessions/' + ref, undefined, String(p.account_id));
       const cs = r.ok ? r.data : {};
-      paid = cs.payment_status === 'paid' && Math.round(Number(cs.amount_total)) === Math.round(Number(o.total)) && String(cs.currency ?? '').toLowerCase() === 'xof';
+      paid = cs.payment_status === 'paid' && Math.round(Number(cs.amount_total)) === Math.round(Number(o.total)) && String(cs.currency ?? '').toLowerCase() === curOf(o);
     }
     if (!paid) return json({ ok: true, paid: false });
     const patch: Obj = { payment_status: 'payee', paid_at: new Date().toISOString(), updated_at: new Date().toISOString() };
@@ -310,11 +312,11 @@ Deno.serve(async (req: Request) => {
     if (/^pi_[A-Za-z0-9_]+$/.test(prev)) {
       const g = await stripe('GET', 'payment_intents/' + prev, undefined, String(p.account_id));
       if (g.ok && Math.round(Number(g.data.amount)) === total && !['succeeded', 'canceled'].includes(String(g.data.status))) {
-        return json({ ok: true, clientSecret: g.data.client_secret, publishableKey: PUBLISHABLE_STRIPE, account: p.account_id, amount: total, currency: 'xof', number: o.number });
+        return json({ ok: true, clientSecret: g.data.client_secret, publishableKey: PUBLISHABLE_STRIPE, account: p.account_id, amount: total, currency: curOf(o), number: o.number });
       }
     }
     const r = await stripe('POST', 'payment_intents', {
-      amount: total, currency: 'xof',
+      amount: total, currency: curOf(o),
       automatic_payment_methods: { enabled: true },
       description: storeName + ' · commande n° ' + o.number,
       metadata: { order_id: orderId, store_id: String(st.id), number: String(o.number) },
@@ -323,7 +325,7 @@ Deno.serve(async (req: Request) => {
     }, String(p.account_id));
     if (!r.ok) return json({ ok: false, code: 'stripe', message: stripeError(r.data) }, 502);
     await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify({ payment_status: 'en_attente', payment_ref: str(r.data.id, 120), payment: 'Carte bancaire', updated_at: new Date().toISOString() }) });
-    return json({ ok: true, clientSecret: r.data.client_secret, publishableKey: PUBLISHABLE_STRIPE, account: p.account_id, amount: total, currency: 'xof', number: o.number });
+    return json({ ok: true, clientSecret: r.data.client_secret, publishableKey: PUBLISHABLE_STRIPE, account: p.account_id, amount: total, currency: curOf(o), number: o.number });
   }
 
   // a buyer pays an order placed by the `orders` function
@@ -344,10 +346,10 @@ Deno.serve(async (req: Request) => {
     const lines = (Array.isArray(o.lines) ? o.lines as Obj[] : []).filter(isObj);
     const items: Obj[] = lines.map((l) => ({
       quantity: Math.max(1, Math.round(Number(l.qty) || 1)),
-      price_data: { currency: 'xof', unit_amount: Math.max(0, Math.round(Number(l.price ?? (Number(l.amount) / Math.max(1, Number(l.qty) || 1))) || 0)), product_data: { name: str(l.name, 120) || 'Produit' } }
+      price_data: { currency: curOf(o), unit_amount: Math.max(0, Math.round(Number(l.price ?? (Number(l.amount) / Math.max(1, Number(l.qty) || 1))) || 0)), product_data: { name: str(l.name, 120) || 'Produit' } }
     }));
     const fee = Math.round(Number(o.delivery_fee) || 0);
-    if (fee > 0) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: fee, product_data: { name: 'Livraison' } } });
+    if (fee > 0) items.push({ quantity: 1, price_data: { currency: curOf(o), unit_amount: fee, product_data: { name: 'Livraison' } } });
     const total = Math.round(Number(o.total) || 0);
     if (!items.length || total <= 0) return json({ ok: false, code: 'empty', message: 'Le panier est vide.' }, 400);
     // back to the store: its own page (or the seller's site, when the order came from it)

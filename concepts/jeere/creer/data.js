@@ -70,7 +70,56 @@
     return sign + String(Math.abs(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   }
 
-  function formatPrice(n) { return formatNumber(n) + ' FCFA'; }
+  /* The store's currency (fiche: store.currency). FCFA by default; CAD, USD and EUR for a store that sells
+   * in Canada, the United States or Europe. Prices are typed in the store's currency, in units (12.50 $),
+   * never converted: changing the currency changes the label, not the amounts. */
+  var CURRENCIES = {
+    XOF: { code: 'XOF', label: 'Franc CFA (FCFA)', short: 'FCFA', symbol: 'FCFA', decimals: 0, minor: 1 },
+    CAD: { code: 'CAD', label: 'Dollar canadien ($ CA)', short: '$ CA', symbol: '$', decimals: 2, minor: 100 },
+    USD: { code: 'USD', label: 'Dollar américain ($ US)', short: '$ US', symbol: '$', decimals: 2, minor: 100 },
+    EUR: { code: 'EUR', label: 'Euro (€)', short: '€', symbol: '€', decimals: 2, minor: 100 }
+  };
+  var CURRENCY_CODES = ['XOF', 'CAD', 'USD', 'EUR'];
+  var CUR = 'XOF';
+  function currencyCode(v) {
+    var c = typeof v === 'string' ? v.trim().toUpperCase() : '';
+    if (c === 'FCFA' || c === 'CFA') c = 'XOF';
+    return CURRENCY_CODES.indexOf(c) !== -1 ? c : null;
+  }
+  // The currency of a fiche (or a code), XOF when none
+  function currencyOf(x) {
+    if (typeof x === 'string') return currencyCode(x) || 'XOF';
+    var st = x && typeof x === 'object' && x.store && typeof x.store === 'object' ? x.store : null;
+    return (st && currencyCode(st.currency)) || 'XOF';
+  }
+  function currencyInfo(x) { return CURRENCIES[x === undefined ? CUR : currencyOf(x)]; }
+  // The currency the page shows (render, the cart, the editor set it from the store they display)
+  function setCurrency(x) { CUR = currencyOf(x); return CUR; }
+  function getCurrency() { return CUR; }
+  // An amount in the currency's units, rounded to its decimals (12.499 $ → 12.5)
+  function roundMoney(n, code) {
+    var x = Number(n);
+    if (!isFinite(x)) return 0;
+    var k = currencyInfo(code === undefined ? CUR : code).minor;
+    return Math.round(x * k) / k;
+  }
+  // « 14 500 », « 12,50 » (a whole amount in dollars or euros keeps no decimals: « 25 »)
+  function formatAmount(n, code) {
+    var c = currencyInfo(code === undefined ? CUR : code);
+    var x = roundMoney(n, c.code);
+    if (!c.decimals || Math.round(x) === x) return formatNumber(x);
+    var sign = x < 0 ? '-' : '';
+    var a = Math.abs(x), whole = Math.floor(a), cents = Math.round((a - whole) * c.minor);
+    if (cents >= c.minor) { whole += 1; cents -= c.minor; }
+    return sign + formatNumber(whole) + ',' + (cents < 10 ? '0' : '') + cents;
+  }
+  // « 14 500 FCFA », « 12,50 $ CA », « 25 € »
+  function formatPrice(n, code) {
+    var c = currencyInfo(code === undefined ? CUR : code);
+    return formatAmount(n, c.code) + ' ' + c.short;
+  }
+  // Jeere's own prices (plans, domains): always FCFA, whatever the store sells in
+  function formatFcfa(n) { return formatNumber(n) + ' FCFA'; }
 
   function applyName(text, name) {
     return String(text == null ? '' : text).split('{name}').join(String(name == null ? '' : name));
@@ -1857,7 +1906,7 @@
           key: 'zones', label: 'Zones de livraison', type: 'items', itemLabel: 'Zone', maxItems: 30,
           itemFields: [
             { key: 'name', label: 'Commune ou zone', type: 'text', max: 40, placeholder: 'Cocody' },
-            { key: 'fee', label: 'Frais (FCFA)', type: 'number', min: 0, max: 100000, placeholder: '1500' }
+            { key: 'fee', label: 'Frais de livraison', type: 'number', money: true, min: 0, max: 100000, placeholder: '1500' }
           ],
           itemDefaults: { name: '', fee: 1500 }
         }
@@ -2757,6 +2806,30 @@
     return isFinite(n) ? n : null;
   }
 
+  // An amount from a number or a string (« 12,50 $ », « 12 500 FCFA », 6500), in the currency's units: whole
+  // for FCFA, to the cent for dollars and euros. Null if none.
+  function toMoney(v, code) {
+    var c = currencyInfo(code === undefined ? CUR : code);
+    if (!c.decimals) return toInt(v);
+    if (typeof v === 'number') return isFinite(v) ? roundMoney(v, c.code) : null;
+    if (typeof v !== 'string') return null;
+    var t = v.replace(/[\s\u00A0\u202F$€]/g, '').replace(/cad|usd|eur|ca|us/ig, '');
+    if (/^-?\d{1,3}([.,]\d{3})+$/.test(t) && !/[.,]\d{1,2}$/.test(t)) t = t.replace(/[.,]/g, '');
+    else if (/^-?\d{1,3}(\.\d{3})+,\d{1,2}$/.test(t)) t = t.replace(/\./g, '').replace(',', '.');
+    else if (/^-?\d{1,3}(,\d{3})+\.\d{1,2}$/.test(t)) t = t.replace(/,/g, '');
+    else t = t.replace(',', '.');
+    if (!/^-?\d*\.?\d+$/.test(t)) return null;
+    var n = parseFloat(t);
+    return isFinite(n) ? roundMoney(n, c.code) : null;
+  }
+  function clampMoney(v, min, max, def, code) {
+    var n = toMoney(v, code);
+    if (n === null) return def;
+    if (typeof min === 'number' && n < min) n = min;
+    if (typeof max === 'number' && n > max) n = max;
+    return n;
+  }
+
   function clampInt(v, min, max, def) {
     var n = toInt(v);
     if (n === null) return def;
@@ -2791,6 +2864,7 @@
       case 'textarea':
         return str(v, typeof d === 'string' ? d : '');
       case 'number':
+        if (f.money) return clampMoney(v, f.min, f.max, typeof d === 'number' ? d : (typeof f.min === 'number' ? f.min : 0));
         return clampInt(v, f.min, f.max, typeof d === 'number' ? d : (typeof f.min === 'number' ? f.min : 0));
       case 'select': {
         var opts = f.options || [];
@@ -2909,6 +2983,11 @@
       city: str(srcStore.city, base.store.city),
       niche: has(srcStore, 'niche') ? nicheKnown : base.store.niche
     };
+    var cur = currencyCode(srcStore.currency);
+    if (cur && cur !== 'XOF') store.currency = cur;
+    var curNow = cur || 'XOF';
+    // the page shows the store it normalizes: its amounts (delivery fees below, the prices) in its currency
+    CUR = curNow;
     // The brand keys are optional: kept (repaired) when the fiche has them, never added
     BRAND_KEYS.forEach(function (k) { if (has(srcStore, k)) store[k] = normBrand(k, srcStore[k]); });
     if (has(srcStore, 'seo')) { var storeSeo = normSeo(srcStore.seo); if (storeSeo) store.seo = storeSeo; }
@@ -2977,7 +3056,7 @@
     var products = [];
     (Array.isArray(src.products) ? src.products : base.products).forEach(function (p) {
       if (!isObj(p)) return;
-      var price = toInt(p.price);
+      var price = toMoney(p.price, curNow);
       products.push({
         id: p.id,
         name: str(p.name, '').trim(),
@@ -3107,13 +3186,17 @@
         var pname = textOf(p.name).trim();
         if (!pname) add('error', 'Le produit n° ' + (i + 1) + ' n’a pas de nom. Donnez-lui un nom clair.', 'product', p.id);
         var price = p.price;
-        if (typeof price !== 'number' || !isFinite(price) || price < 0 || Math.floor(price) !== price) {
-          add('error', (pname ? q(shorten(pname, 40)) : 'Le produit n° ' + (i + 1)) + ' : indiquez un prix en FCFA, en nombre entier (par exemple 6500).', 'product', p.id);
+        var vc = currencyInfo(currencyOf(config));
+        if (typeof price !== 'number' || !isFinite(price) || price < 0 || Math.abs(Math.round(price * vc.minor) - price * vc.minor) > 1e-6) {
+          add('error', (pname ? q(shorten(pname, 40)) : 'Le produit n° ' + (i + 1)) + ' : ' + (vc.decimals ? 'indiquez un prix en ' + vc.short + ', avec au plus deux décimales (par exemple 24,99).' : 'indiquez un prix en FCFA, en nombre entier (par exemple 6500).'), 'product', p.id);
         }
       });
 
       var anyPayment = PAYMENT_KEYS.some(function (k) { return payments[k] === true; });
       if (!anyPayment) add('error', 'Activez au moins un moyen de paiement : Wave, Orange Money, MTN MoMo, Moov Money ou paiement à la livraison.', 'payments');
+      if (anyPayment && currencyOf(config) !== 'XOF' && payments.card !== true && payments.cod !== true) {
+        add('error', 'Votre boutique vend en ' + CURRENCIES[currencyOf(config)].short + ' : le mobile money (en FCFA) n’est pas proposé. Activez la carte bancaire ou le paiement à la livraison.', 'payments');
+      }
 
       if (!(typeof config.template === 'string' && inColl(templates, config.template))) {
         add('error', 'Modèle inconnu. Choisissez Plateau, Cocody ou Treichville dans l’onglet Thème.', 'theme', 'template');
@@ -3478,8 +3561,8 @@
     return {
       id: id, name: name, label: name,
       priceMonth: month, priceWeek: week, price: month,
-      priceLabel: month ? formatPrice(month) + ' / mois' : '0 FCFA',
-      priceWeekLabel: week ? 'ou ' + formatPrice(week) + ' par semaine' : '',
+      priceLabel: month ? formatFcfa(month) + ' / mois' : '0 FCFA',
+      priceWeekLabel: week ? 'ou ' + formatFcfa(week) + ' par semaine' : '',
       orders: orders, unlimited: orders === null,
       ordersLabel: orders === null ? 'Commandes illimitées' : 'Jusqu’à ' + formatNumber(orders) + ' commandes par mois',
       fee: fee, feeLabel: fee + ' % par vente en ligne',
@@ -3777,11 +3860,11 @@
     out.date = isoOr(o.date, new Date(0).toISOString());
     out.customer = isObj(o.customer) ? out.customer : { name: '', phone: '', commune: '' };
     out.items = (Array.isArray(o.items) ? out.items : []).filter(isObj).map(function (it) {
-      return { productId: str(it.productId, ''), name: str(it.name, ''), qty: clampInt(it.qty, 1, 999, 1), price: clampInt(it.price, 0, null, 0) };
+      return { productId: str(it.productId, ''), name: str(it.name, ''), qty: clampInt(it.qty, 1, 999, 1), price: clampMoney(it.price, 0, null, 0) };
     });
-    out.subtotal = clampInt(o.subtotal, 0, null, out.items.reduce(function (t, it) { return t + it.qty * it.price; }, 0));
-    out.delivery = clampInt(o.delivery, 0, null, 0);
-    out.total = clampInt(o.total, 0, null, out.subtotal + out.delivery);
+    out.subtotal = clampMoney(o.subtotal, 0, null, roundMoney(out.items.reduce(function (t, it) { return t + it.qty * it.price; }, 0)));
+    out.delivery = clampMoney(o.delivery, 0, null, 0);
+    out.total = clampMoney(o.total, 0, null, roundMoney(out.subtotal + out.delivery));
     out.payment = idIn(PAYMENTS, o.payment) ? o.payment : 'cod';
     out.status = idIn(ORDER_STATUSES, o.status) ? o.status : 'new';
     out.channel = idIn(ORDER_CHANNELS, o.channel) ? o.channel : 'boutique';
@@ -3894,7 +3977,7 @@
     for (var i = 0; i < ordered.length; i++) {
       var st = isObj(ordered[i].settings) ? ordered[i].settings : {};
       var zones = (Array.isArray(st.zones) ? st.zones : []).filter(isObj).map(function (z) {
-        return { name: str(z.name, '').replace(/\s+/g, ' ').trim(), fee: clampInt(z.fee, 0, 100000, 0) };
+        return { name: str(z.name, '').replace(/\s+/g, ' ').trim(), fee: clampMoney(z.fee, 0, 100000, 0, currencyOf(config)) };
       }).filter(function (z) { return z.name; });
       if (zones.length) return zones;
     }
@@ -4074,7 +4157,17 @@
     normalizeConfig: normalizeConfig,
     normalizeWhatsapp: normalizeWhatsapp,
     formatPrice: formatPrice,
+    formatAmount: formatAmount,
+    formatFcfa: formatFcfa,
     formatNumber: formatNumber,
+    CURRENCIES: CURRENCIES,
+    CURRENCY_CODES: CURRENCY_CODES,
+    currencyOf: currencyOf,
+    currencyInfo: currencyInfo,
+    setCurrency: setCurrency,
+    getCurrency: getCurrency,
+    roundMoney: roundMoney,
+    toMoney: toMoney,
     applyName: applyName,
     clone: clone,
     newId: newId,

@@ -69,6 +69,23 @@
     return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   }
 
+  // The amount alone (« 14 500 », « 24,99 ») and the currency's label (« FCFA », « $ CA », « € »)
+  function amt(n) {
+    const d = DATA();
+    try { if (d && typeof d.formatAmount === 'function') return String(d.formatAmount(n)); } catch (e) { /* the number */ }
+    return fmtNum(n);
+  }
+  function curShort() {
+    const d = DATA();
+    try { if (d && typeof d.currencyInfo === 'function') return d.currencyInfo().short; } catch (e) { /* FCFA */ }
+    return 'FCFA';
+  }
+  // A price rounded to the currency's cents (FCFA: whole)
+  function roundPrice(n) {
+    const d = DATA();
+    try { if (d && typeof d.roundMoney === 'function') return d.roundMoney(n); } catch (e) { /* whole */ }
+    return Math.round(n);
+  }
   // « 14 500 FCFA » as plain text that never breaks (button labels, sentences).
   function money(n) {
     const d = DATA();
@@ -726,7 +743,7 @@
     return {
       id: str(p.id) || 'p' + (i + 1),
       name: str(p.name).trim(),
-      price: price === null ? null : Math.max(0, Math.round(price)),
+      price: price === null ? null : Math.max(0, roundPrice(price)),
       category: str(p.category).trim(),
       badge: typeof p.badge === 'string' && own(d.BADGES, p.badge) ? p.badge : null,
       art: kinds.indexOf(p.art) !== -1 && own(ART, p.art) ? p.art : 'box',
@@ -847,8 +864,11 @@
     const payDefs = Array.isArray(d.PAYMENTS) && d.PAYMENTS.length
       ? d.PAYMENTS.filter((p) => isObj(p) && typeof p.key === 'string')
       : PAY_ORDER.map((k) => ({ key: k, label: PAY_FALLBACK[k].label }));
+    let curCode = 'XOF';
+    try { if (typeof d.currencyOf === 'function') curCode = d.currencyOf(cfg); } catch (e) { /* FCFA */ }
     payDefs.forEach((p) => {
       if (pay[p.key] !== true) return;
+      if (curCode !== 'XOF' && p.key !== 'card' && p.key !== 'cod') return;
       const fb = PAY_FALLBACK[p.key] || {};
       payments.push({
         key: p.key,
@@ -1020,7 +1040,7 @@
 
   function priceHTML(n, cls) {
     if (typeof n !== 'number') return '<span class="jst-price is-empty' + (cls ? ' ' + cls : '') + '">Prix à venir</span>';
-    return '<span class="jst-price' + (cls ? ' ' + cls : '') + '"><span class="jst-price-n">' + esc(fmtNum(n)) + '</span>' + NBSP + '<span class="jst-price-c">FCFA</span></span>';
+    return '<span class="jst-price' + (cls ? ' ' + cls : '') + '"><span class="jst-price-n">' + esc(amt(n)) + '</span>' + NBSP + '<span class="jst-price-c">' + esc(curShort()) + '</span></span>';
   }
 
   // A store action: data-jst-action plus its data (escaped). Read back by onClick.
@@ -1396,7 +1416,7 @@
         ? '<div class="jst-hero-block has-img">' + imgTag + '</div>'
         : '<div class="jst-hero-block" style="' + tileStyle(p.color) + '">' + leadPic(p) + '</div>';
       const sticker = m.minPrice !== null
-        ? '<div class="jst-sticker" aria-hidden="true"><span>Dès</span><b>' + esc(fmtNum(m.minPrice)) + '</b><span>FCFA</span></div>'
+        ? '<div class="jst-sticker" aria-hidden="true"><span>Dès</span><b>' + esc(amt(m.minPrice)) + '</b><span>' + esc(curShort()) + '</span></div>'
         : '';
       const strip = [];
       if (m.city) strip.push('Livraison à ' + esc(m.city));
@@ -1416,7 +1436,7 @@
     } else {
       const t = tileColors(p.color);
       const cap = p.name
-        ? '<p class="jst-hero-cap"><span>N°' + NBSP + '01</span><span>' + esc(p.name) + '</span>' + (typeof p.price === 'number' ? '<span>' + esc(fmtNum(p.price)) + NBSP + 'FCFA</span>' : '') + '</p>'
+        ? '<p class="jst-hero-cap"><span>N°' + NBSP + '01</span><span>' + esc(p.name) + '</span>' + (typeof p.price === 'number' ? '<span>' + esc(amt(p.price)) + NBSP + esc(curShort()) + '</span>' : '') + '</p>'
         : '';
       // The hero button keeps the seller's accent unless it would vanish on the tile.
       const ink = inkOn(t.tile);
@@ -1546,7 +1566,7 @@
     const list = zones.length
       ? '<ul class="jst-zones' + (zones.length > 6 ? ' is-many' : '') + '">' + zones.map((z) => {
         const fee = num(z.fee);
-        const feeHTML = fee === 0 ? '<span class="jst-price jst-free">Offerte</span>' : priceHTML(fee === null ? null : Math.max(0, Math.round(fee)));
+        const feeHTML = fee === 0 ? '<span class="jst-price jst-free">Offerte</span>' : priceHTML(fee === null ? null : Math.max(0, roundPrice(fee)));
         return '<li class="jst-zone"><span class="jst-zone-name">' + (str(z.name).trim() ? esc(str(z.name).trim()) : '<span class="jst-muted-inline">Zone sans nom</span>') + '</span><span class="jst-zone-dots" aria-hidden="true"></span>' + feeHTML + '</li>';
       }).join('') + '</ul>'
       : empty('Ajoutez vos zones de livraison et leurs frais.');
@@ -1705,10 +1725,10 @@
 
     const lines = Object.keys(cart).map((id) => {
       const p = byId[id];
-      return { p: p, qty: cart[id], total: (typeof p.price === 'number' ? p.price : 0) * cart[id] };
+      return { p: p, qty: cart[id], total: roundPrice((typeof p.price === 'number' ? p.price : 0) * cart[id]) };
     });
     const count = lines.reduce((a, l) => a + l.qty, 0);
-    const subtotal = lines.reduce((a, l) => a + l.total, 0);
+    const subtotal = roundPrice(lines.reduce((a, l) => a + l.total, 0));
 
     const rf = isObj(rootEl.__jstForm) ? rootEl.__jstForm : {};
     const form = { first: str(rf.first).slice(0, 40), phone: str(rf.phone).slice(0, 20), commune: str(rf.commune), address: str(rf.address).slice(0, 240), pay: str(rf.pay) };
@@ -1737,7 +1757,7 @@
       customPage: customPage, pageId: customPage ? customPage.id : null,
       menu: m.device === 'phone' && rootEl.__jstMenu === true,
       cart: cart, lines: lines, count: count, subtotal: subtotal,
-      form: form, zone: zone, fee: fee, total: subtotal + fee, pay: pay, pdpQty: pdpQty,
+      form: form, zone: zone, fee: fee, total: roundPrice(subtotal + fee), pay: pay, pdpQty: pdpQty,
       needZone: page === 'checkout' && !zone && m.zones.length > 0 && m.payments.length > 0,
       err: isObj(rootEl.__jstErr) ? rootEl.__jstErr : {},
       peek: !!rootEl.__jstPeek
@@ -2334,6 +2354,7 @@
     let j = null;
     let html;
     try {
+      try { const dd = DATA(); if (dd && typeof dd.setCurrency === 'function') dd.setCurrency(config); } catch (e) { /* FCFA */ }
       m = buildModel(config, device);
       VIVID = m.vivid;
       LINK_BASE = typeof o.linkBase === 'string' ? o.linkBase : null;
@@ -2492,7 +2513,7 @@
           desc = line(pr.description, 155) || desc;
           type = 'product';
           image = photoOf(pr);
-          product = { name: line(pr.name, 120) || 'Produit', price: Math.max(0, Math.round(num(pr.price) || 0)), description: line(pr.description, 500), image: image };
+          product = { name: line(pr.name, 120) || 'Produit', price: Math.max(0, roundPrice(num(pr.price) || 0)), description: line(pr.description, 500), image: image };
         }
       } else if (v.page === 'cart' || v.page === 'checkout') {
         title = (v.page === 'cart' ? 'Panier' : 'Commande') + ' · ' + name;

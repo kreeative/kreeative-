@@ -40,7 +40,24 @@ const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.i
 const str = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n) : '');
 const int = (v: unknown, min: number, max: number, d = 0) => { const n = Math.round(Number(v)); return isFinite(n) ? Math.max(min, Math.min(max, n)) : d; };
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
-const money = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' FCFA';
+// The store's currency (fiche: store.currency). Amounts are saved in the currency's smallest unit, as Stripe counts
+// them: whole FCFA, cents of a dollar or a euro (orders.total 2499 in CAD = 24,99 $ CA).
+const CURRENCIES: Record<string, { short: string; minor: number }> = { XOF: { short: 'FCFA', minor: 1 }, CAD: { short: '$ CA', minor: 100 }, USD: { short: '$ US', minor: 100 }, EUR: { short: '€', minor: 100 } };
+const currencyOf = (fiche: unknown) => {
+  const st = isObj(fiche) && isObj((fiche as Obj).store) ? (fiche as Obj).store as Obj : {};
+  const c = typeof st.currency === 'string' ? st.currency.toUpperCase() : '';
+  return c in CURRENCIES ? c : 'XOF';
+};
+const curInfo = (c: unknown) => CURRENCIES[typeof c === 'string' && c.toUpperCase() in CURRENCIES ? c.toUpperCase() : 'XOF'];
+const group = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+// 17500 → « 17 500 FCFA »; 2499 in CAD → « 24,99 $ CA »
+const money = (n: number, cur?: unknown) => {
+  const c = curInfo(cur);
+  const x = Math.round(Number(n) || 0);
+  if (c.minor === 1) return group(x) + ' ' + c.short;
+  const a = Math.abs(x), whole = Math.floor(a / c.minor), cents = a % c.minor;
+  return (x < 0 ? '-' : '') + group(whole) + (cents ? ',' + String(cents).padStart(2, '0') : '') + ' ' + c.short;
+};
 
 /* ------------------------------------------------------------------ the default templates */
 export const KINDS = ['confirmation', 'nouvelle', 'expediee', 'livree', 'annulee'] as const;
@@ -84,7 +101,7 @@ function template(store: Obj, kind: Kind) {
 }
 
 /* ------------------------------------------------------------------ rendering */
-type Order = { number: number; customer: Obj; lines: { name: string; qty: number; amount: number }[]; subtotal: number; delivery_fee: number; total: number; payment: string; note: string };
+type Order = { number: number; customer: Obj; lines: { name: string; qty: number; amount: number }[]; subtotal: number; delivery_fee: number; total: number; payment: string; note: string; currency?: string };
 function vars(store: Obj, o: Order) {
   const f = isObj(store.fiche) ? store.fiche : {};
   const st = isObj(f.store) ? f.store : {};
@@ -98,8 +115,8 @@ function vars(store: Obj, o: Order) {
     'client.telephone': str(c.phone, 30), 'client.email': str(c.email, 120),
     'livraison.commune': str(c.commune, 60) || '—', 'livraison.adresse': str(c.address, 200) || '—',
     'commande.numero': '#' + o.number,
-    'commande.total': money(o.total), 'commande.sous_total': money(o.subtotal), 'commande.livraison': money(o.delivery_fee),
-    'commande.articles': o.lines.map((l) => '• ' + l.qty + ' × ' + l.name + ' — ' + money(l.amount)).join('\n'),
+    'commande.total': money(o.total, o.currency), 'commande.sous_total': money(o.subtotal, o.currency), 'commande.livraison': money(o.delivery_fee, o.currency),
+    'commande.articles': o.lines.map((l) => '• ' + l.qty + ' × ' + l.name + ' — ' + money(l.amount, o.currency)).join('\n'),
     'commande.note': o.note || '—',
     'paiement': o.payment || 'à la livraison'
   } as Record<string, string>;
@@ -175,13 +192,17 @@ async function send(store: Obj, to: string, m: { subject: string; text: string; 
 
 /* ------------------------------------------------------------------ the order, recomputed from the fiche */
 function compute(fiche: Obj, cart: Obj, commune: string) {
+  const currency = currencyOf(fiche);
+  const k = CURRENCIES[currency].minor;
+  // a price of the fiche (24.99) → the smallest unit (2499)
+  const minor = (v: unknown, max: number) => { const n = Math.round(Number(v) * k); return isFinite(n) ? Math.max(0, Math.min(max, n)) : 0; };
   const prods = Array.isArray(fiche.products) ? fiche.products as Obj[] : [];
   const lines: { id: string; name: string; qty: number; price: number; amount: number }[] = [];
   Object.keys(cart).slice(0, 60).forEach((id) => {
     const p = prods.find((x) => x && x.id === id);
     if (!p || p.stock === 0 || p.available === false) return;
     const qty = int(cart[id], 1, 20, 1);
-    const price = int(p.price, 0, 1e9, 0);
+    const price = minor(p.price, 1e9);
     lines.push({ id, name: str(p.name, 120) || 'Produit', qty, price, amount: price * qty });
   });
   let fee = 0, hasZones = false, zoneFound = false;
@@ -191,11 +212,11 @@ function compute(fiche: Obj, cart: Obj, commune: string) {
     const zones = ((s.settings as Obj).zones as Obj[]).filter((x) => x && typeof x.name === 'string' && x.name);
     if (zones.length) hasZones = true;
     const z = zones.find((x) => x.name === commune);
-    if (z) { fee = int(z.fee, 0, 1e7, 0); zoneFound = true; }
+    if (z) { fee = minor(z.fee, 1e7); zoneFound = true; }
   });
   const subtotal = lines.reduce((n, l) => n + l.amount, 0);
   // a store with delivery zones: the commune must be one of them (no free delivery by typing another name)
-  return { lines, subtotal, fee, total: subtotal + fee, zoneMissing: hasZones && !zoneFound };
+  return { lines, subtotal, fee, total: subtotal + fee, currency, minor: k, zoneMissing: hasZones && !zoneFound };
 }
 
 /* ------------------------------------------------------------------ the handler */
@@ -237,7 +258,7 @@ Deno.serve(async (req: Request) => {
     // the payment and the source are chosen from lists (a free text could read « Payé » to the seller)
     const PAYS = ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Paiement à la livraison', 'Carte bancaire'];
     const pay = str(b.payment, 40);
-    const order: Order & Obj = { number, customer, lines: o.lines, subtotal: o.subtotal, delivery_fee: o.fee, total: o.total, payment: PAYS.includes(pay) ? pay : '', note: str(b.note, 1000) };
+    const order: Order & Obj = { number, customer, lines: o.lines, subtotal: o.subtotal, delivery_fee: o.fee, total: o.total, payment: PAYS.includes(pay) ? pay : '', note: str(b.note, 1000), currency: o.currency };
     const ins = await admin('orders', { method: 'POST', body: JSON.stringify({ store_id: st.id, ...order, source: b.source === 'site' ? 'site' : 'boutique' }) });
     if (!ins.ok) return json({ ok: false, code: 'server', message: 'La commande n’a pas pu être enregistrée.' }, 500);
     const saved = (await ins.json())[0] as Obj;
@@ -251,7 +272,8 @@ Deno.serve(async (req: Request) => {
     const rn = render(st, 'nouvelle', order);
     if (rn.on && shop) sent.push({ kind: 'nouvelle', to: shop, at: new Date().toISOString(), ...(await send(st, shop, rn, customer.email)) });
     if (sent.length) await admin('orders?id=eq.' + saved.id, { method: 'PATCH', body: JSON.stringify({ emails: sent }) });
-    return json({ ok: true, number, orderId: saved.id, total: o.total, subtotal: o.subtotal, fee: o.fee, lines: o.lines, emails: sent.map((x) => ({ kind: x.kind, ok: x.ok })), emailsReady: !!RESEND_KEY });
+    const major = (n: number) => n / o.minor;
+    return json({ ok: true, number, orderId: saved.id, currency: o.currency, total: major(o.total), subtotal: major(o.subtotal), fee: major(o.fee), lines: o.lines.map((l) => ({ ...l, price: major(l.price), amount: major(l.amount) })), emails: sent.map((x) => ({ kind: x.kind, ok: x.ok })), emailsReady: !!RESEND_KEY });
   }
 
   // everything else: the store's managers

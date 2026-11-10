@@ -542,6 +542,7 @@
    * the markup follows the catalogue. */
   function fmtPrice(n) {
     var D = root.JEERE_DATA;
+    if (D && typeof D.formatPrice === 'function') { try { return D.formatPrice(n); } catch (e) { /* the default */ } }
     var t = D && typeof D.formatNumber === 'function' ? D.formatNumber(n) : String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202F');
     return t + '\u00A0FCFA';
   }

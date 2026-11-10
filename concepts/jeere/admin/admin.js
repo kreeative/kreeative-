@@ -69,7 +69,10 @@
   }
   const ico = (name, cls) => '<svg class="a-ico' + (cls ? ' ' + cls : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + name + '"/></svg>';
 
+  // Jeere's own prices (plans, domains): FCFA whatever the store sells in
+  const fcfa = (n) => (D && D.formatFcfa ? D.formatFcfa(n) : Math.round(Number(n) || 0) + NB + 'FCFA');
   const price = (n) => (D && D.formatPrice ? D.formatPrice(n) : Math.round(Number(n) || 0) + NB + 'FCFA');
+  const curShort = () => (D && D.currencyInfo ? D.currencyInfo().short : 'FCFA');
   const number = (n) => (D && D.formatNumber ? D.formatNumber(n) : String(Math.round(Number(n) || 0)));
   const plural = (n, one, many) => number(n) + NB + (Math.abs(n) >= 2 ? many : one);
 
@@ -1149,7 +1152,7 @@
     return '<span class="a-pill a-pill--' + esc(status) + (STATUS_TONE[status] ? ' a-tone--' + STATUS_TONE[status] : '') + '">' + (STATUS_ICO[status] || '') + esc(statusLabel(status)) + '</span>';
   }
   // 185 500 FCFA for a big figure: the number never breaks, « FCFA » smaller
-  const money = (n) => '<span class="a-nowrap">' + esc(number(n)) + '</span><small>' + NB + 'FCFA</small>';
+  const money = (n) => '<span class="a-nowrap">' + esc(D && D.formatAmount ? D.formatAmount(n) : number(n)) + '</span><small>' + NB + esc(curShort()) + '</small>';
   const sampleChip = () => H`<span class="a-chip a-chip--sample">Données d’exemple</span>`;
   // The demo photo of a product without a photo of its own ({ src, alt, focus, credit }), or null.
   // The renderer resolves it; without one, the file is found from this page (../creer/img/demo/).
@@ -2007,7 +2010,7 @@
           <div class="a-grid2"><div class="a-field"><label class="a-label" for="no-name">Nom</label><input class="a-input" id="no-name" name="name" maxlength="40" autocomplete="off" placeholder="Koffi Y." data-autofocus></div>
             <div class="a-field"><label class="a-label" for="no-phone">Numéro WhatsApp</label><input class="a-input" id="no-phone" name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="Ex. : 05 44 12 34 56"></div></div>
           <div class="a-grid2" style="margin-top:16px"><div class="a-field"><label class="a-label" for="no-commune">Commune</label><div class="a-selectwrap"><select class="a-input" id="no-commune" name="commune">${zones.map((z) => H`<option value="${esc(z.name)}" data-fee="${Number(z.fee) || 0}">${esc(z.name + ' · ' + price(z.fee))}</option>`)}</select>${ico('down')}</div></div>
-            <div class="a-field"><label class="a-label" for="no-fee">Frais de livraison</label><div class="a-affix"><input class="a-input a-input--num" id="no-fee" name="fee" inputmode="numeric" value="${esc(number(z0.fee || 0))}" autocomplete="off"><span class="a-affix__txt">FCFA</span></div></div></div>
+            <div class="a-field"><label class="a-label" for="no-fee">Frais de livraison</label><div class="a-affix"><input class="a-input a-input--num" id="no-fee" name="fee" inputmode="decimal" value="${esc(number(z0.fee || 0))}" autocomplete="off"><span class="a-affix__txt">${esc(curShort())}</span></div></div></div>
           <div class="a-field"><label class="a-label" for="no-addr">Adresse ou repère <span class="a-opt">(facultatif)</span></label><input class="a-input" id="no-addr" name="address" maxlength="120" autocomplete="off" placeholder="Riviera 2, près de la pharmacie"></div>
         </fieldset>
         <fieldset class="a-fieldset"><legend>Articles</legend><ul class="a-picklist" id="no-items">${S.config.products.map((p) => H`<li class="a-pickrow" data-pid="${esc(p.id)}">${thumb(p, 'a-thumb--sm')}
@@ -2536,7 +2539,7 @@
               <div class="a-field"><div class="a-label-row"><label class="a-label" for="p-name">Nom</label>${counter(str(p.name).length, 60)}</div>
                 <input class="a-input" id="p-name" name="name" maxlength="60" value="${esc(p.name)}" placeholder="Beurre de karité brut" autocomplete="off" data-count="60" required></div>
               <div class="a-grid2" style="margin-top:16px">
-                <div class="a-field"><label class="a-label" for="p-price">Prix</label><div class="a-affix"><input class="a-input a-input--num" id="p-price" name="price" inputmode="numeric" value="${esc(p.price)}" placeholder="6 500" autocomplete="off"><span class="a-affix__txt">FCFA</span></div></div>
+                <div class="a-field"><label class="a-label" for="p-price">Prix</label><div class="a-affix"><input class="a-input a-input--num" id="p-price" name="price" inputmode="${curShort() === 'FCFA' ? 'numeric' : 'decimal'}" value="${esc(typeof p.price === 'number' && curShort() !== 'FCFA' ? String(p.price).replace('.', ',') : p.price)}" placeholder="${curShort() === 'FCFA' ? '6 500' : '24,99'}" autocomplete="off"><span class="a-affix__txt">${esc(curShort())}</span></div></div>
                 <div class="a-field"><label class="a-label" for="p-cat">Catégorie <span class="a-opt">(facultatif)</span></label><input class="a-input" id="p-cat" name="category" maxlength="40" value="${esc(p.category)}" list="p-cats" placeholder="${esc(cats[0] || 'Robes')}" autocomplete="off">
                   <datalist id="p-cats">${cats.map((c) => H`<option value="${esc(c)}">`)}</datalist></div>
               </div>
@@ -2625,6 +2628,8 @@
     });
   }
   function parseAmount(v) {
+    // dollars and euros: cents allowed (« 24,99 »)
+    if (D && D.currencyInfo && D.currencyInfo().decimals && D.toMoney) { const m = D.toMoney(str(v)); return m === null || m < 0 ? null : m; }
     const s = str(v).replace(/[\s  .]/g, '').replace(/fcfa$/i, '');
     if (!/^\d+$/.test(s)) return null;
     const n = parseInt(s, 10);
@@ -2638,7 +2643,7 @@
     const pr = parseAmount(v.price);
     let ok = true;
     if (!name) ok = invalid(form.elements.name, 'Donnez un nom au produit.');
-    if (pr === null) ok = invalid(form.elements.price, str(v.price).trim() ? 'Le prix s’écrit en chiffres, en FCFA : par exemple 6 500.' : 'Indiquez le prix en FCFA.') && ok;
+    if (pr === null) ok = invalid(form.elements.price, str(v.price).trim() ? 'Le prix s’écrit en chiffres, en ' + curShort() + (curShort() === 'FCFA' ? ' : par exemple 6 500.' : ' : par exemple 24,99.') : 'Indiquez le prix en ' + curShort() + '.') && ok;
     let stock = null;
     if (str(v.stock).trim()) { stock = parseAmount(v.stock); if (stock === null) ok = invalid(form.elements.stock, 'Le stock s’écrit en chiffres, ou laissez la case vide.') && ok; }
     if (!ok) { focusFirstError(form); return; }
@@ -3259,7 +3264,7 @@
     const name = str(z.name);
     return H`<li class="a-zone">
       <div class="a-field"><label class="a-label" for="z-n-${i}">Commune ou zone</label><input class="a-input" id="z-n-${i}" name="zname" maxlength="40" list="a-communes" value="${esc(name)}" placeholder="Cocody" autocomplete="off"></div>
-      <div class="a-field"><label class="a-label" for="z-f-${i}">Frais<span class="a-zone__unit"> (FCFA)</span></label><div class="a-affix"><input class="a-input a-input--num" id="z-f-${i}" name="zfee" inputmode="numeric" value="${esc(z.fee === '' || z.fee == null ? '' : (typeof z.fee === 'number' ? number(z.fee) : str(z.fee)))}" placeholder="1 500" autocomplete="off"><span class="a-affix__txt">FCFA</span></div></div>
+      <div class="a-field"><label class="a-label" for="z-f-${i}">Frais<span class="a-zone__unit"> (${esc(curShort())})</span></label><div class="a-affix"><input class="a-input a-input--num" id="z-f-${i}" name="zfee" inputmode="decimal" value="${esc(z.fee === '' || z.fee == null ? '' : (typeof z.fee === 'number' ? number(z.fee) : str(z.fee)))}" placeholder="${curShort() === 'FCFA' ? '1 500' : '5'}" autocomplete="off"><span class="a-affix__txt">${esc(curShort())}</span></div></div>
       <button class="a-ibtn a-zone__del" type="button" data-act="zone-del" aria-label="${esc('Retirer ' + (name || 'cette zone'))}">${ico('trash')}</button></li>`;
   }
   function viewLivraison() {
@@ -3320,7 +3325,7 @@
       if (!name && !rawFee) return;
       if (!name) { ok = invalid(ni, 'Indiquez la commune ou la zone.') && ok; return; }
       const fee = parseAmount(rawFee);
-      if (fee === null || fee > 100000) { ok = invalid(fi, rawFee ? 'Des chiffres seulement, 100 000 FCFA au plus.' : 'Indiquez les frais, 0 si la livraison est offerte.') && ok; return; }
+      if (fee === null || fee > 100000) { ok = invalid(fi, rawFee ? 'Des chiffres seulement, ' + price(100000) + ' au plus.' : 'Indiquez les frais, 0 si la livraison est offerte.') && ok; return; }
       const key = fold(name);
       if (seen[key]) { ok = invalid(ni, '« ' + name + ' » apparaît deux fois.') && ok; return; }
       seen[key] = true;
@@ -3632,6 +3637,19 @@
       toast(c.name + (was.status === 'connected' ? ' : réglages enregistrés.' : ' connecté.') + ' Publiez pour que vos clients le voient.', { ms: 9000, action: 'Publier maintenant', onAction: publishNow });
     } else toast(c.name + (was.status === 'connected' ? ' : réglages enregistrés' : ' connecté') + (live ? '.' : ' (dans ce navigateur).'));
   }
+  // The store's currency: the label of every price changes, never the amounts (24,99 stays 24,99)
+  async function setCurrency(code) {
+    if (!S.config || !D.CURRENCIES[code]) return;
+    const was = D.currencyOf(S.config);
+    if (code === was) return;
+    const info = D.CURRENCIES[code];
+    const ok = await confirmBox({ title: 'Vendre en ' + info.short + ' ?', text: fr('Vos prix ne sont pas convertis : un produit à 6 500 s’affichera ' + D.formatPrice(6500, code) + '. Vérifiez vos prix et vos frais de livraison ensuite.' + (code === 'XOF' ? '' : ' Le mobile money (en FCFA) ne sera plus proposé : le paiement par carte et à la livraison restent.')), ok: 'Passer en ' + info.short });
+    if (!ok) { refresh(); return; }
+    editConfig((cfg) => { if (code === 'XOF') delete cfg.store.currency; else cfg.store.currency = code; });
+    D.setCurrency(S.config);
+    refresh();
+    toast('Devise : ' + info.label + '.' + (remoteStoreId() ? ' Publiez pour que vos clients la voient.' : ''), remoteStoreId() ? { ms: 9000, action: 'Publier maintenant', onAction: publishNow } : undefined);
+  }
   function publishNow() {
     const P = window.JeerePublish;
     const r = P && P.local ? P.local() : null;
@@ -3717,8 +3735,8 @@
           <label class="a-radio"><input type="radio" name="lang" value="fr" data-lang${lang === 'fr' ? ' checked' : ''}><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">Français</span><span class="a-radio__hint">La langue de vos clients en Côte d’Ivoire.</span></span></label>
           <label class="a-radio"><input type="radio" name="lang" value="en" data-lang${lang === 'en' ? ' checked' : ''}><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">English</span><span class="a-radio__hint">Pour vos clients anglophones : bientôt traduite.</span></span></label>
         </div></fieldset>
-        <div class="a-field"><label class="a-label" for="s-cur">Devise</label><div class="a-affix"><input class="a-input" id="s-cur" value="Franc CFA (FCFA)" readonly aria-describedby="s-cur-h"><span class="a-affix__txt">${ico('lock')}</span></div>
-          <p class="a-hint" id="s-cur-h">Fixe : les prix de toutes les boutiques Jeere sont en FCFA, sans centimes.</p></div>
+        ${S.config ? H`<div class="a-field"><label class="a-label" for="s-cur">Devise de la boutique</label><div class="a-selectwrap"><select class="a-input" id="s-cur" data-currency aria-describedby="s-cur-h">${(D.CURRENCY_CODES || ['XOF']).map((c) => H`<option value="${c}"${D.currencyOf(S.config) === c ? ' selected' : ''}>${esc(D.CURRENCIES[c].label)}</option>`)}</select>${ico('down')}</div>
+          <p class="a-hint" id="s-cur-h">${esc(fr(D.currencyOf(S.config) === 'XOF' ? 'Vos prix sont en FCFA, sans centimes. Vous vendez au Canada, aux États-Unis ou en Europe ? Choisissez dollar ou euro : vos clients paient par carte dans cette devise.' : 'Vos prix sont en ' + D.CURRENCIES[D.currencyOf(S.config)].short + ', avec centimes. Le mobile money (en FCFA) est masqué : vos clients paient par carte ou à la livraison.'))}</p></div>` : ''}
       </section>`;
   }
 
@@ -3817,10 +3835,10 @@
     const b = S.admin.settings.billing;
     const weekOk = !!cur.priceWeek;
     const used = monthOrders();
-    const due = cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? price(cur.priceWeek) + ' par semaine' : price(cur.priceMonth) + ' par mois') : '';
+    const due = cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? fcfa(cur.priceWeek) + ' par semaine' : fcfa(cur.priceMonth) + ' par mois') : '';
     return H`<section class="a-card" aria-labelledby="h-cur"><div class="a-card__head"><div><h3 class="a-card__title" id="h-cur">Formule ${esc(cur.name)} ${b.paused ? H`<span class="a-chip a-chip--line">${ico('pause')}En pause</span>` : H`<span class="a-chip a-chip--ink">Active</span>`}</h3>
           <p class="a-card__sub">${esc(fr(cur.ordersLabel))} · ${esc(fr(cur.feeLabel))}</p></div></div>
-        <p class="a-big">${esc(cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? price(cur.priceWeek) : price(cur.priceMonth)) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? ' / semaine' : ' / mois') : ''}</small></p>
+        <p class="a-big">${esc(cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? fcfa(cur.priceWeek) : fcfa(cur.priceMonth)) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? ' / semaine' : ' / mois') : ''}</small></p>
         <div class="a-meter"><div class="a-meter__row"><span>Commandes ce mois-ci${hasDemoOrders() ? ' (exemple)' : ''}</span><strong>${cur.orders ? esc(number(used) + ' sur ' + number(cur.orders)) : esc(number(used)) + ' · illimitées'}</strong></div>
           ${cur.orders ? H`<div class="a-progress__bar" aria-hidden="true"><div class="a-progress__fill${used / cur.orders >= .8 ? ' is-high' : ''}" style="width:${Math.min(100, Math.round((used / cur.orders) * 100))}%"></div></div>` : ''}
           ${cur.orders ? H`<p class="a-hint" style="margin-top:8px">${esc(fr(planLimit().policy))}</p>` : ''}</div>
@@ -3840,7 +3858,7 @@
           return H`<li><article class="a-plan${isCur ? ' is-current' : ''}" aria-labelledby="pl-${esc(p.id)}">
             <div class="a-plan__top"><h4 class="a-plan__name" id="pl-${esc(p.id)}">${esc(p.name)}</h4>${isCur ? H`<span class="a-chip a-chip--ink">Votre formule</span>` : (p.recommended ? H`<span class="a-chip">Recommandée</span>` : '')}</div>
             <p class="a-plan__for">${esc(p.for || '')}</p>
-            <p class="a-plan__price">${esc(p.priceMonth ? price(p.priceMonth) : '0' + NB + 'FCFA')}<small>${p.priceMonth ? NB + '/' + NB + 'mois' : ''}</small></p>
+            <p class="a-plan__price">${esc(p.priceMonth ? fcfa(p.priceMonth) : '0' + NB + 'FCFA')}<small>${p.priceMonth ? NB + '/' + NB + 'mois' : ''}</small></p>
             <p class="a-plan__week">${esc(fr(p.priceWeekLabel || ''))}</p>
             <ul class="a-plan__list"><li>${ico('check')}<span>${esc(fr(p.ordersLabel))}</span></li><li>${ico('check')}<span>${esc(fr(p.feeLabel))}</span></li><li>${ico('check')}<span>Toutes les fonctions et l’aide humaine</span></li></ul>
             ${isCur ? H`<button class="a-btn a-btn--ghost a-btn--block" type="button" disabled>Formule actuelle</button>` : H`<button class="a-btn ${p.recommended ? 'a-btn--primary' : 'a-btn--ghost'} a-btn--block" type="button" data-act="plan" data-v="${esc(p.id)}">Choisir ${esc(p.name)}</button>`}
@@ -4020,7 +4038,7 @@
       const week = S.admin.settings.billing.cycle === 'semaine' && p.priceWeek;
       const ok = await confirmBox({
         title: 'Passer à la formule ' + p.name + ' ?',
-        html: H`<strong>${esc(week ? price(p.priceWeek) + ' par semaine' : price(p.priceMonth) + ' par mois')}</strong> · ${esc(fr(p.ordersLabel))} · ${esc(fr(p.feeLabel))}.<br><br>Vous payez par carte (Visa, Mastercard) sur la page sécurisée de Stripe. Résiliable à tout moment. Le mobile money arrive bientôt.`,
+        html: H`<strong>${esc(week ? price(p.priceWeek) + ' par semaine' : fcfa(p.priceMonth) + ' par mois')}</strong> · ${esc(fr(p.ordersLabel))} · ${esc(fr(p.feeLabel))}.<br><br>Vous payez par carte (Visa, Mastercard) sur la page sécurisée de Stripe. Résiliable à tout moment. Le mobile money arrive bientôt.`,
         ok: 'Payer par carte'
       });
       if (!ok) { focusMain(); return; }
@@ -4031,7 +4049,7 @@
     }
     const ok = await confirmBox({
       title: 'Passer à la formule ' + p.name + ' ?',
-      html: H`<strong>${esc(p.priceMonth ? price(p.priceMonth) + ' par mois' : 'Gratuite')}</strong>${p.priceWeek ? esc(fr(' (ou ' + price(p.priceWeek) + ' par semaine)')) : ''} · ${esc(fr(p.ordersLabel))} · ${esc(fr(p.feeLabel))}.<br><br>Démo : rien n’est prélevé, la formule change seulement dans ce navigateur.`,
+      html: H`<strong>${esc(p.priceMonth ? fcfa(p.priceMonth) + ' par mois' : 'Gratuite')}</strong>${p.priceWeek ? esc(fr(' (ou ' + price(p.priceWeek) + ' par semaine)')) : ''} · ${esc(fr(p.ordersLabel))} · ${esc(fr(p.feeLabel))}.<br><br>Démo : rien n’est prélevé, la formule change seulement dans ce navigateur.`,
       ok: 'Passer à ' + p.name
     });
     if (!ok) { focusMain(); return; }
@@ -4136,7 +4154,7 @@
   }
   function exportCSV() {
     const q = (v) => { const s = str(v); return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const head = ['Commande', 'Date', 'Client', 'Téléphone', 'Commune', 'Adresse', 'Articles', 'Sous-total (FCFA)', 'Livraison (FCFA)', 'Total (FCFA)', 'Paiement', 'Statut', 'Canal', 'Note'];
+    const head = ['Commande', 'Date', 'Client', 'Téléphone', 'Commune', 'Adresse', 'Articles', 'Sous-total (' + curShort() + ')', 'Livraison (' + curShort() + ')', 'Total (' + curShort() + ')', 'Paiement', 'Statut', 'Canal', 'Note'];
     const rows = S.admin.orders.slice().sort((a, b) => str(a.date).localeCompare(str(b.date))).map((o) => {
       const c = o.customer || {};
       const d = toDate(o.date);
@@ -4516,6 +4534,7 @@
     if (t.hasAttribute('data-courier')) { setCourier(t); return; }
     if (t.hasAttribute('data-promo')) { const x = S.admin.promos[parseInt(t.getAttribute('data-promo'), 10)]; if (x) { x.active = t.checked; saveAdmin(); refresh('[data-promo="' + t.getAttribute('data-promo') + '"]'); toast('Code ' + x.code + (x.active ? ' actif.' : ' en pause.')); } return; }
     if (t.id === 'no-commune') { const f = t.closest('form'); const o = t.options[t.selectedIndex]; if (f && o) { f.elements.fee.value = number(Number(o.getAttribute('data-fee')) || 0); newOrderTotals(f); } return; }
+    if (t.hasAttribute('data-currency')) { setCurrency(t.value); return; }
     if (t.hasAttribute('data-lang')) { S.admin.settings.language = t.value === 'en' ? 'en' : 'fr'; saveAdmin(); toast(t.value === 'en' ? 'Boutique en anglais : bientôt. Le tableau de bord reste en français dans ce prototype.' : 'Boutique en français.', { ms: 4500 }); return; }
     const form = t.closest('#a-main form[data-form]');
     if (!form || form.hasAttribute('data-light')) return;

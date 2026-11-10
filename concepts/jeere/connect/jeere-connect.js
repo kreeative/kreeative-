@@ -58,6 +58,12 @@
 
   function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
   function str(v) { return typeof v === 'string' ? v : (typeof v === 'number' && isFinite(v) ? String(v) : ''); }
+  // A price: whole FCFA, cents in dollars and euros
+  function toPrice(v) {
+    if (typeof v === 'number') return isFinite(v) ? money(v) : null;
+    if (typeof v === 'string' && /\d/.test(v)) { var n = Number(v.replace(/[^\d.,-]/g, '').replace(',', '.')); return isFinite(n) ? money(n) : null; }
+    return null;
+  }
   function toInt(v) {
     if (typeof v === 'number') return isFinite(v) ? Math.round(v) : null;
     if (typeof v === 'string' && /\d/.test(v)) { var n = Number(v.replace(/[^\d.-]/g, '')); return isFinite(n) ? Math.round(n) : null; }
@@ -68,7 +74,15 @@
   function attrSel(name, id) { return '[' + name + '="' + String(id).replace(/["\\]/g, '') + '"]'; }
   function httpsImg(v) { return typeof v === 'string' && v.length < 600 && /^https:\/\/[^\s"'<>\\]+$/i.test(v) ? v : ''; }
   // « 7 000 FCFA », never broken across lines (the money format of creer/render.js)
-  function jeerePrice(n) { return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, NB) + NB + 'FCFA'; }
+  // The store's currency (fiche: store.currency): « 7 000 FCFA », « 24,99 $ CA », « 25 € »
+  var CUR = { XOF: ['FCFA', 1], CAD: ['$' + NB + 'CA', 100], USD: ['$' + NB + 'US', 100], EUR: ['€', 100] };
+  var cur = 'XOF';
+  function money(n) { var k = CUR[cur][1]; return Math.round((Number(n) || 0) * k) / k; }
+  function jeerePrice(n) {
+    var x = money(n), k = CUR[cur][1], neg = x < 0 ? '-' : '', a = Math.abs(x), whole = Math.floor(a), c = Math.round((a - whole) * k);
+    var s = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, NB) + (k > 1 && c ? ',' + (c < 10 ? '0' : '') + c : '');
+    return neg + s + NB + CUR[cur][0];
+  }
   function fmt(n) {
     if (api && typeof api.formatPrice === 'function') { try { var s = api.formatPrice(n); if (typeof s === 'string' && s) return s; } catch (e) { /* the default */ } }
     return jeerePrice(n);
@@ -87,10 +101,12 @@
   // The fiche's products (creer/data.js: { id, name, price, description, image, … }) by id
   function readFiche(f) {
     var map = {};
+    var c = isObj(f.store) && typeof f.store.currency === 'string' ? f.store.currency.toUpperCase() : 'XOF';
+    cur = CUR[c] ? c : 'XOF';
     var stock = isObj(f.stock) ? f.stock : null;
     (Array.isArray(f.products) ? f.products : []).forEach(function (p) {
       if (!isObj(p) || typeof p.id !== 'string' || !ID_RE.test(p.id) || map[p.id]) return;
-      var price = toInt(p.price);
+      var price = toPrice(p.price);
       var off = p.available === false || p.soldOut === true || p.hidden === true || toInt(p.stock) === 0 ||
         (stock && toInt(stock[p.id]) === 0);
       map[p.id] = {
@@ -171,8 +187,8 @@
     Object.keys(S.cart).forEach(function (id) {
       var q = S.cart[id];
       var p = product(id) || { id: id, name: id, price: 0, image: '' };
-      var t = (p.price || 0) * q;
-      count += q; total += t;
+      var t = money((p.price || 0) * q);
+      count += q; total = money(total + t);
       lines.push({ id: id, name: p.name, price: p.price || 0, qty: q, total: t, image: p.image || '' });
     });
     return { store: slug, status: S.status, lines: lines, count: count, total: total, url: checkoutUrl() };
