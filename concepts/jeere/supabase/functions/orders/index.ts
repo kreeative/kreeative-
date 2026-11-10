@@ -157,6 +157,17 @@ const admin = (path: string, init: RequestInit = {}) => fetch(SUPABASE_URL + '/r
   ...init, headers: { apikey: SECRET, Authorization: 'Bearer ' + SECRET, 'Content-Type': 'application/json', Prefer: 'return=representation', ...(init.headers ?? {}) }
 });
 async function rows(path: string) { const r = await admin(path); return r.ok ? await r.json() as Obj[] : []; }
+
+// A push notification to the store's owner and team (the `push` function); never blocks nor breaks the caller
+async function notify(storeId: unknown, title: string, body: string, url: string, tag: string) {
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
+    await fetch(SUPABASE_URL + '/functions/v1/push', { method: 'POST', signal: ctl.signal,
+      headers: { 'Content-Type': 'application/json', apikey: PUBLISHABLE, 'x-jeere-internal': SECRET },
+      body: JSON.stringify({ action: 'notify', storeId: String(storeId ?? ''), title, body, url, tag }) }).catch(() => null);
+    clearTimeout(t);
+  } catch { /* a notification is a bonus */ }
+}
 async function userOf(req: Request): Promise<{ id: string; email: string } | null> {
   const auth = req.headers.get('Authorization') ?? '';
   if (!/^Bearer\s+\S+/.test(auth) || auth.includes(PUBLISHABLE)) return null;
@@ -272,6 +283,7 @@ Deno.serve(async (req: Request) => {
     const rn = render(st, 'nouvelle', order);
     if (rn.on && shop) sent.push({ kind: 'nouvelle', to: shop, at: new Date().toISOString(), ...(await send(st, shop, rn, customer.email)) });
     if (sent.length) await admin('orders?id=eq.' + saved.id, { method: 'PATCH', body: JSON.stringify({ emails: sent }) });
+    await notify(st.id, 'Nouvelle commande n° ' + number, customer.name + ' · ' + money(o.total, o.currency) + (customer.commune ? ' · ' + customer.commune : '') + (order.payment ? ' · ' + order.payment : ''), '/admin/#commandes', 'order-' + st.id + '-' + number);
     const major = (n: number) => n / o.minor;
     return json({ ok: true, number, orderId: saved.id, currency: o.currency, total: major(o.total), subtotal: major(o.subtotal), fee: major(o.fee), lines: o.lines.map((l) => ({ ...l, price: major(l.price), amount: major(l.amount) })), emails: sent.map((x) => ({ kind: x.kind, ok: x.ok })), emailsReady: !!RESEND_KEY });
   }

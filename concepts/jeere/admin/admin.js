@@ -4096,10 +4096,89 @@
     if (btn) btn.focus();
   }
 
+  /* Push notifications (the `push` function, sw.js): this phone or computer is told of every new order and card
+   * payment, even when the dashboard is closed. iPhone: the app must be added to the home screen first. */
+  const PUSH_FN = 'https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/push';
+  const pushOk = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const isIos = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  async function pushCall(body) {
+    const A = window.JeereAuth;
+    const s = A && typeof A.session === 'function' ? await Promise.resolve(A.session()).catch(() => null) : null;
+    const headers = { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w' };
+    if (s && s.access_token) headers.Authorization = 'Bearer ' + s.access_token;
+    else if (body.action !== 'key') return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour recevoir les notifications.' };
+    const r = await fetch(PUSH_FN, { method: 'POST', headers, body: JSON.stringify(body) }).catch(() => null);
+    return r ? r.json().catch(() => ({ ok: false })) : { ok: false, message: 'Pas de connexion internet.' };
+  }
+  function swReg() {
+    if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+    return navigator.serviceWorker.register('sw.js', { scope: './' }).then(() => navigator.serviceWorker.ready).catch(() => null);
+  }
+  async function pushState() {
+    if (!pushOk()) return { state: isIos() && !isStandalone() ? 'ios-install' : 'unsupported' };
+    if (Notification.permission === 'denied') return { state: 'denied' };
+    const reg = await swReg();
+    const sub = reg ? await reg.pushManager.getSubscription().catch(() => null) : null;
+    return { state: sub && Notification.permission === 'granted' ? 'on' : 'off', sub };
+  }
+  function b64ToBytes(b64) {
+    const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+    const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  }
+  async function pushOn() {
+    if (!pushOk()) { toast(isIos() ? 'Sur iPhone : touchez Partager › « Sur l’écran d’accueil », ouvrez Jeere depuis l’écran d’accueil, puis activez ici.' : 'Ce navigateur ne reçoit pas de notifications.', { ms: 8000 }); return; }
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { toast('Notifications refusées. Autorisez-les dans les réglages du navigateur pour être prévenue.', { ms: 7000 }); S.push = null; refresh(); return; }
+    const k = await pushCall({ action: 'key' });
+    if (!k || !k.ok || !k.publicKey) { toast((k && k.message) || 'Les notifications ne sont pas encore prêtes. Réessayez plus tard.', { ms: 7000 }); return; }
+    const reg = await swReg();
+    if (!reg) { toast('L’appareil n’a pas pu être inscrit. Rechargez la page et réessayez.'); return; }
+    let sub = null;
+    try { sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(k.publicKey) }); } catch (e) { sub = null; }
+    if (!sub) { toast('L’appareil n’a pas pu être inscrit. Réessayez.'); return; }
+    const device = (isIos() ? 'iPhone' : /Android/.test(navigator.userAgent) ? 'Android' : /Mac/.test(navigator.userAgent) ? 'Mac' : /Windows/.test(navigator.userAgent) ? 'Windows' : 'Ordinateur') + (isStandalone() ? ' · app' : ' · navigateur');
+    const j = await pushCall({ action: 'subscribe', subscription: sub.toJSON(), device });
+    if (!j || !j.ok) { toast((j && j.message) || 'L’appareil n’a pas pu être enregistré.', { ms: 6000 }); return; }
+    S.push = null; refresh();
+    toast('Notifications activées sur cet appareil.', { action: 'Tester', onAction: pushTest });
+  }
+  async function pushOff() {
+    const st = await pushState();
+    if (st.sub) { await pushCall({ action: 'unsubscribe', endpoint: st.sub.endpoint }); await st.sub.unsubscribe().catch(() => {}); }
+    S.push = null; refresh();
+    toast('Notifications coupées sur cet appareil.');
+  }
+  async function pushTest() {
+    const j = await pushCall({ action: 'test' });
+    toast((j && j.message) || 'Le test n’est pas parti.', { ms: 5000 });
+  }
+  function pushCard() {
+    if (!S.push) { S.push = { state: 'loading' }; pushState().then((x) => { S.push = x; if (S.route && S.route.name === 'parametres') refresh(); }); }
+    const st = S.push.state;
+    const real = !!remoteStoreId();
+    const text = {
+      loading: 'Un instant…',
+      on: 'Activées sur cet appareil : vous êtes prévenue à chaque nouvelle commande et à chaque paiement par carte, même tableau de bord fermé.',
+      off: 'Recevez une notification sur ce téléphone ou cet ordinateur à chaque nouvelle commande et à chaque paiement par carte, même quand Jeere est fermé.',
+      denied: 'Les notifications sont bloquées pour Jeere dans ce navigateur. Autorisez-les dans ses réglages (le cadenas à côté de l’adresse), puis revenez ici.',
+      'ios-install': 'Sur iPhone, ajoutez d’abord Jeere à l’écran d’accueil : touchez Partager, puis « Sur l’écran d’accueil ». Ouvrez Jeere depuis son icône et activez les notifications ici.',
+      unsupported: 'Ce navigateur ne reçoit pas de notifications. Essayez avec Chrome, Edge, Firefox ou Safari à jour.'
+    }[st] || '';
+    const btn = st === 'on'
+      ? H`<button class="a-btn a-btn--ghost" type="button" data-act="push-test">Envoyer un test</button><button class="a-btn a-btn--quiet" type="button" data-act="push-off">Couper sur cet appareil</button>`
+      : (st === 'off' ? H`<button class="a-btn a-btn--primary" type="button" data-act="push-on"${real ? '' : ' disabled'}>Activer les notifications</button>` : '');
+    return H`<section class="a-card" aria-labelledby="h-push"><div class="a-card__head"><div><h3 class="a-card__title" id="h-push">Notifications sur cet appareil</h3>
+        <p class="a-card__sub">${esc(fr(text))}</p></div>${st === 'on' ? H`<span class="a-pill a-tone--ok">Activées</span>` : ''}</div>
+      ${!real && st === 'off' ? H`<p class="a-small">${esc(fr('Connectez-vous à votre compte Jeere (pas la démo) pour les activer.'))}</p>` : ''}
+      ${btn ? H`<div class="a-btnrow">${btn}</div>` : ''}</section>`;
+  }
+
   function setNotifications() {
     const n = S.admin.settings.notifications;
     const row = (key, label, hint) => switchRow({ id: 'n-' + key, label, hint, checked: n[key] === true, attrs: 'data-notif="' + key + '"' });
-    return H`<section class="a-card" aria-labelledby="h-notif"><div class="a-card__head" style="margin-bottom:4px"><div><h3 class="a-card__title" id="h-notif">Prévenez-moi</h3><p class="a-card__sub">Sur le numéro ${esc(phoneFmt((S.account && S.account.phone) || S.admin.settings.payoutPhone) || 'de votre compte')}.</p></div></div>
+    return H`${pushCard()}<section class="a-card" aria-labelledby="h-notif"><div class="a-card__head" style="margin-bottom:4px"><div><h3 class="a-card__title" id="h-notif">Prévenez-moi</h3><p class="a-card__sub">Sur le numéro ${esc(phoneFmt((S.account && S.account.phone) || S.admin.settings.payoutPhone) || 'de votre compte')}.</p></div></div>
       ${row('newOrderWhatsapp', 'Nouvelle commande sur WhatsApp', 'Un message dès qu’une commande arrive, avec le détail.')}
       ${row('newOrderSms', 'Nouvelle commande par SMS', 'Utile quand vous n’avez pas internet.')}
       ${row('dailySummary', 'Résumé du jour', 'Chaque soir : les ventes, les commandes à préparer, l’argent reçu.')}
@@ -4341,6 +4420,9 @@
     'proj-switch': (el) => switchProject(el.getAttribute('data-id')),
     'proj-shop': (el) => openShopProject(el),
     'stripe-connect': (el) => stripeConnect(el),
+    'push-on': () => pushOn(),
+    'push-off': () => pushOff(),
+    'push-test': () => pushTest(),
     'carte-start': () => { const c = $('#sc-country'); S.stripeCountry = c ? c.value : ''; const card = c && c.closest('.a-card'); if (card) card.hidden = true; mountCarte('activer', S.stripeCountry); },
     'stripe-dashboard': () => stripeDashboard(),
     'proj-ext': () => { if (S.dirty) { closeProj(); nudgeSave(); return; } closeProj(); closeDialog(true); window.JeereTishe.enter(); go('#accueil'); updateShell(); render(parseHash(), true); },
@@ -4601,6 +4683,8 @@
   /* ------------------------------------------------------------------ init */
 
   function init() {
+    // the app's service worker (push notifications, installable app); nothing is cached
+    try { if ('serviceWorker' in navigator && location.protocol === 'https:') swReg(); } catch (e) { /* not needed to work */ }
     const boot = $('#a-boot');
     if (!D || typeof D.normalizeConfig !== 'function') {
       if (boot) boot.hidden = true;

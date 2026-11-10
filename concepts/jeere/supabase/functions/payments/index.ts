@@ -73,6 +73,24 @@ const admin = (path: string, init: RequestInit = {}) => fetch(SUPABASE_URL + '/r
   ...init, headers: { apikey: SECRET, Authorization: 'Bearer ' + SECRET, 'Content-Type': 'application/json', Prefer: 'return=representation', ...(init.headers ?? {}) }
 });
 async function rows(path: string) { const r = await admin(path); return r.ok ? await r.json() as Obj[] : []; }
+
+// A push notification to the store's owner and team (the `push` function); never blocks nor breaks the caller
+async function notify(storeId: unknown, title: string, body: string, url: string, tag: string) {
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
+    await fetch(SUPABASE_URL + '/functions/v1/push', { method: 'POST', signal: ctl.signal,
+      headers: { 'Content-Type': 'application/json', apikey: PUBLISHABLE, 'x-jeere-internal': SECRET },
+      body: JSON.stringify({ action: 'notify', storeId: String(storeId ?? ''), title, body, url, tag }) }).catch(() => null);
+    clearTimeout(t);
+  } catch { /* a notification is a bonus */ }
+}
+// « 2499 » in CAD → « 24,99 $ CA » (amounts in the currency's smallest unit)
+function moneyOf(o: Obj) {
+  const c = curOf(o); const k = c === 'xof' ? 1 : 100; const x = Math.round(Number(o.total) || 0);
+  const whole = Math.floor(x / k), cents = x % k;
+  return String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + (k > 1 && cents ? ',' + String(cents).padStart(2, '0') : '') + ' ' + ({ xof: 'FCFA', cad: '$ CA', usd: '$ US', eur: '€' } as Record<string, string>)[c];
+}
+const paidNote = (o: Obj) => notify(o.store_id, 'Paiement reçu', 'Commande n° ' + o.number + ' payée par carte · ' + moneyOf(o), '/admin/#commandes', 'paid-' + o.id);
 async function userOf(req: Request): Promise<{ id: string; email: string } | null> {
   const auth = req.headers.get('Authorization') ?? '';
   if (!/^Bearer\s+\S+/.test(auth) || auth.includes(PUBLISHABLE)) return null;
@@ -187,15 +205,18 @@ async function webhook(req: Request) {
   const type = String(ev.type ?? '');
   const obj = isObj(ev.data) && isObj((ev.data as Obj).object) ? (ev.data as Obj).object as Obj : {};
   if (type === 'account.updated' && typeof obj.id === 'string') {
-    const r = (await rows('store_payments?select=store_id&account_id=eq.' + encodeURIComponent(obj.id)))[0];
-    if (r) await savePayRow(String(r.store_id), obj);
+    const r = (await rows('store_payments?select=store_id,charges_enabled&account_id=eq.' + encodeURIComponent(obj.id)))[0];
+    if (r) {
+      const row = await savePayRow(String(r.store_id), obj);
+      if (row.charges_enabled && !r.charges_enabled) await notify(r.store_id, 'Paiement par carte activé', 'Stripe a vérifié votre compte : vos clients peuvent payer par carte.', '/admin/#paiements', 'stripe-' + r.store_id);
+    }
     return json({ ok: true });
   }
   if (type === 'payment_intent.succeeded' || type === 'payment_intent.payment_failed') {
     const md = isObj(obj.metadata) ? obj.metadata : {};
     const orderId = str(md.order_id, 40);
     if (!UUID.test(orderId)) return json({ ok: true });
-    const o = (await rows('orders?select=id,store_id,total,currency,payment_ref,payment_status,status&id=eq.' + orderId))[0];
+    const o = (await rows('orders?select=id,store_id,number,total,currency,payment_ref,payment_status,status&id=eq.' + orderId))[0];
     if (!o || o.payment_status === 'payee') return json({ ok: true });
     const p = await payRow(String(o.store_id));
     if (!p || String(ev.account ?? '') !== String(p.account_id)) return json({ ok: true, ignored: 'account' });
@@ -206,6 +227,7 @@ async function webhook(req: Request) {
     const patch: Obj = { payment_status: ok ? 'payee' : 'echouee', updated_at: new Date().toISOString() };
     if (ok) { patch.paid_at = new Date().toISOString(); if (o.status === 'nouvelle') patch.status = 'confirmee'; }
     await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify(patch) });
+    if (ok) await paidNote(o);
     return json({ ok: true });
   }
   if (type.startsWith('checkout.session.')) {
@@ -216,7 +238,7 @@ async function webhook(req: Request) {
     if ((type === 'checkout.session.completed' && obj.payment_status === 'paid') || type === 'checkout.session.async_payment_succeeded') status = 'payee';
     else if (type === 'checkout.session.async_payment_failed' || type === 'checkout.session.expired') status = 'echouee';
     if (!status) return json({ ok: true });
-    const o = (await rows('orders?select=id,store_id,total,currency,payment_ref,payment_status,status&id=eq.' + orderId))[0];
+    const o = (await rows('orders?select=id,store_id,number,total,currency,payment_ref,payment_status,status&id=eq.' + orderId))[0];
     if (!o || o.payment_status === 'payee') return json({ ok: true });
     // Only the session Jeere opened for THIS order, on THIS store's own Stripe account, for the full amount:
     // a seller's own Stripe account (her API keys) could otherwise send a session naming another store's order.
@@ -229,6 +251,7 @@ async function webhook(req: Request) {
     const patch: Obj = { payment_status: status, payment_ref: str(obj.id, 120), updated_at: new Date().toISOString() };
     if (status === 'payee') { patch.paid_at = new Date().toISOString(); if (o.status === 'nouvelle') patch.status = 'confirmee'; }
     await admin('orders?id=eq.' + orderId, { method: 'PATCH', body: JSON.stringify(patch) });
+    if (status === 'payee') await paidNote(o);
     return json({ ok: true });
   }
   return json({ ok: true });
@@ -265,7 +288,7 @@ Deno.serve(async (req: Request) => {
     if (!/^[a-z0-9-]{3,40}$/.test(slug) || !(number > 0)) return json({ ok: false, code: 'order' }, 400);
     const st = (await rows('stores?select=id&slug=eq.' + encodeURIComponent(slug)))[0];
     if (!st) return json({ ok: false, code: 'order' }, 404);
-    const o = (await rows('orders?select=id,store_id,total,currency,payment_ref,payment_status,status&store_id=eq.' + st.id + '&number=eq.' + number))[0];
+    const o = (await rows('orders?select=id,store_id,number,total,currency,payment_ref,payment_status,status&store_id=eq.' + st.id + '&number=eq.' + number))[0];
     if (!o) return json({ ok: false, code: 'order' }, 404);
     if (o.payment_status === 'payee') return json({ ok: true, paid: true });
     const p = await payRow(String(st.id));
@@ -284,7 +307,10 @@ Deno.serve(async (req: Request) => {
     if (!paid) return json({ ok: true, paid: false });
     const patch: Obj = { payment_status: 'payee', paid_at: new Date().toISOString(), updated_at: new Date().toISOString() };
     if (o.status === 'nouvelle') patch.status = 'confirmee';
-    await admin('orders?id=eq.' + o.id, { method: 'PATCH', body: JSON.stringify(patch) });
+    // only the first to mark it paid (webhook or this return) sends the notification
+    const done = await admin('orders?id=eq.' + o.id + '&or=(payment_status.is.null,payment_status.neq.payee)', { method: 'PATCH', body: JSON.stringify(patch) });
+    const changed = done.ok ? ((await done.json().catch(() => [])) as Obj[]).length > 0 : false;
+    if (changed) await paidNote(o);
     return json({ ok: true, paid: true });
   }
 
