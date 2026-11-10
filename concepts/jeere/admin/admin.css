@@ -1613,3 +1613,8 @@ html { -webkit-tap-highlight-color: transparent; }
   .a-btn:active, .a-ibtn:active, .a-storecard:active, .a-link:active { transform: scale(.97); }
   .a-btn, .a-ibtn, .a-storecard { transition: transform .12s ease, background-color .15s, border-color .15s, color .15s; }
 }
+
+/* Today strip: the same 16 px on every side, the text and the button on the same edge */
+.a-today { padding: 16px; gap: 14px; }
+.a-today__main { padding: 6px 10px; margin: -6px -10px; min-height: 0; }
+@media (min-width: 560px) { .a-today { padding: 14px 14px 14px 20px; } }
