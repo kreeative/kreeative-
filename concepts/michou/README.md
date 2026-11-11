@@ -33,25 +33,25 @@ the sizes in `localStorage` (`michou:tailles`, one size per item), shows them in
 
 | id | name | category | price (FCFA) | badge |
 |---|---|---|---|---|
-| p1 | Doudoune Brillante | Vestes | 65 000 | new (old price 85 000 shown on the site) |
-| p2 | Bomber Utilitaire | Vestes | 55 000 | new |
-| p3 | Veste Denim Délavée | Vestes | 48 000 | promo (old price 60 000) |
-| p4 | Gilet Tactique | Vestes | 30 000 | — |
-| p5 | T-shirt Lourd | Hauts | 18 000 | best |
-| p6 | T-shirt Oversize Délavé | Hauts | 20 000 | promo (old price 25 000) |
-| p7 | Cargo Chaîne | Bas | 35 000 | best |
-| p8 | Pantalon Large | Bas | 32 000 | new |
+| p1 | T-shirt Lèvres | Hauts | 22 000 | best (old price 28 000 shown on the site) |
+| p2 | T-shirt Masque | Hauts | 24 000 | new |
+| p3 | T-shirt Console | Hauts | 22 000 | — |
+| p4 | T-shirt Racing Délavé | Hauts | 26 000 | new (old price 32 000) |
+| p5 | T-shirt Croix | Hauts | 24 000 | — |
+| p6 | Jort Denim Noir | Bas | 30 000 | best |
+| p7 | Jort Charpentier | Bas | 32 000 | new |
+| p8 | Casquette Étoile | Accessoires | 15 000 | — (one size: « TU ») |
 
 The old prices are written in the page (the fiche has no « compare at » price).
 
-## Images (placeholders until the owner's Pinterest selection)
+## Images: Pinterest
 
-- Products (`img/<produit>.webp`, 1000 × 1250, grey #f2f2f0): full-length Unsplash studio photos cut
-  out by script. Some show third-party logos (a cap, a t-shirt print): replace before real use.
-- Editorial: `edito-1`, `edito-2` (hero), `edito-3`, `edito-4` (editorial pair, crops of the
-  lookbook), `lookbook`.
-- Unsplash (free licence): Temuujin Purevjav, Moses Malik Roldan, kevin Clonee, Praise Judah,
-  Ali Choubin, Joel Muniz, Lucas Gouvêa, Anton K Wibowo, sattar kazemi, Gift Habeshaw, Julian Tong.
+All the images were chosen by the owner on Pinterest and **belong to their authors and brands**
+(among them Cold Culture, Protect, Supermade, 4YE, Twojeys). The concept bar, the « Vu sur
+Pinterest » moodboard and the footer say so; keep those notes as long as these images are used, and
+never use them for a real client.
 
-When the Pinterest images arrive: replace the editorial files under the same names, and add their
-credit to the concept bar and the footer.
+- Products (`img/<produit>.webp`, 640 × 800, ground #f7f7f7): figures cut from a Pinterest grid of
+  fifteen studio looks, the racing tee from a Pinterest product shot (Supermade), the red caps.
+- `hero-1` (Cold Culture), `hero-2`, `edito-1` (4YE), `edito-2` (Twojeys), `lookbook` (rotated a
+  quarter turn), `mood-1`, `mood-2` (Protect), `mood-3`.

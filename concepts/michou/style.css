@@ -5,7 +5,7 @@
   --body: #444444;
   --muted: #8b8b8b;
   --line: #e4e4e1;
-  --card: #f2f2f0;
+  --card: #f7f7f7;
   --paper: #ffffff;
   --sale: #c4332b;
   --wide: "Archivo", "Inter", system-ui, sans-serif;
@@ -105,10 +105,20 @@ svg.i { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-widt
 
 /* ---------- Lookbook ---------- */
 .lookbook { position: relative; }
-.lookbook img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 30%; }
+.lookbook { background: #f9f9f9; }
+.lookbook img { width: 100%; aspect-ratio: 1502 / 944; object-fit: cover; }
 .lookbook__text { position: absolute; left: var(--pad); bottom: var(--pad); max-width: 360px; padding: 18px 20px; background: #fff; }
 .lookbook__text h2 { font-family: var(--wide); font-weight: 800; font-stretch: 125%; font-size: 22px; text-transform: uppercase; }
 .lookbook__text p { margin: 8px 0 14px; font-size: 12px; line-height: 1.6; color: var(--body); }
+
+/* ---------- Moodboard Pinterest ---------- */
+.mood__credit { font-size: 11px; color: var(--muted); text-transform: lowercase; }
+.mood__grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 2px; align-items: start; }
+.mood__grid figure { overflow: hidden; background: var(--card); }
+.mood__grid img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; transition: transform 1.2s var(--ease); }
+.mood__grid figure:hover img { transform: scale(1.03); }
+.mood__grid figure:nth-child(2) { margin-top: 60px; }
+.mood__text { max-width: 520px; margin-top: 18px; font-size: 12px; line-height: 1.7; color: var(--body); text-transform: lowercase; }
 
 /* ---------- Boutique ---------- */
 .shop-head { padding: 26px var(--pad) 16px; display: flex; justify-content: space-between; align-items: baseline; gap: 18px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
@@ -119,7 +129,7 @@ svg.i { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-widt
 /* ---------- Page produit (style capture iPad) ---------- */
 .pdp { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); min-height: calc(100vh - 100px); }
 .pdp__img { background: var(--card); display: flex; align-items: center; justify-content: center; }
-.pdp__img img { width: 100%; max-height: calc(100vh - 100px); object-fit: contain; }
+.pdp__img img { width: 100%; height: calc(100vh - 106px); min-height: 520px; object-fit: contain; }
 .pdp__info { padding: clamp(24px, 4vw, 56px) clamp(20px, 3vw, 44px); text-transform: lowercase; }
 .pdp__info h1 { font-family: var(--mono); font-weight: 400; font-size: 14px; letter-spacing: .02em; text-transform: uppercase; }
 .pdp__price { margin-top: 14px; font-size: 13px; line-height: 1.6; }
@@ -254,6 +264,9 @@ svg.i { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-widt
 }
 @media (max-width: 520px) {
   .edito { grid-template-columns: 1fr; }
+  .mood__grid { grid-template-columns: 1fr 1fr; }
+  .mood__grid figure:nth-child(2) { margin-top: 0; }
+  .mood__grid figure:nth-child(3) { grid-column: 1 / -1; }
   .card__info { grid-template-columns: 1fr; }
   .card__price { text-align: left; }
   .size { min-width: 34px; height: 34px; }

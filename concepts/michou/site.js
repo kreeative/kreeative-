@@ -11,8 +11,8 @@
 
   // The photo of each product, for the cart lines (the store's fiche has no photos)
   var PHOTOS = {
-    p1: 'img/doudoune-noire.webp', p2: 'img/veste-cargo-olive.webp', p3: 'img/veste-jean.webp', p4: 'img/gilet-olive.webp',
-    p5: 'img/tshirt-noir.webp', p6: 'img/tshirt-oversize.webp', p7: 'img/cargo-noir.webp', p8: 'img/ensemble-noir.webp'
+    p1: 'img/tshirt-levres.webp', p2: 'img/tshirt-masque.webp', p3: 'img/tshirt-console.webp', p4: 'img/tshirt-racing.webp',
+    p5: 'img/tshirt-croix.webp', p6: 'img/jort-noir.webp', p7: 'img/jort-brun.webp', p8: 'img/casquette-etoile.webp'
   };
 
   function jc() { return window.JeereConnect || null; }
