@@ -83,14 +83,14 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .section--pink { background: var(--pink); }
 .intro { max-width: 640px; margin: 22px auto 0; text-align: center; }
 
-/* ---------- Produits ---------- */
+/* ---------- Produits (fond blanc) ---------- */
 .produits { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: clamp(16px, 2vw, 26px); margin-top: 54px; }
 .carte[hidden] { display: none; }
-.carte__img { position: relative; display: block; aspect-ratio: 4 / 5; border-radius: 4px; background: linear-gradient(180deg, #f1d9e2 0%, #e9c6d3 100%); overflow: hidden; }
-.carte__img img { position: absolute; inset: 9% 14%; width: 72%; height: 82%; object-fit: contain; filter: drop-shadow(0 18px 18px rgba(80, 30, 50, .18)); transition: transform 1s var(--ease); }
-.carte__img--photo img { inset: 0; width: 100%; height: 100%; object-fit: cover; filter: none; }
+.carte { background: #fff; }
+.carte__img { position: relative; display: block; aspect-ratio: 4 / 5; background: #fff; border: 1px solid var(--line); overflow: hidden; }
+.carte__img img { position: absolute; inset: 8% 14% 6%; width: 72%; height: 86%; object-fit: contain; filter: drop-shadow(0 16px 14px rgba(42, 34, 38, .14)); transition: transform 1s var(--ease); }
 .carte:hover .carte__img img { transform: scale(1.04); }
-.carte__badge { position: absolute; top: 12px; left: 12px; z-index: 1; padding: 6px 12px; border-radius: 999px; background: #fff; font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.carte__badge { position: absolute; top: 12px; left: 12px; z-index: 1; padding: 6px 12px; border-radius: 999px; background: var(--pink); font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
 .carte__info { padding: 16px 4px 0; text-align: center; }
 .carte__nom { font-size: 13px; font-weight: 500; }
 .carte__detail { margin-top: 4px; font-size: 12px; color: var(--muted); }
@@ -98,15 +98,17 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .carte__add { width: 100%; margin-top: 14px; height: 40px; border-radius: 999px; background: var(--pink); font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; transition: background-color .3s; }
 .carte__add:hover { background: var(--pink-3); }
 .carte[data-jeere-state="off"] .carte__add { opacity: .4; pointer-events: none; }
+.section--pink .carte__img { border-color: #fff; }
 
-/* ---------- Catégories (ronds) ---------- */
-.cats { display: flex; justify-content: center; flex-wrap: wrap; gap: clamp(18px, 3vw, 44px); margin-top: 48px; }
-.cat { width: clamp(120px, 13vw, 170px); text-align: center; }
-.cat__rond { position: relative; display: block; aspect-ratio: 1; border-radius: 50%; background: #fff; overflow: hidden; transition: transform .6s var(--ease), background-color .4s; }
-.cat__rond img { position: absolute; left: 50%; bottom: 6%; height: 88%; width: auto; max-width: none; transform: translateX(-50%); filter: drop-shadow(0 10px 10px rgba(80, 30, 50, .15)); }
-.cat__rond--photo img { inset: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: none; filter: none; }
-.cat:hover .cat__rond { transform: translateY(-6px); background: #fbf4f6; }
-.cat p { margin-top: 14px; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+/* ---------- Catégories : ronds roses, les mèches dépassent par le haut ---------- */
+.cats { display: flex; justify-content: center; flex-wrap: wrap; gap: clamp(22px, 3.4vw, 52px); margin-top: 64px; }
+.cat { width: clamp(124px, 13vw, 176px); text-align: center; }
+.cat__rond { position: relative; display: block; aspect-ratio: 1; }
+.cat__rond::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--pink); transition: background-color .4s, transform .6s var(--ease); }
+.cat__rond img { position: absolute; left: 50%; bottom: 10%; height: 114%; width: auto; max-width: none; transform: translateX(-50%); filter: drop-shadow(0 12px 12px rgba(42, 34, 38, .16)); transition: transform .8s var(--ease); }
+.cat:hover .cat__rond::before { background: var(--pink-2); transform: scale(1.04); }
+.cat:hover .cat__rond img { transform: translateX(-50%) translateY(-8px); }
+.cat p { margin-top: 18px; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
 
 /* ---------- Glam (grand visuel) ---------- */
 .glam { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: center; background: #fbf4f6; overflow: hidden; }
