@@ -1625,3 +1625,9 @@ html { -webkit-tap-highlight-color: transparent; }
   background-size: calc(100% * 100 / var(--p, 100)) 100%; background-repeat: no-repeat;
 }
 .a-progress:has(.a-progress__fill--rainbow) .a-progress__bar { height: 8px; border-radius: 4px; }
+
+/* A row of buttons right after a card (the « Enregistrer » of every form, all pages): the same gap as between
+ * two cards, never stuck to the card above */
+.a-card + .a-btnrow, .a-card + form, form > .a-card + .a-btnrow, .a-otable-wrap + .a-btnrow, .tx-tl + .a-btnrow { margin-top: 16px; }
+form > .a-btnrow:last-child { margin-bottom: 8px; }
+body.is-ext .a-card + .a-btnrow { margin-top: 20px; }
