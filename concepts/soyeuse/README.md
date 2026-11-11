@@ -31,8 +31,9 @@ Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
   swash S `U+E020`, O with a star `U+E019`, curled E `U+E013`, S `U+E01D`, in `.logo__mark`
   (`aria-hidden`, the link carries `aria-label="SOYEUSE, accueil"`). The font loads with
   `font-display: block` so the alternates never show as empty boxes.
-- **Pop baby pink**: backgrounds `#ffe1ef` and `#ffc4e1`, accent `#ff8fc8`, logo and large titles
-  `#ff4fa3`, small pink text `#c8156f` (readable on white and on the light pink).
+- **Candy pink (rose bonbon)**: backgrounds `#ffdcee` and `#ffaad5`, accent `#ff7cbd`, logo and large titles
+  `#ff3d9e`, small pink text `#c8156f`. Hair cut-outs are cleaned of their light fringe and sit on
+  the pink without a shadow, so the pink stays clean.
 
 ## Font
 
