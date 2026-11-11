@@ -39,10 +39,12 @@ The site reads `data-store="seve"`. Products, one per id, no variants:
 | p3 | Gel Douche Musc | Gels douche | 18 000 | new |
 | p4 | Gel Douche Bergamote | Gels douche | 18 000 | — |
 | p10 | Gel Douche Lune | Gels douche | 18 000 | new |
-| p5 | Crème Corps Santal | Crèmes | 24 000 | best |
-| p6 | Crème Corps Bergamote | Crèmes | 24 000 | — |
-| p7 | Crème Mains Bergamote | Crèmes | 12 000 | new |
+| p5 | Crème Corps Santal | Crèmes & huiles | 24 000 | best |
+| p6 | Crème Corps Bergamote | Crèmes & huiles | 24 000 | — |
+| p7 | Crème Mains Bergamote | Crèmes & huiles | 12 000 | new |
+| p12 | Huile Corps Vanille | Crèmes & huiles | 26 000 | new |
 | p8 | Déodorant Bergamote | Déodorant | 14 000 | new |
+| p11 | Déodorant Vanille | Déodorant | 14 000 | — |
 | p9 | Huile de Parfum Santal | Parfums | 35 000 | — |
 
 Also: a delivery section with the Abidjan communes and fees (the checkout reads them), the payment
@@ -62,6 +64,7 @@ warm neutral background, soft side light, a leaf shadow or a natural prop (stone
 
 - Product packshots (`gel-*`, `creme-*`, `deodorant`, `huile-parfum-santal`) and `hero`,
   `formule-santal`, `formule-bergamote`: cut out of CYKLAR photos supplied by the owner (three group
-  shots, plus single shots for `gel-vanille` and `gel-lune`) and set on one cream ground (#efeee5),
+  shots, plus single shots for `gel-vanille`, `gel-lune`, `deodorant-vanille`
+  and `huile-corps-vanille`) and set on one cream ground (#efeee5),
   1000 × 1250.
 - Unsplash (free licence): Iain Robertson — `eucalyptus`; Jessica Irani — `formule-rituels`.

@@ -11,7 +11,8 @@
   var PHOTOS = {
     p1: 'img/gel-vanille.webp', p2: 'img/gel-santal.webp', p3: 'img/gel-musc.webp', p4: 'img/gel-bergamote.webp',
     p5: 'img/creme-corps-santal.webp', p6: 'img/creme-corps-bergamote.webp', p7: 'img/creme-mains.webp',
-    p8: 'img/deodorant.webp', p9: 'img/huile-parfum-santal.webp', p10: 'img/gel-lune.webp'
+    p8: 'img/deodorant.webp', p9: 'img/huile-parfum-santal.webp', p10: 'img/gel-lune.webp',
+    p11: 'img/deodorant-vanille.webp', p12: 'img/huile-corps-vanille.webp'
   };
   function fillThumbs() {
     document.querySelectorAll('.ligne').forEach(function (line) {
