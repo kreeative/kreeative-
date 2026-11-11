@@ -26,6 +26,22 @@
 (function () {
   'use strict';
 
+  // Where she comes from (?ref=tiktok, also after the # as in compte/#inscription?ref=tiktok, or utm_source): kept
+  // 30 days in this browser (first visit wins) and written on her account at signup (profiles.source)
+  function jeereRef() {
+    var KEY = 'jeere-ref', now = Date.now();
+    try {
+      var url = String(location.search || '') + '&' + String(location.hash || '').replace(/^[^?]*\?/, '');
+      var m = /(?:[?&])(?:ref|utm_source)=([A-Za-z0-9_-]{1,30})/.exec(url);
+      var saved = null;
+      try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }
+      if (saved && (!saved.at || now - saved.at > 30 * 864e5)) saved = null;
+      if (m && !saved) { saved = { src: m[1].toLowerCase(), at: now }; localStorage.setItem(KEY, JSON.stringify(saved)); }
+      return saved && saved.src ? saved.src : '';
+    } catch (e) { return ''; }
+  }
+  jeereRef();
+
   var root = window;
   var doc = document;
   var D = root.JEERE_DATA || {};
@@ -591,7 +607,7 @@
 
   function hashRoute() {
     var h = '';
-    try { h = (root.location.hash || '').replace(/^#/, ''); } catch (e) { h = ''; }
+    try { h = (root.location.hash || '').replace(/^#/, '').replace(/\?.*$/, ''); } catch (e) { h = ''; }
     return h === 'inscription' || h === 'connexion' ? h : '';
   }
   function stateStep() {
@@ -687,6 +703,7 @@
       if (info.demo) { drawMode(); cb(null, { real: false }); return; } // Supabase unreachable: demo, said on screen
       var data = { first_name: f.firstName || undefined };
       if (f.profilePhone) data.phone = f.profilePhone;
+      var ref = jeereRef(); if (ref) data.ref = ref;
       A.sendCode({ method: f.method, email: f.email, phone: f.phone, create: create, data: data }).then(function (r) {
         if (r.ok) cb(null, { real: true }); else cb(r.error, null);
       });

@@ -351,6 +351,43 @@
   }
   // The founder's own boutiques (MY_SHOPS, The Ivory Sukundu) are shown to HER account only: the `sites-publish`
   // function says who she is (public.site_editors), the answer kept per account for this tab.
+  /* The founder's counter (Accueil): accounts, stores and waitlist per day and per source (?ref=tiktok …), read
+   * from public.jeere_stats (site_editors only). The numbers for the pitch. */
+  function loadGrowth() {
+    if (S.growth && (S.growth.loading || Date.now() - S.growth.at < 60000)) return;
+    S.growth = Object.assign({}, S.growth || {}, { loading: true });
+    const A = window.JeereAuth;
+    Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then((ses) => {
+      if (!ses || !ses.access_token) return null;
+      return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/rpc/jeere_stats', { method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + ses.access_token },
+        body: JSON.stringify({ p_days: 14 }) }).then((r) => (r.ok ? r.json() : null));
+    }).catch(() => null).then((j) => {
+      S.growth = { at: Date.now(), data: j && j.totals ? j : null };
+      if (S.route && S.route.name === 'accueil') refresh();
+    });
+  }
+  function growthCard() {
+    loadGrowth();
+    const g = S.growth && S.growth.data;
+    if (!g) return H`<section class="a-card a-growth"><h2 class="a-card__title">Croissance de Jeere</h2><p class="a-card__sub">${S.growth && !S.growth.loading ? 'Les chiffres n’ont pas pu se charger.' : 'Chargement…'}</p></section>`;
+    const t = g.totals || {};
+    const days = arr(g.days).slice(-7);
+    const max = Math.max(1, ...days.map((d) => Number(d.accounts) || 0));
+    const fmtDay = (d) => { const x = new Date(d + 'T12:00:00'); return DAYS_SHORT[x.getDay()]; };
+    return H`<section class="a-card a-growth" aria-labelledby="h-growth"><div class="a-card__head"><div><h2 class="a-card__title" id="h-growth">Croissance de Jeere</h2><p class="a-card__sub">Visible par vous seule. Lien à partager : jeere.kreeative.xyz/compte/?ref=tiktok#inscription</p></div></div>
+      <dl class="a-growth__tot">
+        <div><dt>Comptes</dt><dd>${esc(number(t.accounts || 0))}</dd></div>
+        <div><dt>Boutiques</dt><dd>${esc(number(t.stores || 0))}</dd></div>
+        <div><dt>En ligne</dt><dd>${esc(number(t.published || 0))}</dd></div>
+        <div><dt>Liste d’attente</dt><dd>${esc(number(t.waitlist || 0))}</dd></div>
+      </dl>
+      <p class="a-growth__h">Par source</p>
+      <ul class="a-growth__src">${arr(g.bySource).map((x) => H`<li><span>${esc(x.source === 'direct' ? 'Direct' : x.source.charAt(0).toUpperCase() + x.source.slice(1))}</span><span>${esc(plural(Number(x.accounts) || 0, 'compte', 'comptes'))} · ${esc(plural(Number(x.stores) || 0, 'boutique', 'boutiques'))} · ${esc(number(x.published || 0))} en ligne</span></li>`)}</ul>
+      <p class="a-growth__h">Nouveaux comptes, 7 derniers jours</p>
+      <div class="a-growth__bars">${days.map((d) => H`<div class="a-growth__day" title="${esc(d.day)}"><span class="a-growth__n">${esc(String(d.accounts || 0))}</span><span class="a-growth__bar" style="height:${Math.round(((Number(d.accounts) || 0) / max) * 60) + 2}px"><i style="height:${Number(d.accounts) ? Math.round(((Number(d.tiktok) || 0) / Number(d.accounts)) * 100) : 0}%"></i></span><span class="a-growth__d">${esc(fmtDay(d.day))}</span></div>`)}</div>
+      <p class="a-small a-muted" style="margin-top:8px">Partie en couleur : venus de TikTok.</p></section>`;
+  }
   const founder = () => {
     const uid = S.account && S.account.userId ? String(S.account.userId) : '';
     if (!uid) return false;
@@ -1470,6 +1507,7 @@
         <a class="a-today__main" href="#commandes?statut=a-preparer"><span class="a-today__k" id="h-today">Aujourd’hui</span><span class="a-today__v">${esc(fr(todayTxt))}</span>${ico('chev', 'a-today__go')}</a>
         <button class="a-btn a-btn--inv a-today__btn" type="button" data-act="order-new">${ico('plus')}Nouvelle commande</button>
       </section>
+      ${founder() ? growthCard() : ''}
       ${checkHidden ? '' : H`<section class="a-card a-home__check${allDone ? ' is-ready' : ''}" aria-labelledby="h-check">
         <div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-check">${allDone ? 'Votre boutique est prête' : 'Premiers pas'}</h2>
           <p class="a-card__sub">${allDone ? 'Les ' + steps.length + ' étapes sont faites. Il ne reste plus qu’à la mettre en ligne.' : 'Les étapes qui comptent avant d’ouvrir. Elles se cochent toutes seules.'}</p></div>

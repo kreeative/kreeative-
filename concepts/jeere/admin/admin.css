@@ -1650,3 +1650,20 @@ body.is-ext .a-card + .a-btnrow { margin-top: 20px; }
   .tx-field textarea { font-size: 16px; } /* no zoom on iPhone when typing */
 }
 .tx-ed { position: relative; }
+
+/* The founder's counter (Accueil) */
+.a-growth__tot { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; }
+.a-growth__tot div { padding: 10px; border-radius: 12px; background: var(--grey-1); }
+.a-growth__tot dt { font-size: 12px; color: var(--muted); }
+.a-growth__tot dd { margin: 2px 0 0; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .a-growth__tot { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.a-growth__h { margin: 16px 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.a-growth__src { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.a-growth__src li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.a-growth__src li span:last-child { color: var(--muted); text-align: right; }
+.a-growth__bars { display: flex; align-items: flex-end; gap: 8px; height: 100px; }
+.a-growth__day { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+.a-growth__n { font-size: 12px; font-variant-numeric: tabular-nums; }
+.a-growth__bar { position: relative; width: 100%; max-width: 32px; border-radius: 6px; background: var(--grey-2); overflow: hidden; display: flex; align-items: flex-end; }
+.a-growth__bar i { display: block; width: 100%; background: linear-gradient(180deg, rgb(var(--jr-c6, 106, 76, 255)), rgb(var(--jr-c1, 232, 70, 124))); }
+.a-growth__d { font-size: 11px; color: var(--muted); }

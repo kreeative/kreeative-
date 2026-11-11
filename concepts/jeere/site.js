@@ -4,6 +4,22 @@
 (function () {
   'use strict';
 
+  // Where she comes from (?ref=tiktok, also after the # as in compte/#inscription?ref=tiktok, or utm_source): kept
+  // 30 days in this browser (first visit wins) and written on her account at signup (profiles.source)
+  function jeereRef() {
+    var KEY = 'jeere-ref', now = Date.now();
+    try {
+      var url = String(location.search || '') + '&' + String(location.hash || '').replace(/^[^?]*\?/, '');
+      var m = /(?:[?&])(?:ref|utm_source)=([A-Za-z0-9_-]{1,30})/.exec(url);
+      var saved = null;
+      try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }
+      if (saved && (!saved.at || now - saved.at > 30 * 864e5)) saved = null;
+      if (m && !saved) { saved = { src: m[1].toLowerCase(), at: now }; localStorage.setItem(KEY, JSON.stringify(saved)); }
+      return saved && saved.src ? saved.src : '';
+    } catch (e) { return ''; }
+  }
+  jeereRef();
+
   var root = document.documentElement;
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
@@ -170,6 +186,7 @@
   function source() {
     var q = new URLSearchParams(location.search);
     var parts = ['utm_source', 'utm_medium', 'utm_campaign'].map(function (k) { return q.get(k); }).filter(Boolean);
+    var r = jeereRef(); if (r && parts.indexOf(r) < 0) parts.unshift(r);
     if (!parts.length && document.referrer) { try { parts.push(new URL(document.referrer).hostname); } catch (e) {} }
     return parts.join(' / ').slice(0, 200) || null;
   }
