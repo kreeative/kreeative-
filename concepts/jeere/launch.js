@@ -21,6 +21,19 @@
         tag.textContent = en() ? o.months + ' months free' : o.months + NB + 'mois offerts';
       } else if (tag) tag.remove();
     }
+    // the thin red bar at the very top: one line, the whole bar is the link (to the signup, the source kept)
+    var bars = document.querySelectorAll('[data-launch-bar]');
+    for (var r = 0; r < bars.length; r++) {
+      var bar = bars[r];
+      if (!o.active) { bar.hidden = true; continue; }
+      var ref = '';
+      try { var sv = JSON.parse(localStorage.getItem('jeere-ref') || 'null'); ref = sv && sv.src ? sv.src : ''; } catch (e) { ref = ''; }
+      bar.href = (bar.getAttribute('data-base') || 'compte/') + (ref ? '?ref=' + encodeURIComponent(ref) : '') + '#inscription';
+      bar.innerHTML = '<span class="promo__t"></span><span class="promo__go"></span>';
+      bar.querySelector('.promo__t').textContent = en() ? o.months + ' months free on the Essentiel pack' : o.months + NB + 'mois offerts sur le pack Essentiel';
+      bar.querySelector('.promo__go').textContent = en() ? 'Find out more →' : 'En savoir plus →';
+      bar.hidden = false;
+    }
     var boxes = document.querySelectorAll('[data-launch]');
     for (var b = 0; b < boxes.length; b++) {
       var box = boxes[b];

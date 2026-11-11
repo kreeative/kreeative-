@@ -22,11 +22,11 @@ const db = (path: string, init: RequestInit = {}) => fetch(SUPABASE_URL + '/rest
 });
 async function rpc(name: string, body: Obj = {}) { const r = await db('rpc/' + name, { method: 'POST', body: JSON.stringify(body) }); return r.ok ? await r.json() : null; }
 
-function mail(firstName: string, left: number, months: number, active: boolean) {
+function mail(firstName: string, left: number, months: number, active: boolean, spots: number) {
   const hi = firstName ? 'Bonjour ' + firstName + ',' : 'Bonjour,';
   const link = SITE + '/compte/#connexion';
   const offer = active
-    ? 'Offre de lancement : le plan Essentiel (3 000 FCFA/mois) est offert ' + months + ' mois aux 100 premières inscrites. Il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' en ce moment. Après, l’Essentiel est à 3 000 FCFA par mois.'
+    ? 'Offre de lancement : le plan Essentiel (3 000 FCFA/mois) est offert ' + months + ' mois aux ' + spots + ' premières inscrites. Il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' en ce moment. Après, l’Essentiel est à 3 000 FCFA par mois.'
     : '';
   const lines = [
     hi,
@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
   const active = !!(spots && spots.active), left = Number(spots?.left ?? 0), months = Number(spots?.months ?? 3);
   let sent = 0;
   for (const p of pending) {
-    const m = mail(String(p.first_name || '').split(' ')[0].slice(0, 40), left, months, active);
+    const m = mail(String(p.first_name || '').split(' ')[0].slice(0, 40), left, months, active, Number(spots?.spots ?? 50));
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: FROM, to: [p.email], subject: m.subject, html: m.html, text: m.text, reply_to: 'contact.jeere@kreeative.xyz' })

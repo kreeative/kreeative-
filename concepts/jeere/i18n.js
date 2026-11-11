@@ -49,7 +49,7 @@ window.JEERE_EN = {
   'bt.title1': 'Your physical shop,',
   'bt.title2': 'now online.',
   'bt.lead': 'You already have the shop and the customers. Jeere puts it online: your website, Wave, Orange Money, MTN MoMo and Moov payments, deliveries. Free to start.',
-  'bt.cta': 'Create my online store now',
+  'bt.cta': 'Create my store',
   'bt.replay': 'Watch again',
   'bt.credit': 'Photo: @prince_edja on Instagram',
   'bt.shop.h2': 'New this week',
