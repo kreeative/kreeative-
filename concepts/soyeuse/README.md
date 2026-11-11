@@ -40,11 +40,16 @@ Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
 Hastegi is self-hosted in `fonts/` (the owner holds a commercial licence). Keep the licence proof;
 for a client site, check that the licence covers web embedding for that client.
 
-## Model photos (AI-generated)
+## Model photos (AI-generated, from the owner's own likeness)
 
-- `img/modele-hero.webp` (hero: full body, seated sideways on a white cube, white backdrop lifted to
-  pure white) and `img/modele-glam.webp` (« glam » section, backdrop shifted to candy pink): a fictional
-  model generated with Higgsfield (Soul 2.0) for this demo. The alt texts say the images are AI-generated.
+- `img/modele-hero.webp` (hero: front portrait, sleek black lace, white backdrop) and
+  `img/modele-glam.webp` (« glam » section: three-quarter, long body wave, pink satin top): generated
+  with Higgsfield (Nano Banana Pro, `image_references`) from a cropped selfie of the owner, with her
+  consent, so the model is her own likeness and not a stranger's. The backdrops were lifted to pure
+  white with PIL. The alt texts say the images are AI-generated.
+- The reference selfie is not in the repo. To regenerate, upload a new crop to Higgsfield and reuse
+  the prompts in the git history of this file's session notes (front: sleek middle-part lace;
+  glam: body wave, baby-pink satin slip, gold hoops).
 - For a real client, replace them with the client's own photos (under the same names, or in the Studio).
 
 ## The Jeere store `soyeuse` (to create — Jeere session)
