@@ -513,8 +513,7 @@
   function drawChannelTexts() {
     var one = !demo() && !providers.sms && !providers.whatsapp;
     var lead = doc.getElementById('c-signup-lead');
-    if (lead) lead.innerHTML = one ? 'Votre prénom et votre adresse e-mail&nbsp;: vous recevez un code de connexion. Pas de mot de passe à retenir.'
-      : 'Votre prénom, puis où recevoir votre code de connexion. Pas de mot de passe à retenir.';
+    if (lead) lead.innerHTML = 'Pas de mot de passe.';
     // with e-mail alone, the line under the (hidden) choice repeats the e-mail field's hint: hidden too
     ['c-method-hint', 'c-l-method-hint'].forEach(function (id) { var h = doc.getElementById(id); if (h) h.hidden = one; });
   }
@@ -997,16 +996,17 @@
     el.codeBackT.textContent = isMail ? 'Changer d’adresse' : 'Changer de numéro';
     // « Nous avons envoyé un code par e-mail à awa@gmail.com. »
     el.codeLead.innerHTML = '';
-    el.codeLead.appendChild(doc.createTextNode((flow.real ? 'Nous avons envoyé un code ' : 'Dans le vrai Jeere, le code part ') + channelWords(flow.method) + ' ' + (isMail ? 'à ' : 'au ')));
+    el.codeLead.appendChild(doc.createTextNode(flow.real ? 'Envoyé à ' : 'Démo, envoyé à '));
     var b = doc.createElement('strong');
     b.className = 'c-nowrap';
     b.id = 'c-code-num';
     b.textContent = isMail ? flow.email : formatPhone(flow.phone);
     el.codeLead.appendChild(b);
-    el.codeLead.appendChild(doc.createTextNode('.'));
+    
     el.demoBox.hidden = !!flow.real;
-    el.codeHint.textContent = 'La vérification se lance dès le sixième chiffre. Vous pouvez aussi coller le code.' +
-      (isMail && flow.real ? ' Pas dans la boîte de réception' + NB + '? Regardez dans les courriers indésirables (spam).' : '');
+    // short: the spam folder only, for an e-mail
+    el.codeHint.textContent = isMail && flow.real ? 'Pas reçu' + NB + '? Regardez dans les spams.' : '';
+    el.codeHint.hidden = !el.codeHint.textContent;
     el.code.value = '';
     el.code.readOnly = false;
     el.code.setAttribute('aria-describedby', (flow.real ? '' : 'c-demo ') + 'c-code-hint');
@@ -1016,7 +1016,7 @@
     el.resendMsg.hidden = true;
     var txt = el.codeBtn.querySelector('.c-btn__txt');
     if (txt) txt.textContent = 'Valider';
-    el.resendPre.textContent = 'Pas reçu' + NB + '? Renvoyer le code dans';
+    el.resendPre.textContent = 'Renvoyer dans';
     if (!flow.sentAt) { flow.sentAt = Date.now(); saveFlow(); }
     drawCells();
     startTimer();
@@ -1201,7 +1201,7 @@
   // 3. The store name
   SETUP.name = function () {
     clearError(el.store, 'c-store-err');
-    el.nameLead.textContent = (flow.firstName ? 'Merci, ' + flow.firstName + '. ' : '') + 'C’est le nom que vos clients verront. Vous pourrez le changer quand vous voulez.';
+    el.nameLead.textContent = (flow.firstName ? 'Merci, ' + flow.firstName + '. ' : '') + 'Modifiable à tout moment.';
     var fromFiche = ficheName();
     if (!el.store.value) el.store.value = flow.storeName || fromFiche || '';
     drawAddress();

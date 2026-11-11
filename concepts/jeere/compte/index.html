@@ -22,7 +22,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&text=%C9%9B%C9%94%C6%90%C6%86%C5%8B%C5%8A&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="compte.css">
   <link rel="stylesheet" href="../rainbow.css">
-  <style>.launch{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0 4px;padding:12px 16px;border:2px solid transparent;border-radius:16px;color:#141414;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(100deg,#E8467C,#F08A3C,#F0C414,#22C97E,#1E9BE0,#6A4CFF,#C13CE0) border-box}.launch[hidden]{display:none}.launch__t{flex:1 1 200px;margin:0;font-size:14.5px;line-height:1.4}.launch__t b{font-weight:600}.launch__t span{color:#5A554C}.launch__n{flex:none;max-width:100%;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(90deg,#E8467C,#6A4CFF)}</style>
+  <style>.launch{position:relative;isolation:isolate;display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:18px 0 8px;padding:12px 16px;border:1px solid rgba(0,0,0,.06);border-radius:16px;color:#141414;background:#fff}.launch::before{content:"";position:absolute;inset:-2px 4px;border-radius:inherit;background:linear-gradient(100deg,#E8467C,#F08A3C,#F0C414,#22C97E,#1E9BE0,#6A4CFF,#C13CE0);filter:blur(14px);opacity:.9;z-index:-2}.launch::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:#fff}.launch[hidden]{display:none}.launch__t{flex:1 1 200px;margin:0;font-size:14.5px;line-height:1.4}.launch__t b{font-weight:600}.launch__t span{color:#5A554C}.launch__n{font-size:13.5px;font-weight:600}.c-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
   <script src="../creer/data.js" defer></script>
   <script src="../creer/elstyles.js" defer></script>
   <script src="../studio/plans.js" defer></script>
@@ -92,7 +92,7 @@
         <!-- =========================== #inscription, 1: first name, then how to receive the code (e-mail by default) -->
         <section class="c-step" data-step="signup" aria-labelledby="c-signup-t" hidden>
           <h1 class="c-title" id="c-signup-t" tabindex="-1">Créez votre compte</h1>
-          <p class="c-lead" id="c-signup-lead">Votre prénom, puis où recevoir votre code de connexion. Pas de mot de passe à retenir.</p>
+          <p class="c-lead" id="c-signup-lead">Pas de mot de passe.</p>
           <div class="launch" data-launch hidden></div>
 
           <div class="c-notice" id="c-exists" hidden>
@@ -253,7 +253,7 @@
 
           <form class="c-form" id="c-form-code" novalidate>
             <div class="c-field">
-              <label class="c-label" for="c-code">Code reçu</label>
+              <label class="c-label c-sr" for="c-code">Code reçu</label>
               <div class="c-otp" id="c-otp">
                 <!-- One real input (paste, SMS autofill and screen readers see one field), drawn as 6 to 10 boxes (compte.js) -->
                 <input class="c-otp__input" id="c-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="done" aria-describedby="c-code-hint">
@@ -263,12 +263,12 @@
                   <span class="c-otp__cell"></span><span class="c-otp__cell"></span><span class="c-otp__cell"></span>
                 </div>
               </div>
-              <p class="c-hint" id="c-code-hint">La vérification se lance dès que le code est complet. Vous pouvez aussi le coller.</p>
+              <p class="c-hint" id="c-code-hint" hidden></p>
               <p class="c-err" id="c-code-err" hidden></p>
             </div>
             <button class="c-btn c-btn--primary c-btn--block" type="submit" id="c-code-btn"><span class="c-btn__txt">Valider</span></button>
             <div class="c-resend">
-              <p class="c-resend__wait" id="c-resend-wait"><span id="c-resend-pre">Pas reçu&nbsp;? Renvoyer le code dans</span> <span class="c-resend__time" id="c-resend-time">1:00</span></p>
+              <p class="c-resend__wait" id="c-resend-wait"><span id="c-resend-pre">Renvoyer dans</span> <span class="c-resend__time" id="c-resend-time">1:00</span></p>
               <div class="c-resend__acts" id="c-resend-acts" hidden>
                 <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-resend"><svg class="c-ico" aria-hidden="true"><use href="#i-refresh"/></svg>Renvoyer le code</button>
                 <button class="c-btn c-btn--ghost c-btn--sm" type="button" id="c-other"><svg class="c-ico" aria-hidden="true"><use href="#i-back"/></svg>Autre méthode</button>
@@ -288,7 +288,7 @@
         <!-- =========================== #inscription, 3: the store name -->
         <section class="c-step" data-step="name" aria-labelledby="c-name-t" hidden>
           <h1 class="c-title" id="c-name-t" tabindex="-1">Le nom de votre boutique</h1>
-          <p class="c-lead" id="c-name-lead">C’est le nom que vos clients verront. Vous pourrez le changer quand vous voulez.</p>
+          <p class="c-lead" id="c-name-lead">Modifiable à tout moment.</p>
           <form class="c-form" id="c-form-name" novalidate>
             <div class="c-field">
               <label class="c-label" for="c-store">Nom de la boutique</label>

@@ -29,7 +29,7 @@
       // short: people don't read; the exact « Plus que N places » once 20 or fewer are left
       var t1 = en() ? 'Get ' + o.months + ' months free on the Essentiel pack.' : 'Obtiens ' + o.months + NB + 'mois offerts sur le pack Essentiel.';
       var t0 = en() ? 'Everything included.' : 'Tout est inclus.';
-      var t2 = left <= 20 ? (en() ? 'Only ' + left + ' left' : 'Plus que ' + left + ' place' + (left > 1 ? 's' : '')) : (en() ? 'Hurry, spots are running out' : 'Dépêche-toi, il ne reste plus beaucoup de places');
+      var t2 = left <= 20 ? (en() ? 'Only ' + left + ' left' : 'Plus que ' + left + ' place' + (left > 1 ? 's' : '')) : (en() ? 'Sign up fast, before the spots run out' : 'Inscris-toi vite avant que les places finissent');
       box.innerHTML = '<p class="launch__t"><b></b> <span></span></p><span class="launch__n"></span>';
       box.querySelector('.launch__t b').textContent = t1;
       box.querySelector('.launch__t span').textContent = t0;

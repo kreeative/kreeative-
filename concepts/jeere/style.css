@@ -970,3 +970,11 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .launch__t span { color: #5A554C; }
 .launch__n { flex: none; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #FFFFFF; background: linear-gradient(90deg, #E8467C, #6A4CFF); }
 .launch__n { max-width: 100%; white-space: normal; text-align: center; }
+
+/* The launch offer: a white card with a soft rainbow glow behind it (no coloured border, no pill) */
+.launch { position: relative; isolation: isolate; border: 1px solid rgba(0,0,0,.06); background: #FFFFFF; }
+.launch::before { content: ""; position: absolute; inset: 6px; z-index: -1; border-radius: inherit;
+  background: linear-gradient(100deg, #E8467C, #F08A3C, #F0C414, #22C97E, #1E9BE0, #6A4CFF, #C13CE0); filter: blur(16px); opacity: .55; }
+.launch__n { padding: 0; border-radius: 0; background: none; color: #141414; font-weight: 600; text-align: left; }
+.launch::before { z-index: -2; } .launch::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: #FFFFFF; }
+.launch::before { inset: -2px 4px; filter: blur(14px); opacity: .9; }
