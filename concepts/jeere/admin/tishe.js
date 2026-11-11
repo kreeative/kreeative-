@@ -569,7 +569,10 @@
   /* ------------------------------------------------------------------ the site, edited in place (the shop's docs/jeere-editor.md) */
 
   var ORIGIN = 'https://www.theivorysukundu.com';
-  var ED = { changes: {}, fields: [], pages: [], route: '/', imgKey: null, device: 'desktop' };
+  var ED = { changes: {}, fields: [], pages: [], route: '/', imgKey: null, device: 'desktop', mode: '' };
+  // « Simple »: the page's texts and photos as a form (the phone's default, like the Jeere editor); « Sur le site »:
+  // click the text right on the site. The site stays loaded behind the form: it is what lists the fields.
+  function edMode() { if (!ED.mode) ED.mode = (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) ? 'simple' : 'site'; return ED.mode; }
   var LABELS = { hero: 'Accueil', campaign: 'Campagne', collection: 'Collection', reviews: 'Avis', lengths: 'Guide des longueurs', ourhair: 'Nos cheveux', circle: 'The Circle', contact: 'Contact', footer: 'Pied de page' };
   function keyLabel(k) {
     var parts = String(k).split('.'), sec = LABELS[parts[0]] || parts[0];
@@ -577,8 +580,9 @@
     return sec + ' · ' + rest;
   }
   function editorHTML() {
-    return '<section class="a-card tx-ed" id="tx-ed">' +
+    return '<section class="a-card tx-ed' + (edMode() === 'simple' ? ' is-simple' : '') + '" id="tx-ed">' +
       '<div class="tx-ed__bar">' +
+        '<div class="tx-ed__seg tx-ed__view" role="group" aria-label="Façon de modifier"><button type="button" data-tx="edmode" data-mode="simple" aria-pressed="' + (edMode() === 'simple') + '">' + ico('edit') + 'Simple</button><button type="button" data-tx="edmode" data-mode="site" aria-pressed="' + (edMode() === 'site') + '">' + ico('eye') + 'Sur le site</button></div>' +
         '<div class="a-selectwrap tx-ed__pages"><select class="a-input" id="tx-pages" aria-label="Page du site"><option value="/">Accueil</option></select>' + ico('down') + '</div>' +
         '<div class="tx-ed__seg" role="group" aria-label="Appareil"><button type="button" data-tx="dev" data-dev="desktop" aria-pressed="' + (ED.device === 'desktop') + '">' + ico('desktop') + 'Ordinateur</button><button type="button" data-tx="dev" data-dev="phone" aria-pressed="' + (ED.device === 'phone') + '">' + ico('phone') + 'Téléphone</button></div>' +
         '<label class="tx-check tx-ed__mode"><input type="checkbox" id="tx-editmode" checked><span>Mode édition</span></label>' +
@@ -849,6 +853,7 @@
     if (a === 'fsel') { toShop({ type: 'select', key: b.getAttribute('data-key') }); return; }
     if (a === 'fimg') { ED.imgKey = b.getAttribute('data-key'); var pk = document.getElementById('tx-imgpick'); if (pk) pk.click(); return; }
     if (a === 'freset') { var rk = b.getAttribute('data-key'); ED.changes[rk] = ''; toShop({ type: 'set', key: rk, value: '' }); drawFields(); countChanges(); return; }
+    if (a === 'edmode') { ED.mode = b.getAttribute('data-mode'); var ed0 = document.getElementById('tx-ed'); if (ed0) ed0.classList.toggle('is-simple', ED.mode === 'simple'); document.querySelectorAll('[data-tx="edmode"]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); return; }
     if (a === 'dev') { ED.device = b.getAttribute('data-dev'); var fr0 = document.querySelector('.tx-ed__frame'); if (fr0) fr0.setAttribute('data-dev', ED.device); document.querySelectorAll('[data-tx="dev"]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); return; }
     if (a === 'retry') { T.error = null; refresh(); }
     else if (a === 'reload') { T.overview = null; refresh(); }

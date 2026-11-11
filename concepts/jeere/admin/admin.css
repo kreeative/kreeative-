@@ -1631,3 +1631,22 @@ html { -webkit-tap-highlight-color: transparent; }
 .a-card + .a-btnrow, .a-card + form, form > .a-card + .a-btnrow, .a-otable-wrap + .a-btnrow, .tx-tl + .a-btnrow { margin-top: 16px; }
 form > .a-btnrow:last-child { margin-bottom: 8px; }
 body.is-ext .a-card + .a-btnrow { margin-top: 20px; }
+
+/* The Ivory Sukundu editor, « Simple »: the page's texts and photos as a form, like the Jeere editor (the phone's
+ * default). The site stays loaded out of sight: it is what sends the list of fields. */
+.tx-ed.is-simple .tx-ed__body { grid-template-columns: minmax(0, 1fr); }
+.tx-ed.is-simple .tx-ed__stage { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+.tx-ed.is-simple .tx-ed__side { border: 0; max-height: none; padding: 16px; }
+.tx-ed.is-simple [data-tx="dev"], .tx-ed.is-simple .tx-ed__mode { display: none; }
+.tx-ed.is-simple .tx-ed__seg:not(.tx-ed__view) { display: none; }
+.tx-ed__view button .a-ico { width: 16px; height: 16px; }
+@media (max-width: 899px) {
+  .tx-ed__bar { gap: 10px; }
+  .tx-ed__pages { flex: 1 1 100%; }
+  .tx-ed__view { flex: 1 1 100%; }
+  .tx-ed__view button { flex: 1; justify-content: center; }
+  .tx-ed__n { margin-left: 0; flex: 1 1 100%; }
+  .tx-ed .a-btn--sm { flex: 1; justify-content: center; }
+  .tx-field textarea { font-size: 16px; } /* no zoom on iPhone when typing */
+}
+.tx-ed { position: relative; }
