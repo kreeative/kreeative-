@@ -74,3 +74,34 @@
   .cs-content { padding: 72px 15px; }
   .cs-results { padding-top: 40px; }
 }
+
+/* ---- Product-design additions (facts, decisions, placeholders, quote) ---- */
+.cs-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 32px; width: 100%; max-width: 1000px; margin: 0; padding: 28px 0 0; border-top: 1px solid var(--c-line); }
+.cs-fact { display: flex; flex-direction: column; gap: 6px; margin: 0; min-width: 0; }
+.cs-fact dt { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.cs-fact dd { margin: 0; color: var(--c-black); overflow-wrap: anywhere; }
+.cs-fact a { color: var(--c-link-case); text-decoration: none; }
+.cs-fact a:hover { color: var(--c-link-case-hover); }
+
+.cs-decision { width: 100%; max-width: 640px; padding: 18px 22px; border-left: 3px solid var(--c-black); border-radius: 0 var(--r-md) var(--r-md) 0; background: var(--c-surface-2); }
+.cs-decision__label { margin-bottom: 6px; font-size: 12px; letter-spacing: 0.08em; }
+.cs-decision p + p { margin-top: 0; }
+
+/* Placeholders the owner still has to fill in: visibly pink and dashed on purpose */
+.cs-todo { width: 100%; max-width: 640px; padding: 18px 22px; border: 1px dashed var(--c-pink); border-radius: var(--r-md); background: rgba(255, 0, 144, 0.04); color: var(--c-text); }
+.cs-todo__label { margin-bottom: 6px; font-size: 12px; letter-spacing: 0.08em; color: var(--c-pink); }
+.cs-todo p + p { margin-top: 0; }
+.cs-todo-inline { color: var(--c-pink); border-bottom: 1px dashed var(--c-pink); }
+.cs-image--todo { display: flex; align-items: center; justify-content: center; border: 1px dashed var(--c-pink); background: rgba(255, 0, 144, 0.04); color: var(--c-pink); text-align: center; padding: 24px; }
+
+.cs-quote { margin: 0; padding: 24px 28px; border-radius: var(--r-md); background: var(--c-surface-2); }
+.cs-quote blockquote { margin: 0; color: var(--c-black); }
+.cs-quote figcaption { margin-top: 12px; color: var(--c-muted); }
+
+.cs-rich > * + .cs-decision, .cs-rich > * + .cs-todo { margin-top: 20px; }
+.cs-rich > .cs-decision + .cs-decision { margin-top: 12px; }
+.cs-text .cs-todo { max-width: none; }
+
+@media (max-width: 809.98px) {
+  .cs-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; padding-top: 20px; }
+}

@@ -26,6 +26,9 @@ const SITES = [
   ['bakery', 'https://the-bakery-concept.vercel.app/', { scrollFirst: true, time: '2026-10-06T14:30:00Z' }],
   // Its ordering app, with the chocolate chunk cookies as the second screen.
   ['bakery-app', 'https://the-bakery-concept.vercel.app/order/', { detail: '#/dish/chunk-cookie', time: '2026-10-06T14:30:00Z' }],
+  // Served from this site: the course platform and the home page itself.
+  ['academy',   'https://kreeative.xyz/teach/', { scrollFirst: true }],
+  ['kreeative', 'https://kreeative.xyz/', { scrollFirst: true }],
 ];
 const ONLY = (process.env.ONLY || '').split(/[\s,]+/).filter(Boolean);
 const RUN = SITES.filter(([name]) => !ONLY.length || ONLY.includes(name));

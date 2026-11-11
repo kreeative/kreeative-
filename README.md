@@ -1,33 +1,56 @@
 # Kreeative — portfolio website
 
-The website of Kreeative, the graphic design studio of Anne-Kelly Kouyaté.
+The portfolio of Anne-Kelly Kouyaté, product and brand designer (Kreeative).
 This is a plain, dependency-free static site (HTML + CSS + a little JS): no
 Framer, no build step, no subscription. Open `index.html` in a browser and it
 works.
 
 ## Pages
 
-| URL                                                         | File                                                             |
-| ----------------------------------------------------------- | ---------------------------------------------------------------- |
-| `/`                                                         | `index.html`                                                     |
-| `/portfolio/revitalizing-customer-engagement-for-fluxcrm/`  | `portfolio/revitalizing-customer-engagement-for-fluxcrm/index.html` (The Bakery) |
-| `/portfolio/streamlining-e-commerce-for-zenithcart/`        | `portfolio/streamlining-e-commerce-for-zenithcart/index.html` (Gogiya) |
-| `/portfolio/designing-a-seamless-user-experience-for-taskflow/` | `portfolio/designing-a-seamless-user-experience-for-taskflow/index.html` (GloryWalk) |
-| `/portfolio/nexatech/`                                      | `portfolio/nexatech/index.html` (Lyzma Industries)               |
-| `/websites/rich-and-friends/`                               | `websites/rich-and-friends/index.html`                           |
-| `/websites/keewal-meere/`                                   | `websites/keewal-meere/index.html`                               |
-| `/websites/cameleon/`                                       | `websites/cameleon/index.html`                                   |
-| `/websites/tabouret/`                                       | `websites/tabouret/index.html`                                   |
-| `/websites/guillemot/`                                      | `websites/guillemot/index.html`                                  |
-| `/websites/the-bakery/`                                     | `websites/the-bakery/index.html`                                 |
-| `/websites/jessicas-secrets/`                               | `websites/jessicas-secrets/index.html`                           |
-| `/concepts/jessicas-secrets/`                               | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
-| `/pricing/`                                                 | `pricing/index.html`                                             |
-| `/the-kreeative-designer-newsletter/`                       | `the-kreeative-designer-newsletter/index.html`                   |
-| any unknown URL                                             | `404.html`                                                       |
+| URL                                               | File                                                            |
+| ------------------------------------------------- | --------------------------------------------------------------- |
+| `/`                                               | `index.html`                                                    |
+| `/portfolio/the-bakery/`                          | `portfolio/the-bakery/index.html` (brand identity)              |
+| `/portfolio/gogiya/`                              | `portfolio/gogiya/index.html` (brand + web design)              |
+| `/portfolio/glorywalk/`                           | `portfolio/glorywalk/index.html` (brand identity)               |
+| `/portfolio/lyzma-industries/`                    | `portfolio/lyzma-industries/index.html` (brand identity)        |
+| `/portfolio/banking-ux-case-study/`               | draft template, `noindex`, not linked yet                       |
+| `/portfolio/ai-assisted-design/`                  | draft template, `noindex`, not linked yet                       |
+| `/websites/`                                      | `websites/index.html` (every website and product)               |
+| `/websites/rich-and-friends/`                     | `websites/rich-and-friends/index.html`                          |
+| `/websites/keewal-meere/`                         | `websites/keewal-meere/index.html`                              |
+| `/websites/tabouret/`                             | `websites/tabouret/index.html`                                  |
+| `/websites/the-bakery/`                           | `websites/the-bakery/index.html`                                |
+| `/websites/kreeator-academy/`                     | `websites/kreeator-academy/index.html`                          |
+| `/websites/guillemot/`                            | `websites/guillemot/index.html`                                 |
+| `/websites/cameleon/`                             | `websites/cameleon/index.html`                                  |
+| `/websites/jessicas-secrets/`                     | `websites/jessicas-secrets/index.html`                          |
+| `/websites/kreeative/`                            | `websites/kreeative/index.html` (this site)                     |
+| `/concepts/jessicas-secrets/`                     | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
+| `/about/`, `/shop/`, `/teach/`, `/pricing/`       | their `index.html`                                              |
+| `/the-kreeative-designer-newsletter/`             | `the-kreeative-designer-newsletter/index.html`                  |
+| any unknown URL                                   | `404.html`                                                      |
 
-The portfolio URLs are the ones the old Framer site used, so existing links
-keep working.
+The old Framer-era case-study URLs (`…-for-fluxcrm`, `…-for-zenithcart`,
+`…-for-taskflow`, `nexatech`) redirect to the new ones: `vercel.json` holds
+301 redirects, and each old folder keeps a tiny `index.html` that
+meta-refreshes to the new page for any other static host.
+
+## Case-study structure
+
+Every case study (brand and website) follows the same product-design
+skeleton: facts row (role, client, tools, timeline, team, live link),
+Overview, The problem, Who it’s for, Constraints, Process (research, user
+flows, wireframes and iterations, “Why this decision” callouts), What I
+designed and built, Key deliverables, Outcome with evidence.
+
+Pink dashed **TO FILL** blocks are placeholders for research, wireframes,
+metrics and quotes that still need real material. They are styled to be
+visible on purpose (`.cs-todo`, `.cs-todo-inline` in
+`assets/css/case-study.css`); search the repo for `TO FILL` to find them all.
+The two draft templates under `portfolio/` carry `noindex` until they are
+written; the home page shows them as “in progress” cards without links
+(search `index.html` for the slug to switch the card to a link).
 
 ## Folder structure
 
@@ -113,12 +136,13 @@ repository. DNS changes take from a few minutes to a few hours to propagate.
 
 * Text: edit the HTML files directly; the copy is plain text inside the
   `<p>`, `<h2>`… tags.
-* Adding a case study: copy one of the `portfolio/*/index.html` folders, change
-  the copy and image names, add a card to the **Featured Projects** grid in
-  `index.html`, and add the URL to `sitemap.xml`.
+* Adding a case study: copy one of the `portfolio/*/index.html` folders (or
+  one of the draft templates), change the copy and image names, add a card to
+  the **Product work** or **Brand identity** grid in `index.html`, and add the
+  URL to `sitemap.xml`.
 * Images: put optimised WebP files in `assets/img/` (a few sizes each, e.g.
   660 / 1000 / 2000 px wide) and reference them with `srcset`.
-* **Websites I built** (home page): the screenshots in `assets/img/sites/` are
+* **Websites** (home page and `/websites/`): the screenshots in `assets/img/sites/` are
   taken automatically by the **Site screenshots** workflow (GitHub → Actions →
   *Site screenshots* → *Run workflow*). Run it again whenever one of the sites
   changes; it commits the fresh images. To add a site, add it to the list at

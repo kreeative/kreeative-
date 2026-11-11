@@ -189,3 +189,14 @@
 @media (max-width: 809.98px) {
   .audit-strip { padding: 56px var(--pad-x); }
 }
+
+/* ---- Product work: cards for case studies still being written ----------- */
+.site-card--soon { cursor: default; }
+.site-card--soon:hover { transform: none; box-shadow: var(--sh-card); }
+.site-card--soon .site-card__media { display: flex; align-items: center; justify-content: center; border: 1px dashed var(--c-dashed); background: var(--c-white); color: var(--c-text-40); text-align: center; padding: 24px; }
+.site-card--soon .site-card__media p { max-width: 420px; }
+.sites__more { align-self: flex-start; color: var(--c-black); }
+.sites__more svg { width: 16px; height: 16px; }
+
+/* Experience rows without a logo image */
+.exp-row__logo--initial { display: inline-flex; align-items: center; justify-content: center; font: 600 12px/1 var(--f-sans); color: var(--c-white); background: var(--c-black); }

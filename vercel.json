@@ -1,0 +1,44 @@
+{
+  "redirects": [
+    {
+      "source": "/portfolio/revitalizing-customer-engagement-for-fluxcrm",
+      "destination": "/portfolio/the-bakery/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/revitalizing-customer-engagement-for-fluxcrm/",
+      "destination": "/portfolio/the-bakery/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/streamlining-e-commerce-for-zenithcart",
+      "destination": "/portfolio/gogiya/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/streamlining-e-commerce-for-zenithcart/",
+      "destination": "/portfolio/gogiya/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/designing-a-seamless-user-experience-for-taskflow",
+      "destination": "/portfolio/glorywalk/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/designing-a-seamless-user-experience-for-taskflow/",
+      "destination": "/portfolio/glorywalk/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/nexatech",
+      "destination": "/portfolio/lyzma-industries/",
+      "permanent": true
+    },
+    {
+      "source": "/portfolio/nexatech/",
+      "destination": "/portfolio/lyzma-industries/",
+      "permanent": true
+    }
+  ]
+}

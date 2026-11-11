@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tabouret — Kreeative</title>
-  <meta name="description" content="Tabouret is a restaurant ordering concept designed and built by Kreeative: a frosted-glass web app to browse the menu, customise each dish, check out and follow your order live.">
+  <title>Tabouret — restaurant ordering app case study | Kreeative</title>
+  <meta name="description" content="How I designed and built Tabouret, an ordering app for a neighbourhood restaurant: the problem, the guests and the owner, the constraints, the ordering flow, the decisions and the result.">
   <link rel="canonical" href="https://kreeative.xyz/websites/tabouret/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Kreeative">
-  <meta property="og:title" content="Tabouret">
-  <meta property="og:description" content="Tabouret is a restaurant ordering concept designed and built by Kreeative: a frosted-glass web app to browse the menu, customise each dish, check out and follow your order live.">
+  <meta property="og:title" content="Tabouret — restaurant ordering app case study | Kreeative">
+  <meta property="og:description" content="How I designed and built Tabouret, an ordering app for a neighbourhood restaurant: the problem, the guests and the owner, the constraints, the ordering flow, the decisions and the result.">
   <meta property="og:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:url" content="https://kreeative.xyz/websites/tabouret/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Tabouret">
-  <meta name="twitter:description" content="Tabouret is a restaurant ordering concept designed and built by Kreeative: a frosted-glass web app to browse the menu, customise each dish, check out and follow your order live.">
+  <meta name="twitter:title" content="Tabouret — restaurant ordering app case study | Kreeative">
+  <meta name="twitter:description" content="How I designed and built Tabouret, an ordering app for a neighbourhood restaurant: the problem, the guests and the owner, the constraints, the ordering flow, the decisions and the result.">
   <meta name="twitter:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
   <meta name="robots" content="max-image-preview:large">
   <meta name="theme-color" content="#262626">
@@ -33,7 +33,7 @@
 </head>
 <body class="theme-dark">
 <div class="page" id="top">
-<a class="btn-back t-caption" href="../../#websites">
+<a class="btn-back t-caption" href="../../#work">
   <svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
   <span>Back</span>
 </a>
@@ -54,17 +54,42 @@
       <img src="../../assets/img/sites/site-tabouret-desktop-1440.webp?v=202609250202" srcset="../../assets/img/sites/site-tabouret-desktop-960.webp?v=202609250202 960w, ../../assets/img/sites/site-tabouret-desktop-1440.webp?v=202609250202 1440w" sizes="(max-width: 1199.98px) 100vw, 1000px" width="1440" height="900" alt="Tabouret menu, with the chef’s pick beside it">
     </figure>
   </div>
+<dl class="cs-facts" data-appear="section">
+  <div class="cs-fact"><dt class="t-mono">Role</dt><dd class="t-body-m">Product designer and developer: flows, UI, front end</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Client</dt><dd class="t-body-m">Concept (no client yet)</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Year</dt><dd class="t-body-m">2026</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Tools</dt><dd class="t-body-m">HTML, CSS, JavaScript, Vercel · <span class="cs-todo-inline">TO FILL: design tool, e.g. Figma</span></dd></div>
+  <div class="cs-fact"><dt class="t-mono">Live</dt><dd class="t-body-m"><a href="https://tabouret.vercel.app" target="_blank" rel="noopener">tabouret.vercel.app</a></dd></div>
+  <div class="cs-fact"><dt class="t-mono">Team</dt><dd class="t-body-m">Solo</dd></div>
+</dl>
   <div class="cs-block cs-block--bg" data-appear="section">
-    <h3 class="t-h3">Background</h3>
+    <h3 class="t-h3">Overview</h3>
     <div class="cs-text rich">
       <p class="t-body-l">Tabouret is a concept for a neighbourhood restaurant with its own ordering app. Guests order from the same page at the table, for pickup or for delivery, on a phone, a tablet or a computer.</p>
       <p class="t-body-l">It started from a frosted-glass food app design: soft pastel light, glass cards, plates seen from above that spill out of their cards, and black pill buttons. I turned it into a working app.</p>
     </div>
   </div>
   <div class="cs-block" data-appear="section">
-    <h3 class="t-h3">Core problem</h3>
+    <h3 class="t-h3">The problem</h3>
     <div class="cs-text rich">
       <p class="t-body-l">Delivery marketplaces take a cut of every order and list a restaurant next to all of its competitors, while the restaurant’s own site is often a PDF menu and a phone number. Tabouret gives one restaurant an ordering flow as smooth as the big apps, under its own name.</p>
+    </div>
+  </div>
+  <div class="cs-block" data-appear="section">
+    <h3 class="t-h3">Who it’s for</h3>
+    <div class="cs-text rich">
+      <p class="t-body-l">Guests at the table who scan a QR code and want to order without waving at a server, including people with dietary needs who want to filter, not ask.</p>
+      <p class="t-body-l">Pickup and delivery customers ordering from a phone on the way home, who need to know when it will be ready.</p>
+      <p class="t-body-l">The restaurant owner, who changes the menu, prices, hours, fees and promo codes without a developer.</p>
+    </div>
+  </div>
+  <div class="cs-block" data-appear="section">
+    <h3 class="t-h3">Constraints</h3>
+    <div class="cs-text rich">
+      <p class="t-body-l">A concept with no backend: orders live in the browser and move through the kitchen on their own, and the app says so.</p>
+      <p class="t-body-l">Opening hours and time slots had to follow the restaurant’s own time zone, not the visitor’s.</p>
+      <p class="t-body-l">Everything the restaurant changes had to live in one settings file, so the concept is realistic to hand over.</p>
+      <p class="t-body-l">Free stock photography from Pexels only, cut out as round plates.</p>
     </div>
   </div>
 </section>
@@ -72,10 +97,41 @@
 <section class="card cs-content">
   <div class="cs-container">
     <div class="cs-rich rich">
-        <h3 class="t-h3">Our Process</h3>
-        <p class="t-body-l">Every dish is a real photo shot from above, cut out as a round plate so it floats over its card. On larger screens the menu and the dish sit side by side in two glass panels, and the plate hangs over the panel’s edge.</p>
-        <p class="t-body-l">The type is Figtree and every action is a black pill. Light and dark themes follow the device. Opening hours and time slots follow the restaurant’s own time zone, and everything the restaurant changes, from the menu and prices to hours, fees and promo codes, lives in one settings file.</p>
-        <h3 class="t-h3">What I built</h3>
+        <h3 class="t-h3">Process</h3>
+        <h4 class="t-h4">Research</h4>
+        <p class="t-body-l">I started from the ordering flows of the big delivery apps, what they do well (speed, options, tracking) and what they take from the restaurant (margin and identity), then from the reference frosted-glass design to see what would survive contact with real menus and real options.</p>
+        <div class="cs-todo" role="note">
+          <p class="cs-todo__label t-mono">TO FILL</p>
+          <p class="t-body-m">Add what you looked at before designing: competitor or reference sites, conversations with the client or with users, and the two or three things you learned that changed the design.</p>
+        </div>
+        <h4 class="t-h4">User flow</h4>
+        <p class="t-body-l">Browse or search the menu, open a dish, make it your own (options, priced extras with a limit, special instructions, live total), add to cart, choose eat in, pick up or delivery, pay, then follow the order on a progress ring and timeline, and reorder in one tap.</p>
+        <div class="cs-todo" role="note">
+          <p class="cs-todo__label t-mono">TO FILL</p>
+          <p class="t-body-m">Add an image of the user flow (a sketch or a Figma/FigJam export is fine) and one line on the main path a user takes.</p>
+        </div>
+        <h4 class="t-h4">Wireframes and iterations</h4>
+        <div class="cs-todo" role="note">
+          <p class="cs-todo__label t-mono">TO FILL</p>
+          <p class="t-body-m">Add one or two early wireframes or screenshots of a previous version next to the final, and say what changed between them and why.</p>
+        </div>
+        <aside class="cs-decision">
+          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
+          <p class="t-body-m">Menu and dish side by side in two glass panels on larger screens, so choosing and customising never leaves the page. On a phone the dish takes over the screen instead.</p>
+        </aside>
+        <aside class="cs-decision">
+          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
+          <p class="t-body-m">Dietary filters (vegetarian, vegan, gluten-free, dairy-free) at the top of the menu, because asking the server is the thing people with allergies dread most.</p>
+        </aside>
+        <aside class="cs-decision">
+          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
+          <p class="t-body-m">Time slots that only fall inside opening hours and a delivery minimum with a free-delivery threshold, because an ordering app that lets you order the impossible costs the restaurant trust and refunds.</p>
+        </aside>
+        <aside class="cs-decision">
+          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
+          <p class="t-body-m">A progress ring and a step-by-step timeline after checkout, because the minutes after paying are when people get anxious, and a visible state keeps them from calling.</p>
+        </aside>
+        <h3 class="t-h3">What I designed and built</h3>
         <p class="t-body-l"><strong>01 - A menu that feels like an app</strong></p>
         <p class="t-body-l">Categories, search, a chef’s pick, favourites and dietary filters for vegetarian, vegan, gluten-free and dairy-free dishes.</p>
         <p class="t-body-l"><strong>02 - Dishes you make your own</strong></p>
@@ -84,7 +140,7 @@
         <p class="t-body-l">A table number from a QR code, a delivery minimum and a free-delivery threshold, promo codes, tax, and time slots that only fall within opening hours.</p>
         <p class="t-body-l"><strong>04 - Live order tracking</strong></p>
         <p class="t-body-l">A progress ring, a step-by-step timeline, an estimated time, order history and one-tap reorder.</p>
-        <h3 class="t-h3">Key Deliverables</h3>
+        <h3 class="t-h3">Key deliverables</h3>
         <ul>
           <li class="t-body-l">Concept and ordering flow</li>
           <li class="t-body-l">Visual direction (frosted glass, pastel light, top-down food photography)</li>
@@ -102,21 +158,21 @@
     <img src="../../assets/img/sites/site-tabouret-phone-780.webp?v=202609250202" srcset="../../assets/img/sites/site-tabouret-phone-390.webp?v=202609250202 390w, ../../assets/img/sites/site-tabouret-phone-780.webp?v=202609250202 780w" sizes="360px" width="780" height="1688" alt="Tabouret on a phone" loading="lazy">
   </figure>
   <div class="cs-results" data-appear="section">
-    <h3 class="t-h3">Results and Impact</h3>
+    <h3 class="t-h3">Outcome</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Tabouret is a concept, not a real restaurant yet. You can try the whole flow: orders stay in your browser and move through the kitchen on their own. The dish photos are free stock photos from Pexels.</p>
-      <p class="t-body-l">Want an ordering app like it for your restaurant? Book a call.</p>
+      <p class="t-body-l">Tabouret is a concept, not a real restaurant yet. You can try the whole flow: orders stay in your browser and move through the kitchen on their own.</p>
+      <div class="cs-todo" role="note">
+  <p class="cs-todo__label t-mono">TO FILL</p>
+  <p class="t-body-m">Add evidence: ask three people to order a dish with an allergy filter and a promo code, time it, and note where they hesitate. Add a client quote if a restaurant has seen it.</p>
+</div>
     </div>
-    <a class="btn btn--accent" href="https://tabouret.vercel.app" target="_blank" rel="noopener">
-      <span class="btn__label t-body-l">Visit tabouret.vercel.app</span>
-      <span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span>
-    </a>
+    <a class="btn btn--accent" href="https://tabouret.vercel.app" target="_blank" rel="noopener"><span class="btn__label t-body-l">Try the app</span><span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span></a>
   </div>
 </section>
 
 <footer class="footer" id="contact">
   <div class="footer__content">
-    <h2 class="footer__title t-h2" data-appear="title">Have a project idea in mind? Let’s chat about how we can bring it to life — virtually, from anywhere in the world!</h2>
+    <h2 class="footer__title t-h2" data-appear="title">Want to talk about this project, or one of yours? I’d love to.</h2>
     <a class="btn btn--white" href="https://cal.com/kreeative/quick-chat" target="_blank" rel="noopener">
       <span class="btn__label t-body-l">Book a short call</span>
       <span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span>
@@ -140,6 +196,7 @@
   <div class="footer__phone" aria-hidden="true"><img src="../../assets/img/footer-phone-1228.webp" srcset="../../assets/img/footer-phone-700.webp 700w, ../../assets/img/footer-phone-1228.webp 1228w, ../../assets/img/footer-phone-1920.webp 1920w" sizes="1228px" width="1920" height="1080" alt="" loading="lazy"></div>
   <div class="footer__fade" aria-hidden="true"></div>
 </footer>
+
 </div>
 </body>
 </html>
