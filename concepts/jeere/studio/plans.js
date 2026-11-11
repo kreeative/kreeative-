@@ -63,7 +63,7 @@
       points: ['Le Studio complet sur 1 boutique : calques, sections, Design, aperçus de 360 à 1440 px', '3 blocs et 3 versions enregistrés', 'Badge « Fait avec Jeere » sur la boutique']
     },
     {
-      id: 'solo', name: 'Solo', label: 'Studio Solo', paid: true,
+      id: 'solo', name: 'Studio Solo', label: 'Studio Solo', paid: true,
       for: 'Pour une vendeuse ou un designer indépendant',
       month: 7900, year: 5400, sites: 1, seats: 1, seatsMax: 1, extraSeat: 0, extraSeatYear: 0,
       limits: { blocks: 20, versions: 15 },
@@ -71,7 +71,7 @@
       points: ['Tout le Studio débloqué, sur 1 boutique', 'Export du code et des images, commentaires', 'Sans le badge « Fait avec Jeere »']
     },
     {
-      id: 'pro', name: 'Pro', label: 'Studio Pro', paid: true, recommended: true,
+      id: 'pro', name: 'Studio Pro', label: 'Studio Pro', paid: true, recommended: true,
       for: 'Pour les marques qui soignent chaque détail',
       month: 24900, year: 16900, sites: 3, seats: 2, seatsMax: 2, extraSeat: 0, extraSeatYear: 0,
       limits: { blocks: 20, versions: 15 },
@@ -79,7 +79,7 @@
       points: ['Tout le Studio débloqué, sur 3 boutiques', '2 places : vous et une personne de votre équipe', 'Support prioritaire sur WhatsApp']
     },
     {
-      id: 'agence', name: 'Agence', label: 'Studio Agence', paid: true,
+      id: 'agence', name: 'Studio Agence', label: 'Studio Agence', paid: true,
       for: 'Pour les agences qui créent les boutiques de leurs clients',
       month: 79900, year: 54900, sites: 10, seats: 5, seatsMax: 25, extraSeat: 10900, extraSeatYear: 9900,
       limits: { blocks: 20, versions: 15 },

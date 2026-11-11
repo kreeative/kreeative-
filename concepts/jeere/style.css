@@ -946,3 +946,6 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .contact__mail { margin-top: 22px; color: var(--muted); }
 .contact__mail a { color: var(--ink); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .contact__card { transition: none; } .contact__card:hover { transform: none; } }
+
+/* « Bientôt »: a feature on its way, said plainly next to it */
+.soon { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; font-size: .78em; font-weight: 600; letter-spacing: .02em; vertical-align: .1em; background: #F1EEE8; color: #5A554C; }
