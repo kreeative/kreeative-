@@ -18,19 +18,21 @@
       var tag = cards[c].querySelector('.launch-tag');
       if (o.active) {
         if (!tag) { tag = document.createElement('p'); tag.className = 'launch-tag'; cards[c].insertBefore(tag, cards[c].firstChild); }
-        tag.textContent = en() ? 'Free for ' + o.months + ' months · first ' + o.spots : 'Offert ' + o.months + NB + 'mois aux ' + o.spots + ' premières';
+        tag.textContent = en() ? o.months + ' months free' : o.months + NB + 'mois offerts';
       } else if (tag) tag.remove();
     }
     var boxes = document.querySelectorAll('[data-launch]');
     for (var b = 0; b < boxes.length; b++) {
       var box = boxes[b];
       if (!o.active) { box.hidden = true; continue; }
-      var left = Number(o.left) || 0, spots = Number(o.spots) || 100, pct = Math.round(((spots - left) / spots) * 100);
-      var t1 = en() ? 'Launch offer: the Essentiel plan is free for ' + o.months + ' months for the first ' + spots + ' sellers.'
-        : 'Offre de lancement' + NB + ': le plan Essentiel offert ' + o.months + NB + 'mois aux ' + spots + ' premières inscrites.';
-      var t2 = en() ? (left + ' of ' + spots + ' spots left') : ('Il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' sur ' + spots);
-      box.innerHTML = '<p class="launch__t"></p><div class="launch__row"><span class="launch__bar"><i style="width:' + Math.max(2, pct) + '%"></i></span><b class="launch__n"></b></div>';
-      box.querySelector('.launch__t').textContent = t1;
+      var left = Number(o.left) || 0;
+      // short: people don't read; the exact « Plus que N places » once 20 or fewer are left
+      var t1 = en() ? 'Get ' + o.months + ' months free on the Essentiel pack.' : 'Obtiens ' + o.months + NB + 'mois offerts sur le pack Essentiel.';
+      var t0 = en() ? 'Everything included.' : 'Tout est inclus.';
+      var t2 = left <= 20 ? (en() ? 'Only ' + left + ' left' : 'Plus que ' + left + ' place' + (left > 1 ? 's' : '')) : (en() ? 'Hurry, spots are running out' : 'Dépêche-toi, il ne reste plus beaucoup de places');
+      box.innerHTML = '<p class="launch__t"><b></b> <span></span></p><span class="launch__n"></span>';
+      box.querySelector('.launch__t b').textContent = t1;
+      box.querySelector('.launch__t span').textContent = t0;
       box.querySelector('.launch__n').textContent = t2;
       box.hidden = false;
     }

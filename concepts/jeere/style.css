@@ -961,3 +961,12 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .launch--center { margin-left: auto; margin-right: auto; }
 .launch-tag { margin: 0 0 8px; display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff; background: linear-gradient(90deg, #E8467C, #6A4CFF); }
 [data-free-plan][hidden] { display: none !important; }
+
+/* The launch offer, short, in a rainbow frame */
+.launch { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border: 2px solid transparent; border-radius: 16px;
+  background: linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(100deg, #E8467C, #F08A3C, #F0C414, #22C97E, #1E9BE0, #6A4CFF, #C13CE0) border-box; }
+.launch__t { flex: 1 1 220px; margin: 0; font-size: 15px; line-height: 1.4; }
+.launch__t b { font-weight: 600; }
+.launch__t span { color: #5A554C; }
+.launch__n { flex: none; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #FFFFFF; background: linear-gradient(90deg, #E8467C, #6A4CFF); }
+.launch__n { max-width: 100%; white-space: normal; text-align: center; }
