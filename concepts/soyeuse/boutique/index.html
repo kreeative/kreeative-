@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder: without the final slash the relative links would point one folder up. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Boutique — SOYEUSE</title>
+  <meta name="description" content="Tissages, perruques et accessoires SOYEUSE. Boutique de démonstration.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f6dfe7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Pinyon+Script&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script>document.documentElement.classList.add('js'); setTimeout(function () { document.documentElement.classList.add('revealed'); }, 3000);</script>
+  <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="soyeuse" defer></script>
+  <script src="../site.js" defer></script>
+</head>
+<body>
+
+<div class="concept-bar" role="note">
+  <p><strong>Boutique de démonstration</strong> — Modèle préparé par <a href="https://kreeative.xyz">Kreeative</a> pour Jeere. SOYEUSE est une marque fictive&nbsp;: les commandes passées ici sont des commandes test et ne sont pas expédiées.</p>
+</div>
+
+<header class="head">
+  <a href="../" class="logo" aria-label="SOYEUSE, accueil">SOYEUSE<small>HAIR · ABIDJAN</small></a>
+</header>
+<nav class="nav" aria-label="Menu principal">
+  <div class="nav__links">
+    <a href="../">Accueil</a>
+    <a href="../boutique/" aria-current="page">Boutique</a>
+    <a href="../boutique/#tissages">Tissages</a>
+    <a href="../boutique/#perruques">Perruques</a>
+    <a href="../#entretien">Entretien</a>
+  </div>
+  <button type="button" class="nav__cart" data-cart-open aria-controls="panier"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8"/></svg><span>Panier</span><span class="count" data-jeere-count>0</span></button>
+</nav>
+
+<main class="section">
+  <h1 class="display title">La <span class="script">boutique</span></h1>
+  <div class="filtres" role="group" aria-label="Filtrer par catégorie"><button type="button" class="filtre" data-filter="tout" aria-pressed="true">Tout</button><button type="button" class="filtre" data-filter="tissages" aria-pressed="false">Tissages</button><button type="button" class="filtre" data-filter="perruques" aria-pressed="false">Perruques</button><button type="button" class="filtre" data-filter="accessoires" aria-pressed="false">Accessoires</button></div>
+  <div class="produits" data-catalog>
+      <article class="carte reveal" data-jeere-product="p1" data-cat="tissages">
+        <a class="carte__img" href="../produits/tissage-ondule/"><span class="carte__badge">Best-seller</span><img data-jeere-photo src="../img/tissage-ondule.webp" alt="Tissage Ondulé SOYEUSE, Body wave" loading="lazy"></a>
+        <div class="carte__info">
+          <h3 class="carte__nom"><a href="../produits/tissage-ondule/" data-jeere-name>Tissage Ondulé</a></h3>
+          <p class="carte__detail">3 paquets · 18 pouces</p>
+          <p class="carte__prix" data-jeere-price>95&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="carte__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+      <article class="carte reveal" data-jeere-product="p2" data-cat="tissages">
+        <a class="carte__img" href="../produits/tissage-lisse/"><span class="carte__badge">Best-seller</span><img data-jeere-photo src="../img/tissage-lisse.webp" alt="Tissage Lisse SOYEUSE, Straight" loading="lazy"></a>
+        <div class="carte__info">
+          <h3 class="carte__nom"><a href="../produits/tissage-lisse/" data-jeere-name>Tissage Lisse</a></h3>
+          <p class="carte__detail">3 paquets · 18 pouces</p>
+          <p class="carte__prix" data-jeere-price>85&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="carte__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+      <article class="carte reveal" data-jeere-product="p3" data-cat="tissages">
+        <a class="carte__img" href="../produits/tissage-loose/"><span class="carte__badge">Nouveau</span><img data-jeere-photo src="../img/tissage-loose.webp" alt="Tissage Loose Wave SOYEUSE, Loose wave" loading="lazy"></a>
+        <div class="carte__info">
+          <h3 class="carte__nom"><a href="../produits/tissage-loose/" data-jeere-name>Tissage Loose Wave</a></h3>
+          <p class="carte__detail">1 paquet · 20 pouces</p>
+          <p class="carte__prix" data-jeere-price>35&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="carte__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+      <article class="carte reveal" data-jeere-product="p4" data-cat="perruques">
+        <a class="carte__img carte__img--photo" href="../produits/perruque-ondulee/"><span class="carte__badge">Best-seller</span><img data-jeere-photo src="../img/perruque-ondulee.webp" alt="Perruque Ondulée SOYEUSE, Lace frontal" loading="lazy"></a>
+        <div class="carte__info">
+          <h3 class="carte__nom"><a href="../produits/perruque-ondulee/" data-jeere-name>Perruque Ondulée</a></h3>
+          <p class="carte__detail">Frontal 13x4 · 26 pouces</p>
+          <p class="carte__prix" data-jeere-price>180&nbsp;000&nbsp;FCFA</p>
+          <button type="button" class="carte__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+      <article class="carte reveal" data-jeere-product="p5" data-cat="accessoires">
+        <a class="carte__img" href="../produits/peigne/"><img data-jeere-photo src="../img/peigne.webp" alt="Peigne Démêloir SOYEUSE, Rose poudré" loading="lazy"></a>
+        <div class="carte__info">
+          <h3 class="carte__nom"><a href="../produits/peigne/" data-jeere-name>Peigne Démêloir</a></h3>
+          <p class="carte__detail">Dents larges</p>
+          <p class="carte__prix" data-jeere-price>2&nbsp;500&nbsp;FCFA</p>
+          <button type="button" class="carte__add" data-jeere-add>Ajouter au panier</button>
+        </div>
+      </article>
+  </div>
+</main>
+
+<!-- PANIER (rempli par Jeere Connect) -->
+<aside class="panier" id="panier" aria-label="Panier" aria-hidden="true">
+  <div class="panier__head">
+    <h2>Panier</h2>
+    <button type="button" class="panier__close" data-cart-close>Fermer</button>
+  </div>
+  <div class="panier__lines" data-jeere-lines>
+    <template data-jeere-line>
+      <div class="ligne">
+        <img data-jeere-photo alt="{name}">
+        <div class="ligne__info">
+          <p data-jeere-name></p>
+          <p class="ligne__prix" data-jeere-line-total></p>
+          <div class="ligne__qty">
+            <button type="button" data-jeere-dec aria-label="Retirer un {name}">−</button>
+            <span data-jeere-qty></span>
+            <button type="button" data-jeere-inc aria-label="Ajouter un {name}">+</button>
+            <button type="button" class="ligne__remove" data-jeere-remove>Retirer</button>
+          </div>
+        </div>
+      </div>
+    </template>
+    <template data-jeere-empty>
+      <p class="panier__vide">Votre panier est vide. <a href="../boutique/">Voir la boutique</a></p>
+    </template>
+  </div>
+  <div class="panier__foot">
+    <p class="panier__total"><span>Sous-total</span><span data-jeere-total>0&nbsp;FCFA</span></p>
+    <a href="../commande/" class="btn btn--ink" data-soyeuse-checkout aria-disabled="true">Commander</a>
+  </div>
+</aside>
+<div class="voile" data-cart-close></div>
+
+<footer class="foot">
+  <div class="foot__top">
+    <div><a href="../" class="logo">SOYEUSE<small>HAIR · ABIDJAN</small></a></div>
+    <div class="foot__news">
+      <h4>La lettre</h4>
+      <p>Nouveautés, arrivages et conseils d'entretien, une fois par mois.</p>
+      <form data-news><label class="sr" for="news-1" hidden>Votre e-mail</label><input id="news-1" type="email" placeholder="Votre e-mail" required><button type="submit">S'inscrire</button></form>
+      <p class="merci-news" aria-live="polite"></p>
+    </div>
+    <div><h4>Boutique</h4><ul><li><a href="../boutique/#tissages">Tissages</a></li><li><a href="../boutique/#perruques">Perruques</a></li><li><a href="../boutique/#accessoires">Accessoires</a></li></ul></div>
+    <div><h4>Aide</h4><ul><li><a href="../#entretien">Entretien</a></li><li><a href="../commande/">Commande</a></li><li>Abidjan, Côte d'Ivoire</li></ul></div>
+  </div>
+  <div class="foot__bottom">
+    <span>© SOYEUSE — boutique de démonstration</span>
+    <span>Modèle par <a href="https://kreeative.xyz">Kreeative</a>, propulsé par Jeere</span>
+  </div>
+</footer>
+
+</body>
+</html>

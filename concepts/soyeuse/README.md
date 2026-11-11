@@ -1,0 +1,55 @@
+# SOYEUSE — model shop by Kreeative for Jeere
+
+A hair shop (bundles, wigs, accessories) for a **fictional brand**, made as a model for Jeere: blush
+pink, thin display capitals (Italiana) with a script accent (Pinyon Script), an arched hero, a
+scrolling ribbon, « shop by category » circles, a large « glam » visual, reviews, care tips.
+French, prices in FCFA.
+
+Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
+
+## Ground rules
+
+- `noindex, nofollow`, not linked from the portfolio, not in the sitemap.
+- Keep the concept bar: SOYEUSE is fictional, orders placed here are test orders and nothing ships.
+- The reviews are samples written for the demo, and the page says so.
+- The newsletter form only shows a message; nothing is sent.
+
+## Pages
+
+- `index.html` — hero, ribbon, « Le luxe redéfini » (4 products), categories, glam visual,
+  reviews, care tips, footer.
+- `boutique/index.html` — every product, filters Tout / Tissages / Perruques / Accessoires (also
+  from the address: `boutique/#perruques`).
+- `produits/<produit>/index.html` — one page per product: photo, price, specs, « Ajouter au
+  panier », « Commander maintenant », care / delivery / payment, other products.
+- `commande/` — the Jeere checkout, the same as ANSE's (`commande.js`, store `soyeuse`).
+- `site.js` — filters, cart drawer, cart thumbnails, « Commander maintenant », newsletter message.
+
+## Model photos (to replace)
+
+The two portrait slots use placeholders until the model photos exist:
+
+- `img/modele-hero.webp` — hero, arched frame, portrait 3:4 (900 × 1200).
+- `img/modele-glam.webp` — the « glam » section, portrait (900 × 1100).
+
+Replace each file with the generated photo **under the same name** (or swap it in the Studio).
+Do not use photos of a real person without her written agreement.
+
+## The Jeere store `soyeuse` (to create — Jeere session)
+
+| id | name | category | price (FCFA) | badge |
+|---|---|---|---|---|
+| p1 | Tissage Ondulé (3 paquets · 18") | Tissages | 95 000 | best |
+| p2 | Tissage Lisse (3 paquets · 18") | Tissages | 85 000 | best |
+| p3 | Tissage Loose Wave (1 paquet · 20") | Tissages | 35 000 | new |
+| p4 | Perruque Ondulée (frontal 13x4 · 26") | Perruques | 180 000 | best |
+| p5 | Peigne Démêloir | Accessoires | 2 500 | — |
+
+Plus the delivery zones, the payment methods, and `concepts/soyeuse/` with its sub-pages in the
+Studio's editable sites. Until the store exists, « Confirmer la commande » answers « Boutique
+introuvable ».
+
+## Duplicate for a client
+
+Copy the folder, replace texts, images (`img/`, the `PHOTOS` map in `site.js`), `data-store` in
+every page and `SLUG` in `commande/commande.js`.
