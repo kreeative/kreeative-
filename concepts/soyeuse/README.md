@@ -40,15 +40,12 @@ Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
 Hastegi is self-hosted in `fonts/` (the owner holds a commercial licence). Keep the licence proof;
 for a client site, check that the licence covers web embedding for that client.
 
-## Model photos (to replace)
+## Model photos (AI-generated)
 
-The two portrait slots use placeholders until the model photos exist:
-
-- `img/modele-hero.webp` — hero, arched frame, portrait 3:4 (900 × 1200).
-- `img/modele-glam.webp` — the « glam » section, portrait (900 × 1100).
-
-Replace each file with the generated photo **under the same name** (or swap it in the Studio).
-Do not use photos of a real person without her written agreement.
+- `img/modele-hero.webp` (hero, arched frame) and `img/modele-glam.webp` (« glam » section): a fictional
+  model generated with Higgsfield (Soul 2.0) for this demo, then the backdrop shifted to candy pink
+  (only the pink background, not the skin or the hair). The alt texts say the images are AI-generated.
+- For a real client, replace them with the client's own photos (under the same names, or in the Studio).
 
 ## The Jeere store `soyeuse` (to create — Jeere session)
 
