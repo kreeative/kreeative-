@@ -1537,7 +1537,7 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
 .tx-field textarea { min-height: 38px; resize: vertical; font-size: 13.5px; line-height: 1.45; padding: 8px 10px; }
 .tx-field__img { display: flex; align-items: center; gap: 10px; }
 .tx-field__img img { width: 64px; height: 64px; object-fit: contain; border-radius: 10px; background: var(--grey-1); }
-.tx-field__reset { justify-self: start; padding: 0; border: 0; background: none; font: inherit; font-size: 12px; color: var(--muted); text-decoration: underline; cursor: pointer; }
+.tx-field__reset { justify-self: start; padding: 0; border: 0; background: none; font: inherit; font-size: 12px; color: var(--muted); text-decoration: none; font-weight: 600;cursor: pointer; }
 
 /* The Ivory Sukundu — an order page like Shopify's: actions, timeline */
 .tx-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
@@ -1670,3 +1670,7 @@ body.is-ext .a-card + .a-btnrow { margin-top: 20px; }
 
 /* No resize grip in the corner of text boxes (the two little diagonal lines): they grow with their text instead */
 textarea.a-input, .tx-field textarea { resize: none; }
+
+/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+a { text-decoration: none; }
+a:not([class]) { font-weight: 600; }

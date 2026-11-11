@@ -511,7 +511,7 @@ html:not(.js) .cv__play { display: none; }
 .custom__desc { margin-top: 6px; font-size: 14.5px; color: var(--muted); }
 .custom__actions { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
 .custom__actions .btn { min-height: 42px; padding: 0 16px; font-size: 14px; }
-.custom__demo { font-size: 14px; text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+.custom__demo { font-size: 14px; text-decoration: none; font-weight: 600; color: var(--ink); }
 @media (min-width: 640px) { .custom__grid { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 1000px) { .custom__grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } .custom__body { padding: 16px; } }
 
@@ -1032,3 +1032,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 
 /* « En savoir plus » in bold, never underlined */
 .promo__go, .promo:hover .promo__go { text-decoration: none; font-weight: 800; }
+
+/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+a { text-decoration: none; }
+a:not([class]) { font-weight: 600; }

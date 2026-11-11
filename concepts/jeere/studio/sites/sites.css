@@ -299,7 +299,7 @@ kbd { font: var(--fw-medium) 11px/16px var(--font-ui); color: var(--fg-3); backg
 .sk-sitehead__t b { font: var(--fw-semibold) 13px/18px var(--font-ui); color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sk-sitehead__t a, .sk-sitehead__t small { font-size: 11px; line-height: 16px; color: var(--accent-ink); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sk-sitehead__t small { color: var(--fg-3); }
-.sk-sitehead__t a:hover { text-decoration: underline; }
+.sk-sitehead__t a:hover {  }
 
 /* ---------- Pages: a search, then the sections of the site ---------- */
 .sk-left__sec--pages { max-height: 55%; }
@@ -320,7 +320,7 @@ kbd { font: var(--fw-medium) 11px/16px var(--font-ui); color: var(--fg-3); backg
 .sk-pubhead__t b { font: var(--fw-semibold) 14px/20px var(--font-ui); color: var(--fg-1); }
 .sk-pubhead__url { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
 .sk-pubhead__url a { color: var(--accent-ink); font-size: 13px; line-height: 18px; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sk-pubhead__url a:hover { text-decoration: underline; }
+.sk-pubhead__url a:hover {  }
 .sk-pubhead__state { display: flex; align-items: center; gap: 6px; color: var(--fg-2); font-size: 12px; line-height: 16px; }
 .sk-pubhead__state i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok, #2fbf71); flex: none; }
 .sk-pubhead__state i.is-warn { background: var(--warn); }
@@ -497,3 +497,7 @@ html:not([data-theme="dark"]) .dz-hint.is-state { color: #7B3FE4; }
 .sk-selbar__sep { height: 18px; margin: 0 3px; background: var(--st-bar-sep); }
 .st-touch .sk-selbar { height: 44px; }
 .st-touch .sk-selbar button { height: 36px; min-width: 38px; }
+
+/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+a { text-decoration: none; }
+a:not([class]) { font-weight: 600; }

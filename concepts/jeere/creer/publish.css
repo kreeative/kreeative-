@@ -63,7 +63,7 @@
 
 .jp-live { margin: 4px 0 8px; padding: 14px; border-radius: 14px; background: var(--jp-soft); }
 .jp-link { font-weight: 600; font-size: 16px; overflow-wrap: anywhere; margin: 0 0 10px !important; }
-.jp-link a { text-decoration: underline; text-underline-offset: 3px; }
+.jp-link a { text-decoration: none; font-weight: 600; }
 .jp-row, .jp-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .jp-actions { margin-top: 16px; }
 .jp-btn {
@@ -88,7 +88,7 @@
 .jp-note--err { background: var(--jp-err-bg); color: var(--jp-err-ink); }
 .jp-confirm { flex: 1 1 100%; font-size: 14px; margin-bottom: 4px !important; }
 .jp-foot { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px !important; color: var(--jp-muted); font-size: 13px; }
-.jp-foot a { color: var(--jp-ink); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; display: inline-block; padding: 2px 0; }
+.jp-foot a { color: var(--jp-ink); font-weight: 500; text-decoration: none; font-weight: 600; display: inline-block; padding: 2px 0; }
 .jp-foot .jp-ico { width: 16px; height: 16px; margin-top: 2px; }
 .jp-spin {
   display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent;
@@ -110,3 +110,7 @@
 .jp-hist__l li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; font-size: 13.5px; }
 .jp-hist__l li b.jp-pill { margin-left: 6px; }
 .jp-state .jp-pill + .jp-pill, .jp-state .jp-muted + .jp-pill { margin-left: 8px; }
+
+/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+a { text-decoration: none; }
+a:not([class]) { font-weight: 600; }

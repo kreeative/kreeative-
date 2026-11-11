@@ -5,8 +5,8 @@
 .lg-head .logo__cloud { width: 46px; height: auto; display: block; color: var(--ink); }
 .lg-nav { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 15px; }
 .lg-nav a { color: var(--ink); text-decoration: none; padding: 10px 0; }
-.lg-nav a:hover { text-decoration: underline; }
-.lg-nav a[aria-current="page"] { font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.lg-nav a:hover {  }
+.lg-nav a[aria-current="page"] { font-weight: 600; text-decoration: none; font-weight: 600; }
 
 .lg-main { padding: 48px 0 72px; }
 .lg-doc { max-width: 720px; }
@@ -23,7 +23,7 @@
 .lg-doc p, .lg-doc li { font-size: 16.5px; line-height: 1.65; text-wrap: pretty; }
 .lg-doc p { margin-top: 12px; }
 .lg-doc ul { margin: 10px 0 0; padding-left: 1.2em; display: grid; gap: 6px; }
-.lg-doc a { color: var(--ink); text-underline-offset: 3px; }
+.lg-doc a { color: var(--ink);  }
 .lg-doc dl { margin-top: 14px; display: grid; grid-template-columns: minmax(0, 12em) minmax(0, 1fr); border-top: 1px solid var(--line); }
 .lg-doc dt, .lg-doc dd { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 16px; line-height: 1.5; }
 .lg-doc dt { color: var(--muted); padding-right: 16px; }
@@ -47,3 +47,7 @@
   .lg-nav { gap: 2px 14px; font-size: 14.5px; }
   .lg-head .logo__cloud { width: 40px; }
 }
+
+/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+a { text-decoration: none; }
+a:not([class]) { font-weight: 600; }
