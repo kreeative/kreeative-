@@ -68,3 +68,12 @@ warm neutral background, soft side light, a leaf shadow or a natural prop (stone
   and `huile-corps-vanille`) and set on one cream ground (#efeee5),
   1000 × 1250.
 - Unsplash (free licence): Iain Robertson — `eucalyptus`; Jessica Irani — `formule-rituels`.
+
+## Mentions légales and image rights
+
+`mentions-legales/index.html` (linked from the concept bar and the footer of every page) says the
+demo images are not ours, who they belong to, how to ask for removal, and that **anyone reusing this
+model may take the layout and code but must replace every image before publishing**, and must not
+download or repost the demo images. `img/IMAGES-A-NE-PAS-PUBLIER.txt` repeats it inside the image
+folder, so it travels with any copy. When Jeere copies this model for a client, it should copy the
+code only and leave the images out.

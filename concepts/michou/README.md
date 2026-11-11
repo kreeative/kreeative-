@@ -55,3 +55,12 @@ never use them for a real client.
   fifteen studio looks, the racing tee from a Pinterest product shot (Supermade), the red caps.
 - `hero-1` (Cold Culture), `hero-2`, `edito-1` (4YE), `edito-2` (Twojeys), `lookbook` (rotated a
   quarter turn), `mood-1`, `mood-2` (Protect), `mood-3`.
+
+## Mentions légales and image rights
+
+`mentions-legales/index.html` (linked from the concept bar and the footer of every page) says the
+demo images are not ours, who they belong to, how to ask for removal, and that **anyone reusing this
+model may take the layout and code but must replace every image before publishing**, and must not
+download or repost the demo images. `img/IMAGES-A-NE-PAS-PUBLIER.txt` repeats it inside the image
+folder, so it travels with any copy. When Jeere copies this model for a client, it should copy the
+code only and leave the images out.
