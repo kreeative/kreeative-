@@ -1,0 +1,7 @@
+-- Applied with the Supabase MCP (jeere_launch_offer, jeere_launch_offer_count, jeere_cron_jobs, jeere_pending_signups,
+-- jeere_launch_hide_free): public.launch_offer (100 spots, 3 months, hide_free), profiles.plan_until / plan_promo,
+-- private.grant_launch + trigger on_auth_user_confirmed (the offer at the code's confirmation), public.launch_spots()
+-- (public counter), private.expire_launch() (pg_cron daily), public.pending_signups() + public.signup_reminders and the
+-- `relances` function (pg_cron hourly, one reminder per unfinished signup), public.jeere_cron (the cron secret).
+-- To bring the free plan back on the site:  update public.launch_offer set hide_free = false where id = 1;
+-- To stop the offer:                         update public.launch_offer set active = false where id = 1;

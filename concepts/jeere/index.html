@@ -48,6 +48,7 @@
   <script>document.documentElement.classList.add('js');</script>
   <script src="i18n.js" defer></script>
   <script src="site.js" defer></script>
+  <script src="launch.js" defer></script>
   <script src="anim/boutique.js" defer></script>
 </head>
 <body>
@@ -161,6 +162,7 @@
           <p class="eyebrow eyebrow--light" data-i18n="bt.eyebrow">Du comptoir à Internet</p>
           <h1 class="h2 bt__h1" id="bt-title"><span class="bt__t1" data-i18n="bt.title1">Votre boutique physique,</span> <span class="bt__t2" data-i18n="bt.title2">maintenant en ligne.</span></h1>
           <p class="lead" data-i18n="bt.lead">Vous avez déjà la boutique et les clients. Jeere la met sur Internet&nbsp;: votre site, les paiements Wave, Orange Money, MTN MoMo et Moov, les livraisons. Gratuitement pour commencer.</p>
+          <div class="launch" data-launch hidden></div>
           <div class="bt__acts">
             <a class="btn bt__cta" href="compte/#inscription"><span data-i18n="bt.cta">Créer ma boutique e-commerce maintenant</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
             <button class="bt__replay" type="button" data-bt-replay hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v3.6h3.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="bt.replay">Revoir</span></button>
@@ -603,15 +605,16 @@
         <h2 class="h2" id="price-title" data-i18n="price.title">Toutes les fonctions dans chaque plan. Le prix suit vos ventes.</h2>
         <p class="lead" data-i18n="price.lead">Vous passez au plan suivant quand vous vendez plus, jamais pour débloquer une fonction&nbsp;: Jeere gagne quand vous gagnez. En FCFA, par mobile money, à la semaine ou au mois.</p>
       </header>
+      <div class="launch launch--center" data-launch hidden></div>
       <div class="plans">
-        <article class="plan">
+        <article class="plan" data-free-plan>
           <h3 class="plan__name" data-i18n="price.p1">Gratuit</h3>
           <p class="plan__price"><b>0</b> FCFA</p>
           <p class="plan__orders"><span data-i18n-html="price.p1orders">Jusqu’à <b>20</b> commandes par mois</span></p>
           <p class="plan__fee"><span data-i18n-html="price.fee3">2&nbsp;% par vente en ligne</span></p>
           <p class="plan__for" data-i18n="price.p1for">Pour démarrer</p>
         </article>
-        <article class="plan plan--pick">
+        <article class="plan plan--pick" data-launch-plan>
           <p class="plan__flag" data-i18n="price.pick">Pour la plupart des vendeurs</p>
           <h3 class="plan__name" data-i18n="price.p2">Essentiel</h3>
           <p class="plan__price"><b data-i18n="price.p2price">3&nbsp;000</b> <span data-i18n="price.month">FCFA / mois</span></p>

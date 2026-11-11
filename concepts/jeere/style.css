@@ -949,3 +949,15 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 
 /* « Bientôt »: a feature on its way, said plainly next to it */
 .soon { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px; font-size: .78em; font-weight: 600; letter-spacing: .02em; vertical-align: .1em; background: #F1EEE8; color: #5A554C; }
+
+/* The launch offer, live (launch.js) */
+.launch { margin: 18px 0 0; padding: 14px 16px; border-radius: 16px; background: #FFFFFF; border: 1px solid rgba(0,0,0,.08); color: #141414; max-width: 560px; }
+.launch[hidden] { display: none; }
+.launch__t { margin: 0; font-size: 15px; line-height: 1.45; font-weight: 500; }
+.launch__row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.launch__bar { flex: 1; height: 8px; border-radius: 4px; background: #ECE9E3; overflow: hidden; }
+.launch__bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #E8467C, #F08A3C, #F0C414, #22C97E, #1E9BE0, #6A4CFF, #C13CE0); background-size: 560px 100%; }
+.launch__n { flex: none; font-size: 14px; font-variant-numeric: tabular-nums; }
+.launch--center { margin-left: auto; margin-right: auto; }
+.launch-tag { margin: 0 0 8px; display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff; background: linear-gradient(90deg, #E8467C, #6A4CFF); }
+[data-free-plan][hidden] { display: none !important; }
