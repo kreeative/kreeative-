@@ -49,6 +49,7 @@
   <script src="i18n.js" defer></script>
   <script src="site.js" defer></script>
   <script src="launch.js" defer></script>
+  <script src="appel.js" defer></script>
   <script src="anim/boutique.js" defer></script>
 </head>
 <body>
@@ -717,6 +718,35 @@
       <p class="caption caption--center sp__note" data-i18n="studio.note">Sans moyen de paiement pour l’essai. Le Studio se pilote sur ordinateur ou iPad&nbsp;; sur téléphone, l’éditeur simple fait tout. Tarifs prévus pour le lancement.</p>
     </div>
   </section>
+
+  <!-- Sur mesure: a call with the designer (appel.js, the `appel` function) -->
+  <section class="section" id="sur-mesure" aria-labelledby="sm-title">
+    <div class="wrap">
+      <div class="sm">
+        <p class="eyebrow" data-i18n="sm.eyebrow">Sur mesure</p>
+        <h2 class="h2" id="sm-title" data-i18n="sm.title">Un site 100&nbsp;% à votre image.</h2>
+        <p class="lead" data-i18n="sm.lead">Notre designer le crée avec vous.</p>
+        <button class="btn btn--primary sm__btn" type="button" data-appel data-i18n="sm.cta">Réserver un appel</button>
+      </div>
+    </div>
+  </section>
+  <dialog class="appel" id="appel" aria-labelledby="appel-t">
+    <form class="appel__form" id="appel-form" novalidate>
+      <button class="appel__x" type="button" data-appel-close aria-label="Fermer">×</button>
+      <h2 class="appel__t" id="appel-t" data-i18n="sm.dTitle">Réserver un appel</h2>
+      <label class="appel__l"><span data-i18n="sm.fName">Prénom</span><input name="firstName" autocomplete="given-name" maxlength="60" required></label>
+      <label class="appel__l"><span data-i18n="sm.fWa">WhatsApp</span><input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+225 07 07 12 34 56" required></label>
+      <label class="appel__l"><span data-i18n="sm.fLink">Instagram ou site (facultatif)</span><input name="link" maxlength="300" placeholder="@maboutique"></label>
+      <label class="appel__l"><span data-i18n="sm.fNeed">Votre idée (facultatif)</span><textarea name="need" rows="3" maxlength="800"></textarea></label>
+      <p class="appel__err" id="appel-err" hidden></p>
+      <button class="btn btn--primary appel__go" type="submit" data-i18n="sm.send">Envoyer</button>
+    </form>
+    <div class="appel__done" id="appel-done" hidden>
+      <h2 class="appel__t" data-i18n="sm.doneT">C’est noté&nbsp;!</h2>
+      <p data-i18n="sm.doneP">On vous écrit sur WhatsApp très vite.</p>
+      <button class="btn btn--primary" type="button" data-appel-close data-i18n="sm.ok">OK</button>
+    </div>
+  </dialog>
 
   <!-- 9. FAQ -->
   <section class="section section--paper" id="faq" aria-labelledby="faq-title">

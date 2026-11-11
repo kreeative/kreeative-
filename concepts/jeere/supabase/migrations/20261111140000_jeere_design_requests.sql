@@ -1,0 +1,2 @@
+-- Applied with the Supabase MCP (jeere_design_requests): public.design_requests, written only by the `appel` function
+-- (« Réserver un appel avec notre designer »). See the requests: select * from public.design_requests order by created_at desc;

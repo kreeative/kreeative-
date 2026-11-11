@@ -978,3 +978,24 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .launch__n { padding: 0; border-radius: 0; background: none; color: #141414; font-weight: 600; text-align: left; }
 .launch::before { z-index: -2; } .launch::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: #FFFFFF; }
 .launch::before { inset: -2px 4px; filter: blur(14px); opacity: .9; }
+
+/* Sur mesure: a call with the designer (appel.js) */
+.sm { position: relative; isolation: isolate; max-width: 640px; margin: 0 auto; padding: 32px 24px; border-radius: 24px; text-align: center; background: #FFFFFF; border: 1px solid rgba(0,0,0,.06); }
+.sm::before { content: ""; position: absolute; inset: -2px 8px; z-index: -2; border-radius: inherit; background: linear-gradient(100deg, #E8467C, #F08A3C, #F0C414, #22C97E, #1E9BE0, #6A4CFF, #C13CE0); filter: blur(18px); opacity: .7; }
+.sm::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: #FFFFFF; }
+.sm .eyebrow { display: inline-block; }
+.sm .lead { margin: 10px auto 0; }
+.sm__btn { margin-top: 20px; }
+.appel { width: min(92vw, 440px); padding: 0; border: 0; border-radius: 20px; background: #FFFFFF; color: #141414; box-shadow: 0 30px 80px -20px rgba(0,0,0,.4); }
+.appel::backdrop { background: rgba(20, 20, 20, .45); }
+.appel__form, .appel__done { position: relative; display: grid; gap: 14px; padding: 24px 20px 20px; }
+.appel__done { text-align: center; }
+.appel__done p { margin: 0; color: #5A554C; }
+.appel__t { margin: 0 32px 4px 0; font-size: 22px; line-height: 1.2; font-weight: 600; }
+.appel__done .appel__t { margin: 0; }
+.appel__x { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #F3F1EC; font-size: 22px; line-height: 1; cursor: pointer; }
+.appel__l { display: grid; gap: 6px; font-size: 14px; font-weight: 500; }
+.appel__l input, .appel__l textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid rgba(0,0,0,.18); border-radius: 12px; font: inherit; font-size: 16px; font-weight: 400; background: #FFFFFF; color: #141414; }
+.appel__l textarea { resize: vertical; }
+.appel__err { margin: 0; color: #B3261E; font-size: 14px; }
+.appel__err[hidden], .appel__form[hidden], .appel__done[hidden] { display: none; }
