@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder: without the final slash the relative links would point one folder up. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Commande — MICHOU</title>
+  <meta name="description" content="Finaliser votre commande MICHOU.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#000000">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script>document.documentElement.classList.add('js'); setTimeout(function () { document.documentElement.classList.add('revealed'); }, 3000);</script>
+  <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="michou" defer></script>
+  <script src="../site.js" defer></script>
+  <script src="commande.js" defer></script>
+</head>
+<body>
+
+<div class="concept-bar" role="note">
+  <p><strong>Boutique de démonstration</strong> — Modèle préparé par <a href="https://kreeative.xyz">Kreeative</a> pour Jeere. MICHOU est une marque fictive&nbsp;: les photos sont des images d'illustration, les vêtements ne sont pas vendus ici et les commandes passées sont des commandes test.</p>
+</div>
+
+<header class="head">
+  <nav class="head__nav" aria-label="Menu principal">
+    <a href="../boutique/">Shop</a>
+    <a href="../boutique/#vestes">Vestes</a>
+    <a href="../boutique/#hauts">Hauts</a>
+    <a href="../#lookbook">Lookbook</a>
+  </nav>
+  <a href="../" class="logo" aria-label="MICHOU, accueil">Michou</a>
+  <div class="head__tools">
+    <span class="hide-s">CI / FCFA</span>
+    <button type="button" class="head__cart" data-cart-open aria-controls="panier"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8h13l-1 12.5h-11zM9 8V6.5a3 3 0 0 1 6 0V8"/></svg><span>Panier (<span data-jeere-count>0</span>)</span></button>
+  </div>
+</header>
+
+<main class="checkout" data-checkout>
+
+  <!-- Le formulaire -->
+  <form class="checkout__form" data-checkout-form novalidate>
+    <h1>Commande <em>/ checkout</em></h1>
+
+    <p class="checkout__alert" data-checkout-alert role="alert" hidden></p>
+
+    <fieldset class="bloc">
+      <legend><span>01</span> Vos coordonnées</legend>
+      <div class="champ">
+        <label for="c-name">Nom complet</label>
+        <input id="c-name" name="name" type="text" autocomplete="name" required maxlength="80">
+        <p class="champ__err" data-err="name">Écrivez votre nom.</p>
+      </div>
+      <div class="champs-2">
+        <div class="champ">
+          <label for="c-phone">Téléphone</label>
+          <input id="c-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="07 07 00 00 00" required maxlength="30">
+          <p class="champ__err" data-err="phone">Un numéro d'au moins 8 chiffres : la boutique vous appelle pour la livraison.</p>
+        </div>
+        <div class="champ">
+          <label for="c-email">E-mail <span class="opt">(facultatif)</span></label>
+          <input id="c-email" name="email" type="email" autocomplete="email" maxlength="120">
+          <p class="champ__err" data-err="email">Cette adresse e-mail n'est pas valide.</p>
+        </div>
+      </div>
+      <p class="champ__aide">Avec un e-mail, vous recevez le récapitulatif de votre commande.</p>
+    </fieldset>
+
+    <fieldset class="bloc">
+      <legend><span>02</span> Livraison</legend>
+      <div class="champ">
+        <label for="c-commune">Commune</label>
+        <select id="c-commune" name="commune" required data-communes>
+          <option value="">Choisissez votre commune</option>
+          <option value="Abobo" data-fee="2500">Abobo — 2&nbsp;500&nbsp;FCFA</option>
+          <option value="Adjamé" data-fee="2000">Adjamé — 2&nbsp;000&nbsp;FCFA</option>
+          <option value="Attécoubé" data-fee="2500">Attécoubé — 2&nbsp;500&nbsp;FCFA</option>
+          <option value="Cocody" data-fee="1500">Cocody — 1&nbsp;500&nbsp;FCFA</option>
+          <option value="Koumassi" data-fee="2000">Koumassi — 2&nbsp;000&nbsp;FCFA</option>
+          <option value="Marcory" data-fee="1500">Marcory — 1&nbsp;500&nbsp;FCFA</option>
+        </select>
+        <p class="champ__err" data-err="commune">Choisissez votre commune de livraison.</p>
+      </div>
+      <div class="champ">
+        <label for="c-address">Adresse ou repère</label>
+        <input id="c-address" name="address" type="text" autocomplete="street-address" placeholder="Quartier, rue, repère (ex. près de la pharmacie)" required maxlength="200">
+        <p class="champ__err" data-err="address">Indiquez une adresse ou un repère pour le livreur.</p>
+      </div>
+      <div class="champ">
+        <label for="c-note">Note pour la boutique <span class="opt">(facultatif)</span></label>
+        <textarea id="c-note" name="note" rows="2" maxlength="1000"></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset class="bloc">
+      <legend><span>03</span> Paiement</legend>
+      <div class="paiements" data-payments>
+        <label class="paiement" data-pay="wave"><input type="radio" name="pay" value="wave"><span><strong>Wave</strong><small>La boutique vous envoie la demande de paiement.</small></span></label>
+        <label class="paiement" data-pay="orange"><input type="radio" name="pay" value="orange"><span><strong>Orange Money</strong><small>La boutique vous envoie la demande de paiement.</small></span></label>
+        <label class="paiement" data-pay="mtn"><input type="radio" name="pay" value="mtn"><span><strong>MTN MoMo</strong><small>La boutique vous envoie la demande de paiement.</small></span></label>
+        <label class="paiement" data-pay="moov" hidden><input type="radio" name="pay" value="moov"><span><strong>Moov Money</strong><small>La boutique vous envoie la demande de paiement.</small></span></label>
+        <label class="paiement" data-pay="cod"><input type="radio" name="pay" value="cod" checked><span><strong>Paiement à la livraison</strong><small>Espèces ou mobile money au livreur, à la réception.</small></span></label>
+        <label class="paiement" data-pay="card" hidden><input type="radio" name="pay" value="card"><span><strong>Carte bancaire</strong><small>Visa, Mastercard — paiement sécurisé par Stripe, aussi depuis l'étranger.</small></span></label>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="btn" data-checkout-submit>Confirmer la commande</button>
+    <p class="checkout__legal">En confirmant, votre commande est envoyée à la boutique MICHOU (propulsée par Jeere). Commande test&nbsp;: rien n'est expédié.</p>
+  </form>
+
+  <!-- Le récapitulatif -->
+  <aside class="recap" aria-label="Récapitulatif">
+    <h2>Panier</h2>
+    <div class="recap__lines" data-jeere-lines>
+      <template data-jeere-line>
+        <div class="ligne">
+          <img data-jeere-photo alt="{name}">
+          <div class="ligne__info">
+            <p data-jeere-name></p>
+            <p class="ligne__taille" data-michou-size></p>
+            <p class="ligne__prix" data-jeere-line-total></p>
+            <div class="ligne__qty">
+              <button type="button" data-jeere-dec aria-label="Retirer un {name}">−</button>
+              <span data-jeere-qty></span>
+              <button type="button" data-jeere-inc aria-label="Ajouter un {name}">+</button>
+              <button type="button" class="ligne__remove" data-jeere-remove>Retirer</button>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template data-jeere-empty>
+        <p class="panier__vide">Votre panier est vide. <a href="../boutique/">voir le shop</a></p>
+      </template>
+    </div>
+    <dl class="recap__totaux">
+      <div><dt>Sous-total</dt><dd data-jeere-total>0&nbsp;FCFA</dd></div>
+      <div><dt>Livraison</dt><dd data-recap-fee>Choisissez une commune</dd></div>
+      <div class="recap__total"><dt>Total</dt><dd data-recap-total>0&nbsp;FCFA</dd></div>
+    </dl>
+  </aside>
+
+</main>
+
+<!-- La confirmation (affichée après la commande) -->
+<section class="merci" data-merci hidden>
+  <p class="eyebrow" data-merci-eyebrow>Commande enregistrée</p>
+  <h1 class="merci__title">Merci&nbsp;! <span class="num" data-merci-num></span></h1>
+  <p class="merci__text" data-merci-text>La boutique a bien reçu votre commande. Elle vous appelle pour confirmer la livraison et le paiement.</p>
+  <div class="merci__recap" data-merci-recap></div>
+  <div class="merci__actions" data-merci-actions></div>
+  <a href="../boutique/" class="pill">→ retour au shop</a>
+</section>
+
+
+<footer class="foot">
+  <div class="foot__top">
+    <a href="../" class="logo">Michou</a>
+    <div><h4>Shop</h4><ul><li><a href="../boutique/#vestes">Vestes</a></li><li><a href="../boutique/#hauts">Hauts</a></li><li><a href="../boutique/#bas">Bas</a></li></ul></div>
+    <div><h4>Aide</h4><ul><li><a href="../commande/">commande</a></li><li>livraison à abidjan</li><li>échange sous 7 jours</li></ul></div>
+    <div><h4>Suivre</h4><ul><li>instagram</li><li>tiktok</li></ul></div>
+  </div>
+  <div class="foot__bottom">
+    <span>© MICHOU — boutique de démonstration. Photos d'illustration.</span>
+    <span>Modèle par <a href="https://kreeative.xyz">Kreeative</a>, propulsé par Jeere</span>
+  </div>
+</footer>
+
+</body>
+</html>
