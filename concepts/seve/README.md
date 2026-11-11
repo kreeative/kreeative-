@@ -38,6 +38,7 @@ The site reads `data-store="seve"`. Products, one per id, no variants:
 | p2 | Gel Douche Santal | Gels douche | 18 000 | best |
 | p3 | Gel Douche Musc | Gels douche | 18 000 | new |
 | p4 | Gel Douche Bergamote | Gels douche | 18 000 | — |
+| p10 | Gel Douche Lune | Gels douche | 18 000 | new |
 | p5 | Crème Corps Santal | Crèmes | 24 000 | best |
 | p6 | Crème Corps Bergamote | Crèmes | 24 000 | — |
 | p7 | Crème Mains Bergamote | Crèmes | 12 000 | new |
@@ -60,6 +61,7 @@ warm neutral background, soft side light, a leaf shadow or a natural prop (stone
 ## Images
 
 - Product packshots (`gel-*`, `creme-*`, `deodorant`, `huile-parfum-santal`) and `hero`,
-  `formule-santal`, `formule-bergamote`: cut out of three CYKLAR group photos and set on one
-  cream ground (#efeee5), 1000 × 1250.
+  `formule-santal`, `formule-bergamote`: cut out of CYKLAR photos supplied by the owner (three group
+  shots, plus single shots for `gel-vanille` and `gel-lune`) and set on one cream ground (#efeee5),
+  1000 × 1250.
 - Unsplash (free licence): Iain Robertson — `eucalyptus`; Jessica Irani — `formule-rituels`.
