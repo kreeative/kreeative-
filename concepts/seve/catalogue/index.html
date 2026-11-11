@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The page lives in a folder: without the final slash the relative links would point one folder up. -->
+  <script>if (!/(\/|\.html)$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);</script>
+  <title>Catalogue — SÈVE</title>
+  <meta name="description" content="Le catalogue SÈVE : soins visage, bain et corps, compléments, recharges et brumes. Boutique de démonstration.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#102a1c">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script>document.documentElement.classList.add('js'); setTimeout(function () { document.documentElement.classList.add('revealed'); }, 3000);</script>
+  <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="seve" defer></script>
+  <script src="../site.js" defer></script>
+</head>
+<body>
+
+<div class="concept-bar" role="note">
+  <p><strong>Boutique de démonstration</strong> — Modèle préparé par <a href="https://kreeative.xyz">Kreeative</a> pour Jeere. SÈVE est une marque fictive&nbsp;: les commandes passées ici sont des commandes test et ne sont pas expédiées.</p>
+</div>
+
+<div class="head-wrap">
+  <header class="head">
+    <nav class="head__nav" aria-label="Menu principal">
+      <a href="../catalogue/" aria-current="page">Boutique</a>
+      <a href="../catalogue/#visage">Visage</a>
+      <a href="../catalogue/#bain-corps">Bain &amp; corps</a>
+      <a href="../#formules">Formules</a>
+    </nav>
+    <a href="../" class="logo" aria-label="SÈVE, accueil">sève</a>
+    <div class="head__tools">
+      <a href="../#engagements" class="hide-s">Nos engagements</a>
+      <button type="button" class="head__cart" data-cart-open aria-controls="panier" aria-label="Ouvrir le panier"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.2L20.5 8H6.2"/><circle cx="9.5" cy="19.5" r="1.2"/><circle cx="17" cy="19.5" r="1.2"/></svg><span class="count" data-jeere-count>0</span></button>
+    </div>
+  </header>
+</div>
+
+<main class="section" style="padding-top:0">
+  <h1 class="catalog-title">Catalogue</h1>
+  <div class="filters" role="group" aria-label="Filtrer par catégorie">
+      <button type="button" class="filter" data-filter="tout" aria-pressed="true"><span>Tout voir</span><sup>9</sup></button>
+      <button type="button" class="filter" data-filter="visage" aria-pressed="false"><span>Visage</span><sup>3</sup></button>
+      <button type="button" class="filter" data-filter="bain-corps" aria-pressed="false"><span>Bain & corps</span><sup>3</sup></button>
+      <button type="button" class="filter" data-filter="complements" aria-pressed="false"><span>Compléments</span><sup>1</sup></button>
+      <button type="button" class="filter" data-filter="recharges" aria-pressed="false"><span>Recharges</span><sup>1</sup></button>
+      <button type="button" class="filter" data-filter="brumes" aria-pressed="false"><span>Brumes</span><sup>1</sup></button>
+      <button type="button" class="sort" data-sort><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M8 20l-3-3M8 20l3-3M16 20V4M16 4l-3 3M16 4l3 3"/></svg><span>Trier</span></button>
+  </div>
+  <div class="grid" data-catalog>
+      <article class="item reveal" data-jeere-product="p1" data-cat="visage" data-price="24000">
+        <p class="item__label">Best-seller</p>
+        <a class="item__img" href="../produits/huile-visage/"><img data-jeere-photo src="../img/huile-visage.svg" alt="Huile Visage Réparatrice, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/huile-visage/" data-jeere-name>Huile Visage Réparatrice</a><span data-jeere-price>24&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p2" data-cat="visage" data-price="26000">
+        <p class="item__label">Best-seller</p>
+        <a class="item__img" href="../produits/serum/"><img data-jeere-photo src="../img/serum.svg" alt="Sérum Hydratation Intense, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/serum/" data-jeere-name>Sérum Hydratation Intense</a><span data-jeere-price>26&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p3" data-cat="visage" data-price="28000">
+        <p class="item__label">Nouveau</p>
+        <a class="item__img" href="../produits/creme-nuit/"><img data-jeere-photo src="../img/creme-nuit.svg" alt="Crème de Nuit Régénérante, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/creme-nuit/" data-jeere-name>Crème de Nuit Régénérante</a><span data-jeere-price>28&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p4" data-cat="bain-corps" data-price="18000">
+        <p class="item__label">Coup de cœur</p>
+        <a class="item__img" href="../produits/savon-mains/"><img data-jeere-photo src="../img/savon-mains.svg" alt="Savon Mains Apothicaire, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/savon-mains/" data-jeere-name>Savon Mains Apothicaire</a><span data-jeere-price>18&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p5" data-cat="bain-corps" data-price="22000">
+        <p class="item__label"></p>
+        <a class="item__img" href="../produits/huile-corps/"><img data-jeere-photo src="../img/huile-corps.svg" alt="Huile Corps Karité & Néroli, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/huile-corps/" data-jeere-name>Huile Corps Karité & Néroli</a><span data-jeere-price>22&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p6" data-cat="bain-corps" data-price="16000">
+        <p class="item__label">Best-seller</p>
+        <a class="item__img" href="../produits/gel-douche/"><img data-jeere-photo src="../img/gel-douche.svg" alt="Gel Douche Vétiver, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/gel-douche/" data-jeere-name>Gel Douche Vétiver</a><span data-jeere-price>16&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p7" data-cat="complements" data-price="20000">
+        <p class="item__label">Nouveau</p>
+        <a class="item__img" href="../produits/gelules/"><img data-jeere-photo src="../img/gelules.svg" alt="Gélules Éclat, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/gelules/" data-jeere-name>Gélules Éclat</a><span data-jeere-price>20&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p8" data-cat="recharges" data-price="14000">
+        <p class="item__label"></p>
+        <a class="item__img" href="../produits/recharge/"><img data-jeere-photo src="../img/recharge.svg" alt="Recharge Savon Mains, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/recharge/" data-jeere-name>Recharge Savon Mains</a><span data-jeere-price>14&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+      <article class="item reveal" data-jeere-product="p9" data-cat="brumes" data-price="15000">
+        <p class="item__label">Nouveau</p>
+        <a class="item__img" href="../produits/brume/"><img data-jeere-photo src="../img/brume.svg" alt="Brume d'Oreiller Lavande, flacon SÈVE" width="800" height="860" loading="lazy"></a>
+        <div class="item__row"><a href="../produits/brume/" data-jeere-name>Brume d'Oreiller Lavande</a><span data-jeere-price>15&nbsp;000&nbsp;FCFA</span></div>
+        <button type="button" class="item__add" data-jeere-add>Ajouter au panier</button>
+      </article>
+  </div>
+</main>
+
+<!-- PANIER (rempli par Jeere Connect) -->
+<aside class="panier" id="panier" aria-label="Panier" aria-hidden="true">
+  <div class="panier__head">
+    <h2>Panier</h2>
+    <button type="button" class="panier__close" data-cart-close>Fermer</button>
+  </div>
+  <div class="panier__lines" data-jeere-lines>
+    <template data-jeere-line>
+      <div class="ligne">
+        <img data-jeere-photo alt="{name}">
+        <div class="ligne__info">
+          <p data-jeere-name></p>
+          <p class="ligne__prix" data-jeere-line-total></p>
+          <div class="ligne__qty">
+            <button type="button" data-jeere-dec aria-label="Retirer un {name}">−</button>
+            <span data-jeere-qty></span>
+            <button type="button" data-jeere-inc aria-label="Ajouter un {name}">+</button>
+            <button type="button" class="ligne__remove" data-jeere-remove>Retirer</button>
+          </div>
+        </div>
+      </div>
+    </template>
+    <template data-jeere-empty>
+      <p class="panier__vide">Votre panier est vide. <a href="../catalogue/">Voir la boutique</a></p>
+    </template>
+  </div>
+  <div class="panier__foot">
+    <p class="panier__total"><span>Sous-total</span><span data-jeere-total>0&nbsp;FCFA</span></p>
+    <a href="../commande/" class="btn btn--ink" data-seve-checkout aria-disabled="true">Commander</a>
+  </div>
+</aside>
+<div class="voile" data-cart-close></div>
+
+<footer class="foot">
+  <div class="foot__top">
+    <div>
+      <a href="../" class="logo">sève</a>
+      <p>Des soins botaniques formulés avec les plantes d'Afrique de l'Ouest&nbsp;: karité, baobab, moringa, citronnelle.</p>
+    </div>
+    <div><h4>Boutique</h4><ul><li><a href="../catalogue/#visage">Visage</a></li><li><a href="../catalogue/#bain-corps">Bain & corps</a></li><li><a href="../catalogue/#complements">Compléments</a></li><li><a href="../catalogue/#recharges">Recharges</a></li><li><a href="../catalogue/#brumes">Brumes</a></li></ul></div>
+    <div><h4>SÈVE</h4><ul><li><a href="../#formules">Nos formules</a></li><li><a href="../#engagements">Nos engagements</a></li><li><a href="../commande/">Commande</a></li></ul></div>
+    <div><h4>Contact</h4><ul><li>Abidjan, Côte d'Ivoire</li><li>Livraison du lundi au samedi</li></ul></div>
+  </div>
+  <div class="foot__bottom">
+    <span>© SÈVE — boutique de démonstration</span>
+    <span>Modèle par <a href="https://kreeative.xyz">Kreeative</a>, propulsé par Jeere</span>
+  </div>
+</footer>
+
+</body>
+</html>

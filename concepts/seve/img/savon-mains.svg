@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 860" width="800" height="860">
+<defs>
+  <linearGradient id="glasssavonmains" x1="0" x2="1" y1="0" y2="0">
+    <stop offset="0" stop-color="#141a0a"/><stop offset=".18" stop-color="#2f3b14"/>
+    <stop offset=".5" stop-color="#4f5e1d"/><stop offset=".78" stop-color="#2c3712"/><stop offset="1" stop-color="#10150a"/>
+  </linearGradient>
+  <linearGradient id="glassLsavonmains" x1="0" x2="1" y1="0" y2="0">
+    <stop offset="0" stop-color="#3d4a13"/><stop offset=".2" stop-color="#6f7f24"/>
+    <stop offset=".5" stop-color="#9aa83a"/><stop offset=".8" stop-color="#5f6e1e"/><stop offset="1" stop-color="#2d3810"/>
+  </linearGradient>
+  <linearGradient id="blacksavonmains" x1="0" x2="1" y1="0" y2="0">
+    <stop offset="0" stop-color="#0b0b0b"/><stop offset=".35" stop-color="#2a2a2a"/><stop offset=".6" stop-color="#161616"/><stop offset="1" stop-color="#060606"/>
+  </linearGradient>
+  <linearGradient id="pouchsavonmains" x1="0" x2="1" y1="0" y2="1">
+    <stop offset="0" stop-color="#7c8a2e"/><stop offset=".55" stop-color="#5d6b20"/><stop offset="1" stop-color="#3f4a15"/>
+  </linearGradient>
+  <linearGradient id="liquidsavonmains" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="#b9b84a" stop-opacity=".0"/><stop offset=".25" stop-color="#c4c35a" stop-opacity=".35"/><stop offset="1" stop-color="#8f8f2a" stop-opacity=".25"/>
+  </linearGradient>
+  <radialGradient id="glowsavonmains" cx=".5" cy=".5" r=".5">
+    <stop offset="0" stop-color="#d7d36a" stop-opacity=".75"/><stop offset="1" stop-color="#9aa040" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="shsavonmains" x="-20%" y="-20%" width="140%" height="140%">
+    <feFlood flood-color="#3a4020" flood-opacity=".4"/><feComposite in2="SourceAlpha" operator="in"/><feGaussianBlur stdDeviation="2.2"/>
+  </filter>
+  <filter id="softsavonmains"><feGaussianBlur stdDeviation="14"/></filter>
+</defs>
+<rect width="800" height="860" fill="#ececea"/>
+<defs><g id="psavonmains"><rect x="290" y="390" width="220" height="290" rx="24" fill="url(#glasssavonmains)"/>
+<rect x="294" y="450" width="212" height="226" rx="20" fill="url(#liquidsavonmains)"/>
+<rect x="304" y="410" width="12" height="250" rx="6" fill="#ffffff" opacity=".13"/><rect x="322" y="420" width="4" height="230" rx="4" fill="#ffffff" opacity=".07"/>
+<rect x="350" y="340" width="100" height="56" rx="8" fill="url(#blacksavonmains)"/>
+<rect x="386" y="276" width="28" height="66" rx="4" fill="url(#blacksavonmains)"/>
+<path d="M390 284 h22 v-30 q0-14 -14-14 h-86 q-22 0 -30 18 l-6 12 h12 q8-16 26-16 h80 v30z" fill="#121212"/>
+<g font-family="Inter, 'Helvetica Neue', Arial, sans-serif" fill="#e9e4c8" text-anchor="middle">
+  <text x="400" y="470" font-size="10.4" letter-spacing="1.5" font-weight="600">SAVON MAINS</text>
+  <text x="400" y="485.2" font-size="8.1" letter-spacing=".6" opacity=".8">Apothicaire · citronnelle</text>
+  <text x="400" y="536.5" font-size="28.5" letter-spacing="6.6" font-weight="400">SÈVE</text>
+  <text x="400" y="593.5" font-size="7.1" letter-spacing="2.1" font-weight="600" opacity=".9">LAVE · NOURRIT · PROTÈGE</text>
+</g>
+<text x="306" y="664" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#e9e4c8" opacity=".7">500 ml</text></g></defs>
+<g transform="translate(400 430) scale(1.18) translate(-400 -430)"><g transform="translate(62 46)" opacity=".9">
+  <use xlink:href="#psavonmains" href="#psavonmains" filter="url(#shsavonmains)"/>
+</g>
+<ellipse cx="462" cy="570" rx="120" ry="70" fill="url(#glowsavonmains)" opacity=".55" filter="url(#softsavonmains)"/>
+<use xlink:href="#psavonmains" href="#psavonmains"/></g>
+</svg>
