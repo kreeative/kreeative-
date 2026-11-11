@@ -16,8 +16,8 @@ Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
 
 ## Pages
 
-- `index.html` — hero, ribbon, « Le luxe redéfini » (4 products), categories, glam visual,
-  reviews, care tips, footer.
+- `index.html` — hero (giant wordmark, cut-out model in front), ribbon, categories, « Le luxe
+  redéfini » (4 products), glam visual, reviews, care tips, footer.
 - `boutique/index.html` — every product, filters Tout / Tissages / Perruques / Accessoires (also
   from the address: `boutique/#perruques`).
 - `produits/<produit>/index.html` — one page per product: photo, price, specs, « Ajouter au
@@ -42,9 +42,10 @@ for a client site, check that the licence covers web embedding for that client.
 
 ## Model photos (AI-generated)
 
-- `img/modele-hero.webp` (hero, arched frame) and `img/modele-glam.webp` (« glam » section): a fictional
-  model generated with Higgsfield (Soul 2.0) for this demo, then the backdrop shifted to candy pink
-  (only the pink background, not the skin or the hair). The alt texts say the images are AI-generated.
+- `img/modele-hero-cut.webp` (hero) and `img/modele-glam.webp` (« glam » section): a fictional model
+  generated with Higgsfield (Soul 2.0) for this demo. The hero one is cut out of its pink backdrop and
+  stands in front of a giant white SOYEUSE wordmark on candy pink; the glam one keeps its backdrop,
+  shifted to candy pink. The alt texts say the images are AI-generated.
 - For a real client, replace them with the client's own photos (under the same names, or in the Studio).
 
 ## The Jeere store `soyeuse` (to create — Jeere session)

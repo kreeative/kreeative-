@@ -73,14 +73,16 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .btn--white:hover { background: var(--ink); color: #fff; }
 
 /* ---------- Hero ---------- */
-.hero { position: relative; display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: clamp(20px, 4vw, 60px); padding: clamp(28px, 4vw, 56px) var(--pad); background: var(--pink); overflow: hidden; }
-.hero__img { position: relative; aspect-ratio: 3 / 4; border-radius: 999px 999px 0 0; overflow: hidden; background: var(--pink-2); }
-.hero__img img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
-.hero__text { position: relative; text-align: right; color: var(--ink); }
-.hero__text .eyebrow { color: var(--rose); }
-.hero__text h1 { margin: 20px 0 34px; font-size: clamp(42px, 5.4vw, 86px); line-height: 1; color: var(--ink); }
-.hero__text h1 .script { display: block; font-size: 1em; line-height: inherit; color: var(--pop); }
-.hero__ghost { position: absolute; right: -2%; bottom: -6%; font-family: var(--display); font-size: clamp(120px, 20vw, 300px); color: #fff; opacity: .6; line-height: .8; pointer-events: none; letter-spacing: .02em; }
+.hero { position: relative; height: clamp(600px, 88vh, 860px); background: var(--pink-2); overflow: hidden; isolation: isolate; }
+.hero__stage { position: absolute; inset: 0; }
+.hero__brand { position: absolute; left: 50%; top: 47%; z-index: 0; transform: translate(-50%, -50%); margin: 0; font-family: var(--display); font-size: clamp(130px, 22vw, 360px); line-height: 1; letter-spacing: .02em; color: #fff; white-space: nowrap; pointer-events: none; }
+.hero__model { position: absolute; left: 50%; bottom: 0; z-index: 1; height: 96%; width: auto; max-width: none; transform: translateX(-50%); filter: drop-shadow(0 30px 40px rgba(200, 21, 111, .18)); }
+.hero__copy { position: absolute; left: var(--pad); bottom: clamp(36px, 6vh, 64px); z-index: 2; max-width: min(30vw, 400px); }
+.hero__copy .eyebrow { color: var(--rose); }
+.hero__copy h1 { margin-top: 12px; font-size: clamp(30px, 3.2vw, 52px); line-height: 1; color: var(--ink); }
+.hero__copy h1 .script { color: var(--rose); }
+.hero__side { position: absolute; right: var(--pad); bottom: clamp(36px, 6vh, 64px); z-index: 2; max-width: 280px; text-align: right; }
+.hero__side p { margin-bottom: 18px; font-size: 13px; line-height: 1.7; color: var(--ink); }
 
 /* ---------- Bandeau défilant ---------- */
 .ruban { overflow: hidden; background: var(--pink-2); color: var(--ink); }
@@ -296,9 +298,12 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
   .nav__links { grid-column: 1; gap: 18px; overflow-x: auto; scrollbar-width: none; }
   .nav__links::-webkit-scrollbar { display: none; }
   .nav__cart { grid-column: 2; }
-  .hero { grid-template-columns: 1fr; }
-  .hero__img { max-width: 420px; width: 80%; margin: 0 auto; }
-  .hero__text { text-align: center; }
+  .hero { height: auto; padding-bottom: 40px; }
+  .hero__stage { position: relative; height: 128vw; max-height: 720px; }
+  .hero__brand { top: 9%; font-size: 17.5vw; }
+  .hero__model { height: 86%; }
+  .hero__copy, .hero__side { position: static; max-width: none; text-align: center; padding: 26px var(--pad) 0; }
+  .hero__side { padding-top: 12px; }
   .glam, .avis-band, .fiche, .checkout { grid-template-columns: 1fr; }
   .glam__img { min-height: 380px; order: -1; }
   .avis__grid, .conseils { grid-template-columns: 1fr; }
