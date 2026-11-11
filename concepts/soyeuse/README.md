@@ -25,6 +25,15 @@ Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
 - `commande/` — the Jeere checkout, the same as ANSE's (`commande.js`, store `soyeuse`).
 - `site.js` — filters, cart drawer, cart thumbnails, « Commander maintenant », newsletter message.
 
+## Logo and palette
+
+- **Logo**: SOYEUSE set in Hastegi with its alternate letters (private-use glyphs of the font):
+  swash S `U+E020`, O with a star `U+E019`, curled E `U+E013`, S `U+E01D`, in `.logo__mark`
+  (`aria-hidden`, the link carries `aria-label="SOYEUSE, accueil"`). The font loads with
+  `font-display: block` so the alternates never show as empty boxes.
+- **Pop baby pink**: backgrounds `#ffe1ef` and `#ffc4e1`, accent `#ff8fc8`, logo and large titles
+  `#ff4fa3`, small pink text `#c8156f` (readable on white and on the light pink).
+
 ## Font
 
 Hastegi is self-hosted in `fonts/` (the owner holds a commercial licence). Keep the licence proof;
