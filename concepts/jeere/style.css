@@ -1007,3 +1007,6 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .promo__go { text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .promo:hover .promo__go { text-decoration-thickness: 2px; }
 @media (max-width: 420px) { .promo { font-size: 12.5px; gap: 8px; } }
+
+/* The promo bar in yellow, dark text (readable) */
+.promo { background: #FFD60A; color: #141414; }
