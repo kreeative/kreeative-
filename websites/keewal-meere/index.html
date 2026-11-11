@@ -100,12 +100,12 @@
         <h3 class="t-h3">Process</h3>
         <h4 class="t-h4">Research and references</h4>
         <p class="t-body-l">I started from what the diaspora stacks together today to send and invest, from how remittance apps and neobanks show or hide their margins, and from a banking design-system kit in the Figma Community for component anatomy, spacing and screen composition. The kit lent structure only; the palette, the typeface and the wordmark are ours, and those two decisions outrank the kit.</p>
-        <p class="t-body-l">For the card I put a metal bank card beside a cowrie print and a sheet of Adinkra symbols and asked for the same feeling. Five renders of an engraved wedge followed, each made with the previous as its reference so the texture stayed.</p>
+        <p class="t-body-l">For the card I started from a metal bank card, a cowrie print and a sheet of Adinkra symbols, and designed the card I wanted myself in Figma: the exact model, at the app’s own 400 × 252, with real card proportions.</p>
         <h4 class="t-h4">User flows</h4>
         <p class="t-body-l">Onboarding in seven steps: email, code, identity, address, document, two-factor, PIN. Placing an order: live preview, explicit fees, confirmation sheet; an indivisible asset is priced in whole units because a share does not split on the BRVM. A risk profile at /profil/risque that warns before an order and unlocks nothing, because refusing an adult the use of their own money is a posture, not a protection. Every flow is also walked by a keyboard-only test, at two widths, with no mouse.</p>
         <h4 class="t-h4">Iterations: five design systems in two weeks</h4>
         <p class="t-body-l">The look went through five states, each recorded in the design file. A “minimal nordic fintech” brief with a teal accent and no shadows. Then glass and depth: glassmorphism, three-layer shadows, an ambient ground, a citrine accent, monospace digits. Then full monochrome and Poppins (Futura first). Then brown and gold, from a reference I brought. Then the current state: flat surfaces, no sheen, no blur, no gradient anywhere, only the shadow stack to say that an object floats.</p>
-        <p class="t-body-l">The card went through its own loop. I asked for a real card with real measurements, then composed the front myself in Figma, moved the chip and the name where I wanted them, and sent a screenshot: that screenshot became the brief, and every position in the app is measured from it. The chip I dragged into place landed on the ISO/IEC 7816-2 contact position within a few pixels.</p>
+        <p class="t-body-l">The card went through its own loop. Early versions tried a wedge of six different marks; I reduced it to one mark, the cowrie, six times, and composed the front in Figma, placing the chip and the name where I wanted them. That Figma file is the source of the card: every position in the app is measured from it. The chip I placed landed on the ISO/IEC 7816-2 contact position within a few pixels.</p>
         <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Flat surfaces instead of glass. The diagonal sheen on every panel read as generated rather than drawn; it assumed a light source the screen does not have. Removing it also removed a composited layer per card that showed nothing.</p></aside>
         <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">One warm family, hues 62 to 97, with a chroma budget per role. Surfaces stay almost neutral and only the accent ramp is saturated, enforced by a script, because a palette nobody polices drifts one plausible colour at a time into a swatch book.</p></aside>
         <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Gold is the signature and it is a flat fill, in exactly three places: the primary button, the active destination in the bar, a selected filter. Links and focus rings are bronze, not gold, because pale gold as text on cream fails contrast however good it looks as a fill.</p></aside>
@@ -127,17 +127,14 @@
           <li class="t-body-l">Positioning and product concept (African equities first)</li>
           <li class="t-body-l">Design system: tokens, components, light and dark, machine-checked rules</li>
           <li class="t-body-l">Onboarding, order, exchange and risk-profile flows</li>
-          <li class="t-body-l">Brand: wordmark, monogram, virtual card (Figma file, ISO measurements)</li>
+          <li class="t-body-l">Brand: wordmark, monogram, virtual card designed in Figma to ISO measurements</li>
           <li class="t-body-l">API contract (68 endpoints) with a reference server, so a back-end can be plugged in</li>
           <li class="t-body-l">Keyboard, motion, flows, screenshot and CSP test suites</li>
         </ul>
     </div>
   </div>
   <figure class="cs-image" data-appear="image">
-      <img src="../../assets/img/case-keewal-card-face-1000.webp" srcset="../../assets/img/case-keewal-card-face-660.webp 660w, ../../assets/img/case-keewal-card-face-1000.webp 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="2048" height="1360" alt="The virtual card’s face: brushed brown metal with six engraved cowries clustered toward the top-right corner, as composed in Figma" loading="lazy">
-    </figure>
-  <figure class="cs-image" data-appear="image">
-      <img src="../../assets/img/case-keewal-card-wedge-1000.webp" srcset="../../assets/img/case-keewal-card-wedge-660.webp 660w, ../../assets/img/case-keewal-card-wedge-1000.webp 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="2048" height="1360" alt="An earlier render of the card: a wedge of six different marks (cowrie, mask, Duafe, Dwennimmen, Adinkrahene, Nkyinkyim) before the composition was reduced to one mark, six times" loading="lazy">
+      <img src="../../assets/img/case-keewal-card-face-1000.webp" srcset="../../assets/img/case-keewal-card-face-660.webp 660w, ../../assets/img/case-keewal-card-face-1000.webp 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="2048" height="1360" alt="The virtual card I designed in Figma: brushed brown metal with six engraved cowries clustered toward the top-right corner, the wordmark in the same gold, a chip and the holder’s name" loading="lazy">
     </figure>
   <figure class="cs-image cs-image--tall" data-appear="image">
       <img src="../../assets/img/sites/site-keewal-full-1000.webp?v=202609250356" srcset="../../assets/img/sites/site-keewal-full-1000.webp?v=202609250356 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="1440" height="3200" alt="Keewal Meere home page, full length" loading="lazy">
