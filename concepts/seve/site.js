@@ -7,10 +7,10 @@
   var me = document.currentScript;
   var BASE = me ? me.src.replace(/site\.js(\?.*)?$/, '') : '';
 
-  // The packshot of each product, for the cart lines (the store's fiche has no photos)
+  // The photo of each product, for the cart lines (the store's fiche has no photos)
   var PHOTOS = {
-    p1: 'img/huile-visage.svg', p2: 'img/serum.svg', p3: 'img/creme-nuit.svg', p4: 'img/savon-mains.svg',
-    p5: 'img/huile-corps.svg', p6: 'img/gel-douche.svg', p7: 'img/gelules.svg', p8: 'img/recharge.svg', p9: 'img/brume.svg'
+    p1: 'img/huile-visage.webp', p2: 'img/serum.webp', p3: 'img/creme-nuit.webp', p4: 'img/savon-mains.webp',
+    p5: 'img/huile-corps.webp', p6: 'img/gel-douche.webp', p7: 'img/gelules.webp', p8: 'img/creme-mains.webp', p9: 'img/brume.webp'
   };
   function fillThumbs() {
     document.querySelectorAll('.ligne').forEach(function (line) {

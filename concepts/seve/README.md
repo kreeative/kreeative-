@@ -1,7 +1,7 @@
 # SÈVE — model shop by Kreeative for Jeere
 
 A botanical skincare shop for a **fictional brand**, made as a model to show what a Jeere shop can
-look like: olive glass bottles on light grey, condensed serif titles, a dark green rounded header,
+look like: real product photos (amber glass, warm neutral grounds), condensed serif titles, a dark green rounded header,
 a split hero, a product carousel, a catalogue with category filters. French, prices in FCFA.
 
 Live (unlisted): https://kreeative.xyz/concepts/seve/
@@ -10,7 +10,8 @@ Live (unlisted): https://kreeative.xyz/concepts/seve/
 
 - `noindex, nofollow`, not linked from the portfolio, not in the sitemap.
 - Keep the concept bar: SÈVE is fictional, orders placed here are test orders and nothing ships.
-- The packshots (`img/*.svg`) are drawn for this model; there is no third-party photo or brand.
+- The photos are free Unsplash photos of unbranded products (credits below). No photo shows a
+  real brand's label.
 
 ## Pages
 
@@ -38,7 +39,7 @@ The site reads `data-store="seve"`. Products, one per id, no variants:
 | p5 | Huile Corps Karité & Néroli | Bain & corps | 22 000 | — |
 | p6 | Gel Douche Vétiver | Bain & corps | 16 000 | best |
 | p7 | Gélules Éclat | Compléments | 20 000 | new |
-| p8 | Recharge Savon Mains | Recharges | 14 000 | — |
+| p8 | Crème Mains Karité | Bain & corps | 12 000 | — |
 | p9 | Brume d'Oreiller Lavande | Brumes | 15 000 | new |
 
 Also: a delivery section with the Abidjan communes and fees (the checkout reads them), the payment
@@ -52,5 +53,16 @@ Until the store exists, the page shows its own names and prices and the cart wor
 
 Copy the folder, replace texts, images (`img/`, and the `PHOTOS` map in `site.js`), `data-store`
 in every page and `SLUG` in `commande/commande.js`. Photo brief for a real client: product alone,
-front view, plain light grey background, one hard light from the top left so the shadow falls to
-the right.
+warm neutral background, soft side light, a leaf shadow or a natural prop (stone, wood, linen).
+
+## Photo credits (Unsplash licence)
+
+- Kadarius Seegars — `hero`, `huile-visage`, `brume`, `formule-visage`
+- Nataliya Melnychuk — `serum`
+- pmv chamara — `creme-nuit`
+- Anna Khromova — `savon-mains`
+- Denley Photography — `huile-corps`, `gel-douche`
+- NutraSeller Manufacturing — `gelules`, `formule-gelules`
+- Bharath Kumar — `creme-mains`
+- Iain Robertson — `eucalyptus`
+- Jessica Irani — `formule-rituels`
