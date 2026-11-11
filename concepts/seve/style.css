@@ -6,7 +6,7 @@
   --muted: #868a80;
   --line: #e6e6e1;
   --paper: #ffffff;
-  --card: #ececea;
+  --card: #efeee5;
   --night: #102a1c;
   --sage: #9aa27e;
   --lime: #e1eaa8;
@@ -90,12 +90,12 @@ h1 em, h2 em { font-style: italic; }
 .hero { position: relative; margin-top: -72px; height: min(88vh, 760px); min-height: 560px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
 .hero__panel { position: relative; overflow: hidden; }
 .hero__panel img { width: 100%; height: 100%; object-fit: cover; }
-.hero__panel--a { background: var(--sage); }
+.hero__panel--a { background: var(--card); }
 .hero__panel--a img { object-position: 50% 50%; }
-.hero__text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; padding: 80px var(--pad) 0; pointer-events: none; }
+.hero__text { position: absolute; top: 0; bottom: 0; left: 50%; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; padding: 80px var(--pad) 0; pointer-events: none; }
 .hero__text > * { pointer-events: auto; }
-.hero__text h1 { font-size: clamp(48px, 6.6vw, 96px); margin: 18px 0 30px; text-shadow: 0 2px 30px rgba(0, 0, 0, .35); }
-.hero::after { content: ""; position: absolute; inset: 0; background: rgba(20, 24, 16, .28); pointer-events: none; }
+.hero__text h1 { font-size: clamp(44px, 5.4vw, 84px); margin: 18px 0 30px; text-shadow: 0 2px 30px rgba(0, 0, 0, .35); }
+.hero__panel--b::after { content: ""; position: absolute; inset: 0; background: rgba(16, 32, 20, .42); pointer-events: none; }
 .hero__text { z-index: 1; }
 .hero__sheet { z-index: 2; }
 .hero__sheet { position: absolute; left: 0; right: 0; bottom: -1px; height: 26px; background: #fff; border-radius: 26px 26px 0 0; }
@@ -156,6 +156,10 @@ h1 em, h2 em { font-style: italic; }
 .formule__txt h3 { font-size: 32px; }
 .formule__txt p { margin-top: 8px; font-size: 14px; line-height: 1.6; opacity: .88; }
 .formule--clair { color: var(--ink); }
+.formule--produits { background: var(--card); color: var(--ink); }
+.formule--produits img { object-fit: cover; }
+.formule--produits::after { display: none; }
+.formule--produits .tag { background: #fff; border-color: rgba(0, 0, 0, .08); }
 .formule--clair .tag { background: rgba(255, 255, 255, .5); border-color: rgba(0, 0, 0, .08); }
 
 /* ---------- Grille catalogue (style étiquette au-dessus) ---------- */
@@ -319,6 +323,7 @@ h1 em, h2 em { font-style: italic; }
   .head__tools .hide-s { display: none; }
   .hero { grid-template-columns: 1fr; }
   .hero__panel--a { display: none; }
+  .hero__text { left: 0; }
   .produit, .checkout { grid-template-columns: 1fr; }
   .produit__info, .recap { position: static; }
   .recap { order: -1; }

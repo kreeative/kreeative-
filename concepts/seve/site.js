@@ -9,8 +9,9 @@
 
   // The photo of each product, for the cart lines (the store's fiche has no photos)
   var PHOTOS = {
-    p1: 'img/huile-visage.webp', p2: 'img/serum.webp', p3: 'img/creme-nuit.webp', p4: 'img/savon-mains.webp',
-    p5: 'img/huile-corps.webp', p6: 'img/gel-douche.webp', p7: 'img/gelules.webp', p8: 'img/creme-mains.webp', p9: 'img/brume.webp'
+    p1: 'img/gel-vanille.webp', p2: 'img/gel-santal.webp', p3: 'img/gel-musc.webp', p4: 'img/gel-bergamote.webp',
+    p5: 'img/creme-corps-santal.webp', p6: 'img/creme-corps-bergamote.webp', p7: 'img/creme-mains.webp',
+    p8: 'img/deodorant.webp', p9: 'img/huile-parfum-santal.webp'
   };
   function fillThumbs() {
     document.querySelectorAll('.ligne').forEach(function (line) {
