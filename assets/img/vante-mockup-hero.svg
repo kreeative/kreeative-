@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="720" y1="0" x2="720" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1d2138"/>
+      <stop offset="0.34" stop-color="#46394f"/>
+      <stop offset="0.56" stop-color="#955841"/>
+      <stop offset="0.72" stop-color="#d98c50"/>
+      <stop offset="0.84" stop-color="#ecb56a"/>
+      <stop offset="1" stop-color="#241813"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(900 720) rotate(90) scale(360)">
+      <stop offset="0" stop-color="#ffe7b2" stop-opacity="0.95"/>
+      <stop offset="0.4" stop-color="#f4ba6c" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#f4ba6c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ground" x1="720" y1="600" x2="720" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#160f0c"/>
+      <stop offset="1" stop-color="#050403"/>
+    </linearGradient>
+    <linearGradient id="vignette" x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.55"/>
+      <stop offset="0.45" stop-color="#000000" stop-opacity="0.12"/>
+      <stop offset="0.75" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ============ BACKGROUND (full-bleed cinematic) ============ -->
+  <g id="background">
+    <rect width="1440" height="900" fill="url(#sky)"/>
+    <rect width="1440" height="900" fill="url(#sun)"/>
+
+    <!-- soft single mountain ridge -->
+    <path id="ridge" d="M0 612 L 240 556 L 520 600 L 820 540 L 1120 596 L 1440 552 L 1440 660 L 0 660 Z"
+          fill="#1c1311" opacity="0.85"/>
+
+    <!-- dark foreground -->
+    <rect id="foreground" y="600" width="1440" height="300" fill="url(#ground)"/>
+
+    <!-- minimal car silhouette -->
+    <g id="car" transform="translate(760 430)">
+      <path d="M-190 188
+               C -180 144, -126 136, -74 134
+               C -48 98, 14 82, 110 84
+               C 206 86, 286 106, 322 146
+               C 358 154, 384 172, 386 190
+               L 386 202 C 386 210, 379 214, 368 214
+               L -180 214 C -194 214, -198 202, -190 188 Z" fill="#080606"/>
+      <rect x="-128" y="146" width="382" height="7" rx="3.5" fill="#ff2331"/>
+      <rect x="-128" y="146" width="382" height="2.5" rx="1.5" fill="#ff9aa1"/>
+      <ellipse cx="-104" cy="214" rx="60" ry="16" fill="#040202"/>
+      <ellipse cx="262" cy="214" rx="64" ry="16" fill="#040202"/>
+    </g>
+
+    <!-- left + bottom vignette for legibility -->
+    <rect width="1440" height="900" fill="url(#vignette)"/>
+  </g>
+
+  <!-- ============ NAV (thin, overlaid, light) ============ -->
+  <g id="nav" fill="#ffffff" font-family="Inter, Helvetica, Arial, sans-serif">
+    <text id="wordmark" x="80" y="66" font-size="26" font-weight="600" letter-spacing="0.5">VANTÉ</text>
+    <g font-size="15" font-weight="500" opacity="0.92">
+      <text x="1040" y="63" text-anchor="middle">Models</text>
+      <text x="1150" y="63" text-anchor="middle">Ownership</text>
+      <text x="1255" y="63" text-anchor="middle">More</text>
+    </g>
+    <!-- account dot -->
+    <circle cx="1345" cy="58" r="11" stroke="#ffffff" stroke-width="1.5" fill="none"/>
+    <circle cx="1345" cy="54" r="3.4" fill="#ffffff"/>
+    <path d="M1339 64 a6 6 0 0 1 12 0" fill="#ffffff"/>
+  </g>
+
+  <!-- ============ HERO COPY (minimal) ============ -->
+  <g id="hero-copy" font-family="Inter, Helvetica, Arial, sans-serif" fill="#ffffff">
+    <text id="model" x="80" y="392" font-size="22" font-weight="700" letter-spacing="0.2">VANTÉ Volt</text>
+
+    <g id="tagline" font-size="44" font-weight="300" fill="#ffffff" fill-opacity="0.88" letter-spacing="-0.5">
+      <text x="78" y="452">It didn’t come from the stars.</text>
+      <text x="78" y="506">But it looks like it did.</text>
+    </g>
+
+    <!-- single text link with arrow (no boxes) -->
+    <g id="cta" font-size="17" font-weight="600">
+      <text x="80" y="580">Discover VANTÉ Volt</text>
+      <text x="282" y="580" fill="#ffffff">→</text>
+      <rect x="80" y="592" width="222" height="1.5" fill="#ffffff" opacity="0.6"/>
+    </g>
+  </g>
+
+  <!-- ============ VIDEO CONTROL ============ -->
+  <g id="play-pause">
+    <circle cx="1360" cy="820" r="22" stroke="#ffffff" stroke-width="1.4" fill="#000000" fill-opacity="0.18"/>
+    <rect x="1353" y="811" width="4" height="18" rx="1.5" fill="#ffffff"/>
+    <rect x="1363" y="811" width="4" height="18" rx="1.5" fill="#ffffff"/>
+  </g>
+</svg>

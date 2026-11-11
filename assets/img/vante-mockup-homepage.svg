@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="4280" viewBox="0 0 1440 4280" fill="none" font-family="Inter, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="skyHero" x1="720" y1="0" x2="720" y2="860" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1d2138"/><stop offset="0.34" stop-color="#46394f"/>
+      <stop offset="0.56" stop-color="#955841"/><stop offset="0.72" stop-color="#d98c50"/>
+      <stop offset="0.84" stop-color="#ecb56a"/><stop offset="1" stop-color="#241813"/>
+    </linearGradient>
+    <radialGradient id="sunHero" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(900 690) rotate(90) scale(340)">
+      <stop offset="0" stop-color="#ffe7b2" stop-opacity="0.95"/><stop offset="0.4" stop-color="#f4ba6c" stop-opacity="0.45"/><stop offset="1" stop-color="#f4ba6c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="groundHero" x1="720" y1="560" x2="720" y2="860" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#160f0c"/><stop offset="1" stop-color="#050403"/>
+    </linearGradient>
+    <linearGradient id="vignL" x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#000" stop-opacity="0.55"/><stop offset="0.45" stop-color="#000" stop-opacity="0.12"/><stop offset="0.75" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="featNight" x1="0" y1="1380" x2="1440" y2="2080" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10151c"/><stop offset="1" stop-color="#05070a"/>
+    </linearGradient>
+    <linearGradient id="featDusk" x1="0" y1="2820" x2="1440" y2="3460" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2a2030"/><stop offset="0.6" stop-color="#7a4a3a"/><stop offset="1" stop-color="#d68f53"/>
+    </linearGradient>
+    <linearGradient id="cardImg" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#eef0f3"/><stop offset="1" stop-color="#c7ccd3"/>
+    </linearGradient>
+
+    <!-- reusable car silhouettes -->
+    <g id="carRear">
+      <path d="M-190 188 C -180 144, -126 136, -74 134 C -48 98, 14 82, 110 84 C 206 86, 286 106, 322 146
+               C 358 154, 384 172, 386 190 L 386 202 C 386 210, 379 214, 368 214 L -180 214 C -194 214, -198 202, -190 188 Z" fill="#080606"/>
+      <rect x="-128" y="146" width="382" height="7" rx="3.5" fill="#ff2331"/>
+      <ellipse cx="-104" cy="214" rx="60" ry="16" fill="#040202"/>
+      <ellipse cx="262" cy="214" rx="64" ry="16" fill="#040202"/>
+    </g>
+    <g id="carSide">
+      <path d="M6 96 C 16 66, 50 52, 96 50 L 142 24 C 168 9, 210 7, 248 13 C 280 19, 304 40, 312 66
+               L 312 86 C 312 94, 306 98, 297 98 L 20 98 C 8 98, 2 96, 6 96 Z" fill="#11151b"/>
+      <path d="M150 28 C 172 14, 208 12, 242 18 C 268 23, 288 38, 300 60 C 250 52, 180 50, 132 52 Z" fill="#2b333d"/>
+      <circle cx="86" cy="98" r="30" fill="#0a0d11"/><circle cx="86" cy="98" r="15" fill="#9aa1a9"/>
+      <circle cx="250" cy="98" r="30" fill="#0a0d11"/><circle cx="250" cy="98" r="15" fill="#9aa1a9"/>
+    </g>
+  </defs>
+
+  <!-- ================= NAV (overlaid on hero) ================= -->
+  <g id="nav" fill="#ffffff">
+    <text x="80" y="66" font-size="26" font-weight="600" letter-spacing="0.5">VANTÉ</text>
+    <g font-size="15" font-weight="500" opacity="0.92">
+      <text x="1040" y="63" text-anchor="middle">Models</text>
+      <text x="1150" y="63" text-anchor="middle">Ownership</text>
+      <text x="1255" y="63" text-anchor="middle">More</text>
+    </g>
+    <circle cx="1345" cy="58" r="11" stroke="#fff" stroke-width="1.5" fill="none"/>
+    <circle cx="1345" cy="54" r="3.4" fill="#fff"/><path d="M1339 64 a6 6 0 0 1 12 0" fill="#fff"/>
+  </g>
+
+  <!-- ================= SECTION 1 · HERO ================= -->
+  <g id="section-hero">
+    <rect width="1440" height="860" fill="url(#skyHero)"/>
+    <rect width="1440" height="860" fill="url(#sunHero)"/>
+    <path d="M0 588 L 240 532 L 520 576 L 820 516 L 1120 572 L 1440 528 L 1440 636 L 0 636 Z" fill="#1c1311" opacity="0.85"/>
+    <rect y="576" width="1440" height="284" fill="url(#groundHero)"/>
+    <use href="#carRear" transform="translate(760 408)"/>
+    <rect width="1440" height="860" fill="url(#vignL)"/>
+
+    <g fill="#ffffff">
+      <text x="80" y="372" font-size="22" font-weight="700">VANTÉ Volt</text>
+      <g font-size="44" font-weight="300" fill-opacity="0.88" letter-spacing="-0.5">
+        <text x="78" y="432">It didn’t come from the stars.</text>
+        <text x="78" y="486">But it looks like it did.</text>
+      </g>
+      <g font-size="17" font-weight="600">
+        <text x="80" y="560">Discover VANTÉ Volt   →</text>
+        <rect x="80" y="572" width="222" height="1.5" fill="#fff" opacity="0.6"/>
+      </g>
+    </g>
+    <g id="play-pause">
+      <circle cx="1360" cy="788" r="22" stroke="#fff" stroke-width="1.4" fill="#000" fill-opacity="0.18"/>
+      <rect x="1353" y="779" width="4" height="18" rx="1.5" fill="#fff"/><rect x="1363" y="779" width="4" height="18" rx="1.5" fill="#fff"/>
+    </g>
+  </g>
+
+  <!-- ================= SECTION 2 · STATEMENT ================= -->
+  <g id="section-statement">
+    <rect y="860" width="1440" height="520" fill="#ffffff"/>
+    <g fill="#0b0b0d">
+      <text x="120" y="1110" font-size="42" font-weight="300" letter-spacing="-0.6">A new era of driving.</text>
+      <text x="120" y="1168" font-size="42" font-weight="300" letter-spacing="-0.6" fill="#6b6c70">Engineered for those who never settle.</text>
+      <g font-size="16" font-weight="600">
+        <text x="120" y="1250">Explore the range   →</text>
+        <rect x="120" y="1262" width="168" height="1.5" fill="#0b0b0d"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= SECTION 3 · FEATURE (night) ================= -->
+  <g id="section-feature-performance">
+    <rect y="1380" width="1440" height="700" fill="url(#featNight)"/>
+    <use href="#carRear" transform="translate(820 1820) scale(1.2)"/>
+    <rect y="1380" width="1440" height="700" fill="url(#vignL)"/>
+    <g fill="#ffffff">
+      <text x="120" y="1900" font-size="14" font-weight="700" letter-spacing="2" fill="#ff5a66">PERFORMANCE</text>
+      <text x="120" y="1958" font-size="40" font-weight="400" letter-spacing="-0.5">Instant. Relentless. Electric.</text>
+      <text x="120" y="2002" font-size="17" fill-opacity="0.78">639 PS · 0–100 km/h in 3.3 seconds.</text>
+      <g font-size="16" font-weight="600">
+        <text x="120" y="2050">View technical specs   →</text>
+        <rect x="120" y="2062" width="196" height="1.5" fill="#fff" opacity="0.6"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= SECTION 4 · MODELS ================= -->
+  <g id="section-models">
+    <rect y="2080" width="1440" height="740" fill="#ffffff"/>
+    <text x="120" y="2210" font-size="34" font-weight="400" fill="#0b0b0d" letter-spacing="-0.5">Choose your Volt</text>
+
+    <!-- card 1 -->
+    <g id="model-1">
+      <rect x="120" y="2280" width="370" height="210" rx="4" fill="url(#cardImg)"/>
+      <use href="#carSide" transform="translate(150 2330)"/>
+      <text x="120" y="2546" font-size="22" font-weight="600" fill="#0b0b0d">VANTÉ Volt</text>
+      <text x="120" y="2576" font-size="15" fill="#6b6c70">408 PS · 641 km range</text>
+      <text x="120" y="2612" font-size="16" font-weight="700" fill="#0b0b0d">From $98,000</text>
+      <text x="120" y="2662" font-size="15" font-weight="600" fill="#0b0b0d">Build   →</text>
+    </g>
+    <!-- card 2 -->
+    <g id="model-2">
+      <rect x="535" y="2280" width="370" height="210" rx="4" fill="url(#cardImg)"/>
+      <use href="#carSide" transform="translate(565 2330)"/>
+      <text x="535" y="2546" font-size="22" font-weight="600" fill="#0b0b0d">VANTÉ Volt 4</text>
+      <text x="535" y="2576" font-size="15" fill="#6b6c70">516 PS · 613 km range</text>
+      <text x="535" y="2612" font-size="16" font-weight="700" fill="#0b0b0d">From $112,500</text>
+      <text x="535" y="2662" font-size="15" font-weight="600" fill="#0b0b0d">Build   →</text>
+    </g>
+    <!-- card 3 -->
+    <g id="model-3">
+      <rect x="950" y="2280" width="370" height="210" rx="4" fill="url(#cardImg)"/>
+      <use href="#carSide" transform="translate(980 2330)"/>
+      <text x="950" y="2546" font-size="22" font-weight="600" fill="#0b0b0d">VANTÉ Volt Turbo</text>
+      <text x="950" y="2576" font-size="15" fill="#6b6c70">639 PS · 591 km range</text>
+      <text x="950" y="2612" font-size="16" font-weight="700" fill="#0b0b0d">From $148,000</text>
+      <text x="950" y="2662" font-size="15" font-weight="600" fill="#0b0b0d">Build   →</text>
+    </g>
+  </g>
+
+  <!-- ================= SECTION 5 · FEATURE (charging, dusk) ================= -->
+  <g id="section-feature-charging">
+    <rect y="2820" width="1440" height="640" fill="url(#featDusk)"/>
+    <rect y="2820" width="1440" height="640" fill="#000" fill-opacity="0.18"/>
+    <g fill="#ffffff" text-anchor="middle">
+      <text x="720" y="3110" font-size="14" font-weight="700" letter-spacing="2">CHARGING</text>
+      <text x="720" y="3168" font-size="44" font-weight="400" letter-spacing="-0.5">Charging, reimagined.</text>
+      <text x="720" y="3212" font-size="18" fill-opacity="0.85">Five to eighty percent in 21 minutes.</text>
+      <text x="720" y="3270" font-size="16" font-weight="600">Configure charging   →</text>
+    </g>
+    <rect x="640" y="3282" width="160" height="1.5" fill="#fff" opacity="0.6"/>
+  </g>
+
+  <!-- ================= SECTION 6 · SPECS ================= -->
+  <g id="section-specs">
+    <rect y="3460" width="1440" height="400" fill="#0c0a0d"/>
+    <g stroke="#ffffff" stroke-opacity="0.12"><path d="M360 3540 V3780"/><path d="M720 3540 V3780"/><path d="M1080 3540 V3780"/></g>
+    <g fill="#ffffff" text-anchor="middle">
+      <g font-size="56" font-weight="800" letter-spacing="-1">
+        <text x="180" y="3650">639</text><text x="540" y="3650">3.3</text><text x="900" y="3650">591</text><text x="1260" y="3650">260</text>
+      </g>
+      <g font-size="13" fill="#9a9ba0" letter-spacing="0.4">
+        <text x="180" y="3700">Maximum power (PS)</text><text x="540" y="3700">0–100 km/h (s)</text>
+        <text x="900" y="3700">Range WLTP (km)</text><text x="1260" y="3700">Top speed (km/h)</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= SECTION 7 · FOOTER ================= -->
+  <g id="section-footer">
+    <rect y="3860" width="1440" height="420" fill="#0e0e12"/>
+    <text x="120" y="3962" font-size="24" font-weight="600" fill="#ffffff" letter-spacing="0.5">VANTÉ</text>
+    <text x="120" y="3998" font-size="14" fill="#8a8b90">The art of motion.</text>
+
+    <g font-size="14">
+      <text x="560" y="3958" fill="#ffffff" font-weight="600">Models</text>
+      <g fill="#b6b7bc"><text x="560" y="3992">Volt</text><text x="560" y="4020">Volt 4</text><text x="560" y="4048">Volt Turbo</text></g>
+
+      <text x="820" y="3958" fill="#ffffff" font-weight="600">Explore</text>
+      <g fill="#b6b7bc"><text x="820" y="3992">Highlights</text><text x="820" y="4020">Gallery</text><text x="820" y="4048">Tech Specs</text></g>
+
+      <text x="1080" y="3958" fill="#ffffff" font-weight="600">Company</text>
+      <g fill="#b6b7bc"><text x="1080" y="3992">Heritage</text><text x="1080" y="4020">Careers</text><text x="1080" y="4048">Contact</text></g>
+    </g>
+
+    <path d="M120 4180 H1320" stroke="#ffffff" stroke-opacity="0.1"/>
+    <text x="120" y="4222" font-size="13" fill="#8a8b90">© 2026 VANTÉ Motors. All rights reserved.</text>
+    <g font-size="13" fill="#8a8b90"><text x="1140" y="4222">Privacy</text><text x="1230" y="4222">Legal</text><text x="1300" y="4222">Cookies</text></g>
+  </g>
+</svg>

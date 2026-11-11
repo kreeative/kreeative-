@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Keewal Meere — fintech product design case study | Kreeative</title>
-  <meta name="description" content="How I am designing Keewal Meere, a banking concept for francophone West Africa and its diaspora: the problem, the users, the constraints, the onboarding flow, the decisions and where it stands.">
+  <meta name="description" content="How I designed Keewal Meere, a banking and investing app for francophone West Africa: five design systems in two weeks, a card composed in Figma to ISO measurements, and what is live.">
   <link rel="canonical" href="https://kreeative.xyz/websites/keewal-meere/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Kreeative">
   <meta property="og:title" content="Keewal Meere — fintech product design case study | Kreeative">
-  <meta property="og:description" content="How I am designing Keewal Meere, a banking concept for francophone West Africa and its diaspora: the problem, the users, the constraints, the onboarding flow, the decisions and where it stands.">
-  <meta property="og:image" content="https://kreeative.xyz/assets/img/og/keewal-meere.jpg?v=2">
+  <meta property="og:description" content="How I designed Keewal Meere, a banking and investing app for francophone West Africa: five design systems in two weeks, a card composed in Figma to ISO measurements, and what is live.">
+  <meta property="og:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:url" content="https://kreeative.xyz/websites/keewal-meere/">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Keewal Meere — fintech product design case study | Kreeative">
-  <meta name="twitter:description" content="How I am designing Keewal Meere, a banking concept for francophone West Africa and its diaspora: the problem, the users, the constraints, the onboarding flow, the decisions and where it stands.">
-  <meta name="twitter:image" content="https://kreeative.xyz/assets/img/og/keewal-meere.jpg?v=2">
+  <meta name="twitter:description" content="How I designed Keewal Meere, a banking and investing app for francophone West Africa: five design systems in two weeks, a card composed in Figma to ISO measurements, and what is live.">
+  <meta name="twitter:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
   <meta name="robots" content="max-image-preview:large">
   <meta name="theme-color" content="#262626">
   <link rel="icon" href="../../assets/img/favicon-32.png" type="image/png" media="(prefers-color-scheme: light)">
@@ -55,41 +55,41 @@
     </figure>
   </div>
 <dl class="cs-facts" data-appear="section">
-  <div class="cs-fact"><dt class="t-mono">Role</dt><dd class="t-body-m">Product designer and developer: concept, flows, UI, front end</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Role</dt><dd class="t-body-m">Product designer and developer: concept, flows, design system, UI, front end</dd></div>
   <div class="cs-fact"><dt class="t-mono">Client</dt><dd class="t-body-m">Own concept, in progress</dd></div>
-  <div class="cs-fact"><dt class="t-mono">Year</dt><dd class="t-body-m">2026</dd></div>
-  <div class="cs-fact"><dt class="t-mono">Tools</dt><dd class="t-body-m">HTML, CSS, JavaScript, PWA, Vercel · <span class="cs-todo-inline">TO FILL: design tool, e.g. Figma</span></dd></div>
+  <div class="cs-fact"><dt class="t-mono">Timeline</dt><dd class="t-body-m">10 to 25 September 2026 for the prototype · 175 commits · in progress</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Tools</dt><dd class="t-body-m">Figma (card and reference), React, Vite, Playwright audits, Vercel · Claude Code as the build partner</dd></div>
   <div class="cs-fact"><dt class="t-mono">Live</dt><dd class="t-body-m"><a href="https://keewaomeere.vercel.app" target="_blank" rel="noopener">keewaomeere.vercel.app</a></dd></div>
   <div class="cs-fact"><dt class="t-mono">Team</dt><dd class="t-body-m">Solo</dd></div>
 </dl>
   <div class="cs-block cs-block--bg" data-appear="section">
     <h3 class="t-h3">Overview</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Keewal Meere is a banking concept for francophone West Africa and its diaspora: a chequing account with a card, savings that earn, African stocks and crypto, and currency exchange with the margin shown before you confirm.</p>
-      <p class="t-body-l">It is a working prototype in French that you can explore as a demo today. It is still in progress, and this page will grow with it.</p>
+      <p class="t-body-l">Keewal Meere is a mobile-first banking and investing app for francophone West Africa and its diaspora: a chequing account with a virtual card, savings with named goals, African equities (BRVM, NGX, JSE, NSE) and crypto in the same account, and exchange across sixteen currencies with the market rate and the margin shown side by side before you confirm.</p>
+      <p class="t-body-l">It is a working prototype in French (Senegal first, Nigerian English second) that runs on demo data and says so. The interface talks to one API contract; a real back-end is an environment variable away.</p>
     </div>
   </div>
   <div class="cs-block" data-appear="section">
     <h3 class="t-h3">The problem</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Sending money home and investing at home are two different apps, two sets of fees and a lot of fine print. Keewal Meere puts your francs, your savings and your investments on one screen, and never hides the exchange rate it is charging you.</p>
+      <p class="t-body-l">Sending money home and investing at home are two different apps, two sets of fees and a lot of fine print. The Dakar demo account holds Sonatel, Dangote Cement, Safaricom and NSIA Banque, because the app is first about buying African stocks, with crypto beside it rather than above it. And it never hides the exchange rate it is charging you.</p>
     </div>
   </div>
   <div class="cs-block" data-appear="section">
     <h3 class="t-h3">Who it’s for</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">People from francophone West Africa living in Canada or France who send money home regularly and would like to invest there too, and who read fees carefully because they have been burned before.</p>
-      <p class="t-body-l">Their family at home, who receive the money and may open an account from a cheap Android phone on a slow connection.</p>
-      <p class="t-body-l"><span class="cs-todo-inline">TO FILL: add the people you have talked to and what they said about fees, trust and apps they use now</span></p>
+      <p class="t-body-l">People from francophone West Africa living abroad who send money home and would like to invest there too, and who read fees carefully because they have been burned before.</p>
+      <p class="t-body-l">People at home opening an account from a phone, in one of the 34 countries the sign-up serves, who need the onboarding to work with the documents and the connection they have.</p>
+      <p class="t-body-l">Someone judging the product in thirty seconds: the demo is one tap from the welcome screen, with no account.</p>
     </div>
   </div>
   <div class="cs-block" data-appear="section">
     <h3 class="t-h3">Constraints</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Trust is the product. Anything that looked like a hidden fee, a dark pattern or a sloppy screen would undo it, so the exchange margin is shown before confirmation and the front end is hardened (strict content security policy, self-hosted fonts).</p>
-      <p class="t-body-l">French first, for people who are used to apps that treat French as an afterthought.</p>
-      <p class="t-body-l">A prototype built alone, so the scope is onboarding and the account home first, then the rest screen by screen.</p>
-      <p class="t-body-l"><span class="cs-todo-inline">TO FILL: add regulatory or partner constraints you are designing around</span></p>
+      <p class="t-body-l">Trust is the product. The design has machine-checked rules: every colour from tokens, contrast at or above 4.5:1 measured on the rendered page, touch targets at least 44px, text at least 12px, a full dark mode, and nothing carried by colour alone. A static check and a browser audit run on every build.</p>
+      <p class="t-body-l">No licence, no custodian, no market feed for the BRVM. The app says so on its own company page, and a configured build removes every demo balance from the shipped bundle, because invented balances have no place in the same file as real ones.</p>
+      <p class="t-body-l">Security in the front end as a bank would expect it: a strict content security policy exercised at every build, self-hosted fonts, a PIN lock after inactivity, secrets never in the client.</p>
+      <p class="t-body-l">Two weeks, alone, for the prototype.</p>
     </div>
   </div>
 </section>
@@ -98,72 +98,59 @@
   <div class="cs-container">
     <div class="cs-rich rich">
         <h3 class="t-h3">Process</h3>
-        <h4 class="t-h4">Research</h4>
-        <p class="t-body-l">I looked at how remittance apps and neobanks show, or hide, their exchange margins, at what the diaspora currently stacks together to send and invest, and at the visual language of banks that feel trustworthy without feeling cold.</p>
-        <div class="cs-todo" role="note">
-          <p class="cs-todo__label t-mono">TO FILL</p>
-          <p class="t-body-m">Add what you looked at before designing: competitor or reference sites, conversations with the client or with users, and the two or three things you learned that changed the design.</p>
-        </div>
+        <h4 class="t-h4">Research and references</h4>
+        <p class="t-body-l">I started from what the diaspora stacks together today to send and invest, from how remittance apps and neobanks show or hide their margins, and from a banking design-system kit in the Figma Community for component anatomy, spacing and screen composition. The kit lent structure only; the palette, the typeface and the wordmark are ours, and those two decisions outrank the kit.</p>
+        <p class="t-body-l">For the card I put a metal bank card beside a cowrie print and a sheet of Adinkra symbols and asked for the same feeling. Five renders of an engraved wedge followed, each made with the previous as its reference so the texture stayed.</p>
         <h4 class="t-h4">User flows</h4>
-        <p class="t-body-l">The first flow is the door: sign in with a code sent by email, create an account, or explore the demo in one tap. The second is the account home, where chequing, savings, equities and crypto share one visual language. The third is a currency conversion that shows the margin before you confirm.</p>
-        <div class="cs-todo" role="note">
-          <p class="cs-todo__label t-mono">TO FILL</p>
-          <p class="t-body-m">Add an image of the user flow (a sketch or a Figma/FigJam export is fine) and one line on the main path a user takes.</p>
-        </div>
-        <h4 class="t-h4">Wireframes and iterations</h4>
-        <div class="cs-todo" role="note">
-          <p class="cs-todo__label t-mono">TO FILL</p>
-          <p class="t-body-m">Add one or two early wireframes or screenshots of a previous version next to the final, and say what changed between them and why.</p>
-        </div>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">Showing the exchange margin before confirmation, in plain numbers, because the whole concept is “never hide the rate”. It is the one screen that proves the promise.</p>
-        </aside>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">A warm cream and gold palette with one photograph of a Dan mask on the welcome screen, so the bank feels like it belongs to the people it is for, not a generic fintech.</p>
-        </aside>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">Email code sign-in and a one-tap demo, so someone can judge the product in thirty seconds without giving anything up.</p>
-        </aside>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">Light and dark themes that paint correctly before the first frame, with the browser bar coloured to match, because a seam above a banking app reads as broken.</p>
-        </aside>
+        <p class="t-body-l">Onboarding in seven steps: email, code, identity, address, document, two-factor, PIN. Placing an order: live preview, explicit fees, confirmation sheet; an indivisible asset is priced in whole units because a share does not split on the BRVM. A risk profile at /profil/risque that warns before an order and unlocks nothing, because refusing an adult the use of their own money is a posture, not a protection. Every flow is also walked by a keyboard-only test, at two widths, with no mouse.</p>
+        <h4 class="t-h4">Iterations: five design systems in two weeks</h4>
+        <p class="t-body-l">The look went through five states, each recorded in the design file. A “minimal nordic fintech” brief with a teal accent and no shadows. Then glass and depth: glassmorphism, three-layer shadows, an ambient ground, a citrine accent, monospace digits. Then full monochrome and Poppins (Futura first). Then brown and gold, from a reference I brought. Then the current state: flat surfaces, no sheen, no blur, no gradient anywhere, only the shadow stack to say that an object floats.</p>
+        <p class="t-body-l">The card went through its own loop. I asked for a real card with real measurements, then composed the front myself in Figma, moved the chip and the name where I wanted them, and sent a screenshot: that screenshot became the brief, and every position in the app is measured from it. The chip I dragged into place landed on the ISO/IEC 7816-2 contact position within a few pixels.</p>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Flat surfaces instead of glass. The diagonal sheen on every panel read as generated rather than drawn; it assumed a light source the screen does not have. Removing it also removed a composited layer per card that showed nothing.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">One warm family, hues 62 to 97, with a chroma budget per role. Surfaces stay almost neutral and only the accent ramp is saturated, enforced by a script, because a palette nobody polices drifts one plausible colour at a time into a swatch book.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Gold is the signature and it is a flat fill, in exactly three places: the primary button, the active destination in the bar, a selected filter. Links and focus rings are bronze, not gold, because pale gold as text on cream fails contrast however good it looks as a fill.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">The card is ISO ID-1 in proportion with the number, expiry and code on the back, because a card that carries its number on the front shows it to whoever stands behind you. Turning the card is how you show the numbers, and a 30-second countdown turns it back.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">The welcome screen is one photograph (a kora player in a dark corridor), one line (“Votre argent, réuni.”) and sign-in by email code, with the sentence placed so it clears the player’s head under a phone notch. The audit measures the text against the photograph’s own pixels, and the sign-in stays on the first 844px screen, which a test asserts.</p></aside>
         <h3 class="t-h3">What I designed and built</h3>
-        <p class="t-body-l"><strong>01 - Onboarding</strong></p>
-        <p class="t-body-l">Sign in with a code sent to your email, create an account, or explore the demo. No passwords, no friction, in French Canadian first.</p>
-        <p class="t-body-l"><strong>02 - Accounts, savings and investments</strong></p>
-        <p class="t-body-l">One home for the chequing account, the savings rate, African equities and crypto, with the same visual language for all of them.</p>
-        <p class="t-body-l"><strong>03 - Honest exchange</strong></p>
-        <p class="t-body-l">The margin on every currency conversion is displayed before the confirmation, not buried in the receipt.</p>
-        <p class="t-body-l"><strong>04 - Light and dark, done right</strong></p>
-        <p class="t-body-l">Two themes that follow your choice or the system, with the browser bar coloured to match so there is never a seam above the app.</p>
+        <p class="t-body-l"><strong>01 - Onboarding and the demo</strong></p>
+        <p class="t-body-l">Email code sign-in, a seven-step account opening from 34 countries, and a one-tap demo account in Dakar, priced in francs.</p>
+        <p class="t-body-l"><strong>02 - Dashboard, market and portfolio</strong></p>
+        <p class="t-body-l">A hero balance with period toggle and return, a market engine with search and filters, asset pages with a candle chart from 1024px, and a multi-currency portfolio (XOF, EUR, NGN) with real conversion between pockets.</p>
+        <p class="t-body-l"><strong>03 - Honest exchange and orders</strong></p>
+        <p class="t-body-l">Sixteen currencies with market rate and margin side by side before confirmation; order preview with explicit fees; a risk profile that explains why it asks each question.</p>
+        <p class="t-body-l"><strong>04 - The virtual card</strong></p>
+        <p class="t-body-l">A real two-sided card: cowries on brushed metal, the wordmark engraved in the same gold, a chip at the ISO position, the holder’s name alone at the foot, and the numbers on the back.</p>
+        <p class="t-body-l"><strong>05 - The design system</strong></p>
+        <p class="t-body-l">Tokens for everything, a components page with every state, light and dark, motion that is cut under reduced motion, and the checks that keep it honest: contrast, targets, keyboard, overflow, content security policy.</p>
         <h3 class="t-h3">Key deliverables</h3>
         <ul>
-          <li class="t-body-l">Product concept and user flows</li>
-          <li class="t-body-l">Visual identity (palette, type, themes)</li>
-          <li class="t-body-l">Onboarding and demo experience</li>
-          <li class="t-body-l">Hardened front end (CSP, self-hosted assets)</li>
-          <li class="t-body-l">Progressive web app, deployed on Vercel</li>
+          <li class="t-body-l">Positioning and product concept (African equities first)</li>
+          <li class="t-body-l">Design system: tokens, components, light and dark, machine-checked rules</li>
+          <li class="t-body-l">Onboarding, order, exchange and risk-profile flows</li>
+          <li class="t-body-l">Brand: wordmark, monogram, virtual card (Figma file, ISO measurements)</li>
+          <li class="t-body-l">API contract (68 endpoints) with a reference server, so a back-end can be plugged in</li>
+          <li class="t-body-l">Keyboard, motion, flows, screenshot and CSP test suites</li>
         </ul>
     </div>
   </div>
+  <figure class="cs-image" data-appear="image">
+      <img src="../../assets/img/case-keewal-card-face-1000.webp" srcset="../../assets/img/case-keewal-card-face-660.webp 660w, ../../assets/img/case-keewal-card-face-1000.webp 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="2048" height="1360" alt="The virtual card’s face: brushed brown metal with six engraved cowries clustered toward the top-right corner, as composed in Figma" loading="lazy">
+    </figure>
+  <figure class="cs-image" data-appear="image">
+      <img src="../../assets/img/case-keewal-card-wedge-1000.webp" srcset="../../assets/img/case-keewal-card-wedge-660.webp 660w, ../../assets/img/case-keewal-card-wedge-1000.webp 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="2048" height="1360" alt="An earlier render of the card: a wedge of six different marks (cowrie, mask, Duafe, Dwennimmen, Adinkrahene, Nkyinkyim) before the composition was reduced to one mark, six times" loading="lazy">
+    </figure>
   <figure class="cs-image cs-image--tall" data-appear="image">
-    <img src="../../assets/img/sites/site-keewal-full-1000.webp?v=202609250356" srcset="../../assets/img/sites/site-keewal-full-1000.webp?v=202609250356 1000w, ../../assets/img/sites/site-keewal-full-1440.webp?v=202609250356 1440w" sizes="(max-width: 1199.98px) 100vw, 1000px" width="1440" height="3200" alt="Keewal Meere home page, full length" loading="lazy">
-  </figure>
+      <img src="../../assets/img/sites/site-keewal-full-1000.webp?v=202609250356" srcset="../../assets/img/sites/site-keewal-full-1000.webp?v=202609250356 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="1440" height="3200" alt="Keewal Meere home page, full length" loading="lazy">
+    </figure>
   <figure class="cs-image cs-image--phone" data-appear="image">
-    <img src="../../assets/img/sites/site-keewal-phone-780.webp?v=202609250356" srcset="../../assets/img/sites/site-keewal-phone-390.webp?v=202609250356 390w, ../../assets/img/sites/site-keewal-phone-780.webp?v=202609250356 780w" sizes="360px" width="780" height="1688" alt="Keewal Meere on a phone" loading="lazy">
-  </figure>
+      <img src="../../assets/img/sites/site-keewal-phone-780.webp?v=202609250356" srcset="../../assets/img/sites/site-keewal-phone-390.webp?v=202609250356 390w, ../../assets/img/sites/site-keewal-phone-780.webp?v=202609250356 780w" sizes="(max-width: 809.98px) 100vw, 360px" width="780" height="1688" alt="Keewal Meere on a phone" loading="lazy">
+    </figure>
   <div class="cs-results" data-appear="section">
     <h3 class="t-h3">Outcome</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Keewal Meere is a prototype in progress. The onboarding and the demo are live, and the account experience is being built screen by screen.</p>
-      <div class="cs-todo" role="note">
-  <p class="cs-todo__label t-mono">TO FILL</p>
-  <p class="t-body-m">Add what you have learned from showing the demo to people: what they understood, where they hesitated, what you changed. Add usability test notes if you run any.</p>
-</div>
+      <p class="t-body-l">The prototype is live and explorable. The visual system and the first flows are done; the back-end, KYC provider and market feeds are what remain, and the roadmap in the repo says honestly which is which.</p>
+      <div class="cs-todo" role="note"><p class="cs-todo__label t-mono">TO FILL</p><p class="t-body-m">Add what people said when you showed them the demo, especially about the exchange screen and the card, and anything you changed because of it.</p></div>
+      <p class="t-body-l">Next: the rename from the working title to Keewal Meere is done with my own wordmark; the official card network mark and the real legal line on the card’s back wait for a licence that does not exist yet, and the app says so.</p>
     </div>
     <a class="btn btn--accent" href="https://keewaomeere.vercel.app" target="_blank" rel="noopener"><span class="btn__label t-body-l">Try the demo</span><span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span></a>
   </div>

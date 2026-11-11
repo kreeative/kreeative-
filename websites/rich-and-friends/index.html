@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rich & Friends — product design case study | Kreeative</title>
-  <meta name="description" content="How I designed and built Rich & Friends, a goal and money accountability web app: the problem, the users, the constraints, the flows, the decisions and what happened after launch.">
+  <meta name="description" content="How I designed and built Rich & Friends, a small-group accountability and money app: why v1 died in nine days, the decisions behind v2, and what shipped.">
   <link rel="canonical" href="https://kreeative.xyz/websites/rich-and-friends/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Kreeative">
   <meta property="og:title" content="Rich & Friends — product design case study | Kreeative">
-  <meta property="og:description" content="How I designed and built Rich & Friends, a goal and money accountability web app: the problem, the users, the constraints, the flows, the decisions and what happened after launch.">
-  <meta property="og:image" content="https://kreeative.xyz/assets/img/og/rich-and-friends.jpg?v=2">
+  <meta property="og:description" content="How I designed and built Rich & Friends, a small-group accountability and money app: why v1 died in nine days, the decisions behind v2, and what shipped.">
+  <meta property="og:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:url" content="https://kreeative.xyz/websites/rich-and-friends/">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Rich & Friends — product design case study | Kreeative">
-  <meta name="twitter:description" content="How I designed and built Rich & Friends, a goal and money accountability web app: the problem, the users, the constraints, the flows, the decisions and what happened after launch.">
-  <meta name="twitter:image" content="https://kreeative.xyz/assets/img/og/rich-and-friends.jpg?v=2">
+  <meta name="twitter:description" content="How I designed and built Rich & Friends, a small-group accountability and money app: why v1 died in nine days, the decisions behind v2, and what shipped.">
+  <meta name="twitter:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
   <meta name="robots" content="max-image-preview:large">
   <meta name="theme-color" content="#262626">
   <link rel="icon" href="../../assets/img/favicon-32.png" type="image/png" media="(prefers-color-scheme: light)">
@@ -55,41 +55,42 @@
     </figure>
   </div>
 <dl class="cs-facts" data-appear="section">
-  <div class="cs-fact"><dt class="t-mono">Role</dt><dd class="t-body-m">Product designer and developer: concept, UX, UI, front end</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Role</dt><dd class="t-body-m">Founder, product designer and developer: concept, flows, UI, front end, database</dd></div>
   <div class="cs-fact"><dt class="t-mono">Client</dt><dd class="t-body-m">Own product</dd></div>
-  <div class="cs-fact"><dt class="t-mono">Year</dt><dd class="t-body-m">2026</dd></div>
-  <div class="cs-fact"><dt class="t-mono">Tools</dt><dd class="t-body-m">React, Supabase, Vercel · <span class="cs-todo-inline">TO FILL: design tool, e.g. Figma</span></dd></div>
+  <div class="cs-fact"><dt class="t-mono">Timeline</dt><dd class="t-body-m">v1 summer 2026 · v2 from 3 August 2026, in production since · 574 commits to October 2026</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Tools</dt><dd class="t-body-m">React 18, Vite, Tailwind, Supabase (Postgres, auth, edge functions), Stripe, Resend, Vercel · Claude Code as the build partner</dd></div>
   <div class="cs-fact"><dt class="t-mono">Live</dt><dd class="t-body-m"><a href="https://richandfriends.xyz" target="_blank" rel="noopener">richandfriends.xyz</a></dd></div>
   <div class="cs-fact"><dt class="t-mono">Team</dt><dd class="t-body-m">Solo</dd></div>
 </dl>
   <div class="cs-block cs-block--bg" data-appear="section">
     <h3 class="t-h3">Overview</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Rich &amp; Friends is a web app for people who want to change their life and build financial freedom, together. You set the things you said you would do (saving, learning a language, launching a project) and a small circle of friends holds you to it.</p>
-      <p class="t-body-l">It speaks French first, because that is what most of the people it was made for actually speak, and English second. It installs on a phone like a native app.</p>
+      <p class="t-body-l">Rich &amp; Friends is a small-group accountability app built around one shared daily check-in instead of a wall of goals. You set what you said you would do, three or four friends see it land, and the same screen carries a budget, a library of written courses on money and a calendar. French first, English second, because the people it is made for speak French and are served by translations of American apps, when they are served at all.</p>
+      <p class="t-body-l">It lives at richandfriends.xyz, installs on a phone like a native app, and is the product I have spent the most time on: the whole thing, from the database policies to the stickers.</p>
     </div>
   </div>
   <div class="cs-block" data-appear="section">
     <h3 class="t-h3">The problem</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Goals die alone. Budgeting apps are cold spreadsheets, habit apps are solo streaks, and neither of them knows your friends. Rich &amp; Friends needed to feel like a group chat with a purpose: warm, quick, a little playful and honest about money.</p>
+      <p class="t-body-l">Three in four people drop a resolution before the end of January, and most habit apps are solitary counters: they tell you that you failed, not who will notice. Budget apps assume you already have a budget. What is missing is not information. It is someone who notices.</p>
+      <p class="t-body-l">My own first version proved the point. v1 worked, and went quiet after nine days. There was no shared moment, only a form that was permanently open, so nobody had a reason to come back at a specific time.</p>
     </div>
   </div>
   <div class="cs-block" data-appear="section">
     <h3 class="t-h3">Who it’s for</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Friends in their twenties and thirties, mostly French-speaking, who already share goals in a group chat and want a lighter way to keep each other honest than a spreadsheet.</p>
-      <p class="t-body-l">Small groups funding something together (a trip, a project), where one person keeps the money and everyone needs to see what is still owed.</p>
-      <p class="t-body-l"><span class="cs-todo-inline">TO FILL: add who the first circles actually are and what they told you</span></p>
+      <p class="t-body-l">Young adults keeping a promise together: a small, closed circle of three to five friends who already know each other, not an audience. It is deliberately not a social network, because being accountable to three people who know you works where a feed does not.</p>
+      <p class="t-body-l">Mostly French-speaking, in Canada, on a phone, answering one question about their day in under a minute, often standing up.</p>
+      <p class="t-body-l">Groups funding something together, a trip or a project, where one person holds the money and everyone needs to see what is still owed.</p>
     </div>
   </div>
   <div class="cs-block" data-appear="section">
     <h3 class="t-h3">Constraints</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">No budget for a native app: it had to be a progressive web app that installs from the browser and still feels native.</p>
-      <p class="t-body-l">Nobody remembers passwords for a side app, so sign-in had to work with an email code only.</p>
-      <p class="t-body-l">Privacy: money data stays with the user, so the data model and the copy had to make that obvious.</p>
-      <p class="t-body-l"><span class="cs-todo-inline">TO FILL: add anything else: time available, Supabase free tier limits, email sending limits</span></p>
+      <p class="t-body-l">One person building everything, so every feature had to earn its place and be cheap to keep alive.</p>
+      <p class="t-body-l">Web only: no app store, so it had to install from the browser and spread through links pasted in group chats.</p>
+      <p class="t-body-l">Privacy as a starting constraint, not a setting. Period-tracking data has no path to the group, in the code or the database; mood sharing is off by default; acceptance of the terms is dated and versioned.</p>
+      <p class="t-body-l">Accessibility measured, not assumed: normal text at 4.5:1, nothing carried by colour alone, and the owner’s own rule that black never sits on a dark or saturated colour even when the ratio passes, because the pair vibrates.</p>
     </div>
   </div>
 </section>
@@ -98,56 +99,41 @@
   <div class="cs-container">
     <div class="cs-rich rich">
         <h3 class="t-h3">Process</h3>
-        <h4 class="t-h4">Research</h4>
-        <p class="t-body-l">I started from the feeling before the screens: discipline, but shared. I looked at how budgeting and habit apps handle check-ins and why people stop using them, and at how my own circle already tracked goals in chats.</p>
-        <div class="cs-todo" role="note">
-          <p class="cs-todo__label t-mono">TO FILL</p>
-          <p class="t-body-m">Add what you looked at before designing: competitor or reference sites, conversations with the client or with users, and the two or three things you learned that changed the design.</p>
-        </div>
+        <h4 class="t-h4">Research: why accountability apps die</h4>
+        <p class="t-body-l">Before v2 I wrote down the specific reasons accountability apps die: vague goals, no response to silence, no ritual, punitive streaks, guilt-shaped UI. Every decision in v2 answers one question: does this make the group more likely to still be here in week twelve? The reasoning is kept in a decisions file in the repo, including four places where I departed from my own original brief and how to reverse each one.</p>
+        <p class="t-body-l">I also looked at what the group chat already did better than any app would, and built around it instead of competing with it.</p>
         <h4 class="t-h4">User flows</h4>
-        <p class="t-body-l">Three flows carry the product: sign in with an email code, the daily evening check-in that arrives by email and takes under a minute, and a shared project where anyone can press Pay and the owner keeps control of the transactions.</p>
-        <div class="cs-todo" role="note">
-          <p class="cs-todo__label t-mono">TO FILL</p>
-          <p class="t-body-m">Add an image of the user flow (a sketch or a Figma/FigJam export is fine) and one line on the main path a user takes.</p>
-        </div>
-        <h4 class="t-h4">Wireframes and iterations</h4>
-        <div class="cs-todo" role="note">
-          <p class="cs-todo__label t-mono">TO FILL</p>
-          <p class="t-body-m">Add one or two early wireframes or screenshots of a previous version next to the final, and say what changed between them and why.</p>
-        </div>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">An email code instead of a password, because the whole product depends on people coming back every evening. Any friction at the door kills the streak.</p>
-        </aside>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">The check-in comes to you by email rather than waiting in the app, because a habit app that you have to remember to open is already lost.</p>
-        </aside>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">Two colour themes (sun and sea) and big rounded type, so it never looks like a bank. The tone is the product.</p>
-        </aside>
-        <aside class="cs-decision">
-          <p class="cs-decision__label t-mono">WHY THIS DECISION</p>
-          <p class="t-body-m">A landing page whose link preview reads well in a group chat, because that is how the app actually spreads, not through an app store.</p>
-        </aside>
+        <p class="t-body-l">Join: a landing page whose link preview reads well in a group chat, then sign-in. Sign-in started as Google first with an email link as fallback, because a magic link opens in whatever browser the phone considers default, which is often not the one you started in. It is now a six-digit code by email: one real input drawn under six boxes, so paste, iOS autofill and backspace all keep working.</p>
+        <p class="t-body-l">Check in: one shared window per group, in the group’s own time zone. Results stay sealed until the window closes, so the board shows who has checked in but not what they said. Money: envelopes, shared projects with their own currency, and anyone can press Pay while the owner keeps control of the transactions.</p>
+        <h4 class="t-h4">Iterations</h4>
+        <p class="t-body-l">v1 was a wall of goals and a form that was always open. v2 (August 2026) rebuilt the whole model around a shared cycle, real row-level security and a response to silence. Since then the product has moved in public, with the commit history as the record: the budget folded into the plan, the envelopes dropped, the dashboard cards changed from two assigned columns to one flow, the eighteen moods each given a face, the water gauge turned into a counter with rolling digits, the 21-mornings challenge given its own page, the book library renamed Nerd.</p>
+        <p class="t-body-l">Every UI change is verified in headless Chromium at 390, 820, 1180 and 1440 pixels, with screenshots looked at rather than CSS reasoned about, and contrast measured on painted pixels because reading a computed colour once passed a real failure.</p>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">A shared check-in window instead of one per person. A ritual needs simultaneity: if one person checks in on Tuesday and another on Friday there is no moment, which is exactly what v1 was. One window gives the week a beat and makes “who hasn’t checked in yet” something the group can see.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">A rate, never a streak. The headline number is “11 of the last 14” over a rolling window. Nothing can reset to zero, so a bad week costs a few points instead of an identity, and the window forgets it within three months.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Missing is a hollow square, not a red one. Guilt-shaped UI produces avoidance: a wall of red makes people close the app. The history strip shows what has been built, not what is owed.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Nudges are claimed, not assigned. The whole group sees that someone has gone quiet and anyone can volunteer; a rotation kicks in only after 24 hours with no volunteer. And the nudge points out of the app: message them where you actually talk.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Declared absences instead of freezes. You mark a cycle away in advance and it leaves the denominator. Someone who says “exams, back in two weeks” is not silent, so they do not trigger the quiet-member flow.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">One accent colour on screen at a time. The first palette gave pink, yellow and blue each a permanent job; the reasoning was right and the conclusion wrong, because three saturated hues in one view read as a mixture. Now the accent is a choice, it is a fill and never text (pink measures 4.3:1 on white, yellow 1.4:1), and press states go lighter, never darker.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Deliberately not built: chat (they already have one), push notifications (web push on iOS needs a home-screen install most people will not do, so email is the honest channel), payments for stakes (turns a joke into a debt), points and badges (extrinsic rewards crowd out the motivation this app depends on).</p></aside>
         <h3 class="t-h3">What I designed and built</h3>
-        <p class="t-body-l"><strong>01 - Landing and positioning</strong></p>
-        <p class="t-body-l">A one-page story in French and English, with link previews that read well when the URL is pasted into a group chat.</p>
-        <p class="t-body-l"><strong>02 - Check-ins that come to you</strong></p>
-        <p class="t-body-l">Every evening a short email opens the check-in for what you said you would do. It takes under a minute and it keeps the streak honest.</p>
-        <p class="t-body-l"><strong>03 - Shared projects</strong></p>
-        <p class="t-body-l">A group can run a project with its own currency, say what still has to be paid, and anyone can press Pay. The owner keeps control of the transactions.</p>
-        <p class="t-body-l"><strong>04 - Installable, fast, private</strong></p>
-        <p class="t-body-l">Built as a progressive web app on React with Supabase behind it: it installs from the browser, loads instantly and your budget stays yours.</p>
+        <p class="t-body-l"><strong>01 - The daily check-in</strong></p>
+        <p class="t-body-l">A rail you swipe, not a form you fill. Prove it with a photo, a link or a note. Per-goal reminders at the hour you choose. Counts, not three states, for recurring goals, because “3× a week” has four honest answers.</p>
+        <p class="t-body-l"><strong>02 - Money on the same screen</strong></p>
+        <p class="t-body-l">A budget plan, shared projects with their own currency and transactions, savings, and a library of written courses on money with the first chapter free and the rest bought one at a time through Stripe.</p>
+        <p class="t-body-l"><strong>03 - The group</strong></p>
+        <p class="t-body-l">One collective rate, everyone’s history side by side and unsorted, no leaderboard. Pause is a first-class state, so someone returning after three quiet weeks meets one tap, not a backlog.</p>
+        <p class="t-body-l"><strong>04 - The brand and the public site</strong></p>
+        <p class="t-body-l">Poppins everywhere, two grounds (light, dark, or the system) and three accents (pink, yellow, blue) stored separately. The public site is loud, with the artwork blurred to 44px under frosted glass and die-cut stickers in the margins; the app inside is quiet, on purpose.</p>
+        <p class="t-body-l"><strong>05 - What is under it</strong></p>
+        <p class="t-body-l">Supabase with row-level security on every table, scheduled functions for the digest and the quiet-member nudge, a cap of two emails per cycle enforced by a database constraint rather than application code, and a test suite that runs on every commit.</p>
         <h3 class="t-h3">Key deliverables</h3>
         <ul>
-          <li class="t-body-l">Brand and visual identity (wordmark, colour themes, type)</li>
-          <li class="t-body-l">User flows for sign-in, check-in and shared projects</li>
-          <li class="t-body-l">Bilingual landing page with social previews</li>
-          <li class="t-body-l">Email sign-in and daily check-in flow</li>
-          <li class="t-body-l">Shared projects with transactions and reminders</li>
-          <li class="t-body-l">Progressive web app, deployed on Vercel</li>
+          <li class="t-body-l">Product concept, decisions file and user flows</li>
+          <li class="t-body-l">Brand: wordmark, themes, stickers, App Store slide brief</li>
+          <li class="t-body-l">Sign-in, check-in, groups, money, courses, calendar (65 screens as of September 2026)</li>
+          <li class="t-body-l">Bilingual interface: 1,341 keys in French and English, 36 written lessons</li>
+          <li class="t-body-l">Database schema, security policies and scheduled jobs (47 tables, 185 policies, 67 migrations)</li>
+          <li class="t-body-l">Automated tests (4,553 cases) and a layout sweep at four screen widths</li>
         </ul>
     </div>
   </div>
@@ -160,12 +146,9 @@
   <div class="cs-results" data-appear="section">
     <h3 class="t-h3">Outcome</h3>
     <div class="cs-text rich">
-      <p class="t-body-l">Rich &amp; Friends is live and used by its first circles. It is the proof that a money app can feel like friendship instead of homework.</p>
-      <div class="cs-todo" role="note">
-  <p class="cs-todo__label t-mono">TO FILL</p>
-  <p class="t-body-m">Add the real numbers: how many people signed up, how many check in daily, what the streak retention looks like after a month, and one quote from a user. Then say what you changed because of it.</p>
-</div>
-      <p class="t-body-l">Next: more studies content, richer project pages and the English version of everything.</p>
+      <p class="t-body-l">Rich &amp; Friends is in production and used by its first circles. The numbers above are not traction, they answer the question a solo founder always gets: does it really exist, or is it a mockup?</p>
+      <div class="cs-todo" role="note"><p class="cs-todo__label t-mono">TO FILL</p><p class="t-body-m">Add usage numbers when you have them. Even small ones count: sign-ups, weekly actives, groups, retention after four weeks.</p></div>
+      <p class="t-body-l">What I would do differently: put the app in thirty people’s hands before building the next feature. The decisions file is honest about which choices are judgement calls, and only usage can settle them.</p>
     </div>
     <a class="btn btn--accent" href="https://richandfriends.xyz" target="_blank" rel="noopener"><span class="btn__label t-body-l">Visit richandfriends.xyz</span><span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span></a>
   </div>

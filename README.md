@@ -15,16 +15,18 @@ works.
 | `/portfolio/glorywalk/`                           | `portfolio/glorywalk/index.html` (brand identity)               |
 | `/portfolio/lyzma-industries/`                    | `portfolio/lyzma-industries/index.html` (brand identity)        |
 | `/portfolio/banking-ux-case-study/`               | draft template, `noindex`, not linked yet                       |
-| `/portfolio/ai-assisted-design/`                  | draft template, `noindex`, not linked yet                       |
+| `/portfolio/ai-assisted-design/`                  | `portfolio/ai-assisted-design/index.html` (process case study)  |
 | `/websites/`                                      | `websites/index.html` (every website and product)               |
 | `/websites/rich-and-friends/`                     | `websites/rich-and-friends/index.html`                          |
 | `/websites/keewal-meere/`                         | `websites/keewal-meere/index.html`                              |
 | `/websites/tabouret/`                             | `websites/tabouret/index.html`                                  |
 | `/websites/the-bakery/`                           | `websites/the-bakery/index.html`                                |
+| `/websites/the-ivory-sukundu/`                    | `websites/the-ivory-sukundu/index.html` (client store)          |
 | `/websites/kreeator-academy/`                     | `websites/kreeator-academy/index.html`                          |
 | `/websites/guillemot/`                            | `websites/guillemot/index.html`                                 |
 | `/websites/cameleon/`                             | `websites/cameleon/index.html`                                  |
 | `/websites/jessicas-secrets/`                     | `websites/jessicas-secrets/index.html`                          |
+| `/websites/vante/`                                | `websites/vante/index.html`                                     |
 | `/websites/kreeative/`                            | `websites/kreeative/index.html` (this site)                     |
 | `/concepts/jessicas-secrets/`                     | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/about/`, `/shop/`, `/teach/`, `/pricing/`       | their `index.html`                                              |
@@ -48,8 +50,8 @@ Pink dashed **TO FILL** blocks are placeholders for research, wireframes,
 metrics and quotes that still need real material. They are styled to be
 visible on purpose (`.cs-todo`, `.cs-todo-inline` in
 `assets/css/case-study.css`); search the repo for `TO FILL` to find them all.
-The two draft templates under `portfolio/` carry `noindex` until they are
-written; the home page shows them as “in progress” cards without links
+The banking UX template under `portfolio/` carries `noindex` until it is
+written; the home page shows it as an “in progress” card without a link
 (search `index.html` for the slug to switch the card to a link).
 
 ## Folder structure
