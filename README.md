@@ -15,7 +15,6 @@ works.
 | `/portfolio/glorywalk/`                           | `portfolio/glorywalk/index.html` (brand identity)               |
 | `/portfolio/lyzma-industries/`                    | `portfolio/lyzma-industries/index.html` (brand identity)        |
 | `/portfolio/banking-ux-case-study/`               | draft template, `noindex`, not linked yet                       |
-| `/portfolio/ai-assisted-design/`                  | `portfolio/ai-assisted-design/index.html` (process case study)  |
 | `/websites/`                                      | `websites/index.html` (every website and product)               |
 | `/websites/rich-and-friends/`                     | `websites/rich-and-friends/index.html`                          |
 | `/websites/keewal-meere/`                         | `websites/keewal-meere/index.html`                              |
