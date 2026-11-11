@@ -1,9 +1,9 @@
 {
  "version": 1,
- "generated": "2026-11-09T15:34:02.354Z",
+ "generated": "2026-11-11T21:14:57.296Z",
  "repo": "kreeative/kreeative-",
  "defaultBranch": "claude/kreeative-portfolio-design-n2a770",
- "defaultHead": "af90d7e943614efb16f3a4f0bc0947d52f85d83f",
+ "defaultHead": "a74092cb87ce99270c9174c7db4ff67acb5730e1",
  "branches": [
   "claude/add-tabouret-site",
   "claude/aissa-kee-personal-brand-rgrggx",
@@ -246,9 +246,9 @@
    "externalUrl": "https://cameleon-concept.vercel.app/",
    "thumbnail": "thumbs/websites--cameleon.webp",
    "updated": {
-    "date": "2026-09-25T17:14:33+00:00",
-    "commit": "1ca5a86",
-    "subject": "Refresh link previews so shared links show the current studio"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -282,9 +282,9 @@
    "externalUrl": "https://guillemot.vercel.app/",
    "thumbnail": "thumbs/websites--guillemot.webp",
    "updated": {
-    "date": "2026-09-28T14:24:17+00:00",
-    "commit": "7183589",
-    "subject": "Add Guillemot to the websites"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -318,9 +318,9 @@
    "externalUrl": "https://kreeative.xyz/concepts/jessicas-secrets/",
    "thumbnail": "thumbs/websites--jessicas-secrets.webp",
    "updated": {
-    "date": "2026-09-29T02:29:09+00:00",
-    "commit": "a16be4f",
-    "subject": "Add Jessica’s Secrets to the websites"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -354,9 +354,9 @@
    "externalUrl": "https://keewaomeere.vercel.app/",
    "thumbnail": "thumbs/websites--keewal-meere.webp",
    "updated": {
-    "date": "2026-09-25T17:14:33+00:00",
-    "commit": "1ca5a86",
-    "subject": "Refresh link previews so shared links show the current studio"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -390,9 +390,9 @@
    "externalUrl": "https://richandfriends.xyz/",
    "thumbnail": "thumbs/websites--rich-and-friends.webp",
    "updated": {
-    "date": "2026-09-25T17:14:33+00:00",
-    "commit": "1ca5a86",
-    "subject": "Refresh link previews so shared links show the current studio"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -426,9 +426,9 @@
    "externalUrl": "https://tabouret.vercel.app/",
    "thumbnail": "thumbs/websites--tabouret.webp",
    "updated": {
-    "date": "2026-09-25T17:14:33+00:00",
-    "commit": "1ca5a86",
-    "subject": "Refresh link previews so shared links show the current studio"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -462,9 +462,9 @@
    "externalUrl": "https://the-bakery-concept.vercel.app/",
    "thumbnail": "thumbs/websites--the-bakery.webp",
    "updated": {
-    "date": "2026-10-04T16:52:09+00:00",
-    "commit": "c84b16d",
-    "subject": "Show The Bakery without the sticker on its hero"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -498,9 +498,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/concepts--anse.webp",
    "updated": {
-    "date": "2026-11-09T15:03:36+00:00",
-    "commit": "af90d7e",
-    "subject": "Add ANSE concept: bag shop with handles breaking out of the frame, sold through Jeere Connect"
+    "date": "2026-11-11T20:43:20+00:00",
+    "commit": "bfff65b",
+    "subject": "Image-rights notices on the model shops; MICHOU text in Space Mono"
    },
    "local": false,
    "previewBase": null,
@@ -513,8 +513,88 @@
      "path": "concepts/anse/index.html",
      "title": "ANSE — boutique de démonstration",
      "url": "",
-     "sha": "00dcbce7e731679b08beaa386c32f13c7db95225",
-     "size": 12013,
+     "sha": "d09ac66e2afa5b910560954e6ff01d400af681b4",
+     "size": 13129,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/commande/index.html",
+     "title": "Commande — ANSE",
+     "url": "commande/",
+     "sha": "82c3ec25144fa175c5b10af90902a81f92883911",
+     "size": 8581,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/mentions-legales/index.html",
+     "title": "Mentions légales — ANSE",
+     "url": "mentions-legales/",
+     "sha": "37e00f9253953d6200d699f51fd39a0fbee91c89",
+     "size": 5171,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/anneau/index.html",
+     "title": "Anneau — ANSE",
+     "url": "produits/anneau/",
+     "sha": "d107dc3cb10f8afc0540f82cb41537a9bc8e0ad5",
+     "size": 7920,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/brume/index.html",
+     "title": "Brume — ANSE",
+     "url": "produits/brume/",
+     "sha": "f35212f4f33875814c8a159c4a30d36f665676e3",
+     "size": 7913,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/cacao/index.html",
+     "title": "Cacao — ANSE",
+     "url": "produits/cacao/",
+     "sha": "738d26a8dcfc032c97af4382a0a707cf6ca408a6",
+     "size": 7942,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/citrine/index.html",
+     "title": "Citrine — ANSE",
+     "url": "produits/citrine/",
+     "sha": "92bb2b06eba444f9b33e92f26a2c2cbc6b1ce495",
+     "size": 7986,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/dragee/index.html",
+     "title": "Dragée — ANSE",
+     "url": "produits/dragee/",
+     "sha": "ec1a3f8dbb1a2524203108f20a81cf9e5ac5edaf",
+     "size": 7971,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/menthe/index.html",
+     "title": "Menthe — ANSE",
+     "url": "produits/menthe/",
+     "sha": "b1b7f3121889d8f5a29d6a78f90afcd03fbfa41d",
+     "size": 7923,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/olivier/index.html",
+     "title": "Olivier — ANSE",
+     "url": "produits/olivier/",
+     "sha": "f170188c918ec7d65f18f968a3a2e1eb78d65ddb",
+     "size": 7956,
+     "local": false
+    },
+    {
+     "path": "concepts/anse/produits/ruban/index.html",
+     "title": "Ruban — ANSE",
+     "url": "produits/ruban/",
+     "sha": "902cae2f8974e656a51349be330dd001a2430dfa",
+     "size": 7939,
      "local": false
     }
    ],
@@ -543,9 +623,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/concepts--jessicas-secrets.webp",
    "updated": {
-    "date": "2026-09-29T02:29:09+00:00",
-    "commit": "a16be4f",
-    "subject": "Add Jessica’s Secrets to the websites"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -621,9 +701,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/concepts--joshua-cooker.webp",
    "updated": {
-    "date": "2026-10-16T04:36:19+00:00",
-    "commit": "238cf58",
-    "subject": "Add private Nanawax proposal page and email preview images"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": false,
    "previewBase": null,
@@ -664,6 +744,147 @@
    ]
   },
   {
+   "id": "concepts--michou",
+   "title": "MICHOU — streetwear",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/michou",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/michou/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--michou.webp",
+   "updated": {
+    "date": "2026-11-11T20:43:20+00:00",
+    "commit": "bfff65b",
+    "subject": "Image-rights notices on the model shops; MICHOU text in Space Mono"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/michou/"
+   ],
+   "uploads": "concepts/michou/img/",
+   "pages": [
+    {
+     "path": "concepts/michou/index.html",
+     "title": "MICHOU — streetwear",
+     "url": "",
+     "sha": "8ea70fb830ab521a494ec4a59806f3554dcbfbf3",
+     "size": 17632,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/boutique/index.html",
+     "title": "Shop — MICHOU",
+     "url": "boutique/",
+     "sha": "21f716773a44b8f2bfe40241413faaa26f81660f",
+     "size": 14886,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/commande/index.html",
+     "title": "Commande — MICHOU",
+     "url": "commande/",
+     "sha": "febfc4f7f3fa297d51b623ef5c130ce004f37071",
+     "size": 9956,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/mentions-legales/index.html",
+     "title": "Mentions légales — MICHOU",
+     "url": "mentions-legales/",
+     "sha": "ef4e2a1b17d3d39c2e161c89542df3bb7ff017e1",
+     "size": 8162,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/casquette-etoile/index.html",
+     "title": "Casquette Étoile — MICHOU",
+     "url": "produits/casquette-etoile/",
+     "sha": "f9d7df535b9fbbf2934bc44d21bc8ee17e63c4f5",
+     "size": 7851,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/jort-brun/index.html",
+     "title": "Jort Charpentier — MICHOU",
+     "url": "produits/jort-brun/",
+     "sha": "e7a17b28ede9d6b87b6aca842fe56d4d467cac46",
+     "size": 8230,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/jort-noir/index.html",
+     "title": "Jort Denim Noir — MICHOU",
+     "url": "produits/jort-noir/",
+     "sha": "58e1d43b0ffa9d138293eb196dde4989a3b3738e",
+     "size": 8226,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/tshirt-console/index.html",
+     "title": "T-shirt Console — MICHOU",
+     "url": "produits/tshirt-console/",
+     "sha": "f26786dac8338aeb91c5f60c91620e4b4ee84cf2",
+     "size": 8229,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/tshirt-croix/index.html",
+     "title": "T-shirt Croix — MICHOU",
+     "url": "produits/tshirt-croix/",
+     "sha": "2852760ed0707e8d0c143c37bb4fa9afd9fcba50",
+     "size": 8215,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/tshirt-levres/index.html",
+     "title": "T-shirt Lèvres — MICHOU",
+     "url": "produits/tshirt-levres/",
+     "sha": "3272598eb7c1490a91134b7f1aaf5703d889d1a0",
+     "size": 8294,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/tshirt-masque/index.html",
+     "title": "T-shirt Masque — MICHOU",
+     "url": "produits/tshirt-masque/",
+     "sha": "fd0b8ed4cd1128b2770227bd39954f31eb266de3",
+     "size": 8230,
+     "local": false
+    },
+    {
+     "path": "concepts/michou/produits/tshirt-racing/index.html",
+     "title": "T-shirt Racing Délavé — MICHOU",
+     "url": "produits/tshirt-racing/",
+     "sha": "2d7a007631d960de6013021bf632280bd2f374ac",
+     "size": 8347,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/michou/img/casquette-etoile.webp",
+    "concepts/michou/img/edito-1.webp",
+    "concepts/michou/img/edito-2.webp",
+    "concepts/michou/img/hero-1.webp",
+    "concepts/michou/img/hero-2.webp",
+    "concepts/michou/img/jort-brun.webp",
+    "concepts/michou/img/jort-noir.webp",
+    "concepts/michou/img/lookbook.webp",
+    "concepts/michou/img/mood-1.webp",
+    "concepts/michou/img/mood-2.webp",
+    "concepts/michou/img/mood-3.webp",
+    "concepts/michou/img/tshirt-console.webp",
+    "concepts/michou/img/tshirt-croix.webp",
+    "concepts/michou/img/tshirt-levres.webp",
+    "concepts/michou/img/tshirt-masque.webp",
+    "concepts/michou/img/tshirt-racing.webp"
+   ]
+  },
+  {
    "id": "concepts--nanawax",
    "title": "Nanawax · Proposition de site",
    "kind": "concept",
@@ -677,9 +898,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/concepts--nanawax.webp",
    "updated": {
-    "date": "2026-10-16T04:36:19+00:00",
-    "commit": "238cf58",
-    "subject": "Add private Nanawax proposal page and email preview images"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -738,9 +959,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/concepts--ririfood.webp",
    "updated": {
-    "date": "2026-10-16T11:53:35+00:00",
-    "commit": "95b4ee7",
-    "subject": "Add private mini-audit pages for SAO and Riri Food"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -789,9 +1010,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/concepts--sao.webp",
    "updated": {
-    "date": "2026-10-16T11:53:35+00:00",
-    "commit": "95b4ee7",
-    "subject": "Add private mini-audit pages for SAO and Riri Food"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -827,6 +1048,180 @@
    ]
   },
   {
+   "id": "concepts--seve",
+   "title": "SÈVE — soins du corps parfumés",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/seve",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/seve/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--seve.webp",
+   "updated": {
+    "date": "2026-11-11T20:43:20+00:00",
+    "commit": "bfff65b",
+    "subject": "Image-rights notices on the model shops; MICHOU text in Space Mono"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/seve/"
+   ],
+   "uploads": "concepts/seve/img/",
+   "pages": [
+    {
+     "path": "concepts/seve/index.html",
+     "title": "SÈVE — soins du corps parfumés",
+     "url": "",
+     "sha": "51a0af00ce72174d56ea122dfb5c32cc649d74f5",
+     "size": 24655,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/catalogue/index.html",
+     "title": "Catalogue — SÈVE",
+     "url": "catalogue/",
+     "sha": "db701a0249a71665028dd916ecd8b33f36984cad",
+     "size": 13719,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/commande/index.html",
+     "title": "Commande — SÈVE",
+     "url": "commande/",
+     "sha": "416be2c9f6bc43186e0a0526496a9ae8b675b0a9",
+     "size": 10496,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/mentions-legales/index.html",
+     "title": "Mentions légales — SÈVE",
+     "url": "mentions-legales/",
+     "sha": "fb7c7ddbb40c9e928e97b0ca46fe0ef275231415",
+     "size": 8537,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/creme-corps-bergamote/index.html",
+     "title": "Crème Corps Bergamote — SÈVE",
+     "url": "produits/creme-corps-bergamote/",
+     "sha": "1c204baa05876c625a238b0d017774fe5d75d24f",
+     "size": 13714,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/creme-corps-santal/index.html",
+     "title": "Crème Corps Santal — SÈVE",
+     "url": "produits/creme-corps-santal/",
+     "sha": "198014e8e26a0c47f5f58b5ce85751e9169e5887",
+     "size": 13718,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/creme-mains/index.html",
+     "title": "Crème Mains Bergamote — SÈVE",
+     "url": "produits/creme-mains/",
+     "sha": "9fc17203aa22d99050cebd913b5a9ef1c76ab2df",
+     "size": 13700,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/deodorant-vanille/index.html",
+     "title": "Déodorant Vanille — SÈVE",
+     "url": "produits/deodorant-vanille/",
+     "sha": "0e7bf7cb59ce6f3847a6e4da3a961cd075c8d800",
+     "size": 13596,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/deodorant/index.html",
+     "title": "Déodorant Bergamote — SÈVE",
+     "url": "produits/deodorant/",
+     "sha": "80eb458ea353b62289525c80b64f60f2f526fb8c",
+     "size": 13567,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/gel-bergamote/index.html",
+     "title": "Gel Douche Bergamote — SÈVE",
+     "url": "produits/gel-bergamote/",
+     "sha": "54fbc3f8f4812a2d4a526812a929d3971902509d",
+     "size": 13585,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/gel-lune/index.html",
+     "title": "Gel Douche Lune — SÈVE",
+     "url": "produits/gel-lune/",
+     "sha": "ff6802b0ca537a57a15f66b3339767c1df9a5995",
+     "size": 13650,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/gel-musc/index.html",
+     "title": "Gel Douche Musc — SÈVE",
+     "url": "produits/gel-musc/",
+     "sha": "f1160bc07bd8d7369f6e7fdbd79d85a8f6e2cdbe",
+     "size": 13612,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/gel-santal/index.html",
+     "title": "Gel Douche Santal — SÈVE",
+     "url": "produits/gel-santal/",
+     "sha": "5ad30e16fa45c310af2c9a0b50305b087021edac",
+     "size": 13652,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/gel-vanille/index.html",
+     "title": "Gel Douche Vanille — SÈVE",
+     "url": "produits/gel-vanille/",
+     "sha": "4b32ec79f15b6acd21fa43fa688fe7b06e3cbc5b",
+     "size": 13647,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/huile-corps-vanille/index.html",
+     "title": "Huile Corps Vanille — SÈVE",
+     "url": "produits/huile-corps-vanille/",
+     "sha": "38e0a76cef4f4972f5a2892a8f707684b90486a2",
+     "size": 13727,
+     "local": false
+    },
+    {
+     "path": "concepts/seve/produits/huile-parfum-santal/index.html",
+     "title": "Huile de Parfum Santal — SÈVE",
+     "url": "produits/huile-parfum-santal/",
+     "sha": "990e99c51b07a8c3790dd4b4b7e9bf0b8539b9fe",
+     "size": 13686,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/seve/img/creme-corps-bergamote.webp",
+    "concepts/seve/img/creme-corps-santal.webp",
+    "concepts/seve/img/creme-mains.webp",
+    "concepts/seve/img/deodorant-vanille.webp",
+    "concepts/seve/img/deodorant.webp",
+    "concepts/seve/img/eucalyptus.webp",
+    "concepts/seve/img/formule-bergamote.webp",
+    "concepts/seve/img/formule-rituels.webp",
+    "concepts/seve/img/formule-santal.webp",
+    "concepts/seve/img/gel-bergamote.webp",
+    "concepts/seve/img/gel-lune.webp",
+    "concepts/seve/img/gel-musc.webp",
+    "concepts/seve/img/gel-santal.webp",
+    "concepts/seve/img/gel-vanille.webp",
+    "concepts/seve/img/hero.webp",
+    "concepts/seve/img/huile-corps-vanille.webp",
+    "concepts/seve/img/huile-parfum-santal.webp"
+   ]
+  },
+  {
    "id": "concepts--sonia-luxury-hair",
    "title": "Sonia Luxury Hair",
    "kind": "concept",
@@ -840,9 +1235,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/concepts--sonia-luxury-hair.webp",
    "updated": {
-    "date": "2026-10-16T04:36:19+00:00",
-    "commit": "238cf58",
-    "subject": "Add private Nanawax proposal page and email preview images"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": false,
    "previewBase": null,
@@ -908,6 +1303,114 @@
    ]
   },
   {
+   "id": "concepts--soyeuse",
+   "title": "SOYEUSE — cheveux 100 % naturels",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/soyeuse",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/soyeuse/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--soyeuse.webp",
+   "updated": {
+    "date": "2026-11-11T21:10:01+00:00",
+    "commit": "a74092c",
+    "subject": "SOYEUSE: hero on white with the seated full-body model"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/soyeuse/"
+   ],
+   "uploads": "concepts/soyeuse/img/",
+   "pages": [
+    {
+     "path": "concepts/soyeuse/index.html",
+     "title": "SOYEUSE — cheveux 100 % naturels",
+     "url": "",
+     "sha": "8dc629ca7d0df35842831f96eb95786a913ce900",
+     "size": 13599,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/boutique/index.html",
+     "title": "Boutique — SOYEUSE",
+     "url": "boutique/",
+     "sha": "8378bd540d80f58800cdb15f7c3ec8008a31db1d",
+     "size": 9378,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/commande/index.html",
+     "title": "Commande — SOYEUSE",
+     "url": "commande/",
+     "sha": "99e48b2712526ed32e2e935b10adf6dcb40cdb57",
+     "size": 10441,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/mentions-legales/index.html",
+     "title": "Mentions légales — SOYEUSE",
+     "url": "mentions-legales/",
+     "sha": "d26eb3c5772b4dc566008023405d0705f35c6b91",
+     "size": 8817,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/produits/peigne/index.html",
+     "title": "Peigne Démêloir — SOYEUSE",
+     "url": "produits/peigne/",
+     "sha": "25a1eb871e1533ebf627186427afb7806d60c5fb",
+     "size": 10067,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/produits/perruque-ondulee/index.html",
+     "title": "Perruque Ondulée — SOYEUSE",
+     "url": "produits/perruque-ondulee/",
+     "sha": "54d61ae5d239169c584b4067642c7e204b4f32f9",
+     "size": 10271,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/produits/tissage-lisse/index.html",
+     "title": "Tissage Lisse — SOYEUSE",
+     "url": "produits/tissage-lisse/",
+     "sha": "95e2dce18768ea2d3b12de17ade93fc189486a31",
+     "size": 10169,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/produits/tissage-loose/index.html",
+     "title": "Tissage Loose Wave — SOYEUSE",
+     "url": "produits/tissage-loose/",
+     "sha": "bf347e7865440eb9ef81db01bf8ab9ac6dccf221",
+     "size": 10191,
+     "local": false
+    },
+    {
+     "path": "concepts/soyeuse/produits/tissage-ondule/index.html",
+     "title": "Tissage Ondulé — SOYEUSE",
+     "url": "produits/tissage-ondule/",
+     "sha": "aa8cd813e3065257ee3a8048caa02cbea061e4d6",
+     "size": 10300,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/soyeuse/img/modele-glam.webp",
+    "concepts/soyeuse/img/modele-hero.webp",
+    "concepts/soyeuse/img/peigne.webp",
+    "concepts/soyeuse/img/perruque-ondulee.webp",
+    "concepts/soyeuse/img/tissage-lisse.webp",
+    "concepts/soyeuse/img/tissage-loose.webp",
+    "concepts/soyeuse/img/tissage-ondule.webp"
+   ]
+  },
+  {
    "id": "portfolio--designing-a-seamless-user-experience-for-taskflow",
    "title": "GloryWalk",
    "kind": "portfolio",
@@ -921,9 +1424,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/portfolio--designing-a-seamless-user-experience-for-taskflow.webp",
    "updated": {
-    "date": "2026-09-23T01:47:07+00:00",
-    "commit": "db1a2e6",
-    "subject": "Rebuild the Kreeative portfolio as a static site"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -957,9 +1460,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/portfolio--nexatech.webp",
    "updated": {
-    "date": "2026-09-23T01:47:07+00:00",
-    "commit": "db1a2e6",
-    "subject": "Rebuild the Kreeative portfolio as a static site"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -993,9 +1496,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/portfolio--revitalizing-customer-engagement-for-fluxcrm.webp",
    "updated": {
-    "date": "2026-10-04T15:11:13+00:00",
-    "commit": "9055c90",
-    "subject": "Add The Bakery website to the websites"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -1029,9 +1532,9 @@
    "externalUrl": null,
    "thumbnail": "thumbs/portfolio--streamlining-e-commerce-for-zenithcart.webp",
    "updated": {
-    "date": "2026-09-23T01:47:07+00:00",
-    "commit": "db1a2e6",
-    "subject": "Rebuild the Kreeative portfolio as a static site"
+    "date": "2026-10-16T14:41:31+00:00",
+    "commit": "2fdd50f",
+    "subject": "Fix module count in the teach page link preview (11 modules)"
    },
    "local": true,
    "previewBase": null,
@@ -1065,8 +1568,8 @@
    "externalUrl": null,
    "thumbnail": "thumbs/websites--the-ivory-sukundu.webp",
    "updated": {
-    "date": "2026-09-24T10:15:51+00:00",
-    "commit": "a6775c6",
+    "date": "2026-09-25T02:02:57+00:00",
+    "commit": "aaa4db2",
     "subject": "Refresh site screenshots"
    },
    "local": false,

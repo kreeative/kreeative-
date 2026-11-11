@@ -53,6 +53,9 @@ function titleOf(branch, p) {
 // Never guessed from a title.
 const COMMERCE = {
   'concepts/anse': true,
+  'concepts/seve': true,
+  'concepts/soyeuse': true,
+  'concepts/michou': true,
   'concepts/joshua-cooker': true,
   'concepts/sonia-luxury-hair': true,
   'websites/the-ivory-sukundu': true,

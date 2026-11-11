@@ -340,6 +340,9 @@
   // that site, « Personnaliser » opens it in the website editor; the Jeere store holds the products and orders
   const CUSTOM = {
     'anse': { site: 'concepts--anse', live: 'https://kreeative.xyz/concepts/anse/' },
+    'seve': { site: 'concepts--seve', live: 'https://kreeative.xyz/concepts/seve/' },
+    'soyeuse': { site: 'concepts--soyeuse', live: 'https://kreeative.xyz/concepts/soyeuse/' },
+    'michou': { site: 'concepts--michou', live: 'https://kreeative.xyz/concepts/michou/' },
     'joshua-cooker': { site: 'concepts--joshua-cooker', live: 'https://kreeative.xyz/concepts/joshua-cooker/' },
     'sonia-luxury-hair': { site: 'concepts--sonia-luxury-hair', live: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' }
   };
@@ -872,7 +875,10 @@
     { name: 'The Ivory Sukundu', meta: 'theivorysukundu.com · commandes, produits, codes', ext: true, thumb: '../studio/sites/thumbs/live--the-ivory-sukundu.webp' },
     { name: 'Sonia Luxury Hair', slug: 'sonia-luxury-hair', meta: 'Son site · kreeative.xyz/concepts/sonia-luxury-hair', thumb: '../studio/sites/thumbs/concepts--sonia-luxury-hair.webp' },
     { name: 'Joshua Cooker', slug: 'joshua-cooker', meta: 'Son site · kreeative.xyz/concepts/joshua-cooker', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' },
-    { name: 'ANSE', slug: 'anse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/anse', thumb: '../studio/sites/thumbs/concepts--anse.webp' }
+    { name: 'ANSE', slug: 'anse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/anse', thumb: '../studio/sites/thumbs/concepts--anse.webp' },
+    { name: 'SÈVE', slug: 'seve', meta: 'Boutique de démonstration · kreeative.xyz/concepts/seve', thumb: '../studio/sites/thumbs/concepts--seve.webp' },
+    { name: 'SOYEUSE', slug: 'soyeuse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/soyeuse', thumb: '../studio/sites/thumbs/concepts--soyeuse.webp' },
+    { name: 'MICHOU', slug: 'michou', meta: 'Boutique de démonstration · kreeative.xyz/concepts/michou', thumb: '../studio/sites/thumbs/concepts--michou.webp' }
   ];
   // a boutique of hers not yet in the list: its project is made once (her name on it), then it is a project like the others
   function openShopProject(el) {

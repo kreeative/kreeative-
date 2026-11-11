@@ -709,6 +709,13 @@ own design, and their products, prices and cart come from a Jeere store, edited 
   (`kreeative.xyz/…`) is shown by Jeere Connect but not by the Jeere store page, and the editor drops it on publish.
 - Demo stores: `connect/seed-stores.sql` (`joshua-cooker`, `sonia-luxury-hair`, owner 706a1f96…), to run once in the
   SQL editor; it says what to set before sharing (WhatsApp number, delivery fees).
+- The custom-designed demo shops (« Modèles sur mesure » on the home page, `#sur-mesure-modeles`): ANSE, SÈVE,
+  SOYEUSE and MICHOU (`concepts/<slug>/` on the default branch), each sold through the Jeere store of the same slug
+  (owner 706a1f96…, created in the SQL editor from the products listed in each site's README). They are in
+  `admin.js` (`CUSTOM`, `MY_SHOPS`), `mes-sites.js` (`LINKED`), `build-manifest.mjs` (`COMMERCE`) and the folders
+  `sites-publish` may write. « Choisir ce modèle » opens the store in the dashboard (`admin/#boutique=<slug>`).
+  **When a model is copied for a client, copy the code only, never `img/`**: the demo images belong to their
+  authors and brands (Pinterest, CYKLAR, the bag brands) — see each site's `mentions-legales/` page.
 
 ## To do before sharing
 
