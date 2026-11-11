@@ -27,7 +27,7 @@ Live (unlisted): https://kreeative.xyz/concepts/michou/
 The « + » on a card and the product page ask for a size before adding to the cart. `site.js` keeps
 the sizes in `localStorage` (`michou:tailles`, one size per item), shows them in the cart lines, and
 `commande/commande.js` writes them at the top of the order's note, for example
-« Tailles : Doudoune Brillante M ; Cargo Chaîne L, L ». The shop sees them in the order.
+« Tailles : T-shirt Racing Délavé M ; Jort Denim Noir L, L ». The shop sees them in the order.
 
 ## The Jeere store `michou` (to create — Jeere session)
 
