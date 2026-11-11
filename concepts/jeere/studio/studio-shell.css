@@ -554,4 +554,4 @@ body { font-size: 12px; -webkit-font-smoothing: antialiased; font-feature-settin
 
 /* Icons (Iconly): Curved at rest, Bold on what is selected */
 .st-rail__btn.is-on, .st [aria-pressed="true"], .st [aria-selected="true"], .st-left__tabs button.is-on { --ic-b: 1; --ic-sw: 2; }
-.st-guard__link { display: block; margin-top: 14px; font: 500 13px var(--st-font); color: var(--st-ink); text-decoration: underline; text-underline-offset: 3px; }
+.st-guard__link { display: block; margin-top: 14px; font: 500 13px var(--st-font); color: var(--st-ink); text-decoration: none; font-weight: 700; }
