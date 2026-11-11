@@ -1667,3 +1667,6 @@ body.is-ext .a-card + .a-btnrow { margin-top: 20px; }
 .a-growth__bar { position: relative; width: 100%; max-width: 32px; border-radius: 6px; background: var(--grey-2); overflow: hidden; display: flex; align-items: flex-end; }
 .a-growth__bar i { display: block; width: 100%; background: linear-gradient(180deg, rgb(var(--jr-c6, 106, 76, 255)), rgb(var(--jr-c1, 232, 70, 124))); }
 .a-growth__d { font-size: 11px; color: var(--muted); }
+
+/* No resize grip in the corner of text boxes (the two little diagonal lines): they grow with their text instead */
+textarea.a-input, .tx-field textarea { resize: none; }

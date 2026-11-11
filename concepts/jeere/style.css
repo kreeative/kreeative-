@@ -999,3 +999,4 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .appel__l textarea { resize: vertical; }
 .appel__err { margin: 0; color: #B3261E; font-size: 14px; }
 .appel__err[hidden], .appel__form[hidden], .appel__done[hidden] { display: none; }
+.appel__l textarea { resize: none; }
