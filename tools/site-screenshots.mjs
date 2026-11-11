@@ -28,7 +28,6 @@ const SITES = [
   ['bakery-app', 'https://the-bakery-concept.vercel.app/order/', { detail: '#/dish/chunk-cookie', time: '2026-10-06T14:30:00Z' }],
   // Served from this site: the course platform and the home page itself.
   ['sukundu',   'https://www.theivorysukundu.com/', { scrollFirst: true }],
-  ['vante',     'https://kreeative.github.io/D-faut-/', { scrollFirst: true }],
   ['academy',   'https://kreeative.xyz/teach/', { scrollFirst: true }],
   ['kreeative', 'https://kreeative.xyz/', { scrollFirst: true }],
 ];

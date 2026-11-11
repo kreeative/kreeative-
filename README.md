@@ -26,7 +26,6 @@ works.
 | `/websites/guillemot/`                            | `websites/guillemot/index.html`                                 |
 | `/websites/cameleon/`                             | `websites/cameleon/index.html`                                  |
 | `/websites/jessicas-secrets/`                     | `websites/jessicas-secrets/index.html`                          |
-| `/websites/vante/`                                | `websites/vante/index.html`                                     |
 | `/websites/kreeative/`                            | `websites/kreeative/index.html` (this site)                     |
 | `/concepts/jessicas-secrets/`                     | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/about/`, `/shop/`, `/teach/`, `/pricing/`       | their `index.html`                                              |
