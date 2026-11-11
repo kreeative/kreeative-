@@ -1010,3 +1010,6 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 
 /* The promo bar in yellow, dark text (readable) */
 .promo { background: #FFD60A; color: #141414; }
+
+/* « En savoir plus » in bold, never underlined */
+.promo__go, .promo:hover .promo__go { text-decoration: none; font-weight: 800; }
