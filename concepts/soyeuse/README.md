@@ -1,7 +1,7 @@
 # SOYEUSE — model shop by Kreeative for Jeere
 
 A hair shop (bundles, wigs, accessories) for a **fictional brand**, made as a model for Jeere: blush
-pink, thin display capitals (Italiana) with a script accent (Pinyon Script), an arched hero, a
+pink, the thin display face Hastegi with its ligatures (`fonts/Hastegi.otf`, self-hosted) and Montserrat, an arched hero, a
 scrolling ribbon, « shop by category » circles, a large « glam » visual, reviews, care tips.
 French, prices in FCFA.
 
@@ -24,6 +24,11 @@ Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
   panier », « Commander maintenant », care / delivery / payment, other products.
 - `commande/` — the Jeere checkout, the same as ANSE's (`commande.js`, store `soyeuse`).
 - `site.js` — filters, cart drawer, cart thumbnails, « Commander maintenant », newsletter message.
+
+## Font
+
+Hastegi is self-hosted in `fonts/` (the owner holds a commercial licence). Keep the licence proof;
+for a client site, check that the licence covers web embedding for that client.
 
 ## Model photos (to replace)
 
