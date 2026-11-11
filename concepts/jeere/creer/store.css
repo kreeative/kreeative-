@@ -1150,7 +1150,7 @@
 }
 .jst .jst-input::placeholder { color: var(--st-muted); opacity: 1; }
 .jst .jst-input:focus { border-color: var(--st-accent-ink); box-shadow: 0 0 0 3px var(--st-accent-soft); }
-.jst .jst-textarea { min-height: 92px; resize: vertical; }
+.jst .jst-textarea { min-height: 92px; resize: none; }
 .jst .jst-input-group { display: flex; align-items: stretch; min-width: 0; }
 .jst .jst-prefix {
   display: inline-flex; align-items: center; flex: none; padding: 0 12px; border: 1px solid var(--st-field-line); border-right: 0;
