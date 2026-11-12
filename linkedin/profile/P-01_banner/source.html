@@ -21,8 +21,6 @@
   .title em { font-style: italic; color: var(--pink); }
   .footer { position: absolute; left: 612px; right: 72px; bottom: 34px; display: flex; justify-content: space-between; font-family: "DM Mono", monospace; font-size: 20px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
   .footer .site { color: #fff; }
-  .dots { position: absolute; right: 0; top: 84px; width: 300px; height: 140px; opacity: .9; }
-  .dots i { position: absolute; width: 4px; height: 4px; background: var(--pink); }
 </style>
 </head>
 <body>
@@ -36,20 +34,5 @@
 
   <div class="footer"><span>Anne-Kelly “Kee” Kouyaté</span><span class="site">kreeative.xyz</span></div>
 
-  <div class="dots" aria-hidden="true" id="dots"></div>
-  <script>
-    // Pixel strip, as on the site hero: random 4px squares fading toward the top-left.
-    const box = document.getElementById('dots');
-    let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-    for (let i = 0; i < 260; i++) {
-      const x = rnd(), y = rnd();
-      if (rnd() > (x * 0.9 + (1 - y) * 0.6) / 1.5) continue;
-      const d = document.createElement('i');
-      d.style.left = Math.round(x * 300 / 6) * 6 + 'px'; d.style.top = Math.round(y * 140 / 6) * 6 + 'px';
-      d.style.opacity = (0.25 + rnd() * 0.75).toFixed(2);
-      if (rnd() > 0.7) d.style.background = 'rgba(255,255,255,.5)';
-      box.appendChild(d);
-    }
-  </script>
 </body>
 </html>
