@@ -12,25 +12,25 @@ Soft Blue & Cocoa, Pink Scrapbook) and the Brand Collab Guide. This is the Linke
 
 | Role | Hex | Where it comes from |
 |---|---|---|
-| **Ivory** (main ground) | `#faf6f0` | a light cream, from the Cocoa kit `#f9f3ee` |
+| **Ivory** (main ground) | `#fdfbf7` | a light white cream, lighter than the Cocoa kit `#f9f3ee` |
 | Cream, deeper (cards, bands) | `#ede5de` | Minimal Brown kit |
 | **White** (second ground, cards) | `#ffffff` | the kits’ white panels |
 | **Warm brown** (ink: headlines, body) | `#5a3626` | warmed up from the Cocoa kit `#321c14` |
 | Brown, secondary text | `rgba(90,54,38,.66)` | |
 | Brown, labels | `rgba(90,54,38,.46)` | |
-| **Pink, soft** (fills, highlights, pills) | `#e8b9c2` | Pink Scrapbook kit ground |
+| **Pink, baby bright** (fills, highlights, pills) | `#ffb3d1` | a brighter take on the Pink Scrapbook kit ground |
 | **Pink, accent** (one italic word, kickers) | `#ff0090` on cream and white; `#ffb3d9` on brown | `--c-pink` from the site; the light tint for dark pages |
 | Pink, small text | `#b0005f` | `teach.css`, the deep rose of the pink kit |
 | Hairlines | `rgba(90,54,38,.16)` on cream, `rgba(255,255,255,.16)` on brown | the guide’s grid lines |
 
 Dark pages use **warm brown `#5a3626`** as the ground with ivory text, instead of black.
 
-Contrast (WCAG): warm brown on ivory 9.4:1 · warm brown on soft pink 5.9:1 · `#ff0090` on ivory
+Contrast (WCAG): warm brown on ivory 9.4:1 · warm brown on baby pink 5.6:1 · `#ff0090` on ivory
 3.5:1 (display sizes and kickers only, never body) · `#b0005f` on ivory 7.3:1 · ivory on
 warm brown 9.4:1 · `#ffb3d9` on warm brown 6.5:1.
 
 Rule: one accent only. Pink carries one italic word in a headline, the kicker above it and
-a footer link. Soft pink is a surface (a pill, a highlight behind a placeholder, a band), not
+a footer link. Baby pink is a surface (a pill, a highlight behind a placeholder, a band), not
 a text colour. Never pink body text.
 
 ## 2. Type
@@ -87,8 +87,8 @@ ivory. Before/afters: ivory with white panels.
 - Icons: Phosphor, inline SVG, `currentColor`, 24 to 32px (`assets/icons/`).
 - Decorations used on the site: the dotted pixel strip (`assets/img/dots.svg`), the diagonal
   meteor streaks, dashed-border pills. Use the pixel strip sparingly as a footer band.
-- Placeholders in copy: shown in brackets with a soft pink highlight (`#e8b9c2` on cream,
-  `rgba(232,185,194,.25)` on brown), as the guide does.
+- Placeholders in copy: shown in brackets with a baby pink highlight (`#ffb3d1` on ivory,
+  `rgba(255,179,209,.25)` on brown), as the guide does.
 
 ## 6. Signature and footer
 
