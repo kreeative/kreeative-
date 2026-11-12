@@ -27,7 +27,7 @@ works.
 | `/websites/jessicas-secrets/`                     | `websites/jessicas-secrets/index.html`                          |
 | `/websites/kreeative/`                            | `websites/kreeative/index.html` (this site)                     |
 | `/concepts/jessicas-secrets/`                     | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
-| `/about/`, `/shop/`, `/teach/`, `/pricing/`       | their `index.html`                                              |
+| `/about/`, `/shop/`, `/teach/`, `/pricing/`, `/services/` | their `index.html`                                              |
 | `/the-kreeative-designer-newsletter/`             | `the-kreeative-designer-newsletter/index.html`                  |
 | any unknown URL                                   | `404.html`                                                      |
 
