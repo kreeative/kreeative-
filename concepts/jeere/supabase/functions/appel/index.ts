@@ -4,7 +4,8 @@
 //
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/appel
 //   body: { firstName, whatsapp, link?, need?, source? } → { ok }                                   anyone
-// A small brake: 3 requests per WhatsApp number per day, 40 a day in all. Deployed with verify_jwt = false.
+// Brakes: 3 requests per WhatsApp number and 3 per connection (a hash of the IP, never the IP) per day, 300 a day in
+// all; the founder gets at most 20 e-mails a day (the rest wait in the table). Deployed with verify_jwt = false.
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? 'https://aezchxfvzfoqlvzchqyk.supabase.co';
 const SECRET = (() => {
@@ -42,17 +43,21 @@ Deno.serve(async (req: Request) => {
   if (!firstName) return json({ ok: false, code: 'name', message: 'Votre prénom, s’il vous plaît.' }, 400);
   if (whatsapp.replace(/\D/g, '').length < 8) return json({ ok: false, code: 'phone', message: 'Un numéro WhatsApp complet, avec l’indicatif.' }, 400);
 
+  // the connection, hashed (the IP itself is never kept)
+  const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || req.headers.get('x-real-ip') || '';
+  const ipHash = ip ? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('jeere-appel:' + ip)))).map((x) => x.toString(16).padStart(2, '0')).join('').slice(0, 32) : '';
   const since = new Date(Date.now() - 86400000).toISOString();
-  const today = await rows('design_requests?select=whatsapp&created_at=gte.' + encodeURIComponent(since) + '&limit=60');
+  const today = await rows('design_requests?select=whatsapp,ip_hash&created_at=gte.' + encodeURIComponent(since) + '&limit=400');
   const digits = (x: unknown) => String(x ?? '').replace(/\D/g, '').slice(-8);
-  if (today.length >= 40 || today.filter((r) => digits(r.whatsapp) === digits(whatsapp)).length >= 3) {
+  if (today.filter((r) => digits(r.whatsapp) === digits(whatsapp)).length >= 3 || (ipHash && today.filter((r) => r.ip_hash === ipHash).length >= 3)) {
     return json({ ok: false, code: 'rate', message: 'Votre demande est déjà arrivée : nous vous écrivons très vite.' }, 429);
   }
-  const ins = await db('design_requests', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ first_name: firstName, whatsapp, link: link || null, need: need || null, source: source || null }) });
+  if (today.length >= 300) return json({ ok: false, code: 'busy', message: 'Beaucoup de demandes aujourd’hui : réessayez demain, ou écrivez-nous sur WhatsApp.' }, 429);
+  const ins = await db('design_requests', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ first_name: firstName, whatsapp, link: link || null, need: need || null, source: source || null, ip_hash: ipHash || null }) });
   if (!ins.ok) return json({ ok: false, code: 'server', message: 'La demande n’est pas partie. Réessayez.' }, 500);
 
   // the founder is told at once
-  if (RESEND_KEY) {
+  if (RESEND_KEY && today.length < 20) {
     const to = (await rows('site_editors?select=email')).map((r) => String(r.email ?? '')).filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e));
     if (to.length) {
       const wa = 'https://wa.me/' + whatsapp.replace(/\D/g, '');
