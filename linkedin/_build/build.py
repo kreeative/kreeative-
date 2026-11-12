@@ -665,7 +665,7 @@ def m2_05():
             alt='Design slide with a placeholder for the final design.')
     d.slide('05 · Launch', 'Live on the client’s <em>own domain.</em>', f'{ph("CLIENT_URL")} · launched {ph("LAUNCH_DATE")}', visual=phbox('CLIENT_LIVE_SCREENSHOT', 'The live site on a phone'),
             alt='Launch slide with placeholders for the client’s domain, the launch date and a screenshot of the live site.')
-    d.slide('06 · Result', 'What it <em>changed.</em>', '', visual=f'<div class="card" style="padding:56px;width:100%"><p class="cap">Result</p><p class="t-2" style="margin-top:20px"><span class="ph">[RESULT_METRIC_OR_FEEDBACK]</span></p></div>',
+    d.slide('06 · Result', 'What it <em>changed.</em>', '', visual=f'<div class="card" style="padding:56px;width:100%"><p class="cap">Result</p><p class="t-3" style="margin-top:20px;overflow-wrap:anywhere"><span class="ph">[RESULT_METRIC_OR_FEEDBACK]</span></p></div>',
             alt='Result slide with a placeholder for a metric or the client’s feedback.')
     d.cta()
     d.write({'CLIENT_NAME': 'the client', 'CLIENT_PROBLEM': 'what was broken, one or two sentences', 'CLIENT_OLD_SITE_SCREENSHOT': 'the before', 'RESEARCH_INSIGHT': 'one line on what you learned',
