@@ -15,19 +15,19 @@ Soft Blue & Cocoa, Pink Scrapbook) and the Brand Collab Guide. This is the Linke
 | **Ivory** (main ground) | `#fdfbf7` | a light white cream, lighter than the Cocoa kit `#f9f3ee` |
 | Cream, deeper (cards, bands) | `#ede5de` | Minimal Brown kit |
 | **White** (second ground, cards) | `#ffffff` | the kits’ white panels |
-| **Deep warm brown** (ink: headlines, body) | `#3b2014` | the Cocoa kit `#321c14`, warmed slightly |
-| Brown, secondary text | `rgba(59,32,20,.66)` | |
-| Brown, labels | `rgba(59,32,20,.46)` | |
+| **Deep warm brown** (ink: headlines, body) | `#4a2a1a` | a chocolate brown, warmer than the Cocoa kit `#321c14` |
+| Brown, secondary text | `rgba(74,42,26,.66)` | |
+| Brown, labels | `rgba(74,42,26,.46)` | |
 | **Pink, baby bright** (fills, highlights, pills) | `#ffb3d1` | a brighter take on the Pink Scrapbook kit ground |
 | **Pink, accent** (one italic word, kickers) | `#ff0090` on cream and white; `#ffb3d9` on brown | `--c-pink` from the site; the light tint for dark pages |
 | Pink, small text | `#b0005f` | `teach.css`, the deep rose of the pink kit |
-| Hairlines | `rgba(59,32,20,.16)` on cream, `rgba(255,255,255,.16)` on brown | the guide’s grid lines |
+| Hairlines | `rgba(74,42,26,.16)` on cream, `rgba(255,255,255,.16)` on brown | the guide’s grid lines |
 
-Dark pages use **deep warm brown `#3b2014`** as the ground with ivory text, instead of black.
+Dark pages use **deep warm brown `#4a2a1a`** as the ground with ivory text, instead of black.
 
-Contrast (WCAG): deep brown on ivory 14.5:1 · deep brown on baby pink 8.6:1 · `#ff0090` on ivory
+Contrast (WCAG): deep brown on ivory 11.6:1 · deep brown on baby pink 6.9:1 · `#ff0090` on ivory
 3.5:1 (display sizes and kickers only, never body) · `#b0005f` on ivory 7.3:1 · ivory on
-deep brown 14.5:1 · `#ffb3d9` on deep brown 10:1.
+deep brown 11.6:1 · `#ffb3d9` on deep brown 8:1.
 
 Rule: one accent only. Pink carries one italic word in a headline, the kicker above it and
 a footer link. Baby pink is a surface (a pill, a highlight behind a placeholder, a band), not
