@@ -1,10 +1,10 @@
 # M2-11 · JEERE a un visage.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Thu Jan 15
+- Date de publication : jeu. 15 janv.
 - Fichier : `M2-11_jeere-brand-identity_FR.png`
 
-Taken from the live JEERE site (jeere.kreeative.xyz and its rainbow.css): the cloud logo, the lettered wordmark, Poppins on the site, Outfit in the dashboard, black and white, and the seven rainbow colours on buttons and the logo. Confirm before posting.
+Repris du site JEERE en ligne (jeere.kreeative.xyz et son rainbow.css) : le logo nuage, le nom écrit à la main, Poppins sur le site, Outfit dans le tableau de bord, le noir et blanc, et les sept couleurs de l’arc-en-ciel sur les boutons et le logo. À confirmer avant de publier.
 
 ## Texte des pages
 

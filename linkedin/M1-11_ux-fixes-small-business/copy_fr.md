@@ -1,7 +1,7 @@
 # M1-11 · 7 correctifs UX qui apportent plus de réservations.
 
 - Format : CAROUSEL, 9 pages, 1080 × 1350, PDF
-- Date de publication : Wed Dec 9
+- Date de publication : mer. 9 déc.
 - Fichier : `M1-11_ux-fixes-small-business_FR.pdf`
 
 ## Texte des pages

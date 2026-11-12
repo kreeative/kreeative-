@@ -1,10 +1,10 @@
 # M1-12 · Un écran, du wireframe à la haute fidélité.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Thu Dec 10
+- Date de publication : jeu. 10 déc.
 - Fichier : `M1-12_jeere-build-log-2_FR.png`
 
-The high-fidelity screen is the real Produits screen from the JEERE demo dashboard. The wireframe on the left is redrawn from it: swap in your real wireframe if you have one.
+L’écran haute fidélité est le vrai écran Produits du tableau de bord démo de JEERE. Le wireframe de gauche est redessiné à partir de lui : remplace-le par ton vrai wireframe si tu l’as.
 
 ## Texte des pages
 

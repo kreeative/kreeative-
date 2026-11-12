@@ -1,10 +1,10 @@
 # M2-05 · The Ivory Sukundu : un site, du problème au lancement.
 
 - Format : CAROUSEL, 8 pages, 1080 × 1350, PDF
-- Date de publication : Mon Jan 5
+- Date de publication : lun. 5 janv.
 - Fichier : `M2-05_website-case-study_FR.pdf`
 
-Facts from the site’s own repository (TISHE-) and the live site. Screens chosen without photos of people. Ask the owner before naming results.
+Faits tirés du repo du site (TISHE-) et du site en ligne. Écrans choisis sans photo de personne. Demande à la propriétaire avant de citer des résultats.
 
 ## Texte des pages
 

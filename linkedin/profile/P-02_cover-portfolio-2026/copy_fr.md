@@ -1,7 +1,7 @@
 # P-02 · Design produit et de marque, 2026.
 
 - Format : COVER, 1 page, 1200 × 627, PNG
-- Date de publication : Profile, featured section
+- Date de publication : Profil, section Sélection
 - Fichier : `P-02_cover-portfolio-2026_FR.png`
 
 ## Texte des pages

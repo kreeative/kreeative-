@@ -1,10 +1,10 @@
 # M1-09 · Concevoir une appli web qu’on a envie d’ouvrir chaque jour.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Thu Dec 3
+- Date de publication : jeu. 3 déc.
 - Fichier : `M1-09_rich-and-friends-screens_FR.png`
 
-Screens captured from the app’s own App Store screenshot script (scripts/shoot-store.mjs in the Friends-App repo) with its demo data. The Budget and Course screens are left out on purpose.
+Écrans capturés avec le script de captures App Store de l’appli elle-même (scripts/shoot-store.mjs dans le repo Friends-App), avec ses données de démo, en français. Les écrans Budget et Cours sont volontairement écartés.
 
 ## Texte des pages
 

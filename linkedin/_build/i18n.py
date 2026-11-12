@@ -49,7 +49,7 @@ def sources():
 
 import html as _html
 sys.path.insert(0, HERE)
-from fr_strings import FR, PHRASES
+from fr_strings import FR, PHRASES, NOTES
 
 
 def plain(s):
@@ -121,6 +121,20 @@ def extract():
     print(len(missing), 'missing units -> _build/fr_missing.json')
 
 
+DAYS = {'Mon': 'lun.', 'Tue': 'mar.', 'Wed': 'mer.', 'Thu': 'jeu.', 'Fri': 'ven.', 'Sat': 'sam.', 'Sun': 'dim.'}
+MONTHS = {'Nov': 'nov.', 'Dec': 'déc.', 'Jan': 'janv.', 'Feb': 'févr.'}
+
+
+def fr_date(s):
+    s = s.replace('Week of ', 'Semaine du ').replace('Profile, featured section', 'Profil, section Sélection')
+    m = re.match(r'(?:(Mon|Tue|Wed|Thu|Fri|Sat|Sun) )?(Nov|Dec|Jan|Feb) (\d+)', s)
+    if m:
+        d = (DAYS[m.group(1)] + ' ') if m.group(1) else ''
+        return s[:m.start()] + d + m.group(3) + ' ' + MONTHS[m.group(2)] + s[m.end():]
+    m = re.search(r'(Nov|Dec|Jan|Feb) (\d+)', s)
+    return s[:m.start()] + m.group(2) + ' ' + MONTHS[m.group(1)] + s[m.end():] if m else s
+
+
 def fr_caption(pid):
     cal = open(os.path.join(L, 'CALENDAR_FR.md'), encoding='utf-8').read()
     m = re.search(r'### ' + re.escape(pid) + r' .*?```\n(.*?)```', cal, re.S)
@@ -175,6 +189,9 @@ def build():
                     .replace('- File:', '- Fichier :').replace('### Page ', '### Page ').replace('### Image', '### Image')
                     .replace('- Kicker:', '- Surtitre :').replace('- Headline:', '- Titre :').replace('- Body:', '- Texte :'))
             md = re.sub(r'`([^`]+)\.(pdf|png)`', r'`\1_FR.\2`', md, count=1)
+            for k, v in sorted(NOTES.items(), key=lambda kv: len(kv[0]), reverse=True):
+                md = md.replace(k, v)
+            md = re.sub(r'(- Date de publication : )(.*)', lambda m: m.group(1) + fr_date(m.group(2)), md)
             open(os.path.join(d, 'copy_fr.md'), 'w', encoding='utf-8').write(md)
     json.dump(new_jobs, open(os.path.join(HERE, 'jobs.json'), 'w'), indent=1)
     print(len(new_jobs), 'jobs;', len(missing), 'units without a translation')

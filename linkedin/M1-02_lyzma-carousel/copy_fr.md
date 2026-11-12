@@ -1,7 +1,7 @@
 # M1-02 · Une identité écrite à la main pour une marque de bijoux : 6 décisions en coulisses.
 
 - Format : CAROUSEL, 8 pages, 1080 × 1350, PDF
-- Date de publication : Wed Nov 18
+- Date de publication : mer. 18 nov.
 - Fichier : `M1-02_lyzma-carousel_FR.pdf`
 
 ## Texte des pages

@@ -1,7 +1,7 @@
 # M1-04 · Le logo The Bakery : du croquis au final.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Tue Nov 24
+- Date de publication : mar. 24 nov.
 - Fichier : `M1-04_bakery-before-after_FR.png`
 
 ## Texte des pages

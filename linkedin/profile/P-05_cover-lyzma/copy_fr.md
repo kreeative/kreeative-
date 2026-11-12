@@ -1,7 +1,7 @@
 # P-05 · Lyzma Industries : une identité écrite à la main.
 
 - Format : COVER, 1 page, 1200 × 627, PNG
-- Date de publication : Profile, featured section
+- Date de publication : Profil, section Sélection
 - Fichier : `P-05_cover-lyzma_FR.png`
 
 ## Texte des pages

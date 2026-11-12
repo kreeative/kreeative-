@@ -1,7 +1,7 @@
 # M3-10 · Le portfolio v2 est en ligne.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Mon Feb 9
+- Date de publication : lun. 9 févr.
 - Fichier : `M3-10_portfolio-v2-reveal_FR.png`
 
 ## Texte des pages

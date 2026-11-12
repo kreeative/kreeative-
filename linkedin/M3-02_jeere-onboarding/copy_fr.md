@@ -1,10 +1,10 @@
 # M3-02 · L’onboarding de JEERE, de la recherche au prototype.
 
 - Format : CAROUSEL, 7 pages, 1080 × 1350, PDF
-- Date de publication : Tue Jan 20
+- Date de publication : mar. 20 janv.
 - Fichier : `M3-02_jeere-onboarding_FR.pdf`
 
-Screens are from the live JEERE prototype. The order of steps 2 to 4 (template, products, first steps) is read from the prototype’s pages: confirm it before posting.
+Les écrans viennent du prototype JEERE en ligne. L’ordre des étapes 2 à 4 (modèle, produits, premiers pas) est déduit des pages du prototype : à confirmer avant de publier.
 
 ## Texte des pages
 

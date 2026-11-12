@@ -1,10 +1,10 @@
 # M3-08 · 5 designers et fondateurs noirs qui ont façonné ma façon de travailler.
 
 - Format : CAROUSEL, 7 pages, 1080 × 1350, PDF
-- Date de publication : Tue Feb 3
+- Date de publication : mar. 3 févr.
 - Fichier : `M3-08_black-designers-founders_FR.pdf`
 
-Facts checked on Wikipedia (Cheryl D. Miller, Emory Douglas, The Black Panther (newspaper), Gail Anderson (graphic designer), Virgil Abloh, Rebecca Enonchong). **The “what I took from their work” lines are drafts in your voice: change them, or swap a person, before posting.** Alternative checked: Tope Awotona, Nigerian-born founder of Calendly (debut 2013).
+Faits vérifiés sur Wikipedia (Cheryl D. Miller, Emory Douglas, The Black Panther (journal), Gail Anderson (graphiste), Virgil Abloh, Rebecca Enonchong). **Les phrases « ce que j’ai retenu de leur travail » sont des brouillons dans ta voix : change-les, ou change de personne, avant de publier.** Autre personne vérifiée : Tope Awotona, fondateur de Calendly, né au Nigeria (lancement en 2013).
 
 ## Texte des pages
 

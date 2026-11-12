@@ -1,7 +1,7 @@
 # M3-05 · Un formulaire de réservation : moins de champs, un meilleur ordre.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Tue Jan 27
+- Date de publication : mar. 27 janv.
 - Fichier : `M3-05_booking-form-before-after_FR.png`
 
 ## Texte des pages

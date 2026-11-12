@@ -1,7 +1,7 @@
 # M2-02 · Rendre la foi impossible à ignorer.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Week of Dec 21
+- Date de publication : Semaine du 21 déc.
 - Fichier : `M2-02_glorywalk-before-after_FR.png`
 
 ## Texte des pages

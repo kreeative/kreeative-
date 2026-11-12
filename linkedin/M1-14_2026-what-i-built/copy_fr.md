@@ -1,7 +1,7 @@
 # M1-14 · 2026 : ce que j’ai construit.
 
 - Format : CAROUSEL, 7 pages, 1080 × 1350, PDF
-- Date de publication : Thu Dec 17
+- Date de publication : jeu. 17 déc.
 - Fichier : `M1-14_2026-what-i-built_FR.pdf`
 
 ## Texte des pages

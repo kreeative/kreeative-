@@ -1,7 +1,7 @@
 # M1-06 · Mon processus de design en 6 étapes, du brief au lancement.
 
 - Format : CAROUSEL, 8 pages, 1080 × 1350, PDF
-- Date de publication : Thu Nov 26
+- Date de publication : jeu. 26 nov.
 - Fichier : `M1-06_design-process_FR.pdf`
 
 ## Texte des pages

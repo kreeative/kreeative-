@@ -1,16 +1,16 @@
 # M3-09 · Le e-commerce africain en 6 pages.
 
 - Format : CAROUSEL, 8 pages, 1080 × 1350, PDF
-- Date de publication : Wed Feb 4
+- Date de publication : mer. 4 févr.
 - Fichier : `M3-09_african-ecommerce-6-slides_FR.pdf`
 
-**First comment (sources):**
-1. Google and IFC, e-Conomy Africa 2020: https://www.ifc.org/en/pressroom/2020/new-google-ifc-report-estimates-africas-internet-economy-could-b
-2. GeoPoll, Africa 118 and African Talent Company, Africa MSME Pulse 2023 (440 businesses in Nigeria, Kenya, South Africa, Ethiopia): https://www.geopoll.com/blog/africa-msme-pulse-2023/
-3, 5, 6. GSMA, The Mobile Economy Africa 2025 (2024 data and 2030 forecast): https://www.gsma.com/solutions-and-impact/connectivity-for-good/mobile-economy/wp-content/uploads/2025/10/GSMA_AFRICA_ME2025_R_Web-3.pdf
-4. IFC, Women and E-commerce in Africa, 2021, Figure 3.4: https://www.ifc.org/content/dam/ifc/doc/mgrt/202105-digital2equal-women-and-e-commerce-africa.pdf
+**Premier commentaire (sources) :**
+1. Google et IFC, e-Conomy Africa 2020 : https://www.ifc.org/en/pressroom/2020/new-google-ifc-report-estimates-africas-internet-economy-could-b
+2. GeoPoll, Africa 118 et African Talent Company, Africa MSME Pulse 2023 (440 entreprises au Nigeria, au Kenya, en Afrique du Sud et en Éthiopie) : https://www.geopoll.com/blog/africa-msme-pulse-2023/
+3, 5, 6. GSMA, The Mobile Economy Africa 2025 (données 2024 et prévision 2030) : https://www.gsma.com/solutions-and-impact/connectivity-for-good/mobile-economy/wp-content/uploads/2025/10/GSMA_AFRICA_ME2025_R_Web-3.pdf
+4. IFC, Women and E-commerce in Africa, 2021, figure 3.4 : https://www.ifc.org/content/dam/ifc/doc/mgrt/202105-digital2equal-women-and-e-commerce-africa.pdf
 
-Checked: Google/IFC, GSMA and IFC figures read in the primary documents; GeoPoll figures from GeoPoll’s own summary page.
+Vérifié : chiffres Google/IFC, GSMA et IFC lus dans les documents d’origine ; chiffres GeoPoll tirés de la page de synthèse de GeoPoll.
 
 ## Texte des pages
 

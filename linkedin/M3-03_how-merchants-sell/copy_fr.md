@@ -1,10 +1,10 @@
 # M3-03 · Comment les commerçants africains vendent en ligne aujourd’hui.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Wed Jan 21
+- Date de publication : mer. 21 janv.
 - Fichier : `M3-03_how-merchants-sell_FR.png`
 
-**First comment (sources):**
+**Premier commentaire (sources) :**
 - IFC, Women and E-commerce in Africa, 2021 (vendeurs Jumia en Côte d’Ivoire, au Kenya et au Nigeria ; 61 % des entreprises de femmes et 51 % des entreprises d’hommes vendent sur WhatsApp, 36 % et 32 % sur Instagram, figure 3.4): https://www.ifc.org/content/dam/ifc/doc/mgrt/202105-digital2equal-women-and-e-commerce-africa.pdf
 - Mastercard Foundation et Caribou Digital, 2020, cité dans le même rapport de l’IFC (Kenya : 27 % des micro-entreprises utilisaient des marketplaces comme Jumia ; plus de 90 % d’entre elles utilisaient aussi Facebook, Instagram et WhatsApp).
 

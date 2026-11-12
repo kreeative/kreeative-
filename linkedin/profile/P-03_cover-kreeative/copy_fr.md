@@ -1,7 +1,7 @@
 # P-03 · Kreeative : concevoir et construire, de A à Z.
 
 - Format : COVER, 1 page, 1200 × 627, PNG
-- Date de publication : Profile, featured section
+- Date de publication : Profil, section Sélection
 - Fichier : `P-03_cover-kreeative_FR.png`
 
 ## Texte des pages

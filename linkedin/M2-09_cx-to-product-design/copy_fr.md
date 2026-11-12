@@ -1,7 +1,7 @@
 # M2-09 · De l’expérience client au design produit : 6 compétences qui se transfèrent.
 
 - Format : CAROUSEL, 8 pages, 1080 × 1350, PDF
-- Date de publication : Tue Jan 13
+- Date de publication : mar. 13 janv.
 - Fichier : `M2-09_cx-to-product-design_FR.pdf`
 
 ## Texte des pages

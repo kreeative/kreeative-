@@ -1,7 +1,7 @@
 # M1-07 · J’ai parlé à [MERCHANTS_INTERVIEWED] commerçantes. 5 choses que j’ai apprises.
 
 - Format : CAROUSEL, 7 pages, 1080 × 1350, PDF
-- Date de publication : Tue Dec 1
+- Date de publication : mar. 1 déc.
 - Fichier : `M1-07_jeere-build-log-1_FR.pdf`
 
 ## Texte des pages

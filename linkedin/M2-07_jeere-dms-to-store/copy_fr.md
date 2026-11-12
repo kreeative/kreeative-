@@ -1,7 +1,7 @@
 # M2-07 · Des messages WhatsApp à une vraie boutique.
 
 - Format : IMAGE, 1 page, 1080 × 1350, PNG
-- Date de publication : Wed Jan 7
+- Date de publication : mer. 7 janv.
 - Fichier : `M2-07_jeere-dms-to-store_FR.png`
 
 ## Texte des pages

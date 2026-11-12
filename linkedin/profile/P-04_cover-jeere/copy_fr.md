@@ -1,7 +1,7 @@
 # P-04 · Tout votre commerce, au même endroit.
 
 - Format : COVER, 1 page, 1200 × 627, PNG
-- Date de publication : Profile, featured section
+- Date de publication : Profil, section Sélection
 - Fichier : `P-04_cover-jeere_FR.png`
 
 ## Texte des pages
