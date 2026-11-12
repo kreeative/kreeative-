@@ -498,6 +498,8 @@ html:not(.js) .cv__play { display: none; }
 
 /* Custom-designed models (the demo shops of concepts/) */
 .custom { margin-top: 72px; padding-top: 48px; border-top: 1px solid rgba(17, 17, 17, .08); }
+.tpl[hidden] { display: none; }
+.tpl[hidden] + .custom { margin-top: 0; padding-top: 0; border-top: 0; }
 .custom__head { max-width: 640px; }
 .custom__title { font: 400 clamp(24px, 3.6vw, 32px)/1.15 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
 .custom__head .lead { margin-top: 10px; }

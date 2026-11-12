@@ -3864,46 +3864,32 @@
     } else els.resume.hidden = true;
     if (!S.startBuilt) buildTemplateCards();
   }
+  // The start screen offers the custom-designed models (the demo shops in concepts/, each sold through
+  // a Jeere store). The engine templates (Plateau, Cocody, Treichville) are no longer shown here; the
+  // assistant still uses them. « Choisir ce modèle » opens the model's store in the dashboard.
+  const CUSTOM_MODELS = [
+    { slug: 'seve', name: 'SÈVE', kind: 'Soins et cosmétiques', desc: 'Flacons sur fond crème, titres serif, filtres par catégorie.' },
+    { slug: 'soyeuse', name: 'SOYEUSE', kind: 'Perruques et tissages', desc: 'Rose bonbon, logo à lettres ornées, mannequin en pied.' },
+    { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.' },
+    { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.' },
+  ];
   function buildTemplateCards() {
     S.startBuilt = true;
     const box = els.tpls;
     box.textContent = '';
-    const jobs = [];
-    const shots = [];
-    D.templates.forEach((t) => {
-      const root = el('div');
-      const screen = el('div', { class: 'b-mini__screen' }, root);
-      const shot = el('div', { class: 'b-tcard__shot', 'aria-hidden': 'true', inert: true }, el('div', { class: 'b-mini' }, screen));
-      const fallback = el('span', { class: 'b-tcard__schem' });
-      fallback.innerHTML = SCHEMATICS[t.id] || '';
-      const card = el('article', { class: 'b-tcard', 'data-template': t.id },
-        shot,
+    box.classList.add('b-tpls--custom');
+    CUSTOM_MODELS.forEach((m) => {
+      const demo = `https://kreeative.xyz/concepts/${m.slug}/`;
+      const img = el('img', { src: `../studio/sites/thumbs/concepts--${m.slug}.webp`, width: '640', height: '400', alt: '', loading: 'lazy', decoding: 'async' });
+      box.append(el('article', { class: 'b-tcard b-tcard--custom', 'data-model': m.slug },
+        el('div', { class: 'b-tcard__shot b-tcard__shot--img', 'aria-hidden': 'true' }, img),
         el('div', { class: 'b-tcard__body' },
-          el('div', { class: 'b-tcard__head' }, el('h3', { class: 'b-tcard__name', text: t.name }), el('span', { class: 'b-chip', text: t.style })),
-          el('p', { class: 'b-tcard__desc', text: t.description }),
-          el('p', { class: 'b-tcard__best' }, el('span', { text: `Idéal pour${NB}: ` }), t.bestFor),
-          el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', 'aria-label': `Choisir le modèle ${t.name}`, on: { click: () => chooseTemplate(t.id) } },
-            el('span', { class: 'b-lbl-long', text: 'Choisir ce modèle' }), el('span', { class: 'b-lbl-short', text: 'Choisir' }), icon('i-arrow'))));
-      box.append(card);
-      shots.push(shot);
-      jobs.push(() => {
-        if (window.JeereRender && typeof window.JeereRender.render === 'function') {
-          renderStoreInto(root, D.defaultConfig(t.id), 'phone', screen);
-          if (root.className === 'b-noprev') { shot.textContent = ''; shot.append(fallback); shot.classList.add('is-schem'); }
-        } else { shot.textContent = ''; shot.append(fallback); shot.classList.add('is-schem'); }
-      });
+          el('div', { class: 'b-tcard__head' }, el('h3', { class: 'b-tcard__name', text: m.name }), el('span', { class: 'b-chip', text: m.kind })),
+          el('p', { class: 'b-tcard__desc', text: m.desc }),
+          el('a', { class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', href: `../admin/#boutique=${m.slug}`, 'aria-label': `Choisir le modèle ${m.name}` },
+            el('span', { class: 'b-lbl-long', text: 'Choisir ce modèle' }), el('span', { class: 'b-lbl-short', text: 'Choisir' }), icon('i-arrow')),
+          el('a', { class: 'b-tcard__demo', href: demo, target: '_blank', rel: 'noopener', text: 'Voir la démo' }))));
     });
-    // The mini phone (406 px wide) is scaled to the width of its card
-    const scaleShots = () => shots.forEach((shot) => {
-      const w = shot.clientWidth;
-      if (w) shot.style.setProperty('--mini-s', String(Math.min(0.62, Math.max(0.2, (w - 20) / 406))));
-    });
-    scaleShots();
-    if (window.ResizeObserver) { const ro = new ResizeObserver(scaleShots); shots.forEach((s) => ro.observe(s)); }
-    else window.addEventListener('resize', scaleShots);
-    // Render the previews one per frame so the start screen paints at once on slow phones
-    const next = () => { const job = jobs.shift(); if (job) { job(); requestAnimationFrame(next); } };
-    requestAnimationFrame(next);
   }
   async function chooseTemplate(id) {
     const saved = readSaved();

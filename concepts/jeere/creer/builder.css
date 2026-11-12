@@ -231,6 +231,11 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 /* Template cards with a live preview */
 .b-tpls { display: grid; gap: 10px; }
 @media (min-width: 640px) { .b-tpls { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } }
+@media (min-width: 640px) { .b-tpls--custom { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.b-tcard__shot--img img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+@media (min-width: 640px) { .b-tcard--custom .b-tcard__shot { height: auto; aspect-ratio: 16 / 10; } }
+.b-tcard__demo { position: relative; z-index: 1; align-self: flex-start; font-size: 13px; font-weight: 500; color: var(--ink); }
+.b-tcard__demo:hover { color: var(--muted); }
 .b-tcard {
   position: relative; display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px;
   padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: var(--white);
