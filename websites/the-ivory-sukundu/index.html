@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Ivory Sukundu — e-commerce product design case study | Kreeative</title>
+  <meta name="description" content="How I designed and built theivorysukundu.com, a luxury hair-extensions store: from a Shopify storefront and Framer components to a store of its own with Stripe checkout and an in-place editor.">
+  <link rel="canonical" href="https://kreeative.xyz/websites/the-ivory-sukundu/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Kreeative">
+  <meta property="og:title" content="The Ivory Sukundu — e-commerce product design case study | Kreeative">
+  <meta property="og:description" content="How I designed and built theivorysukundu.com, a luxury hair-extensions store: from a Shopify storefront and Framer components to a store of its own with Stripe checkout and an in-place editor.">
+  <meta property="og:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://kreeative.xyz/websites/the-ivory-sukundu/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The Ivory Sukundu — e-commerce product design case study | Kreeative">
+  <meta name="twitter:description" content="How I designed and built theivorysukundu.com, a luxury hair-extensions store: from a Shopify storefront and Framer components to a store of its own with Stripe checkout and an in-place editor.">
+  <meta name="twitter:image" content="https://kreeative.xyz/assets/img/og/tabouret.jpg?v=2">
+  <meta name="robots" content="max-image-preview:large">
+  <meta name="theme-color" content="#262626">
+  <link rel="icon" href="../../assets/img/favicon-32.png" type="image/png" media="(prefers-color-scheme: light)">
+  <link rel="icon" href="../../assets/img/favicon-dark-32.png" type="image/png" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="../../assets/img/apple-touch-icon.png">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../assets/fonts/fraunces-300-400-latin.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../assets/fonts/inter-400-latin.woff2">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/case-study.css">
+  <script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
+  <script defer src="../../assets/js/site.js"></script>
+</head>
+<body class="theme-dark">
+<div class="page" id="top">
+<a class="btn-back t-caption" href="../../#work">
+  <svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
+  <span>Back</span>
+</a>
+
+<section class="card cs-hero" id="header">
+  <div class="cs-top">
+    <header class="cs-header">
+      <div class="cs-key">
+        <span class="cs-key__item t-body-m"><span>2026</span></span>
+        <div class="cs-key__group">
+          <span class="cs-key__item t-body-m"><span>E-commerce · client</span></span>
+          <a class="cs-key__link cs-key__link--text t-body-m" href="https://www.theivorysukundu.com/" target="_blank" rel="noopener"><span>theivorysukundu.com</span><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></a>
+        </div>
+      </div>
+      <h1 class="cs-title t-h2">The Ivory Sukundu</h1>
+    </header>
+    <figure class="cs-image" data-appear="hero-image">
+      <img src="../../assets/img/sites/site-sukundu-desktop-1440.webp?v=202611111700" srcset="../../assets/img/sites/site-sukundu-desktop-960.webp?v=202611111700 960w, ../../assets/img/sites/site-sukundu-desktop-1440.webp?v=202611111700 1440w" sizes="(max-width: 809.98px) 100vw, 1000px" width="1440" height="900" alt="The Ivory Sukundu home page: the wordmark beside a model with gold clips in her hair, on champagne" loading="eager" fetchpriority="high">
+    </figure>
+  </div>
+<dl class="cs-facts" data-appear="section">
+  <div class="cs-fact"><dt class="t-mono">Role</dt><dd class="t-body-m">Product designer and developer: brand site, store, accounts, loyalty, checkout, owner dashboard</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Client</dt><dd class="t-body-m">The Ivory Sukundu, a luxury raw hair-extensions brand (“sukundu” is hair in Pulaar)</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Timeline</dt><dd class="t-body-m">July to November 2026 · 98 commits · live and selling</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Tools</dt><dd class="t-body-m">React, TypeScript, Vite, Framer Motion, Shopify Storefront API then Stripe (Checkout, Tax), Resend, Vercel Blob, Framer code components, Jeere</dd></div>
+  <div class="cs-fact"><dt class="t-mono">Live</dt><dd class="t-body-m"><a href="https://www.theivorysukundu.com/" target="_blank" rel="noopener">theivorysukundu.com</a></dd></div>
+  <div class="cs-fact"><dt class="t-mono">Team</dt><dd class="t-body-m">Solo, with the brand owner</dd></div>
+</dl>
+  <div class="cs-block cs-block--bg" data-appear="section">
+    <h3 class="t-h3">Overview</h3>
+    <div class="cs-text rich">
+      <p class="t-body-l">The Ivory Sukundu sells raw, single-donor hair extensions in three textures, and a half wig that snaps in with combs. The brand wanted a site that felt like a fashion magazine, not a discount storefront: ivory, espresso and a little gold, generous white space, an editorial serif.</p>
+      <p class="t-body-l">I designed and built the site in July 2026 on top of the brand’s Shopify catalogue, and in October moved the store off Shopify entirely: its own catalogue, bag, Stripe checkout, order emails and an owner dashboard. The owner edits texts and pictures in place through Jeere, a tool of mine.</p>
+    </div>
+  </div>
+  <div class="cs-block" data-appear="section">
+    <h3 class="t-h3">The problem</h3>
+    <div class="cs-text rich">
+      <p class="t-body-l">Hair extensions are bought on trust and on a number: which length, how many bundles, which texture for which look. A standard store template answers none of that. The brand needed a site that teaches the length, recommends a unit, rewards the people who come back, and still checks out in a few taps on a phone.</p>
+    </div>
+  </div>
+  <div class="cs-block" data-appear="section">
+    <h3 class="t-h3">Who it’s for</h3>
+    <div class="cs-text rich">
+      <p class="t-body-l">Black women buying raw hair for a protective style or an install, mostly on a phone, who compare lengths against their own body and want to know what a half wig really involves.</p>
+      <p class="t-body-l">Returning customers, who the brand wants in a loyalty circle with tiers and a member card.</p>
+      <p class="t-body-l">The owner, who needs to change products, photos, prices, promo codes and copy herself, and to see orders with their timeline.</p>
+    </div>
+  </div>
+  <div class="cs-block" data-appear="section">
+    <h3 class="t-h3">Constraints</h3>
+    <div class="cs-text rich">
+      <p class="t-body-l">The brand’s own photography and wordmark, and a mood set by the owner: quiet luxury, editorial.</p>
+      <p class="t-body-l">Shopify first, because the catalogue and the orders already lived there; later, leaving Shopify without losing the three existing orders, which were imported encrypted.</p>
+      <p class="t-body-l">Canadian taxes: GST and HST collected through Stripe Tax; prices shown in the visitor’s own currency.</p>
+      <p class="t-body-l">Honest copy. The welcome offer lives in email only, free shipping is promised only when it is true, and the hair is labelled by its real origin.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card cs-content">
+  <div class="cs-container">
+    <div class="cs-rich rich">
+        <h3 class="t-h3">Process</h3>
+        <h4 class="t-h4">Research</h4>
+        <p class="t-body-l">I started from the brand owner’s brief and references, from how hair brands explain length (most do not), and from the questions customers ask before buying: where does 24 inches land, how many bundles for a full look, straight or curly for my face. Those questions became the length guide and the quiz.</p>
+        <h4 class="t-h4">User flows</h4>
+        <p class="t-body-l">Discover: hero, the half-wig campaign, the collection. Decide: the find-your-length tool (sixteen lengths from 10 to 40 inches, where each lands on the body, how many bundles build the look, and the note that body wave wears about two inches shorter) and a quiz with two personalities. Buy: product page with length and density pills, bag drawer, Stripe checkout, confirmation, order emails. Belong: the Circle, with tiers, strands and a member card, and an account with order history.</p>
+        <h4 class="t-h4">Iterations</h4>
+        <p class="t-body-l">The hero was redesigned three times: a cursor-spotlight reveal from black to blonde hair, then the model on a champagne background with the brown wordmark, then rebuilt in 4K with a new model and a warmer backdrop with cast shadow and light fall-off. The theme switched from dark to brown-on-ivory on day one. The member card went through six commits in a day, until it read as an embossed physical card with rounded corners.</p>
+        <p class="t-body-l">The biggest iteration was structural: in October the store left Shopify. Own catalogue, bag and checkout, order emails with templates and a log per order, a dashboard where the owner edits products, photos, promo codes, shipping and the site itself, and sign-in links that last 24 hours.</p>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">A length guide with a real back-view photo and an animated marker, because the number on a bundle means nothing until you see where it lands, and that question was the one customers asked most.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">The welcome popup closes only through the X, Decline or sign-up, and the discount stays email-only, so the offer is a reason to join the list rather than a coupon anyone scrapes.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">Moving off Shopify. The brand paid for a platform it used as a database; owning the store cut the cost, let the owner edit in place, and put the checkout in Stripe where tax and currency were already handled.</p></aside>
+        <aside class="cs-decision"><p class="cs-decision__label t-mono">WHY THIS DECISION</p><p class="t-body-m">First-party analytics, because a headless storefront was invisible to the platform’s own numbers and decisions were being made blind.</p></aside>
+        <h3 class="t-h3">What I designed and built</h3>
+        <p class="t-body-l"><strong>01 - The brand site</strong></p>
+        <p class="t-body-l">Hero, campaign, collection, Why Us, Circle, contact and legal pages, with page transitions and reveals on scroll.</p>
+        <p class="t-body-l"><strong>02 - Length guide and quiz</strong></p>
+        <p class="t-body-l">Sixteen tappable lengths with body landing points and bundle counts; a quiz that recommends a unit between two hair personalities.</p>
+        <p class="t-body-l"><strong>03 - The store</strong></p>
+        <p class="t-body-l">Product pages with length and density pills and a hot pick, a bag drawer, promo codes, a sale countdown with struck-through prices, Judge.me reviews, shop-the-model photos.</p>
+        <p class="t-body-l"><strong>04 - Accounts and the Circle</strong></p>
+        <p class="t-body-l">Sign-up, sign-in, password reset by email, order history, loyalty tiers and strands, and a member card.</p>
+        <p class="t-body-l"><strong>05 - Checkout and the back office</strong></p>
+        <p class="t-body-l">Stripe Checkout branded to the store with GST and HST, order emails, an owner dashboard with orders, refunds, tracking numbers and timelines, and in-place editing of the live site from Jeere.</p>
+        <h3 class="t-h3">Key deliverables</h3>
+        <ul>
+          <li class="t-body-l">Site concept, structure and copy direction</li>
+          <li class="t-body-l">Visual system (ivory, espresso, gold; serif display and Montserrat)</li>
+          <li class="t-body-l">Framer code components for the hero, product page and account (July), then the full React store</li>
+          <li class="t-body-l">Length guide, quiz, Circle loyalty and accounts</li>
+          <li class="t-body-l">Stripe checkout with tax, order emails, owner dashboard, Jeere editor</li>
+          <li class="t-body-l">SEO, analytics, currency display</li>
+        </ul>
+    </div>
+  </div>
+  <figure class="cs-image cs-image--tall" data-appear="image">
+      <img src="../../assets/img/sites/site-sukundu-full-1000.webp?v=202611111700" srcset="../../assets/img/sites/site-sukundu-full-1000.webp?v=202611111700 1000w" sizes="(max-width: 809.98px) 100vw, 1000px" width="1440" height="4408" alt="The whole Ivory Sukundu home page" loading="lazy">
+    </figure>
+  <figure class="cs-image cs-image--phone" data-appear="image">
+      <img src="../../assets/img/sites/site-sukundu-phone-780.webp?v=202611111700" srcset="../../assets/img/sites/site-sukundu-phone-390.webp?v=202611111700 390w, ../../assets/img/sites/site-sukundu-phone-780.webp?v=202611111700 780w" sizes="(max-width: 809.98px) 100vw, 360px" width="780" height="1688" alt="The Ivory Sukundu on a phone" loading="lazy">
+    </figure>
+  <div class="cs-results" data-appear="section">
+    <h3 class="t-h3">Outcome</h3>
+    <div class="cs-text rich">
+      <p class="t-body-l">The store is live and taking orders on its own stack, and the owner runs it from her dashboard.</p>
+    </div>
+    <a class="btn btn--accent" href="https://www.theivorysukundu.com/" target="_blank" rel="noopener"><span class="btn__label t-body-l">Visit theivorysukundu.com</span><span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span></a>
+  </div>
+</section>
+
+<footer class="footer" id="contact">
+  <div class="footer__content">
+    <h2 class="footer__title t-h2" data-appear="title">Want to talk about this project, or one of yours? I’d love to.</h2>
+    <a class="btn btn--white" href="https://cal.com/kreeative/quick-chat" target="_blank" rel="noopener">
+      <span class="btn__label t-body-l">Book a short call</span>
+      <span class="btn__icon"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg></span>
+    </a>
+  </div>
+  <div class="footer__links">
+    <div class="footer__row">
+      <a class="footer__top link-icon t-link" href="../../#top">
+        <svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M205.66,117.66a8,8,0,0,1-11.32,0L136,59.31V216a8,8,0,0,1-16,0V59.31L61.66,117.66a8,8,0,0,1-11.32-11.32l72-72a8,8,0,0,1,11.32,0l72,72A8,8,0,0,1,205.66,117.66Z"/></svg>
+        <span>Back to top</span>
+      </a>
+      <div class="footer__social">
+        <a href="https://www.tiktok.com/@bykreeative" target="_blank" rel="noopener" aria-label="TikTok"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M224,72a48.05,48.05,0,0,1-48-48,8,8,0,0,0-8-8H128a8,8,0,0,0-8,8V156a20,20,0,1,1-28.57-18.08A8,8,0,0,0,96,130.69V88a8,8,0,0,0-9.4-7.88C50.91,86.48,24,119.1,24,156a76,76,0,0,0,152,0V116.29A103.25,103.25,0,0,0,224,128a8,8,0,0,0,8-8V80A8,8,0,0,0,224,72Z"/></svg></a>
+        <a href="https://www.instagram.com/bykreeative" target="_blank" rel="noopener" aria-label="Instagram"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M176,24H80A56.06,56.06,0,0,0,24,80v96a56.06,56.06,0,0,0,56,56h96a56.06,56.06,0,0,0,56-56V80A56.06,56.06,0,0,0,176,24ZM128,176a48,48,0,1,1,48-48A48.05,48.05,0,0,1,128,176Zm60-96a12,12,0,1,1,12-12A12,12,0,0,1,188,80Zm-28,48a32,32,0,1,1-32-32A32,32,0,0,1,160,128Z"/></svg></a>
+        <a href="https://www.linkedin.com/in/annekellykouyate/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M216,24H40A16,16,0,0,0,24,40V216a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V40A16,16,0,0,0,216,24ZM96,176a8,8,0,0,1-16,0V112a8,8,0,0,1,16,0ZM88,96a12,12,0,1,1,12-12A12,12,0,0,1,88,96Zm96,80a8,8,0,0,1-16,0V140a20,20,0,0,0-40,0v36a8,8,0,0,1-16,0V112a8,8,0,0,1,15.79-1.78A36,36,0,0,1,184,140Z"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer__bg" aria-hidden="true"></div>
+  <div class="footer__dots" aria-hidden="true"></div>
+  <div class="footer__phone" aria-hidden="true"><img src="../../assets/img/footer-phone-1228.webp" srcset="../../assets/img/footer-phone-700.webp 700w, ../../assets/img/footer-phone-1228.webp 1228w, ../../assets/img/footer-phone-1920.webp 1920w" sizes="1228px" width="1920" height="1080" alt="" loading="lazy"></div>
+  <div class="footer__fade" aria-hidden="true"></div>
+</footer>
+
+</div>
+</body>
+</html>

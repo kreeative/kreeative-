@@ -74,3 +74,21 @@
   .cs-content { padding: 72px 15px; }
   .cs-results { padding-top: 40px; }
 }
+
+/* ---- Case-study additions: key facts and « why this decision » notes ---- */
+.cs-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 32px; width: 100%; max-width: 1000px; margin: 0; padding: 28px 0 0; border-top: 1px solid var(--c-line); }
+.cs-fact { display: flex; flex-direction: column; gap: 6px; margin: 0; min-width: 0; }
+.cs-fact dt { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.cs-fact dd { margin: 0; color: var(--c-black); overflow-wrap: anywhere; }
+.cs-fact a { color: var(--c-link-case); text-decoration: none; }
+.cs-fact a:hover { color: var(--c-link-case-hover); }
+
+.cs-decision { width: 100%; max-width: 640px; padding: 18px 22px; border-left: 3px solid var(--c-black); border-radius: 0 var(--r-md) var(--r-md) 0; background: var(--c-surface-2); }
+.cs-decision__label { margin-bottom: 6px; font-size: 12px; letter-spacing: 0.08em; }
+.cs-decision p + p { margin-top: 0; }
+.cs-rich > * + .cs-decision { margin-top: 20px; }
+.cs-rich > .cs-decision + .cs-decision { margin-top: 12px; }
+
+@media (max-width: 809.98px) {
+  .cs-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; padding-top: 20px; }
+}

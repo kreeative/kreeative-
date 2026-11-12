@@ -20,6 +20,9 @@ works.
 | `/websites/tabouret/`                                       | `websites/tabouret/index.html`                                   |
 | `/websites/guillemot/`                                      | `websites/guillemot/index.html`                                  |
 | `/websites/the-bakery/`                                     | `websites/the-bakery/index.html`                                 |
+| `/websites/the-ivory-sukundu/`                              | `websites/the-ivory-sukundu/index.html`                          |
+| `/websites/anse/`                                           | `websites/anse/index.html`                                       |
+| `/websites/michou/`                                         | `websites/michou/index.html`                                     |
 | `/websites/jessicas-secrets/`                               | `websites/jessicas-secrets/index.html`                           |
 | `/concepts/jessicas-secrets/`                               | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/pricing/`                                                 | `pricing/index.html`                                             |
