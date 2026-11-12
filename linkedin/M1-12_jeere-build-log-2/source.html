@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M1-12 · The storefront builder, from wireframe to high fidelity.</title>
+<link rel="stylesheet" href="../_shared/kee.css">
+<style>@page { size: 1080px 1350px; margin: 0; }</style>
+</head>
+<body>
+<section class="page">
+  <div class="vl"></div><div class="ht"></div><div class="hb"></div>
+  <img class="mark" src="../../assets/img/logo-512.webp" alt="">
+  <div class="sig">Kee · Kreeative</div>
+  <div class="area">
+    <p class="kicker">JEERE · Build log #2</p>
+    <h2 class="t-2">The storefront builder, from <em>wireframe</em> to high fidelity.</h2>
+    <p class="body">What changed: <span class="ph">[WHAT_CHANGED_WIREFRAME_TO_HIFI]</span></p>
+    <span class="tag pink">Concept</span>
+    <div class="visual"><div style="display:flex;gap:34px;align-items:center;justify-content:center;width:100%">
+      <div class="stack"><div class="phone" style="width:330px;height:640px"><div class="scr"><div class="scr wf" style="height:100%">
+  <div style="display:flex;gap:10px;align-items:center"><div class="wf-b" style="width:40px;height:30px"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:60%"></div><div class="wf-l" style="width:40%;height:10px"></div></div></div>
+  <div class="wf-x" style="height:44px">barre d’édition</div>
+  <div style="display:flex;gap:6px"><div class="wf-b" style="width:52px;height:26px;border-radius:13px"></div><div class="wf-b" style="width:64px;height:26px;border-radius:13px"></div><div class="wf-b" style="width:72px;height:26px;border-radius:13px"></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="display:flex;flex-direction:column;gap:6px"><div class="wf-b" style="aspect-ratio:1"></div><div class="wf-l" style="width:80%"></div><div class="wf-l" style="width:45%"></div></div><div style="display:flex;flex-direction:column;gap:6px"><div class="wf-b" style="aspect-ratio:1"></div><div class="wf-l" style="width:80%"></div><div class="wf-l" style="width:45%"></div></div><div style="display:flex;flex-direction:column;gap:6px"><div class="wf-b" style="aspect-ratio:1"></div><div class="wf-l" style="width:80%"></div><div class="wf-l" style="width:45%"></div></div><div style="display:flex;flex-direction:column;gap:6px"><div class="wf-b" style="aspect-ratio:1"></div><div class="wf-l" style="width:80%"></div><div class="wf-l" style="width:45%"></div></div></div>
+  <div class="wf-x" style="margin-top:auto;height:48px;border-radius:24px">bouton principal</div>
+</div></div></div><p class="phone-cap"><strong>Wireframe</strong></p></div>
+      <span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
+      <div class="stack"><div class="phone" style="width:330px;height:640px"><div class="scr"><div class="scr jr" style="height:100%">
+  <div class="jr-bar"><img src="../_shared/jeere-logo.svg" alt=""><div><div class="jr-shop">Chez Awa</div><div class="jr-url">chezawa.jeere.shop</div></div></div>
+  <div class="jr-edit">Couleurs de la boutique<span class="jr-dots"><i style="background:#EE5A2A"></i><i style="background:#00BFCB"></i><i style="background:#14C46C"></i><i style="background:#3657FF"></i><i style="background:#DE0F7B"></i></span></div>
+  <div class="jr-chips"><span class="jr-chip on">Tout</span><span class="jr-chip">Bijoux</span><span class="jr-chip">Vannerie</span><span class="jr-chip">Pagne</span></div>
+  <div class="jr-grid"><div class="jr-p"><div class="jr-img" style="background:#e9c9a0"><i></i></div><b>Corbeille tressée</b><span>7 000 F</span></div><div class="jr-p"><div class="jr-img" style="background:#cfd9c8"><i></i></div><b>Bracelets perles</b><span>4 500 F</span></div><div class="jr-p"><div class="jr-img" style="background:#efd0b8"><i></i></div><b>Pochette Korhogo</b><span>15 000 F</span></div><div class="jr-p"><div class="jr-img" style="background:#e3c0aa"><i></i></div><b>Bol terre cuite</b><span>6 500 F</span></div></div>
+  <div class="jr-cta">Commander</div>
+</div></div></div><p class="phone-cap"><strong>High fidelity</strong></p></div></div></div>
+  </div>
+  <div class="foot"><span>JEERE · Build log #2</span><span>kreeative.xyz</span></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

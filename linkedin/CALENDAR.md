@@ -100,11 +100,10 @@ Before/after, The Bakery logo.
 Sketch to final: The Bakery wordmark.
 
 What changed between the two:
-The sketch had the idea, a baguette for the B and a cupcake for the e.
-The final gave every letter its own weight so the whole word reads as one shape, not two jokes.
+[WHAT_CHANGED_SKETCH_TO_FINAL]
 
-One line I keep from this project:
-A good mark survives being shrunk to a sticker. If the joke dies at 2 cm, cut the joke.
+The final has a baguette for the B and a cupcake for the e.
+One rule I keep from this project: a good mark survives being shrunk to a sticker.
 
 The identity became packaging, a pattern, and later a website and an ordering app.
 Case study in the first comment.
@@ -264,7 +263,7 @@ Each slide shows the fix as an original mock UI.
 
 Save this for your next website conversation.
 
-#UX #smallbusiness #webdesign #conversion #ux
+#UX #smallbusiness #webdesign #conversion
 ```
 
 ### M1-12 · Thu Dec 10 · IMAGE · EN
@@ -355,11 +354,11 @@ Before/after, GloryWalk streetwear identity.
 ```
 Before and after: GloryWalk, a Christian streetwear brand.
 
-Before: safe. A subtle cross, a plain font, something you would walk past.
+Before: [GLORYWALK_BEFORE_DESCRIPTION]
 After: a gold graffiti wordmark, a W monogram that lives on a hoodie back, navy, gold and sage.
 
 The brief in one line: make belief look undeniable.
-The decision that mattered: the monogram, because apparel needs a mark that works embroidered at 5 cm and printed at 50.
+The decision that mattered: the monogram, because apparel needs a mark that works embroidered on a chest and printed on a back.
 
 Case study in the first comment.
 
@@ -372,10 +371,10 @@ My 2027 creative toolkit.
 ```
 My creative toolkit for 2027. Design, build, video, AI.
 
-Design: [TOOL_DESIGN_1], [TOOL_DESIGN_2]
+Design: [TOOL_DESIGN_1], [TOOL_DESIGN_2], [TOOL_DESIGN_3]
 Build: [TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]
-Video: [TOOL_VIDEO_1], [TOOL_VIDEO_2]
-AI: [TOOL_AI_1], [TOOL_AI_2]
+Video: [TOOL_VIDEO_1], [TOOL_VIDEO_2], [TOOL_VIDEO_3]
+AI: [TOOL_AI_1], [TOOL_AI_2], [TOOL_AI_3]
 
 The rule that keeps the list short: every tool has to earn a slot by removing a step, not adding one.
 
@@ -522,13 +521,15 @@ JEERE brand identity reveal: logo, colours, type.
 ```
 JEERE has a face. Logo, colours, type.
 
-The brief I gave myself: a brand a merchant would be proud to put on her shop sign, and that works on a 5-inch phone first.
+The brief I gave myself: a brand a merchant would be proud to put on her shop sign, and that works on a phone first.
 
-→ Wordmark: [WORDMARK_DESCRIPTION]
-→ Colours: [JEERE_COLOURS_DESCRIPTION]
-→ Type: [JEERE_TYPEFACE], one family for everything
+→ Logo: a hand-drawn cloud, drawn like a brush stroke, with two eyes
+→ Colours: ink on white and warm grey, one orange to point at what matters, and six colours a merchant can give her own shop
+→ Type: Poppins, one family for everything
 
-What I kept out: anything that looks like a bank, and anything that only works on a laptop.
+What I kept out: anything that looks corporate, and anything that only works on a laptop.
+
+[WHY_A_CLOUD]
 
 More of the system in the onboarding case study next week.
 
@@ -565,7 +566,7 @@ JEERE onboarding case study.
 JEERE onboarding, as a case study. From research to prototype.
 
 Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
-User flow: WhatsApp number, shop name, first product, live. [ONBOARDING_STEP_COUNT] steps
+User flow: WhatsApp number, shop name, first product, online
 Wireframes: every step on a phone, in French first
 Prototype: the editor, where you change the colours of your shop with one tap
 What is next: [ONBOARDING_NEXT_STEP]
@@ -673,7 +674,7 @@ Later this month: five Black designers and founders who shaped how I work.
 ```
 5 Black designers and founders who shaped how I work.
 
-1. [NAME_1]: [ONE_LINE_WHAT_THEY_TAUGHT_ME_1]
+1. [NAME_1]: [ONE_LINE_1]
 2. [NAME_2]: [ONE_LINE_2]
 3. [NAME_3]: [ONE_LINE_3]
 4. [NAME_4]: [ONE_LINE_4]
@@ -769,22 +770,24 @@ Thank you for reading. If you build things, stay.
 | Placeholder | Post | What it is |
 |---|---|---|
 | [TOOL_1], [TOOL_2], [TOOL_3] | M1-03 | the AI tools you actually use |
+| [WHAT_CHANGED_SKETCH_TO_FINAL], [BAKERY_SKETCH] | M1-04 | one line on what changed, and the sketch image |
+| [GLORYWALK_BEFORE_DESCRIPTION], [GLORYWALK_BEFORE] | M2-02 | the brand before, in one line and one image |
 | [MERCHANTS_INTERVIEWED] | M1-07, M3-02 | number of merchants you talked to |
 | [FINDING_1] to [FINDING_5] | M1-07 | the five findings, one line each |
 | [CHANGE_FROM_RESEARCH] | M1-07 | one thing you changed because of the interviews |
 | [WHAT_CHANGED_WIREFRAME_TO_HIFI] | M1-12 | the main change between the two |
 | [WIREFRAME_TIME], [HIFI_TIME] | M1-12 | time each took |
 | [CAPCUT_WORK_DESCRIPTION] | M1-14 | what you did as a creator with the video app |
-| [TOOL_DESIGN_*], [TOOL_BUILD_*], [TOOL_VIDEO_*], [TOOL_AI_*] | M2-03 | your 2027 toolkit |
+| [TOOL_DESIGN_*], [TOOL_BUILD_*], [TOOL_VIDEO_*], [TOOL_AI_*] | M2-03 | your 2027 toolkit, three per category |
 | [N_MONTHS] | M2-04 | months since you started JEERE |
 | [LESSON_DIFFERENTLY] | M2-04 | one thing you would do differently |
 | [CLIENT_NAME], [CLIENT_PROBLEM], [RESULT_METRIC_OR_FEEDBACK] | M2-05 | the website case study you choose |
 | [APPLICATION_STATUS] | M2-06 | where the Desjardins application stands |
 | [DURATION_ROLE] | M2-08, M3-01 | how long you were in the CX role |
 | [THANK_YOU_LINE] | M2-08 | optional personal thanks, no employer name |
-| [WORDMARK_DESCRIPTION], [JEERE_COLOURS_DESCRIPTION], [JEERE_TYPEFACE] | M2-11 | from the JEERE brand once confirmed |
+| [WHY_A_CLOUD] | M2-11 | one line on why the JEERE logo is a cloud |
 | [LOCATION_PREFERENCE] | M3-01 | Toronto, remote, Canada |
-| [ONBOARDING_STEP_COUNT], [ONBOARDING_NEXT_STEP] | M3-02 | from the onboarding flow |
+| [ONBOARDING_NEXT_STEP] | M3-02 | what you build next in onboarding |
 | [STAT_WHATSAPP], [STAT_INSTAGRAM], [STAT_MARKETPLACES], [SOURCE_1] to [SOURCE_3] | M3-03 | data points with sources |
 | [BETA_SHOP_COUNT], [BETA_FREE_PERIOD], [BETA_COUNTRIES] | M3-04 | the beta offer (the site currently says the first 50 shops are free for 3 months) |
 | [PERSONAL_LINE_BHM] | M3-07 | one personal line |

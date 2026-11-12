@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>P-03 · Kreeative: design and build, end to end.</title>
+<link rel="stylesheet" href="../../_shared/kee.css">
+<style>@page { size: 1200px 627px; margin: 0; } .page { width: 1200px; height: 627px; }</style>
+</head>
+<body>
+<section class="page" style="width:1200px;height:627px">
+  <img class="mark" src="../../../assets/img/logo-512.webp" alt="" style="left:44px;top:40px">
+  <div style="position:absolute;left:44px;top:120px;width:560px;display:flex;flex-direction:column;gap:22px">
+    <p class="kicker" style="font-size:24px">Studio</p>
+    <h1 class="t-2" style="font-size:68px">Kreeative: design and build, <em>end to end.</em></h1>
+    <p class="body" style="font-size:30px">Brands, websites and web apps, designed and coded by Kee.</p>
+  </div>
+  <div class="sig" style="left:44px;right:auto;top:auto;bottom:40px">kreeative.xyz</div>
+  <div style="position:absolute;right:44px;top:44px;bottom:44px;width:520px;display:flex;align-items:center;justify-content:center"><div class="card" style="width:100%;padding:12px;border-radius:22px"><img src="../../_shared/img/portfolio-v2-desktop.png" alt="" style="width:100%;border-radius:12px;display:block"></div></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

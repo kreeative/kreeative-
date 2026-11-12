@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M2-11 · JEERE has a face.</title>
+<link rel="stylesheet" href="../_shared/kee.css">
+<style>@page { size: 1080px 1350px; margin: 0; }</style>
+</head>
+<body>
+<section class="page">
+  <div class="vl"></div><div class="ht"></div><div class="hb"></div>
+  <img class="mark" src="../../assets/img/logo-512.webp" alt="">
+  <div class="sig">Kee · Kreeative</div>
+  <div class="area">
+    <p class="kicker">JEERE · Brand identity</p>
+    <h2 class="t-2">JEERE has a <em>face.</em></h2>
+    <p class="body">A hand-drawn cloud, ink on white, one orange, and Poppins for everything.</p>
+    
+    <div class="visual"><div style="width:100%;height:100%;background:#fff;border-radius:28px;padding:44px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:36px;font-family:Poppins;color:#111;box-shadow:0 24px 48px -28px rgba(50,28,20,.35)">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F5F5F3;border-radius:22px;padding:30px"><img src="../_shared/jeere-logo.svg" alt="" style="width:240px"><span style="font:400 20px/1 'DM Mono';letter-spacing:.14em;text-transform:uppercase;color:#5E5E5E">Logo</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:6px;background:#111;color:#fff;border-radius:22px;padding:30px"><span style="font-weight:600;font-size:120px;line-height:1;letter-spacing:-.04em">Aa</span><span style="font-weight:600;font-size:34px">Poppins</span><span style="font-size:22px;opacity:.8">400 · 500 · 600 · 700</span></div>
+      <div style="grid-column:span 2;display:grid;grid-template-columns:repeat(4,1fr);gap:18px"><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#111111;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Ink</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#111111</span></div><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#F5F5F3;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Grey</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#F5F5F3</span></div><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#EE5A2A;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Orange</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#EE5A2A</span></div><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#00BFCB;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Teal</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#00BFCB</span></div><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#14C46C;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Green</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#14C46C</span></div><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#3657FF;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Blue</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#3657FF</span></div><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#DE0F7B;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Pink</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#DE0F7B</span></div><div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:#FFB000;box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">Yellow</span><span style="font:400 20px/1 'DM Mono';color:#5E5E5E">#FFB000</span></div></div></div></div>
+  </div>
+  <div class="foot"><span>JEERE · Brand identity</span><span>kreeative.xyz</span></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

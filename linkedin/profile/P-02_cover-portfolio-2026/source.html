@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>P-02 · Product & brand design, 2026.</title>
+<link rel="stylesheet" href="../../_shared/kee.css">
+<style>@page { size: 1200px 627px; margin: 0; } .page { width: 1200px; height: 627px; }</style>
+</head>
+<body>
+<section class="page" style="width:1200px;height:627px">
+  <img class="mark" src="../../../assets/img/logo-512.webp" alt="" style="left:44px;top:40px">
+  <div style="position:absolute;left:44px;top:120px;width:560px;display:flex;flex-direction:column;gap:22px">
+    <p class="kicker" style="font-size:24px">Portfolio · 2026</p>
+    <h1 class="t-2" style="font-size:68px">Product &amp; brand design, <em>2026.</em></h1>
+    <p class="body" style="font-size:30px">Case studies from the problem to the shipped product.</p>
+  </div>
+  <div class="sig" style="left:44px;right:auto;top:auto;bottom:40px">kreeative.xyz</div>
+  <div style="position:absolute;right:44px;top:44px;bottom:44px;width:520px;display:flex;align-items:center;justify-content:center"><div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:14px;width:100%;height:100%">
+            <img class="photo" style="grid-row:span 2" src="../../../assets/img/case-lyzma-1-1000.webp" alt="">
+            <img class="photo" src="../../../assets/img/project-bakery-1000.webp" alt="">
+            <img class="photo" src="../../../assets/img/project-glorywalk-1000.webp" alt=""></div></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

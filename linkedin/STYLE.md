@@ -110,8 +110,20 @@ French posts entirely in French.
   ink `#111111` on white `#FFFFFF` and warm grey `#F5F5F3`, **Poppins** for everything,
   an orange highlight `#EE5A2A`, and a set of six swatches (teal `#00BFCB`, green `#14C46C`,
   blue `#3657FF`, pink `#DE0F7B`, orange `#EE5A2A`, yellow `#FFB000`). Not used until you
-  confirm, see the questions in chat.
+  confirm. **Now in use** for the JEERE posts (M1-07, M1-12, M1-14, M2-07, M2-11, M3-02)
+  and the P-04 cover: the hand-drawn cloud logo is extracted from the live page into
+  `_shared/jeere-logo.svg`, Poppins is in `_shared/fonts/`. Confirm before posting.
 - **No lettering sketches or process files** for Lyzma, The Bakery or GloryWalk: only the
   final brand images in `assets/img/case-*.webp` and `project-*.webp`. Sketch slides will
   need your files or will be marked as placeholders.
 - **No Rich & Friends screens at phone size** except the live-site screenshots (`site-rich-phone-*.webp`).
+
+## 9. How the files are built
+
+- `_shared/kee.css` holds every token and component, including the original mock UIs
+  (Rich & Friends screens, JEERE shop, wireframes, a neutral chat, the Atelier Coco concept
+  salon, booking forms). Change a colour there and re-render: every post follows.
+- `_build/build.py` holds the slide text, alt text and placeholders and writes each post’s
+  `source.html` and `copy.md`. Captions come from `CALENDAR.md`.
+- `_build/render-all.mjs` renders PNG and PDF with Playwright (`node _build/render-all.mjs M1-02`
+  for one post), and `_build/contact_sheet.py` rebuilds `CONTACT_SHEET.png`.

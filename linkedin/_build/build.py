@@ -1,0 +1,816 @@
+#!/usr/bin/env python3
+"""Builds every LinkedIn design: writes source.html and copy.md for each post,
+and _build/jobs.json for the renderer.
+
+    python3 linkedin/_build/build.py          # from the repo root
+    node linkedin/_build/render-all.mjs       # renders PNG / PDF and the contact sheet
+
+Slide text, alt text and placeholders live in this file. Captions come from CALENDAR.md.
+All visual styling lives in _shared/kee.css.
+"""
+import json, os, re, html
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+L = os.path.dirname(HERE)
+CAL = open(os.path.join(L, 'CALENDAR.md'), encoding='utf-8').read()
+JOBS = []
+
+
+# ----------------------------------------------------------------- helpers
+def ph(t):
+    return f'<span class="ph">[{t}]</span>'
+
+
+def phbox(label, hint=''):
+    h = f'<small>{hint}</small>' if hint else ''
+    return f'<div class="phbox">[{label}]{h}</div>'
+
+
+def strip(s):
+    s = re.sub(r'<br\s*/?>', ' ', s)
+    s = re.sub(r'<[^>]+>', '', s)
+    return html.unescape(re.sub(r'\s+', ' ', s)).strip()
+
+
+def caption(pid):
+    m = re.search(r'### ' + re.escape(pid) + r' .*?```\n(.*?)```', CAL, re.S)
+    return m.group(1).strip() if m else ''
+
+
+class Doc:
+    """One post. depth = folder levels below linkedin/ (1 for posts, 2 for profile)."""
+
+    def __init__(self, pid, slug, kind, date, label, depth=1, w=1080, h=1350, lang='en'):
+        self.pid, self.slug, self.kind, self.date, self.label = pid, slug, kind, date, label
+        self.depth, self.w, self.h, self.lang = depth, w, h, lang
+        up = '../' * depth
+        self.A = up + '../assets/'       # repo assets
+        self.S = up + '_shared/'          # shared css, fonts, logos
+        self.pages = []                   # (html, text_dict)
+
+    # --- frame
+    def _frame(self, inner, theme='light'):
+        n = len(self.pages) + 1
+        return n, theme, inner
+
+    def add(self, inner, theme, text):
+        self.pages.append((inner, theme, text))
+
+    def render_pages(self):
+        total = len(self.pages)
+        out = []
+        for i, (inner, theme, _) in enumerate(self.pages, 1):
+            right = f'{i:02d} / {total:02d}' if total > 1 else 'kreeative.xyz'
+            cls = {'light': '', 'dark': ' dark', 'pink': ' pinkbg'}[theme]
+            out.append(f'''<section class="page{cls}">
+  <div class="vl"></div><div class="ht"></div><div class="hb"></div>
+  <img class="mark" src="{self.A}img/logo-512.webp" alt="">
+  <div class="sig">Kee · Kreeative</div>
+{inner}
+  <div class="foot"><span>{self.label}</span><span>{right}</span></div>
+</section>''')
+        return '\n'.join(out)
+
+    # --- page types
+    def hook(self, kicker, title, sub='', visual='', alt='', theme='dark'):
+        v = f'<div class="visual">{visual}</div>' if visual else ''
+        s = f'<p class="lead">{sub}</p>' if sub else ''
+        cls = 'area hook withvisual' if visual else 'area hook'
+        sw = '<p class="swipe">Swipe →</p>' if self.kind == 'CAROUSEL' else ''
+        inner = f'''  <div class="{cls}">
+    {v}
+    <div style="display:flex;flex-direction:column;gap:30px">
+      <p class="kicker">{kicker}</p>
+      <h1 class="t-hook">{title}</h1>
+      {s}
+      {sw}
+    </div>
+  </div>'''
+        self.add(inner, theme, dict(kicker=kicker, title=title, body=sub, alt=alt))
+
+    def slide(self, kicker, title, body='', visual='', alt='', theme='light', size='t-1', extra=''):
+        if isinstance(body, list):
+            b = '<ul class="list">' + ''.join(f'<li>{x}</li>' for x in body) + '</ul>'
+            btxt = ' / '.join(body)
+        elif body:
+            b = f'<p class="body">{body}</p>'
+            btxt = body
+        else:
+            b, btxt = '', ''
+        v = f'<div class="visual">{visual}</div>' if visual else ''
+        inner = f'''  <div class="area">
+    <p class="kicker">{kicker}</p>
+    <h2 class="{size}">{title}</h2>
+    {b}
+    {extra}
+    {v}
+  </div>'''
+        self.add(inner, theme, dict(kicker=kicker, title=title, body=btxt, alt=alt))
+
+    def raw(self, inner, theme, text):
+        self.add(inner, theme, text)
+
+    def cta(self):
+        inner = f'''  <div class="area cta">
+    <img class="cta-mark" src="{self.A}img/logo-512.webp" alt="">
+    <h2 class="t-1">Follow Kee for design, tech and <em>building in public.</em></h2>
+    <p class="save">Save this <span>↓</span></p>
+    <p class="url">kreeative.xyz</p>
+  </div>'''
+        self.add(inner, 'dark', dict(kicker='', title='Follow Kee for design, tech and building in public.', body='Save this. kreeative.xyz',
+                                     alt='Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.'))
+
+    # --- output
+    def folder(self):
+        if self.depth == 2:
+            return os.path.join(L, 'profile', f'{self.pid}_{self.slug}')
+        return os.path.join(L, f'{self.pid}_{self.slug}')
+
+    def write(self, placeholders=None, caption_override=None, notes=''):
+        d = self.folder()
+        os.makedirs(d, exist_ok=True)
+        page_css = f'@page {{ size: {self.w}px {self.h}px; margin: 0; }}'
+        if (self.w, self.h) != (1080, 1350):
+            page_css += f' .page {{ width: {self.w}px; height: {self.h}px; }}'
+        doc = f'''<!doctype html>
+<html lang="{self.lang}">
+<head>
+<meta charset="utf-8">
+<title>{self.pid} · {strip(self.pages[0][2]['title'])}</title>
+<link rel="stylesheet" href="{self.S}kee.css">
+<style>{page_css}</style>
+</head>
+<body>
+{self.render_pages()}
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {{
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }}));
+</script>
+</body>
+</html>
+'''
+        open(os.path.join(d, 'source.html'), 'w', encoding='utf-8').write(doc)
+        ext = 'pdf' if self.kind == 'CAROUSEL' else 'png'
+        out = os.path.join(d, f'{self.pid}_{self.slug}.{ext}')
+        JOBS.append(dict(id=self.pid, src=os.path.relpath(os.path.join(d, 'source.html'), L), out=os.path.relpath(out, L), w=self.w, h=self.h, kind=ext, pages=len(self.pages)))
+        # copy.md
+        cap = caption_override if caption_override is not None else caption(self.pid)
+        lines = [f'# {self.pid} · {strip(self.pages[0][2]["title"])}', '',
+                 f'- Format: {self.kind}, {len(self.pages)} page{"s" if len(self.pages) > 1 else ""}, {self.w} × {self.h}, {ext.upper()}',
+                 f'- Posting date: {self.date}', f'- File: `{os.path.basename(out)}`', '']
+        if notes:
+            lines += [notes, '']
+        lines += ['## Slide text', '']
+        for i, (_, _, t) in enumerate(self.pages, 1):
+            lines.append(f'### Page {i}' if len(self.pages) > 1 else '### Image')
+            if t.get('kicker'): lines.append(f'- Kicker: {strip(t["kicker"])}')
+            if t.get('title'): lines.append(f'- Headline: {strip(t["title"])}')
+            if t.get('body'): lines.append(f'- Body: {strip(t["body"])}')
+            lines.append('')
+        if cap:
+            lines += ['## Caption', '', '```text', cap, '```', '']
+        lines += ['## Alt text', '']
+        for i, (_, _, t) in enumerate(self.pages, 1):
+            pre = f'Page {i}: ' if len(self.pages) > 1 else ''
+            lines.append(f'- {pre}{t.get("alt") or strip(t["title"])}')
+        lines.append('')
+        found = []
+        alltext = cap + ' ' + ' '.join(strip(p[0]) for p in self.pages)
+        for m in re.findall(r'\[([A-Z][A-Z0-9_]+)\]', alltext):
+            if m not in found: found.append(m)
+        if found:
+            lines += ['## Placeholders to fill', '']
+            desc = placeholders or {}
+            for f in found:
+                lines.append(f'- `[{f}]`' + (f': {desc[f]}' if f in desc else ''))
+            lines.append('')
+        open(os.path.join(d, 'copy.md'), 'w', encoding='utf-8').write('\n'.join(lines))
+
+
+# ----------------------------------------------------------------- mock UI pieces
+def phone(inner, w=300, h=620, cap='', capsub=''):
+    c = f'<p class="phone-cap"><strong>{cap}</strong>{capsub}</p>' if cap else ''
+    return f'<div class="stack"><div class="phone" style="width:{w}px;height:{h}px"><div class="scr">{inner}</div></div>{c}</div>'
+
+
+def rf_checkin():
+    return '''<div class="scr rf" style="height:100%">
+  <div class="rf-top"><span class="rf-logo">R&amp;F</span><span class="rf-pill">Today</span></div>
+  <div class="rf-h">Today’s check-in</div>
+  <div class="rf-sub">One window for the whole group</div>
+  <div class="rf-goal"><b>Read 20 pages</b><div class="rf-chips"><span class="rf-chip on">Done</span><span class="rf-chip">Partly</span><span class="rf-chip">Not today</span></div></div>
+  <div class="rf-goal"><b>Gym, 3× a week</b><div class="rf-chips"><span class="rf-chip">0</span><span class="rf-chip">1</span><span class="rf-chip on">2</span><span class="rf-chip">3</span></div></div>
+  <div class="rf-swipe">Swipe to check in →</div>
+</div>'''
+
+
+def rf_board():
+    rows = [('Y', 'You', 'in', 'Checked in'), ('A', 'Ama', 'in', 'Checked in'), ('M', 'Malik', 'in', 'Checked in'), ('S', 'Sara', 'wait', 'Not yet')]
+    r = ''.join(f'<div class="rf-member"><span class="rf-av">{a}</span>{n}<span class="rf-state {c}">{s}</span></div>' for a, n, c, s in rows)
+    return f'''<div class="scr rf" style="height:100%">
+  <div class="rf-top"><span class="rf-logo">R&amp;F</span><span class="rf-pill">Group</span></div>
+  <div class="rf-h">3 of 4 checked in</div>
+  <div class="rf-sub">Who is in, not what they said</div>
+  {r}
+  <div class="rf-seal">Answers open when the window closes.</div>
+</div>'''
+
+
+def rf_history():
+    sq = ['', '', 'miss', '', '', '', 'away', '', '', '', 'miss', '', '', '']
+    s = ''.join(f'<i class="rf-sq {c}"></i>' for c in sq)
+    return f'''<div class="scr rf" style="height:100%">
+  <div class="rf-top"><span class="rf-logo">R&amp;F</span><span class="rf-pill">History</span></div>
+  <div class="rf-h">A rate, not a streak</div>
+  <div class="rf-rate">11<small> of the last 14</small></div>
+  <div class="rf-strip">{s}</div>
+  <div class="rf-legend"><span><i style="background:#FF007A"></i>Done</span><span><i style="border:3px solid #FF007A"></i>Missed</span><span><i style="background:repeating-linear-gradient(45deg,#ffb3d1 0 3px,#fff 3px 6px)"></i>Away</span></div>
+  <div class="rf-seal" style="margin-top:auto">Nothing here resets to zero. A bad week costs a few points.</div>
+</div>'''
+
+
+JR_PRODUCTS = [('Corbeille tressée', '7 000 F', '#e9c9a0'), ('Bracelets perles', '4 500 F', '#cfd9c8'),
+               ('Pochette Korhogo', '15 000 F', '#efd0b8'), ('Bol terre cuite', '6 500 F', '#e3c0aa')]
+
+
+def jr_store(S, edit=True, cta='Commander'):
+    e = '<div class="jr-edit">Couleurs de la boutique<span class="jr-dots"><i style="background:#EE5A2A"></i><i style="background:#00BFCB"></i><i style="background:#14C46C"></i><i style="background:#3657FF"></i><i style="background:#DE0F7B"></i></span></div>' if edit else ''
+    g = ''.join(f'<div class="jr-p"><div class="jr-img" style="background:{c}"><i></i></div><b>{n}</b><span>{p}</span></div>' for n, p, c in JR_PRODUCTS)
+    return f'''<div class="scr jr" style="height:100%">
+  <div class="jr-bar"><img src="{S}jeere-logo.svg" alt=""><div><div class="jr-shop">Chez Awa</div><div class="jr-url">chezawa.jeere.shop</div></div></div>
+  {e}
+  <div class="jr-chips"><span class="jr-chip on">Tout</span><span class="jr-chip">Bijoux</span><span class="jr-chip">Vannerie</span><span class="jr-chip">Pagne</span></div>
+  <div class="jr-grid">{g}</div>
+  <div class="jr-cta">{cta}</div>
+</div>'''
+
+
+def jr_wire():
+    cell = '<div style="display:flex;flex-direction:column;gap:6px"><div class="wf-b" style="aspect-ratio:1"></div><div class="wf-l" style="width:80%"></div><div class="wf-l" style="width:45%"></div></div>'
+    return f'''<div class="scr wf" style="height:100%">
+  <div style="display:flex;gap:10px;align-items:center"><div class="wf-b" style="width:40px;height:30px"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:60%"></div><div class="wf-l" style="width:40%;height:10px"></div></div></div>
+  <div class="wf-x" style="height:44px">barre d’édition</div>
+  <div style="display:flex;gap:6px"><div class="wf-b" style="width:52px;height:26px;border-radius:13px"></div><div class="wf-b" style="width:64px;height:26px;border-radius:13px"></div><div class="wf-b" style="width:72px;height:26px;border-radius:13px"></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">{cell * 4}</div>
+  <div class="wf-x" style="margin-top:auto;height:48px;border-radius:24px">bouton principal</div>
+</div>'''
+
+
+def chat():
+    return '''<div class="scr chat" style="height:100%">
+  <div class="chat-h"><i></i>Cliente · Cocody</div>
+  <div class="chat-b">
+    <div class="bub">Bonsoir, la corbeille tressée c’est combien ?<small>20:41</small></div>
+    <div class="bub me"><div class="img"></div>7 000 F. Il reste deux.<small>21:03</small></div>
+    <div class="bub">Vous avez en plus grand ?<small>21:05</small></div>
+    <div class="bub me">Je regarde et je reviens vers vous.<small>21:30</small></div>
+    <div class="bub">Et la livraison à Cocody ?<small>22:12</small></div>
+    <div class="bub">Allô ??<small>23:40</small></div>
+  </div>
+</div>'''
+
+
+def biz(content, sticky=False, menu='Accueil · Services · Tarifs · Contact · Réserver', ring=None):
+    st = '<div class="biz-sticky">Réserver un rendez-vous</div>' if sticky else ''
+    return f'''<div class="scr biz" style="height:100%">
+  <div class="biz-nav"><span class="biz-logo">Atelier Coco</span><span class="cap" style="font-size:12px;letter-spacing:.1em">Concept</span></div>
+  {content}
+  {st}
+</div>'''
+
+
+def biz_hero(btn=True, ring=False, info=True, ring_info=False):
+    b = f'<span class="biz-btn{" ring" if ring else ""}">Réserver un rendez-vous</span>' if btn else ''
+    i = f'''<div class="biz-info{" ring" if ring_info else ""}"><div><b>Ouvert aujourd’hui</b>9 h à 18 h</div><div><b>Plateau</b>Voir l’itinéraire</div></div>''' if info else ''
+    return f'''<div class="biz-hero"><h4>Tresses, soins et coupes, sans attente.</h4><p>Salon de coiffure · Concept</p>{b}</div>{i}'''
+
+
+# ----------------------------------------------------------------- shared texts
+PH_MERCH = 'number of merchants you talked to'
+
+# =================================================================== PROFILE COVERS (1200 × 627)
+def cover(pid, slug, kicker, title, sub, right_html, alt, theme='light', extra_css=''):
+    d = Doc(pid, slug, 'COVER', 'Profile, featured section', 'Featured', depth=2, w=1200, h=627)
+    cls = {'light': '', 'dark': ' dark'}[theme]
+    inner = f'''<section class="page{cls}" style="width:1200px;height:627px">
+  <img class="mark" src="{d.A}img/logo-512.webp" alt="" style="left:44px;top:40px">
+  <div style="position:absolute;left:44px;top:120px;width:560px;display:flex;flex-direction:column;gap:22px">
+    <p class="kicker" style="font-size:24px">{kicker}</p>
+    <h1 class="t-2" style="font-size:68px">{title}</h1>
+    <p class="body" style="font-size:30px">{sub}</p>
+  </div>
+  <div class="sig" style="left:44px;right:auto;top:auto;bottom:40px">kreeative.xyz</div>
+  <div style="position:absolute;right:44px;top:44px;bottom:44px;width:520px;display:flex;align-items:center;justify-content:center">{right_html}</div>
+</section>'''
+    d.pages = []
+    d.add(inner, theme, dict(kicker=kicker, title=title, body=sub, alt=alt))
+    d.render_pages = lambda: d.pages[0][0]
+    d.write(caption_override='')
+
+
+def build_profile():
+    A = '../../../assets/'
+    cover('P-02', 'cover-portfolio-2026', 'Portfolio · 2026', 'Product &amp; brand design, <em>2026.</em>',
+          'Case studies from the problem to the shipped product.',
+          f'''<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:14px;width:100%;height:100%">
+            <img class="photo" style="grid-row:span 2" src="{A}img/case-lyzma-1-1000.webp" alt="">
+            <img class="photo" src="{A}img/project-bakery-1000.webp" alt="">
+            <img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div>''',
+          'Featured cover on ivory: “Product & brand design, 2026”, beside three project images: Lyzma Industries shopping bags, The Bakery wordmark on cookies, the GloryWalk wordmark on a denim pocket.')
+    cover('P-03', 'cover-kreeative', 'Studio', 'Kreeative: design and build, <em>end to end.</em>',
+          'Brands, websites and web apps, designed and coded by Kee.',
+          f'<div class="card" style="width:100%;padding:12px;border-radius:22px"><img src="../../_shared/img/portfolio-v2-desktop.png" alt="" style="width:100%;border-radius:12px;display:block"></div>',
+          'Featured cover on ivory: “Kreeative: design and build, end to end”, beside a screenshot of the kreeative.xyz home page in a white card.')
+    # JEERE in its own look
+    d = Doc('P-04', 'cover-jeere', 'COVER', 'Profile, featured section', 'Featured', depth=2, w=1200, h=627, lang='fr')
+    inner = f'''<section class="page" style="width:1200px;height:627px;background:#fff;color:#111;font-family:Poppins,sans-serif">
+  <div style="position:absolute;left:56px;top:56px;display:flex;align-items:center;gap:16px"><img src="{d.S}jeere-logo.svg" alt="" style="width:84px"><span style="font-weight:600;font-size:40px;letter-spacing:-.02em">Jeere</span></div>
+  <div style="position:absolute;left:56px;top:200px;width:600px;display:flex;flex-direction:column;gap:20px">
+    <h1 style="font-weight:600;font-size:62px;line-height:1.05;letter-spacing:-.035em">Tout votre commerce, <span style="background:#EE5A2A;color:#fff;padding:0 .12em;border-radius:10px">au même endroit.</span></h1>
+    <p style="font-size:28px;line-height:1.4;color:#2A2A2A">La boutique en ligne des commerçants africains, à créer depuis son téléphone.</p>
+  </div>
+  <div style="position:absolute;left:56px;bottom:44px;font:400 22px/1 'DM Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#5E5E5E">jeere.kreeative.xyz · En construction</div>
+  <div style="position:absolute;right:70px;top:44px">{phone(jr_store(d.S, edit=False), 264, 540)}</div>
+</section>'''
+    d.add(inner, 'light', dict(kicker='JEERE', title='Tout votre commerce, au même endroit.', body='La boutique en ligne des commerçants africains, à créer depuis son téléphone.',
+                               alt='Featured cover in the JEERE look, white with black Poppins type: the hand-drawn cloud logo, “Tout votre commerce, au même endroit.” with the last words on an orange highlight, and a phone showing a concept shop, Chez Awa, with four products.'))
+    d.render_pages = lambda: d.pages[0][0]
+    d.write(caption_override='')
+    cover('P-05', 'cover-lyzma', 'Case study · Brand identity', 'Lyzma Industries: a hand-lettered <em>identity.</em>',
+          'Six decisions behind a jewellery brand made by hand.',
+          f'<img class="photo" src="{A}img/case-lyzma-1-1000.webp" alt="">',
+          'Featured cover on ivory: “Lyzma Industries: a hand-lettered identity”, beside the gold, white and navy Lyzma shopping bags with tags reading Hi and Bonjour.')
+
+
+# =================================================================== MONTH 1
+def m1_02():
+    d = Doc('M1-02', 'lyzma-carousel', 'CAROUSEL', 'Wed Nov 18', 'Brand identity · Lyzma Industries')
+    A = d.A
+    d.hook('Brand identity · Lyzma Industries', 'A hand-lettered identity for a jewellery brand: <em>6 decisions</em> behind it.',
+           visual=f'<div class="card" style="width:100%;height:100%;overflow:hidden"><img class="photo" src="{A}img/project-lyzma-1000.webp" alt="" style="object-fit:contain;background:#f6f6f6"></div>',
+           alt='Deep brown cover: the gold hand-lettered Lyzma Industries logo with its concentric-circle mark on a white card, above the title “A hand-lettered identity for a jewellery brand: 6 decisions behind it.”')
+    d.slide('01 · The brief', 'Handcrafted luxury, without losing <em>the hand.</em>',
+            'Lyzma Industries makes handcrafted, African-inspired jewellery. Too polished and it loses its soul. Too raw and it loses its premium feel. The identity had to live in the middle.',
+            visual='<div class="card" style="padding:44px 48px;width:100%"><p class="cap">The brief, in one sentence</p><p class="t-3" style="margin-top:18px">Refined enough for high-end jewellery, warm enough to honour the craft behind every piece.</p></div>',
+            alt='Ivory slide: decision 1, the brief, with a white card quoting it in one sentence.')
+    d.slide('02 · Lettering', 'Lettered, not <em>typed.</em>', 'The jewellery is made by hand, so the name is too. A signature, not a font.',
+            visual=phbox('LETTERING_SKETCHES', 'Add photos of the pencil sketches here'),
+            alt='Ivory slide: decision 2, “Lettered, not typed”, with a dashed placeholder frame for the lettering sketches.')
+    d.slide('03 · The mark', 'Circles from textile and <em>beadwork.</em>', 'Concentric circles inspired by African craft traditions. Rooted in culture, without being literal.',
+            visual=f'<div class="card" style="width:100%;height:100%;overflow:hidden"><img class="photo" src="{A}img/project-lyzma-1000.webp" alt="" style="object-fit:cover;object-position:28% 50%;transform:scale(1.5);background:#f6f6f6"></div>',
+            alt='Ivory slide: decision 3, the mark, with a close crop of the gold concentric circles.')
+    sw = lambda c, n, h: f'<div style="display:flex;flex-direction:column;gap:14px;flex:1"><div style="height:340px;border-radius:28px;background:{c};box-shadow:inset 0 0 0 2px rgba(50,28,20,.1)"></div><p class="body" style="font-size:32px"><strong>{n}</strong><br>{h}</p></div>'
+    d.slide('04 · Colour', 'One colour: warm <em>gold.</em>', 'Gold on white lets the jewellery speak in photos, and it is easy to reproduce on tags and bags.',
+            visual=f'<div style="display:flex;gap:28px;width:100%">{sw("#ebb64c", "Lyzma gold", "#EBB64C")}{sw("#ffffff", "White", "#FFFFFF")}</div>',
+            alt='Ivory slide: decision 4, colour, with two large swatches: Lyzma gold #EBB64C and white.')
+    d.slide('05 · Type', 'A script, and a quiet <em>partner.</em>', f'The lettered wordmark carries the voice. The supporting typeface, {ph("SECONDARY_TYPEFACE")}, stays quiet so it never competes.',
+            visual=f'<div class="card" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:44px"><p class="cap">Wordmark · hand-lettered</p><img src="{A}img/project-lyzma-1000.webp" alt="" style="width:100%;height:230px;object-fit:cover;object-position:60% 52%;mix-blend-mode:multiply"><p class="cap">Supporting type</p><p class="body"><span class="ph">[SECONDARY_TYPEFACE]</span> for tags, captions and the site.</p></div>',
+            alt='Ivory slide: decision 5, type, with a card showing the real hand-lettered Lyzma wordmark and a placeholder for the supporting typeface.')
+    d.slide('06 · Applications', 'Where it <em>lives.</em>', 'Shopping bags, tags, stickers that say Hi and Bonjour, and the feed.',
+            visual=f'<img class="photo" src="{A}img/case-lyzma-1-1000.webp" alt="">',
+            alt='Ivory slide: decision 6, applications, with the Lyzma shopping bags in gold, white and navy, tags and round stickers reading Hi and Bonjour.')
+    d.cta()
+    d.write({'LETTERING_SKETCHES': 'photos or scans of the Lyzma lettering sketches', 'SECONDARY_TYPEFACE': 'the typeface used next to the lettered wordmark'})
+
+
+def m1_04():
+    d = Doc('M1-04', 'bakery-before-after', 'IMAGE', 'Tue Nov 24', 'Before / after · The Bakery')
+    A = d.A
+    vis = f'''<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;height:100%">
+      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">Before · sketch</p>{phbox("BAKERY_SKETCH", "Scan of the first wordmark sketch")}</div>
+      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">After · final</p><img class="photo" src="{A}img/project-bakery-1000.webp" alt="" style="object-position:40% 50%"></div></div>'''
+    d.slide('Before / after · The Bakery', 'The Bakery wordmark: <em>sketch</em> to final.', f'What changed: {ph("WHAT_CHANGED_SKETCH_TO_FINAL")}',
+            visual=vis, size='t-2',
+            alt='Before and after on ivory. Left: a dashed placeholder for the first sketch of The Bakery wordmark. Right: the final wordmark in cream and pink on a pile of chocolate chip cookies, with a baguette for the B and a cupcake in the e. Below the title, one line on what changed.')
+    cap = '''Sketch to final: The Bakery wordmark.
+
+What changed between the two:
+[WHAT_CHANGED_SKETCH_TO_FINAL]
+
+The final has a baguette for the B and a cupcake for the e.
+One rule I keep from this project: a good mark survives being shrunk to a sticker.
+
+The identity became packaging, a pattern, and later a website and an ordering app.
+Case study in the first comment.
+
+#logodesign #branding #beforeandafter #packaging'''
+    d.write({'BAKERY_SKETCH': 'the first sketch of the wordmark', 'WHAT_CHANGED_SKETCH_TO_FINAL': 'one line on what changed between sketch and final'}, caption_override=cap)
+    return cap
+
+
+def m1_06():
+    d = Doc('M1-06', 'design-process', 'CAROUSEL', 'Thu Nov 26', 'My design process')
+    A = d.A
+    d.hook('Process · 6 steps', 'My design process in <em>6 steps,</em> from brief to launch.', 'With a real project behind each one.',
+           alt='Deep brown cover: “My design process in 6 steps, from brief to launch. With a real project behind each one.”')
+    d.slide('01 · Brief', 'One sentence the client <em>agrees with.</em>', 'Before I open anything. For Lyzma Industries: handcrafted luxury that keeps the feeling of the hand.',
+            visual='<div class="card" style="padding:48px;width:100%"><p class="cap">Lyzma Industries · brief</p><p class="t-3" style="margin-top:18px">“Refined enough for high-end jewellery, warm enough to honour the craft.”</p></div>',
+            alt='Step 1, brief: a white card with the one-sentence Lyzma Industries brief.')
+    lens = [('10 in', 'Nape', 22), ('16 in', 'Armpit', 40), ('22 in', 'Mid-back', 58), ('30 in', 'Hip', 80)]
+    bars = ''.join(f'<div style="display:flex;align-items:center;gap:24px"><span class="body" style="width:130px;font-size:32px"><strong>{a}</strong></span><div style="height:28px;width:{w}%;border-radius:14px;background:var(--baby)"></div><span class="body" style="font-size:32px">{b}</span></div>' for a, b, w in lens)
+    d.slide('02 · Research', 'Learn the question customers <em>already ask.</em>', 'For The Ivory Sukundu it was always the same: where does this length land? The answer became the length guide.',
+            visual=f'<div class="card" style="padding:44px;width:100%;display:flex;flex-direction:column;gap:24px">{bars}</div>',
+            alt='Step 2, research: a simple length guide with four hair lengths and where each lands on the body: 10 inches nape, 16 armpit, 22 mid-back, 30 hip.')
+    d.slide('03 · Moodboard', 'The <em>feeling,</em> before the screens.', 'For The Bakery: what does it feel like to bite into something you have craved all day? Hot pink and cream came from there.',
+            visual=f'''<div style="display:grid;grid-template-columns:1.2fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:18px;width:100%;height:100%">
+              <img class="photo" style="grid-row:span 2" src="{A}img/case-bakery-1-1000.webp" alt="">
+              <img class="photo" src="{A}img/case-bakery-2-1000.webp" alt="">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px"><div style="border-radius:28px;background:#ef7aaf"></div><div style="border-radius:28px;background:#fefadc;box-shadow:inset 0 0 0 2px var(--line)"></div></div></div>''',
+            alt='Step 3, moodboard: The Bakery pastry bag with a croissant, a row of pink pastry boxes, and two swatches, hot pink and cream.')
+    pal = [('#0f0f0f', '#ff0090', 'Black'), ('#f3ece6', '#321c14', 'Cream'), ('#faf6f0', '#5a3626', 'Ivory'), ('#fdfbf7', '#4a2a1a', 'Chocolate'), ('#fdfbf7', '#321c14', 'Darkest brown ✓')]
+    cards = ''.join(f'<div style="display:flex;flex-direction:column;gap:12px"><div style="height:150px;border-radius:22px;background:{bg};box-shadow:inset 0 0 0 2px var(--line);display:flex;align-items:center;padding:0 22px;font-family:Fraunces;font-size:44px;letter-spacing:-.04em;color:{fg}">Aa <span style="margin-left:auto;width:40px;height:40px;border-radius:50%;background:{"#ffb3d1" if i==4 else "#ff0090"}"></span></div><p class="cap">{n}</p></div>' for i, (bg, fg, n) in enumerate(pal))
+    d.slide('04 · Concepts', 'Two or three directions. <em>Never one.</em>', 'This week my LinkedIn banner went through five palettes before the darkest brown, ivory and baby pink stuck.',
+            visual=f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;width:100%">{cards}</div>',
+            alt='Step 4, concepts: five palette cards for the LinkedIn banner, black, cream, ivory, chocolate and the chosen darkest brown with baby pink.')
+    d.slide('05 · Refine', 'The version that survives being <em>used.</em>', 'Rich &amp; Friends v1 went quiet after nine days. v2 was rebuilt against the reasons people quit: one shared check-in, a rate instead of a streak.',
+            visual=f'<div style="display:flex;gap:40px;align-items:flex-end">{phone(rf_checkin(), 280, 560, "v2 · one shared check-in")}{phone(rf_history(), 280, 560, "v2 · a rate, not a streak")}</div>',
+            alt='Step 5, refine: two simplified Rich & Friends screens from v2, the shared daily check-in and the history strip showing 11 of the last 14.')
+    d.slide('06 · Launch', 'Live, measured, and <em>written down.</em>', 'Tabouret’s whole ordering flow works in the browser, and every decision lives in a file, so the next version starts from reasons.',
+            visual=f'<div class="card" style="padding:14px;width:100%"><img src="{A}img/sites/site-tabouret-desktop-1440.webp" alt="" style="width:100%;border-radius:16px;display:block"></div>',
+            alt='Step 6, launch: the live Tabouret ordering app on desktop, a menu with a dish beside it.')
+    d.cta()
+    d.write()
+
+
+def m1_07():
+    d = Doc('M1-07', 'jeere-build-log-1', 'CAROUSEL', 'Tue Dec 1', 'JEERE · Build log #1')
+    d.hook('JEERE · Build log #1', f'I talked to {ph("MERCHANTS_INTERVIEWED")} merchants. <em>5 things</em> I learned.',
+           'What I assumed, what I heard, what I changed.',
+           visual=f'<img src="{d.S}jeere-logo.svg" alt="" style="width:300px;filter:invert(1) sepia(.2)">',
+           alt='Deep brown cover with the hand-drawn JEERE cloud logo in ivory: “I talked to [MERCHANTS_INTERVIEWED] merchants. 5 things I learned.”')
+    for i in range(1, 6):
+        d.slide(f'Finding 0{i}', ph(f'FINDING_{i}'), f'{ph(f"FINDING_{i}_DETAIL")}',
+                visual=f'<div class="card" style="width:100%;padding:44px;display:flex;flex-direction:column;gap:18px"><p class="cap">What it changed in JEERE</p><p class="body"><span class="ph">[FINDING_{i}_CHANGE]</span></p></div>',
+                alt=f'Ivory slide: finding {i} of 5, with placeholders for the finding, a detail and what it changed in JEERE.', size='t-2',
+                extra='' if i > 1 else '')
+    d.cta()
+    ph_desc = {'MERCHANTS_INTERVIEWED': PH_MERCH}
+    for i in range(1, 6):
+        ph_desc[f'FINDING_{i}'] = f'finding {i}, one short line'
+        ph_desc[f'FINDING_{i}_DETAIL'] = 'one or two sentences, ideally in the merchant’s words'
+        ph_desc[f'FINDING_{i}_CHANGE'] = 'what you changed in JEERE because of it'
+    d.write(ph_desc)
+
+
+def m1_09():
+    d = Doc('M1-09', 'rich-and-friends-screens', 'IMAGE', 'Thu Dec 3', 'Product design · Rich & Friends')
+    vis = f'''<div style="display:flex;gap:26px;align-items:flex-start;justify-content:center;width:100%">
+      {phone(rf_checkin(), 262, 540, 'One shared check-in', 'a moment, not an open form')}
+      {phone(rf_board(), 262, 540, 'Swipe, don’t fill', 'answers sealed until it closes')}
+      {phone(rf_history(), 262, 540, 'Hollow, not red', 'a rate, never a streak')}</div>'''
+    d.slide('Product design · Rich &amp; Friends', 'Designing a web app people want to <em>open every day.</em>', '',
+            visual=vis, size='t-2', extra='<span class="tag">Simplified screens</span>',
+            alt='Three simplified Rich & Friends phone screens on ivory. One: today’s check-in with goal cards and Done, Partly, Not today chips. Two: the group board, 3 of 4 checked in, answers sealed until the window closes. Three: the history strip, 11 of the last 14, with filled, hollow and hatched squares.')
+    d.write()
+
+
+def m1_11():
+    d = Doc('M1-11', 'ux-fixes-small-business', 'CAROUSEL', 'Wed Dec 9', '7 UX fixes · Small business')
+    d.hook('UX · Small business websites', '7 UX fixes that get a small business more <em>bookings.</em>', 'No redesign needed. Each fix shown on an original concept site.',
+           alt='Deep brown cover: “7 UX fixes that get a small business more bookings. No redesign needed.”')
+    P = lambda inner, cap='': phone(inner, 330, 640)
+    fixes = [
+        ('One clear call to action, <em>repeated.</em>', 'One button, one verb, on every screen. Here it follows you down the page.',
+         biz(biz_hero(ring=True), sticky=True), 'A concept salon site on a phone with one “Réserver un rendez-vous” button in the hero, ringed in pink, repeated as a sticky bar at the bottom.'),
+        ('Hours and location <em>above the fold.</em>', 'The two things people check first, before they scroll.',
+         biz(biz_hero(btn=True, ring_info=True)), 'The concept salon site with an info block for today’s hours and the neighbourhood, ringed in pink, right under the hero.'),
+        ('Online booking, not <em>“call us”.</em>', 'Let people pick a time at 23:00, when they actually decide.',
+         biz('<div class="biz-sec ring" style="margin-top:6px"><h5>Choisir un créneau · jeudi</h5><div class="biz-slots"><span>9:00</span><span>10:30</span><span class="on">12:00</span><span>14:00</span><span>15:30</span><span>17:00</span></div></div><div class="biz-sec"><h5>Service</h5><div class="biz-info" style="margin:0"><div><b>Tresses</b>2 h</div><div><b>Soin</b>45 min</div></div></div>', sticky=True),
+         'The concept salon site showing a time-slot picker for Thursday with 12:00 selected, ringed in pink.'),
+        ('Fast on a <em>phone.</em>', 'That is where your clients are. Compress images, self-host fonts, cut scripts you do not need.',
+         biz(biz_hero() + '<div class="biz-sec ring"><h5>Avant de mettre en ligne</h5><div class="biz-review">✓ Images compressées<br>✓ Polices hébergées sur le site<br>✓ Un seul script<br>✓ Testé sur un vrai téléphone</div></div>'),
+         'The concept salon site with a pink-ringed checklist: images compressed, fonts self-hosted, one script, tested on a real phone.'),
+        ('Real photos, not <em>stock.</em>', 'Your space, your work, your team. People book the place they can picture.',
+         biz('<div class="biz-sec"><div class="biz-photo ring">Vos vraies photos :<br>le salon, vos réalisations</div><div class="biz-info" style="margin:0"><div class="biz-photo" style="height:110px">Avant / après</div><div class="biz-photo" style="height:110px">L’équipe</div></div></div>', sticky=True),
+         'The concept salon site with photo frames labelled for real photos of the salon, the work and the team.'),
+        ('Reviews where people <em>decide.</em>', 'Next to the booking button, not on a page nobody opens.',
+         biz(biz_hero(info=False) + f'<div class="biz-sec ring"><div class="biz-review"><span class="biz-stars">★★★★★</span><br>[REVIEW_QUOTE]<br><b>[REVIEWER_FIRST_NAME]</b></div></div>'),
+         'The concept salon site with a review card placed right under the booking button, ringed in pink. The review text is a placeholder.'),
+        ('A simple menu: <em>five links.</em>', 'Not fifteen. If it does not help someone book, it goes in the footer.',
+         '<div class="scr biz" style="height:100%"><div class="biz-nav"><span class="biz-logo">Atelier Coco</span></div><div class="biz-sec ring" style="gap:0"><div class="biz-review" style="font-size:20px;line-height:2.1">Services<br>Tarifs<br>Réalisations<br>Contact<br><b>Réserver</b></div></div></div>',
+         'The concept salon site menu open with only five links: Services, Tarifs, Réalisations, Contact and Réserver, ringed in pink.'),
+    ]
+    for i, (t, b, scr, alt) in enumerate(fixes, 1):
+        d.slide(f'Fix 0{i} · Concept', t, b, visual=P(scr), size='t-2', alt=f'Fix {i}: {strip(t)}. {alt}')
+    d.cta()
+    cap = caption('M1-11').replace('#UX #smallbusiness #webdesign #conversion #ux', '#UX #smallbusiness #webdesign #conversion')
+    d.write({'REVIEW_QUOTE': 'leave as a visible placeholder: it shows where a real review goes', 'REVIEWER_FIRST_NAME': 'same, placeholder by design'}, caption_override=cap)
+    return cap
+
+
+def m1_12():
+    d = Doc('M1-12', 'jeere-build-log-2', 'IMAGE', 'Thu Dec 10', 'JEERE · Build log #2')
+    vis = f'''<div style="display:flex;gap:34px;align-items:center;justify-content:center;width:100%">
+      {phone(jr_wire(), 330, 640, 'Wireframe')}
+      <span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
+      {phone(jr_store(d.S), 330, 640, 'High fidelity')}</div>'''
+    d.slide('JEERE · Build log #2', 'The storefront builder, from <em>wireframe</em> to high fidelity.', f'What changed: {ph("WHAT_CHANGED_WIREFRAME_TO_HIFI")}',
+            visual=vis, size='t-2', extra='<span class="tag pink">Concept</span>',
+            alt='Two phones on ivory. Left: a grey wireframe of a shop page with an editing bar, category pills, a two-by-two product grid and a main button. Right: the same page in high fidelity in the JEERE style, the shop Chez Awa with a colour bar, category pills, four products with prices in francs, and an orange order button. Labelled Concept.')
+    d.write({'WHAT_CHANGED_WIREFRAME_TO_HIFI': 'the main change between the wireframe and the high-fidelity version',
+             'WIREFRAME_TIME': 'how long the wireframe took', 'HIFI_TIME': 'how long the high-fidelity version took'})
+
+
+def m1_14():
+    d = Doc('M1-14', '2026-what-i-built', 'CAROUSEL', 'Thu Dec 17', '2026 · What I built')
+    A = d.A
+    d.hook('Year in review', '2026: what I <em>built.</em>', 'One slide each.', alt='Deep brown cover: “2026: what I built. One slide each.”')
+    d.slide('01 · Portfolio', 'A portfolio I <em>own.</em>', 'Rebuilt by hand from a template: case studies written like product design, no subscription.',
+            visual='<div class="card" style="padding:14px;width:100%"><img src="../_shared/img/portfolio-v2-desktop.png" alt="" style="width:100%;border-radius:16px;display:block"></div>',
+            alt='The kreeative.xyz home page on desktop in a white card.')
+    d.slide('02 · Kreeative clients', 'Brands designed and built <em>end to end.</em>', 'Lyzma Industries, GloryWalk, The Bakery, The Ivory Sukundu.',
+            visual=f'''<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:18px;width:100%;height:100%"><img class="photo" style="grid-column:span 2;object-position:50% 45%" src="{A}img/project-bakery-1000.webp" alt=""><img class="photo" src="{A}img/case-lyzma-1-1000.webp" alt=""><img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div>''',
+            alt='Three client brand images: The Bakery wordmark on cookies across the top, the Lyzma Industries shopping bags and the GloryWalk wordmark on denim below.')
+    d.slide('03 · JEERE', 'From an idea to a working <em>editor.</em>', f'An e-commerce platform for African merchants. {ph("JEERE_2026_MILESTONE")}',
+            visual=f'<div style="display:flex;gap:40px;align-items:center"><img src="{d.S}jeere-logo.svg" alt="" style="width:260px">{phone(jr_store(d.S), 300, 600)}</div>',
+            alt='The JEERE cloud logo beside a phone showing a concept shop in the JEERE editor.')
+    d.slide('04 · Creator work', 'Videos for a video app’s <em>creator programme.</em>', ph('CAPCUT_WORK_DESCRIPTION'),
+            visual=phbox('CAPCUT_VIDEO_STILL', 'A still from one of your videos'),
+            alt='Creator work slide with a placeholder frame for a still from one of the videos.')
+    d.slide('05 · New role', 'Close to the people product teams <em>design for.</em>', 'A new role in customer experience at a tech company. Every day: what is broken, what is confusing, what people are actually trying to do.',
+            visual='<div class="card" style="padding:48px;width:100%"><p class="cap">What it changed</p><p class="t-3" style="margin-top:18px">I start from the problem people have, not the feature I want to build.</p></div>',
+            alt='New role slide with a card: “I start from the problem people have, not the feature I want to build.”')
+    d.cta()
+    d.write({'JEERE_2026_MILESTONE': 'where JEERE stands at the end of 2026', 'CAPCUT_WORK_DESCRIPTION': 'one or two lines on your creator work', 'CAPCUT_VIDEO_STILL': 'a still from a video you made'})
+
+
+# =================================================================== MONTH 2
+def m2_02():
+    d = Doc('M2-02', 'glorywalk-before-after', 'IMAGE', 'Week of Dec 21', 'Before / after · GloryWalk')
+    A = d.A
+    vis = f'''<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;height:100%">
+      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">Before</p>{phbox("GLORYWALK_BEFORE", "The brand before the new identity")}</div>
+      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">After</p><img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div></div>'''
+    d.slide('Before / after · GloryWalk', 'Make belief look <em>undeniable.</em>', f'What changed: {ph("WHAT_CHANGED_GLORYWALK")}', visual=vis, size='t-2',
+            alt='Before and after on ivory. Left: a dashed placeholder for GloryWalk before the new identity. Right: the new gold graffiti-style GloryWalk wordmark on a black denim pocket.')
+    cap = '''Before and after: GloryWalk, a Christian streetwear brand.
+
+Before: [GLORYWALK_BEFORE_DESCRIPTION]
+After: a gold graffiti wordmark, a W monogram that lives on a hoodie back, navy, gold and sage.
+
+The brief in one line: make belief look undeniable.
+The decision that mattered: the monogram, because apparel needs a mark that works embroidered on a chest and printed on a back.
+
+Case study in the first comment.
+
+#branding #streetwear #logodesign #beforeandafter'''
+    d.write({'GLORYWALK_BEFORE': 'an image of the brand before the new identity', 'WHAT_CHANGED_GLORYWALK': 'one line on what changed', 'GLORYWALK_BEFORE_DESCRIPTION': 'one line describing the before'}, caption_override=cap)
+    return cap
+
+
+def m2_03():
+    d = Doc('M2-03', 'creative-toolkit-2027', 'CAROUSEL', 'Week of Dec 28', 'Creative toolkit · 2027')
+    d.hook('Toolkit · 2027', 'My 2027 creative <em>toolkit.</em>', 'Design, build, video, AI. Every tool has to remove a step, not add one.',
+           alt='Deep brown cover: “My 2027 creative toolkit. Design, build, video, AI.”')
+    cats = [('Design', 'DESIGN'), ('Build', 'BUILD'), ('Video', 'VIDEO'), ('AI', 'AI')]
+    for i, (n, k) in enumerate(cats, 1):
+        rows = ''.join(f'<div class="card" style="padding:30px 36px;display:flex;justify-content:space-between;align-items:center"><span class="t-3"><span class="ph">[TOOL_{k}_{j}]</span></span><span class="body" style="font-size:32px"><span class="ph">[WHAT_FOR_{k}_{j}]</span></span></div>' for j in (1, 2, 3))
+        d.slide(f'0{i} · {n}', f'{n} <em>tools.</em>', '', visual=f'<div style="display:flex;flex-direction:column;gap:20px;width:100%">{rows}</div>',
+                alt=f'{n} tools slide: three cards, each with a placeholder for a tool name and what you use it for.')
+    d.cta()
+    desc = {}
+    for _, k in cats:
+        for j in (1, 2, 3):
+            desc[f'TOOL_{k}_{j}'] = f'{k.lower()} tool {j}'
+            desc[f'WHAT_FOR_{k}_{j}'] = 'what you use it for, three to five words'
+    cap = caption('M2-03').replace('[TOOL_DESIGN_1], [TOOL_DESIGN_2]', '[TOOL_DESIGN_1], [TOOL_DESIGN_2], [TOOL_DESIGN_3]').replace(
+        '[TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]', '[TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]').replace(
+        '[TOOL_VIDEO_1], [TOOL_VIDEO_2]', '[TOOL_VIDEO_1], [TOOL_VIDEO_2], [TOOL_VIDEO_3]').replace('[TOOL_AI_1], [TOOL_AI_2]', '[TOOL_AI_1], [TOOL_AI_2], [TOOL_AI_3]')
+    d.write(desc, caption_override=cap)
+    return cap
+
+
+def m2_05():
+    d = Doc('M2-05', 'website-case-study', 'CAROUSEL', 'Mon Jan 5', 'Case study · Website')
+    d.hook('Case study · Website', f'{ph("CLIENT_NAME")}: a website, from <em>problem</em> to launch.', alt='Deep brown cover: “[CLIENT_NAME]: a website, from problem to launch.”')
+    d.slide('01 · Problem', 'What was <em>broken.</em>', ph('CLIENT_PROBLEM'),
+            visual=phbox('CLIENT_OLD_SITE_SCREENSHOT', 'The site, Instagram or flyer before'), alt='Problem slide with a placeholder for the client’s old site.')
+    d.slide('02 · Research', 'What their customers <em>asked.</em>', f'{ph("RESEARCH_INSIGHT")}',
+            visual=f'<div style="display:flex;flex-direction:column;gap:20px;width:100%">' + ''.join(f'<div class="card" style="padding:30px 36px"><p class="body"><span class="ph">[CUSTOMER_QUESTION_{j}]</span></p></div>' for j in (1, 2, 3)) + '</div>',
+            alt='Research slide with three cards, each a placeholder for a question customers asked before buying.')
+    wire = '''<div class="card" style="width:100%;height:100%;padding:36px;display:grid;grid-template-rows:60px 1.4fr 1fr 1fr 70px;gap:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div class="wf-b" style="width:160px;height:36px"></div><div style="display:flex;gap:12px"><div class="wf-l" style="width:70px"></div><div class="wf-l" style="width:70px"></div><div class="wf-l" style="width:70px"></div></div></div>
+      <div class="wf-x" style="font-size:24px">Hero · one promise · one button</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px"><div class="wf-x" style="font-size:22px">Service</div><div class="wf-x" style="font-size:22px">Service</div><div class="wf-x" style="font-size:22px">Service</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="wf-x" style="font-size:22px">Real photos</div><div class="wf-x" style="font-size:22px">Reviews</div></div>
+      <div class="wf-x" style="font-size:22px">Hours · location · contact</div></div>'''
+    d.slide('03 · Wireframe', 'The order of things, before any <em>colour.</em>', 'This is where the site is actually decided.', visual=wire,
+            alt='Wireframe slide: a grey page layout with a header, a hero with one promise and one button, three service blocks, real photos, reviews, and hours, location and contact at the bottom.')
+    d.slide('04 · Design', 'The brand, carried onto <em>every screen.</em>', f'{ph("DESIGN_DECISION")}', visual=phbox('CLIENT_DESIGN_SCREEN', 'The final design, desktop or phone'),
+            alt='Design slide with a placeholder for the final design.')
+    d.slide('05 · Launch', 'Live on the client’s <em>own domain.</em>', f'{ph("CLIENT_URL")} · launched {ph("LAUNCH_DATE")}', visual=phbox('CLIENT_LIVE_SCREENSHOT', 'The live site on a phone'),
+            alt='Launch slide with placeholders for the client’s domain, the launch date and a screenshot of the live site.')
+    d.slide('06 · Result', 'What it <em>changed.</em>', '', visual=f'<div class="card" style="padding:56px;width:100%"><p class="cap">Result</p><p class="t-2" style="margin-top:20px"><span class="ph">[RESULT_METRIC_OR_FEEDBACK]</span></p></div>',
+            alt='Result slide with a placeholder for a metric or the client’s feedback.')
+    d.cta()
+    d.write({'CLIENT_NAME': 'the client', 'CLIENT_PROBLEM': 'what was broken, one or two sentences', 'CLIENT_OLD_SITE_SCREENSHOT': 'the before', 'RESEARCH_INSIGHT': 'one line on what you learned',
+             'CUSTOMER_QUESTION_1': 'a question customers asked', 'CUSTOMER_QUESTION_2': 'another', 'CUSTOMER_QUESTION_3': 'another', 'DESIGN_DECISION': 'one design decision and why',
+             'CLIENT_DESIGN_SCREEN': 'the final design', 'CLIENT_URL': 'the live address', 'LAUNCH_DATE': 'month and year', 'CLIENT_LIVE_SCREENSHOT': 'the live site',
+             'RESULT_METRIC_OR_FEEDBACK': 'a real number or a real quote from the client, never invented'})
+
+
+def m2_07():
+    d = Doc('M2-07', 'jeere-dms-to-store', 'IMAGE', 'Wed Jan 7', 'JEERE · Concept')
+    vis = f'''<div style="display:flex;gap:30px;align-items:center;justify-content:center;width:100%">
+      {phone(chat(), 330, 640, 'Today', 'in the DMs')}
+      <span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
+      {phone(jr_store(d.S, edit=False, cta='Commander · livraison Cocody'), 330, 640, 'With JEERE', 'a real store')}</div>'''
+    d.slide('JEERE · Concept', 'From WhatsApp DMs to a <em>real store.</em>', 'Same merchant, same products, same customers. The difference is the tool.',
+            visual=vis, size='t-2', extra='<span class="tag pink">Concept</span>',
+            alt='Two phones on ivory. Left, labelled Today: a generic chat where a customer asks the price of a woven basket at 20:41, the seller answers 7 000 F twenty minutes later, then questions about size and delivery to Cocody go unanswered until “Allô ??” at 23:40. Right, labelled With JEERE: the same products in a concept shop, Chez Awa, with prices, categories and an orange order button with delivery to Cocody. Labelled Concept.')
+    d.write()
+
+
+def m2_09():
+    d = Doc('M2-09', 'cx-to-product-design', 'CAROUSEL', 'Tue Jan 13', 'From CX to product design')
+    d.hook('Career · Skills that transfer', 'From customer experience to product design: <em>6 skills</em> that transfer.',
+           alt='Deep brown cover: “From customer experience to product design: 6 skills that transfer.”')
+    skills = [('Empathy, the practical kind', 'You know what the person is actually trying to do.'),
+              ('Spotting friction', 'You have heard where things break, a thousand times.'),
+              ('Clear writing', 'Every unclear sentence becomes the next support ticket.'),
+              ('Patterns in feedback', 'One complaint is noise. Fifty is a roadmap.'),
+              ('Calm under pressure', 'A frustrated person is information, not a threat.'),
+              ('Cross-team communication', 'You already translate between customers and builders.')]
+    for i, (t, b) in enumerate(skills, 1):
+        inner = f'''  <div class="area" style="justify-content:space-between">
+    <p class="kicker">Skill 0{i} of 06</p>
+    <div class="bignum">0{i}</div>
+    <div style="display:flex;flex-direction:column;gap:28px">
+      <h2 class="t-1">{t.split(", ")[0]}{"<em>, " + t.split(", ")[1] + "</em>" if ", " in t else ""}</h2>
+      <p class="lead">{b}</p>
+    </div>
+  </div>'''
+        d.raw(inner, 'light' if i % 2 else 'pink', dict(kicker=f'Skill 0{i} of 06', title=t, body=b, alt=f'Skill {i} of 6, large numeral 0{i}: “{t}. {b}”'))
+    d.cta()
+    d.write()
+
+
+def m2_11():
+    d = Doc('M2-11', 'jeere-brand-identity', 'IMAGE', 'Thu Jan 15', 'JEERE · Brand identity')
+    sw = [('#111111', 'Ink'), ('#F5F5F3', 'Grey'), ('#EE5A2A', 'Orange'), ('#00BFCB', 'Teal'), ('#14C46C', 'Green'), ('#3657FF', 'Blue'), ('#DE0F7B', 'Pink'), ('#FFB000', 'Yellow')]
+    sws = ''.join(f'<div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:{c};box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">{n}</span><span style="font:400 20px/1 \'DM Mono\';color:#5E5E5E">{c}</span></div>' for c, n in sw)
+    vis = f'''<div style="width:100%;height:100%;background:#fff;border-radius:28px;padding:44px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:36px;font-family:Poppins;color:#111;box-shadow:0 24px 48px -28px rgba(50,28,20,.35)">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F5F5F3;border-radius:22px;padding:30px"><img src="{d.S}jeere-logo.svg" alt="" style="width:240px"><span style="font:400 20px/1 'DM Mono';letter-spacing:.14em;text-transform:uppercase;color:#5E5E5E">Logo</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:6px;background:#111;color:#fff;border-radius:22px;padding:30px"><span style="font-weight:600;font-size:120px;line-height:1;letter-spacing:-.04em">Aa</span><span style="font-weight:600;font-size:34px">Poppins</span><span style="font-size:22px;opacity:.8">400 · 500 · 600 · 700</span></div>
+      <div style="grid-column:span 2;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">{sws}</div></div>'''
+    d.slide('JEERE · Brand identity', 'JEERE has a <em>face.</em>', 'A hand-drawn cloud, ink on white, one orange, and Poppins for everything.', visual=vis, size='t-2',
+            alt='The JEERE brand on one white board: the hand-drawn cloud logo with two eyes on light grey, the typeface Poppins as “Aa” on black, and eight swatches: ink #111111, grey #F5F5F3, orange #EE5A2A, teal #00BFCB, green #14C46C, blue #3657FF, pink #DE0F7B, yellow #FFB000.')
+    cap = '''JEERE has a face. Logo, colours, type.
+
+The brief I gave myself: a brand a merchant would be proud to put on her shop sign, and that works on a phone first.
+
+→ Logo: a hand-drawn cloud, drawn like a brush stroke, with two eyes
+→ Colours: ink on white and warm grey, one orange to point at what matters, and six colours a merchant can give her own shop
+→ Type: Poppins, one family for everything
+
+What I kept out: anything that looks corporate, and anything that only works on a laptop.
+
+[WHY_A_CLOUD]
+
+More of the system in the onboarding case study next week.
+
+#JEERE #branding #brandidentity #logodesign #buildinpublic'''
+    d.write({'WHY_A_CLOUD': 'one line on why the logo is a cloud'}, caption_override=cap,
+            notes='Taken from the live JEERE site (jeere.kreeative.xyz): the cloud logo, Poppins, ink #111111, grey #F5F5F3, orange #EE5A2A and the six shop swatches. Confirm before posting.')
+    return cap
+
+
+# =================================================================== MONTH 3
+def m3_02():
+    d = Doc('M3-02', 'jeere-onboarding', 'CAROUSEL', 'Tue Jan 20', 'JEERE · Onboarding')
+    d.hook('JEERE · Case study', 'JEERE onboarding, from research to <em>prototype.</em>',
+           visual=f'<img src="{d.S}jeere-logo.svg" alt="" style="width:300px;filter:invert(1) sepia(.2)">',
+           alt='Deep brown cover with the JEERE cloud logo in ivory: “JEERE onboarding, from research to prototype.”')
+    d.slide('01 · Research', f'{ph("MERCHANTS_INTERVIEWED")} merchants. Where it <em>breaks</em> today.', '',
+            visual='<div style="width:100%"><ul class="list"><li>Answering “c’est combien ?” all day</li><li>Copying every order into a notebook</li><li>Calling the delivery driver, working out the fee</li><li>Losing a parcel when the client stops answering</li></ul></div>',
+            size='t-2', alt='Research slide: four ways selling breaks today, answering prices all day, copying orders into a notebook, calling the delivery driver, losing parcels.')
+    steps = [('1', 'Numéro WhatsApp'), ('2', 'Nom de la boutique'), ('3', 'Premier produit'), ('4', 'En ligne')]
+    flow = ''.join(f'<div class="card" style="padding:28px 34px;display:flex;align-items:center;gap:26px"><span class="bignum" style="font-size:96px">{n}</span><span class="t-3">{t}</span></div>' + ('<div style="height:26px;width:3px;background:var(--pink);margin-left:70px"></div>' if n != '4' else '') for n, t in steps)
+    d.slide('02 · User flow · Concept', 'Start where the merchant <em>already is.</em>', 'A WhatsApp number, not an email and a password.',
+            visual=f'<div style="display:flex;flex-direction:column;width:100%">{flow}</div>', size='t-2',
+            alt='User flow, concept: four steps in French, WhatsApp number, shop name, first product, online.')
+    w = lambda lines: f'<div class="scr wf" style="height:100%"><div class="wf-l" style="width:50%;height:22px"></div>{lines}<div class="wf-x" style="margin-top:auto;height:48px;border-radius:24px">Continuer</div></div>'
+    s1 = w('<div class="wf-l" style="width:80%"></div><div class="wf-b" style="height:52px"></div><div class="wf-l" style="width:60%"></div>')
+    s2 = w('<div class="wf-l" style="width:70%"></div><div class="wf-b" style="height:52px"></div><div class="wf-x" style="height:120px">aperçu de l’adresse</div>')
+    s3 = w('<div class="wf-x" style="height:160px">photo du produit</div><div class="wf-b" style="height:44px"></div><div class="wf-b" style="height:44px;width:60%"></div>')
+    d.slide('03 · Wireframes', 'Every step on a phone, <em>French first.</em>', '',
+            visual=f'<div style="display:flex;gap:24px">{phone(s1, 270, 540, "Numéro")}{phone(s2, 270, 540, "Boutique")}{phone(s3, 270, 540, "Produit")}</div>', size='t-2',
+            alt='Three grey phone wireframes for the onboarding steps: phone number, shop name with an address preview, first product with a photo.')
+    d.slide('04 · Prototype · Concept', 'Change your shop’s colours with <em>one tap.</em>', '',
+            visual=phone(jr_store(d.S), 340, 680), size='t-2',
+            alt='Prototype, concept: a phone with the JEERE shop editor, a colour bar with five swatches above the shop Chez Awa and its products.')
+    d.slide('05 · What’s next', 'What I am <em>building next.</em>', ph('ONBOARDING_NEXT_STEP'),
+            visual=f'<div class="card" style="padding:48px;width:100%"><p class="cap">Open question</p><p class="t-3" style="margin-top:18px"><span class="ph">[OPEN_QUESTION]</span></p></div>',
+            alt='What’s next slide with placeholders for the next step and an open question.')
+    d.cta()
+    cap = caption('M3-02').replace('User flow: WhatsApp number, shop name, first product, live. [ONBOARDING_STEP_COUNT] steps', 'User flow: WhatsApp number, shop name, first product, online')
+    d.write({'MERCHANTS_INTERVIEWED': PH_MERCH, 'ONBOARDING_NEXT_STEP': 'what you build next', 'OPEN_QUESTION': 'a question you are still working out'}, caption_override=cap,
+            notes='The four-step flow is drawn from the sign-up on jeere.kreeative.xyz (WhatsApp number first). Confirm the steps match the real onboarding before posting.')
+    return cap
+
+
+def m3_03():
+    d = Doc('M3-03', 'how-merchants-sell', 'IMAGE', 'Wed Jan 21', 'African e-commerce')
+    icon = {'chat': '<path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Z"/>',
+            'cam': '<path d="M208,56H180.28L166.65,35.56A8,8,0,0,0,160,32H96a8,8,0,0,0-6.65,3.56L75.71,56H48A24,24,0,0,0,24,80V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V80A24,24,0,0,0,208,56Zm-80,124a40,40,0,1,1,40-40A40,40,0,0,1,128,180Z"/>',
+            'shop': '<path d="M232,96a7.89,7.89,0,0,0-.3-2.2L217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.8A7.89,7.89,0,0,0,24,96v16a40,40,0,0,0,16,32v64a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V144a40,40,0,0,0,16-32Z"/>'}
+    rows = [('chat', 'WhatsApp', 'STAT_WHATSAPP', 'SOURCE_1'), ('cam', 'Instagram', 'STAT_INSTAGRAM', 'SOURCE_2'), ('shop', 'Marketplaces', 'STAT_MARKETPLACES', 'SOURCE_3')]
+    r = ''.join(f'''<div class="card" style="padding:34px 40px;display:grid;grid-template-columns:96px 1fr;gap:30px;align-items:center">
+        <div style="width:96px;height:96px;border-radius:50%;background:var(--baby);display:grid;place-items:center"><svg viewBox="0 0 256 256" width="52" fill="#321c14">{icon[k]}</svg></div>
+        <div style="display:flex;flex-direction:column;gap:10px"><span class="t-3">{n}</span><span class="body" style="font-size:34px"><span class="ph">[{s}]</span></span><span class="cap">Source: [{src}]</span></div></div>''' for k, n, s, src in rows)
+    d.slide('Data · African e-commerce', 'How African merchants sell online <em>today.</em>', '', visual=f'<div style="display:flex;flex-direction:column;gap:24px;width:100%">{r}</div>', size='t-2',
+            alt='Infographic on ivory: three cards for WhatsApp, Instagram and marketplaces, each with an icon, a placeholder data point and a placeholder source.')
+    d.write({'STAT_WHATSAPP': 'a sourced data point', 'STAT_INSTAGRAM': 'a sourced data point', 'STAT_MARKETPLACES': 'a sourced data point',
+             'SOURCE_1': 'publisher and year', 'SOURCE_2': 'publisher and year', 'SOURCE_3': 'publisher and year'})
+
+
+def m3_05():
+    d = Doc('M3-05', 'booking-form-before-after', 'IMAGE', 'Tue Jan 27', 'Before / after · Booking form')
+    fields = ''.join(f'<span class="f-l">{n}</span><div class="f-i"></div>' for n in ['Prénom', 'Nom', 'Courriel', 'Téléphone', 'Adresse', 'Ville', 'Code postal', 'Service', 'Date (JJ/MM/AAAA)', 'Heure', 'Commentaires'])
+    before = f'<div class="scr form" style="height:100%;gap:5px">{fields}<div class="f-i" style="background:#bbb;border:0;margin-top:4px;height:30px;display:grid;place-items:center;color:#fff;font-size:13px">ENVOYER</div></div>'
+    after = '''<div class="scr form" style="height:100%;gap:14px;padding-top:50px">
+      <div class="f-prog"><i class="on"></i><i></i><i></i></div>
+      <span class="f-l" style="font-size:15px">Étape 1 sur 3</span>
+      <div style="font:600 26px/1.2 Inter;letter-spacing:-.02em">Que voulez-vous réserver ?</div>
+      <div class="f-big on">Tresses <span>2 h</span></div>
+      <div class="f-big">Soin <span>45 min</span></div>
+      <div class="f-big">Coupe <span>30 min</span></div>
+      <div class="f-btn">Suivant : choisir l’heure</div></div>'''
+    vis = f'''<div style="display:flex;gap:34px;align-items:center;justify-content:center;width:100%">
+      {phone(before, 330, 640, 'Before', 'eleven fields, one page')}
+      <span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
+      {phone(after, 330, 640, 'After', 'three steps, one question each')}</div>'''
+    d.slide('Before / after · Concept', 'A booking form: fewer fields, <em>better order.</em>', 'Nothing new was invented. Fields removed, order changed, copy rewritten.',
+            visual=vis, size='t-2', extra='<span class="tag pink">Concept</span>',
+            alt='Before and after, concept. Left: a booking form on a phone with eleven small fields on one page and a grey Envoyer button. Right: step 1 of 3, “Que voulez-vous réserver ?”, with three large options, Tresses selected, and a dark button “Suivant : choisir l’heure”.')
+    d.write()
+
+
+def m3_08():
+    d = Doc('M3-08', 'black-designers-founders', 'CAROUSEL', 'Tue Feb 3', 'Black History Month')
+    d.hook('Black History Month', '5 Black designers and founders who shaped <em>how I work.</em>', 'Typography only, on purpose. Their work speaks.',
+           alt='Deep brown cover: “5 Black designers and founders who shaped how I work. Typography only, on purpose.”')
+    for i in range(1, 6):
+        inner = f'''  <div class="area" style="justify-content:space-between">
+    <p class="kicker">0{i} of 05</p>
+    <div style="display:flex;flex-direction:column;gap:30px">
+      <h2 class="t-hook" style="font-size:120px"><span class="ph">[NAME_{i}]</span></h2>
+      <p class="lead"><span class="ph">[ROLE_{i}]</span></p>
+    </div>
+    <div class="card" style="padding:44px"><p class="cap">What I took from their work</p><p class="t-3" style="margin-top:18px"><span class="ph">[ONE_LINE_{i}]</span></p></div>
+  </div>'''
+        d.raw(inner, 'light' if i % 2 else 'pink', dict(kicker=f'0{i} of 05', title=f'[NAME_{i}]', body=f'[ROLE_{i}] · [ONE_LINE_{i}]',
+                                                       alt=f'Typography-only slide {i} of 5: placeholders for a name, their role, and one line on what Kee took from their work.'))
+    d.cta()
+    desc = {}
+    for i in range(1, 6):
+        desc[f'NAME_{i}'] = 'full name'; desc[f'ROLE_{i}'] = 'what they do, one line, verified'; desc[f'ONE_LINE_{i}'] = 'what you took from their work'
+    cap = caption('M3-08').replace('[ONE_LINE_WHAT_THEY_TAUGHT_ME_1]', '[ONE_LINE_1]')
+    d.write(desc, caption_override=cap)
+    return cap
+
+
+def m3_09():
+    d = Doc('M3-09', 'african-ecommerce-6-slides', 'CAROUSEL', 'Wed Feb 4', 'African e-commerce')
+    d.hook('Data · African e-commerce', 'African e-commerce in <em>6 slides.</em>', 'Every number with its source.',
+           alt='Deep brown cover: “African e-commerce in 6 slides. Every number with its source.”')
+    items = [('Market size', 'STAT_MARKET_SIZE', 'SOURCE_A'), ('Where it happens', 'STAT_CHANNELS', 'SOURCE_B'), ('Mobile first', 'STAT_MOBILE', 'SOURCE_C'),
+             ('The merchants', 'STAT_MERCHANTS', 'SOURCE_D'), ('The gap', 'STAT_GAP', 'SOURCE_E'), ('Why now', 'STAT_WHY_NOW', 'SOURCE_F')]
+    for i, (t, s, src) in enumerate(items, 1):
+        inner = f'''  <div class="area" style="justify-content:space-between">
+    <p class="kicker">0{i} · {t}</p>
+    <h2 class="t-hook" style="font-size:120px"><span class="ph">[{s}]</span></h2>
+    <div style="display:flex;flex-direction:column;gap:18px"><p class="lead"><span class="ph">[{s}_CONTEXT]</span></p><p class="cap">Source: [{src}]</p></div>
+  </div>'''
+        d.raw(inner, 'light' if i % 2 else 'pink', dict(kicker=f'0{i} · {t}', title=f'[{s}]', body=f'[{s}_CONTEXT] · Source: [{src}]',
+                                                       alt=f'Data slide {i} of 6, {t}: a large placeholder for the number, one line of context and the source.'))
+    d.cta()
+    desc = {}
+    for _, s, src in items:
+        desc[s] = 'the number, sourced'; desc[s + '_CONTEXT'] = 'one line explaining it'; desc[src] = 'publisher and year'
+    d.write(desc)
+
+
+def m3_10():
+    d = Doc('M3-10', 'portfolio-v2-reveal', 'IMAGE', 'Mon Feb 9', 'Portfolio v2')
+    vis = f'''<div style="position:relative;width:100%;height:100%">
+      <div class="card" style="position:absolute;left:0;top:20px;width:760px;padding:14px"><img src="../_shared/img/portfolio-v2-desktop.png" alt="" style="width:100%;border-radius:16px;display:block"></div>
+      <div style="position:absolute;right:0;bottom:0">{phone('<img src="../_shared/img/portfolio-v2-phone.png" alt="" style="width:100%;display:block">', 290, 600)}</div></div>'''
+    d.slide('Portfolio · v2', 'Portfolio v2 is <em>live.</em>', 'Case studies written like product design: the problem, who it is for, the constraints, the decisions, the outcome.',
+            visual=vis, size='t-1',
+            alt='Portfolio v2 reveal on ivory: the kreeative.xyz home page on desktop in a white card, overlapped by the same page on a phone, with the headline “Hello, I’m Kee and I am a product & brand designer”.')
+    d.write()
+
+
+# =================================================================== run
+build_profile()
+m1_02(); m1_04(); m1_06(); m1_07(); m1_09(); m1_11(); m1_12(); m1_14()
+m2_02(); m2_03(); m2_05(); m2_07(); m2_09(); m2_11()
+m3_02(); m3_03(); m3_05(); m3_08(); m3_09(); m3_10()
+JOBS.insert(0, dict(id='P-01', src='profile/P-01_banner/source.html', out='profile/P-01_banner/P-01_banner.png', w=1584, h=396, kind='png', pages=1))
+json.dump(JOBS, open(os.path.join(HERE, 'jobs.json'), 'w'), indent=1)
+print(len(JOBS), 'jobs')

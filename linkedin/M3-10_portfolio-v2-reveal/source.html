@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M3-10 · Portfolio v2 is live.</title>
+<link rel="stylesheet" href="../_shared/kee.css">
+<style>@page { size: 1080px 1350px; margin: 0; }</style>
+</head>
+<body>
+<section class="page">
+  <div class="vl"></div><div class="ht"></div><div class="hb"></div>
+  <img class="mark" src="../../assets/img/logo-512.webp" alt="">
+  <div class="sig">Kee · Kreeative</div>
+  <div class="area">
+    <p class="kicker">Portfolio · v2</p>
+    <h2 class="t-1">Portfolio v2 is <em>live.</em></h2>
+    <p class="body">Case studies written like product design: the problem, who it is for, the constraints, the decisions, the outcome.</p>
+    
+    <div class="visual"><div style="position:relative;width:100%;height:100%">
+      <div class="card" style="position:absolute;left:0;top:20px;width:760px;padding:14px"><img src="../_shared/img/portfolio-v2-desktop.png" alt="" style="width:100%;border-radius:16px;display:block"></div>
+      <div style="position:absolute;right:0;bottom:0"><div class="stack"><div class="phone" style="width:290px;height:600px"><div class="scr"><img src="../_shared/img/portfolio-v2-phone.png" alt="" style="width:100%;display:block"></div></div></div></div></div></div>
+  </div>
+  <div class="foot"><span>Portfolio v2</span><span>kreeative.xyz</span></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>
