@@ -7,23 +7,31 @@ carousel. Nothing here is invented; where something is missing it is listed at t
 
 ## 1. Colours
 
+Kee’s personal palette, sampled from the media kits in `assets/img/shop/` (Minimal Brown,
+Soft Blue & Cocoa, Pink Scrapbook) and the Brand Collab Guide. This is the LinkedIn palette.
+
 | Role | Hex | Where it comes from |
 |---|---|---|
-| Ink / dark ground | `#0f0f0f` | `--c-black`, the guide pages, the OG images |
-| Dark page (case studies) | `#262626` | `--c-page-dark` |
-| Paper / light ground | `#fcfcfc` | `--c-page`, the guide’s light pages |
-| Body text on dark | `#ffffff` at 100%, secondary at 60% (`rgba(255,255,255,.6)`) | guide subtitle |
-| Body text on light | `#313336` | `--c-text` |
-| Muted / labels | `rgba(255,255,255,.4)` on dark, `rgba(0,0,0,.4)` on light | `--c-text-40` |
-| **Pink accent** | `#ff0090` | `--c-pink`, every italic word, every kicker |
-| Pink highlight (light pages) | `#ffe0f7` | `--c-pink-border`, the `[placeholder]` highlight in the guide |
-| Hairlines | `rgba(255,255,255,.12)` on dark, `rgba(0,0,0,.08)` on light | the guide’s grid lines |
-| Surface 2 (cards) | `#f8f8f8` light, `#1a1a1a` dark | `--c-surface-2`, OG phone mockups |
+| **Cream** (main ground) | `#f3ece6` | between the Minimal Brown kit `#ede5de` and the Cocoa kit `#f9f3ee` |
+| Cream, deeper (cards, bands) | `#e4d8cf` | Minimal Brown kit, page 2 |
+| **White** (second ground, cards) | `#ffffff` | the kits’ white panels |
+| **Brown** (ink: headlines, body) | `#321c14` | Cocoa kit, the “media kit” lettering |
+| Brown, secondary text | `rgba(50,28,20,.62)` | |
+| Brown, labels | `rgba(50,28,20,.42)` | |
+| **Pink, soft** (fills, highlights, pills) | `#e8b9c2` | Pink Scrapbook kit ground |
+| **Pink, accent** (one italic word, kickers) | `#ff0090` on cream and white; `#ffb3d9` on brown | `--c-pink` from the site; the light tint for dark pages |
+| Pink, small text | `#b0005f` | `teach.css`, the deep rose of the pink kit |
+| Hairlines | `rgba(50,28,20,.14)` on cream, `rgba(255,255,255,.16)` on brown | the guide’s grid lines |
+
+Dark pages use **brown `#321c14`** as the ground with cream text, instead of black.
+
+Contrast (WCAG): brown on cream 13.6:1 · brown on soft pink 8.6:1 · `#ff0090` on cream
+3.4:1 (display sizes and kickers only, never body) · `#b0005f` on cream 7.1:1 · cream on
+brown 13.6:1 · `#ffb3d9` on brown 9.5:1.
 
 Rule: one accent only. Pink carries one italic word in a headline, the kicker above it and
-a footer link. Never pink body text. Contrast checked: white on `#0f0f0f` 19:1,
-`#ff0090` on `#0f0f0f` 5.6:1 (fine for display and labels, not for long body),
-`#313336` on `#fcfcfc` 11.6:1.
+a footer link. Soft pink is a surface (a pill, a highlight behind a placeholder, a band), not
+a text colour. Never pink body text.
 
 ## 2. Type
 
@@ -65,9 +73,9 @@ For single images the same frame applies (108 / 72 margins, hairlines, footer).
 
 ## 4. Dark and light pages
 
-The guide alternates: dark (`#0f0f0f`) for the cover and chapter openers, light (`#fcfcfc`)
-for content pages. On LinkedIn: **page 1 dark, content pages light, last page dark**.
-Single images default to dark (it is the look of every OG image). Before/afters: light.
+The guide alternates a dark cover with light content pages. On LinkedIn: **page 1 brown,
+content pages cream (or white for mock UI), last page brown**. Single images default to
+cream. Before/afters: cream with white panels.
 
 ## 5. Photos, mockups, icons
 
@@ -79,15 +87,14 @@ Single images default to dark (it is the look of every OG image). Before/afters:
 - Icons: Phosphor, inline SVG, `currentColor`, 24 to 32px (`assets/icons/`).
 - Decorations used on the site: the dotted pixel strip (`assets/img/dots.svg`), the diagonal
   meteor streaks, dashed-border pills. Use the pixel strip sparingly as a footer band.
-- Placeholders in copy: shown in brackets with a pink highlight (`#ffe0f7` on light, a
-  `rgba(255,0,144,.15)` tint on dark), exactly as the guide does.
+- Placeholders in copy: shown in brackets with a soft pink highlight (`#e8b9c2` on cream,
+  `rgba(232,185,194,.25)` on brown), as the guide does.
 
 ## 6. Signature and footer
 
 - Top-right: `@aissakee` in the guide (Instagram/TikTok handle). For LinkedIn use **KEE · KREEATIVE** in DM Mono.
 - Bottom-left: the series or post label in DM Mono uppercase. Bottom-right: page number `01 / 08`.
-- Last carousel page (dark): the K mark (`assets/img/logo-dark-512.webp` on dark,
-  `logo-512.webp` on light), “Follow Kee for design, tech and building in public”, “Save this”, and `kreeative.xyz`.
+- Last carousel page (brown): the K mark in cream (`logo-512.webp` inverted), on cream pages in brown, “Follow Kee for design, tech and building in public”, “Save this”, and `kreeative.xyz`.
 - The K mark never sits closer than its own height to other elements.
 
 ## 7. Voice on slides

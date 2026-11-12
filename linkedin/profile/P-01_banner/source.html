@@ -8,9 +8,9 @@
   @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 300 400; src: url("../../../assets/fonts/fraunces-italic-300-400-latin.woff2") format("woff2"); }
   @font-face { font-family: "Inter"; font-weight: 400; src: url("../../../assets/fonts/inter-400-latin.woff2") format("woff2"); }
   @font-face { font-family: "DM Mono"; font-weight: 400; src: url("../../../assets/fonts/dm-mono-400-latin.woff2") format("woff2"); }
-  :root { --ink: #0f0f0f; --pink: #ff0090; --line: rgba(255,255,255,.12); --muted: rgba(255,255,255,.45); }
+  :root { --cream: #f3ece6; --brown: #321c14; --pink: #ff0090; --pink-soft: #e8b9c2; --line: rgba(50,28,20,.14); --muted: rgba(50,28,20,.55); }
   html, body { margin: 0; }
-  body { width: 1584px; height: 396px; background: var(--ink); color: #fff; font-family: "Inter", sans-serif; overflow: hidden; position: relative; }
+  body { width: 1584px; height: 396px; background: var(--cream); color: var(--brown); font-family: "Inter", sans-serif; overflow: hidden; position: relative; }
   /* The profile photo sits over the lower-left corner on LinkedIn: keep text right of x = 560. */
   .rule-v { position: absolute; top: 0; bottom: 0; left: 560px; width: 1px; background: var(--line); }
   .rule-h { position: absolute; left: 0; right: 0; top: 72px; height: 1px; background: var(--line); }
@@ -19,14 +19,16 @@
   .kicker { position: absolute; left: 612px; top: 112px; font-family: "DM Mono", monospace; font-size: 22px; letter-spacing: .2em; text-transform: uppercase; color: var(--pink); }
   .title { position: absolute; left: 608px; top: 150px; margin: 0; font-family: "Fraunces", serif; font-weight: 300; font-size: 74px; line-height: 1.06; letter-spacing: -.05em; }
   .title em { font-style: italic; color: var(--pink); }
-  .footer { position: absolute; left: 612px; right: 72px; bottom: 34px; display: flex; justify-content: space-between; font-family: "DM Mono", monospace; font-size: 20px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
-  .footer .site { color: #fff; }
+  .band { position: absolute; top: 0; bottom: 0; right: 0; width: 140px; background: var(--pink-soft); }
+  .footer { position: absolute; left: 612px; right: 212px; bottom: 34px; display: flex; justify-content: space-between; font-family: "DM Mono", monospace; font-size: 20px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  .footer .site { color: var(--brown); }
 </style>
 </head>
 <body>
+  <div class="band"></div>
   <div class="rule-h"></div>
   <div class="rule-v"></div>
-  <img class="mark" src="../../../assets/img/logo-512.webp" alt="" style="filter: invert(1);">
+  <img class="mark" src="../../../assets/img/logo-512.webp" alt="" style="mix-blend-mode: multiply;">
   <div class="brand">Kreeative</div>
 
   <div class="kicker">Design &nbsp;·&nbsp; Tech &nbsp;·&nbsp; Building</div>
