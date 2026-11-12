@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>P-01 LinkedIn banner</title>
+<style>
+  @font-face { font-family: "Fraunces"; font-weight: 300 400; src: url("../../../assets/fonts/fraunces-300-400-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 300 400; src: url("../../../assets/fonts/fraunces-italic-300-400-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Inter"; font-weight: 400; src: url("../../../assets/fonts/inter-400-latin.woff2") format("woff2"); }
+  @font-face { font-family: "DM Mono"; font-weight: 400; src: url("../../../assets/fonts/dm-mono-400-latin.woff2") format("woff2"); }
+  :root { --ink: #0f0f0f; --pink: #ff0090; --line: rgba(255,255,255,.12); --muted: rgba(255,255,255,.45); }
+  html, body { margin: 0; }
+  body { width: 1584px; height: 396px; background: var(--ink); color: #fff; font-family: "Inter", sans-serif; overflow: hidden; position: relative; }
+  /* The profile photo sits over the lower-left corner on LinkedIn: keep text right of x = 560. */
+  .rule-v { position: absolute; top: 0; bottom: 0; left: 560px; width: 1px; background: var(--line); }
+  .rule-h { position: absolute; left: 0; right: 0; top: 72px; height: 1px; background: var(--line); }
+  .mark { position: absolute; left: 72px; top: 14px; width: 44px; height: 44px; }
+  .brand { position: absolute; left: 132px; top: 24px; font-family: "DM Mono", monospace; font-size: 20px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  .kicker { position: absolute; left: 612px; top: 112px; font-family: "DM Mono", monospace; font-size: 22px; letter-spacing: .2em; text-transform: uppercase; color: var(--pink); }
+  .title { position: absolute; left: 608px; top: 150px; margin: 0; font-family: "Fraunces", serif; font-weight: 300; font-size: 74px; line-height: 1.06; letter-spacing: -.05em; }
+  .title em { font-style: italic; color: var(--pink); }
+  .footer { position: absolute; left: 612px; right: 72px; bottom: 34px; display: flex; justify-content: space-between; font-family: "DM Mono", monospace; font-size: 20px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  .footer .site { color: #fff; }
+  .dots { position: absolute; right: 0; top: 84px; width: 300px; height: 140px; opacity: .9; }
+  .dots i { position: absolute; width: 4px; height: 4px; background: var(--pink); }
+</style>
+</head>
+<body>
+  <div class="rule-h"></div>
+  <div class="rule-v"></div>
+  <img class="mark" src="../../../assets/img/logo-512.webp" alt="" style="filter: invert(1);">
+  <div class="brand">Kreeative</div>
+
+  <div class="kicker">Design &nbsp;·&nbsp; Tech &nbsp;·&nbsp; Building</div>
+  <h1 class="title">Designing tech for the<br>people who <em>build.</em></h1>
+
+  <div class="footer"><span>Anne-Kelly “Kee” Kouyaté</span><span class="site">kreeative.xyz</span></div>
+
+  <div class="dots" aria-hidden="true" id="dots"></div>
+  <script>
+    // Pixel strip, as on the site hero: random 4px squares fading toward the top-left.
+    const box = document.getElementById('dots');
+    let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for (let i = 0; i < 260; i++) {
+      const x = rnd(), y = rnd();
+      if (rnd() > (x * 0.9 + (1 - y) * 0.6) / 1.5) continue;
+      const d = document.createElement('i');
+      d.style.left = Math.round(x * 300 / 6) * 6 + 'px'; d.style.top = Math.round(y * 140 / 6) * 6 + 'px';
+      d.style.opacity = (0.25 + rnd() * 0.75).toFixed(2);
+      if (rnd() > 0.7) d.style.background = 'rgba(255,255,255,.5)';
+      box.appendChild(d);
+    }
+  </script>
+</body>
+</html>
