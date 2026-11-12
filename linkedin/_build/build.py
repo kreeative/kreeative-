@@ -194,7 +194,8 @@ class Doc:
 # ----------------------------------------------------------------- mock UI pieces
 def phone(inner, w=300, h=620, cap='', capsub=''):
     c = f'<p class="phone-cap"><strong>{cap}</strong>{capsub}</p>' if cap else ''
-    return f'<div class="stack"><div class="phone" style="width:{w}px;height:{h}px"><div class="scr">{inner}</div></div>{c}</div>'
+    chrome = '<div class="sbar"><span>9:41</span><span class="sbi"><i></i><i></i><i></i><b></b></span></div><i class="island"></i><i class="homebar"></i>'
+    return f'<div class="stack"><div class="phone" style="width:{w}px;height:{h}px"><div class="scr">{inner}</div>{chrome}</div>{c}</div>'
 
 
 def rf_checkin():
@@ -238,10 +239,10 @@ JR_PRODUCTS = [('Corbeille tressée', '7 000 F', '#e9c9a0'), ('Bracelets perles'
 
 
 def jr_store(S, edit=True, cta='Commander'):
-    e = '<div class="jr-edit">Couleurs de la boutique<span class="jr-dots"><i style="background:#EE5A2A"></i><i style="background:#00BFCB"></i><i style="background:#14C46C"></i><i style="background:#3657FF"></i><i style="background:#DE0F7B"></i></span></div>' if edit else ''
+    e = '<div class="jr-edit">Couleurs de la boutique<span class="jr-dots"><i style="background:#E8467C"></i><i style="background:#F0C414"></i><i style="background:#22C97E"></i><i style="background:#1E9BE0"></i><i style="background:#6A4CFF"></i></span></div>' if edit else ''
     g = ''.join(f'<div class="jr-p"><div class="jr-img" style="background:{c}"><i></i></div><b>{n}</b><span>{p}</span></div>' for n, p, c in JR_PRODUCTS)
     return f'''<div class="scr jr" style="height:100%">
-  <div class="jr-bar"><img src="{S}jeere-logo.svg" alt=""><div><div class="jr-shop">Chez Awa</div><div class="jr-url">chezawa.jeere.shop</div></div></div>
+  <div class="jr-bar"><img src="{S}jeere-logo-rainbow.svg" alt=""><div><div class="jr-shop">Chez Awa</div><div class="jr-url">chezawa.jeere.shop</div></div></div>
   {e}
   <div class="jr-chips"><span class="jr-chip on">Tout</span><span class="jr-chip">Bijoux</span><span class="jr-chip">Vannerie</span><span class="jr-chip">Pagne</span></div>
   <div class="jr-grid">{g}</div>
@@ -328,16 +329,17 @@ def build_profile():
     # JEERE in its own look
     d = Doc('P-04', 'cover-jeere', 'COVER', 'Profile, featured section', 'Featured', depth=2, w=1200, h=627, lang='fr')
     inner = f'''<section class="page" style="width:1200px;height:627px;background:#fff;color:#111;font-family:Poppins,sans-serif">
-  <div style="position:absolute;left:56px;top:56px;display:flex;align-items:center;gap:16px"><img src="{d.S}jeere-logo.svg" alt="" style="width:84px"><span style="font-weight:600;font-size:40px;letter-spacing:-.02em">Jeere</span></div>
+  <div style="position:absolute;left:56px;top:56px;display:flex;align-items:center;gap:16px"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:84px"><span style="font-weight:600;font-size:40px;letter-spacing:-.02em">Jeere</span></div>
   <div style="position:absolute;left:56px;top:200px;width:600px;display:flex;flex-direction:column;gap:20px">
-    <h1 style="font-weight:600;font-size:62px;line-height:1.05;letter-spacing:-.035em">Tout votre commerce, <span style="background:#EE5A2A;color:#fff;padding:0 .12em;border-radius:10px">au même endroit.</span></h1>
+    <h1 style="font-weight:600;font-size:62px;line-height:1.05;letter-spacing:-.035em">Tout votre commerce, <span class="jr-rainbow-text">au même endroit.</span></h1>
     <p style="font-size:28px;line-height:1.4;color:#2A2A2A">La boutique en ligne des commerçants africains, à créer depuis son téléphone.</p>
   </div>
+  <div class="jr-rainbow-bar" style="position:absolute;left:56px;bottom:92px;width:420px"></div>
   <div style="position:absolute;left:56px;bottom:44px;font:400 22px/1 'DM Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#5E5E5E">jeere.kreeative.xyz · En construction</div>
   <div style="position:absolute;right:70px;top:44px">{phone(jr_store(d.S, edit=False), 264, 540)}</div>
 </section>'''
     d.add(inner, 'light', dict(kicker='JEERE', title='Tout votre commerce, au même endroit.', body='La boutique en ligne des commerçants africains, à créer depuis son téléphone.',
-                               alt='Featured cover in the JEERE look, white with black Poppins type: the hand-drawn cloud logo, “Tout votre commerce, au même endroit.” with the last words on an orange highlight, and a phone showing a concept shop, Chez Awa, with four products.'))
+                               alt='Featured cover in the JEERE look, white with black Poppins type: the hand-drawn cloud logo in the rainbow, “Tout votre commerce, au même endroit.” with the last words in the JEERE rainbow, a thin rainbow bar, and a phone showing a concept shop, Chez Awa, with four products.'))
     d.render_pages = lambda: d.pages[0][0]
     d.write(caption_override='')
     cover('P-05', 'cover-lyzma', 'Case study · Brand identity', 'Lyzma Industries: a hand-lettered <em>identity.</em>',
@@ -438,9 +440,9 @@ def m1_06():
 
 def m1_07():
     d = Doc('M1-07', 'jeere-build-log-1', 'CAROUSEL', 'Tue Dec 1', 'JEERE · Build log #1')
-    d.hook('JEERE · Build log #1', f'I talked to {ph("MERCHANTS_INTERVIEWED")} merchants. <em>5 things</em> I learned.',
+    d.hook('JEERE · Build log #1', 'I talked to <span class="ph" style="font-size:.6em">[MERCHANTS_INTERVIEWED]</span> merchants. <em>5 things</em> I learned.',
            'What I assumed, what I heard, what I changed.',
-           visual=f'<img src="{d.S}jeere-logo.svg" alt="" style="width:300px;filter:invert(1) sepia(.2)">',
+           visual=f'<img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:300px">',
            alt='Deep brown cover with the hand-drawn JEERE cloud logo in ivory: “I talked to [MERCHANTS_INTERVIEWED] merchants. 5 things I learned.”')
     for i in range(1, 6):
         d.slide(f'Finding 0{i}', ph(f'FINDING_{i}'), f'{ph(f"FINDING_{i}_DETAIL")}',
@@ -526,7 +528,7 @@ def m1_14():
             visual=f'''<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:18px;width:100%;height:100%"><img class="photo" style="grid-column:span 2;object-position:50% 45%" src="{A}img/project-bakery-1000.webp" alt=""><img class="photo" src="{A}img/case-lyzma-1-1000.webp" alt=""><img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div>''',
             alt='Three client brand images: The Bakery wordmark on cookies across the top, the Lyzma Industries shopping bags and the GloryWalk wordmark on denim below.')
     d.slide('03 · JEERE', 'From an idea to a working <em>editor.</em>', f'An e-commerce platform for African merchants. {ph("JEERE_2026_MILESTONE")}',
-            visual=f'<div style="display:flex;gap:40px;align-items:center"><img src="{d.S}jeere-logo.svg" alt="" style="width:260px">{phone(jr_store(d.S), 300, 600)}</div>',
+            visual=f'<div style="display:flex;gap:40px;align-items:center"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:260px">{phone(jr_store(d.S), 300, 600)}</div>',
             alt='The JEERE cloud logo beside a phone showing a concept shop in the JEERE editor.')
     d.slide('04 · Creator work', 'Videos for a video app’s <em>creator programme.</em>', ph('CAPCUT_WORK_DESCRIPTION'),
             visual=phbox('CAPCUT_VIDEO_STILL', 'A still from one of your videos'),
@@ -651,20 +653,21 @@ def m2_09():
 
 def m2_11():
     d = Doc('M2-11', 'jeere-brand-identity', 'IMAGE', 'Thu Jan 15', 'JEERE · Brand identity')
-    sw = [('#111111', 'Ink'), ('#F5F5F3', 'Grey'), ('#EE5A2A', 'Orange'), ('#00BFCB', 'Teal'), ('#14C46C', 'Green'), ('#3657FF', 'Blue'), ('#DE0F7B', 'Pink'), ('#FFB000', 'Yellow')]
-    sws = ''.join(f'<div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:18px;background:{c};box-shadow:inset 0 0 0 2px rgba(17,17,17,.08)"></div><span style="font:500 22px/1.2 Poppins">{n}</span><span style="font:400 20px/1 \'DM Mono\';color:#5E5E5E">{c}</span></div>' for c, n in sw)
-    vis = f'''<div style="width:100%;height:100%;background:#fff;border-radius:28px;padding:44px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:36px;font-family:Poppins;color:#111;box-shadow:0 24px 48px -28px rgba(50,28,20,.35)">
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#F5F5F3;border-radius:22px;padding:30px"><img src="{d.S}jeere-logo.svg" alt="" style="width:240px"><span style="font:400 20px/1 'DM Mono';letter-spacing:.14em;text-transform:uppercase;color:#5E5E5E">Logo</span></div>
-      <div style="display:flex;flex-direction:column;justify-content:center;gap:6px;background:#111;color:#fff;border-radius:22px;padding:30px"><span style="font-weight:600;font-size:120px;line-height:1;letter-spacing:-.04em">Aa</span><span style="font-weight:600;font-size:34px">Poppins</span><span style="font-size:22px;opacity:.8">400 · 500 · 600 · 700</span></div>
-      <div style="grid-column:span 2;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">{sws}</div></div>'''
-    d.slide('JEERE · Brand identity', 'JEERE has a <em>face.</em>', 'A hand-drawn cloud, ink on white, one orange, and Poppins for everything.', visual=vis, size='t-2',
-            alt='The JEERE brand on one white board: the hand-drawn cloud logo with two eyes on light grey, the typeface Poppins as “Aa” on black, and eight swatches: ink #111111, grey #F5F5F3, orange #EE5A2A, teal #00BFCB, green #14C46C, blue #3657FF, pink #DE0F7B, yellow #FFB000.')
+    sw = [('#111111', 'Black'), ('#FFFFFF', 'White'), ('#E8467C', 'Pink-red'), ('#F08A3C', 'Orange'), ('#F0C414', 'Yellow'), ('#22C97E', 'Green'), ('#1E9BE0', 'Blue'), ('#6A4CFF', 'Violet'), ('#C13CE0', 'Magenta')]
+    sws = ''.join(f'<div style="display:flex;flex-direction:column;gap:8px"><div style="height:96px;border-radius:16px;background:{c};box-shadow:inset 0 0 0 2px rgba(17,17,17,.1)"></div><span style="font:500 20px/1.2 Poppins">{n}</span><span style="font:400 18px/1 \'DM Mono\';color:#5E5E5E">{c}</span></div>' for c, n in sw)
+    vis = f'''<div style="width:100%;height:100%;background:#fff;border-radius:28px;padding:40px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;gap:28px;font-family:Poppins;color:#111;box-shadow:0 24px 48px -28px rgba(50,28,20,.35)">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#111;border-radius:22px;padding:30px"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:230px"><span style="font:400 20px/1 'DM Mono';letter-spacing:.14em;text-transform:uppercase;color:#bbb">Logo</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:8px;border:2px solid #EBEBE8;border-radius:22px;padding:30px"><span style="font-weight:600;font-size:116px;line-height:1;letter-spacing:-.04em">Aa</span><span style="font-weight:600;font-size:32px">Poppins</span><span style="font-size:22px;color:#5E5E5E">400 · 500 · 600 · 700</span></div>
+      <div style="grid-column:span 2;display:flex;align-items:center;gap:24px"><span style="flex:none;border-radius:999px;padding:16px 30px;font-weight:600;font-size:24px;border:2px solid transparent;background-image:var(--jr-words),linear-gradient(#fff,#fff),var(--jr-edge);background-size:90px 100%,100% 100%,100% 100%;background-repeat:repeat-x,no-repeat,no-repeat;background-origin:border-box;-webkit-background-clip:text,padding-box,border-box;background-clip:text,padding-box,border-box;-webkit-text-fill-color:transparent">Créer ma boutique</span><span style="font-size:22px;line-height:1.35;color:#2A2A2A">Black and white everywhere. The rainbow only on the buttons and the logo.</span></div>
+      <div style="grid-column:span 2;display:grid;grid-template-columns:repeat(9,1fr);gap:12px">{sws}</div></div>'''
+    d.slide('JEERE · Brand identity', 'JEERE has a <em>face.</em>', 'A hand-drawn cloud, black and white everywhere, and a rainbow for what you press.', visual=vis, size='t-2',
+            alt='The JEERE brand on one white board: the hand-drawn cloud logo in a seven-colour rainbow on black, the typeface Poppins as “Aa”, a white button “Créer ma boutique” with a rainbow edge and rainbow letters, and nine swatches: black, white, pink-red #E8467C, orange #F08A3C, yellow #F0C414, green #22C97E, blue #1E9BE0, violet #6A4CFF, magenta #C13CE0.')
     cap = '''JEERE has a face. Logo, colours, type.
 
 The brief I gave myself: a brand a merchant would be proud to put on her shop sign, and that works on a phone first.
 
 → Logo: a hand-drawn cloud, drawn like a brush stroke, with two eyes
-→ Colours: ink on white and warm grey, one orange to point at what matters, and six colours a merchant can give her own shop
+→ Colours: black and white everywhere, and a seven-colour rainbow only where it matters: the buttons and the logo
 → Type: Poppins, one family for everything
 
 What I kept out: anything that looks corporate, and anything that only works on a laptop.
@@ -675,7 +678,7 @@ More of the system in the onboarding case study next week.
 
 #JEERE #branding #brandidentity #logodesign #buildinpublic'''
     d.write({'WHY_A_CLOUD': 'one line on why the logo is a cloud'}, caption_override=cap,
-            notes='Taken from the live JEERE site (jeere.kreeative.xyz): the cloud logo, Poppins, ink #111111, grey #F5F5F3, orange #EE5A2A and the six shop swatches. Confirm before posting.')
+            notes='Taken from the live JEERE site (jeere.kreeative.xyz and its rainbow.css): the cloud logo, Poppins, black and white, and the seven rainbow colours on buttons and the logo. Confirm before posting.')
     return cap
 
 
@@ -683,7 +686,7 @@ More of the system in the onboarding case study next week.
 def m3_02():
     d = Doc('M3-02', 'jeere-onboarding', 'CAROUSEL', 'Tue Jan 20', 'JEERE · Onboarding')
     d.hook('JEERE · Case study', 'JEERE onboarding, from research to <em>prototype.</em>',
-           visual=f'<img src="{d.S}jeere-logo.svg" alt="" style="width:300px;filter:invert(1) sepia(.2)">',
+           visual=f'<img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:300px">',
            alt='Deep brown cover with the JEERE cloud logo in ivory: “JEERE onboarding, from research to prototype.”')
     d.slide('01 · Research', f'{ph("MERCHANTS_INTERVIEWED")} merchants. Where it <em>breaks</em> today.', '',
             visual='<div style="width:100%"><ul class="list"><li>Answering “c’est combien ?” all day</li><li>Copying every order into a notebook</li><li>Calling the delivery driver, working out the fee</li><li>Losing a parcel when the client stops answering</li></ul></div>',
@@ -732,7 +735,7 @@ def m3_05():
     d = Doc('M3-05', 'booking-form-before-after', 'IMAGE', 'Tue Jan 27', 'Before / after · Booking form')
     fields = ''.join(f'<span class="f-l">{n}</span><div class="f-i"></div>' for n in ['Prénom', 'Nom', 'Courriel', 'Téléphone', 'Adresse', 'Ville', 'Code postal', 'Service', 'Date (JJ/MM/AAAA)', 'Heure', 'Commentaires'])
     before = f'<div class="scr form" style="height:100%;gap:5px">{fields}<div class="f-i" style="background:#bbb;border:0;margin-top:4px;height:30px;display:grid;place-items:center;color:#fff;font-size:13px">ENVOYER</div></div>'
-    after = '''<div class="scr form" style="height:100%;gap:14px;padding-top:50px">
+    after = '''<div class="scr form" style="height:100%;gap:14px;padding-top:66px">
       <div class="f-prog"><i class="on"></i><i></i><i></i></div>
       <span class="f-l" style="font-size:15px">Étape 1 sur 3</span>
       <div style="font:600 26px/1.2 Inter;letter-spacing:-.02em">Que voulez-vous réserver ?</div>
@@ -799,7 +802,7 @@ def m3_10():
     d = Doc('M3-10', 'portfolio-v2-reveal', 'IMAGE', 'Mon Feb 9', 'Portfolio v2')
     vis = f'''<div style="position:relative;width:100%;height:100%">
       <div class="card" style="position:absolute;left:0;top:20px;width:760px;padding:14px"><img src="../_shared/img/portfolio-v2-desktop.png" alt="" style="width:100%;border-radius:16px;display:block"></div>
-      <div style="position:absolute;right:0;bottom:0">{phone('<img src="../_shared/img/portfolio-v2-phone.png" alt="" style="width:100%;display:block">', 290, 600)}</div></div>'''
+      <div style="position:absolute;right:0;bottom:0">{phone('<img src="../_shared/img/portfolio-v2-phone.png" alt="" style="width:100%;display:block;margin-top:54px">', 290, 600)}</div></div>'''
     d.slide('Portfolio · v2', 'Portfolio v2 is <em>live.</em>', 'Case studies written like product design: the problem, who it is for, the constraints, the decisions, the outcome.',
             visual=vis, size='t-1',
             alt='Portfolio v2 reveal on ivory: the kreeative.xyz home page on desktop in a white card, overlapped by the same page on a phone, with the headline “Hello, I’m Kee and I am a product & brand designer”.')

@@ -79,8 +79,9 @@ ivory. Before/afters: ivory with white panels.
 
 ## 5. Photos, mockups, icons
 
-- Phone mockups: black rounded phones (radius ≈ 44px on a 220px-wide phone) with a
-  1px `rgba(255,255,255,.15)` border, screens slightly rotated or staggered, as in `og/home.jpg`.
+- Phone mockups: a modern phone drawn in CSS (`.phone` in `_shared/kee.css`): dark metal edge,
+  side buttons, island, status bar and home bar. Apple’s official bezels are not used: their
+  licence only covers mock-ups of apps that run solely on Apple systems, and these are web apps.
   Screens come from `assets/img/sites/*-phone-*.webp` or are drawn as original mock UI.
 - Photos: only Kee (`assets/img/portrait-*.webp`, black and white). Product photos only from
   the case-study assets.
@@ -106,13 +107,12 @@ French posts entirely in French.
 
 - **No portfolio PDF and no past LinkedIn carousels.** The Brand Collab Guide is the only
   multi-page document; the style above is taken from it and from the OG images.
-- **No `./assets/jeere`.** The live JEERE site (jeere.kreeative.xyz) has its own look:
-  ink `#111111` on white `#FFFFFF` and warm grey `#F5F5F3`, **Poppins** for everything,
-  an orange highlight `#EE5A2A`, and a set of six swatches (teal `#00BFCB`, green `#14C46C`,
-  blue `#3657FF`, pink `#DE0F7B`, orange `#EE5A2A`, yellow `#FFB000`). Not used until you
-  confirm. **Now in use** for the JEERE posts (M1-07, M1-12, M1-14, M2-07, M2-11, M3-02)
-  and the P-04 cover: the hand-drawn cloud logo is extracted from the live page into
-  `_shared/jeere-logo.svg`, Poppins is in `_shared/fonts/`. Confirm before posting.
+- **No `./assets/jeere`.** JEERE posts follow the live site (jeere.kreeative.xyz and its
+  `rainbow.css`): **black and white everywhere**, Poppins for everything, and a **seven-colour
+  rainbow only on buttons and the logo**: pink-red `#E8467C`, orange `#F08A3C`, yellow `#F0C414`,
+  green `#22C97E`, blue `#1E9BE0`, violet `#6A4CFF`, magenta `#C13CE0` (deeper versions for
+  rainbow text on white). Buttons on white: white fill, rainbow edge, rainbow letters. The cloud
+  logo is in `_shared/jeere-logo-rainbow.svg` (and plain black in `jeere-logo.svg`). Confirm before posting.
 - **No lettering sketches or process files** for Lyzma, The Bakery or GloryWalk: only the
   final brand images in `assets/img/case-*.webp` and `project-*.webp`. Sketch slides will
   need your files or will be marked as placeholders.

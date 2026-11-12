@@ -13,4 +13,4 @@
 
 ## Alt text
 
-- Featured cover in the JEERE look, white with black Poppins type: the hand-drawn cloud logo, “Tout votre commerce, au même endroit.” with the last words on an orange highlight, and a phone showing a concept shop, Chez Awa, with four products.
+- Featured cover in the JEERE look, white with black Poppins type: the hand-drawn cloud logo in the rainbow, “Tout votre commerce, au même endroit.” with the last words in the JEERE rainbow, a thin rainbow bar, and a phone showing a concept shop, Chez Awa, with four products.

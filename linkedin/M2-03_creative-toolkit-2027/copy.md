@@ -36,10 +36,10 @@
 ```text
 My creative toolkit for 2027. Design, build, video, AI.
 
-Design: [TOOL_DESIGN_1], [TOOL_DESIGN_2], [TOOL_DESIGN_3]
+Design: [TOOL_DESIGN_1], [TOOL_DESIGN_2], [TOOL_DESIGN_3], [TOOL_DESIGN_3]
 Build: [TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]
-Video: [TOOL_VIDEO_1], [TOOL_VIDEO_2], [TOOL_VIDEO_3]
-AI: [TOOL_AI_1], [TOOL_AI_2], [TOOL_AI_3]
+Video: [TOOL_VIDEO_1], [TOOL_VIDEO_2], [TOOL_VIDEO_3], [TOOL_VIDEO_3]
+AI: [TOOL_AI_1], [TOOL_AI_2], [TOOL_AI_3], [TOOL_AI_3]
 
 The rule that keeps the list short: every tool has to earn a slot by removing a step, not adding one.
 
