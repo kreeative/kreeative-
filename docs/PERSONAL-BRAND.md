@@ -1,6 +1,6 @@
 # Aïssa Kee — personal brand brief
 
-Last updated: 19 October 2026. This is the single source of truth for any
+Last updated: 12 November 2026. This is the single source of truth for any
 content, design or planning work on Kee's personal brand (Instagram, TikTok,
 YouTube) and on how it feeds Kreeative. Update it here when numbers, prices or
 the campaign change.
@@ -33,9 +33,22 @@ The last 365 days, 18 October 2025 to 17 October 2026 (TikTok analytics, read on
 - Most active time, the 7 days to 17 October: Saturday, 5 to 6 pm
 - From the 1 October brief, not refreshed since: 433K views in 28 days (up 46%)
 
+## Direction from 12 November: motivation and manifesting
+
+Kee, 12 November: "I want my personal account Aïssa Kee to be more about motivation, like The Wizard Liz and the people who motivate, manifest things in their life and boost. How to activate the right feelings in life, how to manifest. In English."
+
+- **What @aissakee is now:** the older sister who believes in you. Motivation, manifesting and "becoming her", **with faith**: write it, speak it, pray it, then work it. Instagram and YouTube Shorts, English.
+- **Four pillars:** (1) *Activate it*: how to switch on the right feelings (mornings, music, gratitude, small wins); (2) *Manifest it, the faith version*: write it like it's done, speak it, pray then plan, thank God first, with a verse in modern wording; (3) *Become her*: standards, discipline, stop shrinking; (4) *My proof*: true moments from my life (self-taught designer, built Kreeative at night while studying and working), never invented.
+- **Five filmed formats,** from the study of The Wizard Liz and this month's breakout Reels (`content/2026-11/creator-study-thewizardliz-motivation.md`): the 7–15 s short clip (me in a good-looking spot, one line on screen, a trending sound), the 45–75 s monologue (a shocking first line, the danger, my proof, a two-word close), the spoken blessing with a comment prompt ("I claim it", "Amen"), the list to camera, and the Sunday verse. Plus quote posts and carousels on plain backgrounds.
+- **Rhythm:** a Reel every evening at 7 pm, a ready-made post Monday, Wednesday and Friday at 12 pm, all filmed on Saturdays. The first plan: Nov 16 to 29, `content/2026-11/plan-nov-16-29.md`, posts in `content/2026-11/posts-nov16-29/`. The deck to film from, each week opening on its Saturday run sheet: https://claude.ai/artifact/891755k9vVTz1peJKBWkFh (Figma's connector was offline on 12 November).
+- **Manifesting, my way (to confirm with Kee):** faith plus work, God rather than "the universe", no rituals (palo santo, crystals, "quantum shifting", "energy codes") and no income promises. It fits my faith and my TikTok stance on witchcraft.
+- **Rules that stay:** the viewer test on every first line; on-screen text in the top third, above my head, never over my face; quote posts on plain backgrounds, signed @aissakee; verses in modern wording; real numbers and real stories only.
+- **TikTok @keekyt** keeps its own track (bilingual, strong topics, never an Instagram repost); one motivation TikTok a week fits it, since "believing in your dream and my testimony" is already one of my most viral topics there.
+- **The business link:** motivation brings the audience; my own story (student, self-taught, Kreeative) is the proof, about once a week, and the link in bio stays kreeative.xyz. Creator-money content moves out of the daily mix for now.
+
 ## How the personal brand and Kreeative connect
 
-- The personal accounts (@aissakee, @keekyt, YouTube) build trust and audience: my life, faith, beauty and UGC content, student life, creator tips.
+- The personal accounts (@aissakee, @keekyt, YouTube) build trust and audience. Since 12 November, @aissakee leads with motivation and manifesting with faith (above); my life, beauty, UGC and student life come in through it.
 - Kreeative is the business they point to: websites, flyers, video editing, media kit templates, and the formation.
 - I also do UGC and brand collabs myself: a Profusion Cosmetics × Walmart makeup carousel, and a MONDAY Haircare partnership (an Instagram Story tagged #MONDAYpartner: the Moisture Hydration shampoo and conditioner, the Original Dry Shampoo and the Vanilla Glaze hair and body mist). Also in the portfolio, as product shots with no partnership claimed until I confirm one: an UGG unboxing, NYX Butter Gloss, and a nail close-up.
 

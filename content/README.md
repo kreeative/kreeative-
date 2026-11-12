@@ -21,6 +21,10 @@ content/
     month-oct-17-nov-15.md     the month: Saturday run sheets, the day-by-day list, every post and TikTok
     posts-oct17-nov15/         that month's ready-made posts, one folder per post, named NN-monDD-slug
     calendar.md                what goes out when, per platform
+  2026-11/
+    plan-nov-16-29.md          the new direction's first plan: run sheets, day by day, every piece
+    posts-nov16-29/            its ready-made posts, one folder per post
+    creator-study-thewizardliz-motivation.md   the study behind the motivation direction
     08-reel-founding-spots.md  one file per piece, named DD-format-slug.md
     09-carousel-media-kit.md
     ...
