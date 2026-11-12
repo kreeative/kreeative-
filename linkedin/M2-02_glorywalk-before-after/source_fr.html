@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>M2-02 · Make belief look undeniable.</title>
+<link href="../_shared/kee.css" rel="stylesheet"/>
+<style>@page { size: 1080px 1350px; margin: 0; }</style>
+</head>
+<body>
+<section class="page">
+<div class="vl"></div><div class="ht"></div><div class="hb"></div>
+<img alt="" class="mark" src="../../assets/img/logo-512.webp"/>
+<div class="sig">Kee · Kreeative</div>
+<div class="area">
+<p class="kicker">Avant / après · GloryWalk</p>
+<h2 class="t-2">Rendre la foi <em>impossible à ignorer.</em></h2>
+<p class="body">Ce qui a changé : <span class="ph">[WHAT_CHANGED_GLORYWALK]</span></p>
+<div class="visual"><div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;height:100%">
+<div style="display:flex;flex-direction:column;gap:16px"><p class="cap">Avant</p><div class="phbox">[GLORYWALK_BEFORE]<small>La marque avant la nouvelle identité</small></div></div>
+<div style="display:flex;flex-direction:column;gap:16px"><p class="cap">Après</p><img alt="" class="photo" src="../../assets/img/project-glorywalk-1000.webp"/></div></div></div>
+</div>
+<div class="foot"><span>Avant / après · GloryWalk</span><span>kreeative.xyz</span></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

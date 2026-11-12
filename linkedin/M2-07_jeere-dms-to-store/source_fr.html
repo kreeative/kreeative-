@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>M2-07 · From WhatsApp DMs to a real store.</title>
+<link href="../_shared/kee.css" rel="stylesheet"/>
+<style>@page { size: 1080px 1350px; margin: 0; }</style>
+</head>
+<body>
+<section class="page">
+<div class="vl"></div><div class="ht"></div><div class="hb"></div>
+<img alt="" class="mark" src="../../assets/img/logo-512.webp"/>
+<div class="sig">Kee · Kreeative</div>
+<div class="area">
+<p class="kicker">JEERE · Concept</p>
+<h2 class="t-2">Des messages WhatsApp à une <em>vraie boutique.</em></h2>
+<p class="body">Même commerçante, mêmes produits, mêmes clientes. La différence, c’est l’outil.</p>
+<span class="tag pink">Concept</span>
+<div class="visual"><div style="display:flex;gap:30px;align-items:center;justify-content:center;width:100%">
+<div class="stack"><div class="phone" style="width:330px;height:640px"><div class="scr"><div class="scr chat" style="height:100%">
+<div class="chat-h"><i></i>Cliente · Cocody</div>
+<div class="chat-b">
+<div class="bub">Bonsoir, la corbeille tressée c’est combien ?<small>20:41</small></div>
+<div class="bub me"><div class="img"></div>7 000 F. Il reste deux.<small>21:03</small></div>
+<div class="bub">Vous avez en plus grand ?<small>21:05</small></div>
+<div class="bub me">Je regarde et je reviens vers vous.<small>21:30</small></div>
+<div class="bub">Et la livraison à Cocody ?<small>22:12</small></div>
+<div class="bub">Allô ??<small>23:40</small></div>
+</div>
+</div></div><div class="sbar"><span>9:41</span><span class="sbi"><i></i><i></i><i></i><b></b></span></div><i class="island"></i><i class="homebar"></i></div><p class="phone-cap"><strong>Aujourd’hui</strong>dans les messages</p></div>
+<span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
+<div class="stack"><div style="width:400px;background:#141110;border-radius:44px;padding:20px 18px 16px;box-shadow:0 46px 84px -36px rgba(50,28,20,.55)"><img alt="" src="../_shared/img/jeere/storefront.webp" style="width:100%;display:block;border-radius:30px"/></div><p class="phone-cap"><strong>Avec JEERE</strong>une vraie boutique</p></div></div></div>
+</div>
+<div class="foot"><span>JEERE · Concept</span><span>kreeative.xyz</span></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

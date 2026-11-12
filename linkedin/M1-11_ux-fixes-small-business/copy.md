@@ -75,11 +75,11 @@ Save this for your next website conversation.
 ## Alt text
 
 - Page 1: Deep brown cover: “7 UX fixes that get a small business more bookings. No redesign needed.”
-- Page 2: Fix 1: One clear call to action, repeated.. A concept salon site on a phone with one “Réserver un rendez-vous” button in the hero, ringed in pink, repeated as a sticky bar at the bottom.
-- Page 3: Fix 2: Hours and location above the fold.. The concept salon site with an info block for today’s hours and the neighbourhood, ringed in pink, right under the hero.
-- Page 4: Fix 3: Online booking, not “call us”.. The concept salon site showing a time-slot picker for Thursday with 12:00 selected, ringed in pink.
-- Page 5: Fix 4: Fast on a phone.. The concept salon site with a pink-ringed checklist: images compressed, fonts self-hosted, one script, tested on a real phone.
-- Page 6: Fix 5: Real photos, not stock.. The concept salon site with photo frames labelled for real photos of the salon, the work and the team.
-- Page 7: Fix 6: Reviews where people decide.. The concept salon site with a review card placed right under the booking button, ringed in pink. The review card is labelled as the slot for a real customer review.
-- Page 8: Fix 7: A simple menu: five links.. The concept salon site menu open with only five links: Services, Tarifs, Réalisations, Contact and Réserver, ringed in pink.
+- Page 2: Fix 1: One clear call to action, repeated. A concept salon site on a phone with one “Réserver un rendez-vous” button in the hero, ringed in pink, repeated as a sticky bar at the bottom.
+- Page 3: Fix 2: Hours and location above the fold. The concept salon site with an info block for today’s hours and the neighbourhood, ringed in pink, right under the hero.
+- Page 4: Fix 3: Online booking, not “call us”. The concept salon site showing a time-slot picker for Thursday with 12:00 selected, ringed in pink.
+- Page 5: Fix 4: Fast on a phone. The concept salon site with a pink-ringed checklist: images compressed, fonts self-hosted, one script, tested on a real phone.
+- Page 6: Fix 5: Real photos, not stock. The concept salon site with photo frames labelled for real photos of the salon, the work and the team.
+- Page 7: Fix 6: Reviews where people decide. The concept salon site with a review card placed right under the booking button, ringed in pink. The review card is labelled as the slot for a real customer review.
+- Page 8: Fix 7: A simple menu: five links. The concept salon site menu open with only five links: Services, Tarifs, Réalisations, Contact and Réserver, ringed in pink.
 - Page 9: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>P-04 · Tout votre commerce, au même endroit.</title>
+<link href="../../_shared/kee.css" rel="stylesheet"/>
+<style>@page { size: 1200px 627px; margin: 0; } .page { width: 1200px; height: 627px; }</style>
+</head>
+<body>
+<section class="page" style="width:1200px;height:627px;background:#fff;color:#111;font-family:Poppins,sans-serif">
+<div style="position:absolute;left:56px;top:56px;display:flex;align-items:center;gap:16px"><img alt="" src="../../_shared/jeere-logo-rainbow.svg" style="width:84px"/><img alt="" src="../../_shared/jeere-wordmark.svg" style="height:52px"/></div>
+<div style="position:absolute;left:56px;top:200px;width:600px;display:flex;flex-direction:column;gap:20px">
+<h1 style="font-weight:600;font-size:62px;line-height:1.05;letter-spacing:-.035em">Tout votre commerce, <span class="jr-rainbow-text">au même endroit.</span></h1>
+<p style="font-size:28px;line-height:1.4;color:#2A2A2A">La boutique en ligne des commerçants africains, à créer depuis son téléphone.</p>
+</div>
+<div class="jr-rainbow-bar" style="position:absolute;left:56px;bottom:92px;width:420px"></div>
+<div style="position:absolute;left:56px;bottom:44px;font:400 22px/1 'DM Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#5E5E5E">jeere.kreeative.xyz · En construction</div>
+<div style="position:absolute;right:60px;top:60px"><div class="stack"><div style="width:400px;background:#141110;border-radius:44px;padding:20px 18px 16px;box-shadow:0 46px 84px -36px rgba(50,28,20,.55)"><img alt="" src="../../_shared/img/jeere/storefront.webp" style="width:100%;display:block;border-radius:30px"/></div></div></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

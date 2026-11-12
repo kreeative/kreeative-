@@ -223,5 +223,230 @@
   "h": 1350,
   "kind": "png",
   "pages": 1
+ },
+ {
+  "id": "P-01-FR",
+  "src": "profile/P-01_banner/source_fr.html",
+  "out": "profile/P-01_banner/P-01_banner_FR.png",
+  "w": 1584,
+  "h": 396,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "P-02-FR",
+  "src": "profile/P-02_cover-portfolio-2026/source_fr.html",
+  "out": "profile/P-02_cover-portfolio-2026/P-02_cover-portfolio-2026_FR.png",
+  "w": 1200,
+  "h": 627,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "P-03-FR",
+  "src": "profile/P-03_cover-kreeative/source_fr.html",
+  "out": "profile/P-03_cover-kreeative/P-03_cover-kreeative_FR.png",
+  "w": 1200,
+  "h": 627,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "P-04-FR",
+  "src": "profile/P-04_cover-jeere/source_fr.html",
+  "out": "profile/P-04_cover-jeere/P-04_cover-jeere_FR.png",
+  "w": 1200,
+  "h": 627,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "P-05-FR",
+  "src": "profile/P-05_cover-lyzma/source_fr.html",
+  "out": "profile/P-05_cover-lyzma/P-05_cover-lyzma_FR.png",
+  "w": 1200,
+  "h": 627,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M1-02-FR",
+  "src": "M1-02_lyzma-carousel/source_fr.html",
+  "out": "M1-02_lyzma-carousel/M1-02_lyzma-carousel_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 8
+ },
+ {
+  "id": "M1-04-FR",
+  "src": "M1-04_bakery-before-after/source_fr.html",
+  "out": "M1-04_bakery-before-after/M1-04_bakery-before-after_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M1-06-FR",
+  "src": "M1-06_design-process/source_fr.html",
+  "out": "M1-06_design-process/M1-06_design-process_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 8
+ },
+ {
+  "id": "M1-07-FR",
+  "src": "M1-07_jeere-build-log-1/source_fr.html",
+  "out": "M1-07_jeere-build-log-1/M1-07_jeere-build-log-1_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 7
+ },
+ {
+  "id": "M1-09-FR",
+  "src": "M1-09_rich-and-friends-screens/source_fr.html",
+  "out": "M1-09_rich-and-friends-screens/M1-09_rich-and-friends-screens_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M1-11-FR",
+  "src": "M1-11_ux-fixes-small-business/source_fr.html",
+  "out": "M1-11_ux-fixes-small-business/M1-11_ux-fixes-small-business_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 9
+ },
+ {
+  "id": "M1-12-FR",
+  "src": "M1-12_jeere-build-log-2/source_fr.html",
+  "out": "M1-12_jeere-build-log-2/M1-12_jeere-build-log-2_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M1-14-FR",
+  "src": "M1-14_2026-what-i-built/source_fr.html",
+  "out": "M1-14_2026-what-i-built/M1-14_2026-what-i-built_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 7
+ },
+ {
+  "id": "M2-02-FR",
+  "src": "M2-02_glorywalk-before-after/source_fr.html",
+  "out": "M2-02_glorywalk-before-after/M2-02_glorywalk-before-after_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M2-03-FR",
+  "src": "M2-03_creative-toolkit-2027/source_fr.html",
+  "out": "M2-03_creative-toolkit-2027/M2-03_creative-toolkit-2027_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 6
+ },
+ {
+  "id": "M2-05-FR",
+  "src": "M2-05_website-case-study/source_fr.html",
+  "out": "M2-05_website-case-study/M2-05_website-case-study_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 8
+ },
+ {
+  "id": "M2-07-FR",
+  "src": "M2-07_jeere-dms-to-store/source_fr.html",
+  "out": "M2-07_jeere-dms-to-store/M2-07_jeere-dms-to-store_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M2-09-FR",
+  "src": "M2-09_cx-to-product-design/source_fr.html",
+  "out": "M2-09_cx-to-product-design/M2-09_cx-to-product-design_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 8
+ },
+ {
+  "id": "M2-11-FR",
+  "src": "M2-11_jeere-brand-identity/source_fr.html",
+  "out": "M2-11_jeere-brand-identity/M2-11_jeere-brand-identity_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M3-02-FR",
+  "src": "M3-02_jeere-onboarding/source_fr.html",
+  "out": "M3-02_jeere-onboarding/M3-02_jeere-onboarding_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 7
+ },
+ {
+  "id": "M3-03-FR",
+  "src": "M3-03_how-merchants-sell/source_fr.html",
+  "out": "M3-03_how-merchants-sell/M3-03_how-merchants-sell_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M3-05-FR",
+  "src": "M3-05_booking-form-before-after/source_fr.html",
+  "out": "M3-05_booking-form-before-after/M3-05_booking-form-before-after_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
+ },
+ {
+  "id": "M3-08-FR",
+  "src": "M3-08_black-designers-founders/source_fr.html",
+  "out": "M3-08_black-designers-founders/M3-08_black-designers-founders_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 7
+ },
+ {
+  "id": "M3-09-FR",
+  "src": "M3-09_african-ecommerce-6-slides/source_fr.html",
+  "out": "M3-09_african-ecommerce-6-slides/M3-09_african-ecommerce-6-slides_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 8
+ },
+ {
+  "id": "M3-10-FR",
+  "src": "M3-10_portfolio-v2-reveal/source_fr.html",
+  "out": "M3-10_portfolio-v2-reveal/M3-10_portfolio-v2-reveal_FR.png",
+  "w": 1080,
+  "h": 1350,
+  "kind": "png",
+  "pages": 1
  }
 ]

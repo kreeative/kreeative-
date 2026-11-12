@@ -131,5 +131,8 @@ French posts entirely in French.
   salon, booking forms). Change a colour there and re-render: every post follows.
 - `_build/build.py` holds the slide text, alt text and placeholders and writes each post’s
   `source.html` and `copy.md`. Captions come from `CALENDAR.md`.
+- `_build/i18n.py build` makes the French version of every post (`source_fr.html`, `copy_fr.md`,
+  files ending in `_FR`) from `_build/fr_strings.py`, with French typography and the French
+  Rich & Friends screens. French captions live in `CALENDAR_FR.md`.
 - `_build/render-all.mjs` renders PNG and PDF with Playwright (`node _build/render-all.mjs M1-02`
   for one post), and `_build/contact_sheet.py` rebuilds `CONTACT_SHEET.png`.

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>M1-12 · One screen, from wireframe to high fidelity.</title>
+<link href="../_shared/kee.css" rel="stylesheet"/>
+<style>@page { size: 1080px 1350px; margin: 0; }</style>
+</head>
+<body>
+<section class="page">
+<div class="vl"></div><div class="ht"></div><div class="hb"></div>
+<img alt="" class="mark" src="../../assets/img/logo-512.webp"/>
+<div class="sig">Kee · Kreeative</div>
+<div class="area">
+<p class="kicker">JEERE · Journal de bord #2</p>
+<h2 class="t-2">Un écran, du <em>wireframe</em> à la haute fidélité.</h2>
+<p class="body">Ce qui a changé : <span class="ph">[WHAT_CHANGED_WIREFRAME_TO_HIFI]</span></p>
+<span class="tag pink">Prototype</span>
+<div class="visual"><div style="display:flex;gap:34px;align-items:center;justify-content:center;width:100%">
+<div class="stack"><div class="phone" style="width:330px;height:743px"><div class="scr"><div class="scr wf" style="height:100%;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center"><div class="wf-b" style="width:30px;height:30px"></div><div class="wf-l" style="width:90px"></div></div><div class="wf-b" style="width:30px;height:30px;border-radius:50%"></div></div>
+<div class="wf-l" style="width:45%;height:22px;margin-top:8px"></div><div class="wf-l" style="width:55%;height:10px"></div>
+<div class="wf-x" style="height:40px;width:70%">+ ajouter un produit</div>
+<div class="wf-b" style="height:38px;border-radius:19px"></div>
+<div style="display:flex;gap:8px"><div class="wf-b" style="width:110px;height:28px;border-radius:14px"></div><div class="wf-b" style="width:110px;height:28px;border-radius:14px"></div></div>
+<div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #e4e4e4"><div class="wf-b" style="width:52px;height:52px;flex:none"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:75%"></div><div class="wf-l" style="width:40%"></div><div class="wf-l" style="width:30%;height:10px"></div></div></div><div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #e4e4e4"><div class="wf-b" style="width:52px;height:52px;flex:none"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:75%"></div><div class="wf-l" style="width:40%"></div><div class="wf-l" style="width:30%;height:10px"></div></div></div><div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #e4e4e4"><div class="wf-b" style="width:52px;height:52px;flex:none"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:75%"></div><div class="wf-l" style="width:40%"></div><div class="wf-l" style="width:30%;height:10px"></div></div></div><div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #e4e4e4"><div class="wf-b" style="width:52px;height:52px;flex:none"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:75%"></div><div class="wf-l" style="width:40%"></div><div class="wf-l" style="width:30%;height:10px"></div></div></div><div style="margin-top:auto;display:flex;justify-content:space-around;padding-top:10px;border-top:1px solid #e4e4e4"><div class="wf-b" style="width:26px;height:26px;border-radius:8px"></div><div class="wf-b" style="width:26px;height:26px;border-radius:8px"></div><div class="wf-b" style="width:26px;height:26px;border-radius:8px"></div><div class="wf-b" style="width:26px;height:26px;border-radius:8px"></div><div class="wf-b" style="width:26px;height:26px;border-radius:8px"></div></div></div></div><div class="sbar"><span>9:41</span><span class="sbi"><i></i><i></i><i></i><b></b></span></div><i class="island"></i><i class="homebar"></i></div><p class="phone-cap"><strong>Wireframe</strong></p></div>
+<span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
+<div class="stack"><div class="phone" style="width:330px;height:743px"><div class="scr"><div style="height:100%;background:#fff;padding-top:50px"><img alt="" src="../_shared/img/jeere/produits.webp" style="width:100%;display:block"/></div></div><div class="sbar"><span>9:41</span><span class="sbi"><i></i><i></i><i></i><b></b></span></div><i class="island"></i><i class="homebar"></i></div><p class="phone-cap"><strong>Haute fidélité</strong>dans le prototype aujourd’hui</p></div></div></div>
+</div>
+<div class="foot"><span>JEERE · Journal de bord #2</span><span>kreeative.xyz</span></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

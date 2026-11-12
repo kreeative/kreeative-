@@ -2,7 +2,7 @@
 
 Ready to paste. Hook on line 1, short lines, 3 to 5 hashtags. Anything in [BRACKETS] is a
 placeholder for a fact only you can confirm; all of them are listed at the end. No employer
-is named anywhere. No em dashes. French posts are in French only.
+is named anywhere. No em dashes. Every post also exists in French: see CALENDAR_FR.md and the `_FR` files.
 
 For posts tagged IMAGE or CAROUSEL, the same caption lands in that post’s `copy.md` with
 the slide text and alt text. TEXT and PHOTO posts need no design.
@@ -179,27 +179,27 @@ Every build log will be like this. What I assumed, what I heard, what I changed.
 #JEERE #buildinpublic #userresearch #productdesign #ecommerce
 ```
 
-### M1-08 · Wed Dec 2 · TEXT · FR
-La vie bilingue.
+### M1-08 · Wed Dec 2 · TEXT · EN
+Bilingual life. (French version in CALENDAR_FR.md)
 
 ```
-Je design en français et je code en anglais. Et toute ma tête vit entre les deux.
+I design in French and I code in English. My whole head lives somewhere in between.
 
-Petite vérité de designer bilingue :
-→ Le brief arrive en français, dans un vocal WhatsApp.
-→ Le composant s’appelle “ProductCard”, pas “FicheProduit”.
-→ Le client veut “quelque chose de propre”, et moi je dois deviner si “propre” veut dire minimal ou luxe.
-→ Et à Toronto, on me demande encore si Abidjan c’est en Côte d’Ivoire ou au Ghana.
+A small truth about being a bilingual designer:
+→ The brief arrives in French, in a WhatsApp voice note.
+→ The component is called “ProductCard”, not “FicheProduit”.
+→ The client wants something “propre”, and I have to guess whether that means minimal or luxury.
+→ And in Toronto, people still ask me whether Abidjan is in Côte d’Ivoire or Ghana.
 
-Ce que ça m’a appris :
-Un bon design, c’est une traduction. Pas entre deux langues. Entre ce que la personne dit et ce qu’elle veut dire.
+What it taught me:
+Good design is a translation. Not between two languages. Between what a person says and what they mean.
 
-Et les interfaces que je dessine sont bilingues dès le premier écran. Pas une traduction collée après.
-Parce que les gens pour qui je construis parlent français, et qu’on les sert trop souvent en dernier.
+The interfaces I design are bilingual from the first screen. Not a translation pasted on later.
+Because the people I build for speak French, and they are too often served last.
 
-Vous êtes bilingues dans votre métier ? Ça vous aide ou ça vous complique la vie ?
+Are you bilingual at work? Does it help you or make life harder?
 
-#design #bilingue #francophone #Toronto #Abidjan
+#design #bilingual #francophone #Toronto #Abidjan
 ```
 
 ### M1-09 · Thu Dec 3 · IMAGE · EN
@@ -627,24 +627,24 @@ Concept, original mock UI.
 #UX #forms #beforeandafter #productdesign #concept
 ```
 
-### M3-06 · Jan 28 · TEXT · FR
-Pour les étudiants internationaux.
+### M3-06 · Jan 28 · TEXT · EN
+For international students. (French version in CALENDAR_FR.md)
 
 ```
-Aux étudiants internationaux qui design, codent ou construisent : ce que j’aurais aimé qu’on me dise.
+To international students who design, code or build: what I wish someone had told me.
 
-1. Votre accent n’est pas un bug. Votre point de vue non plus. Les deux sont une spécialité.
-2. Montrez le travail avant d’avoir le titre. Un site en ligne vaut plus qu’une ligne sur un CV.
-3. Construisez pour chez vous. Les problèmes que vous connaissez de l’intérieur, personne ici ne les voit.
-4. Les stages arrivent par les gens, pas par les formulaires. Écrivez à quelqu’un chaque semaine.
-5. Documentez. Chaque projet devient une étude de cas, chaque étude de cas devient une porte.
+1. Your accent is not a bug. Neither is your point of view. Both are a speciality.
+2. Show the work before you have the title. A live site is worth more than a line on a CV.
+3. Build for home. The problems you know from the inside, nobody here can see.
+4. Internships come through people, not forms. Write to someone every week.
+5. Document. Every project becomes a case study, and every case study becomes a door.
 
-Je suis à l’Université de Toronto, je design en français et en anglais, et je construis JEERE pour les commerçantes d’Abidjan.
-Ce n’est pas un détour. C’est le chemin.
+I study at the University of Toronto, I design in French and English, and I am building JEERE for the merchants of Abidjan.
+It is not a detour. It is the path.
 
-Si vous êtes dans la même situation, écrivez-moi.
+If you are in the same place, write to me.
 
-#étudiantsinternationaux #design #Toronto #francophone #carrière
+#internationalstudents #design #Toronto #francophone #career
 ```
 
 ### M3-07 · Feb 2 · PHOTO · EN

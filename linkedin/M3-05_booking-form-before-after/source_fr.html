@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>M3-05 · A booking form: fewer fields, better order.</title>
+<link href="../_shared/kee.css" rel="stylesheet"/>
+<style>@page { size: 1080px 1350px; margin: 0; }</style>
+</head>
+<body>
+<section class="page">
+<div class="vl"></div><div class="ht"></div><div class="hb"></div>
+<img alt="" class="mark" src="../../assets/img/logo-512.webp"/>
+<div class="sig">Kee · Kreeative</div>
+<div class="area">
+<p class="kicker">Avant / après · Concept</p>
+<h2 class="t-2">Un formulaire de réservation : moins de champs, <em>un meilleur ordre.</em></h2>
+<p class="body">Rien de nouveau n’a été inventé. Des champs en moins, un autre ordre, des textes réécrits.</p>
+<span class="tag pink">Concept</span>
+<div class="visual"><div style="display:flex;gap:34px;align-items:center;justify-content:center;width:100%">
+<div class="stack"><div class="phone" style="width:330px;height:640px"><div class="scr"><div class="scr form" style="height:100%;gap:5px"><span class="f-l">Prénom</span><div class="f-i"></div><span class="f-l">Nom</span><div class="f-i"></div><span class="f-l">Courriel</span><div class="f-i"></div><span class="f-l">Téléphone</span><div class="f-i"></div><span class="f-l">Adresse</span><div class="f-i"></div><span class="f-l">Ville</span><div class="f-i"></div><span class="f-l">Code postal</span><div class="f-i"></div><span class="f-l">Service</span><div class="f-i"></div><span class="f-l">Date (JJ/MM/AAAA)</span><div class="f-i"></div><span class="f-l">Heure</span><div class="f-i"></div><span class="f-l">Commentaires</span><div class="f-i"></div><div class="f-i" style="background:#bbb;border:0;margin-top:4px;height:30px;display:grid;place-items:center;color:#fff;font-size:13px">ENVOYER</div></div></div><div class="sbar"><span>9:41</span><span class="sbi"><i></i><i></i><i></i><b></b></span></div><i class="island"></i><i class="homebar"></i></div><p class="phone-cap"><strong>Avant</strong>onze champs, une seule page</p></div>
+<span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
+<div class="stack"><div class="phone" style="width:330px;height:640px"><div class="scr"><div class="scr form" style="height:100%;gap:14px;padding-top:66px">
+<div class="f-prog"><i class="on"></i><i></i><i></i></div>
+<span class="f-l" style="font-size:15px">Étape 1 sur 3</span>
+<div style="font:600 26px/1.2 Inter;letter-spacing:-.02em">Que voulez-vous réserver ?</div>
+<div class="f-big on">Tresses <span>2 h</span></div>
+<div class="f-big">Soin <span>45 min</span></div>
+<div class="f-big">Coupe <span>30 min</span></div>
+<div class="f-btn">Suivant : choisir l’heure</div></div></div><div class="sbar"><span>9:41</span><span class="sbi"><i></i><i></i><i></i><b></b></span></div><i class="island"></i><i class="homebar"></i></div><p class="phone-cap"><strong>Après</strong>trois étapes, une question chacune</p></div></div></div>
+</div>
+<div class="foot"><span>Avant / après · Formulaire de réservation</span><span>kreeative.xyz</span></div>
+</section>
+<script>
+  // Scale each visual down to the space left under the text, so nothing runs into the footer.
+  document.fonts.ready.then(() => document.querySelectorAll('.visual').forEach(v => {
+    const c = v.firstElementChild; if (!c) return;
+    const s = Math.min(1, v.clientHeight / c.offsetHeight, v.clientWidth / c.offsetWidth);
+    if (s < 1) c.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }));
+</script>
+</body>
+</html>

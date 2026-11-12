@@ -543,7 +543,7 @@ def m1_11():
          'The concept salon site menu open with only five links: Services, Tarifs, Réalisations, Contact and Réserver, ringed in pink.'),
     ]
     for i, (t, b, scr, alt) in enumerate(fixes, 1):
-        d.slide(f'Fix 0{i} · Concept', t, b, visual=P(scr), size='t-2', alt=f'Fix {i}: {strip(t)}. {alt}')
+        d.slide(f'Fix 0{i} · Concept', t, b, visual=P(scr), size='t-2', alt=f'Fix {i}: {strip(t).rstrip(".")}. {alt}')
     d.cta()
     cap = caption('M1-11').replace('#UX #smallbusiness #webdesign #conversion #ux', '#UX #smallbusiness #webdesign #conversion')
     d.write(caption_override=cap)
