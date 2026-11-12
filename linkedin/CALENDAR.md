@@ -206,15 +206,15 @@ Vous êtes bilingues dans votre métier ? Ça vous aide ou ça vous complique la
 Rich & Friends, 2 to 3 screens in phone frames. UX only.
 
 ```
-Designing a web app people want to open every day. Three screens from Rich & Friends.
+Designing a web app people want to open every day. Three real screens from Rich & Friends.
 
 Rich & Friends is a small-group accountability app.
 You set the things you said you would do. Three or four friends see it land.
 
-The three UX decisions on the screens:
-→ One shared daily check-in for the whole group, so there is a moment, not a form that is always open
-→ A rail you swipe, not a form you fill
-→ Missing a day is a hollow square, not a red one. Guilt makes people close the app
+What the screens show:
+→ Goals: one question a day, “Did you reach your goals today?”, answered in one tap
+→ Home: your day in one place, the calendar, today’s recap and the small habits
+→ Board: the group side by side, how much each person got done this week
 
 The first version of this app went quiet after nine days. The second one was built against the exact reasons people quit.
 
@@ -270,18 +270,16 @@ Save this for your next website conversation.
 JEERE build log #2: wireframe vs high-fidelity storefront builder.
 
 ```
-JEERE build log #2. The storefront builder, from wireframe to high fidelity.
+JEERE build log #2. One screen, from wireframe to high fidelity.
 
 Left: the wireframe. Boxes, labels, the order of things.
-Right: the first high-fidelity pass.
+Right: the products screen as it is in the prototype today.
 
-What stayed the same: the merchant edits her shop from her phone, in place, no code.
+What stayed the same: one main action, add a product, and a list a merchant can scan on her phone.
 What changed: [WHAT_CHANGED_WIREFRAME_TO_HIFI]
 
 The wireframe took [WIREFRAME_TIME]. The high-fidelity took [HIFI_TIME].
 The wireframe decided more.
-
-Concept, still in progress.
 
 #JEERE #buildinpublic #productdesign #wireframe #UI
 ```
@@ -523,9 +521,9 @@ JEERE has a face. Logo, colours, type.
 
 The brief I gave myself: a brand a merchant would be proud to put on her shop sign, and that works on a phone first.
 
-→ Logo: a hand-drawn cloud, drawn like a brush stroke, with two eyes
-→ Colours: ink on white and warm grey, one orange to point at what matters, and six colours a merchant can give her own shop
-→ Type: Poppins, one family for everything
+→ Logo: a hand-drawn cloud with two eyes, and the name lettered by hand
+→ Colours: black and white everywhere, and a seven-colour rainbow only where it matters: the buttons and the logo
+→ Type: Poppins on the site, Outfit in the merchant’s dashboard
 
 What I kept out: anything that looks corporate, and anything that only works on a laptop.
 
@@ -566,12 +564,12 @@ JEERE onboarding case study.
 JEERE onboarding, as a case study. From research to prototype.
 
 Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
-User flow: WhatsApp number, shop name, first product, online
+User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
 Wireframes: every step on a phone, in French first
-Prototype: the editor, where you change the colours of your shop with one tap
+Prototype: live today, sign-up and products
 What is next: [ONBOARDING_NEXT_STEP]
 
-The one decision I would defend: starting from a WhatsApp number, because that is where the merchant already is.
+The one decision I would defend: no password. A code by email, and WhatsApp only if she wants it.
 
 #JEERE #onboarding #UX #casestudy #productdesign
 ```

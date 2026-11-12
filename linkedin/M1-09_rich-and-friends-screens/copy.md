@@ -4,6 +4,8 @@
 - Posting date: Thu Dec 3
 - File: `M1-09_rich-and-friends-screens.png`
 
+Screens captured from the app’s own App Store screenshot script (scripts/shoot-store.mjs in the Friends-App repo) with its demo data. The Budget and Course screens are left out on purpose.
+
 ## Slide text
 
 ### Image
@@ -13,15 +15,15 @@
 ## Caption
 
 ```text
-Designing a web app people want to open every day. Three screens from Rich & Friends.
+Designing a web app people want to open every day. Three real screens from Rich & Friends.
 
 Rich & Friends is a small-group accountability app.
 You set the things you said you would do. Three or four friends see it land.
 
-The three UX decisions on the screens:
-→ One shared daily check-in for the whole group, so there is a moment, not a form that is always open
-→ A rail you swipe, not a form you fill
-→ Missing a day is a hollow square, not a red one. Guilt makes people close the app
+What the screens show:
+→ Goals: one question a day, “Did you reach your goals today?”, answered in one tap
+→ Home: your day in one place, the calendar, today’s recap and the small habits
+→ Board: the group side by side, how much each person got done this week
 
 The first version of this app went quiet after nine days. The second one was built against the exact reasons people quit.
 
@@ -32,4 +34,4 @@ Case study in the first comment.
 
 ## Alt text
 
-- Three simplified Rich & Friends phone screens on ivory. One: today’s check-in with goal cards and Done, Partly, Not today chips. Two: the group board, 3 of 4 checked in, answers sealed until the window closes. Three: the history strip, 11 of the last 14, with filled, hollow and hatched squares.
+- Three real Rich & Friends screens on phones, in pink. Goals: “Did you reach your goals today?” with a goal card, “Shower twice a day”, and a Mark today button. Home: a week calendar, today’s classes and a recap where each goal is marked Did it, Got part of the way or Not recorded, and a water tracker. Board: how much each of five friends got done this week, with a progress bar each.

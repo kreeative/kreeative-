@@ -34,7 +34,7 @@
 ### Page 6
 - Kicker: 05 · Refine
 - Headline: The version that survives being used.
-- Body: Rich & Friends v1 went quiet after nine days. v2 was rebuilt against the reasons people quit: one shared check-in, a rate instead of a streak.
+- Body: Rich & Friends v1 went quiet after nine days. v2 was rebuilt against the reasons people quit: one question a day, and a group that sees it land.
 
 ### Page 7
 - Kicker: 06 · Launch
@@ -71,6 +71,6 @@ The step people skip is number 1. It is the one that saves the other five.
 - Page 3: Step 2, research: a simple length guide with four hair lengths and where each lands on the body: 10 inches nape, 16 armpit, 22 mid-back, 30 hip.
 - Page 4: Step 3, moodboard: The Bakery pastry bag with a croissant, a row of pink pastry boxes, and two swatches, hot pink and cream.
 - Page 5: Step 4, concepts: five palette cards for the LinkedIn banner, black, cream, ivory, chocolate and the chosen darkest brown with baby pink.
-- Page 6: Step 5, refine: two simplified Rich & Friends screens from v2, the shared daily check-in and the history strip showing 11 of the last 14.
+- Page 6: Step 5, refine: two real Rich & Friends v2 screens on phones. Goals asks “Did you reach your goals today?” with a pink card and a Mark today button. Board shows how much each person in the group got done this week.
 - Page 7: Step 6, launch: the live Tabouret ordering app on desktop, a menu with a dish beside it.
 - Page 8: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.

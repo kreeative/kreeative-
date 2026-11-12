@@ -198,6 +198,37 @@ def phone(inner, w=300, h=620, cap='', capsub=''):
     return f'<div class="stack"><div class="phone" style="width:{w}px;height:{h}px"><div class="scr">{inner}</div>{chrome}</div>{c}</div>'
 
 
+def shot(src, w, cap='', capsub='', bg='#fff'):
+    """A real app screen (captured at 390 × 844) in the phone, under a status-bar band."""
+    sh = round((w - 18) * 844 / 390)
+    inner = f'<div style="height:100%;background:{bg};padding-top:50px"><img src="{src}" alt="" style="width:100%;display:block"></div>'
+    return phone(inner, w, sh + 68, cap, capsub)
+
+
+def storefront(S, w=400, cap='', capsub=''):
+    """The real Chez Awa storefront from the JEERE home page (payment toast hidden)."""
+    c = f'<p class="phone-cap"><strong>{cap}</strong>{capsub}</p>' if cap else ''
+    return (f'<div class="stack"><div style="width:{w}px;background:#141110;border-radius:44px;padding:20px 18px 16px;'
+            f'box-shadow:0 46px 84px -36px rgba(50,28,20,.55)"><img src="{S}img/jeere/storefront.webp" alt="" '
+            f'style="width:100%;display:block;border-radius:30px"></div>{c}</div>')
+
+
+def jr_wire_produits():
+    row = ('<div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #e4e4e4"><div class="wf-b" style="width:52px;height:52px;flex:none"></div>'
+           '<div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:75%"></div><div class="wf-l" style="width:40%"></div><div class="wf-l" style="width:30%;height:10px"></div></div></div>')
+    nav = '<div style="margin-top:auto;display:flex;justify-content:space-around;padding-top:10px;border-top:1px solid #e4e4e4">' + '<div class="wf-b" style="width:26px;height:26px;border-radius:8px"></div>' * 5 + '</div>'
+    return f'''<div class="scr wf" style="height:100%;gap:10px">
+  <div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center"><div class="wf-b" style="width:30px;height:30px"></div><div class="wf-l" style="width:90px"></div></div><div class="wf-b" style="width:30px;height:30px;border-radius:50%"></div></div>
+  <div class="wf-l" style="width:45%;height:22px;margin-top:8px"></div><div class="wf-l" style="width:55%;height:10px"></div>
+  <div class="wf-x" style="height:40px;width:70%">+ ajouter un produit</div>
+  <div class="wf-b" style="height:38px;border-radius:19px"></div>
+  <div style="display:flex;gap:8px"><div class="wf-b" style="width:110px;height:28px;border-radius:14px"></div><div class="wf-b" style="width:110px;height:28px;border-radius:14px"></div></div>
+  {row * 4}{nav}</div>'''
+
+
+RF_BG = '#fff5f7'
+
+
 def rf_checkin():
     return '''<div class="scr rf" style="height:100%">
   <div class="rf-top"><span class="rf-logo">R&amp;F</span><span class="rf-pill">Today</span></div>
@@ -329,17 +360,17 @@ def build_profile():
     # JEERE in its own look
     d = Doc('P-04', 'cover-jeere', 'COVER', 'Profile, featured section', 'Featured', depth=2, w=1200, h=627, lang='fr')
     inner = f'''<section class="page" style="width:1200px;height:627px;background:#fff;color:#111;font-family:Poppins,sans-serif">
-  <div style="position:absolute;left:56px;top:56px;display:flex;align-items:center;gap:16px"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:84px"><span style="font-weight:600;font-size:40px;letter-spacing:-.02em">Jeere</span></div>
+  <div style="position:absolute;left:56px;top:56px;display:flex;align-items:center;gap:16px"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:84px"><img src="{d.S}jeere-wordmark.svg" alt="" style="height:52px"></div>
   <div style="position:absolute;left:56px;top:200px;width:600px;display:flex;flex-direction:column;gap:20px">
     <h1 style="font-weight:600;font-size:62px;line-height:1.05;letter-spacing:-.035em">Tout votre commerce, <span class="jr-rainbow-text">au même endroit.</span></h1>
     <p style="font-size:28px;line-height:1.4;color:#2A2A2A">La boutique en ligne des commerçants africains, à créer depuis son téléphone.</p>
   </div>
   <div class="jr-rainbow-bar" style="position:absolute;left:56px;bottom:92px;width:420px"></div>
   <div style="position:absolute;left:56px;bottom:44px;font:400 22px/1 'DM Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#5E5E5E">jeere.kreeative.xyz · En construction</div>
-  <div style="position:absolute;right:70px;top:44px">{phone(jr_store(d.S, edit=False), 264, 540)}</div>
+  <div style="position:absolute;right:60px;top:60px">{storefront(d.S, 400)}</div>
 </section>'''
     d.add(inner, 'light', dict(kicker='JEERE', title='Tout votre commerce, au même endroit.', body='La boutique en ligne des commerçants africains, à créer depuis son téléphone.',
-                               alt='Featured cover in the JEERE look, white with black Poppins type: the hand-drawn cloud logo in the rainbow, “Tout votre commerce, au même endroit.” with the last words in the JEERE rainbow, a thin rainbow bar, and a phone showing a concept shop, Chez Awa, with four products.'))
+                               alt='Featured cover in the JEERE look, white with black Poppins type: the hand-drawn cloud logo in the rainbow beside the hand-lettered Jeere wordmark, “Tout votre commerce, au même endroit.” with the last words in the JEERE rainbow, a thin rainbow bar, and the real Chez Awa storefront from the JEERE prototype: a woven basket, bead bracelets and a printed pouch with their prices.'))
     d.render_pages = lambda: d.pages[0][0]
     d.write(caption_override='')
     cover('P-05', 'cover-lyzma', 'Case study · Brand identity', 'Lyzma Industries: a hand-lettered <em>identity.</em>',
@@ -428,9 +459,9 @@ def m1_06():
     d.slide('04 · Concepts', 'Two or three directions. <em>Never one.</em>', 'This week my LinkedIn banner went through five palettes before the darkest brown, ivory and baby pink stuck.',
             visual=f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;width:100%">{cards}</div>',
             alt='Step 4, concepts: five palette cards for the LinkedIn banner, black, cream, ivory, chocolate and the chosen darkest brown with baby pink.')
-    d.slide('05 · Refine', 'The version that survives being <em>used.</em>', 'Rich &amp; Friends v1 went quiet after nine days. v2 was rebuilt against the reasons people quit: one shared check-in, a rate instead of a streak.',
-            visual=f'<div style="display:flex;gap:40px;align-items:flex-end">{phone(rf_checkin(), 280, 560, "v2 · one shared check-in")}{phone(rf_history(), 280, 560, "v2 · a rate, not a streak")}</div>',
-            alt='Step 5, refine: two simplified Rich & Friends screens from v2, the shared daily check-in and the history strip showing 11 of the last 14.')
+    d.slide('05 · Refine', 'The version that survives being <em>used.</em>', 'Rich &amp; Friends v1 went quiet after nine days. v2 was rebuilt against the reasons people quit: one question a day, and a group that sees it land.',
+            visual=f'<div style="display:flex;gap:40px;align-items:flex-end">{shot(d.S + "img/rf/goals.webp", 290, "v2 · Goals", "", RF_BG)}{shot(d.S + "img/rf/board.webp", 290, "v2 · Board", "", RF_BG)}</div>',
+            alt='Step 5, refine: two real Rich & Friends v2 screens on phones. Goals asks “Did you reach your goals today?” with a pink card and a Mark today button. Board shows how much each person in the group got done this week.')
     d.slide('06 · Launch', 'Live, measured, and <em>written down.</em>', 'Tabouret’s whole ordering flow works in the browser, and every decision lives in a file, so the next version starts from reasons.',
             visual=f'<div class="card" style="padding:14px;width:100%"><img src="{A}img/sites/site-tabouret-desktop-1440.webp" alt="" style="width:100%;border-radius:16px;display:block"></div>',
             alt='Step 6, launch: the live Tabouret ordering app on desktop, a menu with a dish beside it.')
@@ -461,13 +492,28 @@ def m1_07():
 def m1_09():
     d = Doc('M1-09', 'rich-and-friends-screens', 'IMAGE', 'Thu Dec 3', 'Product design · Rich & Friends')
     vis = f'''<div style="display:flex;gap:26px;align-items:flex-start;justify-content:center;width:100%">
-      {phone(rf_checkin(), 262, 540, 'One shared check-in', 'a moment, not an open form')}
-      {phone(rf_board(), 262, 540, 'Swipe, don’t fill', 'answers sealed until it closes')}
-      {phone(rf_history(), 262, 540, 'Hollow, not red', 'a rate, never a streak')}</div>'''
+      {shot(d.S + 'img/rf/goals.webp', 290, 'Goals', 'one question a day', RF_BG)}
+      {shot(d.S + 'img/rf/home.webp', 290, 'Home', 'your day in one place', RF_BG)}
+      {shot(d.S + 'img/rf/board.webp', 290, 'Board', 'the group, side by side', RF_BG)}</div>'''
     d.slide('Product design · Rich &amp; Friends', 'Designing a web app people want to <em>open every day.</em>', '',
-            visual=vis, size='t-2', extra='<span class="tag">Simplified screens</span>',
-            alt='Three simplified Rich & Friends phone screens on ivory. One: today’s check-in with goal cards and Done, Partly, Not today chips. Two: the group board, 3 of 4 checked in, answers sealed until the window closes. Three: the history strip, 11 of the last 14, with filled, hollow and hatched squares.')
-    d.write()
+            visual=vis, size='t-2',
+            alt='Three real Rich & Friends screens on phones, in pink. Goals: “Did you reach your goals today?” with a goal card, “Shower twice a day”, and a Mark today button. Home: a week calendar, today’s classes and a recap where each goal is marked Did it, Got part of the way or Not recorded, and a water tracker. Board: how much each of five friends got done this week, with a progress bar each.')
+    cap = '''Designing a web app people want to open every day. Three real screens from Rich & Friends.
+
+Rich & Friends is a small-group accountability app.
+You set the things you said you would do. Three or four friends see it land.
+
+What the screens show:
+→ Goals: one question a day, “Did you reach your goals today?”, answered in one tap
+→ Home: your day in one place, the calendar, today’s recap and the small habits
+→ Board: the group side by side, how much each person got done this week
+
+The first version of this app went quiet after nine days. The second one was built against the exact reasons people quit.
+
+Case study in the first comment.
+
+#productdesign #UX #webapp #habits #buildinpublic'''
+    d.write(caption_override=cap, notes='Screens captured from the app’s own App Store screenshot script (scripts/shoot-store.mjs in the Friends-App repo) with its demo data. The Budget and Course screens are left out on purpose.')
 
 
 def m1_11():
@@ -507,14 +553,27 @@ def m1_11():
 def m1_12():
     d = Doc('M1-12', 'jeere-build-log-2', 'IMAGE', 'Thu Dec 10', 'JEERE · Build log #2')
     vis = f'''<div style="display:flex;gap:34px;align-items:center;justify-content:center;width:100%">
-      {phone(jr_wire(), 330, 640, 'Wireframe')}
+      {phone(jr_wire_produits(), 330, 743, 'Wireframe')}
       <span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
-      {phone(jr_store(d.S), 330, 640, 'High fidelity')}</div>'''
-    d.slide('JEERE · Build log #2', 'The storefront builder, from <em>wireframe</em> to high fidelity.', f'What changed: {ph("WHAT_CHANGED_WIREFRAME_TO_HIFI")}',
-            visual=vis, size='t-2', extra='<span class="tag pink">Concept</span>',
-            alt='Two phones on ivory. Left: a grey wireframe of a shop page with an editing bar, category pills, a two-by-two product grid and a main button. Right: the same page in high fidelity in the JEERE style, the shop Chez Awa with a colour bar, category pills, four products with prices in francs, and an orange order button. Labelled Concept.')
-    d.write({'WHAT_CHANGED_WIREFRAME_TO_HIFI': 'the main change between the wireframe and the high-fidelity version',
-             'WIREFRAME_TIME': 'how long the wireframe took', 'HIFI_TIME': 'how long the high-fidelity version took'})
+      {shot(d.S + 'img/jeere/produits.webp', 330, 'High fidelity', 'in the prototype today')}</div>'''
+    d.slide('JEERE · Build log #2', 'One screen, from <em>wireframe</em> to high fidelity.', f'What changed: {ph("WHAT_CHANGED_WIREFRAME_TO_HIFI")}',
+            visual=vis, size='t-2', extra='<span class="tag pink">Prototype</span>',
+            alt='Two phones on ivory. Left: a grey wireframe of the products screen, with a title, an add-product button, a search field, two filters, four list rows and a bottom bar. Right: the real JEERE products screen for the demo shop Awa Beauté: “Produits, 6 produits”, an “Ajouter un produit” button with a rainbow edge, a search field, and products such as Beurre de karité brut and Savon noir au karité with their prices.')
+    cap = '''JEERE build log #2. One screen, from wireframe to high fidelity.
+
+Left: the wireframe. Boxes, labels, the order of things.
+Right: the products screen as it is in the prototype today.
+
+What stayed the same: one main action, add a product, and a list a merchant can scan on her phone.
+What changed: [WHAT_CHANGED_WIREFRAME_TO_HIFI]
+
+The wireframe took [WIREFRAME_TIME]. The high-fidelity took [HIFI_TIME].
+The wireframe decided more.
+
+#JEERE #buildinpublic #productdesign #wireframe #UI'''
+    d.write(placeholders={'WHAT_CHANGED_WIREFRAME_TO_HIFI': 'the main change between the wireframe and the high-fidelity version',
+             'WIREFRAME_TIME': 'how long the wireframe took', 'HIFI_TIME': 'how long the high-fidelity version took'}, caption_override=cap,
+            notes='The high-fidelity screen is the real Produits screen from the JEERE demo dashboard. The wireframe on the left is redrawn from it: swap in your real wireframe if you have one.')
 
 
 def m1_14():
@@ -528,8 +587,8 @@ def m1_14():
             visual=f'''<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:18px;width:100%;height:100%"><img class="photo" style="grid-column:span 2;object-position:50% 45%" src="{A}img/project-bakery-1000.webp" alt=""><img class="photo" src="{A}img/case-lyzma-1-1000.webp" alt=""><img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div>''',
             alt='Three client brand images: The Bakery wordmark on cookies across the top, the Lyzma Industries shopping bags and the GloryWalk wordmark on denim below.')
     d.slide('03 · JEERE', 'From an idea to a working <em>editor.</em>', f'An e-commerce platform for African merchants. {ph("JEERE_2026_MILESTONE")}',
-            visual=f'<div style="display:flex;gap:40px;align-items:center"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:260px">{phone(jr_store(d.S), 300, 600)}</div>',
-            alt='The JEERE cloud logo beside a phone showing a concept shop in the JEERE editor.')
+            visual=f'<div style="display:flex;gap:40px;align-items:center"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:260px">{shot(d.S + "img/jeere/produits.webp", 300)}</div>',
+            alt='The JEERE cloud logo in the rainbow beside a phone showing the real products screen of the JEERE prototype.')
     d.slide('04 · Creator work', 'Videos for a video app’s <em>creator programme.</em>', ph('CAPCUT_WORK_DESCRIPTION'),
             visual=phbox('CAPCUT_VIDEO_STILL', 'A still from one of your videos'),
             alt='Creator work slide with a placeholder frame for a still from one of the videos.')
@@ -620,10 +679,10 @@ def m2_07():
     vis = f'''<div style="display:flex;gap:30px;align-items:center;justify-content:center;width:100%">
       {phone(chat(), 330, 640, 'Today', 'in the DMs')}
       <span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
-      {phone(jr_store(d.S, edit=False, cta='Commander · livraison Cocody'), 330, 640, 'With JEERE', 'a real store')}</div>'''
+      {storefront(d.S, 400, 'With JEERE', 'a real store')}</div>'''
     d.slide('JEERE · Concept', 'From WhatsApp DMs to a <em>real store.</em>', 'Same merchant, same products, same customers. The difference is the tool.',
             visual=vis, size='t-2', extra='<span class="tag pink">Concept</span>',
-            alt='Two phones on ivory. Left, labelled Today: a generic chat where a customer asks the price of a woven basket at 20:41, the seller answers 7 000 F twenty minutes later, then questions about size and delivery to Cocody go unanswered until “Allô ??” at 23:40. Right, labelled With JEERE: the same products in a concept shop, Chez Awa, with prices, categories and an orange order button with delivery to Cocody. Labelled Concept.')
+            alt='Two phones on ivory. Left, labelled Today: a generic chat where a customer asks the price of a woven basket at 20:41, the seller answers 7 000 F twenty minutes later, then questions about size and delivery to Cocody go unanswered until “Allô ??” at 23:40. Right, labelled With JEERE: the real Chez Awa storefront from the JEERE prototype, “Nouveautés de la semaine” with category pills and the woven basket, bead bracelets and printed pouch, each with its price and an add button. Labelled Concept.')
     d.write()
 
 
@@ -656,19 +715,19 @@ def m2_11():
     sw = [('#111111', 'Black'), ('#FFFFFF', 'White'), ('#E8467C', 'Pink-red'), ('#F08A3C', 'Orange'), ('#F0C414', 'Yellow'), ('#22C97E', 'Green'), ('#1E9BE0', 'Blue'), ('#6A4CFF', 'Violet'), ('#C13CE0', 'Magenta')]
     sws = ''.join(f'<div style="display:flex;flex-direction:column;gap:8px"><div style="height:96px;border-radius:16px;background:{c};box-shadow:inset 0 0 0 2px rgba(17,17,17,.1)"></div><span style="font:500 20px/1.2 Poppins">{n}</span><span style="font:400 18px/1 \'DM Mono\';color:#5E5E5E">{c}</span></div>' for c, n in sw)
     vis = f'''<div style="width:100%;height:100%;background:#fff;border-radius:28px;padding:40px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;gap:28px;font-family:Poppins;color:#111;box-shadow:0 24px 48px -28px rgba(50,28,20,.35)">
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#111;border-radius:22px;padding:30px"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:230px"><span style="font:400 20px/1 'DM Mono';letter-spacing:.14em;text-transform:uppercase;color:#bbb">Logo</span></div>
-      <div style="display:flex;flex-direction:column;justify-content:center;gap:8px;border:2px solid #EBEBE8;border-radius:22px;padding:30px"><span style="font-weight:600;font-size:116px;line-height:1;letter-spacing:-.04em">Aa</span><span style="font-weight:600;font-size:32px">Poppins</span><span style="font-size:22px;color:#5E5E5E">400 · 500 · 600 · 700</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#111;border-radius:22px;padding:30px"><div style="display:flex;align-items:center;gap:18px"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:170px"><img src="{d.S}jeere-wordmark-white.svg" alt="" style="height:78px"></div><span style="font:400 20px/1 'DM Mono';letter-spacing:.14em;text-transform:uppercase;color:#bbb">Logo</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:8px;border:2px solid #EBEBE8;border-radius:22px;padding:30px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:end"><div><span style="display:block;font-weight:600;font-size:96px;line-height:1;letter-spacing:-.04em">Aa</span><span style="display:block;font-weight:600;font-size:26px;margin-top:8px">Poppins</span><span style="font-size:19px;color:#5E5E5E">the site</span></div><div><img src="{d.S}img/jeere/outfit-aa.png" alt="" style="height:116px;display:block;margin:-10px 0 -10px -20px"><span style="display:block;font:600 26px/1.2 Poppins;margin-top:8px">Outfit</span><span style="font-size:19px;color:#5E5E5E">the dashboard</span></div></div></div>
       <div style="grid-column:span 2;display:flex;align-items:center;gap:24px"><span style="flex:none;border-radius:999px;padding:16px 30px;font-weight:600;font-size:24px;border:2px solid transparent;background-image:var(--jr-words),linear-gradient(#fff,#fff),var(--jr-edge);background-size:90px 100%,100% 100%,100% 100%;background-repeat:repeat-x,no-repeat,no-repeat;background-origin:border-box;-webkit-background-clip:text,padding-box,border-box;background-clip:text,padding-box,border-box;-webkit-text-fill-color:transparent">Créer ma boutique</span><span style="font-size:22px;line-height:1.35;color:#2A2A2A">Black and white everywhere. The rainbow only on the buttons and the logo.</span></div>
       <div style="grid-column:span 2;display:grid;grid-template-columns:repeat(9,1fr);gap:12px">{sws}</div></div>'''
-    d.slide('JEERE · Brand identity', 'JEERE has a <em>face.</em>', 'A hand-drawn cloud, black and white everywhere, and a rainbow for what you press.', visual=vis, size='t-2',
-            alt='The JEERE brand on one white board: the hand-drawn cloud logo in a seven-colour rainbow on black, the typeface Poppins as “Aa”, a white button “Créer ma boutique” with a rainbow edge and rainbow letters, and nine swatches: black, white, pink-red #E8467C, orange #F08A3C, yellow #F0C414, green #22C97E, blue #1E9BE0, violet #6A4CFF, magenta #C13CE0.')
+    d.slide('JEERE · Brand identity', 'JEERE has a <em>face.</em>', 'A hand-drawn cloud and a hand-lettered name, black and white everywhere, and a rainbow for what you press.', visual=vis, size='t-2',
+            alt='The JEERE brand on one white board: the hand-drawn cloud logo in a seven-colour rainbow and the hand-lettered Jeere wordmark in white on black, two type specimens, Poppins for the site and Outfit for the dashboard, a white button “Créer ma boutique” with a rainbow edge and rainbow letters, and nine swatches: black, white, pink-red #E8467C, orange #F08A3C, yellow #F0C414, green #22C97E, blue #1E9BE0, violet #6A4CFF, magenta #C13CE0.')
     cap = '''JEERE has a face. Logo, colours, type.
 
 The brief I gave myself: a brand a merchant would be proud to put on her shop sign, and that works on a phone first.
 
-→ Logo: a hand-drawn cloud, drawn like a brush stroke, with two eyes
+→ Logo: a hand-drawn cloud with two eyes, and the name lettered by hand
 → Colours: black and white everywhere, and a seven-colour rainbow only where it matters: the buttons and the logo
-→ Type: Poppins, one family for everything
+→ Type: Poppins on the site, Outfit in the merchant’s dashboard
 
 What I kept out: anything that looks corporate, and anything that only works on a laptop.
 
@@ -678,7 +737,7 @@ More of the system in the onboarding case study next week.
 
 #JEERE #branding #brandidentity #logodesign #buildinpublic'''
     d.write({'WHY_A_CLOUD': 'one line on why the logo is a cloud'}, caption_override=cap,
-            notes='Taken from the live JEERE site (jeere.kreeative.xyz and its rainbow.css): the cloud logo, Poppins, black and white, and the seven rainbow colours on buttons and the logo. Confirm before posting.')
+            notes='Taken from the live JEERE site (jeere.kreeative.xyz and its rainbow.css): the cloud logo, the lettered wordmark, Poppins on the site, Outfit in the dashboard, black and white, and the seven rainbow colours on buttons and the logo. Confirm before posting.')
     return cap
 
 
@@ -691,28 +750,39 @@ def m3_02():
     d.slide('01 · Research', f'{ph("MERCHANTS_INTERVIEWED")} merchants. Where it <em>breaks</em> today.', '',
             visual='<div style="width:100%"><ul class="list"><li>Answering “c’est combien ?” all day</li><li>Copying every order into a notebook</li><li>Calling the delivery driver, working out the fee</li><li>Losing a parcel when the client stops answering</li></ul></div>',
             size='t-2', alt='Research slide: four ways selling breaks today, answering prices all day, copying orders into a notebook, calling the delivery driver, losing parcels.')
-    steps = [('1', 'Numéro WhatsApp'), ('2', 'Nom de la boutique'), ('3', 'Premier produit'), ('4', 'En ligne')]
-    flow = ''.join(f'<div class="card" style="padding:28px 34px;display:flex;align-items:center;gap:26px"><span class="bignum" style="font-size:96px">{n}</span><span class="t-3">{t}</span></div>' + ('<div style="height:26px;width:3px;background:var(--pink);margin-left:70px"></div>' if n != '4' else '') for n, t in steps)
-    d.slide('02 · User flow · Concept', 'Start where the merchant <em>already is.</em>', 'A WhatsApp number, not an email and a password.',
+    steps = [('1', 'Créer un compte', 'Prénom, e-mail, un code. Pas de mot de passe.'), ('2', 'Partir d’un modèle', 'Quatre boutiques prêtes à remplir.'),
+             ('3', 'Ajouter ses produits', 'Une vraie photo par produit.'), ('4', 'Premiers pas', '10 étapes qui se cochent toutes seules.')]
+    flow = ''.join(f'<div class="card" style="padding:24px 32px;display:flex;align-items:center;gap:26px"><span class="bignum" style="font-size:90px">{n}</span><div><p class="t-3">{t}</p><p class="body" style="font-size:30px;margin-top:6px">{s}</p></div></div>' + ('<div style="height:22px;width:3px;background:var(--pink);margin-left:66px"></div>' if n != '4' else '') for n, t, s in steps)
+    d.slide('02 · User flow', 'No password, and a shop <em>ready to fill.</em>', '',
             visual=f'<div style="display:flex;flex-direction:column;width:100%">{flow}</div>', size='t-2',
-            alt='User flow, concept: four steps in French, WhatsApp number, shop name, first product, online.')
+            alt='User flow in four steps, in French: create an account with a first name, an email and a code, no password; start from one of four templates; add products with a real photo; then ten first steps that tick themselves.')
     w = lambda lines: f'<div class="scr wf" style="height:100%"><div class="wf-l" style="width:50%;height:22px"></div>{lines}<div class="wf-x" style="margin-top:auto;height:48px;border-radius:24px">Continuer</div></div>'
-    s1 = w('<div class="wf-l" style="width:80%"></div><div class="wf-b" style="height:52px"></div><div class="wf-l" style="width:60%"></div>')
-    s2 = w('<div class="wf-l" style="width:70%"></div><div class="wf-b" style="height:52px"></div><div class="wf-x" style="height:120px">aperçu de l’adresse</div>')
-    s3 = w('<div class="wf-x" style="height:160px">photo du produit</div><div class="wf-b" style="height:44px"></div><div class="wf-b" style="height:44px;width:60%"></div>')
+    s1 = w('<div class="wf-l" style="width:40%;height:10px"></div><div class="wf-l" style="width:30%"></div><div class="wf-b" style="height:46px"></div><div class="wf-l" style="width:40%"></div><div class="wf-b" style="height:46px"></div><div class="wf-l" style="width:55%"></div><div class="wf-b" style="height:46px"></div>')
+    s2 = w('<div class="wf-l" style="width:75%"></div>' + '<div style="display:flex;gap:8px;border:2px solid #e4e4e4;border-radius:12px;padding:8px"><div class="wf-x" style="width:80px;height:90px;flex:none">modèle</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:60%"></div><div class="wf-b" style="height:26px;width:70%;border-radius:13px"></div></div></div>' * 2)
+    s3 = w('<div class="wf-x" style="height:40px;width:70%">+ ajouter</div><div class="wf-b" style="height:36px;border-radius:18px"></div>' + '<div style="display:flex;gap:8px;align-items:center"><div class="wf-b" style="width:48px;height:48px;flex:none"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div class="wf-l" style="width:70%"></div><div class="wf-l" style="width:40%"></div></div></div>' * 3)
     d.slide('03 · Wireframes', 'Every step on a phone, <em>French first.</em>', '',
-            visual=f'<div style="display:flex;gap:24px">{phone(s1, 270, 540, "Numéro")}{phone(s2, 270, 540, "Boutique")}{phone(s3, 270, 540, "Produit")}</div>', size='t-2',
-            alt='Three grey phone wireframes for the onboarding steps: phone number, shop name with an address preview, first product with a photo.')
-    d.slide('04 · Prototype · Concept', 'Change your shop’s colours with <em>one tap.</em>', '',
-            visual=phone(jr_store(d.S), 340, 680), size='t-2',
-            alt='Prototype, concept: a phone with the JEERE shop editor, a colour bar with five swatches above the shop Chez Awa and its products.')
+            visual=f'<div style="display:flex;gap:24px">{phone(s1, 270, 540, "Compte")}{phone(s2, 270, 540, "Modèle")}{phone(s3, 270, 540, "Produits")}</div>', size='t-2',
+            alt='Three grey phone wireframes for the onboarding steps: the account form with three fields, the template picker with two template cards, and the products list with an add button, a search field and three rows.')
+    d.slide('04 · Prototype', 'The prototype, <em>live today.</em>', '',
+            visual=f'<div style="display:flex;gap:34px">{shot(d.S + "img/jeere/signup.webp", 320, "Créer un compte", "étape 1 sur 4")}{shot(d.S + "img/jeere/produits.webp", 320, "Produits", "la boutique se remplit")}</div>', size='t-2',
+            alt='Two real JEERE prototype screens on phones. Left: “Créez votre compte, étape 1 sur 4, pas de mot de passe”, with fields for first name, email and an optional WhatsApp number. Right: the products screen of the demo shop with an “Ajouter un produit” button and products with their prices.')
     d.slide('05 · What’s next', 'What I am <em>building next.</em>', ph('ONBOARDING_NEXT_STEP'),
             visual=f'<div class="card" style="padding:48px;width:100%"><p class="cap">Open question</p><p class="t-3" style="margin-top:18px"><span class="ph">[OPEN_QUESTION]</span></p></div>',
             alt='What’s next slide with placeholders for the next step and an open question.')
     d.cta()
-    cap = caption('M3-02').replace('User flow: WhatsApp number, shop name, first product, live. [ONBOARDING_STEP_COUNT] steps', 'User flow: WhatsApp number, shop name, first product, online')
+    cap = '''JEERE onboarding, as a case study. From research to prototype.
+
+Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
+User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
+Wireframes: every step on a phone, in French first
+Prototype: live today, sign-up and products
+What is next: [ONBOARDING_NEXT_STEP]
+
+The one decision I would defend: no password. A code by email, and WhatsApp only if she wants it.
+
+#JEERE #onboarding #UX #casestudy #productdesign'''
     d.write({'MERCHANTS_INTERVIEWED': PH_MERCH, 'ONBOARDING_NEXT_STEP': 'what you build next', 'OPEN_QUESTION': 'a question you are still working out'}, caption_override=cap,
-            notes='The four-step flow is drawn from the sign-up on jeere.kreeative.xyz (WhatsApp number first). Confirm the steps match the real onboarding before posting.')
+            notes='Screens are from the live JEERE prototype. The order of steps 2 to 4 (template, products, first steps) is read from the prototype’s pages: confirm it before posting.')
     return cap
 
 

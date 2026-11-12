@@ -64,7 +64,7 @@ Thank you for reading along. Next year is already in progress.
 - Page 1: Deep brown cover: “2026: what I built. One slide each.”
 - Page 2: The kreeative.xyz home page on desktop in a white card.
 - Page 3: Three client brand images: The Bakery wordmark on cookies across the top, the Lyzma Industries shopping bags and the GloryWalk wordmark on denim below.
-- Page 4: The JEERE cloud logo beside a phone showing a concept shop in the JEERE editor.
+- Page 4: The JEERE cloud logo in the rainbow beside a phone showing the real products screen of the JEERE prototype.
 - Page 5: Creator work slide with a placeholder frame for a still from one of the videos.
 - Page 6: New role slide with a card: “I start from the problem people have, not the feature I want to build.”
 - Page 7: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.

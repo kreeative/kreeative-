@@ -83,6 +83,12 @@ ivory. Before/afters: ivory with white panels.
   side buttons, island, status bar and home bar. Apple’s official bezels are not used: their
   licence only covers mock-ups of apps that run solely on Apple systems, and these are web apps.
   Screens come from `assets/img/sites/*-phone-*.webp` or are drawn as original mock UI.
+- **Real screens, not drawn ones.** Kee’s own products are shown with real captures in
+  `_shared/img/`: Rich & Friends (Goals, Home, Board, from the app’s own `shoot-store.mjs`
+  with its demo data) and JEERE (sign-up, Produits, the Chez Awa storefront from the live
+  prototype). Screens about payment, money or showing a person are left out. Drawn mock UI is
+  only for concepts that are not Kee’s products (the Atelier Coco salon, the booking form) and
+  for wireframes, and is labelled.
 - Photos: only Kee (`assets/img/portrait-*.webp`, black and white). Product photos only from
   the case-study assets.
 - Icons: Phosphor, inline SVG, `currentColor`, 24 to 32px (`assets/icons/`).

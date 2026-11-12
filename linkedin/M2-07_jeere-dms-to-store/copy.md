@@ -28,4 +28,4 @@ Concept. The storefront is in progress.
 
 ## Alt text
 
-- Two phones on ivory. Left, labelled Today: a generic chat where a customer asks the price of a woven basket at 20:41, the seller answers 7 000 F twenty minutes later, then questions about size and delivery to Cocody go unanswered until “Allô ??” at 23:40. Right, labelled With JEERE: the same products in a concept shop, Chez Awa, with prices, categories and an orange order button with delivery to Cocody. Labelled Concept.
+- Two phones on ivory. Left, labelled Today: a generic chat where a customer asks the price of a woven basket at 20:41, the seller answers 7 000 F twenty minutes later, then questions about size and delivery to Cocody go unanswered until “Allô ??” at 23:40. Right, labelled With JEERE: the real Chez Awa storefront from the JEERE prototype, “Nouveautés de la semaine” with category pills and the woven basket, bead bracelets and printed pouch, each with its price and an add button. Labelled Concept.
