@@ -12,22 +12,22 @@ Soft Blue & Cocoa, Pink Scrapbook) and the Brand Collab Guide. This is the Linke
 
 | Role | Hex | Where it comes from |
 |---|---|---|
-| **Cream** (main ground) | `#f3ece6` | between the Minimal Brown kit `#ede5de` and the Cocoa kit `#f9f3ee` |
-| Cream, deeper (cards, bands) | `#e4d8cf` | Minimal Brown kit, page 2 |
+| **Ivory** (main ground) | `#faf6f0` | a light cream, from the Cocoa kit `#f9f3ee` |
+| Cream, deeper (cards, bands) | `#ede5de` | Minimal Brown kit |
 | **White** (second ground, cards) | `#ffffff` | the kits’ white panels |
-| **Brown** (ink: headlines, body) | `#321c14` | Cocoa kit, the “media kit” lettering |
-| Brown, secondary text | `rgba(50,28,20,.62)` | |
-| Brown, labels | `rgba(50,28,20,.42)` | |
+| **Warm brown** (ink: headlines, body) | `#5a3626` | warmed up from the Cocoa kit `#321c14` |
+| Brown, secondary text | `rgba(90,54,38,.66)` | |
+| Brown, labels | `rgba(90,54,38,.46)` | |
 | **Pink, soft** (fills, highlights, pills) | `#e8b9c2` | Pink Scrapbook kit ground |
 | **Pink, accent** (one italic word, kickers) | `#ff0090` on cream and white; `#ffb3d9` on brown | `--c-pink` from the site; the light tint for dark pages |
 | Pink, small text | `#b0005f` | `teach.css`, the deep rose of the pink kit |
-| Hairlines | `rgba(50,28,20,.14)` on cream, `rgba(255,255,255,.16)` on brown | the guide’s grid lines |
+| Hairlines | `rgba(90,54,38,.16)` on cream, `rgba(255,255,255,.16)` on brown | the guide’s grid lines |
 
-Dark pages use **brown `#321c14`** as the ground with cream text, instead of black.
+Dark pages use **warm brown `#5a3626`** as the ground with ivory text, instead of black.
 
-Contrast (WCAG): brown on cream 13.6:1 · brown on soft pink 8.6:1 · `#ff0090` on cream
-3.4:1 (display sizes and kickers only, never body) · `#b0005f` on cream 7.1:1 · cream on
-brown 13.6:1 · `#ffb3d9` on brown 9.5:1.
+Contrast (WCAG): warm brown on ivory 9.4:1 · warm brown on soft pink 5.9:1 · `#ff0090` on ivory
+3.5:1 (display sizes and kickers only, never body) · `#b0005f` on ivory 7.3:1 · ivory on
+warm brown 9.4:1 · `#ffb3d9` on warm brown 6.5:1.
 
 Rule: one accent only. Pink carries one italic word in a headline, the kicker above it and
 a footer link. Soft pink is a surface (a pill, a highlight behind a placeholder, a band), not
@@ -74,8 +74,8 @@ For single images the same frame applies (108 / 72 margins, hairlines, footer).
 ## 4. Dark and light pages
 
 The guide alternates a dark cover with light content pages. On LinkedIn: **page 1 brown,
-content pages cream (or white for mock UI), last page brown**. Single images default to
-cream. Before/afters: cream with white panels.
+content pages ivory (or white for mock UI), last page brown**. Single images default to
+ivory. Before/afters: ivory with white panels.
 
 ## 5. Photos, mockups, icons
 
