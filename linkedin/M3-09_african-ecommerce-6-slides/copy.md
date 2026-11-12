@@ -4,6 +4,14 @@
 - Posting date: Wed Feb 4
 - File: `M3-09_african-ecommerce-6-slides.pdf`
 
+**First comment (sources):**
+1. Google and IFC, e-Conomy Africa 2020: https://www.ifc.org/en/pressroom/2020/new-google-ifc-report-estimates-africas-internet-economy-could-b
+2. GeoPoll, Africa 118 and African Talent Company, Africa MSME Pulse 2023 (440 businesses in Nigeria, Kenya, South Africa, Ethiopia): https://www.geopoll.com/blog/africa-msme-pulse-2023/
+3, 5, 6. GSMA, The Mobile Economy Africa 2025 (2024 data and 2030 forecast): https://www.gsma.com/solutions-and-impact/connectivity-for-good/mobile-economy/wp-content/uploads/2025/10/GSMA_AFRICA_ME2025_R_Web-3.pdf
+4. IFC, Women and E-commerce in Africa, 2021, Figure 3.4: https://www.ifc.org/content/dam/ifc/doc/mgrt/202105-digital2equal-women-and-e-commerce-africa.pdf
+
+Checked: Google/IFC, GSMA and IFC figures read in the primary documents; GeoPoll figures from GeoPoll’s own summary page.
+
 ## Slide text
 
 ### Page 1
@@ -13,33 +21,33 @@
 
 ### Page 2
 - Kicker: 01 · Market size
-- Headline: [STAT_MARKET_SIZE]
-- Body: [STAT_MARKET_SIZE_CONTEXT] · Source: [SOURCE_A]
+- Headline: $115B
+- Body: Africa’s internet economy in 2020, about 4.5% of GDP. Source: Google and IFC, e-Conomy Africa 2020
 
 ### Page 3
 - Kicker: 02 · Where it happens
-- Headline: [STAT_CHANNELS]
-- Body: [STAT_CHANNELS_CONTEXT] · Source: [SOURCE_B]
+- Headline: 45%
+- Body: of small businesses surveyed sell online, and 67% promote themselves on social media. Source: GeoPoll, Africa 118, African Talent Company, Africa MSME Pulse 2023
 
 ### Page 4
 - Kicker: 03 · Mobile first
-- Headline: [STAT_MOBILE]
-- Body: [STAT_MOBILE_CONTEXT] · Source: [SOURCE_C]
+- Headline: 416M
+- Body: mobile internet users in Africa in 2024, 28% of the population. Source: GSMA, The Mobile Economy Africa 2025
 
 ### Page 5
 - Kicker: 04 · The merchants
-- Headline: [STAT_MERCHANTS]
-- Body: [STAT_MERCHANTS_CONTEXT] · Source: [SOURCE_D]
+- Headline: 61%
+- Body: of women-owned sellers on Jumia also sell on WhatsApp. Source: IFC, Women and E-commerce in Africa, 2021
 
 ### Page 6
 - Kicker: 05 · The gap
-- Headline: [STAT_GAP]
-- Body: [STAT_GAP_CONTEXT] · Source: [SOURCE_E]
+- Headline: 58%
+- Body: of unconnected Africans already live under mobile broadband coverage. The barrier is use, not signal. Source: GSMA, The Mobile Economy Africa 2025
 
 ### Page 7
 - Kicker: 06 · Why now
-- Headline: [STAT_WHY_NOW]
-- Body: [STAT_WHY_NOW_CONTEXT] · Source: [SOURCE_F]
+- Headline: 576M
+- Body: mobile internet users expected in Africa by 2030. Source: GSMA, The Mobile Economy Africa 2025
 
 ### Page 8
 - Headline: Follow Kee for design, tech and building in public.
@@ -50,12 +58,12 @@
 ```text
 African e-commerce in 6 slides. The numbers, with sources.
 
-1. Market size: [STAT_MARKET_SIZE] [SOURCE_A]
-2. Where it happens: [STAT_CHANNELS] [SOURCE_B]
-3. Mobile first: [STAT_MOBILE] [SOURCE_C]
-4. The merchants: [STAT_MERCHANTS] [SOURCE_D]
-5. The gap: [STAT_GAP] [SOURCE_E]
-6. Why now: [STAT_WHY_NOW] [SOURCE_F]
+1. Market size: Africa’s internet economy was about $115 billion in 2020, 4.5% of GDP
+2. Where it happens: 45% of small businesses surveyed sell online, and 67% promote on social media
+3. Mobile first: 416 million mobile internet users in Africa in 2024
+4. The merchants: 61% of women-owned sellers on Jumia also sell on WhatsApp
+5. The gap: 58% of unconnected Africans already live under mobile broadband coverage
+6. Why now: 576 million mobile internet users expected by 2030
 
 Every number has its source in the first comment. If one is wrong, tell me and I will fix the slide.
 
@@ -65,31 +73,10 @@ Every number has its source in the first comment. If one is wrong, tell me and I
 ## Alt text
 
 - Page 1: Deep brown cover: “African e-commerce in 6 slides. Every number with its source.”
-- Page 2: Data slide 1 of 6, Market size: a large placeholder for the number, one line of context and the source.
-- Page 3: Data slide 2 of 6, Where it happens: a large placeholder for the number, one line of context and the source.
-- Page 4: Data slide 3 of 6, Mobile first: a large placeholder for the number, one line of context and the source.
-- Page 5: Data slide 4 of 6, The merchants: a large placeholder for the number, one line of context and the source.
-- Page 6: Data slide 5 of 6, The gap: a large placeholder for the number, one line of context and the source.
-- Page 7: Data slide 6 of 6, Why now: a large placeholder for the number, one line of context and the source.
+- Page 2: Data slide 1 of 6, Market size: $115B Africa’s internet economy in 2020, about 4.5% of GDP. Source: Google and IFC, e-Conomy Africa 2020.
+- Page 3: Data slide 2 of 6, Where it happens: 45% of small businesses surveyed sell online, and 67% promote themselves on social media. Source: GeoPoll, Africa 118, African Talent Company, Africa MSME Pulse 2023.
+- Page 4: Data slide 3 of 6, Mobile first: 416M mobile internet users in Africa in 2024, 28% of the population. Source: GSMA, The Mobile Economy Africa 2025.
+- Page 5: Data slide 4 of 6, The merchants: 61% of women-owned sellers on Jumia also sell on WhatsApp. Source: IFC, Women and E-commerce in Africa, 2021.
+- Page 6: Data slide 5 of 6, The gap: 58% of unconnected Africans already live under mobile broadband coverage. The barrier is use, not signal. Source: GSMA, The Mobile Economy Africa 2025.
+- Page 7: Data slide 6 of 6, Why now: 576M mobile internet users expected in Africa by 2030. Source: GSMA, The Mobile Economy Africa 2025.
 - Page 8: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.
-
-## Placeholders to fill
-
-- `[STAT_MARKET_SIZE]`: the number, sourced
-- `[SOURCE_A]`: publisher and year
-- `[STAT_CHANNELS]`: the number, sourced
-- `[SOURCE_B]`: publisher and year
-- `[STAT_MOBILE]`: the number, sourced
-- `[SOURCE_C]`: publisher and year
-- `[STAT_MERCHANTS]`: the number, sourced
-- `[SOURCE_D]`: publisher and year
-- `[STAT_GAP]`: the number, sourced
-- `[SOURCE_E]`: publisher and year
-- `[STAT_WHY_NOW]`: the number, sourced
-- `[SOURCE_F]`: publisher and year
-- `[STAT_MARKET_SIZE_CONTEXT]`: one line explaining it
-- `[STAT_CHANNELS_CONTEXT]`: one line explaining it
-- `[STAT_MOBILE_CONTEXT]`: one line explaining it
-- `[STAT_MERCHANTS_CONTEXT]`: one line explaining it
-- `[STAT_GAP_CONTEXT]`: one line explaining it
-- `[STAT_WHY_NOW_CONTEXT]`: one line explaining it

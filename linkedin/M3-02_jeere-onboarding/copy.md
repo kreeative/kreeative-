@@ -31,7 +31,7 @@ Screens are from the live JEERE prototype. The order of steps 2 to 4 (template, 
 ### Page 6
 - Kicker: 05 · What’s next
 - Headline: What I am building next.
-- Body: [ONBOARDING_NEXT_STEP]
+- Body: Opening the first 50 shops, free for 3 months.
 
 ### Page 7
 - Headline: Follow Kee for design, tech and building in public.
@@ -46,7 +46,7 @@ Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
 User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
 Wireframes: every step on a phone, in French first
 Prototype: live today, sign-up and products
-What is next: [ONBOARDING_NEXT_STEP]
+What is next: opening the first 50 shops, free for 3 months
 
 The one decision I would defend: no password. A code by email, and WhatsApp only if she wants it.
 
@@ -66,5 +66,4 @@ The one decision I would defend: no password. A code by email, and WhatsApp only
 ## Placeholders to fill
 
 - `[MERCHANTS_INTERVIEWED]`: number of merchants you talked to
-- `[ONBOARDING_NEXT_STEP]`: what you build next
 - `[OPEN_QUESTION]`: a question you are still working out

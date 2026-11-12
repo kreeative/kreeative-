@@ -1,39 +1,41 @@
-# M2-05 · [CLIENT_NAME]: a website, from problem to launch.
+# M2-05 · The Ivory Sukundu: a website, from problem to launch.
 
 - Format: CAROUSEL, 8 pages, 1080 × 1350, PDF
 - Posting date: Mon Jan 5
 - File: `M2-05_website-case-study.pdf`
 
+Facts from the site’s own repository (TISHE-) and the live site. Screens chosen without photos of people. Ask the owner before naming results.
+
 ## Slide text
 
 ### Page 1
 - Kicker: Case study · Website
-- Headline: [CLIENT_NAME]: a website, from problem to launch.
+- Headline: The Ivory Sukundu: a website, from problem to launch.
+- Body: A luxury hair-extensions brand, and a store that answers the questions customers ask.
 
 ### Page 2
 - Kicker: 01 · Problem
-- Headline: What was broken.
-- Body: [CLIENT_PROBLEM]
+- Headline: Bought on trust, and on a number.
+- Body: Which length, how many bundles, which texture. A standard store template answered none of it.
 
 ### Page 3
 - Kicker: 02 · Research
-- Headline: What their customers asked.
-- Body: [RESEARCH_INSIGHT]
+- Headline: Turn each question into a tool.
+- Body: Length became a guide: sixteen lengths from 10 to 40 inches, where each lands and how many bundles it takes. Texture became a quiz.
 
 ### Page 4
 - Kicker: 03 · Wireframe
 - Headline: The order of things, before any colour.
-- Body: This is where the site is actually decided.
+- Body: Shop, then decide, then belong. This is where the site was actually decided.
 
 ### Page 5
 - Kicker: 04 · Design
-- Headline: The brand, carried onto every screen.
-- Body: [DESIGN_DECISION]
+- Headline: Quiet luxury, on a phone.
+- Body: Ivory, espresso and a little gold, an editorial serif, and nothing that looks like a discount store.
 
 ### Page 6
 - Kicker: 05 · Launch
-- Headline: Live on the client’s own domain.
-- Body: [CLIENT_URL] · launched [LAUNCH_DATE]
+- Headline: Live, then a store of its own.
 
 ### Page 7
 - Kicker: 06 · Result
@@ -46,16 +48,16 @@
 ## Caption
 
 ```text
-A website case study, start to finish: [CLIENT_NAME].
+A website case study, start to finish: The Ivory Sukundu.
 
-Problem: [CLIENT_PROBLEM]
-Research: what their customers asked before buying
-Wireframe: the order of things, before any colour
-Design: the brand carried onto every screen
-Launch: live, on the client’s own domain
+Problem: hair extensions are bought on trust and on a number. Which length, how many bundles, which texture. A standard store template answered none of it.
+Research: the questions customers kept asking
+Wireframe: shop, then decide, then belong
+Design: quiet luxury on a phone, ivory, espresso and a little gold
+Launch: live in July 2026, then a store of its own in October
 Result: [RESULT_METRIC_OR_FEEDBACK]
 
-The slide I am proudest of is the wireframe. It is where the site was actually decided.
+The slide I am proudest of is the research one. Every question became a tool: a length guide and a quiz.
 
 Full case study in the first comment.
 
@@ -64,27 +66,15 @@ Full case study in the first comment.
 
 ## Alt text
 
-- Page 1: Deep brown cover: “[CLIENT_NAME]: a website, from problem to launch.”
-- Page 2: Problem slide with a placeholder for the client’s old site.
-- Page 3: Research slide with three cards, each a placeholder for a question customers asked before buying.
-- Page 4: Wireframe slide: a grey page layout with a header, a hero with one promise and one button, three service blocks, real photos, reviews, and hours, location and contact at the bottom.
-- Page 5: Design slide with a placeholder for the final design.
-- Page 6: Launch slide with placeholders for the client’s domain, the launch date and a screenshot of the live site.
-- Page 7: Result slide with a placeholder for a metric or the client’s feedback.
+- Page 1: Deep brown cover: “The Ivory Sukundu: a website, from problem to launch.”
+- Page 2: Problem slide: three questions customers kept asking, where a length lands, how many bundles for a full look, and which texture for their routine.
+- Page 3: Research slide: the length guide, five of its sixteen lengths with where each lands: 10 inches nape, 16 armpit, 22 mid-back, 30 hip, 40 mid-thigh.
+- Page 4: Wireframe slide: a grey page layout with a header, a hero with one promise, three texture blocks, the length guide and the quiz side by side, and the loyalty circle, reviews and contact at the bottom.
+- Page 5: Design slide: two real screens of theivorysukundu.com on phones. The 60-second quiz asks “How much time do you give your hair in the morning?” with three answers. The Sukundu Circle page explains loyalty in three steps: join free, earn strands, rise in tiers.
+- Page 6: Launch slide: a timeline. July 2026, the site goes live. October 2026, the store leaves Shopify for its own catalogue, bag and checkout. November 2026, the owner edits her site in place from her dashboard.
+- Page 7: Result slide with a placeholder for a metric or the owner’s feedback.
 - Page 8: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.
 
 ## Placeholders to fill
 
-- `[CLIENT_NAME]`: the client
-- `[CLIENT_PROBLEM]`: what was broken, one or two sentences
-- `[RESULT_METRIC_OR_FEEDBACK]`: a real number or a real quote from the client, never invented
-- `[CLIENT_OLD_SITE_SCREENSHOT]`: the before
-- `[RESEARCH_INSIGHT]`: one line on what you learned
-- `[CUSTOMER_QUESTION_1]`: a question customers asked
-- `[CUSTOMER_QUESTION_2]`: another
-- `[CUSTOMER_QUESTION_3]`: another
-- `[DESIGN_DECISION]`: one design decision and why
-- `[CLIENT_DESIGN_SCREEN]`: the final design
-- `[CLIENT_URL]`: the live address
-- `[LAUNCH_DATE]`: month and year
-- `[CLIENT_LIVE_SCREENSHOT]`: the live site
+- `[RESULT_METRIC_OR_FEEDBACK]`: a real number or a sentence from the owner, with her permission

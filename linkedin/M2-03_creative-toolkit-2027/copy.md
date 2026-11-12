@@ -4,6 +4,8 @@
 - Posting date: Week of Dec 28
 - File: `M2-03_creative-toolkit-2027.pdf`
 
+Tools taken from your repos, your site and the apps connected to your account. Remove any you do not use any more.
+
 ## Slide text
 
 ### Page 1
@@ -36,10 +38,10 @@
 ```text
 My creative toolkit for 2027. Design, build, video, AI.
 
-Design: [TOOL_DESIGN_1], [TOOL_DESIGN_2], [TOOL_DESIGN_3], [TOOL_DESIGN_3]
-Build: [TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]
-Video: [TOOL_VIDEO_1], [TOOL_VIDEO_2], [TOOL_VIDEO_3], [TOOL_VIDEO_3]
-AI: [TOOL_AI_1], [TOOL_AI_2], [TOOL_AI_3], [TOOL_AI_3]
+Design: Figma, Adobe Illustrator, Canva
+Build: GitHub, Supabase, Vercel
+Video: CapCut, vidIQ
+AI: Claude, Higgsfield, Wispr Flow
 
 The rule that keeps the list short: every tool has to earn a slot by removing a step, not adding one.
 
@@ -51,35 +53,8 @@ What is in yours that I am missing?
 ## Alt text
 
 - Page 1: Deep brown cover: “My 2027 creative toolkit. Design, build, video, AI.”
-- Page 2: Design tools slide: three cards, each with a placeholder for a tool name and what you use it for.
-- Page 3: Build tools slide: three cards, each with a placeholder for a tool name and what you use it for.
-- Page 4: Video tools slide: three cards, each with a placeholder for a tool name and what you use it for.
-- Page 5: AI tools slide: three cards, each with a placeholder for a tool name and what you use it for.
+- Page 2: Design tools: Figma, layouts, prototypes, shared files; Adobe Illustrator, logos and lettering; Canva, the media kits I sell.
+- Page 3: Build tools: GitHub, every project, every version; Supabase, accounts and data; Vercel, every site, live.
+- Page 4: Video tools: CapCut, editing my videos; vidIQ, research before I film.
+- Page 5: AI tools: Claude, building and checking code with me; Higgsfield, images and video drafts; Wispr Flow, talking instead of typing.
 - Page 6: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.
-
-## Placeholders to fill
-
-- `[TOOL_DESIGN_1]`: design tool 1
-- `[TOOL_DESIGN_2]`: design tool 2
-- `[TOOL_DESIGN_3]`: design tool 3
-- `[TOOL_BUILD_1]`: build tool 1
-- `[TOOL_BUILD_2]`: build tool 2
-- `[TOOL_BUILD_3]`: build tool 3
-- `[TOOL_VIDEO_1]`: video tool 1
-- `[TOOL_VIDEO_2]`: video tool 2
-- `[TOOL_VIDEO_3]`: video tool 3
-- `[TOOL_AI_1]`: ai tool 1
-- `[TOOL_AI_2]`: ai tool 2
-- `[TOOL_AI_3]`: ai tool 3
-- `[WHAT_FOR_DESIGN_1]`: what you use it for, three to five words
-- `[WHAT_FOR_DESIGN_2]`: what you use it for, three to five words
-- `[WHAT_FOR_DESIGN_3]`: what you use it for, three to five words
-- `[WHAT_FOR_BUILD_1]`: what you use it for, three to five words
-- `[WHAT_FOR_BUILD_2]`: what you use it for, three to five words
-- `[WHAT_FOR_BUILD_3]`: what you use it for, three to five words
-- `[WHAT_FOR_VIDEO_1]`: what you use it for, three to five words
-- `[WHAT_FOR_VIDEO_2]`: what you use it for, three to five words
-- `[WHAT_FOR_VIDEO_3]`: what you use it for, three to five words
-- `[WHAT_FOR_AI_1]`: what you use it for, three to five words
-- `[WHAT_FOR_AI_2]`: what you use it for, three to five words
-- `[WHAT_FOR_AI_3]`: what you use it for, three to five words

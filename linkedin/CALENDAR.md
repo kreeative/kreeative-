@@ -86,7 +86,7 @@ Where it never decides:
 My rule: AI moves the work. I move the taste.
 If it drifts toward “generic”, that is my cue to step in, not to accept it.
 
-The tools: [TOOL_1], [TOOL_2], [TOOL_3].
+The tools: Claude, Higgsfield, Wispr Flow.
 
 What is your rule?
 
@@ -369,10 +369,10 @@ My 2027 creative toolkit.
 ```
 My creative toolkit for 2027. Design, build, video, AI.
 
-Design: [TOOL_DESIGN_1], [TOOL_DESIGN_2], [TOOL_DESIGN_3]
-Build: [TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]
-Video: [TOOL_VIDEO_1], [TOOL_VIDEO_2], [TOOL_VIDEO_3]
-AI: [TOOL_AI_1], [TOOL_AI_2], [TOOL_AI_3]
+Design: Figma, Adobe Illustrator, Canva
+Build: GitHub, Supabase, Vercel
+Video: CapCut, vidIQ
+AI: Claude, Higgsfield, Wispr Flow
 
 The rule that keeps the list short: every tool has to earn a slot by removing a step, not adding one.
 
@@ -402,16 +402,16 @@ What I would do differently: [LESSON_DIFFERENTLY]
 Kreeative website case study.
 
 ```
-A website case study, start to finish: [CLIENT_NAME].
+A website case study, start to finish: The Ivory Sukundu.
 
-Problem: [CLIENT_PROBLEM]
-Research: what their customers asked before buying
-Wireframe: the order of things, before any colour
-Design: the brand carried onto every screen
-Launch: live, on the client’s own domain
+Problem: hair extensions are bought on trust and on a number. Which length, how many bundles, which texture. A standard store template answered none of it.
+Research: the questions customers kept asking
+Wireframe: shop, then decide, then belong
+Design: quiet luxury on a phone, ivory, espresso and a little gold
+Launch: live in July 2026, then a store of its own in October
 Result: [RESULT_METRIC_OR_FEEDBACK]
 
-The slide I am proudest of is the wireframe. It is where the site was actually decided.
+The slide I am proudest of is the research one. Every question became a tool: a length guide and a quiz.
 
 Full case study in the first comment.
 
@@ -567,7 +567,7 @@ Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
 User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
 Wireframes: every step on a phone, in French first
 Prototype: live today, sign-up and products
-What is next: [ONBOARDING_NEXT_STEP]
+What is next: opening the first 50 shops, free for 3 months
 
 The one decision I would defend: no password. A code by email, and WhatsApp only if she wants it.
 
@@ -578,11 +578,11 @@ The one decision I would defend: no password. A code by email, and WhatsApp only
 How African merchants sell online today.
 
 ```
-How African merchants sell online today. One image.
+How African merchants sell online today. One image, three numbers.
 
-→ WhatsApp: [STAT_WHATSAPP] [SOURCE_1]
-→ Instagram: [STAT_INSTAGRAM] [SOURCE_2]
-→ Marketplaces: [STAT_MARKETPLACES] [SOURCE_3]
+→ WhatsApp: 61% of women-owned sellers on Jumia also sell on WhatsApp
+→ Instagram: 36% of them also sell on Instagram
+→ Marketplaces: in Kenya, 27% of micro-businesses used a marketplace like Jumia, and over 90% of those also sold through Facebook, Instagram or WhatsApp
 
 The pattern: the selling already happens in chat. The missing piece is everything around it: the catalogue, the orders, the deliveries.
 
@@ -599,7 +599,7 @@ JEERE beta.
 ```
 JEERE is opening to its first merchants.
 
-The first [BETA_SHOP_COUNT] shops are free for [BETA_FREE_PERIOD].
+The first 50 shops are free for 3 months.
 What you get: a shop you set up from your phone, orders and stock in one place, deliveries by commune.
 What I get: honest feedback from the people it is for.
 
@@ -672,11 +672,11 @@ Later this month: five Black designers and founders who shaped how I work.
 ```
 5 Black designers and founders who shaped how I work.
 
-1. [NAME_1]: [ONE_LINE_1]
-2. [NAME_2]: [ONE_LINE_2]
-3. [NAME_3]: [ONE_LINE_3]
-4. [NAME_4]: [ONE_LINE_4]
-5. [NAME_5]: [ONE_LINE_5]
+1. Cheryl D. Miller: writing down who is missing is design work too
+2. Emory Douglas: design can speak for a community, in its own visual language
+3. Gail Anderson: lettering can carry a whole voice
+4. Virgil Abloh: you do not need permission to work across disciplines
+5. Rebecca Enonchong: you can build from Africa and be taken seriously everywhere
 
 Typography only, on purpose. Their work speaks; I did not want to put my frame on their faces.
 
@@ -691,12 +691,12 @@ African e-commerce in 6 slides.
 ```
 African e-commerce in 6 slides. The numbers, with sources.
 
-1. Market size: [STAT_MARKET_SIZE] [SOURCE_A]
-2. Where it happens: [STAT_CHANNELS] [SOURCE_B]
-3. Mobile first: [STAT_MOBILE] [SOURCE_C]
-4. The merchants: [STAT_MERCHANTS] [SOURCE_D]
-5. The gap: [STAT_GAP] [SOURCE_E]
-6. Why now: [STAT_WHY_NOW] [SOURCE_F]
+1. Market size: Africa’s internet economy was about $115 billion in 2020, 4.5% of GDP
+2. Where it happens: 45% of small businesses surveyed sell online, and 67% promote on social media
+3. Mobile first: 416 million mobile internet users in Africa in 2024
+4. The merchants: 61% of women-owned sellers on Jumia also sell on WhatsApp
+5. The gap: 58% of unconnected Africans already live under mobile broadband coverage
+6. Why now: 576 million mobile internet users expected by 2030
 
 Every number has its source in the first comment. If one is wrong, tell me and I will fix the slide.
 
@@ -763,35 +763,38 @@ Thank you for reading. If you build things, stay.
 
 ---
 
-## Placeholders to fill
+## Placeholders still to fill (captions only)
 
-| Placeholder | Post | What it is |
-|---|---|---|
-| [TOOL_1], [TOOL_2], [TOOL_3] | M1-03 | the AI tools you actually use |
-| [WHAT_CHANGED_SKETCH_TO_FINAL], [BAKERY_SKETCH] | M1-04 | one line on what changed, and the sketch image |
-| [GLORYWALK_BEFORE_DESCRIPTION], [GLORYWALK_BEFORE] | M2-02 | the brand before, in one line and one image |
-| [MERCHANTS_INTERVIEWED] | M1-07, M3-02 | number of merchants you talked to |
-| [FINDING_1] to [FINDING_5] | M1-07 | the five findings, one line each |
-| [CHANGE_FROM_RESEARCH] | M1-07 | one thing you changed because of the interviews |
-| [WHAT_CHANGED_WIREFRAME_TO_HIFI] | M1-12 | the main change between the two |
-| [WIREFRAME_TIME], [HIFI_TIME] | M1-12 | time each took |
-| [CAPCUT_WORK_DESCRIPTION] | M1-14 | what you did as a creator with the video app |
-| [TOOL_DESIGN_*], [TOOL_BUILD_*], [TOOL_VIDEO_*], [TOOL_AI_*] | M2-03 | your 2027 toolkit, three per category |
-| [N_MONTHS] | M2-04 | months since you started JEERE |
-| [LESSON_DIFFERENTLY] | M2-04 | one thing you would do differently |
-| [CLIENT_NAME], [CLIENT_PROBLEM], [RESULT_METRIC_OR_FEEDBACK] | M2-05 | the website case study you choose |
-| [APPLICATION_STATUS] | M2-06 | where the Desjardins application stands |
-| [DURATION_ROLE] | M2-08, M3-01 | how long you were in the CX role |
-| [THANK_YOU_LINE] | M2-08 | optional personal thanks, no employer name |
-| [WHY_A_CLOUD] | M2-11 | one line on why the JEERE logo is a cloud |
-| [LOCATION_PREFERENCE] | M3-01 | Toronto, remote, Canada |
-| [ONBOARDING_NEXT_STEP] | M3-02 | what you build next in onboarding |
-| [STAT_WHATSAPP], [STAT_INSTAGRAM], [STAT_MARKETPLACES], [SOURCE_1] to [SOURCE_3] | M3-03 | data points with sources |
-| [BETA_SHOP_COUNT], [BETA_FREE_PERIOD], [BETA_COUNTRIES] | M3-04 | the beta offer (the site currently says the first 50 shops are free for 3 months) |
-| [PERSONAL_LINE_BHM] | M3-07 | one personal line |
-| [NAME_1] to [NAME_5], [ONE_LINE_*] | M3-08 | the five people and what they taught you |
-| [STAT_MARKET_SIZE] etc., [SOURCE_A] to [SOURCE_F] | M3-09 | six data points with sources |
-| [OTHER_SHIPPED_ITEM], [TOP_FORMAT_OBSERVATION], [NEXT_90_DAYS] | M3-12 | from your own analytics and plans |
+Everything else was filled from your repos, your sites and published sources. See QUESTIONS.md.
+
+| Placeholder | Post |
+|---|---|
+| [WHAT_CHANGED_SKETCH_TO_FINAL] | M1-04 |
+| [MERCHANTS_INTERVIEWED] | M1-07, M3-02 |
+| [FINDING_1] | M1-07 |
+| [FINDING_2] | M1-07 |
+| [FINDING_3] | M1-07 |
+| [FINDING_4] | M1-07 |
+| [FINDING_5] | M1-07 |
+| [CHANGE_FROM_RESEARCH] | M1-07 |
+| [WHAT_CHANGED_WIREFRAME_TO_HIFI] | M1-12 |
+| [WIREFRAME_TIME] | M1-12 |
+| [HIFI_TIME] | M1-12 |
+| [CAPCUT_WORK_DESCRIPTION] | M1-14 |
+| [GLORYWALK_BEFORE_DESCRIPTION] | M2-02 |
+| [N_MONTHS] | M2-04 |
+| [LESSON_DIFFERENTLY] | M2-04 |
+| [RESULT_METRIC_OR_FEEDBACK] | M2-05 |
+| [APPLICATION_STATUS] | M2-06 |
+| [DURATION_ROLE] | M2-08, M3-01 |
+| [THANK_YOU_LINE] | M2-08 |
+| [WHY_A_CLOUD] | M2-11 |
+| [LOCATION_PREFERENCE] | M3-01 |
+| [BETA_COUNTRIES] | M3-04 |
+| [PERSONAL_LINE_BHM] | M3-07 |
+| [OTHER_SHIPPED_ITEM] | M3-12 |
+| [TOP_FORMAT_OBSERVATION] | M3-12 |
+| [NEXT_90_DAYS] | M3-12 |
 
 ## Links for the first comment
 
@@ -800,7 +803,7 @@ Thank you for reading. If you build things, stay.
 - M1-09 Rich & Friends: kreeative.xyz/websites/rich-and-friends/
 - M1-10 Free guide: kreeative.xyz/teach/ (the guide is on that page)
 - M2-02 GloryWalk: kreeative.xyz/portfolio/glorywalk/
-- M2-05 Website case study: the chosen case study under kreeative.xyz/websites/
+- M2-05 Website case study: kreeative.xyz/websites/the-ivory-sukundu/
 - M3-01 and M3-10 Portfolio: kreeative.xyz
-- M3-03 and M3-09: the sources, once filled
+- M3-03 and M3-09: the sources listed in their copy.md
 - M3-04 JEERE beta: jeere.kreeative.xyz

@@ -24,7 +24,7 @@
 ### Page 4
 - Kicker: 03 · JEERE
 - Headline: From an idea to a working editor.
-- Body: An e-commerce platform for African merchants. [JEERE_2026_MILESTONE]
+- Body: An e-commerce platform for African merchants. A working prototype, and the first 50 shops offered free for 3 months.
 
 ### Page 5
 - Kicker: 04 · Creator work
@@ -72,5 +72,4 @@ Thank you for reading along. Next year is already in progress.
 ## Placeholders to fill
 
 - `[CAPCUT_WORK_DESCRIPTION]`: one or two lines on your creator work
-- `[JEERE_2026_MILESTONE]`: where JEERE stands at the end of 2026
 - `[CAPCUT_VIDEO_STILL]`: a still from a video you made

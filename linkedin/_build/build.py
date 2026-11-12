@@ -536,8 +536,8 @@ def m1_11():
          biz('<div class="biz-sec"><div class="biz-photo ring">Vos vraies photos :<br>le salon, vos réalisations</div><div class="biz-info" style="margin:0"><div class="biz-photo" style="height:110px">Avant / après</div><div class="biz-photo" style="height:110px">L’équipe</div></div></div>', sticky=True),
          'The concept salon site with photo frames labelled for real photos of the salon, the work and the team.'),
         ('Reviews where people <em>decide.</em>', 'Next to the booking button, not on a page nobody opens.',
-         biz(biz_hero(info=False) + f'<div class="biz-sec ring"><div class="biz-review"><span class="biz-stars">★★★★★</span><br>[REVIEW_QUOTE]<br><b>[REVIEWER_FIRST_NAME]</b></div></div>'),
-         'The concept salon site with a review card placed right under the booking button, ringed in pink. The review text is a placeholder.'),
+         biz(biz_hero(info=False) + f'<div class="biz-sec ring"><div class="biz-review"><span class="biz-stars">★★★★★</span><br><i>Un vrai avis de cliente ici, mot pour mot, avec son prénom.</i></div></div>'),
+         'The concept salon site with a review card placed right under the booking button, ringed in pink. The review card is labelled as the slot for a real customer review.'),
         ('A simple menu: <em>five links.</em>', 'Not fifteen. If it does not help someone book, it goes in the footer.',
          '<div class="scr biz" style="height:100%"><div class="biz-nav"><span class="biz-logo">Atelier Coco</span></div><div class="biz-sec ring" style="gap:0"><div class="biz-review" style="font-size:20px;line-height:2.1">Services<br>Tarifs<br>Réalisations<br>Contact<br><b>Réserver</b></div></div></div>',
          'The concept salon site menu open with only five links: Services, Tarifs, Réalisations, Contact and Réserver, ringed in pink.'),
@@ -546,7 +546,7 @@ def m1_11():
         d.slide(f'Fix 0{i} · Concept', t, b, visual=P(scr), size='t-2', alt=f'Fix {i}: {strip(t)}. {alt}')
     d.cta()
     cap = caption('M1-11').replace('#UX #smallbusiness #webdesign #conversion #ux', '#UX #smallbusiness #webdesign #conversion')
-    d.write({'REVIEW_QUOTE': 'leave as a visible placeholder: it shows where a real review goes', 'REVIEWER_FIRST_NAME': 'same, placeholder by design'}, caption_override=cap)
+    d.write(caption_override=cap)
     return cap
 
 
@@ -586,7 +586,7 @@ def m1_14():
     d.slide('02 · Kreeative clients', 'Brands designed and built <em>end to end.</em>', 'Lyzma Industries, GloryWalk, The Bakery, The Ivory Sukundu.',
             visual=f'''<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:18px;width:100%;height:100%"><img class="photo" style="grid-column:span 2;object-position:50% 45%" src="{A}img/project-bakery-1000.webp" alt=""><img class="photo" src="{A}img/case-lyzma-1-1000.webp" alt=""><img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div>''',
             alt='Three client brand images: The Bakery wordmark on cookies across the top, the Lyzma Industries shopping bags and the GloryWalk wordmark on denim below.')
-    d.slide('03 · JEERE', 'From an idea to a working <em>editor.</em>', f'An e-commerce platform for African merchants. {ph("JEERE_2026_MILESTONE")}',
+    d.slide('03 · JEERE', 'From an idea to a working <em>editor.</em>', 'An e-commerce platform for African merchants. A working prototype, and the first 50 shops offered free for 3 months.',
             visual=f'<div style="display:flex;gap:40px;align-items:center"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:260px">{shot(d.S + "img/jeere/produits.webp", 300)}</div>',
             alt='The JEERE cloud logo in the rainbow beside a phone showing the real products screen of the JEERE prototype.')
     d.slide('04 · Creator work', 'Videos for a video app’s <em>creator programme.</em>', ph('CAPCUT_WORK_DESCRIPTION'),
@@ -627,51 +627,80 @@ def m2_03():
     d = Doc('M2-03', 'creative-toolkit-2027', 'CAROUSEL', 'Week of Dec 28', 'Creative toolkit · 2027')
     d.hook('Toolkit · 2027', 'My 2027 creative <em>toolkit.</em>', 'Design, build, video, AI. Every tool has to remove a step, not add one.',
            alt='Deep brown cover: “My 2027 creative toolkit. Design, build, video, AI.”')
-    cats = [('Design', 'DESIGN'), ('Build', 'BUILD'), ('Video', 'VIDEO'), ('AI', 'AI')]
-    for i, (n, k) in enumerate(cats, 1):
-        rows = ''.join(f'<div class="card" style="padding:30px 36px;display:flex;justify-content:space-between;align-items:center"><span class="t-3"><span class="ph">[TOOL_{k}_{j}]</span></span><span class="body" style="font-size:32px"><span class="ph">[WHAT_FOR_{k}_{j}]</span></span></div>' for j in (1, 2, 3))
+    cats = [('Design', [('Figma', 'layouts, prototypes, shared files'), ('Adobe Illustrator', 'logos and lettering'), ('Canva', 'the media kits I sell')]),
+            ('Build', [('GitHub', 'every project, every version'), ('Supabase', 'accounts and data'), ('Vercel', 'every site, live')]),
+            ('Video', [('CapCut', 'editing my videos'), ('vidIQ', 'research before I film')]),
+            ('AI', [('Claude', 'building and checking code with me'), ('Higgsfield', 'images and video drafts'), ('Wispr Flow', 'talking instead of typing')])]
+    for i, (n, tools) in enumerate(cats, 1):
+        rows = ''.join(f'<div class="card" style="padding:30px 36px;display:flex;justify-content:space-between;align-items:center;gap:24px"><span class="t-3">{t}</span><span class="body" style="font-size:32px;text-align:right">{w}</span></div>' for t, w in tools)
         d.slide(f'0{i} · {n}', f'{n} <em>tools.</em>', '', visual=f'<div style="display:flex;flex-direction:column;gap:20px;width:100%">{rows}</div>',
-                alt=f'{n} tools slide: three cards, each with a placeholder for a tool name and what you use it for.')
+                alt=f'{n} tools: ' + '; '.join(f'{t}, {w}' for t, w in tools) + '.')
     d.cta()
-    desc = {}
-    for _, k in cats:
-        for j in (1, 2, 3):
-            desc[f'TOOL_{k}_{j}'] = f'{k.lower()} tool {j}'
-            desc[f'WHAT_FOR_{k}_{j}'] = 'what you use it for, three to five words'
-    cap = caption('M2-03').replace('[TOOL_DESIGN_1], [TOOL_DESIGN_2]', '[TOOL_DESIGN_1], [TOOL_DESIGN_2], [TOOL_DESIGN_3]').replace(
-        '[TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]', '[TOOL_BUILD_1], [TOOL_BUILD_2], [TOOL_BUILD_3]').replace(
-        '[TOOL_VIDEO_1], [TOOL_VIDEO_2]', '[TOOL_VIDEO_1], [TOOL_VIDEO_2], [TOOL_VIDEO_3]').replace('[TOOL_AI_1], [TOOL_AI_2]', '[TOOL_AI_1], [TOOL_AI_2], [TOOL_AI_3]')
-    d.write(desc, caption_override=cap)
+    cap = '''My creative toolkit for 2027. Design, build, video, AI.
+
+Design: Figma, Adobe Illustrator, Canva
+Build: GitHub, Supabase, Vercel
+Video: CapCut, vidIQ
+AI: Claude, Higgsfield, Wispr Flow
+
+The rule that keeps the list short: every tool has to earn a slot by removing a step, not adding one.
+
+What is in yours that I am missing?
+
+#tools #designtools #productdesign #creativeprocess #2027'''
+    d.write(caption_override=cap, notes='Tools taken from your repos, your site and the apps connected to your account. Remove any you do not use any more.')
     return cap
 
 
 def m2_05():
-    d = Doc('M2-05', 'website-case-study', 'CAROUSEL', 'Mon Jan 5', 'Case study · Website')
-    d.hook('Case study · Website', f'{ph("CLIENT_NAME")}: a website, from <em>problem</em> to launch.', alt='Deep brown cover: “[CLIENT_NAME]: a website, from problem to launch.”')
-    d.slide('01 · Problem', 'What was <em>broken.</em>', ph('CLIENT_PROBLEM'),
-            visual=phbox('CLIENT_OLD_SITE_SCREENSHOT', 'The site, Instagram or flyer before'), alt='Problem slide with a placeholder for the client’s old site.')
-    d.slide('02 · Research', 'What their customers <em>asked.</em>', f'{ph("RESEARCH_INSIGHT")}',
-            visual=f'<div style="display:flex;flex-direction:column;gap:20px;width:100%">' + ''.join(f'<div class="card" style="padding:30px 36px"><p class="body"><span class="ph">[CUSTOMER_QUESTION_{j}]</span></p></div>' for j in (1, 2, 3)) + '</div>',
-            alt='Research slide with three cards, each a placeholder for a question customers asked before buying.')
+    d = Doc('M2-05', 'website-case-study', 'CAROUSEL', 'Mon Jan 5', 'Case study · The Ivory Sukundu')
+    S = d.S
+    d.hook('Case study · Website', 'The Ivory Sukundu: a website, from <em>problem</em> to launch.',
+           'A luxury hair-extensions brand, and a store that answers the questions customers ask.',
+           alt='Deep brown cover: “The Ivory Sukundu: a website, from problem to launch.”')
+    d.slide('01 · Problem', 'Bought on trust, and on a <em>number.</em>', 'Which length, how many bundles, which texture. A standard store template answered none of it.',
+            visual='<div class="card" style="padding:44px;width:100%;display:flex;flex-direction:column;gap:22px"><p class="cap">What customers kept asking</p><p class="t-3">Where does 24 inches land on me?</p><p class="t-3">How many bundles for a full look?</p><p class="t-3">Straight or curly, for my routine?</p></div>',
+            alt='Problem slide: three questions customers kept asking, where a length lands, how many bundles for a full look, and which texture for their routine.')
+    lens = [('10 in', 'Nape', 22), ('16 in', 'Armpit', 40), ('22 in', 'Mid-back', 58), ('30 in', 'Hip', 80), ('40 in', 'Mid-thigh', 100)]
+    bars = ''.join(f'<div style="display:flex;align-items:center;gap:24px"><span class="body" style="width:130px;font-size:32px"><strong>{a}</strong></span><div style="height:28px;width:{w}%;max-width:440px;border-radius:14px;background:var(--baby)"></div><span class="body" style="font-size:32px">{b}</span></div>' for a, b, w in lens)
+    d.slide('02 · Research', 'Turn each question into a <em>tool.</em>', 'Length became a guide: sixteen lengths from 10 to 40 inches, where each lands and how many bundles it takes. Texture became a quiz.',
+            visual=f'<div class="card" style="padding:44px;width:100%;display:flex;flex-direction:column;gap:22px">{bars}</div>',
+            alt='Research slide: the length guide, five of its sixteen lengths with where each lands: 10 inches nape, 16 armpit, 22 mid-back, 30 hip, 40 mid-thigh.')
     wire = '''<div class="card" style="width:100%;height:100%;padding:36px;display:grid;grid-template-rows:60px 1.4fr 1fr 1fr 70px;gap:18px">
       <div style="display:flex;justify-content:space-between;align-items:center"><div class="wf-b" style="width:160px;height:36px"></div><div style="display:flex;gap:12px"><div class="wf-l" style="width:70px"></div><div class="wf-l" style="width:70px"></div><div class="wf-l" style="width:70px"></div></div></div>
-      <div class="wf-x" style="font-size:24px">Hero · one promise · one button</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px"><div class="wf-x" style="font-size:22px">Service</div><div class="wf-x" style="font-size:22px">Service</div><div class="wf-x" style="font-size:22px">Service</div></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="wf-x" style="font-size:22px">Real photos</div><div class="wf-x" style="font-size:22px">Reviews</div></div>
-      <div class="wf-x" style="font-size:22px">Hours · location · contact</div></div>'''
-    d.slide('03 · Wireframe', 'The order of things, before any <em>colour.</em>', 'This is where the site is actually decided.', visual=wire,
-            alt='Wireframe slide: a grey page layout with a header, a hero with one promise and one button, three service blocks, real photos, reviews, and hours, location and contact at the bottom.')
-    d.slide('04 · Design', 'The brand, carried onto <em>every screen.</em>', f'{ph("DESIGN_DECISION")}', visual=phbox('CLIENT_DESIGN_SCREEN', 'The final design, desktop or phone'),
-            alt='Design slide with a placeholder for the final design.')
-    d.slide('05 · Launch', 'Live on the client’s <em>own domain.</em>', f'{ph("CLIENT_URL")} · launched {ph("LAUNCH_DATE")}', visual=phbox('CLIENT_LIVE_SCREENSHOT', 'The live site on a phone'),
-            alt='Launch slide with placeholders for the client’s domain, the launch date and a screenshot of the live site.')
+      <div class="wf-x" style="font-size:24px">Hero · one promise · shop now</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px"><div class="wf-x" style="font-size:22px">Texture</div><div class="wf-x" style="font-size:22px">Texture</div><div class="wf-x" style="font-size:22px">Texture</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="wf-x" style="font-size:22px">Find your length</div><div class="wf-x" style="font-size:22px">Take the quiz</div></div>
+      <div class="wf-x" style="font-size:22px">The Circle · reviews · contact</div></div>'''
+    d.slide('03 · Wireframe', 'The order of things, before any <em>colour.</em>', 'Shop, then decide, then belong. This is where the site was actually decided.', visual=wire,
+            alt='Wireframe slide: a grey page layout with a header, a hero with one promise, three texture blocks, the length guide and the quiz side by side, and the loyalty circle, reviews and contact at the bottom.')
+    d.slide('04 · Design', 'Quiet luxury, on a <em>phone.</em>', 'Ivory, espresso and a little gold, an editorial serif, and nothing that looks like a discount store.',
+            visual=f'<div style="display:flex;gap:34px">{shot(S + "img/sukundu/quiz.webp", 320, "The quiz", "one question at a time")}{shot(S + "img/sukundu/circle.webp", 320, "The Circle", "loyalty, in three steps")}</div>',
+            alt='Design slide: two real screens of theivorysukundu.com on phones. The 60-second quiz asks “How much time do you give your hair in the morning?” with three answers. The Sukundu Circle page explains loyalty in three steps: join free, earn strands, rise in tiers.')
+    steps = [('July 2026', 'theivorysukundu.com goes live'), ('October 2026', 'The store leaves Shopify: its own catalogue, bag and checkout'), ('November 2026', 'The owner edits her site in place, from her dashboard')]
+    tl = ''.join(f'<div class="card" style="padding:28px 34px;display:flex;flex-direction:column;gap:6px"><p class="cap">{a}</p><p class="t-3">{b}</p></div>' for a, b in steps)
+    d.slide('05 · Launch', 'Live, then a store of <em>its own.</em>', '', visual=f'<div style="display:flex;flex-direction:column;gap:18px;width:100%">{tl}</div>',
+            alt='Launch slide: a timeline. July 2026, the site goes live. October 2026, the store leaves Shopify for its own catalogue, bag and checkout. November 2026, the owner edits her site in place from her dashboard.')
     d.slide('06 · Result', 'What it <em>changed.</em>', '', visual=f'<div class="card" style="padding:56px;width:100%"><p class="cap">Result</p><p class="t-3" style="margin-top:20px;overflow-wrap:anywhere"><span class="ph">[RESULT_METRIC_OR_FEEDBACK]</span></p></div>',
-            alt='Result slide with a placeholder for a metric or the client’s feedback.')
+            alt='Result slide with a placeholder for a metric or the owner’s feedback.')
     d.cta()
-    d.write({'CLIENT_NAME': 'the client', 'CLIENT_PROBLEM': 'what was broken, one or two sentences', 'CLIENT_OLD_SITE_SCREENSHOT': 'the before', 'RESEARCH_INSIGHT': 'one line on what you learned',
-             'CUSTOMER_QUESTION_1': 'a question customers asked', 'CUSTOMER_QUESTION_2': 'another', 'CUSTOMER_QUESTION_3': 'another', 'DESIGN_DECISION': 'one design decision and why',
-             'CLIENT_DESIGN_SCREEN': 'the final design', 'CLIENT_URL': 'the live address', 'LAUNCH_DATE': 'month and year', 'CLIENT_LIVE_SCREENSHOT': 'the live site',
-             'RESULT_METRIC_OR_FEEDBACK': 'a real number or a real quote from the client, never invented'})
+    cap = '''A website case study, start to finish: The Ivory Sukundu.
+
+Problem: hair extensions are bought on trust and on a number. Which length, how many bundles, which texture. A standard store template answered none of it.
+Research: the questions customers kept asking
+Wireframe: shop, then decide, then belong
+Design: quiet luxury on a phone, ivory, espresso and a little gold
+Launch: live in July 2026, then a store of its own in October
+Result: [RESULT_METRIC_OR_FEEDBACK]
+
+The slide I am proudest of is the research one. Every question became a tool: a length guide and a quiz.
+
+Full case study in the first comment.
+
+#webdesign #casestudy #smallbusiness #UX #branding'''
+    d.write({'RESULT_METRIC_OR_FEEDBACK': 'a real number or a sentence from the owner, with her permission'}, caption_override=cap,
+            notes='Facts from the site’s own repository (TISHE-) and the live site. Screens chosen without photos of people. Ask the owner before naming results.')
+    return cap
 
 
 def m2_07():
@@ -766,7 +795,7 @@ def m3_02():
     d.slide('04 · Prototype', 'The prototype, <em>live today.</em>', '',
             visual=f'<div style="display:flex;gap:34px">{shot(d.S + "img/jeere/signup.webp", 320, "Créer un compte", "étape 1 sur 4")}{shot(d.S + "img/jeere/produits.webp", 320, "Produits", "la boutique se remplit")}</div>', size='t-2',
             alt='Two real JEERE prototype screens on phones. Left: “Créez votre compte, étape 1 sur 4, pas de mot de passe”, with fields for first name, email and an optional WhatsApp number. Right: the products screen of the demo shop with an “Ajouter un produit” button and products with their prices.')
-    d.slide('05 · What’s next', 'What I am <em>building next.</em>', ph('ONBOARDING_NEXT_STEP'),
+    d.slide('05 · What’s next', 'What I am <em>building next.</em>', 'Opening the first 50 shops, free for 3 months.',
             visual=f'<div class="card" style="padding:48px;width:100%"><p class="cap">Open question</p><p class="t-3" style="margin-top:18px"><span class="ph">[OPEN_QUESTION]</span></p></div>',
             alt='What’s next slide with placeholders for the next step and an open question.')
     d.cta()
@@ -776,7 +805,7 @@ Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
 User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
 Wireframes: every step on a phone, in French first
 Prototype: live today, sign-up and products
-What is next: [ONBOARDING_NEXT_STEP]
+What is next: opening the first 50 shops, free for 3 months
 
 The one decision I would defend: no password. A code by email, and WhatsApp only if she wants it.
 
@@ -791,14 +820,31 @@ def m3_03():
     icon = {'chat': '<path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Z"/>',
             'cam': '<path d="M208,56H180.28L166.65,35.56A8,8,0,0,0,160,32H96a8,8,0,0,0-6.65,3.56L75.71,56H48A24,24,0,0,0,24,80V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V80A24,24,0,0,0,208,56Zm-80,124a40,40,0,1,1,40-40A40,40,0,0,1,128,180Z"/>',
             'shop': '<path d="M232,96a7.89,7.89,0,0,0-.3-2.2L217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.8A7.89,7.89,0,0,0,24,96v16a40,40,0,0,0,16,32v64a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V144a40,40,0,0,0,16-32Z"/>'}
-    rows = [('chat', 'WhatsApp', 'STAT_WHATSAPP', 'SOURCE_1'), ('cam', 'Instagram', 'STAT_INSTAGRAM', 'SOURCE_2'), ('shop', 'Marketplaces', 'STAT_MARKETPLACES', 'SOURCE_3')]
-    r = ''.join(f'''<div class="card" style="padding:34px 40px;display:grid;grid-template-columns:96px 1fr;gap:30px;align-items:center">
-        <div style="width:96px;height:96px;border-radius:50%;background:var(--baby);display:grid;place-items:center"><svg viewBox="0 0 256 256" width="52" fill="#321c14">{icon[k]}</svg></div>
-        <div style="display:flex;flex-direction:column;gap:10px"><span class="t-3">{n}</span><span class="body" style="font-size:34px"><span class="ph">[{s}]</span></span><span class="cap">Source: [{src}]</span></div></div>''' for k, n, s, src in rows)
-    d.slide('Data · African e-commerce', 'How African merchants sell online <em>today.</em>', '', visual=f'<div style="display:flex;flex-direction:column;gap:24px;width:100%">{r}</div>', size='t-2',
-            alt='Infographic on ivory: three cards for WhatsApp, Instagram and marketplaces, each with an icon, a placeholder data point and a placeholder source.')
-    d.write({'STAT_WHATSAPP': 'a sourced data point', 'STAT_INSTAGRAM': 'a sourced data point', 'STAT_MARKETPLACES': 'a sourced data point',
-             'SOURCE_1': 'publisher and year', 'SOURCE_2': 'publisher and year', 'SOURCE_3': 'publisher and year'})
+    rows = [('chat', 'WhatsApp', '61%', 'of women-owned sellers on Jumia also sell on WhatsApp', 'IFC, 2021'),
+            ('cam', 'Instagram', '36%', 'of them also sell on Instagram', 'IFC, 2021'),
+            ('shop', 'Marketplaces', '27%', 'of Kenyan micro-businesses used one. Over 90% of those also sold on social media', 'Caribou Digital, 2020')]
+    r = ''.join(f'''<div class="card" style="padding:26px 32px;display:grid;grid-template-columns:84px 1fr;gap:24px;align-items:center">
+        <div style="width:84px;height:84px;border-radius:50%;background:var(--baby);display:grid;place-items:center"><svg viewBox="0 0 256 256" width="46" fill="#321c14">{icon[k]}</svg></div>
+        <div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:baseline;gap:18px"><span class="t-2" style="color:var(--pink)">{s}</span><span class="t-3">{n}</span></div><span class="body" style="font-size:32px;line-height:1.3">{c}</span><span class="cap">Source: {src}</span></div></div>''' for k, n, s, c, src in rows)
+    d.slide('Data · Côte d’Ivoire, Kenya, Nigeria', 'How African merchants sell online <em>today.</em>', '', visual=f'<div style="display:flex;flex-direction:column;gap:20px;width:100%">{r}</div>', size='t-2',
+            alt='Infographic on ivory, three cards. WhatsApp: 61% of women-owned sellers on Jumia in Côte d’Ivoire, Kenya and Nigeria also sell on WhatsApp. Instagram: 36% also sell on Instagram. Source: IFC, Women and E-commerce in Africa, 2021. Marketplaces: 27% of Kenyan micro-businesses used a marketplace, and over 90% of those also sold through social media. Source: Mastercard Foundation and Caribou Digital, 2020.')
+    cap = '''How African merchants sell online today. One image, three numbers.
+
+→ WhatsApp: 61% of women-owned sellers on Jumia also sell on WhatsApp
+→ Instagram: 36% of them also sell on Instagram
+→ Marketplaces: in Kenya, 27% of micro-businesses used a marketplace like Jumia, and over 90% of those also sold through Facebook, Instagram or WhatsApp
+
+The pattern: the selling already happens in chat. The missing piece is everything around it: the catalogue, the orders, the deliveries.
+
+That is the gap JEERE is built for.
+
+Sources in the first comment.
+
+#ecommerce #africa #JEERE #smallbusiness #data'''
+    d.write(caption_override=cap, notes='''**First comment (sources):**
+- IFC, Women and E-commerce in Africa, 2021 (Jumia sellers in Côte d’Ivoire, Kenya and Nigeria; 61% of women-owned and 51% of men-owned businesses sell on WhatsApp, 36% and 32% on Instagram, Figure 3.4): https://www.ifc.org/content/dam/ifc/doc/mgrt/202105-digital2equal-women-and-e-commerce-africa.pdf
+- Mastercard Foundation and Caribou Digital, 2020, as cited in the same IFC report (Kenya: 27% of microenterprises used marketplace platforms like Jumia; over 90% of them also used Facebook, Instagram and WhatsApp).''')
+    return cap
 
 
 def m3_05():
@@ -827,23 +873,40 @@ def m3_08():
     d = Doc('M3-08', 'black-designers-founders', 'CAROUSEL', 'Tue Feb 3', 'Black History Month')
     d.hook('Black History Month', '5 Black designers and founders who shaped <em>how I work.</em>', 'Typography only, on purpose. Their work speaks.',
            alt='Deep brown cover: “5 Black designers and founders who shaped how I work. Typography only, on purpose.”')
-    for i in range(1, 6):
+    people = [
+        ('Cheryl D. Miller', 'Graphic designer and design historian', 'Her 1985 Pratt thesis on Black designers became “Black Designers Missing in Action”, published by Print in 1987.', 'Writing down who is missing is design work too.'),
+        ('Emory Douglas', 'Artist, Minister of Culture of the Black Panther Party', 'He shaped the look of The Black Panther newspaper from 1967. AIGA Medal, 2015.', 'Design can speak for a community, in its own visual language.'),
+        ('Gail Anderson', 'Graphic designer, writer and educator', 'Senior art director at Rolling Stone from 1987 to 2002. AIGA Lifetime Achievement Medal, 2008.', 'Lettering can carry a whole voice.'),
+        ('Virgil Abloh', 'Designer, founder of Off-White', 'Founded Off-White in 2013. Named artistic director of Louis Vuitton menswear in 2018.', 'You do not need permission to work across disciplines.'),
+        ('Rebecca Enonchong', 'Cameroonian tech entrepreneur', 'Founded AppsTech in 1999. Chairs ActivSpaces, a tech hub in Buea.', 'You can build from Africa and be taken seriously everywhere.'),
+    ]
+    for i, (n, role, fact, line) in enumerate(people, 1):
         inner = f'''  <div class="area" style="justify-content:space-between">
     <p class="kicker">0{i} of 05</p>
-    <div style="display:flex;flex-direction:column;gap:30px">
-      <h2 class="t-hook" style="font-size:120px"><span class="ph">[NAME_{i}]</span></h2>
-      <p class="lead"><span class="ph">[ROLE_{i}]</span></p>
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <h2 class="t-hook" style="font-size:112px">{n}</h2>
+      <p class="lead">{role}</p>
+      <p class="body">{fact}</p>
     </div>
-    <div class="card" style="padding:44px"><p class="cap">What I took from their work</p><p class="t-3" style="margin-top:18px"><span class="ph">[ONE_LINE_{i}]</span></p></div>
+    <div class="card" style="padding:44px"><p class="cap">What I took from their work</p><p class="t-3" style="margin-top:18px">{line}</p></div>
   </div>'''
-        d.raw(inner, 'light' if i % 2 else 'pink', dict(kicker=f'0{i} of 05', title=f'[NAME_{i}]', body=f'[ROLE_{i}] · [ONE_LINE_{i}]',
-                                                       alt=f'Typography-only slide {i} of 5: placeholders for a name, their role, and one line on what Kee took from their work.'))
+        d.raw(inner, 'light' if i % 2 else 'pink', dict(kicker=f'0{i} of 05', title=n, body=f'{role}. {fact} What I took from their work: {line}',
+                                                       alt=f'Typography-only slide {i} of 5: {n}, {role}. {fact} What Kee took from their work: “{line}”'))
     d.cta()
-    desc = {}
-    for i in range(1, 6):
-        desc[f'NAME_{i}'] = 'full name'; desc[f'ROLE_{i}'] = 'what they do, one line, verified'; desc[f'ONE_LINE_{i}'] = 'what you took from their work'
-    cap = caption('M3-08').replace('[ONE_LINE_WHAT_THEY_TAUGHT_ME_1]', '[ONE_LINE_1]')
-    d.write(desc, caption_override=cap)
+    cap = '''5 Black designers and founders who shaped how I work.
+
+1. Cheryl D. Miller: writing down who is missing is design work too
+2. Emory Douglas: design can speak for a community, in its own visual language
+3. Gail Anderson: lettering can carry a whole voice
+4. Virgil Abloh: you do not need permission to work across disciplines
+5. Rebecca Enonchong: you can build from Africa and be taken seriously everywhere
+
+Typography only, on purpose. Their work speaks; I did not want to put my frame on their faces.
+
+Who would be on your list?
+
+#BlackHistoryMonth #designers #founders #inspiration #design'''
+    d.write(caption_override=cap, notes='''Facts checked on Wikipedia (Cheryl D. Miller, Emory Douglas, The Black Panther (newspaper), Gail Anderson (graphic designer), Virgil Abloh, Rebecca Enonchong). **The “what I took from their work” lines are drafts in your voice: change them, or swap a person, before posting.** Alternative checked: Tope Awotona, Nigerian-born founder of Calendly (debut 2013).''')
     return cap
 
 
@@ -851,21 +914,40 @@ def m3_09():
     d = Doc('M3-09', 'african-ecommerce-6-slides', 'CAROUSEL', 'Wed Feb 4', 'African e-commerce')
     d.hook('Data · African e-commerce', 'African e-commerce in <em>6 slides.</em>', 'Every number with its source.',
            alt='Deep brown cover: “African e-commerce in 6 slides. Every number with its source.”')
-    items = [('Market size', 'STAT_MARKET_SIZE', 'SOURCE_A'), ('Where it happens', 'STAT_CHANNELS', 'SOURCE_B'), ('Mobile first', 'STAT_MOBILE', 'SOURCE_C'),
-             ('The merchants', 'STAT_MERCHANTS', 'SOURCE_D'), ('The gap', 'STAT_GAP', 'SOURCE_E'), ('Why now', 'STAT_WHY_NOW', 'SOURCE_F')]
-    for i, (t, s, src) in enumerate(items, 1):
+    items = [('Market size', '$115B', 'Africa’s internet economy in 2020, about 4.5% of GDP.', 'Google and IFC, e-Conomy Africa 2020'),
+             ('Where it happens', '45%', 'of small businesses surveyed sell online, and 67% promote themselves on social media.', 'GeoPoll, Africa 118, African Talent Company, Africa MSME Pulse 2023'),
+             ('Mobile first', '416M', 'mobile internet users in Africa in 2024, 28% of the population.', 'GSMA, The Mobile Economy Africa 2025'),
+             ('The merchants', '61%', 'of women-owned sellers on Jumia also sell on WhatsApp.', 'IFC, Women and E-commerce in Africa, 2021'),
+             ('The gap', '58%', 'of unconnected Africans already live under mobile broadband coverage. The barrier is use, not signal.', 'GSMA, The Mobile Economy Africa 2025'),
+             ('Why now', '576M', 'mobile internet users expected in Africa by 2030.', 'GSMA, The Mobile Economy Africa 2025')]
+    for i, (t, s, c, src) in enumerate(items, 1):
         inner = f'''  <div class="area" style="justify-content:space-between">
     <p class="kicker">0{i} · {t}</p>
-    <h2 class="t-hook" style="font-size:120px"><span class="ph">[{s}]</span></h2>
-    <div style="display:flex;flex-direction:column;gap:18px"><p class="lead"><span class="ph">[{s}_CONTEXT]</span></p><p class="cap">Source: [{src}]</p></div>
+    <h2 class="t-hook" style="font-size:250px;line-height:.9;color:var(--pink)">{s}</h2>
+    <div style="display:flex;flex-direction:column;gap:22px"><p class="lead">{c}</p><p class="cap">Source: {src}</p></div>
   </div>'''
-        d.raw(inner, 'light' if i % 2 else 'pink', dict(kicker=f'0{i} · {t}', title=f'[{s}]', body=f'[{s}_CONTEXT] · Source: [{src}]',
-                                                       alt=f'Data slide {i} of 6, {t}: a large placeholder for the number, one line of context and the source.'))
+        d.raw(inner, 'light' if i % 2 else 'pink', dict(kicker=f'0{i} · {t}', title=s, body=f'{c} Source: {src}', alt=f'Data slide {i} of 6, {t}: {s} {c} Source: {src}.'))
     d.cta()
-    desc = {}
-    for _, s, src in items:
-        desc[s] = 'the number, sourced'; desc[s + '_CONTEXT'] = 'one line explaining it'; desc[src] = 'publisher and year'
-    d.write(desc)
+    cap = '''African e-commerce in 6 slides. The numbers, with sources.
+
+1. Market size: Africa’s internet economy was about $115 billion in 2020, 4.5% of GDP
+2. Where it happens: 45% of small businesses surveyed sell online, and 67% promote on social media
+3. Mobile first: 416 million mobile internet users in Africa in 2024
+4. The merchants: 61% of women-owned sellers on Jumia also sell on WhatsApp
+5. The gap: 58% of unconnected Africans already live under mobile broadband coverage
+6. Why now: 576 million mobile internet users expected by 2030
+
+Every number has its source in the first comment. If one is wrong, tell me and I will fix the slide.
+
+#ecommerce #africa #JEERE #data #startup'''
+    d.write(caption_override=cap, notes='''**First comment (sources):**
+1. Google and IFC, e-Conomy Africa 2020: https://www.ifc.org/en/pressroom/2020/new-google-ifc-report-estimates-africas-internet-economy-could-b
+2. GeoPoll, Africa 118 and African Talent Company, Africa MSME Pulse 2023 (440 businesses in Nigeria, Kenya, South Africa, Ethiopia): https://www.geopoll.com/blog/africa-msme-pulse-2023/
+3, 5, 6. GSMA, The Mobile Economy Africa 2025 (2024 data and 2030 forecast): https://www.gsma.com/solutions-and-impact/connectivity-for-good/mobile-economy/wp-content/uploads/2025/10/GSMA_AFRICA_ME2025_R_Web-3.pdf
+4. IFC, Women and E-commerce in Africa, 2021, Figure 3.4: https://www.ifc.org/content/dam/ifc/doc/mgrt/202105-digital2equal-women-and-e-commerce-africa.pdf
+
+Checked: Google/IFC, GSMA and IFC figures read in the primary documents; GeoPoll figures from GeoPoll’s own summary page.''')
+    return cap
 
 
 def m3_10():
