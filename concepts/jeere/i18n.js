@@ -35,7 +35,7 @@ window.JEERE_EN = {
   'hero.title': 'Create your online store for free',
   'hero.lead': 'Jeere is the all-in-one platform to build, run and grow your business, online and in person. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, with prices in FCFA.',
   'hero.cardTitle': 'Reserve your free store',
-  'hero.cardSub': 'The first 10 stores get 3 months free.',
+  'hero.cardSub': 'First month free for everyone, 3 months for the first 10.',
   'hero.consent': 'By continuing, you agree to receive WhatsApp messages from Jeere.',
   'hero.phonePh': 'Your WhatsApp number',
   'hero.go': 'Continue',

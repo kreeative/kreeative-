@@ -16,32 +16,37 @@
     // (no pill on the plan cards: the bar at the top says it)
     var old = document.querySelectorAll('[data-launch-plan] .launch-tag');
     for (var c = 0; c < old.length; c++) old[c].remove();
-    // the thin red bar at the very top: one line, the whole bar is the link (to the signup, the source kept)
+    // Everyone: the 1st month of Essentiel free (o.trial); the first o.spots: o.months months (o.active)
+    var on = !!(o.active || o.trial);
+    var tm = Number(o.trialMonths) || 1;
+    var first = en() ? (tm > 1 ? tm + ' months free' : '1st month free') : (tm > 1 ? tm + NB + 'mois offerts' : '1er mois offert');
     var bars = document.querySelectorAll('[data-launch-bar]');
     for (var r = 0; r < bars.length; r++) {
       var bar = bars[r];
-      if (!o.active) { bar.hidden = true; continue; }
+      if (!on) { bar.hidden = true; continue; }
       var ref = '';
       try { var sv = JSON.parse(localStorage.getItem('jeere-ref') || 'null'); ref = sv && sv.src ? sv.src : ''; } catch (e) { ref = ''; }
       bar.href = (bar.getAttribute('data-base') || 'compte/') + (ref ? '?ref=' + encodeURIComponent(ref) : '') + '#inscription';
       bar.innerHTML = '<span class="promo__t"></span><span class="promo__go"></span>';
-      bar.querySelector('.promo__t').textContent = en() ? o.months + ' months free on the Essentiel pack' : o.months + NB + 'mois offerts sur le pack Essentiel';
+      bar.querySelector('.promo__t').textContent = o.active
+        ? (en() ? first + ' · ' + o.months + ' months for the first ' + o.spots : first + ' · ' + o.months + NB + 'mois pour les ' + o.spots + ' premières')
+        : (en() ? first + ' on the Essentiel pack' : first + ' sur le pack Essentiel');
       bar.querySelector('.promo__go').textContent = en() ? 'Find out more →' : 'En savoir plus →';
       bar.hidden = false;
     }
     var boxes = document.querySelectorAll('[data-launch]');
     for (var b = 0; b < boxes.length; b++) {
       var box = boxes[b];
-      if (!o.active) { box.hidden = true; continue; }
+      if (!on) { box.hidden = true; continue; }
       var left = Number(o.left) || 0;
-      // short: people don't read; the exact « Plus que N places » once 20 or fewer are left
-      var t1 = en() ? 'Get ' + o.months + ' months free on the Essentiel pack.' : 'Obtiens ' + o.months + NB + 'mois offerts sur le pack Essentiel.';
-      var t0 = en() ? 'Everything included.' : 'Tout est inclus.';
-      var t2 = left <= 20 ? (en() ? 'Only ' + left + ' left' : 'Plus que ' + left + ' place' + (left > 1 ? 's' : '')) : (en() ? 'Sign up fast, before the spots run out' : 'Inscris-toi vite avant que les places finissent');
-      box.innerHTML = '<p class="launch__t"><b></b> <span></span></p><span class="launch__n"></span>';
+      var t1 = en() ? 'Get your ' + first.toLowerCase() + ' on the Essentiel pack.' : 'Obtiens ton ' + first.replace('1er mois offert', '1er mois offert') + ' sur le pack Essentiel.';
+      if (!en() && tm > 1) t1 = 'Obtiens ' + first + ' sur le pack Essentiel.';
+      var t0 = o.active ? (en() ? 'First ' + o.spots + ': ' + o.months + ' months.' : 'Les ' + o.spots + ' premières : ' + o.months + NB + 'mois.') : (en() ? 'Everything included.' : 'Tout est inclus.');
+      var t2 = !o.active ? '' : (left <= 20 ? (en() ? 'Only ' + left + ' left' : 'Plus que ' + left + ' place' + (left > 1 ? 's' : '')) : (en() ? 'Sign up fast, before the spots run out' : 'Inscris-toi vite avant que les places finissent'));
+      box.innerHTML = '<p class="launch__t"><b></b> <span></span></p>' + (t2 ? '<span class="launch__n"></span>' : '');
       box.querySelector('.launch__t b').textContent = t1;
       box.querySelector('.launch__t span').textContent = t0;
-      box.querySelector('.launch__n').textContent = t2;
+      if (t2) box.querySelector('.launch__n').textContent = t2;
       box.hidden = false;
     }
   }

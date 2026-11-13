@@ -1041,3 +1041,6 @@ a:not([class]) { font-weight: 600; }
 /* Free plan hidden (launch offer): the three paid plans fill the row */
 @media (min-width: 1100px) { .plans:has(> [data-free-plan][hidden]) { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 700px) and (max-width: 1099px) { .plans:has(> [data-free-plan][hidden]) > .plan:last-child { grid-column: 1 / -1; } }
+
+/* Phone: the promo bar on one line, the arrow only (the whole bar is the link) */
+@media (max-width: 560px) { .promo { font-size: 12.5px; white-space: nowrap; } .promo__go { display: none; } .promo__t::after { content: " \2192"; } }

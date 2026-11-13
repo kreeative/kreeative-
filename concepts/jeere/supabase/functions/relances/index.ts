@@ -22,12 +22,13 @@ const db = (path: string, init: RequestInit = {}) => fetch(SUPABASE_URL + '/rest
 });
 async function rpc(name: string, body: Obj = {}) { const r = await db('rpc/' + name, { method: 'POST', body: JSON.stringify(body) }); return r.ok ? await r.json() : null; }
 
-function mail(firstName: string, left: number, months: number, active: boolean, spots: number) {
+function mail(firstName: string, left: number, months: number, active: boolean, spots: number, trial: boolean) {
   const hi = firstName ? 'Bonjour ' + firstName + ',' : 'Bonjour,';
   const link = SITE + '/compte/#connexion';
+  // everyone: the 1st month of Essentiel free; the first `spots`: `months` months (while spots are left)
   const offer = active
-    ? 'Offre de lancement : le plan Essentiel (3 000 FCFA/mois) est offert ' + months + ' mois aux ' + spots + ' premières inscrites. Il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' en ce moment. Après, l’Essentiel est à 3 000 FCFA par mois.'
-    : '';
+    ? 'Votre 1er mois sur le pack Essentiel (3 000 FCFA/mois) est offert. Les ' + spots + ' premières inscrites ont ' + months + ' mois offerts : il reste ' + left + ' place' + (left > 1 ? 's' : '') + '.'
+    : (trial ? 'Votre 1er mois sur le pack Essentiel (3 000 FCFA/mois) est offert.' : '');
   const lines = [
     hi,
     'Vous avez commencé à créer votre compte Jeere, mais il n’est pas encore terminé : il manque juste le code de connexion.',
@@ -36,7 +37,7 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
     'Une question ? Répondez simplement à cet e-mail.',
     'Kelly, Jeere'
   ].filter(Boolean);
-  const subject = active ? 'Finalisez votre inscription : il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' offerte' + (left > 1 ? 's' : '') : 'Finalisez votre inscription à Jeere';
+  const subject = active ? 'Finalisez votre inscription : il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' à 3 mois offerts' : (trial ? 'Finalisez votre inscription : votre 1er mois est offert' : 'Finalisez votre inscription à Jeere');
   const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
   const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
     '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
@@ -69,7 +70,7 @@ Deno.serve(async (req: Request) => {
   const active = !!(spots && spots.active), left = Number(spots?.left ?? 0), months = Number(spots?.months ?? 3);
   let sent = 0;
   for (const p of pending) {
-    const m = mail(String(p.first_name || '').split(' ')[0].slice(0, 40), left, months, active, Number(spots?.spots ?? 50));
+    const m = mail(String(p.first_name || '').split(' ')[0].slice(0, 40), left, months, active, Number(spots?.spots ?? 10), !!(spots && spots.trial));
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: FROM, to: [p.email], subject: m.subject, html: m.html, text: m.text, reply_to: 'contact.jeere@kreeative.xyz' })
