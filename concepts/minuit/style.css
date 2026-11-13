@@ -40,7 +40,9 @@ body { font-size: 13.5px; line-height: 1.7; }
 @media (min-width: 820px) { .nav__links { display: flex; } }
 .btn { font-size: 10.500px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; border-radius: 0; }
 .btn--solid { background: var(--champ); color: #0a0a0a; border-color: transparent; }
-.nav__book { min-height: 40px; padding: 8px 20px; }
+/* one button at the top of the site: the rounded one of the hero. « Réserver » in the bar is a plain link */
+.nav__book { min-height: 0; padding: 4px 0; border: 0; background: none; color: var(--ink); letter-spacing: .24em; }
+.nav__book:hover { color: var(--accent); transform: none; }
 .h1, .h2 { font-family: var(--title); font-weight: 400; text-transform: uppercase; letter-spacing: .04em; line-height: 1; }
 .h1 { font-size: clamp(40px, 7vw, 76px); }
 .h2 { font-size: clamp(32px, 5vw, 54px); text-align: center; }
@@ -60,7 +62,8 @@ body { font-size: 13.5px; line-height: 1.7; }
 .hero__over { font-size: 10.500px; font-weight: 500; letter-spacing: .44em; text-transform: uppercase; }
 .hero__title { font-family: var(--title); font-weight: 400; font-size: clamp(84px, 19vw, 210px); line-height: .84; letter-spacing: .04em; margin-right: -.04em; background: linear-gradient(#ffffff, #cfc5b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .hero__kind { font-family: var(--title); font-size: clamp(26px, 4.6vw, 46px); line-height: 1; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 14px; }
-.hero__btn { margin-top: 18px; }
+.hero__tags { display: flex; gap: 14px; justify-content: center; font-size: 10.500px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; color: #e9e1d6; }
+.hero__btn { margin-top: 20px; min-height: 50px; padding: 12px 34px; border-radius: var(--pill); }
 .hero__place { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 0 var(--pad); text-align: center; }
 .hero__place span { display: block; padding: 10px 0 12px; border-top: 3px solid transparent; border-image: var(--champ) 1; font-size: 9.500px; font-weight: 500; letter-spacing: .4em; text-transform: uppercase; color: var(--muted); }
 
