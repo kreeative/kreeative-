@@ -5,7 +5,7 @@
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/billing
 //   headers: apikey: <publishable key>, Authorization: Bearer <her Supabase session>
 //   body: { action: 'prices' }                                   → the price lists (anyone)
-//         { action: 'subscribe', kind: 'studio'|'boutique', plan, period, returnUrl }
+//         { action: 'subscribe', kind: 'studio'|'boutique', plan, period, storeId (boutique: one subscription = one store), returnUrl }
 //                                                               → { ok, url } Stripe Checkout (subscription)
 //         { action: 'portal', returnUrl }                       → { ok, url } her Stripe billing portal (cards, invoices, cancel)
 //         { action: 'domain', domain, storeId?, returnUrl }     → { ok, url, price } Stripe Checkout (one payment)
@@ -193,8 +193,15 @@ async function applySubscription(sub: Obj) {
   const live = status === 'active' || status === 'trialing' || status === 'past_due';
   if (kind === 'boutique') {
     if (!(plan in BOUTIQUE)) return;
-    if (live) await saveProfile(userId, { plan });
-    else if (pr.plan === plan) await saveProfile(userId, { plan: 'gratuit' });
+    // one subscription = one store (metadata.store_id); her own store only
+    const storeId = str(md.store_id, 40);
+    if (!UUID.test(storeId)) return;
+    const st = (await rows('stores?select=id,owner,plan,plan_promo&id=eq.' + storeId))[0];
+    if (!st || st.owner !== userId) return;
+    const patch = (p: Obj) => admin('stores?id=eq.' + storeId, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(p) });
+    // paid: the launch offer's end date no longer applies
+    if (live) await patch({ plan, plan_until: null, plan_promo: st.plan_promo ? String(st.plan_promo).replace(/-fini$/, '') + '-fini' : null });
+    else if (st.plan === plan && !st.plan_promo?.toString().match(/^(lancement|essai)$/)) await patch({ plan: 'gratuit' });
     return;
   }
   if (kind !== 'studio' || !(plan in STUDIO)) return;
@@ -309,18 +316,33 @@ Deno.serve(async (req: Request) => {
     const list = (subs.ok && Array.isArray(subs.data.data) ? subs.data.data as Obj[] : []).filter((x) => isObj(x.metadata) && (x.metadata as Obj).user_id === user.id);
     const liveSt = (x: Obj) => ['active', 'trialing', 'past_due'].includes(String(x.status));
     let applied = 0;
-    for (const kind of ['boutique', 'studio']) {
-      const mine = list.filter((x) => (x.metadata as Obj).kind === kind).sort((a, c) => Number(c.created) - Number(a.created));
+    // the Studio: one per account; the boutique plans: one per store
+    const byDate = (a: Obj, c: Obj) => Number(c.created) - Number(a.created);
+    const studio = list.filter((x) => (x.metadata as Obj).kind === 'studio').sort(byDate);
+    const pickS = studio.find(liveSt) ?? studio[0];
+    if (pickS) { await applySubscription(pickS); applied++; }
+    const shops = list.filter((x) => (x.metadata as Obj).kind === 'boutique').sort(byDate);
+    for (const sid of [...new Set(shops.map((x) => String((x.metadata as Obj).store_id ?? '')))].filter((x) => UUID.test(x))) {
+      const mine = shops.filter((x) => (x.metadata as Obj).store_id === sid);
       const pick = mine.find(liveSt) ?? mine[0];
       if (pick) { await applySubscription(pick); applied++; }
     }
     const after = await profile(user.id);
-    return json({ ok: true, applied, plan: after?.plan ?? null, studio: after?.studio ?? null });
+    const myStores = await rows('stores?select=id,plan,plan_until,plan_promo&owner=eq.' + user.id);
+    return json({ ok: true, applied, plan: after?.plan ?? null, studio: after?.studio ?? null, stores: myStores });
   }
 
   if (action === 'subscribe') {
     const kind = b.kind === 'boutique' ? 'boutique' : 'studio';
     const plan = str(b.plan, 20);
+    // a boutique plan is bought for ONE store of hers
+    const storeId = str(b.storeId, 40);
+    let storeName = '';
+    if (kind === 'boutique') {
+      const st = UUID.test(storeId) ? (await rows('stores?select=id,owner,slug,fiche&id=eq.' + storeId))[0] : null;
+      if (!st || st.owner !== user.id) return fail(400, 'store', 'Choisissez la boutique à abonner : un abonnement vaut pour une boutique.');
+      storeName = str(isObj(st.fiche) && isObj((st.fiche as Obj).store) ? ((st.fiche as Obj).store as Obj).name : '', 40) || String(st.slug);
+    }
     let amount = 0, interval = 'month', label = '', period = '';
     if (kind === 'studio') {
       const p = STUDIO[plan];
@@ -335,19 +357,19 @@ Deno.serve(async (req: Request) => {
       period = b.period === 'semaine' && p.week ? 'semaine' : 'mois';
       amount = period === 'semaine' ? p.week as number : p.month;
       interval = period === 'semaine' ? 'week' : 'month';
-      label = p.name + (period === 'semaine' ? ' · à la semaine' : ' · au mois');
+      label = p.name + ' · ' + storeName + (period === 'semaine' ? ' · à la semaine' : ' · au mois');
     }
     const customer = await customerFor(user, name);
     if (!customer) return fail(502, 'stripe', 'Stripe n’a pas pu créer votre fiche client. Réessayez.');
     // one live subscription per kind: a change of plan goes through the portal
     const subs = await stripe('GET', 'subscriptions', { customer, status: 'all', limit: 20 });
-    const same = (subs.ok && Array.isArray(subs.data.data) ? subs.data.data as Obj[] : []).find((s) => ['active', 'trialing', 'past_due'].includes(String(s.status)) && isObj(s.metadata) && (s.metadata as Obj).kind === kind);
+    const same = (subs.ok && Array.isArray(subs.data.data) ? subs.data.data as Obj[] : []).find((s) => ['active', 'trialing', 'past_due'].includes(String(s.status)) && isObj(s.metadata) && (s.metadata as Obj).kind === kind && (kind !== 'boutique' || (s.metadata as Obj).store_id === storeId));
     const back = backUrl(b.returnUrl, SITE + (kind === 'studio' ? '/abonnements/' : '/admin/'));
     if (same) {
       const portal = await stripe('POST', 'billing_portal/sessions', { customer, return_url: back });
-      return portal.ok ? json({ ok: true, url: portal.data.url, portal: true, message: 'Vous avez déjà un abonnement : changez de formule depuis votre espace de paiement.' }) : fail(409, 'exists', 'Vous avez déjà un abonnement ' + (kind === 'studio' ? 'Studio' : 'boutique') + '.');
+      return portal.ok ? json({ ok: true, url: portal.data.url, portal: true, message: kind === 'boutique' ? 'Cette boutique a déjà un abonnement : changez de formule depuis votre espace de paiement.' : 'Vous avez déjà un abonnement : changez de formule depuis votre espace de paiement.' }) : fail(409, 'exists', 'Vous avez déjà un abonnement ' + (kind === 'studio' ? 'Studio' : 'boutique') + '.');
     }
-    const meta = { user_id: user.id, kind, plan, period };
+    const meta: Obj = { user_id: user.id, kind, plan, period, ...(kind === 'boutique' ? { store_id: storeId } : {}) };
     const session = await stripe('POST', 'checkout/sessions', {
       mode: 'subscription', customer, locale: 'fr', client_reference_id: user.id,
       line_items: [{ quantity: 1, price_data: { currency: 'xof', unit_amount: amount, recurring: { interval }, product_data: { name: label } } }],

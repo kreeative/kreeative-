@@ -40,15 +40,14 @@ const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 // the publishable key (pk_test_… / pk_live_…, not a secret) for Stripe's embedded onboarding in Gérer
 const PUBLISHABLE_STRIPE = (Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? '').trim();
 const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '2') || 0));
-// Jeere's commission by the seller's boutique plan (profiles.plan, written by the server since jeere_wave2):
+// Jeere's commission by the STORE's plan (stores.plan, written by the server):
 // the plan's own rate (creer/data.js PLANS), never more than FEE_PCT. Gratuit 2 %, Essentiel 1 %, Pro and Business 0 %.
 // The order's currency for Stripe (« xof », « cad », « usd », « eur »); amounts are already in its smallest unit
 const curOf = (o: Obj | undefined) => { const c = String((o && o.currency) ?? 'XOF').toLowerCase(); return ['xof', 'cad', 'usd', 'eur'].includes(c) ? c : 'xof'; };
 const PLAN_FEE: Record<string, number> = { gratuit: 2, essentiel: 1, pro: 0, business: 0 };
-async function feeFor(owner: string): Promise<number> {
-  if (!/^[0-9a-f-]{36}$/i.test(owner)) return FEE_PCT;
-  const pr = (await rows('profiles?select=plan&id=eq.' + owner))[0];
-  const plan = String(pr?.plan ?? 'gratuit');
+// one subscription = one store: the plan is the store's (stores.plan, written by `billing` and the launch offer)
+function feeFor(store: Obj): number {
+  const plan = String(store.plan ?? 'gratuit');
   return Math.min(FEE_PCT, plan in PLAN_FEE ? PLAN_FEE[plan] : FEE_PCT);
 }
 const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jeere.kreeative.xyz').replace(/\/$/, '');
@@ -324,12 +323,12 @@ Deno.serve(async (req: Request) => {
     if (!o) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 404);
     if (o.payment_status === 'payee') return json({ ok: false, code: 'paid', message: 'Cette commande est déjà payée.' }, 409);
     if (o.status === 'annulee') return json({ ok: false, code: 'cancelled', message: 'Cette commande a été annulée.' }, 409);
-    const st = (await rows('stores?select=id,slug,fiche,owner&id=eq.' + o.store_id))[0];
+    const st = (await rows('stores?select=id,slug,fiche,owner,plan&id=eq.' + o.store_id))[0];
     const p = st ? await payRow(String(st.id)) : null;
     if (!st || !p || !p.charges_enabled) return json({ ok: false, code: 'not_connected', message: 'Cette boutique ne prend pas encore les cartes.' }, 409);
     const total = Math.round(Number(o.total) || 0);
     if (total <= 0) return json({ ok: false, code: 'empty', message: 'Le panier est vide.' }, 400);
-    const pct = await feeFor(String(st.owner ?? ''));
+    const pct = feeFor(st);
     const fiche = isObj(st.fiche) ? st.fiche : {};
     const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
     const customer = isObj(o.customer) ? o.customer : {};
@@ -363,9 +362,9 @@ Deno.serve(async (req: Request) => {
     if (!o) return json({ ok: false, code: 'order', message: 'Commande introuvable.' }, 404);
     if (o.payment_status === 'payee') return json({ ok: false, code: 'paid', message: 'Cette commande est déjà payée.' }, 409);
     if (o.status === 'annulee') return json({ ok: false, code: 'cancelled', message: 'Cette commande a été annulée.' }, 409);
-    const st = (await rows('stores?select=id,slug,fiche,owner,custom_domain&id=eq.' + o.store_id))[0];
+    const st = (await rows('stores?select=id,slug,fiche,owner,plan,custom_domain&id=eq.' + o.store_id))[0];
     const p = st ? await payRow(String(st.id)) : null;
-    const pct = st ? await feeFor(String(st.owner ?? '')) : FEE_PCT;
+    const pct = st ? feeFor(st) : FEE_PCT;
     if (!st || !p || !p.charges_enabled) return json({ ok: false, code: 'not_connected', message: 'Cette boutique ne prend pas encore les cartes.' }, 409);
     const fiche = isObj(st.fiche) ? st.fiche : {};
     const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
