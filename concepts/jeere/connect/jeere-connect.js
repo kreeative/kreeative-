@@ -25,6 +25,8 @@
  *                       ([data-jeere-name], [data-jeere-qty], [data-jeere-price], [data-jeere-line-total],
  *                       [data-jeere-photo], [data-jeere-inc], [data-jeere-dec], [data-jeere-remove]; « {name} »
  *                       in an attribute is replaced), and its <template data-jeere-empty> when the cart is empty
+ *   [data-jeere-social]  filled with the seller's networks (Instagram, TikTok, Facebook, set in Jeere > Parametres >
+ *                        Boutique): one round icon link each, in the site's own colour; hidden when she has none
  *   [data-jeere-checkout]  goes to the Jeere cart (same tab); disabled (aria-disabled on a link) when empty
  * Script attributes: data-store (required), data-default-cart="p1:1,p2:1" (the cart of a first visit only).
  *
@@ -329,6 +331,40 @@
       if (again && !again.disabled) { try { again.focus({ preventScroll: true }); } catch (e) { again.focus(); } }
     }
   }
+  // Her networks (fiche.store.social: handles, cleaned by the Jeere app), in every [data-jeere-social]
+  var SOCIAL = {
+    instagram: { label: 'Instagram', re: /^[A-Za-z0-9._]{1,30}$/, url: function (h) { return 'https://www.instagram.com/' + h + '/'; },
+      svg: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6" fill="currentColor"/>' },
+    tiktok: { label: 'TikTok', re: /^[A-Za-z0-9._]{2,24}$/, url: function (h) { return 'https://www.tiktok.com/@' + h; },
+      svg: '<path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 4c.4 2.6 2.2 4.4 5 4.6"/>' },
+    facebook: { label: 'Facebook', re: /^[A-Za-z0-9.\-]{2,80}$/, url: function (h) { return 'https://www.facebook.com/' + h; },
+      svg: '<path d="M14.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.6 1.6-1.6h1.6V4.3a21 21 0 0 0-2.4-.1c-2.4 0-4 1.4-4 4.1v2.2H8.6v3h2.7V21"/>' }
+  };
+  function drawSocial(fiche) {
+    var boxes = $$('[data-jeere-social]');
+    if (!boxes.length) return;
+    var soc = isObj(fiche) && isObj(fiche.store) && isObj(fiche.store.social) ? fiche.store.social : {};
+    var nets = ['instagram', 'tiktok', 'facebook'].filter(function (k) { return typeof soc[k] === 'string' && SOCIAL[k].re.test(soc[k]); });
+    if (!document.getElementById('jeere-social-css')) {
+      var st = document.createElement('style'); st.id = 'jeere-social-css';
+      st.textContent = '[data-jeere-social]{display:flex;flex-wrap:wrap;gap:10px}[data-jeere-social][hidden]{display:none}' +
+        '.jeere-social{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid currentColor;color:inherit;opacity:.85;text-decoration:none;transition:opacity .15s,transform .15s}' +
+        '.jeere-social:hover{opacity:1;transform:translateY(-1px)}.jeere-social svg{width:19px;height:19px}';
+      document.head.appendChild(st);
+    }
+    boxes.forEach(function (box) {
+      box.innerHTML = '';
+      nets.forEach(function (k) {
+        var a = document.createElement('a');
+        a.className = 'jeere-social'; a.href = SOCIAL[k].url(soc[k]); a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.setAttribute('aria-label', SOCIAL[k].label + ' · ' + (k === 'facebook' ? soc[k] : '@' + soc[k]));
+        a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + SOCIAL[k].svg + '</svg>';
+        box.appendChild(a);
+      });
+      box.hidden = !nets.length;
+    });
+  }
+
   function render() {
     var d = cartDetail();
     $$('[data-jeere-count]').forEach(function (el) { el.textContent = String(d.count); });
@@ -399,6 +435,7 @@
     fetchStore().then(function (r) {
       if (r.ok) {
         try { S.products = readFiche(r.fiche); S.status = 'ready'; } catch (e) { S.products = null; S.status = 'offline'; }
+        try { drawSocial(r.fiche); } catch (e) { /* the page keeps its own */ }
       } else S.status = r.code;
       try {
         if (prune()) saveCart();
