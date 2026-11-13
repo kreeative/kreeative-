@@ -980,7 +980,6 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .launch__bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #E8467C, #F08A3C, #F0C414, #22C97E, #1E9BE0, #6A4CFF, #C13CE0); background-size: 560px 100%; }
 .launch__n { flex: none; font-size: 14px; font-variant-numeric: tabular-nums; }
 .launch--center { margin-left: auto; margin-right: auto; }
-.launch-tag { margin: 0 0 8px; display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff; background: linear-gradient(90deg, #E8467C, #6A4CFF); }
 [data-free-plan][hidden] { display: none !important; }
 
 /* The launch offer, short, in a rainbow frame */
@@ -989,7 +988,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 .launch__t { flex: 1 1 220px; margin: 0; font-size: 15px; line-height: 1.4; }
 .launch__t b { font-weight: 600; }
 .launch__t span { color: #5A554C; }
-.launch__n { flex: none; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #FFFFFF; background: linear-gradient(90deg, #E8467C, #6A4CFF); }
+.launch__n { flex: none; font-size: 13px; font-weight: 600; }
 .launch__n { max-width: 100%; white-space: normal; text-align: center; }
 
 /* The launch offer: a white card with a soft rainbow glow behind it (no coloured border, no pill) */
@@ -1038,3 +1037,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 /* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }
+
+/* Free plan hidden (launch offer): the three paid plans fill the row */
+@media (min-width: 1100px) { .plans:has(> [data-free-plan][hidden]) { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 700px) and (max-width: 1099px) { .plans:has(> [data-free-plan][hidden]) > .plan:last-child { grid-column: 1 / -1; } }

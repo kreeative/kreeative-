@@ -35,7 +35,7 @@ window.JEERE_EN = {
   'hero.title': 'Create your online store for free',
   'hero.lead': 'Jeere is the all-in-one platform to build, run and grow your business, online and in person. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, with prices in FCFA.',
   'hero.cardTitle': 'Reserve your free store',
-  'hero.cardSub': 'The first 50 stores are free for 3 months.',
+  'hero.cardSub': 'The first 10 stores get 3 months free.',
   'hero.consent': 'By continuing, you agree to receive WhatsApp messages from Jeere.',
   'hero.phonePh': 'Your WhatsApp number',
   'hero.go': 'Continue',
@@ -315,7 +315,7 @@ window.JEERE_EN = {
   'faq.a7': 'We only use it to message you about Jeere. It is never sold or shared. To delete your sign-up, write to <a href="mailto:contact.jeere@kreeative.xyz?subject=Jeere%20%C2%B7%20waitlist">contact.jeere@kreeative.xyz</a>.',
 
   'join.eyebrow': 'Waitlist',
-  'join.title': 'Join the first 50 stores.',
+  'join.title': 'Join the first 10 stores.',
   'join.lead': 'We are opening Jeere in Abidjan with 50 pilot stores. We build yours with you, free for 3 months, in exchange for your feedback every week.',
   'join.k1': 'Your store built with you',
   'join.k2': '3 months free',

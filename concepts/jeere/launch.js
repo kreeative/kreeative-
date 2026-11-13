@@ -13,14 +13,9 @@
     if (!o) return;
     var free = document.querySelectorAll('[data-free-plan]');
     for (var i = 0; i < free.length; i++) free[i].hidden = !!o.hideFree;
-    var cards = document.querySelectorAll('[data-launch-plan]');
-    for (var c = 0; c < cards.length; c++) {
-      var tag = cards[c].querySelector('.launch-tag');
-      if (o.active) {
-        if (!tag) { tag = document.createElement('p'); tag.className = 'launch-tag'; cards[c].insertBefore(tag, cards[c].firstChild); }
-        tag.textContent = en() ? o.months + ' months free' : o.months + NB + 'mois offerts';
-      } else if (tag) tag.remove();
-    }
+    // (no pill on the plan cards: the bar at the top says it)
+    var old = document.querySelectorAll('[data-launch-plan] .launch-tag');
+    for (var c = 0; c < old.length; c++) old[c].remove();
     // the thin red bar at the very top: one line, the whole bar is the link (to the signup, the source kept)
     var bars = document.querySelectorAll('[data-launch-bar]');
     for (var r = 0; r < bars.length; r++) {
