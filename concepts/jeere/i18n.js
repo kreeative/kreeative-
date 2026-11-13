@@ -179,7 +179,7 @@ window.JEERE_EN = {
   'tpl.try': 'Try the editor',
 
   'custom.eyebrow': 'Custom-designed models',
-  'custom.title': 'Four shops designed by our designer, ready to take over.',
+  'custom.title': 'Six models designed by our designer: shops and appointment booking.',
   'custom.lead': 'The design and code are yours; the demo images belong to their authors and are replaced by your photos.',
   'custom.choose': 'Choose this model',
   'custom.demo': 'See the demo',
@@ -191,6 +191,10 @@ window.JEERE_EN = {
   'custom.michou.d': 'Dark editorial, cards on light grey, size picker.',
   'custom.anse.k': 'Leather goods',
   'custom.anse.d': 'Each bag in its pastel frame, the handles breaking out of it.',
+  'custom.regard.k': 'Lashes & brows · appointments',
+  'custom.regard.d': 'Your clients book online: service, day, time, deposit.',
+  'custom.vernie.k': 'Nails · appointments',
+  'custom.vernie.d': 'A service menu, requests to confirm, a reminder the day before.',
 
   'mini.p.kicker': 'New collection',
   'mini.p.head': 'Lagune',

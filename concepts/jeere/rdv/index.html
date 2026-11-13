@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prendre rendez-vous · Jeere</title>
+<meta name="description" content="Réservez votre prestation en ligne : choisissez la prestation, le jour et l’heure.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap">
+<!--
+  Jeere — rdv/: the booking page every store that takes appointments gets, with no site to build:
+      https://jeere.kreeative.xyz/rdv/?b=<slug>            book
+      https://jeere.kreeative.xyz/rdv/?b=<slug>&rdv=<token> « my appointment » (the link of the confirmation e-mail)
+  Everything is drawn by ../connect/jeere-booking.js from what she set in her dashboard (Rendez-vous): services,
+  add-ons, team, hours, deposit, policies. A seller with her own site puts the same script there instead.
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: #F5F5F3; color: #111; font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { width: 100%; max-width: 980px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px); }
+  .top { padding: clamp(26px, 5vw, 56px) 0 18px; }
+  .top__k { margin: 0 0 6px; font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: #5E5E5E; }
+  .top__name { margin: 0; font-size: clamp(30px, 6vw, 52px); font-weight: 500; letter-spacing: -.02em; line-height: 1.05; }
+  .top__intro { margin: 10px 0 0; max-width: 56ch; color: #5E5E5E; }
+  .card { padding: clamp(18px, 3.4vw, 34px); border: 1px solid rgba(17, 17, 17, .12); border-radius: 22px; background: #fff; }
+  .info { display: grid; gap: 14px; margin: 14px 0 0; }
+  @media (min-width: 760px) { .info { grid-template-columns: 1fr 1fr; } }
+  .info h2 { margin: 0 0 10px; font-size: 13px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #5E5E5E; }
+  .info p { margin: 0 0 8px; }
+  .info dt { text-transform: capitalize; }
+  .rules { display: grid; gap: 10px; margin: 0; }
+  .rules dt { font-weight: 500; }
+  .rules dd { margin: 0; color: #5E5E5E; }
+  .foot { padding: 30px 0 44px; text-align: center; font-size: 12.5px; color: #5E5E5E; }
+  .jb { --jb-accent: #111; --jb-on-accent: #fff; --jb-soft: #F5F5F3; --jb-line: rgba(17, 17, 17, .18); --jb-radius: 14px; }
+</style>
+<script src="../connect/jeere-booking.js" data-store-param="b" data-source="jeere" defer></script>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <p class="top__k">Prendre rendez-vous</p>
+    <h1 class="top__name" id="name">Rendez-vous</h1>
+    <p class="top__intro" data-jeere-intro></p>
+  </header>
+  <section class="card" aria-label="Réservation">
+    <div data-jeere-booking><noscript><p>Pour réserver en ligne, activez JavaScript.</p></noscript></div>
+  </section>
+  <div class="info" id="info" hidden>
+    <section class="card" aria-labelledby="h-hours">
+      <h2 id="h-hours">Horaires</h2>
+      <div data-jeere-hours></div>
+      <p style="margin-top:14px" data-jeere-address></p>
+    </section>
+    <section class="card" aria-labelledby="h-rules">
+      <h2 id="h-rules">À savoir</h2>
+      <dl class="rules">
+        <div data-jeere-policy-wrap><dt>Acompte</dt><dd data-jeere-policy="deposit"></dd></div>
+        <div data-jeere-policy-wrap><dt>Report et annulation</dt><dd data-jeere-policy="cancel"></dd></div>
+        <div data-jeere-policy-wrap><dt>Retard</dt><dd data-jeere-policy="late"></dd></div>
+        <div data-jeere-policy-wrap><dt>Paiement</dt><dd data-jeere-policy="payment"></dd></div>
+        <div data-jeere-policy-wrap><dt>Avant de venir</dt><dd data-jeere-policy="prep"></dd></div>
+      </dl>
+    </section>
+  </div>
+</main>
+<footer class="foot wrap">Rendez-vous pris avec <a href="../">Jeere</a></footer>
+<script>
+  // the store's name in the title, and the practical information once it is known
+  document.addEventListener('jeere:booking-ready', function (e) {
+    var c = e.detail && e.detail.config;
+    if (!c || !c.store) return;
+    document.getElementById('name').textContent = c.store.name;
+    document.title = 'Prendre rendez-vous · ' + c.store.name;
+    document.getElementById('info').hidden = false;
+  });
+</script>
+</body>
+</html>

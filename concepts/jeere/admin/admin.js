@@ -14,7 +14,7 @@
  *    'jeere-admin'.onboarding = { checklistHidden?, sharedAt? } belongs to « Premiers pas ».
  * Every read and write is in try/catch: a missing, corrupted or blocked storage falls back to the defaults.
  *
- * Hash routes (the Back button works): #accueil, #commandes[/1055][?statut=a-preparer], #produits[/p3|/nouveau],
+ * Hash routes (the Back button works): #accueil, #commandes[/1055][?statut=a-preparer], #rendez-vous[/prestations|horaires|regles|clients] (./rdv.js), #produits[/p3|/nouveau],
  * #clients, #boutique, #pages[/pg2|/nouvelle], #paiements, #livraison, #connecteurs, #parametres[/boutique|domaine|
  * equipe|abonnement|studio|notifications|pages-legales|donnees].
  */
@@ -26,9 +26,9 @@
   const KEYS = (D && D.STORAGE_KEYS) || { config: 'jeere-studio-config', account: 'jeere-account', admin: 'jeere-admin', open: 'jeere-studio-open', tour: 'jeere-tour' };
   const EDITOR_URL = '../creer/';
   const COMPTE_URL = '../compte/';
-  const ROUTES = ['accueil', 'commandes', 'produits', 'clients', 'boutique', 'pages', 'promos', 'paiements', 'livraison', 'connecteurs', 'parametres'];
+  const ROUTES = ['accueil', 'commandes', 'rendez-vous', 'produits', 'clients', 'boutique', 'pages', 'promos', 'paiements', 'livraison', 'connecteurs', 'parametres'];
   const TITLES = {
-    accueil: 'Accueil', commandes: 'Commandes', produits: 'Produits', clients: 'Clients', boutique: 'Boutique en ligne',
+    accueil: 'Accueil', commandes: 'Commandes', 'rendez-vous': 'Rendez-vous', produits: 'Produits', clients: 'Clients', boutique: 'Boutique en ligne',
     pages: 'Pages', promos: 'Codes promo', paiements: 'Paiements', livraison: 'Livraison', connecteurs: 'Connecteurs', parametres: 'Paramètres'
   };
   // The phone's bottom bar: the rest of the sections are under « Plus »
@@ -343,6 +343,8 @@
     'seve': { site: 'concepts--seve', live: 'https://kreeative.xyz/concepts/seve/' },
     'soyeuse': { site: 'concepts--soyeuse', live: 'https://kreeative.xyz/concepts/soyeuse/' },
     'michou': { site: 'concepts--michou', live: 'https://kreeative.xyz/concepts/michou/' },
+    'regard': { site: 'concepts--regard', live: 'https://kreeative.xyz/concepts/regard/' },
+    'vernie': { site: 'concepts--vernie', live: 'https://kreeative.xyz/concepts/vernie/' },
     'joshua-cooker': { site: 'concepts--joshua-cooker', live: 'https://kreeative.xyz/concepts/joshua-cooker/' },
     'sonia-luxury-hair': { site: 'concepts--sonia-luxury-hair', live: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' }
   };
@@ -812,6 +814,8 @@
     $$('[data-bind="user-initial"]').forEach((n) => { n.textContent = initials(acc.firstName || name).charAt(0) || 'J'; });
     const todo = todoCount();
     $$('[data-bind="todo-count"]').forEach((n) => { n.hidden = !todo; n.textContent = String(todo); n.setAttribute('aria-label', plural(todo, 'commande à préparer', 'commandes à préparer')); });
+    const rdvTodo = window.JeereAdminRdv && !EXT() ? window.JeereAdminRdv.pendingCount() : 0;
+    $$('[data-bind="rdv-count"]').forEach((n) => { n.hidden = !rdvTodo; n.textContent = String(rdvTodo); n.setAttribute('aria-label', rdvTodo + ' rendez-vous à confirmer'); });
     $$('[data-bind="todo-dot"]').forEach((n) => { n.hidden = !todo; });
     const cur = S.route ? S.route.name : 'accueil';
     $$('[data-nav]').forEach((a) => { if (a.getAttribute('data-nav') === cur) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -878,7 +882,9 @@
     { name: 'ANSE', slug: 'anse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/anse', thumb: '../studio/sites/thumbs/concepts--anse.webp' },
     { name: 'SÈVE', slug: 'seve', meta: 'Boutique de démonstration · kreeative.xyz/concepts/seve', thumb: '../studio/sites/thumbs/concepts--seve.webp' },
     { name: 'SOYEUSE', slug: 'soyeuse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/soyeuse', thumb: '../studio/sites/thumbs/concepts--soyeuse.webp' },
-    { name: 'MICHOU', slug: 'michou', meta: 'Boutique de démonstration · kreeative.xyz/concepts/michou', thumb: '../studio/sites/thumbs/concepts--michou.webp' }
+    { name: 'MICHOU', slug: 'michou', meta: 'Boutique de démonstration · kreeative.xyz/concepts/michou', thumb: '../studio/sites/thumbs/concepts--michou.webp' },
+    { name: 'REGARD', slug: 'regard', meta: 'Studio de cils, rendez-vous · kreeative.xyz/concepts/regard', thumb: '../studio/sites/thumbs/concepts--regard.webp' },
+    { name: 'VERNIE', slug: 'vernie', meta: 'Studio d’ongles, rendez-vous · kreeative.xyz/concepts/vernie', thumb: '../studio/sites/thumbs/concepts--vernie.webp' }
   ];
   // a boutique of hers not yet in the list: its project is made once (her name on it), then it is a project like the others
   function openShopProject(el) {
@@ -4328,6 +4334,8 @@
   /* ------------------------------------------------------------------ views registry */
 
   const VIEWS = {
+    // « Rendez-vous » is ./rdv.js (services, hours, agenda: the `bookings` function)
+    'rendez-vous': (r) => (window.JeereAdminRdv ? window.JeereAdminRdv.view(r) : errorView()),
     accueil: viewHome, commandes: viewOrders, produits: viewProducts, clients: viewClients, boutique: viewBoutique,
     pages: viewPages, promos: viewPromos, paiements: viewPaiements, livraison: viewLivraison, connecteurs: viewConnecteurs, parametres: viewParametres
   };
@@ -4855,7 +4863,8 @@
 
   window.JeereAdmin = {
     go,
-    ui: { toast: (m) => toast(m), confirmBox: (o) => confirmBox(o), refresh: () => { if (S.inApp) { updateShell(); refresh(); } }, go: (h) => go(h) },
+    ui: { toast: (m) => toast(m), confirmBox: (o) => confirmBox(o), refresh: () => { if (S.inApp) { updateShell(); refresh(); } }, go: (h) => go(h),
+      openDialog: (html, o) => openDialog(html, o), closeDialog: (silent) => closeDialog(silent), shell: () => { if (S.inApp) updateShell(); } },
     state: () => S,
     startTour,
     reload: () => { loadAll(); if (isIn()) showApp(false); else showGate(); }

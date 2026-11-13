@@ -323,7 +323,7 @@
       // her own work first: the sites, then the boutiques (the e-commerce sites are among them, by their icon)
       // her designs that sell through a Jeere store: one card, the site's, with « Gérer la boutique » (its Jeere
       // store in the dashboard); the store's own card would only say the same thing twice
-      var LINKED = { 'concepts--anse': 'anse', 'concepts--seve': 'seve', 'concepts--soyeuse': 'soyeuse', 'concepts--michou': 'michou', 'concepts--joshua-cooker': 'joshua-cooker', 'concepts--sonia-luxury-hair': 'sonia-luxury-hair', 'websites--the-ivory-sukundu': 'tishe' };
+      var LINKED = { 'concepts--anse': 'anse', 'concepts--seve': 'seve', 'concepts--soyeuse': 'soyeuse', 'concepts--michou': 'michou', 'concepts--regard': 'regard', 'concepts--vernie': 'vernie', 'concepts--joshua-cooker': 'joshua-cooker', 'concepts--sonia-luxury-hair': 'sonia-luxury-hair', 'websites--the-ivory-sukundu': 'tishe' };
       var norm = function (t) { return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); };
       var linkedNames = {}, linkedSlugs = {};
       res.sites.cards.forEach(function (c) {

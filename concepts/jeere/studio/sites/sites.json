@@ -946,6 +946,74 @@
    ]
   },
   {
+   "id": "concepts--regard",
+   "title": "REGARD — extensions de cils et sourcils à Abidjan",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/regard",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/regard/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--regard.webp",
+   "updated": {
+    "date": "2026-11-13T05:06:40+00:00",
+    "commit": "80b168e",
+    "subject": "REGARD et VERNIE : deux sites modèles avec prise de rendez-vous Jeere"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/regard/"
+   ],
+   "uploads": "concepts/regard/img/",
+   "pages": [
+    {
+     "path": "concepts/regard/index.html",
+     "title": "REGARD — extensions de cils et sourcils à Abidjan",
+     "url": "",
+     "sha": "df32db9003fbf0e5e11b31c3b6d443ab434b2ec2",
+     "size": 15416,
+     "local": false
+    },
+    {
+     "path": "concepts/regard/mentions-legales/index.html",
+     "title": "Mentions légales — REGARD",
+     "url": "mentions-legales/",
+     "sha": "fcfd15d2fb80f01dd0262be05c92bfe091dbd103",
+     "size": 5221,
+     "local": false
+    },
+    {
+     "path": "concepts/regard/rendez-vous/index.html",
+     "title": "Mon rendez-vous — REGARD",
+     "url": "rendez-vous/",
+     "sha": "34141899ee204095ecbd373d85090b7737115d2c",
+     "size": 3039,
+     "local": false
+    },
+    {
+     "path": "concepts/regard/reserver/index.html",
+     "title": "Prendre rendez-vous — REGARD",
+     "url": "reserver/",
+     "sha": "f623a0d211edc8f94065a4fb4cb0f8d14a776fe0",
+     "size": 2907,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/regard/img/hero.webp",
+    "concepts/regard/img/miroir.webp",
+    "concepts/regard/img/oeil-1.webp",
+    "concepts/regard/img/oeil-sourcil.webp",
+    "concepts/regard/img/regard-1.webp",
+    "concepts/regard/img/regard-2.webp",
+    "concepts/regard/img/regard-3.webp"
+   ]
+  },
+  {
    "id": "concepts--ririfood",
    "title": "Riri Food · Mini-audit",
    "kind": "audit",
@@ -1408,6 +1476,72 @@
     "concepts/soyeuse/img/tissage-lisse.webp",
     "concepts/soyeuse/img/tissage-loose.webp",
     "concepts/soyeuse/img/tissage-ondule.webp"
+   ]
+  },
+  {
+   "id": "concepts--vernie",
+   "title": "VERNIE — manucure, gel et nail art à Abidjan",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/vernie",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/vernie/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--vernie.webp",
+   "updated": {
+    "date": "2026-11-13T05:06:40+00:00",
+    "commit": "80b168e",
+    "subject": "REGARD et VERNIE : deux sites modèles avec prise de rendez-vous Jeere"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/vernie/"
+   ],
+   "uploads": "concepts/vernie/img/",
+   "pages": [
+    {
+     "path": "concepts/vernie/index.html",
+     "title": "VERNIE — manucure, gel et nail art à Abidjan",
+     "url": "",
+     "sha": "7baaededec6ef81f2a4af824d108ed6ca993dcc8",
+     "size": 14620,
+     "local": false
+    },
+    {
+     "path": "concepts/vernie/mentions-legales/index.html",
+     "title": "Mentions légales — VERNIE",
+     "url": "mentions-legales/",
+     "sha": "055cc5f42ba553510467c48d3c2f4d99bac1c38d",
+     "size": 5361,
+     "local": false
+    },
+    {
+     "path": "concepts/vernie/rendez-vous/index.html",
+     "title": "Mon rendez-vous — VERNIE",
+     "url": "rendez-vous/",
+     "sha": "385cae3f3277cfa73d481954f60e7055bd5b354d",
+     "size": 3083,
+     "local": false
+    },
+    {
+     "path": "concepts/vernie/reserver/index.html",
+     "title": "Prendre rendez-vous — VERNIE",
+     "url": "reserver/",
+     "sha": "af2e534cb3964f27f2b18a50de6de1f247d11c21",
+     "size": 2951,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/vernie/img/ecaille.webp",
+    "concepts/vernie/img/jaune-or.webp",
+    "concepts/vernie/img/noel.webp",
+    "concepts/vernie/img/rose.webp",
+    "concepts/vernie/img/zebre.webp"
    ]
   },
   {

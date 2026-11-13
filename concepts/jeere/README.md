@@ -717,6 +717,15 @@ own design, and their products, prices and cart come from a Jeere store, edited 
   **When a model is copied for a client, copy the code only, never `img/`**: the demo images belong to their
   authors and brands (Pinterest, CYKLAR, the bag brands) — see each site's `mentions-legales/` page.
 
+## Jeere Rendez-vous (appointments for service businesses)
+
+Lashes, nails, hair, make-up: a store can take **bookings** as well as orders. Clients choose a service, a
+day and a time on the store's site or on `rdv/?b=<slug>`; the studio runs its agenda in the dashboard
+(« Rendez-vous »: agenda, services, hours and team, deposit and policies, clients). Tables `booking_settings`,
+`appointments` and `booking_blocks`, Edge Function `bookings`, script `connect/jeere-booking.js`, dashboard
+section `admin/rdv.js`; two model sites, `concepts/regard/` (lashes) and `concepts/vernie/` (nails).
+Everything is in [docs/rendez-vous.md](docs/rendez-vous.md).
+
 ## To do before sharing
 
 - Pick the domain: `jeere.com` is taken; `jeere.shop`, `jeere.app` and `getjeere.com` were

@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="../creer/tour.css">
   <link rel="stylesheet" href="../creer/publish.css">
   <link rel="stylesheet" href="domaines.css">
+  <link rel="stylesheet" href="rdv.css">
   <!-- the rainbow (logo colours, transparent, matte): primary buttons and the logo -->
   <link rel="stylesheet" href="../rainbow.css">
   <script src="../creer/data.js" defer></script>
@@ -45,6 +46,7 @@
   <script src="../creer/projects.js" defer></script>
   <script src="../creer/domains.js" defer></script>
   <script src="domaines.js" defer></script>
+  <script src="rdv.js" defer></script>
   <script src="tishe.js" defer></script>
   <script src="admin.js" defer></script>
 </head>
@@ -199,6 +201,7 @@
       <ul class="a-nav__list">
         <li><a class="a-nav__link" href="#accueil" data-nav="accueil"><svg class="a-ico" aria-hidden="true"><use href="#i-home"/></svg><span>Accueil</span></a></li>
         <li><a class="a-nav__link" href="#commandes" data-nav="commandes"><svg class="a-ico" aria-hidden="true"><use href="#i-receipt"/></svg><span>Commandes</span><span class="a-nav__count" data-bind="todo-count" hidden></span></a></li>
+        <li><a class="a-nav__link" href="#rendez-vous" data-nav="rendez-vous"><svg class="a-ico" aria-hidden="true"><use href="#i-clock"/></svg><span>Rendez-vous</span><span class="a-nav__count" data-bind="rdv-count" hidden></span></a></li>
         <li><a class="a-nav__link" href="#produits" data-nav="produits"><svg class="a-ico" aria-hidden="true"><use href="#i-tag"/></svg><span>Produits</span></a></li>
         <li><a class="a-nav__link" href="#clients" data-nav="clients"><svg class="a-ico" aria-hidden="true"><use href="#i-users"/></svg><span>Clients</span></a></li>
       </ul>
@@ -287,6 +290,7 @@
       <button class="a-ibtn" type="button" data-close aria-label="Fermer"><svg class="a-ico" aria-hidden="true"><use href="#i-x"/></svg></button>
     </div>
     <ul class="a-morelist">
+      <li><a href="#rendez-vous" data-more="rendez-vous"><svg class="a-ico" aria-hidden="true"><use href="#i-clock"/></svg><span>Rendez-vous</span></a></li>
       <li><a href="#clients" data-more="clients"><svg class="a-ico" aria-hidden="true"><use href="#i-users"/></svg><span>Clients</span></a></li>
       <li><a href="#pages" data-more="pages"><svg class="a-ico" aria-hidden="true"><use href="#i-pages"/></svg><span>Pages</span></a></li>
       <li><a href="#promos" data-more="promos"><svg class="a-ico" aria-hidden="true"><use href="#i-percent"/></svg><span>Codes promo</span></a></li>

@@ -1,0 +1,73 @@
+/* Jeere — admin/rdv.css: the « Rendez-vous » section of the dashboard (rdv.js). Everything else is admin.css. */
+.r-tabs { margin-bottom: 16px; }
+.r-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.r-preset { display: grid; gap: 8px; justify-items: start; padding: 16px; border: 1px solid var(--line-2); border-radius: var(--a-r); background: var(--white); color: var(--ink); font: inherit; font-weight: 500; text-align: left; cursor: pointer; }
+.r-preset:hover { border-color: var(--ink); }
+
+/* the week: seven days, the chosen one in black */
+.r-week { display: flex; align-items: center; gap: 6px; margin: 14px 0; }
+.r-week__days { flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.r-day { display: grid; gap: 1px; justify-items: center; padding: 8px 2px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; cursor: pointer; }
+.r-day__dow { font-size: 11px; color: var(--muted); }
+.r-day__num { font-size: 18px; font-weight: 500; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.r-day__n { font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+.r-day.is-today { border-color: var(--ink); }
+.r-day.is-on { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.r-day.is-on .r-day__dow, .r-day.is-on .r-day__n { color: rgba(255, 255, 255, .78); }
+.r-day:hover:not(.is-on) { border-color: var(--line-2); background: var(--grey-1); }
+
+/* a line of the day: time, who and what, price */
+.r-list { margin: 0; }
+.r-row { display: flex; align-items: flex-start; gap: 14px; width: 100%; padding: 14px 16px; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; }
+button.r-row { cursor: pointer; }
+button.r-row:hover { background: var(--grey-1); }
+.r-row.is-off { opacity: .55; }
+.r-row.is-off .r-row__who { text-decoration: line-through; }
+.r-row__time { flex: none; display: grid; width: 62px; font-variant-numeric: tabular-nums; }
+.r-row__time b { font-weight: 500; }
+.r-row__time small { font-size: 12.5px; color: var(--muted); }
+.r-row__main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.r-row__who { font-weight: 500; }
+.r-row__what { font-size: 13.5px; color: var(--muted); overflow-wrap: anywhere; }
+.r-row__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.r-row__price { flex: none; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.r-row__btns { flex: none; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.r-row--svc { align-items: center; }
+.r-row--svc > .a-ico { flex: none; width: 16px; height: 16px; color: var(--muted); }
+.r-row--block { align-items: center; background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(17, 17, 17, .035) 8px 16px); }
+.r-row--ask .r-row__time { width: 92px; }
+.r-pending { border-color: var(--ink); }
+.r-pending .a-card__head, .r-dayhead, .r-padhead .a-card__head, .a-card--flush > .a-card__head { padding: 16px 16px 0; }
+.r-kpis { margin-top: 14px; }
+@media (max-width: 560px) { .r-row--ask { flex-wrap: wrap; } .r-row--ask .r-row__btns { width: 100%; justify-content: flex-start; padding-left: 106px; } }
+
+/* forms */
+.r-grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.r-grid2 > .a-field:nth-child(2) { margin-top: 16px; }
+@media (max-width: 480px) { .r-grid2 { grid-template-columns: minmax(0, 1fr); } }
+.r-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.r-check { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 14px; cursor: pointer; }
+.r-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--ink); }
+.r-check small { color: var(--muted); }
+.r-check--solo { display: flex; margin-top: 16px; padding: 0; border: 0; border-radius: 0; align-items: flex-start; line-height: 1.4; }
+.r-check--solo input { margin-top: 2px; }
+.r-facts { display: grid; margin: 0 0 14px; border: 1px solid var(--line); border-radius: var(--a-r); }
+.r-facts > div { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; padding: 10px 14px; }
+.r-facts > div + div { border-top: 1px solid var(--line); }
+.r-facts dt { color: var(--muted); font-size: 13.5px; }
+.r-facts dd { margin: 0; overflow-wrap: anywhere; }
+.r-dep { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--a-r); background: var(--grey-1); }
+.r-dep p { margin: 0 0 8px; }
+.r-acts { margin-bottom: 10px; }
+
+/* opening hours */
+.r-hours { display: grid; }
+.r-hrow { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 14px; align-items: center; padding: 10px 0; }
+.r-hrow + .r-hrow { border-top: 1px solid var(--line); }
+.r-hrow__day { display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer; }
+.r-hrow__times { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); }
+.r-hrow__times .a-input { width: 112px; min-width: 0; padding-left: 10px; padding-right: 6px; }
+.r-hrow__pause { margin-left: 10px; }
+.r-hrow__closed { margin: 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 640px) { .r-hrow { grid-template-columns: minmax(0, 1fr); } .r-hrow__pause { margin-left: 0; flex-basis: 100%; } }
+.r-save { margin: 14px 0 18px; }

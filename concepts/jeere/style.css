@@ -515,7 +515,7 @@ html:not(.js) .cv__play { display: none; }
 .custom__actions .btn { min-height: 42px; padding: 0 16px; font-size: 14px; }
 .custom__demo { font-size: 14px; text-decoration: none; font-weight: 600; color: var(--ink); }
 @media (min-width: 640px) { .custom__grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1000px) { .custom__grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } .custom__body { padding: 16px; } }
+@media (min-width: 1000px) { .custom__grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } .custom__body { padding: 16px; } }
 
 /* Mini stores in the template preview */
 .mini { padding-top: 34px; animation: fade .35s ease; }
