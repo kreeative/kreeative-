@@ -28,8 +28,9 @@
       try { var sv = JSON.parse(localStorage.getItem('jeere-ref') || 'null'); ref = sv && sv.src ? sv.src : ''; } catch (e) { ref = ''; }
       bar.href = (bar.getAttribute('data-base') || 'compte/') + (ref ? '?ref=' + encodeURIComponent(ref) : '') + '#inscription';
       bar.innerHTML = '<span class="promo__t"></span><span class="promo__go"></span>';
+      // 3 months of Essentiel at 3 500 F = 10 500 F: « plus de 10 000 F » is true
       bar.querySelector('.promo__t').textContent = o.active
-        ? (en() ? first + ' · ' + o.months + ' months for the first ' + o.spots : first + ' · ' + o.months + NB + 'mois pour les ' + o.spots + ' premières')
+        ? (en() ? 'Win over 10,000 F · first ' + o.spots + ' sign-ups' : 'Gagne plus de 10' + NB + '000' + NB + 'F · ' + o.spots + ' premières inscrites')
         : (en() ? first + ' on the Essentiel pack' : first + ' sur le pack Essentiel');
       bar.querySelector('.promo__go').textContent = en() ? 'Find out more →' : 'En savoir plus →';
       bar.hidden = false;
@@ -39,9 +40,10 @@
       var box = boxes[b];
       if (!on) { box.hidden = true; continue; }
       var left = Number(o.left) || 0;
-      var t1 = en() ? 'Get your ' + first.toLowerCase() + ' on the Essentiel pack.' : 'Obtiens ton ' + first.replace('1er mois offert', '1er mois offert') + ' sur le pack Essentiel.';
-      if (!en() && tm > 1) t1 = 'Obtiens ' + first + ' sur le pack Essentiel.';
-      var t0 = o.active ? (en() ? 'First ' + o.spots + ': ' + o.months + ' months.' : 'Les ' + o.spots + ' premières : ' + o.months + NB + 'mois.') : (en() ? 'Everything included.' : 'Tout est inclus.');
+      var t1 = o.active
+        ? (en() ? 'Win over 10,000 F: ' + o.months + ' months of Essentiel free.' : 'Gagne plus de 10' + NB + '000' + NB + 'F' + NB + ': ' + o.months + NB + 'mois de pack Essentiel offerts.')
+        : (en() ? 'Get your ' + first.toLowerCase() + ' on the Essentiel pack.' : 'Obtiens ton ' + first + ' sur le pack Essentiel.');
+      var t0 = o.active ? (en() ? 'For the first ' + o.spots + '. Then, 1st month free.' : 'Pour les ' + o.spots + ' premières. Ensuite, 1er mois offert.') : (en() ? 'Everything included.' : 'Tout est inclus.');
       var t2 = !o.active ? '' : (left <= 20 ? (en() ? 'Only ' + left + ' left' : 'Plus que ' + left + ' place' + (left > 1 ? 's' : '')) : (en() ? 'Sign up fast, before the spots run out' : 'Inscris-toi vite avant que les places finissent'));
       box.innerHTML = '<p class="launch__t"><b></b> <span></span></p>' + (t2 ? '<span class="launch__n"></span>' : '');
       box.querySelector('.launch__t b').textContent = t1;

@@ -48,7 +48,7 @@ const STUDIO: Record<string, { name: string; month: number; year: number }> = {
 };
 // Boutique plans (creer/data.js PLANS): per month, and per week where offered
 const BOUTIQUE: Record<string, { name: string; month: number; week: number | null }> = {
-  essentiel: { name: 'Jeere Essentiel', month: 3000, week: 1000 },
+  essentiel: { name: 'Jeere Essentiel', month: 3500, week: 1000 },
   pro: { name: 'Jeere Pro', month: 10000, week: null },
   business: { name: 'Jeere Business', month: 25000, week: null }
 };

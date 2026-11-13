@@ -3592,7 +3592,7 @@
 
   var PLANS = [
     plan('gratuit', 'Gratuit', 0, null, 20, 2, 'Pour démarrer'),
-    plan('essentiel', 'Essentiel', 3000, 1000, 150, 1, 'Pour les vendeurs actifs sur les réseaux', true),
+    plan('essentiel', 'Essentiel', 3500, 1000, 150, 1, 'Pour les vendeurs actifs sur les réseaux', true),
     plan('pro', 'Pro', 10000, null, 600, 0, 'Pour les marques qui grandissent'),
     plan('business', 'Business', 25000, null, null, 0, 'Pour les boutiques installées')
   ];

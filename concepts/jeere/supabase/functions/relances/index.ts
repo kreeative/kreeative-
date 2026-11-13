@@ -27,8 +27,8 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
   const link = SITE + '/compte/#connexion';
   // everyone: the 1st month of Essentiel free; the first `spots`: `months` months (while spots are left)
   const offer = active
-    ? 'Votre 1er mois sur le pack Essentiel (3 000 FCFA/mois) est offert. Les ' + spots + ' premières inscrites ont ' + months + ' mois offerts : il reste ' + left + ' place' + (left > 1 ? 's' : '') + '.'
-    : (trial ? 'Votre 1er mois sur le pack Essentiel (3 000 FCFA/mois) est offert.' : '');
+    ? 'Les ' + spots + ' premières inscrites gagnent ' + months + ' mois de pack Essentiel offerts, soit plus de 10 000 FCFA : il reste ' + left + ' place' + (left > 1 ? 's' : '') + '. Pour toutes les autres, le 1er mois est offert.'
+    : (trial ? 'Votre 1er mois sur le pack Essentiel (3 500 FCFA/mois) est offert.' : '');
   const lines = [
     hi,
     'Vous avez commencé à créer votre compte Jeere, mais il n’est pas encore terminé : il manque juste le code de connexion.',
@@ -37,7 +37,7 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
     'Une question ? Répondez simplement à cet e-mail.',
     'Kelly, Jeere'
   ].filter(Boolean);
-  const subject = active ? 'Finalisez votre inscription : il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' à 3 mois offerts' : (trial ? 'Finalisez votre inscription : votre 1er mois est offert' : 'Finalisez votre inscription à Jeere');
+  const subject = active ? 'Finalisez votre inscription : il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' à plus de 10 000 F offerts' : (trial ? 'Finalisez votre inscription : votre 1er mois est offert' : 'Finalisez votre inscription à Jeere');
   const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
   const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
     '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
