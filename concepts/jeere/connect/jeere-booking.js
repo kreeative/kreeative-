@@ -211,29 +211,44 @@
       (next ? '<button type="button" class="jb-btn jb-btn--primary" data-jb="' + next + '"' + (disabled ? ' disabled' : '') + '>' + label + '</button>' : '') + '</div>';
   }
 
+  // The services as an accordion: a tap opens one, and everything about it is inside (how long, how much, what to pay
+  // now, the add-ons, « Continuer »). Open = chosen; a second tap closes it again.
   function viewService() {
     var c = S.cfg, cats = [];
     c.services.forEach(function (s) { if (cats.indexOf(s.category) < 0) cats.push(s.category); });
-    var html = '<h2 class="jb-title" tabindex="-1">Choisissez votre prestation</h2>';
+    var html = '<h2 class="jb-title" tabindex="-1">Choisissez votre prestation</h2>' +
+      (S.serviceId ? '' : '<p class="jb-hint jb-hint--top">' + fr('Touchez une prestation pour voir sa durée, son prix et ses options.') + '</p>');
     html += cats.map(function (cat) {
-      return '<section class="jb-group">' + (cat ? '<h3 class="jb-group__title">' + esc(cat) + '</h3>' : '') + '<div class="jb-options" role="radiogroup" aria-label="' + esc(cat || 'Prestations') + '">' +
+      return '<section class="jb-group">' + (cat ? '<h3 class="jb-group__title">' + esc(cat) + '</h3>' : '') + '<div class="jb-options">' +
         c.services.filter(function (s) { return s.category === cat; }).map(function (s) {
-          var on = s.id === S.serviceId;
-          return '<button type="button" class="jb-option' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on + '" data-jb="service" data-id="' + esc(s.id) + '">' +
+          var on = s.id === S.serviceId, pid = 'jb-acc-' + esc(s.id);
+          return '<div class="jb-acc' + (on ? ' is-open' : '') + (on && S.fresh ? ' is-fresh' : '') + '">' +
+            '<button type="button" class="jb-option jb-acc__head' + (on ? ' is-on' : '') + '" aria-expanded="' + on + '"' + (on ? ' aria-controls="' + pid + '"' : '') + ' data-jb="service" data-id="' + esc(s.id) + '">' +
             '<span class="jb-option__main"><span class="jb-option__name">' + esc(s.name) + '</span>' + (s.desc ? '<span class="jb-option__desc">' + fr(s.desc) + '</span>' : '') + '</span>' +
-            '<span class="jb-option__side"><span class="jb-option__price">' + (s.from ? 'dès' + NB : '') + money(s.price) + '</span><span class="jb-option__meta">' + duration(s.duration) + '</span></span></button>';
+            '<span class="jb-option__side"><span class="jb-option__price">' + (s.from ? 'dès' + NB : '') + money(s.price) + '</span><span class="jb-option__meta">' + duration(s.duration) + '</span></span>' +
+            '<span class="jb-acc__chev" aria-hidden="true"></span></button>' +
+            (on ? '<div class="jb-acc__panel" id="' + pid + '" role="region" aria-label="' + esc(s.name) + '"><div class="jb-acc__in">' + servicePanel(s) + '</div></div>' : '') +
+            '</div>';
         }).join('') + '</div></section>';
     }).join('');
-    if (S.serviceId && c.addons.length) {
-      html += '<section class="jb-group jb-group--addons"><h3 class="jb-group__title">Ajouter une option <small>facultatif</small></h3><div class="jb-options">' +
+    return html;
+  }
+  function servicePanel(svc) {
+    var c = S.cfg, t = totals(), from = svc.from ? 'dès' + NB : '';
+    return '<dl class="jb-acc__facts">' +
+      '<div><dt>Durée</dt><dd>' + duration(t.duration) + '</dd></div>' +
+      '<div><dt>Total</dt><dd>' + from + money(t.total) + '</dd></div>' +
+      (t.deposit > 0 ? '<div><dt>Acompte à régler</dt><dd>' + money(t.deposit) + '</dd></div>' : '') +
+      '</dl>' +
+      (c.addons.length ? '<p class="jb-acc__label">Ajouter une option <small>facultatif</small></p><div class="jb-options jb-acc__addons">' +
         c.addons.map(function (a) {
           var on = S.addons.indexOf(a.id) >= 0;
           return '<button type="button" class="jb-option jb-option--check' + (on ? ' is-on' : '') + '" role="checkbox" aria-checked="' + on + '" data-jb="addon" data-id="' + esc(a.id) + '">' +
+            '<span class="jb-option__box" aria-hidden="true"></span>' +
             '<span class="jb-option__main"><span class="jb-option__name">' + esc(a.name) + '</span></span>' +
             '<span class="jb-option__side"><span class="jb-option__price">+ ' + money(a.price) + '</span>' + (a.duration ? '<span class="jb-option__meta">+ ' + duration(a.duration) + '</span>' : '') + '</span></button>';
-        }).join('') + '</div></section>';
-    }
-    return html + navRow('next', 'Continuer', !S.serviceId);
+        }).join('') + '</div>' : '') +
+      '<div class="jb-acc__go"><button type="button" class="jb-btn jb-btn--primary" data-jb="next">Continuer</button></div>';
   }
   function viewStaff() {
     var who = staffOf(service(S.serviceId));
@@ -353,7 +368,8 @@
     if (S.status !== 'ok') return unavailable();
     if (S.done) return viewDone();
     var body = S.step === 'service' ? viewService() : (S.step === 'staff' ? viewStaff() : (S.step === 'time' ? viewTime() : viewDetails()));
-    return head() + '<div class="jb-body"><div class="jb-main">' + body + '</div>' + recap() + '</div>';
+    var solo = S.step === 'service';
+    return head() + '<div class="jb-body' + (solo ? ' jb-body--solo' : '') + '"><div class="jb-main">' + body + '</div>' + (solo ? '' : recap()) + '</div>';
   }
 
   /* ---------------------------------------------------------------- « my appointment » */
@@ -517,7 +533,17 @@
     var b = t.closest('.jb [data-jb]');
     if (!b || b.disabled) return;
     var act = b.getAttribute('data-jb'), id2 = b.getAttribute('data-id') || '';
-    if (act === 'service') { if (S.serviceId !== id2) { S.serviceId = id2; S.staffId = 'any'; S.slot = null; S.date = ''; } draw(); var keep = document.querySelector('.jb [data-jb="service"][data-id="' + id2 + '"]'); if (keep) keep.focus(); }
+    if (act === 'service') {
+      var was = b.getBoundingClientRect().top;
+      S.serviceId = S.serviceId === id2 ? '' : id2; S.staffId = 'any'; S.slot = null; S.date = ''; S.fresh = !!S.serviceId;
+      draw(); S.fresh = false;
+      var keep = document.querySelector('.jb [data-jb="service"][data-id="' + id2 + '"]');
+      if (keep) {
+        try { keep.focus({ preventScroll: true }); } catch (er0) { keep.focus(); }
+        var moved = keep.getBoundingClientRect().top - was;
+        if (Math.abs(moved) > 1) window.scrollBy(0, moved);
+      }
+    }
     else if (act === 'addon') { var i = S.addons.indexOf(id2); if (i >= 0) S.addons.splice(i, 1); else S.addons.push(id2); S.slot = null; S.date = ''; draw(); var k2 = document.querySelector('.jb [data-jb="addon"][data-id="' + id2 + '"]'); if (k2) k2.focus(); }
     else if (act === 'staff') { S.staffId = id2; S.slot = null; S.date = ''; draw(); var k3 = document.querySelector('.jb [data-jb="staff"][data-id="' + id2 + '"]'); if (k3) k3.focus(); }
     else if (act === 'next') next();
@@ -550,7 +576,7 @@
   /* ---------------------------------------------------------------- start */
   function loadStyle() {
     if (attr('data-style') === 'none' || document.querySelector('link[data-jeere-booking-css]')) return;
-    var src = me && me.src ? me.src.replace(/jeere-booking\.js(\?.*)?$/, 'jeere-booking.css') : '';
+    var src = me && me.src ? me.src.replace(/jeere-booking\.js(\?.*)?$/, 'jeere-booking.css?v=2') : '';
     if (!src) return;
     var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = src; l.setAttribute('data-jeere-booking-css', '');
     document.head.appendChild(l);
