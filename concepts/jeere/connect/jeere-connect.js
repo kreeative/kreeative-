@@ -347,7 +347,7 @@
     var nets = ['instagram', 'tiktok', 'facebook'].filter(function (k) { return typeof soc[k] === 'string' && SOCIAL[k].re.test(soc[k]); });
     if (!document.getElementById('jeere-social-css')) {
       var st = document.createElement('style'); st.id = 'jeere-social-css';
-      st.textContent = '[data-jeere-social]{display:flex;flex-wrap:wrap;gap:10px}[data-jeere-social][hidden]{display:none}' +
+      st.textContent = '[data-jeere-social]{display:flex;flex-wrap:wrap;gap:10px}[data-jeere-social][hidden],[data-jeere-social-fallback][hidden]{display:none!important}' +
         '.jeere-social{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid currentColor;color:inherit;opacity:.85;text-decoration:none;transition:opacity .15s,transform .15s}' +
         '.jeere-social:hover{opacity:1;transform:translateY(-1px)}.jeere-social svg{width:19px;height:19px}';
       document.head.appendChild(st);
@@ -363,6 +363,8 @@
       });
       box.hidden = !nets.length;
     });
+    // the site's own placeholder (« instagram · tiktok » in words) gives way to her real links
+    $$('[data-jeere-social-fallback]').forEach(function (el) { el.hidden = !!nets.length; });
   }
 
   function render() {
