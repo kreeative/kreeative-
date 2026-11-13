@@ -2830,6 +2830,19 @@
     return n;
   }
 
+  // « @awabeaute », « instagram.com/awabeaute/ », « https://www.tiktok.com/@awa.beaute » → the handle alone; null if none
+  var SOCIAL_RE = { instagram: /^[A-Za-z0-9._]{1,30}$/, tiktok: /^[A-Za-z0-9._]{2,24}$/, facebook: /^[A-Za-z0-9.\-]{2,80}$/ };
+  function socialHandle(kind, v) {
+    if (typeof v !== 'string' || !SOCIAL_RE[kind]) return null;
+    var h = v.trim().replace(/^https?:\/\//i, '').replace(/^(www\.|m\.)/i, '')
+      .replace(/^(instagram\.com|tiktok\.com|facebook\.com|fb\.com)\//i, '').replace(/^@/, '').replace(/[/?#].*$/, '');
+    return SOCIAL_RE[kind].test(h) ? h : null;
+  }
+  function socialUrl(kind, h) {
+    if (!h) return '';
+    return kind === 'instagram' ? 'https://www.instagram.com/' + h + '/' : kind === 'tiktok' ? 'https://www.tiktok.com/@' + h : kind === 'facebook' ? 'https://www.facebook.com/' + h : '';
+  }
+
   function clampInt(v, min, max, def) {
     var n = toInt(v);
     if (n === null) return def;
@@ -2999,6 +3012,12 @@
       if (/^https:\/\/pay\.wave\.com\/[^\s"'<>]{3,200}$/i.test(wl)) pay.wave = wl;
       ['wavePhone', 'orange', 'mtn', 'moov'].forEach(function (k) { var n = str(sp[k], '').replace(/[^\d+]/g, ''); if (/^\+?\d{8,15}$/.test(n)) pay[k] = n; });
       if (Object.keys(pay).length) store.pay = pay;
+    }
+    // Her networks (Paramètres › Boutique): Instagram, TikTok, Facebook, as handles; the footer shows their icons
+    if (isObj(srcStore.social)) {
+      var soc = {};
+      ['instagram', 'tiktok', 'facebook'].forEach(function (k) { var h = socialHandle(k, srcStore.social[k]); if (h) soc[k] = h; });
+      if (Object.keys(soc).length) store.social = soc;
     }
 
     var srcTheme = isObj(src.theme) ? src.theme : {};
@@ -4157,6 +4176,8 @@
     normalizeConfig: normalizeConfig,
     normalizeWhatsapp: normalizeWhatsapp,
     formatPrice: formatPrice,
+    socialHandle: socialHandle,
+    socialUrl: socialUrl,
     formatAmount: formatAmount,
     formatFcfa: formatFcfa,
     formatNumber: formatNumber,

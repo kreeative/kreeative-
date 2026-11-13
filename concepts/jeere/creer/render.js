@@ -337,6 +337,9 @@
     chat: '<path d="M20 11.6a7.9 7.9 0 0 1-11.6 7l-4.4 1.2 1.2-4.2A7.9 7.9 0 1 1 20 11.6z"/><path d="M8.6 10.4h6.8M8.6 13.4h4.2"/>',
     arrow: '<path d="M4.5 12h15M13.5 6l6 6-6 6"/>',
     pin: '<path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+    instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6" fill="currentColor"/>',
+    tiktok: '<path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 4c.4 2.6 2.2 4.4 5 4.6"/>',
+    facebook: '<path d="M14.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.6 1.6-1.6h1.6V4.3a21 21 0 0 0-2.4-.1c-2.4 0-4 1.4-4 4.1v2.2H8.6v3h2.7V21"/>',
     truck: '<path d="M2.8 6.5h11v9.5h-11z"/><path d="M13.8 9.5h3.7l3.7 3.6V16h-7.4"/><circle cx="6.8" cy="17.6" r="1.9"/><circle cx="17.2" cy="17.6" r="1.9"/>',
     heart: '<path d="M12 19.6s-7.4-4.5-7.4-9.9A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.4 2.4c0 5.4-7.4 9.9-7.4 9.9z"/>',
     check: '<path d="M5 12.5l4.3 4.3L19 7.2"/>',
@@ -355,6 +358,16 @@
     clock: '<circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 2"/>',
     user: '<circle cx="12" cy="8.4" r="3.8"/><path d="M4.8 20c.8-3.8 3.6-6 7.2-6s6.4 2.2 7.2 6"/>'
   };
+  // the store's networks, checked again here (a fiche may come from anywhere): [{ kind, url, label }]
+  function socialOf(store) {
+    const d = DATA();
+    const soc = store && typeof store.social === 'object' && store.social ? store.social : {};
+    const LABEL = { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook' };
+    return ['instagram', 'tiktok', 'facebook'].map((k) => {
+      const h = d && typeof d.socialHandle === 'function' ? d.socialHandle(k, soc[k]) : null;
+      return h ? { kind: k, url: d.socialUrl(k, h), label: LABEL[k] + ' · ' + (k === 'facebook' ? h : '@' + h) } : null;
+    }).filter(Boolean);
+  }
   const icon = (name, cls) => '<svg class="jst-ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (ICONS[name] || '') + '</svg>';
 
   const STAR = '<path d="M12 2.8l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 16.8l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>';
@@ -1022,6 +1035,7 @@
       tagline: str(store.tagline).trim(),
       city: str(store.city).trim(),
       whatsapp: waOk ? wa : '',
+      social: socialOf(store),
       niche: niche,
       products: products,
       sections: sections,
@@ -1347,6 +1361,9 @@
       contact.push('<a class="jst-footer-line jst-footer-wa" href="https://wa.me/' + esc(m.whatsapp.slice(1)) + '" target="_blank" rel="noopener noreferrer">' +
         icon('chat') + '<span>WhatsApp · ' + esc(prettyPhone(m.whatsapp)) + '</span></a>');
     }
+    // her networks: small round icons (Instagram, TikTok, Facebook)
+    const nets = (m.social || []).map((n) => '<a class="jst-social" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(n.label) + '">' + icon(n.kind) + '</a>');
+    if (nets.length) contact.push('<p class="jst-footer-social">' + nets.join('') + '</p>');
     if (!contact.length) contact.push('<p class="jst-footer-muted">Ajoutez votre ville et votre numéro WhatsApp.</p>');
     return '<footer class="jst-footer' + zoneCls(m, 'footer') + '"><div class="jst-wrap">' +
       '<div class="jst-footer-top" data-cols="' + (pagesCol ? 4 : 3) + '">' +

@@ -2072,3 +2072,9 @@
 @media (prefers-reduced-motion: reduce) {
   .jst *, .jst *::before, .jst *::after { transition: none !important; animation: none !important; }
 }
+
+/* Her networks in the footer (Instagram, TikTok, Facebook): small round icons */
+.jst .jst-footer-social { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+.jst .jst-social { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid currentColor; color: inherit; opacity: .85; text-decoration: none; transition: opacity .15s, transform .15s; }
+.jst .jst-social:hover { opacity: 1; transform: translateY(-1px); }
+.jst .jst-social .jst-ico { width: 19px; height: 19px; }

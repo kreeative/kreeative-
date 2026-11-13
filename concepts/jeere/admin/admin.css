@@ -1674,3 +1674,8 @@ textarea.a-input, .tx-field textarea { resize: none; }
 /* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }
+
+/* Paramètres › Boutique: her three networks side by side (stacked on a phone) */
+.a-grid3 { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .a-grid3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.a-label--sm { font-size: 13px; }

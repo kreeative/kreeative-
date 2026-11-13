@@ -2782,7 +2782,9 @@
 
   function prefsForm(dr) {
     const st = S.config.store;
-    const v = { name: pick(dr, 'name', st.name), tagline: pick(dr, 'tagline', st.tagline), city: pick(dr, 'city', st.city), whatsapp: pick(dr, 'whatsapp', phoneFmt(st.whatsapp)) };
+    const so = st.social || {};
+    const v = { name: pick(dr, 'name', st.name), tagline: pick(dr, 'tagline', st.tagline), city: pick(dr, 'city', st.city), whatsapp: pick(dr, 'whatsapp', phoneFmt(st.whatsapp)),
+      instagram: pick(dr, 'instagram', so.instagram ? '@' + so.instagram : ''), tiktok: pick(dr, 'tiktok', so.tiktok ? '@' + so.tiktok : ''), facebook: pick(dr, 'facebook', so.facebook || '') };
     return H`<form class="a-form" data-form="prefs" novalidate>
       <div class="a-field"><div class="a-label-row"><label class="a-label" for="s-name">Nom de la boutique</label>${counter(str(v.name).length, 40)}</div><input class="a-input" id="s-name" name="name" maxlength="40" value="${esc(v.name)}" data-count="40" autocomplete="organization"></div>
       <div class="a-field"><div class="a-label-row"><label class="a-label" for="s-tag">Slogan</label>${counter(str(v.tagline).length, 80)}</div><input class="a-input" id="s-tag" name="tagline" maxlength="80" value="${esc(v.tagline)}" data-count="80" placeholder="Soins naturels faits à Abidjan"><p class="a-hint">Affiché en bas de chaque page de votre boutique.</p></div>
@@ -2791,6 +2793,13 @@
         <div class="a-field"><label class="a-label" for="s-wa">Numéro WhatsApp</label><input class="a-input" id="s-wa" name="whatsapp" type="tel" inputmode="tel" value="${esc(v.whatsapp)}" placeholder="Ex. : 05 44 12 34 56" autocomplete="tel"><p class="a-hint">Vos clients vous écrivent sur ce numéro. +225 est ajouté pour vous.</p>
           ${!str(v.whatsapp).trim() && S.account && !S.forClient && phoneOk(S.account.phone) ? H`<div><button class="a-btn a-btn--soft a-btn--sm" type="button" data-act="use-my-wa">${ico('chat')}${esc(fr('Utiliser mon numéro ' + phoneFmt(S.account.phone)))}</button></div>` : ''}</div>
       </div>
+      <p class="a-label" style="margin:24px 0 10px">Réseaux sociaux</p>
+      <div class="a-grid3 a-social">
+        <div class="a-field"><label class="a-label a-label--sm" for="s-ig">Instagram</label><input class="a-input" id="s-ig" name="instagram" value="${esc(v.instagram)}" placeholder="@maboutique" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <div class="a-field"><label class="a-label a-label--sm" for="s-tt">TikTok</label><input class="a-input" id="s-tt" name="tiktok" value="${esc(v.tiktok)}" placeholder="@maboutique" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <div class="a-field"><label class="a-label a-label--sm" for="s-fb">Facebook</label><input class="a-input" id="s-fb" name="facebook" value="${esc(v.facebook)}" placeholder="maboutique" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      </div>
+      <p class="a-hint">Les icônes apparaissent en bas de votre boutique.</p>
       <div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">${ico('check')}Enregistrer</button></div>
     </form>`;
   }
@@ -2803,6 +2812,14 @@
     let ok = true;
     if (!name) ok = invalid(form.elements.name, 'Donnez un nom à votre boutique.');
     if (wa && phoneProblem(waN)) ok = invalid(form.elements.whatsapp, phoneProblem(waN)) && ok;
+    // her networks: a handle or a profile link; anything else is pointed out
+    const social = {};
+    [['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['facebook', 'Facebook']].forEach(([k, label]) => {
+      const raw = str(v[k]).trim();
+      if (!raw) return;
+      const h = D.socialHandle ? D.socialHandle(k, raw) : null;
+      if (h) social[k] = h; else ok = invalid(form.elements[k], 'Ce compte ' + label + ' ne semble pas valide : écrivez @nom ou collez le lien du profil.') && ok;
+    });
     if (!ok) { focusFirstError(form); return; }
     const old = S.config.store.name;
     const saved = editConfig((cfg) => {
@@ -2819,6 +2836,7 @@
       cfg.store.tagline = clip(v.tagline, 80);
       cfg.store.city = clip(v.city, 40);
       cfg.store.whatsapp = waN;
+      if (Object.keys(social).length) cfg.store.social = social; else delete cfg.store.social;
     });
     if (!saved) return;
     if (S.account && !S.forClient) { S.account.storeName = name; saveAccount(); }
