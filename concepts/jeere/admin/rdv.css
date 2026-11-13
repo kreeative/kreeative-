@@ -43,7 +43,7 @@ button.r-row:hover { background: var(--grey-1); }
 
 /* forms */
 .r-grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.r-grid2 > .a-field:nth-child(2) { margin-top: 16px; }
+.a-grid2.r-grid2 > .a-field { margin-top: 16px; }
 @media (max-width: 480px) { .r-grid2 { grid-template-columns: minmax(0, 1fr); } }
 .r-checks { display: flex; flex-wrap: wrap; gap: 8px; }
 .r-check { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 14px; cursor: pointer; }
