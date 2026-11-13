@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kee · LinkedIn, 90 jours de contenu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root { --ivory: #fdfbf7; --cream: #ede5de; --brown: #321c14; --brown-2: rgba(50,28,20,.8); --muted: rgba(50,28,20,.62);
+          --line: rgba(50,28,20,.13); --pink: #ff0090; --baby: #ffb3d1; --white: #fff; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 130px; }
+  body { background: var(--ivory); color: var(--brown); font: 400 15px/1.55 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  .k { font: 400 11px/1.3 "DM Mono", ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+  header.hero { padding: 48px 0 28px; }
+  .hero .k { color: var(--pink); }
+  h1 { font: 300 clamp(40px, 7vw, 72px)/1.02 Fraunces, Georgia, serif; letter-spacing: -.04em; margin: 12px 0 14px; }
+  h1 em { font-style: italic; color: var(--pink); }
+  .hero p { max-width: 640px; color: var(--brown-2); }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .stat { background: var(--white); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+  .stat b { font-weight: 600; }
+
+  .bar { position: sticky; top: 0; z-index: 20; background: rgba(253,251,247,.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .bar .wrap { display: flex; align-items: center; gap: 10px; padding-top: 10px; padding-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+  .bar .wrap::-webkit-scrollbar { display: none; }
+  .lang { display: inline-flex; background: var(--cream); border-radius: 999px; padding: 3px; flex: none; }
+  .lang button { padding: 6px 14px; border-radius: 999px; font-weight: 500; font-size: 13px; }
+  .lang button[aria-pressed="true"] { background: var(--brown); color: var(--ivory); }
+  .jump { flex: none; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--white); font-size: 13px; text-decoration: none; color: var(--brown); white-space: nowrap; }
+  .jump:hover { border-color: var(--brown); }
+  .filters { display: inline-flex; gap: 6px; margin-left: auto; flex: none; }
+  .filters button { padding: 7px 12px; border-radius: 999px; font-size: 13px; border: 1px solid transparent; color: var(--muted); }
+  .filters button[aria-pressed="true"] { border-color: var(--pink); color: var(--pink); background: var(--white); }
+
+  section.month { padding: 40px 0 8px; }
+  h2 { font: 300 clamp(30px, 4.5vw, 44px)/1.05 Fraunces, Georgia, serif; letter-spacing: -.035em; margin: 6px 0 22px; }
+  h2 em { font-style: italic; color: var(--pink); }
+  .month > .wrap > .k { color: var(--muted); }
+
+  .post { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 28px; background: var(--white); border-radius: 24px; padding: 22px; margin-bottom: 18px;
+          box-shadow: 0 1px 0 var(--line), 0 24px 40px -34px rgba(50,28,20,.4); }
+  .post.no-visual { grid-template-columns: 1fr; }
+  .post[hidden] { display: none; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+  .pid { font: 400 12px/1 "DM Mono", monospace; letter-spacing: .08em; color: var(--muted); }
+  .date { font-weight: 600; font-size: 14px; }
+  .tag { font: 400 10.5px/1 "DM Mono", monospace; letter-spacing: .12em; text-transform: uppercase; padding: 6px 9px; border-radius: 999px; background: var(--cream); }
+  .tag.CAROUSEL, .tag.CARROUSEL { background: var(--baby); }
+  .tag.IMAGE { background: var(--brown); color: var(--ivory); }
+  .tag.PHOTO { background: #fff0f7; color: var(--pink); }
+  .desc { font: 300 24px/1.2 Fraunces, Georgia, serif; letter-spacing: -.02em; margin: 12px 0 14px; }
+  .note { font-size: 13px; color: var(--muted); margin: -6px 0 14px; }
+
+  .visual { position: relative; }
+  .strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; border-radius: 16px; scrollbar-width: thin; }
+  .strip img { flex: none; width: 100%; height: auto; scroll-snap-align: start; border-radius: 16px; background: var(--cream); cursor: zoom-in; display: block; }
+  .count { position: absolute; top: 10px; right: 10px; background: rgba(50,28,20,.78); color: var(--ivory); font: 400 11px/1 "DM Mono", monospace; letter-spacing: .06em; padding: 6px 9px; border-radius: 999px; pointer-events: none; }
+  .dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
+  .dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+  .dots span.on { background: var(--pink); }
+
+  .cap { position: relative; }
+  .cap pre { white-space: pre-wrap; word-wrap: break-word; font: 400 14px/1.6 Inter, system-ui, sans-serif; background: var(--ivory); border: 1px solid var(--line); border-radius: 16px; padding: 18px 18px 18px; max-height: 420px; overflow: auto; }
+  .cap pre.open { max-height: none; }
+  mark { background: var(--baby); color: var(--brown); border-radius: 4px; padding: 0 .15em; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 15px; border-radius: 999px; font-size: 13px; font-weight: 500; }
+  .btn.main { background: var(--brown); color: var(--ivory); }
+  .btn.ghost { border: 1px solid var(--line); background: var(--white); }
+  .btn.done { background: var(--pink); color: var(--white); }
+
+  .profile { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .pcard { background: var(--white); border-radius: 20px; padding: 14px; box-shadow: 0 1px 0 var(--line); }
+  .pcard.wide { grid-column: 1 / -1; }
+  .pcard img { width: 100%; height: auto; border-radius: 12px; display: block; cursor: zoom-in; }
+  .pcard h3 { font: 300 20px/1.2 Fraunces, serif; letter-spacing: -.02em; margin: 12px 4px 2px; }
+  .pcard p { font-size: 13px; color: var(--muted); margin: 0 4px 4px; }
+
+  footer { padding: 40px 0 60px; color: var(--muted); font-size: 13px; }
+  .empty { padding: 30px; text-align: center; color: var(--muted); }
+
+  .lb { position: fixed; inset: 0; z-index: 50; background: rgba(28,14,9,.92); display: none; align-items: center; justify-content: center; padding: 56px 12px 24px; }
+  .lb.on { display: flex; }
+  .lb img { max-width: min(100%, 1000px); max-height: 100%; width: auto; height: auto; border-radius: 12px; }
+  .lb .x, .lb .nav { position: absolute; color: var(--ivory); background: rgba(253,251,247,.12); border-radius: 999px; width: 44px; height: 44px; font-size: 20px; display: grid; place-items: center; }
+  .lb .x { top: 10px; right: 12px; }
+  .lb .prev { left: 12px; top: 50%; transform: translateY(-50%); }
+  .lb .next { right: 12px; top: 50%; transform: translateY(-50%); }
+  .lb .lbcount { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); color: var(--ivory); font: 400 12px/1 "DM Mono", monospace; letter-spacing: .08em; }
+
+  @media (max-width: 820px) {
+    .post { grid-template-columns: 1fr; gap: 16px; padding: 14px; border-radius: 20px; }
+    .profile { grid-template-columns: 1fr; }
+    .desc { font-size: 21px; }
+    .filters { margin-left: 0; }
+    html { scroll-padding-top: 70px; }
+  }
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <p class="k" data-t="kicker"></p>
+  <h1 data-t="title"></h1>
+  <p data-t="lead"></p>
+  <div class="stats" id="stats"></div>
+</div></header>
+
+<div class="bar"><div class="wrap">
+  <div class="lang" role="group" aria-label="Langue / Language">
+    <button type="button" data-lang="fr">FR</button>
+    <button type="button" data-lang="en">EN</button>
+  </div>
+  <span id="jumps" style="display:contents"></span>
+  <div class="filters" role="group" id="filters"></div>
+</div></div>
+
+<main id="main"></main>
+<footer><div class="wrap" data-t="footer"></div></footer>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image">
+  <span class="lbcount" id="lbcount"></span>
+  <button class="x" type="button" id="lbx" aria-label="Fermer">✕</button>
+  <button class="nav prev" type="button" id="lbp" aria-label="Précédente">‹</button>
+  <img id="lbimg" alt="">
+  <button class="nav next" type="button" id="lbn" aria-label="Suivante">›</button>
+</div>
+
+<script>
+const DATA = /*DATA*/null;
+const UI = {
+  fr: { kicker: 'Kee · LinkedIn · 17 nov. 2026 au 11 févr. 2027', title: '90 jours de contenu, <em>tout au même endroit.</em>',
+        lead: 'Chaque post avec son visuel et sa légende prête à copier. Les éléments surlignés en rose entre [CROCHETS] sont à remplir par toi avant de publier.',
+        posts: 'posts', visuals: 'avec visuel', carousels: 'carrousels', text: 'texte seul', profile: 'Profil', profileTitle: 'Le profil, <em>avant tout.</em>',
+        profileK: 'Bannière et section Sélection', month: 'Mois', all: 'Tout', withVisual: 'Avec visuel', textOnly: 'Texte seul',
+        copy: 'Copier la légende', copied: 'Copié', more: 'Tout afficher', less: 'Réduire', textNote: 'Post texte : pas de visuel, seulement la légende.',
+        photoNote: 'Post photo : ta propre photo ou vidéo, pas de visuel à créer.', pages: 'pages',
+        footer: 'Les fichiers à publier (PNG et PDF) sont dans le dossier linkedin/ du site. Cette page est privée tant que tu ne la partages pas.', empty: 'Aucun post pour ce filtre.' },
+  en: { kicker: 'Kee · LinkedIn · Nov 17 2026 to Feb 11 2027', title: '90 days of content, <em>all in one place.</em>',
+        lead: 'Every post with its visual and a caption ready to copy. Anything highlighted in pink in [BRACKETS] is yours to fill before posting.',
+        posts: 'posts', visuals: 'with a visual', carousels: 'carousels', text: 'text only', profile: 'Profile', profileTitle: 'The profile, <em>first.</em>',
+        profileK: 'Banner and featured section', month: 'Month', all: 'All', withVisual: 'With visual', textOnly: 'Text only',
+        copy: 'Copy caption', copied: 'Copied', more: 'Show all', less: 'Collapse', textNote: 'Text post: no visual, just the caption.',
+        photoNote: 'Photo post: your own photo or video, no design needed.', pages: 'pages',
+        footer: 'The files to post (PNG and PDF) are in the linkedin/ folder of the site repo. This page stays private until you share it.', empty: 'No post for this filter.' },
+};
+let lang = 'fr', filter = 'all';
+try { lang = localStorage.getItem('kee-li-lang') || lang; } catch (e) {}
+if (location.hash === '#en' || location.hash === '#fr') lang = location.hash.slice(1);
+
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const marks = s => esc(s).replace(/\[[^\]\n]{2,}\]/g, m => '<mark>' + m + '</mark>');
+const isVisual = p => p.images.length > 0;
+
+function monthTitle(m) {
+  // "MONTH 1 · Nov 17 to Dec 17" / "MOIS 1 · 17 nov. au 17 déc."
+  const [a, b] = m.split(' · ');
+  return { n: a.replace(/\D/g, ''), range: b || '' };
+}
+
+function visualHTML(imgs, gid) {
+  const im = imgs.map((x, i) => `<img src="${x.src}" width="${x.w}" height="${x.h}" loading="lazy" alt="" data-g="${gid}" data-i="${i}">`).join('');
+  const dots = imgs.length > 1 ? `<div class="dots">${imgs.map((_, i) => `<span class="${i ? '' : 'on'}"></span>`).join('')}</div>` : '';
+  const count = imgs.length > 1 ? `<span class="count">1 / ${imgs.length}</span>` : '';
+  return `<div class="visual"><div class="strip">${im}</div>${count}${dots}</div>`;
+}
+
+const GALLERIES = {};
+function render() {
+  const D = DATA[lang], T = UI[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el => el.innerHTML = T[el.dataset.t]);
+  document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang));
+  const P = D.posts, nv = P.filter(isVisual).length, nc = P.filter(p => p.images.length > 1).length;
+  document.getElementById('stats').innerHTML =
+    `<span class="stat"><b>${P.length}</b> ${T.posts}</span><span class="stat"><b>${nv}</b> ${T.visuals}</span>` +
+    `<span class="stat"><b>${nc}</b> ${T.carousels}</span><span class="stat"><b>${P.length - nv}</b> ${T.text}</span>`;
+  document.getElementById('jumps').innerHTML = `<a class="jump" href="#profil">${T.profile}</a>` +
+    D.months.map((m, i) => `<a class="jump" href="#m${i + 1}">${T.month} ${i + 1}</a>`).join('');
+  document.getElementById('filters').innerHTML = [['all', T.all], ['visual', T.withVisual], ['text', T.textOnly]]
+    .map(([k, l]) => `<button type="button" data-f="${k}" aria-pressed="${k === filter}">${l}</button>`).join('');
+
+  for (const k in GALLERIES) delete GALLERIES[k];
+  let h = `<section class="month" id="profil"><div class="wrap"><p class="k">${T.profileK}</p><h2>${T.profileTitle}</h2><div class="profile">`;
+  D.profile.forEach((p, i) => {
+    GALLERIES['p' + i] = p.images;
+    const img = p.images[0];
+    h += `<div class="pcard ${i === 0 ? 'wide' : ''}">${img ? `<img src="${img.src}" width="${img.w}" height="${img.h}" alt="" loading="lazy" data-g="p${i}" data-i="0">` : ''}<h3>${esc(p.title)}</h3><p>${esc(p.desc)}</p></div>`;
+  });
+  h += '</div></div></section>';
+  D.months.forEach((m, mi) => {
+    const mt = monthTitle(m);
+    h += `<section class="month" id="m${mi + 1}"><div class="wrap"><p class="k">${esc(mt.range)}</p><h2>${T.month} ${mt.n}</h2>`;
+    let shown = 0;
+    P.filter(p => p.month === m).forEach(p => {
+      const vis = isVisual(p);
+      const hide = (filter === 'visual' && !vis) || (filter === 'text' && vis);
+      if (!hide) shown++;
+      GALLERIES[p.id] = p.images;
+      const fmt = p.format.toUpperCase();
+      const note = vis ? (p.images.length > 1 ? `<p class="note">${p.images.length} ${T.pages}</p>` : '') : `<p class="note">${fmt === 'PHOTO' ? T.photoNote : T.textNote}</p>`;
+      h += `<article class="post ${vis ? '' : 'no-visual'}" id="${p.id}"${hide ? ' hidden' : ''}>` +
+           (vis ? visualHTML(p.images, p.id) : '') +
+           `<div><div class="meta"><span class="pid">${p.id}</span><span class="date">${esc(p.date)}</span><span class="tag ${fmt}">${esc(p.format)}</span></div>` +
+           `<p class="desc">${marks(p.desc)}</p>${note}` +
+           `<div class="cap"><pre>${marks(p.caption)}</pre><div class="actions"><button type="button" class="btn main" data-copy="${p.id}">${T.copy}</button>` +
+           `<button type="button" class="btn ghost" data-more>${T.more}</button></div></div></div></article>`;
+    });
+    if (!shown) h += `<p class="empty">${T.empty}</p>`;
+    h += '</div></section>';
+  });
+  document.getElementById('main').innerHTML = h;
+  document.querySelectorAll('.strip').forEach(s => s.addEventListener('scroll', () => {
+    const i = Math.round(s.scrollLeft / s.clientWidth), v = s.parentElement;
+    const c = v.querySelector('.count'); if (c) c.textContent = `${i + 1} / ${s.children.length}`;
+    v.querySelectorAll('.dots span').forEach((d, j) => d.classList.toggle('on', j === i));
+  }, { passive: true }));
+}
+
+document.addEventListener('click', async e => {
+  const lb = e.target.closest('[data-lang]');
+  if (lb) { lang = lb.dataset.lang; try { localStorage.setItem('kee-li-lang', lang); } catch (_) {} history.replaceState(null, '', '#' + lang); render(); return; }
+  const f = e.target.closest('[data-f]');
+  if (f) { filter = f.dataset.f; render(); return; }
+  const c = e.target.closest('[data-copy]');
+  if (c) {
+    const p = DATA[lang].posts.find(x => x.id === c.dataset.copy);
+    try { await navigator.clipboard.writeText(p.caption); c.textContent = UI[lang].copied; c.classList.add('done'); }
+    catch (_) { const pre = c.closest('.cap').querySelector('pre'); const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    setTimeout(() => { c.textContent = UI[lang].copy; c.classList.remove('done'); }, 1600);
+    return;
+  }
+  const m = e.target.closest('[data-more]');
+  if (m) { const pre = m.closest('.cap').querySelector('pre'); pre.classList.toggle('open'); m.textContent = pre.classList.contains('open') ? UI[lang].less : UI[lang].more; return; }
+  const img = e.target.closest('img[data-g]');
+  if (img) openLB(img.dataset.g, +img.dataset.i);
+});
+
+let lbG = null, lbI = 0;
+const lbEl = document.getElementById('lb');
+function openLB(g, i) { lbG = GALLERIES[g]; lbI = i; showLB(); lbEl.classList.add('on'); document.body.style.overflow = 'hidden'; }
+function showLB() {
+  const x = lbG[lbI]; document.getElementById('lbimg').src = x.src;
+  document.getElementById('lbcount').textContent = lbG.length > 1 ? `${lbI + 1} / ${lbG.length}` : '';
+  document.getElementById('lbp').style.display = document.getElementById('lbn').style.display = lbG.length > 1 ? '' : 'none';
+}
+function closeLB() { lbEl.classList.remove('on'); document.body.style.overflow = ''; }
+function step(d) { lbI = (lbI + d + lbG.length) % lbG.length; showLB(); }
+document.getElementById('lbx').onclick = closeLB;
+document.getElementById('lbp').onclick = e => { e.stopPropagation(); step(-1); };
+document.getElementById('lbn').onclick = e => { e.stopPropagation(); step(1); };
+lbEl.addEventListener('click', e => { if (e.target === lbEl) closeLB(); });
+document.addEventListener('keydown', e => {
+  if (!lbEl.classList.contains('on')) return;
+  if (e.key === 'Escape') closeLB(); if (e.key === 'ArrowLeft') step(-1); if (e.key === 'ArrowRight') step(1);
+});
+let tx = null;
+lbEl.addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+lbEl.addEventListener('touchend', e => { if (tx === null) return; const d = e.changedTouches[0].clientX - tx; if (Math.abs(d) > 40) step(d < 0 ? 1 : -1); tx = null; });
+window.addEventListener('hashchange', () => { if (location.hash === '#en' || location.hash === '#fr') { lang = location.hash.slice(1); render(); } });
+render();
+</script>
+</body>
+</html>
