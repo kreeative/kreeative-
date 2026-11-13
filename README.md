@@ -27,7 +27,7 @@ works.
 | `/websites/jessicas-secrets/`                     | `websites/jessicas-secrets/index.html`                          |
 | `/websites/kreeative/`                            | `websites/kreeative/index.html` (this site)                     |
 | `/concepts/jessicas-secrets/`                     | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
-| `/about/`, `/shop/`, `/teach/`, `/pricing/`, `/services/` | their `index.html`                                              |
+| `/about/`, `/shop/`, `/teach/`, `/services/`              | their `index.html`                                              |
 | `/the-kreeative-designer-newsletter/`             | `the-kreeative-designer-newsletter/index.html`                  |
 | any unknown URL                                   | `404.html`                                                      |
 
@@ -59,7 +59,7 @@ assets/css/base.css        fonts, colour/type tokens, reset, typography, page fr
 assets/css/components.css  nav, buttons, footer, pills, animations, decorations
 assets/css/home.css        home-page sections
 assets/css/case-study.css  case-study template
-assets/css/pricing.css     pricing page
+assets/css/pricing.css     services page styles
 assets/css/misc.css        newsletter + 404 pages
 assets/js/site.js          scroll-in animations, hero headline, pixel canvases, menu
 assets/fonts/              self-hosted woff2 fonts

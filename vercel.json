@@ -39,6 +39,16 @@
       "source": "/portfolio/nexatech/",
       "destination": "/portfolio/lyzma-industries/",
       "permanent": true
+    },
+    {
+      "source": "/pricing",
+      "destination": "/services/",
+      "permanent": false
+    },
+    {
+      "source": "/pricing/:path*",
+      "destination": "/services/",
+      "permanent": false
     }
   ]
 }
