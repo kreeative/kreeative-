@@ -321,7 +321,31 @@
   /* ------------------------------------------------------------------ data shortcuts */
 
   const PLANS = () => arr(D && D.PLANS);
-  const plan = () => PLANS().find((p) => p.id === (S.account && S.account.plan)) || PLANS()[0] || { id: 'gratuit', name: 'Gratuit', fee: 3, orders: 20, priceMonth: 0, priceLabel: '0 FCFA', feeLabel: '3 % par vente en ligne', ordersLabel: '' };
+  /* One subscription = one store: the plan is the STORE's (stores.plan, read here, written by the server only).
+   * A store not yet online (or the demo) falls back on the account's plan kept in this browser. */
+  function storePlanRow() {
+    const sid = (() => { try { const r = window.JeerePublish && window.JeerePublish.local(); return r && r.storeId ? r.storeId : ''; } catch (e) { return ''; } })();
+    if (!sid) return null;
+    S.storePlans = S.storePlans || {};
+    const row = S.storePlans[sid];
+    if (!row || (!row.loading && Date.now() - row.at > 60000)) {
+      S.storePlans[sid] = Object.assign({}, row || {}, { loading: true, at: Date.now() });
+      const A = window.JeereAuth;
+      Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then((ses) => {
+        if (!ses || !ses.access_token) return null;
+        return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/stores?select=id,plan,plan_until,plan_promo&id=eq.' + encodeURIComponent(sid), {
+          headers: { apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + ses.access_token } }).then((r) => (r.ok ? r.json() : null));
+      }).catch(() => null).then((list) => {
+        const x = Array.isArray(list) && list[0] ? list[0] : null;
+        const before = S.storePlans[sid] && S.storePlans[sid].plan;
+        S.storePlans[sid] = x ? { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() } : { at: Date.now(), plan: before };
+        if (x && x.plan !== before && S.inApp) refresh();
+      });
+    }
+    return S.storePlans[sid] && S.storePlans[sid].plan ? S.storePlans[sid] : null;
+  }
+  const planId = () => { const r = storePlanRow(); return r ? r.plan : (S.account && S.account.plan); };
+  const plan = () => PLANS().find((p) => p.id === planId()) || PLANS()[0] || { id: 'gratuit', name: 'Gratuit', fee: 3, orders: 20, priceMonth: 0, priceLabel: '0 FCFA', feeLabel: '3 % par vente en ligne', ordersLabel: '' };
   const CONNECTORS = () => arr(D && D.CONNECTORS);
   const connector = (id) => CONNECTORS().find((c) => c.id === id) || null;
   function conn(id) {
@@ -3906,7 +3930,11 @@
     const weekOk = !!cur.priceWeek;
     const used = monthOrders();
     const due = cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? fcfa(cur.priceWeek) + ' par semaine' : fcfa(cur.priceMonth) + ' par mois') : '';
-    return H`<section class="a-card" aria-labelledby="h-cur"><div class="a-card__head"><div><h3 class="a-card__title" id="h-cur">Formule ${esc(cur.name)} ${b.paused ? H`<span class="a-chip a-chip--line">${ico('pause')}En pause</span>` : H`<span class="a-chip a-chip--ink">Active</span>`}</h3>
+    // one subscription = one store; the launch offer's free months, with their end
+    const row = storePlanRow();
+    const gift = row && (row.promo === 'lancement' || row.promo === 'essai') && row.until ? 'Offert jusqu’au ' + new Date(row.until).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) + ' : ensuite, ' + fcfa(cur.priceMonth) + ' par mois, ou retour à la formule gratuite.' : '';
+    const perStore = H`<section class="a-card"><p class="a-note a-note--line" style="margin:0">${esc(fr('Un abonnement vaut pour une boutique : celui-ci est celui de ' + storeName() + '. Chaque autre boutique a le sien.'))}${gift ? H`<br><strong>${esc(fr(gift))}</strong>` : ''}</p></section>`;
+    return H`${perStore}<section class="a-card" aria-labelledby="h-cur"><div class="a-card__head"><div><h3 class="a-card__title" id="h-cur">Formule ${esc(cur.name)} ${b.paused ? H`<span class="a-chip a-chip--line">${ico('pause')}En pause</span>` : H`<span class="a-chip a-chip--ink">Active</span>`}</h3>
           <p class="a-card__sub">${esc(fr(cur.ordersLabel))} · ${esc(fr(cur.feeLabel))}</p></div></div>
         <p class="a-big">${esc(cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? fcfa(cur.priceWeek) : fcfa(cur.priceMonth)) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${cur.priceMonth ? (b.cycle === 'semaine' && weekOk ? ' / semaine' : ' / mois') : ''}</small></p>
         <div class="a-meter"><div class="a-meter__row"><span>Commandes ce mois-ci${hasDemoOrders() ? ' (exemple)' : ''}</span><strong>${cur.orders ? esc(number(used) + ' sur ' + number(cur.orders)) : esc(number(used)) + ' · illimitées'}</strong></div>
@@ -4107,13 +4135,15 @@
       }
       const week = S.admin.settings.billing.cycle === 'semaine' && p.priceWeek;
       const ok = await confirmBox({
-        title: 'Passer à la formule ' + p.name + ' ?',
+        title: 'Passer ' + storeName() + ' à la formule ' + p.name + ' ?',
         html: H`<strong>${esc(week ? price(p.priceWeek) + ' par semaine' : fcfa(p.priceMonth) + ' par mois')}</strong> · ${esc(fr(p.ordersLabel))} · ${esc(fr(p.feeLabel))}.<br><br>Vous payez par carte (Visa, Mastercard) sur la page sécurisée de Stripe. Résiliable à tout moment. Le mobile money arrive bientôt.`,
         ok: 'Payer par carte'
       });
       if (!ok) { focusMain(); return; }
       toast('Ouverture de la page de paiement…');
-      const r = await B.subscribeBoutique(p.id, week ? 'semaine' : 'mois');
+      const sid = remoteStoreId();
+      if (!sid) { toast('Publiez d’abord cette boutique : un abonnement vaut pour une boutique en ligne.', { ms: 7000 }); return; }
+      const r = await B.subscribeBoutique(p.id, week ? 'semaine' : 'mois', sid);
       if (r && !r.ok) toast(r.message || 'Le paiement n’a pas pu s’ouvrir.', { ms: 6000 });
       return;
     }
@@ -4796,10 +4826,10 @@
       setTimeout(() => toast(back[1] === 'abonnement'
         ? (ok ? 'Paiement reçu, merci ! Votre nouvelle formule s’active dans quelques secondes.' : 'Paiement annulé : rien n’a été prélevé.')
         : (ok ? 'Paiement reçu ! Jeere achète votre domaine et le relie à votre boutique : comptez quelques minutes.' : 'Paiement annulé : aucun domaine n’a été acheté.'), { ms: 8000 }), 600);
-      if (ok) [500, 4000, 10000].forEach((ms) => setTimeout(() => { Promise.resolve(window.JeereBilling && window.JeereBilling.sync ? window.JeereBilling.sync() : null).then(() => { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); }, () => {}); }, ms));
+      if (ok) [500, 4000, 10000].forEach((ms) => setTimeout(() => { S.storePlans = {}; Promise.resolve(window.JeereBilling && window.JeereBilling.sync ? window.JeereBilling.sync() : null).then(() => { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); }, () => {}); }, ms));
     } else if (window.JeereBilling && window.JeereBilling.sync) {
       // a payment the webhook has not brought yet
-      Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
+      Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && Array.isArray(j.stores)) { S.storePlans = S.storePlans || {}; j.stores.forEach((x) => { S.storePlans[x.id] = { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() }; }); } if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
     }
     // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jeere store here
     const bm = /[#&]boutique=([a-z0-9-]+)/.exec(window.location.hash || '');

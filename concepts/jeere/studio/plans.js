@@ -714,7 +714,8 @@
         return Promise.resolve(A && typeof A.syncPlan === 'function' ? A.syncPlan() : null).then(function () { emit(); return j; });
       }, function () { return null; });
     },
-    subscribeBoutique: function (plan, period) { return billingCall({ action: 'subscribe', kind: 'boutique', plan: plan, period: period, returnUrl: here() }); },
+    // one subscription = one store: storeId is the store being subscribed
+    subscribeBoutique: function (plan, period, storeId) { return billingCall({ action: 'subscribe', kind: 'boutique', plan: plan, period: period, storeId: storeId || '', returnUrl: here() }); },
     methods: function () { return realBilling() ? METHODS.filter(function (x) { return x.kind === 'card'; }) : METHODS; },
     useProvider: function (id) { if (id === 'demo' || providers[id]) activeProvider = id; return activeProvider; },
     startCheckout: startCheckout,
