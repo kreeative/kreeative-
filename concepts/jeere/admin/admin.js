@@ -345,6 +345,7 @@
     'michou': { site: 'concepts--michou', live: 'https://kreeative.xyz/concepts/michou/' },
     'regard': { site: 'concepts--regard', live: 'https://kreeative.xyz/concepts/regard/' },
     'vernie': { site: 'concepts--vernie', live: 'https://kreeative.xyz/concepts/vernie/' },
+    'minuit': { site: 'concepts--minuit', live: 'https://kreeative.xyz/concepts/minuit/' },
     'joshua-cooker': { site: 'concepts--joshua-cooker', live: 'https://kreeative.xyz/concepts/joshua-cooker/' },
     'sonia-luxury-hair': { site: 'concepts--sonia-luxury-hair', live: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' }
   };
@@ -884,7 +885,8 @@
     { name: 'SOYEUSE', slug: 'soyeuse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/soyeuse', thumb: '../studio/sites/thumbs/concepts--soyeuse.webp' },
     { name: 'MICHOU', slug: 'michou', meta: 'Boutique de démonstration · kreeative.xyz/concepts/michou', thumb: '../studio/sites/thumbs/concepts--michou.webp' },
     { name: 'REGARD', slug: 'regard', meta: 'Studio de cils, rendez-vous · kreeative.xyz/concepts/regard', thumb: '../studio/sites/thumbs/concepts--regard.webp' },
-    { name: 'VERNIE', slug: 'vernie', meta: 'Studio d’ongles, rendez-vous · kreeative.xyz/concepts/vernie', thumb: '../studio/sites/thumbs/concepts--vernie.webp' }
+    { name: 'VERNIE', slug: 'vernie', meta: 'Studio d’ongles, rendez-vous · kreeative.xyz/concepts/vernie', thumb: '../studio/sites/thumbs/concepts--vernie.webp' },
+    { name: 'MINUIT', slug: 'minuit', meta: 'Studio cils et ongles, rendez-vous · kreeative.xyz/concepts/minuit', thumb: '../studio/sites/thumbs/concepts--minuit.webp' }
   ];
   // a boutique of hers not yet in the list: its project is made once (her name on it), then it is a project like the others
   function openShopProject(el) {

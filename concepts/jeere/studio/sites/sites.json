@@ -885,6 +885,74 @@
    ]
   },
   {
+   "id": "concepts--minuit",
+   "title": "MINUIT — cils, ongles et sourcils sur rendez-vous à Abidjan",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/minuit",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/minuit/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--minuit.webp",
+   "updated": {
+    "date": "2026-11-13T05:17:47+00:00",
+    "commit": "bb7f462",
+    "subject": "MINUIT : un troisième site modèle avec rendez-vous, en noir"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/minuit/"
+   ],
+   "uploads": "concepts/minuit/img/",
+   "pages": [
+    {
+     "path": "concepts/minuit/index.html",
+     "title": "MINUIT — cils, ongles et sourcils sur rendez-vous à Abidjan",
+     "url": "",
+     "sha": "b99a655d0800f3a161fce4bd1e8e75898b8ae928",
+     "size": 16279,
+     "local": false
+    },
+    {
+     "path": "concepts/minuit/mentions-legales/index.html",
+     "title": "Mentions légales — MINUIT",
+     "url": "mentions-legales/",
+     "sha": "ca4e4ebec12c133939e34cbbeae664842febe73f",
+     "size": 5332,
+     "local": false
+    },
+    {
+     "path": "concepts/minuit/rendez-vous/index.html",
+     "title": "Mon rendez-vous — MINUIT",
+     "url": "rendez-vous/",
+     "sha": "3d1736eaa5951492ec4f6269794d497409bca521",
+     "size": 3069,
+     "local": false
+    },
+    {
+     "path": "concepts/minuit/reserver/index.html",
+     "title": "Prendre rendez-vous — MINUIT",
+     "url": "reserver/",
+     "sha": "69a0c67374b55ac68760fb9fb00157064ac27828",
+     "size": 2937,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/minuit/img/cils-miroir.webp",
+    "concepts/minuit/img/cils-profil.webp",
+    "concepts/minuit/img/ongles-ecaille.webp",
+    "concepts/minuit/img/ongles-rose.webp",
+    "concepts/minuit/img/regard.webp",
+    "concepts/minuit/img/sourcil.webp",
+    "concepts/minuit/img/visage.webp"
+   ]
+  },
+  {
    "id": "concepts--nanawax",
    "title": "Nanawax · Proposition de site",
    "kind": "concept",

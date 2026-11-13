@@ -25,7 +25,7 @@ service online, the studio runs its agenda from the dashboard. Built on 13 Novem
 | The booking steps on any site | `connect/jeere-booking.js`, `connect/jeere-booking.css` |
 | A booking page for every store, with no site to build | `rdv/index.html` → `jeere.kreeative.xyz/rdv/?b=<slug>` |
 | The dashboard section | `admin/rdv.js`, `admin/rdv.css` (hooked in `admin/admin.js`: route `rendez-vous`) |
-| Two model sites | `concepts/regard/` (lashes) and `concepts/vernie/` (nails), on the branch kreeative.xyz serves |
+| Three model sites | `concepts/regard/` (lashes), `concepts/vernie/` (nails) and `concepts/minuit/` (lashes and nails, dark), on the branch kreeative.xyz serves |
 
 ## Rules worth knowing
 

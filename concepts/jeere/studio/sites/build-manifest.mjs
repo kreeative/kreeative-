@@ -58,6 +58,7 @@ const COMMERCE = {
   'concepts/michou': true,
   'concepts/regard': true,
   'concepts/vernie': true,
+  'concepts/minuit': true,
   'concepts/joshua-cooker': true,
   'concepts/sonia-luxury-hair': true,
   'websites/the-ivory-sukundu': true,

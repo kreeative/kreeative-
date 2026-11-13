@@ -723,7 +723,7 @@ Lashes, nails, hair, make-up: a store can take **bookings** as well as orders. C
 day and a time on the store's site or on `rdv/?b=<slug>`; the studio runs its agenda in the dashboard
 (« Rendez-vous »: agenda, services, hours and team, deposit and policies, clients). Tables `booking_settings`,
 `appointments` and `booking_blocks`, Edge Function `bookings`, script `connect/jeere-booking.js`, dashboard
-section `admin/rdv.js`; two model sites, `concepts/regard/` (lashes) and `concepts/vernie/` (nails).
+section `admin/rdv.js`; three model sites, `concepts/regard/` (lashes), `concepts/vernie/` (nails) and `concepts/minuit/` (lashes and nails, dark).
 Everything is in [docs/rendez-vous.md](docs/rendez-vous.md).
 
 ## To do before sharing
