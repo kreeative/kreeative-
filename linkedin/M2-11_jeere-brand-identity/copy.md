@@ -26,8 +26,6 @@ The brief I gave myself: a brand a merchant would be proud to put on her shop si
 
 What I kept out: anything that looks corporate, and anything that only works on a laptop.
 
-[WHY_A_CLOUD]
-
 More of the system in the onboarding case study next week.
 
 #JEERE #branding #brandidentity #logodesign #buildinpublic
@@ -36,7 +34,3 @@ More of the system in the onboarding case study next week.
 ## Alt text
 
 - The JEERE brand on one white board: the hand-drawn cloud logo in a seven-colour rainbow and the hand-lettered Jeere wordmark in white on black, two type specimens, Poppins for the site and Outfit for the dashboard, a white button “Créer ma boutique” with a rainbow edge and rainbow letters, and nine swatches: black, white, pink-red #E8467C, orange #F08A3C, yellow #F0C414, green #22C97E, blue #1E9BE0, violet #6A4CFF, magenta #C13CE0.
-
-## Placeholders to fill
-
-- `[WHY_A_CLOUD]`: one line on why the logo is a cloud

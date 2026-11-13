@@ -33,7 +33,7 @@
 ### Page 6
 - Kicker: 05 · Type
 - Headline: A script, and a quiet partner.
-- Body: The lettered wordmark carries the voice. The supporting typeface, [SECONDARY_TYPEFACE], stays quiet so it never competes.
+- Body: The lettered wordmark carries the voice. Everything around it stays quiet, so it never competes.
 
 ### Page 7
 - Kicker: 06 · Applications
@@ -71,14 +71,9 @@ Full case study: link in the first comment.
 
 - Page 1: Deep brown cover: the gold hand-lettered Lyzma Industries logo with its concentric-circle mark on a white card, above the title “A hand-lettered identity for a jewellery brand: 6 decisions behind it.”
 - Page 2: Ivory slide: decision 1, the brief, with a white card quoting it in one sentence.
-- Page 3: Ivory slide: decision 2, “Lettered, not typed”, with a dashed placeholder frame for the lettering sketches.
+- Page 3: Ivory slide: decision 2, “Lettered, not typed”, with a close crop of the hand-lettered Lyzma wordmark.
 - Page 4: Ivory slide: decision 3, the mark, with a close crop of the gold concentric circles.
 - Page 5: Ivory slide: decision 4, colour, with two large swatches: Lyzma gold #EBB64C and white.
-- Page 6: Ivory slide: decision 5, type, with a card showing the real hand-lettered Lyzma wordmark and a placeholder for the supporting typeface.
+- Page 6: Ivory slide: decision 5, type, with a card showing the real hand-lettered Lyzma wordmark.
 - Page 7: Ivory slide: decision 6, applications, with the Lyzma shopping bags in gold, white and navy, tags and round stickers reading Hi and Bonjour.
 - Page 8: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.
-
-## Placeholders to fill
-
-- `[LETTERING_SKETCHES]`: photos or scans of the Lyzma lettering sketches
-- `[SECONDARY_TYPEFACE]`: the typeface used next to the lettered wordmark

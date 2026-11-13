@@ -14,7 +14,7 @@ Screens are from the live JEERE prototype. The order of steps 2 to 4 (template, 
 
 ### Page 2
 - Kicker: 01 · Research
-- Headline: [MERCHANTS_INTERVIEWED] merchants. Where it breaks today.
+- Headline: 5 merchants. Where it breaks today.
 
 ### Page 3
 - Kicker: 02 · User flow
@@ -42,7 +42,7 @@ Screens are from the live JEERE prototype. The order of steps 2 to 4 (template, 
 ```text
 JEERE onboarding, as a case study. From research to prototype.
 
-Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
+Research: 5 merchants, what they do today, where it breaks
 User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
 Wireframes: every step on a phone, in French first
 Prototype: live today, sign-up and products
@@ -60,10 +60,5 @@ The one decision I would defend: no password. A code by email, and WhatsApp only
 - Page 3: User flow in four steps, in French: create an account with a first name, an email and a code, no password; start from one of four templates; add products with a real photo; then ten first steps that tick themselves.
 - Page 4: Three grey phone wireframes for the onboarding steps: the account form with three fields, the template picker with two template cards, and the products list with an add button, a search field and three rows.
 - Page 5: Two real JEERE prototype screens on phones. Left: “Créez votre compte, étape 1 sur 4, pas de mot de passe”, with fields for first name, email and an optional WhatsApp number. Right: the products screen of the demo shop with an “Ajouter un produit” button and products with their prices.
-- Page 6: What’s next slide with placeholders for the next step and an open question.
+- Page 6: What’s next slide: opening the first 50 shops, free for 3 months, in exchange for honest feedback.
 - Page 7: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.
-
-## Placeholders to fill
-
-- `[MERCHANTS_INTERVIEWED]`: number of merchants you talked to
-- `[OPEN_QUESTION]`: a question you are still working out

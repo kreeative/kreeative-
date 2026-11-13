@@ -1,7 +1,7 @@
 # LinkedIn calendar: captions for every post, Nov 17 2026 to Feb 11 2027
 
-Ready to paste. Hook on line 1, short lines, 3 to 5 hashtags. Anything in [BRACKETS] is a
-placeholder for a fact only you can confirm; all of them are listed at the end. No employer
+Ready to paste. Hook on line 1, short lines, 3 to 5 hashtags. No placeholders left: every
+caption can be posted as it is (PHOTO posts still need your photo). No employer
 is named anywhere. No em dashes. Every post also exists in French: see CALENDAR_FR.md and the `_FR` files.
 
 For posts tagged IMAGE or CAROUSEL, the same caption lands in that post’s `copy.md` with
@@ -14,7 +14,7 @@ CAROUSEL = PDF carousel.
 
 ## MONTH 1 · Nov 17 to Dec 17
 
-### M1-01 · Mon Nov 17 · PHOTO · EN
+### M1-01 · Tue Nov 17 · PHOTO · EN
 Reintro.
 
 ```
@@ -65,7 +65,7 @@ Full case study: link in the first comment.
 #branding #logodesign #lettering #brandidentity #casestudy
 ```
 
-### M1-03 · Thu Nov 20 · TEXT · EN
+### M1-03 · Thu Nov 19 · TEXT · EN
 AI tools I use.
 
 ```
@@ -94,21 +94,18 @@ What is your rule?
 ```
 
 ### M1-04 · Tue Nov 24 · IMAGE · EN
-Before/after, The Bakery logo.
+The Bakery logo: the two details that carry it.
 
 ```
-Sketch to final: The Bakery wordmark.
+The Bakery wordmark, and the two details that carry it.
 
-What changed between the two:
-[WHAT_CHANGED_SKETCH_TO_FINAL]
-
-The final has a baguette for the B and a cupcake for the e.
+A baguette for the B. A cupcake for the e.
 One rule I keep from this project: a good mark survives being shrunk to a sticker.
 
 The identity became packaging, a pattern, and later a website and an ordering app.
 Case study in the first comment.
 
-#logodesign #branding #beforeandafter #packaging
+#logodesign #branding #packaging #brandidentity
 ```
 
 ### M1-05 · Wed Nov 25 · TEXT · EN
@@ -158,23 +155,23 @@ The step people skip is number 1. It is the one that saves the other five.
 ```
 
 ### M1-07 · Tue Dec 1 · CAROUSEL · EN
-JEERE build log #1: merchants interviewed, 5 things learned.
+JEERE build log #1: 5 merchants, the research, 5 things learned.
 
 ```
-JEERE build log #1. I talked to [MERCHANTS_INTERVIEWED] merchants. Here are 5 things I learned.
+JEERE build log #1. I talked to 5 merchants, then read the research. Here are 5 things I learned.
 
 I thought I was building a storefront builder.
-The conversations said something else.
+The conversations, and the numbers, said something else.
 
-1. [FINDING_1]
-2. [FINDING_2]
-3. [FINDING_3]
-4. [FINDING_4]
-5. [FINDING_5]
+1. They already sell on WhatsApp
+2. Social media is the shop window
+3. A marketplace does not replace social
+4. The phone is the computer
+5. Signal is not the barrier, use is
 
-What changed in the product because of it: [CHANGE_FROM_RESEARCH]
+What it means for JEERE: orders and stock in one place, one stock for every channel, and a shop you set up from your phone.
 
-Every build log will be like this. What I assumed, what I heard, what I changed.
+Every number has its source on its slide. Every build log will be like this: what I assumed, what I learned, what I built.
 
 #JEERE #buildinpublic #userresearch #productdesign #ecommerce
 ```
@@ -276,9 +273,8 @@ Left: the wireframe. Boxes, labels, the order of things.
 Right: the products screen as it is in the prototype today.
 
 What stayed the same: one main action, add a product, and a list a merchant can scan on her phone.
-What changed: [WHAT_CHANGED_WIREFRAME_TO_HIFI]
+What came after: the colour, the type and real products, once the order of things was settled.
 
-The wireframe took [WIREFRAME_TIME]. The high-fidelity took [HIFI_TIME].
 The wireframe decided more.
 
 #JEERE #buildinpublic #productdesign #wireframe #UI
@@ -312,7 +308,6 @@ One slide each:
 → A portfolio rebuilt by hand, from a template to a site I own
 → Kreeative client work: brand identities and websites, designed and built end to end
 → JEERE, from an idea to a working editor
-→ Creator work with a video app, [CAPCUT_WORK_DESCRIPTION]
 → A new role at a tech company, where I now sit close to the customers whose problems product teams solve
 
 What I learned: shipping is a design skill. The mockup is the middle of the job, not the end.
@@ -326,7 +321,7 @@ Thank you for reading along. Next year is already in progress.
 
 ## MONTH 2 · Dec 21 to Jan 17
 
-### M2-01 · Week of Dec 21 · TEXT · EN
+### M2-01 · Tue Dec 22 · TEXT · EN
 Year reflection.
 
 ```
@@ -346,24 +341,23 @@ Product and brand designer. That is the title now.
 #reflection #productdesign #careergrowth #buildinpublic
 ```
 
-### M2-02 · Week of Dec 21 · IMAGE · EN
-Before/after, GloryWalk streetwear identity.
+### M2-02 · Wed Dec 23 · IMAGE · EN
+GloryWalk streetwear identity.
 
 ```
-Before and after: GloryWalk, a Christian streetwear brand.
+GloryWalk, a Christian streetwear brand. The identity in one image.
 
-Before: [GLORYWALK_BEFORE_DESCRIPTION]
-After: a gold graffiti wordmark, a W monogram that lives on a hoodie back, navy, gold and sage.
+A gold graffiti wordmark, a W monogram that lives on a hoodie back, navy, gold and sage.
 
 The brief in one line: make belief look undeniable.
 The decision that mattered: the monogram, because apparel needs a mark that works embroidered on a chest and printed on a back.
 
 Case study in the first comment.
 
-#branding #streetwear #logodesign #beforeandafter
+#branding #streetwear #logodesign #brandidentity
 ```
 
-### M2-03 · Week of Dec 28 · CAROUSEL · EN
+### M2-03 · Tue Dec 29 · CAROUSEL · EN
 My 2027 creative toolkit.
 
 ```
@@ -385,15 +379,13 @@ What is in yours that I am missing?
 Startup lessons.
 
 ```
-[N_MONTHS] months into building JEERE. Lessons so far, no filter.
+Building JEERE. Lessons so far, no filter.
 
 1. Talking to merchants beat every assumption I had in the deck.
 2. The first version should embarrass you a little. Mine did.
 3. The feature list is not the product. The merchant’s Tuesday is the product.
 4. Bilingual from day one, or never.
 5. Building alone is fast until it is not. Write things down for the next person, even if the next person is you.
-
-What I would do differently: [LESSON_DIFFERENTLY]
 
 #startup #buildinpublic #JEERE #founder #lessons
 ```
@@ -409,7 +401,7 @@ Research: the questions customers kept asking
 Wireframe: shop, then decide, then belong
 Design: quiet luxury on a phone, ivory, espresso and a little gold
 Launch: live in July 2026, then a store of its own in October
-Result: [RESULT_METRIC_OR_FEEDBACK]
+What it does: a length guide and a 60-second quiz answer the questions customers kept asking
 
 The slide I am proudest of is the research one. Every question became a tool: a length guide and a quiz.
 
@@ -431,8 +423,6 @@ A jury asks the questions you avoid:
 → What are the risks? Say them before they do.
 
 I wrote one line I will keep: JEERE exists because the merchants I design for are already selling online. They just do it by hand.
-
-[APPLICATION_STATUS]
 
 Whatever the result, the application is now the clearest document about JEERE I have.
 
@@ -461,7 +451,7 @@ Job chapter wrap.
 ```
 A chapter is closing. Here is what I take with me.
 
-For [DURATION_ROLE] I worked in customer experience at a tech company.
+I worked in customer experience at a tech company.
 Every day, people told me what was broken, what was confusing, and what they were actually trying to do.
 
 What it did to me as a designer:
@@ -470,7 +460,7 @@ What it did to me as a designer:
 → I write clearly, because unclear writing creates the next ticket
 → I stay calm when someone is not
 
-Thank you to the team. [THANK_YOU_LINE]
+Thank you to the team.
 
 Now: product design, full time, for the people who build.
 
@@ -527,8 +517,6 @@ The brief I gave myself: a brand a merchant would be proud to put on her shop si
 
 What I kept out: anything that looks corporate, and anything that only works on a laptop.
 
-[WHY_A_CLOUD]
-
 More of the system in the onboarding case study next week.
 
 #JEERE #branding #brandidentity #logodesign #buildinpublic
@@ -546,10 +534,10 @@ I am looking for a product design role. Here is what I bring, in one post.
 
 What I do: product and brand design, end to end. Research, flows, UI, and I build what I design.
 What I have shipped: a small-group accountability app, an e-commerce store for a client, a course platform, several brand identities, and JEERE, an e-commerce platform for African merchants, in progress.
-Where I come from: [DURATION_ROLE] in customer experience at a tech company, listening to the people product teams design for.
+Where I come from: customer experience at a tech company, listening to the people product teams design for.
 How I work: I write every decision down, I test on a phone first, and I say no to the generic version.
 
-Looking for: junior product designer roles, [LOCATION_PREFERENCE].
+Looking for: junior product designer roles.
 Portfolio: kreeative.xyz, link in the first comment.
 
 If you know a team that needs someone who designs and builds, I would love an intro.
@@ -563,7 +551,7 @@ JEERE onboarding case study.
 ```
 JEERE onboarding, as a case study. From research to prototype.
 
-Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
+Research: 5 merchants, what they do today, where it breaks
 User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
 Wireframes: every step on a phone, in French first
 Prototype: live today, sign-up and products
@@ -603,7 +591,7 @@ The first 50 shops are free for 3 months.
 What you get: a shop you set up from your phone, orders and stock in one place, deliveries by commune.
 What I get: honest feedback from the people it is for.
 
-Who it is for right now: merchants in [BETA_COUNTRIES] who already sell on WhatsApp or Instagram.
+Who it is for right now: merchants who already sell on WhatsApp or Instagram.
 
 Link in the first comment. Or tag someone who sells and deserves a real store.
 
@@ -658,8 +646,6 @@ A jewellery maker. A streetwear label. A hair brand. A bakery.
 And the merchants I am building JEERE for sell in Abidjan, Dakar, Bamako.
 
 This is not a theme I picked. It is who asks me, and who I know how to listen to.
-
-The history I carry into the work: [PERSONAL_LINE_BHM]
 
 Later this month: five Black designers and founders who shaped how I work.
 
@@ -746,15 +732,13 @@ I use AI daily. The brand, the composition and the final call stay mine. That is
 
 What I shipped in that time:
 → Portfolio v2
-→ JEERE: brand, onboarding, the first shops in beta
-→ [OTHER_SHIPPED_ITEM]
+→ JEERE: brand, onboarding, and the beta opening
 
 What I learned about posting:
-→ Case studies with decisions got [TOP_FORMAT_OBSERVATION]
-→ The French posts found people I would never have met in English
+→ Posting in French and English is two conversations, not one translation
 → Writing it down every week made the work better, not just the feed
 
-What is next: [NEXT_90_DAYS]
+What is next: more build logs, more case studies, still in public.
 
 Thank you for reading. If you build things, stay.
 
@@ -763,38 +747,11 @@ Thank you for reading. If you build things, stay.
 
 ---
 
-## Placeholders still to fill (captions only)
+## Placeholders
 
-Everything else was filled from your repos, your sites and published sources. See QUESTIONS.md.
-
-| Placeholder | Post |
-|---|---|
-| [WHAT_CHANGED_SKETCH_TO_FINAL] | M1-04 |
-| [MERCHANTS_INTERVIEWED] | M1-07, M3-02 |
-| [FINDING_1] | M1-07 |
-| [FINDING_2] | M1-07 |
-| [FINDING_3] | M1-07 |
-| [FINDING_4] | M1-07 |
-| [FINDING_5] | M1-07 |
-| [CHANGE_FROM_RESEARCH] | M1-07 |
-| [WHAT_CHANGED_WIREFRAME_TO_HIFI] | M1-12 |
-| [WIREFRAME_TIME] | M1-12 |
-| [HIFI_TIME] | M1-12 |
-| [CAPCUT_WORK_DESCRIPTION] | M1-14 |
-| [GLORYWALK_BEFORE_DESCRIPTION] | M2-02 |
-| [N_MONTHS] | M2-04 |
-| [LESSON_DIFFERENTLY] | M2-04 |
-| [RESULT_METRIC_OR_FEEDBACK] | M2-05 |
-| [APPLICATION_STATUS] | M2-06 |
-| [DURATION_ROLE] | M2-08, M3-01 |
-| [THANK_YOU_LINE] | M2-08 |
-| [WHY_A_CLOUD] | M2-11 |
-| [LOCATION_PREFERENCE] | M3-01 |
-| [BETA_COUNTRIES] | M3-04 |
-| [PERSONAL_LINE_BHM] | M3-07 |
-| [OTHER_SHIPPED_ITEM] | M3-12 |
-| [TOP_FORMAT_OBSERVATION] | M3-12 |
-| [NEXT_90_DAYS] | M3-12 |
+None left in the captions. Where only you could answer, the sentence was rewritten so the post stands without it.
+The number of merchants you talked to is 5. The 5 findings in M1-07 come from the published research already used in M3-03 and M3-09, with their sources.
+PHOTO posts (M1-01, M2-08, M3-07) still need your own photo or video.
 
 ## Links for the first comment
 

@@ -14,7 +14,7 @@ Les écrans viennent du prototype JEERE en ligne. L’ordre des étapes 2 à 4 (
 
 ### Page 2
 - Surtitre : 01 · Recherche
-- Titre : [MERCHANTS_INTERVIEWED] commerçantes. Là où ça coince aujourd’hui.
+- Titre : 5 commerçantes. Là où ça coince aujourd’hui.
 
 ### Page 3
 - Surtitre : 02 · Parcours
@@ -42,7 +42,7 @@ Les écrans viennent du prototype JEERE en ligne. L’ordre des étapes 2 à 4 (
 ```text
 L’onboarding de JEERE, en étude de cas. De la recherche au prototype.
 
-Recherche : [MERCHANTS_INTERVIEWED] commerçantes, ce qu’elles font aujourd’hui, là où ça coince
+Recherche : 5 commerçantes, ce qu’elles font aujourd’hui, là où ça coince
 Parcours : un compte avec un prénom, un e-mail et un code, puis un modèle, puis les produits, puis dix premières étapes qui se cochent toutes seules
 Wireframes : chaque étape sur téléphone, en français d’abord
 Prototype : en ligne aujourd’hui, l’inscription et les produits
@@ -60,10 +60,5 @@ La décision que je défendrais : pas de mot de passe. Un code par e-mail, et Wh
 - Page 3: Le parcours en quatre étapes : créer un compte avec un prénom, un e-mail et un code, sans mot de passe ; partir d’un des quatre modèles ; ajouter des produits avec une vraie photo ; puis dix premières étapes qui se cochent toutes seules.
 - Page 4: Trois wireframes gris sur téléphone pour les étapes : le formulaire de compte avec trois champs, le choix du modèle avec deux cartes, et la liste des produits avec un bouton d’ajout, une recherche et trois lignes.
 - Page 5: Deux vrais écrans du prototype JEERE sur des téléphones. À gauche : « Créez votre compte, étape 1 sur 4, pas de mot de passe », avec les champs prénom, e-mail et numéro WhatsApp facultatif. À droite : l’écran Produits de la boutique démo, avec un bouton « Ajouter un produit » et des produits avec leurs prix.
-- Page 6: Page la suite, avec la prochaine étape et un emplacement pour une question ouverte.
+- Page 6: Page la suite : ouvrir les 50 premières boutiques, offertes pendant 3 mois, en échange de retours honnêtes.
 - Page 7: Dernière page sur fond brun foncé : le K de Kreeative, « Suis Kee pour le design, la tech et construire en public », un bouton rose « Enregistre ce post » et kreeative.xyz.
-
-## À remplir
-
-- `[MERCHANTS_INTERVIEWED]`: number of merchants you talked to
-- `[OPEN_QUESTION]`: a question you are still working out

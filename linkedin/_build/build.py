@@ -391,8 +391,8 @@ def m1_02():
             visual='<div class="card" style="padding:44px 48px;width:100%"><p class="cap">The brief, in one sentence</p><p class="t-3" style="margin-top:18px">Refined enough for high-end jewellery, warm enough to honour the craft behind every piece.</p></div>',
             alt='Ivory slide: decision 1, the brief, with a white card quoting it in one sentence.')
     d.slide('02 · Lettering', 'Lettered, not <em>typed.</em>', 'The jewellery is made by hand, so the name is too. A signature, not a font.',
-            visual=phbox('LETTERING_SKETCHES', 'Add photos of the pencil sketches here'),
-            alt='Ivory slide: decision 2, “Lettered, not typed”, with a dashed placeholder frame for the lettering sketches.')
+            visual=f'<div class="card" style="width:100%;height:100%;overflow:hidden"><img class="photo" src="{A}img/project-lyzma-1000.webp" alt="" style="object-fit:cover;object-position:58% 52%;transform:scale(1.3);background:#f6f6f6"></div>',
+            alt='Ivory slide: decision 2, “Lettered, not typed”, with a close crop of the hand-lettered Lyzma wordmark.')
     d.slide('03 · The mark', 'Circles from textile and <em>beadwork.</em>', 'Concentric circles inspired by African craft traditions. Rooted in culture, without being literal.',
             visual=f'<div class="card" style="width:100%;height:100%;overflow:hidden"><img class="photo" src="{A}img/project-lyzma-1000.webp" alt="" style="object-fit:cover;object-position:28% 50%;transform:scale(1.5);background:#f6f6f6"></div>',
             alt='Ivory slide: decision 3, the mark, with a close crop of the gold concentric circles.')
@@ -400,38 +400,35 @@ def m1_02():
     d.slide('04 · Colour', 'One colour: warm <em>gold.</em>', 'Gold on white lets the jewellery speak in photos, and it is easy to reproduce on tags and bags.',
             visual=f'<div style="display:flex;gap:28px;width:100%">{sw("#ebb64c", "Lyzma gold", "#EBB64C")}{sw("#ffffff", "White", "#FFFFFF")}</div>',
             alt='Ivory slide: decision 4, colour, with two large swatches: Lyzma gold #EBB64C and white.')
-    d.slide('05 · Type', 'A script, and a quiet <em>partner.</em>', f'The lettered wordmark carries the voice. The supporting typeface, {ph("SECONDARY_TYPEFACE")}, stays quiet so it never competes.',
-            visual=f'<div class="card" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:44px"><p class="cap">Wordmark · hand-lettered</p><img src="{A}img/project-lyzma-1000.webp" alt="" style="width:100%;height:230px;object-fit:cover;object-position:60% 52%;mix-blend-mode:multiply"><p class="cap">Supporting type</p><p class="body"><span class="ph">[SECONDARY_TYPEFACE]</span> for tags, captions and the site.</p></div>',
-            alt='Ivory slide: decision 5, type, with a card showing the real hand-lettered Lyzma wordmark and a placeholder for the supporting typeface.')
+    d.slide('05 · Type', 'A script, and a quiet <em>partner.</em>', 'The lettered wordmark carries the voice. Everything around it stays quiet, so it never competes.',
+            visual=f'<div class="card" style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:44px"><p class="cap">Wordmark · hand-lettered</p><img src="{A}img/project-lyzma-1000.webp" alt="" style="width:100%;height:230px;object-fit:cover;object-position:60% 52%;mix-blend-mode:multiply"></div>',
+            alt='Ivory slide: decision 5, type, with a card showing the real hand-lettered Lyzma wordmark.')
     d.slide('06 · Applications', 'Where it <em>lives.</em>', 'Shopping bags, tags, stickers that say Hi and Bonjour, and the feed.',
             visual=f'<img class="photo" src="{A}img/case-lyzma-1-1000.webp" alt="">',
             alt='Ivory slide: decision 6, applications, with the Lyzma shopping bags in gold, white and navy, tags and round stickers reading Hi and Bonjour.')
     d.cta()
-    d.write({'LETTERING_SKETCHES': 'photos or scans of the Lyzma lettering sketches', 'SECONDARY_TYPEFACE': 'the typeface used next to the lettered wordmark'})
+    d.write()
 
 
 def m1_04():
-    d = Doc('M1-04', 'bakery-before-after', 'IMAGE', 'Tue Nov 24', 'Before / after · The Bakery')
+    d = Doc('M1-04', 'bakery-before-after', 'IMAGE', 'Tue Nov 24', 'Logo · The Bakery')
     A = d.A
     vis = f'''<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;height:100%">
-      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">Before · sketch</p>{phbox("BAKERY_SKETCH", "Scan of the first wordmark sketch")}</div>
-      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">After · final</p><img class="photo" src="{A}img/project-bakery-1000.webp" alt="" style="object-position:40% 50%"></div></div>'''
-    d.slide('Before / after · The Bakery', 'The Bakery wordmark: <em>sketch</em> to final.', f'What changed: {ph("WHAT_CHANGED_SKETCH_TO_FINAL")}',
+      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">The wordmark</p><img class="photo" src="{A}img/project-bakery-1000.webp" alt="" style="object-position:40% 50%"></div>
+      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">On the packaging</p><img class="photo" src="{A}img/case-bakery-2-1000.webp" alt=""></div></div>'''
+    d.slide('Logo · The Bakery', 'The Bakery wordmark: <em>two details</em> that carry it.', 'A baguette for the B, a cupcake for the e.',
             visual=vis, size='t-2',
-            alt='Before and after on ivory. Left: a dashed placeholder for the first sketch of The Bakery wordmark. Right: the final wordmark in cream and pink on a pile of chocolate chip cookies, with a baguette for the B and a cupcake in the e. Below the title, one line on what changed.')
-    cap = '''Sketch to final: The Bakery wordmark.
+            alt='Two images on ivory. Left: The Bakery wordmark in cream and pink on a pile of chocolate chip cookies, with a baguette for the B and a cupcake in the e. Right: the identity on a row of pink pastry boxes.')
+    cap = '''The Bakery wordmark, and the two details that carry it.
 
-What changed between the two:
-[WHAT_CHANGED_SKETCH_TO_FINAL]
-
-The final has a baguette for the B and a cupcake for the e.
+A baguette for the B. A cupcake for the e.
 One rule I keep from this project: a good mark survives being shrunk to a sticker.
 
 The identity became packaging, a pattern, and later a website and an ordering app.
 Case study in the first comment.
 
-#logodesign #branding #beforeandafter #packaging'''
-    d.write({'BAKERY_SKETCH': 'the first sketch of the wordmark', 'WHAT_CHANGED_SKETCH_TO_FINAL': 'one line on what changed between sketch and final'}, caption_override=cap)
+#logodesign #branding #packaging #brandidentity'''
+    d.write(caption_override=cap)
     return cap
 
 
@@ -469,23 +466,32 @@ def m1_06():
     d.write()
 
 
+M1_07_FINDINGS = [
+    ('They already sell on <em>WhatsApp.</em>', '61% of women-owned sellers on Jumia in Côte d’Ivoire, Kenya and Nigeria also sell on WhatsApp. Source: IFC, Women and E-commerce in Africa, 2021.',
+     'Orders and stock in one place, wherever the order comes from.'),
+    ('Social media is the <em>shop window.</em>', '67% of small businesses surveyed promote themselves on social media, and 45% sell online. Source: Africa MSME Pulse, 2023.',
+     'A shop link made to be shared, in a bio and in a DM.'),
+    ('A marketplace does not <em>replace</em> social.', 'Over 90% of Kenyan micro-businesses that used a marketplace also sold through social media. Source: Mastercard Foundation and Caribou Digital, 2020.',
+     'One stock for every channel, so nothing sells twice.'),
+    ('The phone is the <em>computer.</em>', '416 million people used mobile internet in Africa in 2024. Source: GSMA, The Mobile Economy Africa 2025.',
+     'The whole shop is set up and run from a phone.'),
+    ('Signal is not the barrier. <em>Use</em> is.', '58% of unconnected Africans already live under mobile broadband coverage. Source: GSMA, The Mobile Economy Africa 2025.',
+     'Short steps, in French first, that tick themselves.'),
+]
+
+
 def m1_07():
     d = Doc('M1-07', 'jeere-build-log-1', 'CAROUSEL', 'Tue Dec 1', 'JEERE · Build log #1')
-    d.hook('JEERE · Build log #1', 'I talked to <span class="ph" style="font-size:.6em">[MERCHANTS_INTERVIEWED]</span> merchants. <em>5 things</em> I learned.',
-           'What I assumed, what I heard, what I changed.',
+    d.hook('JEERE · Build log #1', 'I talked to 5 merchants, then read <em>the research.</em>',
+           '5 things I learned, and what JEERE does about each.',
            visual=f'<img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:300px">',
-           alt='Deep brown cover with the hand-drawn JEERE cloud logo in ivory: “I talked to [MERCHANTS_INTERVIEWED] merchants. 5 things I learned.”')
-    for i in range(1, 6):
-        d.slide(f'Finding 0{i}', ph(f'FINDING_{i}'), f'{ph(f"FINDING_{i}_DETAIL")}',
-                visual=f'<div class="card" style="width:100%;padding:44px;display:flex;flex-direction:column;gap:18px"><p class="cap">What it changed in JEERE</p><p class="body"><span class="ph">[FINDING_{i}_CHANGE]</span></p></div>',
-                alt=f'Ivory slide: finding {i} of 5, with placeholders for the finding, a detail and what it changed in JEERE.', size='t-2',
-                extra='' if i > 1 else '')
+           alt='Deep brown cover with the JEERE cloud logo in the rainbow: “I talked to 5 merchants, then read the research. 5 things I learned, and what JEERE does about each.”')
+    for i, (t, b, c) in enumerate(M1_07_FINDINGS, 1):
+        d.slide(f'Finding 0{i}', t, b,
+                visual=f'<div class="card" style="width:100%;padding:44px;display:flex;flex-direction:column;gap:18px"><p class="cap">What JEERE does about it</p><p class="t-3">{c}</p></div>',
+                alt=f'Ivory slide: finding {i} of 5, “{strip(t)}” {strip(b)} A white card on what JEERE does about it: {strip(c)}', size='t-2')
     d.cta()
-    ph_desc = {'MERCHANTS_INTERVIEWED': PH_MERCH}
-    for i in range(1, 6):
-        ph_desc[f'FINDING_{i}'] = f'finding {i}, one short line'
-        ph_desc[f'FINDING_{i}_DETAIL'] = 'one or two sentences, ideally in the merchant’s words'
-        ph_desc[f'FINDING_{i}_CHANGE'] = 'what you changed in JEERE because of it'
+    ph_desc = {}
     d.write(ph_desc)
 
 
@@ -556,7 +562,7 @@ def m1_12():
       {phone(jr_wire_produits(), 330, 743, 'Wireframe')}
       <span style="font-family:Fraunces;font-size:90px;color:var(--pink)">→</span>
       {shot(d.S + 'img/jeere/produits.webp', 330, 'High fidelity', 'in the prototype today')}</div>'''
-    d.slide('JEERE · Build log #2', 'One screen, from <em>wireframe</em> to high fidelity.', f'What changed: {ph("WHAT_CHANGED_WIREFRAME_TO_HIFI")}',
+    d.slide('JEERE · Build log #2', 'One screen, from <em>wireframe</em> to high fidelity.', 'What stayed: one main action, and a list she can scan on her phone.',
             visual=vis, size='t-2', extra='<span class="tag pink">Prototype</span>',
             alt='Two phones on ivory. Left: a grey wireframe of the products screen, with a title, an add-product button, a search field, two filters, four list rows and a bottom bar. Right: the real JEERE products screen for the demo shop Awa Beauté: “Produits, 6 produits”, an “Ajouter un produit” button with a rainbow edge, a search field, and products such as Beurre de karité brut and Savon noir au karité with their prices.')
     cap = '''JEERE build log #2. One screen, from wireframe to high fidelity.
@@ -565,14 +571,12 @@ Left: the wireframe. Boxes, labels, the order of things.
 Right: the products screen as it is in the prototype today.
 
 What stayed the same: one main action, add a product, and a list a merchant can scan on her phone.
-What changed: [WHAT_CHANGED_WIREFRAME_TO_HIFI]
+What came after: the colour, the type and real products, once the order of things was settled.
 
-The wireframe took [WIREFRAME_TIME]. The high-fidelity took [HIFI_TIME].
 The wireframe decided more.
 
 #JEERE #buildinpublic #productdesign #wireframe #UI'''
-    d.write(placeholders={'WHAT_CHANGED_WIREFRAME_TO_HIFI': 'the main change between the wireframe and the high-fidelity version',
-             'WIREFRAME_TIME': 'how long the wireframe took', 'HIFI_TIME': 'how long the high-fidelity version took'}, caption_override=cap,
+    d.write(caption_override=cap,
             notes='The high-fidelity screen is the real Produits screen from the JEERE demo dashboard. The wireframe on the left is redrawn from it: swap in your real wireframe if you have one.')
 
 
@@ -589,42 +593,36 @@ def m1_14():
     d.slide('03 · JEERE', 'From an idea to a working <em>editor.</em>', 'An e-commerce platform for African merchants. A working prototype, and the first 50 shops offered free for 3 months.',
             visual=f'<div style="display:flex;gap:40px;align-items:center"><img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:260px">{shot(d.S + "img/jeere/produits.webp", 300)}</div>',
             alt='The JEERE cloud logo in the rainbow beside a phone showing the real products screen of the JEERE prototype.')
-    d.slide('04 · Creator work', 'Videos for a video app’s <em>creator programme.</em>', ph('CAPCUT_WORK_DESCRIPTION'),
-            visual=phbox('CAPCUT_VIDEO_STILL', 'A still from one of your videos'),
-            alt='Creator work slide with a placeholder frame for a still from one of the videos.')
-    d.slide('05 · New role', 'Close to the people product teams <em>design for.</em>', 'A new role in customer experience at a tech company. Every day: what is broken, what is confusing, what people are actually trying to do.',
+    d.slide('04 · New role', 'Close to the people product teams <em>design for.</em>', 'A new role in customer experience at a tech company. Every day: what is broken, what is confusing, what people are actually trying to do.',
             visual='<div class="card" style="padding:48px;width:100%"><p class="cap">What it changed</p><p class="t-3" style="margin-top:18px">I start from the problem people have, not the feature I want to build.</p></div>',
             alt='New role slide with a card: “I start from the problem people have, not the feature I want to build.”')
     d.cta()
-    d.write({'JEERE_2026_MILESTONE': 'where JEERE stands at the end of 2026', 'CAPCUT_WORK_DESCRIPTION': 'one or two lines on your creator work', 'CAPCUT_VIDEO_STILL': 'a still from a video you made'})
+    d.write()
 
 
 # =================================================================== MONTH 2
 def m2_02():
-    d = Doc('M2-02', 'glorywalk-before-after', 'IMAGE', 'Week of Dec 21', 'Before / after · GloryWalk')
+    d = Doc('M2-02', 'glorywalk-before-after', 'IMAGE', 'Wed Dec 23', 'Brand identity · GloryWalk')
     A = d.A
-    vis = f'''<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;height:100%">
-      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">Before</p>{phbox("GLORYWALK_BEFORE", "The brand before the new identity")}</div>
-      <div style="display:flex;flex-direction:column;gap:16px"><p class="cap">After</p><img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div></div>'''
-    d.slide('Before / after · GloryWalk', 'Make belief look <em>undeniable.</em>', f'What changed: {ph("WHAT_CHANGED_GLORYWALK")}', visual=vis, size='t-2',
-            alt='Before and after on ivory. Left: a dashed placeholder for GloryWalk before the new identity. Right: the new gold graffiti-style GloryWalk wordmark on a black denim pocket.')
-    cap = '''Before and after: GloryWalk, a Christian streetwear brand.
+    vis = f'<div class="card" style="width:100%;height:100%;overflow:hidden"><img class="photo" src="{A}img/project-glorywalk-1000.webp" alt=""></div>'
+    d.slide('Brand identity · GloryWalk', 'Make belief look <em>undeniable.</em>', 'A gold graffiti wordmark, a W monogram for the hoodie back, navy, gold and sage.', visual=vis, size='t-2',
+            alt='Ivory slide: the gold graffiti-style GloryWalk wordmark on a black denim pocket, under the title “Make belief look undeniable.”')
+    cap = '''GloryWalk, a Christian streetwear brand. The identity in one image.
 
-Before: [GLORYWALK_BEFORE_DESCRIPTION]
-After: a gold graffiti wordmark, a W monogram that lives on a hoodie back, navy, gold and sage.
+A gold graffiti wordmark, a W monogram that lives on a hoodie back, navy, gold and sage.
 
 The brief in one line: make belief look undeniable.
 The decision that mattered: the monogram, because apparel needs a mark that works embroidered on a chest and printed on a back.
 
 Case study in the first comment.
 
-#branding #streetwear #logodesign #beforeandafter'''
-    d.write({'GLORYWALK_BEFORE': 'an image of the brand before the new identity', 'WHAT_CHANGED_GLORYWALK': 'one line on what changed', 'GLORYWALK_BEFORE_DESCRIPTION': 'one line describing the before'}, caption_override=cap)
+#branding #streetwear #logodesign #brandidentity'''
+    d.write(caption_override=cap)
     return cap
 
 
 def m2_03():
-    d = Doc('M2-03', 'creative-toolkit-2027', 'CAROUSEL', 'Week of Dec 28', 'Creative toolkit · 2027')
+    d = Doc('M2-03', 'creative-toolkit-2027', 'CAROUSEL', 'Tue Dec 29', 'Creative toolkit · 2027')
     d.hook('Toolkit · 2027', 'My 2027 creative <em>toolkit.</em>', 'Design, build, video, AI. Every tool has to remove a step, not add one.',
            alt='Deep brown cover: “My 2027 creative toolkit. Design, build, video, AI.”')
     cats = [('Design', [('Figma', 'layouts, prototypes, shared files'), ('Adobe Illustrator', 'logos and lettering'), ('Canva', 'the media kits I sell')]),
@@ -681,8 +679,8 @@ def m2_05():
     tl = ''.join(f'<div class="card" style="padding:28px 34px;display:flex;flex-direction:column;gap:6px"><p class="cap">{a}</p><p class="t-3">{b}</p></div>' for a, b in steps)
     d.slide('05 · Launch', 'Live, then a store of <em>its own.</em>', '', visual=f'<div style="display:flex;flex-direction:column;gap:18px;width:100%">{tl}</div>',
             alt='Launch slide: a timeline. July 2026, the site goes live. October 2026, the store leaves Shopify for its own catalogue, bag and checkout. November 2026, the owner edits her site in place from her dashboard.')
-    d.slide('06 · Result', 'What it <em>changed.</em>', '', visual=f'<div class="card" style="padding:56px;width:100%"><p class="cap">Result</p><p class="t-3" style="margin-top:20px;overflow-wrap:anywhere"><span class="ph">[RESULT_METRIC_OR_FEEDBACK]</span></p></div>',
-            alt='Result slide with a placeholder for a metric or the owner’s feedback.')
+    d.slide('06 · What it does', 'Every question became a <em>tool.</em>', '', visual=f'<div class="card" style="padding:56px;width:100%;display:flex;flex-direction:column;gap:22px"><p class="cap">On the site today</p><p class="t-3">A length guide: where each length lands on the body</p><p class="t-3">A 60-second quiz, one question at a time</p></div>',
+            alt='Slide 6: a white card listing what the site does today: a length guide showing where each length lands on the body, and a 60-second quiz, one question at a time.')
     d.cta()
     cap = '''A website case study, start to finish: The Ivory Sukundu.
 
@@ -691,7 +689,7 @@ Research: the questions customers kept asking
 Wireframe: shop, then decide, then belong
 Design: quiet luxury on a phone, ivory, espresso and a little gold
 Launch: live in July 2026, then a store of its own in October
-Result: [RESULT_METRIC_OR_FEEDBACK]
+What it does: a length guide and a 60-second quiz answer the questions customers kept asking
 
 The slide I am proudest of is the research one. Every question became a tool: a length guide and a quiz.
 
@@ -760,12 +758,10 @@ The brief I gave myself: a brand a merchant would be proud to put on her shop si
 
 What I kept out: anything that looks corporate, and anything that only works on a laptop.
 
-[WHY_A_CLOUD]
-
 More of the system in the onboarding case study next week.
 
 #JEERE #branding #brandidentity #logodesign #buildinpublic'''
-    d.write({'WHY_A_CLOUD': 'one line on why the logo is a cloud'}, caption_override=cap,
+    d.write(caption_override=cap,
             notes='Taken from the live JEERE site (jeere.kreeative.xyz and its rainbow.css): the cloud logo, the lettered wordmark, Poppins on the site, Outfit in the dashboard, black and white, and the seven rainbow colours on buttons and the logo. Confirm before posting.')
     return cap
 
@@ -776,7 +772,7 @@ def m3_02():
     d.hook('JEERE · Case study', 'JEERE onboarding, from research to <em>prototype.</em>',
            visual=f'<img src="{d.S}jeere-logo-rainbow.svg" alt="" style="width:300px">',
            alt='Deep brown cover with the JEERE cloud logo in ivory: “JEERE onboarding, from research to prototype.”')
-    d.slide('01 · Research', f'{ph("MERCHANTS_INTERVIEWED")} merchants. Where it <em>breaks</em> today.', '',
+    d.slide('01 · Research', '5 merchants. Where it <em>breaks</em> today.', '',
             visual='<div style="width:100%"><ul class="list"><li>Answering “c’est combien ?” all day</li><li>Copying every order into a notebook</li><li>Calling the delivery driver, working out the fee</li><li>Losing a parcel when the client stops answering</li></ul></div>',
             size='t-2', alt='Research slide: four ways selling breaks today, answering prices all day, copying orders into a notebook, calling the delivery driver, losing parcels.')
     steps = [('1', 'Créer un compte', 'Prénom, e-mail, un code. Pas de mot de passe.'), ('2', 'Partir d’un modèle', 'Quatre boutiques prêtes à remplir.'),
@@ -796,12 +792,12 @@ def m3_02():
             visual=f'<div style="display:flex;gap:34px">{shot(d.S + "img/jeere/signup.webp", 320, "Créer un compte", "étape 1 sur 4")}{shot(d.S + "img/jeere/produits.webp", 320, "Produits", "la boutique se remplit")}</div>', size='t-2',
             alt='Two real JEERE prototype screens on phones. Left: “Créez votre compte, étape 1 sur 4, pas de mot de passe”, with fields for first name, email and an optional WhatsApp number. Right: the products screen of the demo shop with an “Ajouter un produit” button and products with their prices.')
     d.slide('05 · What’s next', 'What I am <em>building next.</em>', 'Opening the first 50 shops, free for 3 months.',
-            visual=f'<div class="card" style="padding:48px;width:100%"><p class="cap">Open question</p><p class="t-3" style="margin-top:18px"><span class="ph">[OPEN_QUESTION]</span></p></div>',
-            alt='What’s next slide with placeholders for the next step and an open question.')
+            visual='<div class="card" style="padding:48px;width:100%"><p class="cap">The first 50 shops</p><p class="t-3" style="margin-top:18px">Free for 3 months, in exchange for honest feedback.</p></div>',
+            alt='What’s next slide: opening the first 50 shops, free for 3 months, in exchange for honest feedback.')
     d.cta()
     cap = '''JEERE onboarding, as a case study. From research to prototype.
 
-Research: [MERCHANTS_INTERVIEWED] merchants, what they do today, where it breaks
+Research: 5 merchants, what they do today, where it breaks
 User flow: an account with a first name, an email and a code, then a template, then products, then ten first steps that tick themselves
 Wireframes: every step on a phone, in French first
 Prototype: live today, sign-up and products
@@ -810,7 +806,7 @@ What is next: opening the first 50 shops, free for 3 months
 The one decision I would defend: no password. A code by email, and WhatsApp only if she wants it.
 
 #JEERE #onboarding #UX #casestudy #productdesign'''
-    d.write({'MERCHANTS_INTERVIEWED': PH_MERCH, 'ONBOARDING_NEXT_STEP': 'what you build next', 'OPEN_QUESTION': 'a question you are still working out'}, caption_override=cap,
+    d.write(caption_override=cap,
             notes='Screens are from the live JEERE prototype. The order of steps 2 to 4 (template, products, first steps) is read from the prototype’s pages: confirm it before posting.')
     return cap
 

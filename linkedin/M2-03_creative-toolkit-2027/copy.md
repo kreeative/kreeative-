@@ -1,7 +1,7 @@
 # M2-03 · My 2027 creative toolkit.
 
 - Format: CAROUSEL, 6 pages, 1080 × 1350, PDF
-- Posting date: Week of Dec 28
+- Posting date: Tue Dec 29
 - File: `M2-03_creative-toolkit-2027.pdf`
 
 Tools taken from your repos, your site and the apps connected to your account. Remove any you do not use any more.

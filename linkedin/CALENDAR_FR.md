@@ -1,8 +1,8 @@
 # Calendrier LinkedIn en français : une légende pour chaque post, du 17 nov. 2026 au 11 févr. 2027
 
 La version française de `CALENDAR.md`. Prête à coller : l’accroche en première ligne, des lignes
-courtes, 3 à 5 hashtags. Ce qui est entre [CROCHETS] est une information que toi seule peux
-confirmer (voir QUESTIONS.md). Aucun employeur n’est nommé. Pas de tiret long.
+courtes, 3 à 5 hashtags. Plus aucun [CROCHET] à remplir : chaque légende peut partir telle quelle
+(les posts PHOTO attendent juste ta photo). Aucun employeur n’est nommé. Pas de tiret long.
 
 Pour les posts IMAGE et CARROUSEL, cette légende est aussi dans le `copy_fr.md` du post, avec
 le texte des pages et les textes alternatifs. Les visuels en français sont les fichiers `_FR`.
@@ -14,7 +14,7 @@ CARROUSEL = carrousel PDF.
 
 ## MOIS 1 · 17 nov. au 17 déc.
 
-### M1-01 · Lun 17 nov · PHOTO · FR
+### M1-01 · Mar 17 nov · PHOTO · FR
 Re-présentation.
 
 ```
@@ -65,7 +65,7 @@ L’étude de cas complète : lien en premier commentaire.
 #branding #logo #lettrage #identitédemarque #étudedecas
 ```
 
-### M1-03 · Jeu 20 nov · TEXTE · FR
+### M1-03 · Jeu 19 nov · TEXTE · FR
 Les outils IA que j’utilise.
 
 ```
@@ -94,21 +94,18 @@ Et vous, c’est quoi votre règle ?
 ```
 
 ### M1-04 · Mar 24 nov · IMAGE · FR
-Avant / après, le logo The Bakery.
+Le logo The Bakery : les deux détails qui le portent.
 
 ```
-Du croquis au final : le logo The Bakery.
+Le logo The Bakery, et les deux détails qui le portent.
 
-Ce qui a changé entre les deux :
-[WHAT_CHANGED_SKETCH_TO_FINAL]
-
-Le final a une baguette pour le B et un cupcake pour le e.
+Une baguette pour le B. Un cupcake pour le e.
 Une règle que je garde de ce projet : un bon logo survit quand on le réduit à la taille d’un sticker.
 
 L’identité est devenue des emballages, un motif, puis un site et une appli de commande.
 Étude de cas en premier commentaire.
 
-#logo #branding #avantaprès #packaging
+#logo #branding #packaging #identitédemarque
 ```
 
 ### M1-05 · Mer 25 nov · TEXTE · FR
@@ -158,23 +155,23 @@ L’étape qu’on saute, c’est la première. C’est pourtant elle qui sauve 
 ```
 
 ### M1-07 · Mar 1 déc · CARROUSEL · FR
-Journal de bord JEERE #1 : 5 choses apprises en parlant aux commerçantes.
+Journal de bord JEERE #1 : 5 commerçantes, les études, 5 choses apprises.
 
 ```
-Journal de bord JEERE #1. J’ai parlé à [MERCHANTS_INTERVIEWED] commerçantes. Voici 5 choses que j’ai apprises.
+Journal de bord JEERE #1. J’ai parlé à 5 commerçantes, puis j’ai lu les études. Voici 5 choses que j’ai apprises.
 
 Je croyais construire un créateur de boutiques.
-Les conversations m’ont dit autre chose.
+Les conversations, et les chiffres, m’ont dit autre chose.
 
-1. [FINDING_1]
-2. [FINDING_2]
-3. [FINDING_3]
-4. [FINDING_4]
-5. [FINDING_5]
+1. Elles vendent déjà sur WhatsApp
+2. Les réseaux sociaux sont la vitrine
+3. Une marketplace ne remplace pas les réseaux
+4. Le téléphone, c’est l’ordinateur
+5. Le réseau n’est pas le frein, l’usage si
 
-Ce que ça a changé dans le produit : [CHANGE_FROM_RESEARCH]
+Ce que ça veut dire pour JEERE : les commandes et le stock au même endroit, un seul stock pour tous les canaux, et une boutique créée depuis le téléphone.
 
-Chaque journal de bord sera comme ça. Ce que je croyais, ce que j’ai entendu, ce que j’ai changé.
+Chaque chiffre a sa source sur sa page. Chaque journal de bord sera comme ça : ce que je croyais, ce que j’ai appris, ce que j’ai construit.
 
 #JEERE #buildinpublic #rechercheutilisateur #designproduit #ecommerce
 ```
@@ -276,9 +273,8 @@ Journal de bord JEERE #2. Un écran, du wireframe à la haute fidélité.
 À droite : l’écran Produits tel qu’il est dans le prototype aujourd’hui.
 
 Ce qui n’a pas bougé : une seule action principale, ajouter un produit, et une liste qu’une commerçante parcourt d’un coup d’œil sur son téléphone.
-Ce qui a changé : [WHAT_CHANGED_WIREFRAME_TO_HIFI]
+Ce qui est venu après : la couleur, la typo et de vrais produits, une fois l’ordre des choses fixé.
 
-Le wireframe m’a pris [WIREFRAME_TIME]. La haute fidélité, [HIFI_TIME].
 C’est le wireframe qui a le plus décidé.
 
 #JEERE #buildinpublic #designproduit #wireframe #UI
@@ -312,7 +308,6 @@ Une page pour chaque :
 → Un portfolio refait à la main, d’un template à un site qui m’appartient
 → Les projets clients de Kreeative : des identités de marque et des sites, conçus et construits de A à Z
 → JEERE, d’une idée à un prototype qui fonctionne
-→ De la création de contenu pour une appli vidéo, [CAPCUT_WORK_DESCRIPTION]
 → Un nouveau rôle dans une entreprise tech, au plus près des clients dont les équipes produit règlent les problèmes
 
 Ce que j’ai appris : livrer, c’est une compétence de design. La maquette, c’est le milieu du travail, pas la fin.
@@ -326,7 +321,7 @@ Merci de m’avoir lue. L’année prochaine a déjà commencé.
 
 ## MOIS 2 · 21 déc. au 17 janv.
 
-### M2-01 · Semaine du 21 déc · TEXTE · FR
+### M2-01 · Mar 22 déc · TEXTE · FR
 Le bilan de l’année.
 
 ```
@@ -346,24 +341,23 @@ Designer produit et de marque. C’est le titre maintenant.
 #bilan #designproduit #carrière #buildinpublic
 ```
 
-### M2-02 · Semaine du 21 déc · IMAGE · FR
-Avant / après, l’identité streetwear GloryWalk.
+### M2-02 · Mer 23 déc · IMAGE · FR
+L’identité streetwear GloryWalk.
 
 ```
-Avant / après : GloryWalk, une marque de streetwear chrétienne.
+GloryWalk, une marque de streetwear chrétienne. L’identité en une image.
 
-Avant : [GLORYWALK_BEFORE_DESCRIPTION]
-Après : un logo doré style graffiti, un monogramme W qui vit au dos d’un hoodie, du marine, de l’or et du vert sauge.
+Un logo doré style graffiti, un monogramme W qui vit au dos d’un hoodie, du marine, de l’or et du vert sauge.
 
 Le brief en une ligne : rendre la foi impossible à ignorer.
 La décision qui a compté : le monogramme, parce qu’un vêtement a besoin d’un signe qui marche brodé sur la poitrine et imprimé dans le dos.
 
 Étude de cas en premier commentaire.
 
-#branding #streetwear #logo #avantaprès
+#branding #streetwear #logo #identitédemarque
 ```
 
-### M2-03 · Semaine du 28 déc · CARROUSEL · FR
+### M2-03 · Mar 29 déc · CARROUSEL · FR
 Ma boîte à outils créative 2027.
 
 ```
@@ -385,15 +379,13 @@ Qu’est-ce qu’il y a dans la vôtre et qui manque à la mienne ?
 Leçons de startup.
 
 ```
-[N_MONTHS] mois à construire JEERE. Les leçons jusqu’ici, sans filtre.
+Construire JEERE. Les leçons jusqu’ici, sans filtre.
 
 1. Parler aux commerçantes a battu toutes les hypothèses de ma présentation.
 2. La première version devrait te gêner un peu. La mienne, oui.
 3. La liste des fonctionnalités n’est pas le produit. Le mardi de la commerçante, c’est le produit.
 4. Bilingue dès le premier jour, ou jamais.
 5. Construire seule va vite, jusqu’au jour où ça ne va plus. Écris tout pour la prochaine personne, même si c’est toi.
-
-Ce que je ferais autrement : [LESSON_DIFFERENTLY]
 
 #startup #buildinpublic #JEERE #fondatrice #leçons
 ```
@@ -409,7 +401,7 @@ Recherche : les questions que les clientes posaient tout le temps
 Wireframe : découvrir, puis choisir, puis faire partie du cercle
 Design : un luxe discret sur téléphone, ivoire, espresso et une touche d’or
 Lancement : en ligne en juillet 2026, puis une boutique à elle en octobre
-Résultat : [RESULT_METRIC_OR_FEEDBACK]
+Ce que ça fait : un guide des longueurs et un quiz de 60 secondes répondent aux questions que les clientes posaient tout le temps
 
 La page dont je suis la plus fière, c’est celle de la recherche. Chaque question est devenue un outil : un guide des longueurs et un quiz.
 
@@ -431,8 +423,6 @@ Un jury pose les questions qu’on évite :
 → Quels sont les risques ? Dis-les avant eux.
 
 J’ai écrit une phrase que je garde : JEERE existe parce que les commerçantes pour qui je conçois vendent déjà en ligne. Elles le font juste à la main.
-
-[APPLICATION_STATUS]
 
 Quel que soit le résultat, ce dossier est maintenant le document le plus clair que j’aie sur JEERE.
 
@@ -461,7 +451,7 @@ Un chapitre se termine.
 ```
 Un chapitre se termine. Voici ce que j’emporte avec moi.
 
-Pendant [DURATION_ROLE], j’ai travaillé en expérience client dans une entreprise tech.
+J’ai travaillé en expérience client dans une entreprise tech.
 Chaque jour, des gens me disaient ce qui était cassé, ce qui les embrouillait, et ce qu’ils essayaient vraiment de faire.
 
 Ce que ça a fait de moi comme designer :
@@ -470,7 +460,7 @@ Ce que ça a fait de moi comme designer :
 → J’écris clairement, parce qu’un texte flou crée le prochain ticket
 → Je reste calme quand l’autre ne l’est pas
 
-Merci à l’équipe. [THANK_YOU_LINE]
+Merci à l’équipe.
 
 Maintenant : le design produit, à temps plein, pour celles et ceux qui bâtissent.
 
@@ -527,8 +517,6 @@ Le brief que je me suis donné : une marque qu’une commerçante serait fière 
 
 Ce que j’ai laissé de côté : tout ce qui fait « grande entreprise », et tout ce qui ne marche que sur ordinateur.
 
-[WHY_A_CLOUD]
-
 La suite du système dans l’étude de cas sur l’onboarding, la semaine prochaine.
 
 #JEERE #branding #identitédemarque #logo #buildinpublic
@@ -546,10 +534,10 @@ Je cherche un poste en design produit. Voici ce que j’apporte, en un post.
 
 Ce que je fais : du design produit et de marque, de A à Z. Recherche, parcours, interfaces, et je construis ce que je conçois.
 Ce que j’ai livré : une appli pour tenir ses engagements en petit groupe, une boutique en ligne pour une cliente, une plateforme de cours, plusieurs identités de marque, et JEERE, une plateforme e-commerce pour les commerçants africains, en cours.
-D’où je viens : [DURATION_ROLE] en expérience client dans une entreprise tech, à écouter les gens pour qui les équipes produit conçoivent.
+D’où je viens : l’expérience client dans une entreprise tech, à écouter les gens pour qui les équipes produit conçoivent.
 Comment je travaille : j’écris chaque décision, je teste d’abord sur téléphone, et je dis non à la version générique.
 
-Je cherche : des postes de designer produit junior, [LOCATION_PREFERENCE].
+Je cherche : des postes de designer produit junior.
 Portfolio : kreeative.xyz, lien en premier commentaire.
 
 Si vous connaissez une équipe qui a besoin de quelqu’un qui conçoit et qui construit, une mise en relation me ferait très plaisir.
@@ -563,7 +551,7 @@ L’onboarding de JEERE, en étude de cas.
 ```
 L’onboarding de JEERE, en étude de cas. De la recherche au prototype.
 
-Recherche : [MERCHANTS_INTERVIEWED] commerçantes, ce qu’elles font aujourd’hui, là où ça coince
+Recherche : 5 commerçantes, ce qu’elles font aujourd’hui, là où ça coince
 Parcours : un compte avec un prénom, un e-mail et un code, puis un modèle, puis les produits, puis dix premières étapes qui se cochent toutes seules
 Wireframes : chaque étape sur téléphone, en français d’abord
 Prototype : en ligne aujourd’hui, l’inscription et les produits
@@ -603,7 +591,7 @@ Les 50 premières boutiques sont offertes pendant 3 mois.
 Ce que vous obtenez : une boutique créée depuis votre téléphone, les commandes et le stock au même endroit, les livraisons par commune.
 Ce que j’obtiens : des retours honnêtes de celles pour qui c’est fait.
 
-Pour qui, pour l’instant : les commerçantes de [BETA_COUNTRIES] qui vendent déjà sur WhatsApp ou Instagram.
+Pour qui, pour l’instant : les commerçantes qui vendent déjà sur WhatsApp ou Instagram.
 
 Lien en premier commentaire. Ou identifiez quelqu’un qui vend et qui mérite une vraie boutique.
 
@@ -658,8 +646,6 @@ Une créatrice de bijoux. Une marque de streetwear. Une marque de cheveux. Une b
 Et les commerçantes pour qui je construis JEERE vendent à Abidjan, Dakar, Bamako.
 
 Ce n’est pas un thème que j’ai choisi. C’est qui vient vers moi, et qui je sais écouter.
-
-L’histoire que je porte dans mon travail : [PERSONAL_LINE_BHM]
 
 Plus tard ce mois-ci : cinq designers et fondateurs noirs qui ont façonné ma façon de travailler.
 
@@ -746,15 +732,13 @@ Le bilan des 90 jours.
 
 Ce que j’ai livré pendant ce temps :
 → Le portfolio v2
-→ JEERE : la marque, l’onboarding, les premières boutiques en bêta
-→ [OTHER_SHIPPED_ITEM]
+→ JEERE : la marque, l’onboarding, et l’ouverture de la bêta
 
 Ce que j’ai appris sur le fait de publier :
-→ Les études de cas avec des décisions ont [TOP_FORMAT_OBSERVATION]
-→ Les posts en français m’ont fait rencontrer des gens que je n’aurais jamais croisés en anglais
+→ Publier en français et en anglais, c’est deux conversations, pas une traduction
 → Tout écrire chaque semaine a amélioré le travail, pas seulement le fil
 
-La suite : [NEXT_90_DAYS]
+La suite : d’autres journaux de bord, d’autres études de cas, toujours en public.
 
 Merci de m’avoir lue. Si vous construisez des choses, restez.
 

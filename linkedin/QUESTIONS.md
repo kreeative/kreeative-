@@ -1,3 +1,9 @@
+> **Mise à jour du 13 nov. 2026 : plus rien à remplir.** Tu as donné le chiffre : 5 commerçantes.
+> Pour le reste, chaque phrase qui attendait une réponse a été réécrite pour tenir sans elle.
+> Les 5 constats de M1-07 viennent des études publiées, avec leurs sources (IFC, Mastercard Foundation et Caribou Digital, Africa MSME Pulse, GSMA).
+> Il reste seulement tes photos pour les posts PHOTO : M1-01, M2-08 et M3-07.
+> Si tu réponds quand même à une question ci-dessous, je peux remettre ta réponse dans le post.
+
 # Ce qu’il reste à remplir : seulement ce que toi seule sais
 
 Tout le reste est rempli : tes repos, tes sites, tes vraies captures d’écran, et des chiffres

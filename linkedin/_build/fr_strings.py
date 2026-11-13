@@ -459,3 +459,65 @@ PHRASES = {
 
 # Notes at the top of copy.md, and posting dates
 NOTES = {'Screens captured from the app’s own App Store screenshot script (scripts/shoot-store.mjs in the Friends-App repo) with its demo data. The Budget and Course screens are left out on purpose.': 'Écrans capturés avec le script de captures App Store de l’appli elle-même (scripts/shoot-store.mjs dans le repo Friends-App), avec ses données de démo, en français. Les écrans Budget et Cours sont volontairement écartés.', 'The high-fidelity screen is the real Produits screen from the JEERE demo dashboard. The wireframe on the left is redrawn from it: swap in your real wireframe if you have one.': 'L’écran haute fidélité est le vrai écran Produits du tableau de bord démo de JEERE. Le wireframe de gauche est redessiné à partir de lui : remplace-le par ton vrai wireframe si tu l’as.', 'Tools taken from your repos, your site and the apps connected to your account. Remove any you do not use any more.': 'Outils tirés de tes repos, de ton site et des applis connectées à ton compte. Retire ceux que tu n’utilises plus.', 'Facts from the site’s own repository (TISHE-) and the live site. Screens chosen without photos of people. Ask the owner before naming results.': 'Faits tirés du repo du site (TISHE-) et du site en ligne. Écrans choisis sans photo de personne. Demande à la propriétaire avant de citer des résultats.', 'Taken from the live JEERE site (jeere.kreeative.xyz and its rainbow.css): the cloud logo, the lettered wordmark, Poppins on the site, Outfit in the dashboard, black and white, and the seven rainbow colours on buttons and the logo. Confirm before posting.': 'Repris du site JEERE en ligne (jeere.kreeative.xyz et son rainbow.css) : le logo nuage, le nom écrit à la main, Poppins sur le site, Outfit dans le tableau de bord, le noir et blanc, et les sept couleurs de l’arc-en-ciel sur les boutons et le logo. À confirmer avant de publier.', 'Screens are from the live JEERE prototype. The order of steps 2 to 4 (template, products, first steps) is read from the prototype’s pages: confirm it before posting.': 'Les écrans viennent du prototype JEERE en ligne. L’ordre des étapes 2 à 4 (modèle, produits, premiers pas) est déduit des pages du prototype : à confirmer avant de publier.', 'Facts checked on Wikipedia (Cheryl D. Miller, Emory Douglas, The Black Panther (newspaper), Gail Anderson (graphic designer), Virgil Abloh, Rebecca Enonchong). **The “what I took from their work” lines are drafts in your voice: change them, or swap a person, before posting.** Alternative checked: Tope Awotona, Nigerian-born founder of Calendly (debut 2013).': 'Faits vérifiés sur Wikipedia (Cheryl D. Miller, Emory Douglas, The Black Panther (journal), Gail Anderson (graphiste), Virgil Abloh, Rebecca Enonchong). **Les phrases « ce que j’ai retenu de leur travail » sont des brouillons dans ta voix : change-les, ou change de personne, avant de publier.** Autre personne vérifiée : Tope Awotona, fondateur de Calendly, né au Nigeria (lancement en 2013).', '**First comment (sources):**': '**Premier commentaire (sources) :**', '1. Google and IFC, e-Conomy Africa 2020:': '1. Google et IFC, e-Conomy Africa 2020 :', '2. GeoPoll, Africa 118 and African Talent Company, Africa MSME Pulse 2023 (440 businesses in Nigeria, Kenya, South Africa, Ethiopia):': '2. GeoPoll, Africa 118 et African Talent Company, Africa MSME Pulse 2023 (440 entreprises au Nigeria, au Kenya, en Afrique du Sud et en Éthiopie) :', '3, 5, 6. GSMA, The Mobile Economy Africa 2025 (2024 data and 2030 forecast):': '3, 5, 6. GSMA, The Mobile Economy Africa 2025 (données 2024 et prévision 2030) :', '4. IFC, Women and E-commerce in Africa, 2021, Figure 3.4:': '4. IFC, Women and E-commerce in Africa, 2021, figure 3.4 :', 'Checked: Google/IFC, GSMA and IFC figures read in the primary documents; GeoPoll figures from GeoPoll’s own summary page.': 'Vérifié : chiffres Google/IFC, GSMA et IFC lus dans les documents d’origine ; chiffres GeoPoll tirés de la page de synthèse de GeoPoll.'}
+
+
+# ---- placeholders filled (Nov 2026): new or rewritten units
+FR.update({
+    'The lettered wordmark carries the voice. Everything around it stays quiet, so it never competes.':
+        'Le logo écrit à la main porte la voix. Tout ce qui l’entoure reste discret, pour ne jamais lui faire concurrence.',
+    'Ivory slide: decision 2, “Lettered, not typed”, with a close crop of the hand-lettered Lyzma wordmark.':
+        'Page ivoire : décision 2, « Écrit, pas tapé », avec un gros plan sur le logo Lyzma écrit à la main.',
+    'Ivory slide: decision 5, type, with a card showing the real hand-lettered Lyzma wordmark.':
+        'Page ivoire : décision 5, la typo, avec une carte qui montre le vrai logo Lyzma écrit à la main.',
+    'Logo · The Bakery': 'Logo · The Bakery',
+    'The Bakery wordmark: <em>two details</em> that carry it.': 'Le logo The Bakery : <em>deux détails</em> qui le portent.',
+    'A baguette for the B, a cupcake for the e.': 'Une baguette pour le B, un cupcake pour le e.',
+    'The wordmark': 'Le logo',
+    'On the packaging': 'Sur les emballages',
+    'Two images on ivory. Left: The Bakery wordmark in cream and pink on a pile of chocolate chip cookies, with a baguette for the B and a cupcake in the e. Right: the identity on a row of pink pastry boxes.':
+        'Deux images sur fond ivoire. À gauche : le logo The Bakery, crème et rose, sur une pile de cookies aux pépites de chocolat, avec une baguette pour le B et un cupcake dans le e. À droite : l’identité sur une rangée de boîtes à pâtisserie roses.',
+    'I talked to 5 merchants, then read <em>the research.</em>': 'J’ai parlé à 5 commerçantes, puis j’ai lu <em>les études.</em>',
+    '5 things I learned, and what JEERE does about each.': '5 choses apprises, et ce que JEERE fait pour chacune.',
+    'They already sell on <em>WhatsApp.</em>': 'Elles vendent déjà sur <em>WhatsApp.</em>',
+    '61% of women-owned sellers on Jumia in Côte d’Ivoire, Kenya and Nigeria also sell on WhatsApp. Source: IFC, Women and E-commerce in Africa, 2021.':
+        '61 % des entreprises de femmes qui vendent sur Jumia en Côte d’Ivoire, au Kenya et au Nigeria vendent aussi sur WhatsApp. Source : IFC, Women and E-commerce in Africa, 2021.',
+    'What JEERE does about it': 'Ce que JEERE fait pour ça',
+    'Orders and stock in one place, wherever the order comes from.': 'Les commandes et le stock au même endroit, d’où que vienne la commande.',
+    'Social media is the <em>shop window.</em>': 'Les réseaux sociaux sont <em>la vitrine.</em>',
+    '67% of small businesses surveyed promote themselves on social media, and 45% sell online. Source: Africa MSME Pulse, 2023.':
+        '67 % des petites entreprises interrogées se font connaître sur les réseaux sociaux, et 45 % vendent en ligne. Source : Africa MSME Pulse, 2023.',
+    'A shop link made to be shared, in a bio and in a DM.': 'Un lien de boutique fait pour être partagé, en bio et en message privé.',
+    'A marketplace does not <em>replace</em> social.': 'Une marketplace ne <em>remplace</em> pas les réseaux.',
+    'Over 90% of Kenyan micro-businesses that used a marketplace also sold through social media. Source: Mastercard Foundation and Caribou Digital, 2020.':
+        'Plus de 90 % des micro-entreprises kényanes qui passaient par une marketplace vendaient aussi sur les réseaux sociaux. Source : Mastercard Foundation et Caribou Digital, 2020.',
+    'One stock for every channel, so nothing sells twice.': 'Un seul stock pour tous les canaux, pour que rien ne se vende deux fois.',
+    'The phone is the <em>computer.</em>': 'Le téléphone, c’est <em>l’ordinateur.</em>',
+    '416 million people used mobile internet in Africa in 2024. Source: GSMA, The Mobile Economy Africa 2025.':
+        '416 millions de personnes utilisaient l’internet mobile en Afrique en 2024. Source : GSMA, The Mobile Economy Africa 2025.',
+    'The whole shop is set up and run from a phone.': 'Toute la boutique se crée et se gère depuis un téléphone.',
+    'Signal is not the barrier. <em>Use</em> is.': 'Le réseau n’est pas le frein. <em>L’usage,</em> si.',
+    '58% of unconnected Africans already live under mobile broadband coverage. Source: GSMA, The Mobile Economy Africa 2025.':
+        '58 % des Africains non connectés vivent déjà sous une couverture haut débit mobile. Source : GSMA, The Mobile Economy Africa 2025.',
+    'Short steps, in French first, that tick themselves.': 'Des étapes courtes, en français d’abord, qui se cochent toutes seules.',
+    'Deep brown cover with the JEERE cloud logo in the rainbow: “I talked to 5 merchants, then read the research. 5 things I learned, and what JEERE does about each.”':
+        'Couverture brun foncé avec le nuage JEERE aux couleurs de l’arc-en-ciel : « J’ai parlé à 5 commerçantes, puis j’ai lu les études. 5 choses apprises, et ce que JEERE fait pour chacune. »',
+    'What stayed: one main action, and a list she can scan on her phone.': 'Ce qui reste : une seule action principale, et une liste qu’elle parcourt sur son téléphone.',
+    '04 · New role': '04 · Nouveau rôle',
+    'Brand identity · GloryWalk': 'Identité de marque · GloryWalk',
+    'A gold graffiti wordmark, a W monogram for the hoodie back, navy, gold and sage.':
+        'Un logo doré style graffiti, un monogramme W pour le dos du hoodie, du marine, de l’or et du vert sauge.',
+    'Ivory slide: the gold graffiti-style GloryWalk wordmark on a black denim pocket, under the title “Make belief look undeniable.”':
+        'Page ivoire : le logo GloryWalk doré style graffiti sur une poche en denim noir, sous le titre « Rendre la foi impossible à ignorer. »',
+    '06 · What it does': '06 · Ce que ça fait',
+    'Every question became a <em>tool.</em>': 'Chaque question est devenue <em>un outil.</em>',
+    'On the site today': 'Sur le site aujourd’hui',
+    'A length guide: where each length lands on the body': 'Un guide des longueurs : où tombe chaque longueur sur le corps',
+    'A 60-second quiz, one question at a time': 'Un quiz de 60 secondes, une question à la fois',
+    'Slide 6: a white card listing what the site does today: a length guide showing where each length lands on the body, and a 60-second quiz, one question at a time.':
+        'Page 6 : une carte blanche qui liste ce que fait le site aujourd’hui : un guide des longueurs qui montre où tombe chaque longueur sur le corps, et un quiz de 60 secondes, une question à la fois.',
+    '5 merchants. Where it <em>breaks</em> today.': '5 commerçantes. Là où ça <em>coince</em> aujourd’hui.',
+    'The first 50 shops': 'Les 50 premières boutiques',
+    'Free for 3 months, in exchange for honest feedback.': 'Offertes pendant 3 mois, en échange de retours honnêtes.',
+    'What’s next slide: opening the first 50 shops, free for 3 months, in exchange for honest feedback.':
+        'Page la suite : ouvrir les 50 premières boutiques, offertes pendant 3 mois, en échange de retours honnêtes.',
+})

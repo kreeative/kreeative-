@@ -33,7 +33,7 @@
 ### Page 6
 - Surtitre : 05 · Typographie
 - Titre : Une écriture, et une partenaire discrète.
-- Texte : Le logo écrit à la main porte la voix. La police d’accompagnement, [SECONDARY_TYPEFACE], reste discrète pour ne jamais lui faire concurrence.
+- Texte : Le logo écrit à la main porte la voix. Tout ce qui l’entoure reste discret, pour ne jamais lui faire concurrence.
 
 ### Page 7
 - Surtitre : 06 · Applications
@@ -71,14 +71,9 @@ L’étude de cas complète : lien en premier commentaire.
 
 - Page 1: Couverture brun foncé : le logo doré Lyzma Industries écrit à la main, avec son symbole en cercles concentriques, sur une carte blanche, au-dessus du titre « Une identité écrite à la main pour une marque de bijoux : 6 décisions en coulisses. »
 - Page 2: Page ivoire : décision 1, le brief, avec une carte blanche qui le résume en une phrase.
-- Page 3: Page ivoire : décision 2, « Écrit, pas tapé », avec un cadre en pointillés pour les croquis du lettrage.
+- Page 3: Page ivoire : décision 2, « Écrit, pas tapé », avec un gros plan sur le logo Lyzma écrit à la main.
 - Page 4: Page ivoire : décision 3, le symbole, avec un gros plan des cercles concentriques dorés.
 - Page 5: Page ivoire : décision 4, la couleur, avec deux grands échantillons : or Lyzma #EBB64C et blanc.
-- Page 6: Page ivoire : décision 5, la typographie, avec une carte qui montre le vrai logo Lyzma écrit à la main et un emplacement pour la police d’accompagnement.
+- Page 6: Page ivoire : décision 5, la typo, avec une carte qui montre le vrai logo Lyzma écrit à la main.
 - Page 7: Page ivoire : décision 6, les applications, avec les sacs Lyzma or, blanc et marine, des étiquettes et des stickers ronds Hi et Bonjour.
 - Page 8: Dernière page sur fond brun foncé : le K de Kreeative, « Suis Kee pour le design, la tech et construire en public », un bouton rose « Enregistre ce post » et kreeative.xyz.
-
-## À remplir
-
-- `[LETTERING_SKETCHES]`: photos or scans of the Lyzma lettering sketches
-- `[SECONDARY_TYPEFACE]`: the typeface used next to the lettered wordmark

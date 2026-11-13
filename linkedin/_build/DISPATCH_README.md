@@ -33,15 +33,10 @@ Les champs de `posts.json` :
 
 1. **La langue :** anglais, français, ou les deux ? Si c'est les deux, publie-t-elle un post séparé par langue, ou un seul post bilingue ?
 2. **L'heure de publication :** aucune heure n'est fixée. Demande-lui une heure par défaut et si elle veut des exceptions.
-3. **Les dates à préciser :** M2-01 et M2-02 sont prévus « la semaine du 21 décembre », M2-03 « la semaine du 28 décembre ». Demande-lui le jour exact.
-4. **Les dates incohérentes :** pour M1-01 et M1-03, le jour de la semaine ne correspond pas à la date (voir `date_note`).
-   - M1-01 : le calendrier dit « lundi 17 nov. », mais le 17 novembre 2026 est un mardi.
-   - M1-03 : il dit « jeudi 20 nov. », mais le 20 est un vendredi.
+3. **Les posts PHOTO** (M1-01, M2-08, M3-07) : c'est sa propre photo ou vidéo. Demande-lui le fichier.
+   M1-01 est le tout premier post, le mardi 17 novembre : demande-lui cette photo en priorité.
 
-   Demande-lui ce qu'elle préfère.
-5. **Les posts PHOTO** (M1-01, M2-08, M3-07) : c'est sa propre photo ou vidéo. Demande-lui le fichier.
-   M1-01 est le tout premier post, le 17 novembre : demande-lui cette photo en priorité.
-6. **Les [PLACEHOLDERS] :** liste-lui ceux du mois à venir (voir le point 2) et demande-lui ses réponses.
+Toutes les dates sont fixées. Toutes les légendes sont complètes, sans [PLACEHOLDER]. Les posts sont à publier dans l'ordre du calendrier.
 
 ## 2. Les règles à ne jamais enfreindre
 

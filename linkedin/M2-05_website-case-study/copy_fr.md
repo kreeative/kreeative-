@@ -38,8 +38,8 @@ Faits tirés du repo du site (TISHE-) et du site en ligne. Écrans choisis sans 
 - Titre : En ligne, puis une boutique à elle.
 
 ### Page 7
-- Surtitre : 06 · Résultat
-- Titre : Ce que ça a changé.
+- Surtitre : 06 · Ce que ça fait
+- Titre : Chaque question est devenue un outil.
 
 ### Page 8
 - Titre : Suis Kee pour le design, la tech et construire en public.
@@ -55,7 +55,7 @@ Recherche : les questions que les clientes posaient tout le temps
 Wireframe : découvrir, puis choisir, puis faire partie du cercle
 Design : un luxe discret sur téléphone, ivoire, espresso et une touche d’or
 Lancement : en ligne en juillet 2026, puis une boutique à elle en octobre
-Résultat : [RESULT_METRIC_OR_FEEDBACK]
+Ce que ça fait : un guide des longueurs et un quiz de 60 secondes répondent aux questions que les clientes posaient tout le temps
 
 La page dont je suis la plus fière, c’est celle de la recherche. Chaque question est devenue un outil : un guide des longueurs et un quiz.
 
@@ -72,9 +72,5 @@ La page dont je suis la plus fière, c’est celle de la recherche. Chaque quest
 - Page 4: Page wireframe : une mise en page grise avec un en-tête, une promesse, trois blocs de textures, le guide des longueurs et le quiz côte à côte, puis le cercle de fidélité, les avis et le contact en bas.
 - Page 5: Page design : deux vrais écrans de theivorysukundu.com sur des téléphones. Le quiz de 60 secondes demande combien de temps on consacre à ses cheveux le matin, avec trois réponses. La page du Cercle Sukundu explique la fidélité en trois étapes : rejoindre gratuitement, gagner des points, monter de niveau.
 - Page 6: Page lancement : une frise. Juillet 2026, le site est en ligne. Octobre 2026, la boutique quitte Shopify pour son propre catalogue, panier et paiement. Novembre 2026, la propriétaire modifie son site directement depuis son tableau de bord.
-- Page 7: Page résultat, avec un emplacement pour un chiffre ou un retour de la propriétaire.
+- Page 7: Page 6 : une carte blanche qui liste ce que fait le site aujourd’hui : un guide des longueurs qui montre où tombe chaque longueur sur le corps, et un quiz de 60 secondes, une question à la fois.
 - Page 8: Dernière page sur fond brun foncé : le K de Kreeative, « Suis Kee pour le design, la tech et construire en public », un bouton rose « Enregistre ce post » et kreeative.xyz.
-
-## À remplir
-
-- `[RESULT_METRIC_OR_FEEDBACK]`: a real number or a sentence from the owner, with her permission

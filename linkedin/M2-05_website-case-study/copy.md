@@ -38,8 +38,8 @@ Facts from the site’s own repository (TISHE-) and the live site. Screens chose
 - Headline: Live, then a store of its own.
 
 ### Page 7
-- Kicker: 06 · Result
-- Headline: What it changed.
+- Kicker: 06 · What it does
+- Headline: Every question became a tool.
 
 ### Page 8
 - Headline: Follow Kee for design, tech and building in public.
@@ -55,7 +55,7 @@ Research: the questions customers kept asking
 Wireframe: shop, then decide, then belong
 Design: quiet luxury on a phone, ivory, espresso and a little gold
 Launch: live in July 2026, then a store of its own in October
-Result: [RESULT_METRIC_OR_FEEDBACK]
+What it does: a length guide and a 60-second quiz answer the questions customers kept asking
 
 The slide I am proudest of is the research one. Every question became a tool: a length guide and a quiz.
 
@@ -72,9 +72,5 @@ Full case study in the first comment.
 - Page 4: Wireframe slide: a grey page layout with a header, a hero with one promise, three texture blocks, the length guide and the quiz side by side, and the loyalty circle, reviews and contact at the bottom.
 - Page 5: Design slide: two real screens of theivorysukundu.com on phones. The 60-second quiz asks “How much time do you give your hair in the morning?” with three answers. The Sukundu Circle page explains loyalty in three steps: join free, earn strands, rise in tiers.
 - Page 6: Launch slide: a timeline. July 2026, the site goes live. October 2026, the store leaves Shopify for its own catalogue, bag and checkout. November 2026, the owner edits her site in place from her dashboard.
-- Page 7: Result slide with a placeholder for a metric or the owner’s feedback.
+- Page 7: Slide 6: a white card listing what the site does today: a length guide showing where each length lands on the body, and a 60-second quiz, one question at a time.
 - Page 8: Closing page on deep brown: the Kreeative K mark, “Follow Kee for design, tech and building in public”, a pink “Save this” button and kreeative.xyz.
-
-## Placeholders to fill
-
-- `[RESULT_METRIC_OR_FEEDBACK]`: a real number or a sentence from the owner, with her permission

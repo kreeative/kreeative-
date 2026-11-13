@@ -1,4 +1,4 @@
-# M1-04 · The Bakery wordmark: sketch to final.
+# M1-04 · The Bakery wordmark: two details that carry it.
 
 - Format: IMAGE, 1 page, 1080 × 1350, PNG
 - Posting date: Tue Nov 24
@@ -7,32 +7,24 @@
 ## Slide text
 
 ### Image
-- Kicker: Before / after · The Bakery
-- Headline: The Bakery wordmark: sketch to final.
-- Body: What changed: [WHAT_CHANGED_SKETCH_TO_FINAL]
+- Kicker: Logo · The Bakery
+- Headline: The Bakery wordmark: two details that carry it.
+- Body: A baguette for the B, a cupcake for the e.
 
 ## Caption
 
 ```text
-Sketch to final: The Bakery wordmark.
+The Bakery wordmark, and the two details that carry it.
 
-What changed between the two:
-[WHAT_CHANGED_SKETCH_TO_FINAL]
-
-The final has a baguette for the B and a cupcake for the e.
+A baguette for the B. A cupcake for the e.
 One rule I keep from this project: a good mark survives being shrunk to a sticker.
 
 The identity became packaging, a pattern, and later a website and an ordering app.
 Case study in the first comment.
 
-#logodesign #branding #beforeandafter #packaging
+#logodesign #branding #packaging #brandidentity
 ```
 
 ## Alt text
 
-- Before and after on ivory. Left: a dashed placeholder for the first sketch of The Bakery wordmark. Right: the final wordmark in cream and pink on a pile of chocolate chip cookies, with a baguette for the B and a cupcake in the e. Below the title, one line on what changed.
-
-## Placeholders to fill
-
-- `[WHAT_CHANGED_SKETCH_TO_FINAL]`: one line on what changed between sketch and final
-- `[BAKERY_SKETCH]`: the first sketch of the wordmark
+- Two images on ivory. Left: The Bakery wordmark in cream and pink on a pile of chocolate chip cookies, with a baguette for the B and a cupcake in the e. Right: the identity on a row of pink pastry boxes.

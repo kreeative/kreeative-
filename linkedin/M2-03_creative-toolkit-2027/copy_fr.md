@@ -1,7 +1,7 @@
 # M2-03 · Ma boîte à outils créative 2027.
 
 - Format : CAROUSEL, 6 pages, 1080 × 1350, PDF
-- Date de publication : Semaine du 28 déc.
+- Date de publication : mar. 29 déc.
 - Fichier : `M2-03_creative-toolkit-2027_FR.pdf`
 
 Outils tirés de tes repos, de ton site et des applis connectées à ton compte. Retire ceux que tu n’utilises plus.
