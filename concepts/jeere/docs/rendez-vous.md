@@ -40,6 +40,13 @@ service online, the studio runs its agenda from the dashboard. Built on 13 Novem
   browser is.
 - **`busy_until`** = the end of the appointment plus the pause she asked between two clients: that is the range
   the constraint protects.
+- **How she publishes her availability** (dashboard › Rendez-vous › Horaires et équipe):
+  the week's opening hours with one break a day; **« Jours particuliers »** (`settings.special`: one date with
+  its own hours, or closed, that wins over the week for everyone: an exceptional Sunday, a shorter eve, a public
+  holiday); **« Bloquer un créneau »** for a few hours or days off (`booking_blocks`, for one person or all);
+  and until when clients may book: N weeks ahead, rolling (`settings.horizon`), or **until a date she chooses**
+  (`settings.openUntil`, « j'ouvre mon agenda jusqu'au 31 décembre »). The booking calendar stops at that day
+  (`config.until`). Booked times disappear by themselves.
 - **The client's link** (`manage_url`, `?rdv=<64 hex>`) is the only key to an appointment from outside. It
   goes back to the site she booked on when that site is kreeative.xyz, jeere.kreeative.xyz or the store's own
   domain; otherwise to `rdv/`.

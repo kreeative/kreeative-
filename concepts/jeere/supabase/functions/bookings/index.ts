@@ -86,6 +86,8 @@ type Settings = {
   deposit: { mode: 'none' | 'fixed' | 'percent'; value: number };
   policies: { deposit: string; late: string; cancel: string; payment: string; prep: string };
   intro: string; address: string; mapUrl: string; hours: Hours[]; services: Service[]; addons: Addon[]; staff: Staff[]; payments: string[];
+  special: { date: string; open: boolean; from: string; to: string }[];   // one date with its own hours, or closed
+  openUntil: string;                                                      // « bookings open until » a date; '' = today + horizon
 };
 export const PAYS = ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Sur place', 'Carte bancaire'];
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -139,6 +141,13 @@ function cleanSettings(raw: unknown): Settings {
   const mode = dep.mode === 'fixed' || dep.mode === 'percent' ? dep.mode : 'none';
   const pol = isObj(r.policies) ? r.policies : {};
   const pays = arr(r.payments).filter((p): p is string => typeof p === 'string' && PAYS.includes(p));
+  const special = arr(r.special).filter(isObj).map((x) => {
+    const o = x as Obj;
+    let from = hhmm(o.from, '09:00'), to = hhmm(o.to, '18:00');
+    if (toMin(to) <= toMin(from)) { from = '09:00'; to = '18:00'; }
+    return { date: str(o.date, 10), open: o.open !== false, from, to };
+  }).filter((x, i, a) => /^\d{4}-\d{2}-\d{2}$/.test(x.date) && a.findIndex((y) => y.date === x.date) === i)
+    .sort((a, b) => (a.date < b.date ? -1 : 1)).slice(0, 120);
   return {
     enabled: r.enabled !== false && services.some((s) => s.active),
     timezone: validTz(r.timezone),
@@ -148,7 +157,8 @@ function cleanSettings(raw: unknown): Settings {
     deposit: { mode, value: mode === 'percent' ? int(dep.value, 1, 100, 30) : price(dep.value) },
     policies: { deposit: text(pol.deposit, 600), late: text(pol.late, 600), cancel: text(pol.cancel, 600), payment: text(pol.payment, 600), prep: text(pol.prep, 600) },
     intro: text(r.intro, 600), address: str(r.address, 200), mapUrl: httpsUrl(r.mapUrl),
-    hours: cleanHours(r.hours), services, addons, staff, payments: pays.length ? pays : ['Sur place']
+    hours: cleanHours(r.hours), services, addons, staff, payments: pays.length ? pays : ['Sur place'],
+    special, openUntil: /^\d{4}-\d{2}-\d{2}$/.test(str(r.openUntil, 10)) ? str(r.openUntil, 10) : ''
   };
 }
 
@@ -242,20 +252,28 @@ async function busyOf(storeId: unknown, fromMs: number, toMs: number): Promise<B
   const b1: Busy[] = bl.map((x) => ({ staff: String(x.staff_id ?? ''), s: Date.parse(String(x.starts_at)), e: Date.parse(String(x.ends_at)) }));
   return a1.concat(b1);
 }
+// The last instant a client may book: the end of her « open until » day when she set one, else today + horizon
+function lastBookable(S: Settings, now: number) {
+  const m = S.openUntil ? DATE.exec(S.openUntil) : null;
+  return m ? Math.min(localToUtc(S.timezone, +m[1], +m[2], +m[3], 24 * 60), now + 366 * DAY) : now + S.horizon * DAY;
+}
 // The times of one day (her zone) where `dur` minutes fit, for the people given
 function daySlots(S: Settings, who: Staff[], date: string, dur: number, busy: Busy[], now: number, skipId = '') {
   const m = DATE.exec(date); if (!m) return [];
   const y = +m[1], mo = +m[2], d = +m[3];
   const dow = new Date(Date.UTC(y, mo - 1, d)).getUTCDay();
   const out = new Map<string, { t: string; start: number; staff: string[] }>();
+  const limit = lastBookable(S, now);
+  // a date with its own hours (an exceptional Sunday, a shorter eve) wins over the week, for everyone
+  const sp = S.special.find((x) => x.date === date);
   for (const p of who) {
-    const h = (p.hours ?? S.hours)[dow];
+    const h = sp ? { open: sp.open, from: sp.from, to: sp.to, breaks: [] as { from: string; to: string }[] } : (p.hours ?? S.hours)[dow];
     if (!h || !h.open) continue;
     const open = toMin(h.from), close = toMin(h.to);
     for (let t = open; t + dur <= close; t += S.step) {
       if (h.breaks.some((b) => t < toMin(b.to) && t + dur > toMin(b.from))) continue;
       const start = localToUtc(S.timezone, y, mo, d, t);
-      if (start < now + S.lead * 60000 || start > now + S.horizon * DAY) continue;
+      if (start < now + S.lead * 60000 || start >= limit) continue;
       const end = start + dur * 60000, until = end + S.buffer * 60000;
       if (busy.some((b) => (b.staff === p.id || b.staff === '') && b.id !== skipId && start < b.e && until > b.s)) continue;
       const key = pad(Math.floor(t / 60)) + ':' + pad(t % 60);
@@ -443,7 +461,8 @@ Deno.serve(async (req: Request) => {
         intro: S.intro, address: S.address, mapUrl: S.mapUrl, hours: S.hours, policies: S.policies, payments: S.payments,
         services: S.services.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name, category: s.category, duration: s.duration, price: s.price, from: s.from, deposit: s.deposit, desc: s.desc, photo: s.photo, staff: s.staff })),
         addons: S.addons.filter((a) => a.active).map((a) => ({ id: a.id, name: a.name, duration: a.duration, price: a.price })),
-        staff: team.map((s) => ({ id: s.id, name: s.name, role: s.role, photo: s.photo })), today: localDate(S.timezone, now).date
+        staff: team.map((s) => ({ id: s.id, name: s.name, role: s.role, photo: s.photo })), today: localDate(S.timezone, now).date,
+        until: localDate(S.timezone, lastBookable(S, now) - 60000).date, special: S.special.filter((x) => x.date >= localDate(S.timezone, now).date)
       });
     }
     if (!S.enabled) return json({ ok: false, code: 'closed', message: 'La prise de rendez-vous en ligne n’est pas ouverte pour le moment.' }, 409);

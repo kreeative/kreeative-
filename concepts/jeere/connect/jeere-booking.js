@@ -119,6 +119,8 @@
     if (cur() === 'XOF') dep = Math.round(dep);
     return { duration: d, total: t, deposit: Math.max(0, Math.min(dep, t)) };
   }
+  // the last day she takes bookings for: the date she opened them until, else today + her horizon
+  function lastBookDay() { var c = S.cfg, t = parts(c.today); return /^\d{4}-\d{2}-\d{2}$/.test(c.until || '') ? c.until : ymd(t.y, t.m, t.d + (c.horizon || 60)); }
   function slotKey() { return S.serviceId + '|' + S.addons.slice().sort().join(',') + '|' + S.staffId + '|' + S.month; }
   function absUrl(u) { try { return new URL(u || '.', window.location.href).href; } catch (e) { return window.location.href; } }
   function manageBase() { return absUrl(attr('data-manage-url') || window.location.pathname).replace(/[?#].*$/, ''); }
@@ -248,7 +250,7 @@
     var c = S.cfg, today = c.today, p = parts(S.month + '-01');
     var first = new Date(Date.UTC(p.y, p.m, 1)), lead = (first.getUTCDay() + 6) % 7, n = new Date(Date.UTC(p.y, p.m + 1, 0)).getUTCDate();
     var key = slotKey(), data = S.slots[key];
-    var lastDay = ymd(parts(today).y, parts(today).m, parts(today).d + (c.horizon || 60));
+    var lastDay = lastBookDay();
     var prevOk = S.month > today.slice(0, 7), nextOk = ymd(p.y, p.m + 1, 1) <= lastDay;
     var cells = '';
     for (var i = 0; i < lead; i++) cells += '<span class="jb-cal__pad"></span>';
@@ -414,7 +416,7 @@
       if (j.ok) S.slots[key] = j.days || {}; else S.slotError = j.message || 'Les créneaux n’ont pas pu être chargés.';
       // the first month with nothing free: look at the next one by itself, once
       if (j.ok && !Object.keys(S.slots[key]).length && !S.autoNext) {
-        var next = ymd(p.y, p.m + 1, 1), last = ymd(parts(c.today).y, parts(c.today).m, parts(c.today).d + (c.horizon || 60));
+        var next = ymd(p.y, p.m + 1, 1), last = lastBookDay();
         if (next <= last) { S.autoNext = true; S.month = next.slice(0, 7); return loadSlots(serviceId, addons, staffId); }
       }
       draw();

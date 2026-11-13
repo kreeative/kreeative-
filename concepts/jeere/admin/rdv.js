@@ -9,7 +9,8 @@
  *
  *   #rendez-vous                the agenda: requests to confirm, the week, the day's appointments, the week's numbers
  *   #rendez-vous/prestations    her services and add-ons (name, category, duration, price, deposit)
- *   #rendez-vous/horaires       opening hours, breaks, the team, the booking rules (slot step, notice, buffer…)
+ *   #rendez-vous/horaires       opening hours, breaks, dates with their own hours (« jours particuliers »), the team,
+ *                               the booking rules (slot step, notice, buffer, open until a date or N weeks ahead)
  *   #rendez-vous/regles         online booking on/off, confirmation, deposit, payment means, address, policies
  *   #rendez-vous/clients        her clients, from the appointments
  *
@@ -86,6 +87,10 @@
   function monday(date) { return addDays(date, -((dow(date) + 6) % 7)); }
   function dayLabel(date, short) { var d = Number(date.slice(8, 10)); return (short ? DAYS_SHORT : DAYS)[dow(date)] + ' ' + d + (d === 1 ? 'er' : '') + ' ' + MONTHS[Number(date.slice(5, 7)) - 1]; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function todayStr() { return R.today || localDate(new Date().toISOString()); }
+  // the hours of one date: its own (« jour particulier ») when she set some, else the week's
+  function specialOf(date) { return ((R.settings && R.settings.special) || []).filter(function (x) { return x.date === date; })[0] || null; }
+  function hoursOf(date) { var sp = specialOf(date); return sp ? { open: sp.open, from: sp.from, to: sp.to, special: true } : (R.settings.hours[dow(date)] || {}); }
   function staffName(id) { var s = (R.settings.staff || []).filter(function (x) { return x.id === id; })[0]; return s ? s.name : ''; }
   function manyStaff() { return (R.settings.staff || []).filter(function (x) { return x.active !== false; }).length > 1; }
   function waLink(phone, text) { var n = String(phone || '').replace(/\D/g, ''); if (n.length === 10 && n.charAt(0) === '0') n = '225' + n; return n.length >= 8 ? 'https://wa.me/' + n + '?text=' + encodeURIComponent(text) : ''; }
@@ -207,7 +212,7 @@
     var actions = (hasServices ? '<button class="a-btn a-btn--primary" type="button" data-rdv="new">' + ico('plus') + 'Nouveau rendez-vous</button>' : '') +
       '<button class="a-btn a-btn--ghost" type="button" data-rdv="block">' + ico('lock') + 'Bloquer un créneau</button>' +
       '<button class="a-ibtn a-ibtn--line" type="button" data-rdv="share" aria-label="Partager mon lien de réservation">' + ico('share') + '</button>';
-    var html = '<div class="a-page">' + head('Rendez-vous', hasServices ? (S.enabled ? 'Réservation en ligne ouverte' : '<span class="a-tone--warn">Réservation en ligne fermée</span> · <a class="a-link" href="#rendez-vous/regles">Ouvrir</a>') : '', actions) + tabs('');
+    var html = '<div class="a-page">' + head('Rendez-vous', hasServices ? (S.enabled ? 'Réservation en ligne ouverte' + (S.openUntil ? ' jusqu’au ' + esc(dayLabel(S.openUntil)) : '') : '<span class="a-tone--warn">Réservation en ligne fermée</span> · <a class="a-link" href="#rendez-vous/regles">Ouvrir</a>') : '', actions) + tabs('');
     if (!hasServices) return html + onboarding() + '</div>';
     if (R.listError) return html + card(empty('alert', 'L’agenda n’a pas pu être chargé', R.listError, '<button class="a-btn a-btn--primary" type="button" data-rdv="reload">Réessayer</button>')) + '</div>';
     if (!day) return html + card('<p class="a-small">Chargement de l’agenda…</p>') + '</div>';
@@ -234,12 +239,12 @@
     var list = byDay(day).sort(function (a, b) { return Date.parse(a.starts_at) - Date.parse(b.starts_at); });
     var dayStart = Date.parse(toUtc(day, '00:00')), dayEnd = dayStart + DAY;
     var blocks = R.blocks.filter(function (b) { return Date.parse(b.starts_at) < dayEnd && Date.parse(b.ends_at) > dayStart; });
-    var h = S.hours[dow(day)] || {};
+    var h = hoursOf(day);
     // one list in the order of the day: blocked time and appointments together
     var rows = blocks.map(function (b) { return { t: Math.max(Date.parse(b.starts_at), dayStart), html: blockRow(b) }; })
       .concat(list.map(function (a) { return { t: Date.parse(a.starts_at), html: apptRow(a) }; }))
       .sort(function (x, y) { return x.t - y.t; }).map(function (x) { return x.html; }).join('');
-    html += card('<div class="a-card__head r-dayhead"><div><h2 class="a-card__title">' + esc(cap(dayLabel(day))) + (day === R.today ? ' <span class="a-chip">Aujourd’hui</span>' : '') + '</h2><p class="a-card__sub">' + (h.open ? 'Ouvert de ' + hhmm(h.from) + ' à ' + hhmm(h.to) : 'Jour de fermeture') + (R.listLoading ? ' · mise à jour…' : '') + '</p></div>' +
+    html += card('<div class="a-card__head r-dayhead"><div><h2 class="a-card__title">' + esc(cap(dayLabel(day))) + (day === R.today ? ' <span class="a-chip">Aujourd’hui</span>' : '') + '</h2><p class="a-card__sub">' + (h.open ? 'Ouvert de ' + hhmm(h.from) + ' à ' + hhmm(h.to) : (h.special ? 'Fermé ce jour-là' : 'Jour de fermeture')) + (h.special ? ' · horaires particuliers' : '') + (R.listLoading ? ' · mise à jour…' : '') + '</p></div>' +
       (day !== R.today ? '<button class="a-btn a-btn--quiet a-btn--sm" type="button" data-rdv="day" data-date="' + esc(R.today) + '">Aujourd’hui</button>' : '') + '</div>' +
       (rows ? '<ul class="a-rows r-list">' + rows + '</ul>' : empty('clock', 'Aucun rendez-vous ce jour-là', h.open ? 'Les réservations de vos clientes s’affichent ici dès qu’elles arrivent.' : 'Vous êtes fermée ce jour-là.', '<button class="a-btn a-btn--ghost" type="button" data-rdv="new">' + ico('plus') + 'Ajouter un rendez-vous</button>')), 'a-card--flush');
     // the week's numbers
@@ -410,11 +415,28 @@
         field('Un créneau toutes les', select('step', [[15, '15 minutes'], [20, '20 minutes'], [30, '30 minutes'], [45, '45 minutes'], [60, '1 heure']], S.step), 'Les heures proposées : 9 h, 9 h 30, 10 h…') +
         field('Pause entre deux clientes', select('buffer', [[0, 'Aucune'], [5, '5 minutes'], [10, '10 minutes'], [15, '15 minutes'], [20, '20 minutes'], [30, '30 minutes']], S.buffer), 'Le temps de ranger et de préparer.') +
         field('Réserver au plus tard', select('lead', [[0, 'Jusqu’à la dernière minute'], [60, '1 heure avant'], [120, '2 heures avant'], [180, '3 heures avant'], [720, '12 heures avant'], [1440, 'La veille (24 h)'], [2880, '2 jours avant']], S.lead)) +
-        field('Réserver jusqu’à', select('horizon', [[14, '2 semaines à l’avance'], [30, '1 mois à l’avance'], [45, '6 semaines à l’avance'], [60, '2 mois à l’avance'], [90, '3 mois à l’avance']], S.horizon)) +
+        field('Réserver jusqu’à', select('horizon', [[14, '2 semaines à l’avance'], [30, '1 mois à l’avance'], [45, '6 semaines à l’avance'], [60, '2 mois à l’avance'], [90, '3 mois à l’avance'], ['date', 'Une date précise (j’ouvre mon agenda)']], S.openUntil ? 'date' : S.horizon, ' data-rdv-change="horizon"')) +
+        '<div class="a-field" data-rdv-until' + (S.openUntil ? '' : ' hidden') + '><label class="a-label">Réservations ouvertes jusqu’au</label>' + input('openUntil', S.openUntil || '', 'type="date" min="' + esc(todayStr()) + '"') + '<p class="a-hint">' + fr('Vos clientes ne peuvent pas réserver après cette date. Changez-la quand vous ouvrez le mois suivant.') + '</p></div>' +
         field('Fuseau horaire', select('timezone', zones, S.timezone), 'Les heures de votre agenda sont celles de cette ville.') + '</div>') +
       '<div class="a-savebar r-save"><button class="a-btn a-btn--primary" type="submit">Enregistrer les horaires</button></div></form>' +
+      specialCard() +
       card('<div class="a-card__head"><div><h2 class="a-card__title">Équipe</h2><p class="a-card__sub">' + fr('Seule ? Laissez vide. À plusieurs, chaque personne a son agenda et la cliente choisit avec qui.') + '</p></div><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-rdv="staff" data-id="">' + ico('plus') + 'Ajouter</button></div>' +
         (staff.length ? '<ul class="a-rows r-list">' + staff.map(function (p) { return '<li><button class="r-row r-row--svc' + (p.active === false ? ' is-off' : '') + '" type="button" data-rdv="staff" data-id="' + esc(p.id) + '"><span class="r-row__main"><span class="r-row__who">' + esc(p.name) + '</span><span class="r-row__what">' + esc(p.role || '') + '</span></span>' + ico('chev') + '</button></li>'; }).join('') + '</ul>' : ''), staff.length ? 'a-card--flush r-padhead' : '') + '</div>';
+  }
+  function specialCard() {
+    var list = ((R.settings.special) || []).filter(function (x) { return x.date >= todayStr(); });
+    return card('<div class="a-card__head"><div><h2 class="a-card__title">Jours particuliers</h2><p class="a-card__sub">' + fr('Un dimanche ouvert exceptionnellement, une veille de fête plus courte, un jour férié : ce jour-là, ces horaires remplacent ceux de la semaine.') + '</p></div><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-rdv="special" data-id="">' + ico('plus') + 'Ajouter</button></div>' +
+      (list.length ? '<ul class="a-rows r-list">' + list.map(function (x) { return '<li><button class="r-row r-row--svc" type="button" data-rdv="special" data-id="' + esc(x.date) + '"><span class="r-row__main"><span class="r-row__who">' + esc(cap(dayLabel(x.date))) + '</span><span class="r-row__what">' + (x.open ? 'Ouvert de ' + hhmm(x.from) + ' à ' + hhmm(x.to) : 'Fermé') + '</span></span>' + ico('chev') + '</button></li>'; }).join('') + '</ul>' : ''), list.length ? 'a-card--flush r-padhead' : '');
+  }
+  function openSpecial(date) {
+    var x = specialOf(date) || { date: '', open: true, from: '10:00', to: '16:00' };
+    openDlg('<form class="a-dialog__card" data-rdv-form="special" data-id="' + esc(x.date) + '" novalidate>' + dlgHead('rj-t', x.date ? 'Modifier ce jour' : 'Un jour particulier') + '<div class="a-dialog__body">' +
+      '<p class="a-dialog__lead">' + fr('Ce jour-là, vos clientes voient ces horaires à la place de ceux de la semaine. Pour fermer quelques heures seulement, utilisez plutôt « Bloquer un créneau ».') + '</p>' +
+      field('Date', input('date', x.date, 'type="date" min="' + esc(todayStr()) + '" required')) +
+      '<label class="r-check r-check--solo"><input type="checkbox" name="open"' + (x.open ? ' checked' : '') + ' data-rdv-change="spopen"><span>Ouvert ce jour-là</span></label>' +
+      '<div class="a-grid2 r-grid2" data-rdv-sptimes' + (x.open ? '' : ' hidden') + '>' + field('De', input('from', x.from, 'type="time" step="300"')) + field('À', input('to', x.to, 'type="time" step="300"')) + '</div>' +
+      '<p class="a-error" data-rdv-error hidden role="alert"></p></div><div class="a-dialog__foot">' + (x.date ? '<button class="a-btn a-btn--quiet" type="button" data-rdv="special-del" data-id="' + esc(x.date) + '">' + ico('trash') + 'Retirer</button>' : '') +
+      '<button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="submit">Enregistrer</button></div></form>', 'rj-t');
   }
   function openStaff(id) {
     var p = (R.settings.staff || []).filter(function (x) { return x.id === id; })[0] || { id: '', name: '', role: '', active: true };
@@ -518,6 +540,8 @@
     else if (a === 'svc') openService(id);
     else if (a === 'addon') openAddon(id);
     else if (a === 'staff') openStaff(id);
+    else if (a === 'special') openSpecial(id);
+    else if (a === 'special-del') { R.settings.special = (R.settings.special || []).filter(function (x) { return x.date !== id; }); closeDlg(); saveSettings('Jour retiré : vos horaires habituels s’appliquent.'); }
     else if (a === 'svc-del' || a === 'addon-del' || a === 'staff-del') {
       var key = a === 'svc-del' ? 'services' : (a === 'addon-del' ? 'addons' : 'staff');
       R.settings[key] = R.settings[key].filter(function (x) { return x.id !== id; });
@@ -592,6 +616,14 @@
       var p = { id: id || newId(S.staff, 'e'), name: val(form, 'name'), role: val(form, 'role'), active: checked(form, 'active'), photo: '', hours: null };
       if (id) S.staff = S.staff.map(function (x) { return x.id === id ? Object.assign({}, x, p, { photo: x.photo, hours: x.hours }) : x; }); else S.staff.push(p);
       closeDlg(); saveSettings('Équipe mise à jour.');
+    } else if (kind === 'special') {
+      var sd = val(form, 'date'), so = checked(form, 'open'), sf = val(form, 'from'), st2 = val(form, 'to');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(sd)) return formError(form, 'Choisissez une date.');
+      if (sd < todayStr()) return formError(form, 'Cette date est passée.');
+      if (so && (!HHMM.test(sf) || !HHMM.test(st2) || st2 <= sf)) return formError(form, 'L’heure de fermeture doit être après l’ouverture.');
+      S.special = (S.special || []).filter(function (x) { return x.date !== sd && x.date !== id && x.date >= todayStr(); });
+      S.special.push({ date: sd, open: so, from: HHMM.test(sf) ? sf : '09:00', to: HHMM.test(st2) ? st2 : '18:00' });
+      closeDlg(); saveSettings(so ? 'Jour enregistré : ouvert de ' + hhmm(sf) + ' à ' + hhmm(st2) + '.' : 'Jour enregistré : fermé.');
     } else if (kind === 'hours') {
       var bad = '';
       var hours = [0, 1, 2, 3, 4, 5, 6].map(function (d) {
@@ -601,7 +633,10 @@
         return { open: open, from: HHMM.test(f) ? f : '09:00', to: HHMM.test(t) ? t : '18:00', breaks: br };
       });
       if (bad) { toast(bad); return; }
-      S.hours = hours; S.step = Number(val(form, 'step')); S.buffer = Number(val(form, 'buffer')); S.lead = Number(val(form, 'lead')); S.horizon = Number(val(form, 'horizon')); S.timezone = val(form, 'timezone');
+      var hz = val(form, 'horizon'), until = val(form, 'openUntil');
+      if (hz === 'date' && (!/^\d{4}-\d{2}-\d{2}$/.test(until) || until < todayStr())) { toast('Choisissez la date jusqu’à laquelle vos réservations sont ouvertes.'); return; }
+      S.hours = hours; S.step = Number(val(form, 'step')); S.buffer = Number(val(form, 'buffer')); S.lead = Number(val(form, 'lead')); S.timezone = val(form, 'timezone');
+      if (hz === 'date') S.openUntil = until; else { S.openUntil = ''; S.horizon = Number(hz); }
       saveSettings('Horaires enregistrés.');
     } else if (kind === 'rules') {
       var mode = val(form, 'depMode'), dv = num(val(form, 'depValue'));
@@ -626,6 +661,8 @@
     var t = e.target, k = t && t.getAttribute ? t.getAttribute('data-rdv-change') : '';
     if (k === 'allday') { var h = $('[data-rdv-hours]', t.form); if (h) h.hidden = t.checked; }
     else if (k === 'dayopen') { var row = t.closest('.r-hrow'); if (row) { $('.r-hrow__times', row).hidden = !t.checked; $('.r-hrow__closed', row).hidden = t.checked; } }
+    else if (k === 'horizon') { var u = $('[data-rdv-until]', t.form); if (u) u.hidden = t.value !== 'date'; }
+    else if (k === 'spopen') { var tm = $('[data-rdv-sptimes]', t.form); if (tm) tm.hidden = !t.checked; }
     else if (k === 'depmode') { var box = $('[data-rdv-dep]', t.form), lab = $('[data-rdv-deplabel]', t.form); if (box) box.hidden = t.value === 'none'; if (lab) lab.textContent = t.value === 'percent' ? 'Pourcentage (%)' : 'Montant'; }
   });
 
