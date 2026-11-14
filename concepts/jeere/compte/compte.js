@@ -1292,6 +1292,7 @@
     if (s.status === 'active') return s.plan.name + ' · ' + (s.period === 'an' ? 'annuel' : 'mensuel') + ', renouvellement le ' + P.date(s.periodEnd);
     if (s.status === 'canceling') return s.plan.name + ', jusqu’au ' + P.date(s.periodEnd);
     if (s.status === 'due') return s.plan.name + ', à renouveler';
+    if (s.status === 'included') return 'Inclus dans votre formule boutique ' + s.boutiquePlanName;
     return 'Découverte (gratuit)';
   }
 

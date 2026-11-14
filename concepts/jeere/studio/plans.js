@@ -260,6 +260,51 @@
     return ok;
   }
 
+  /* ------------------------------------------------------------------ the boutique plan of the store being edited
+   * One subscription = one store (stores.plan, written by the server only). The boutique plans Pro and Business
+   * INCLUDE the Studio: both editors, the simple one and this one. The plan is read from the server and kept on
+   * this device ('jeere-store-plans': { [storeId]: { plan, until, at } }) so that state() stays synchronous; a
+   * store that is not online yet falls back on the account's plan. */
+  var STORE_PLANS_KEY = 'jeere-store-plans';
+  var INCLUDES_STUDIO = ['pro', 'business'];
+  var BOUTIQUE_NAMES = { gratuit: 'Gratuit', essentiel: 'Essentiel', pro: 'Pro', business: 'Business' };
+  function readStorePlans() { try { var o = JSON.parse(root.localStorage.getItem(STORE_PLANS_KEY) || '{}'); return isObj(o) ? o : {}; } catch (e) { return {}; } }
+  function currentStoreId() { try { var p = JSON.parse(root.localStorage.getItem('jeere-publish') || '{}'); return isObj(p) && typeof p.storeId === 'string' ? p.storeId : ''; } catch (e) { return ''; } }
+  function setStorePlan(id, plan, until) {
+    if (!id || typeof id !== 'string' || !BOUTIQUE_NAMES[plan]) return false;
+    var all = readStorePlans(), before = all[id] && all[id].plan;
+    all[id] = { plan: plan, until: typeof until === 'string' ? until : '', at: now() };
+    try { root.localStorage.setItem(STORE_PLANS_KEY, JSON.stringify(all)); } catch (e) { return false; }
+    if (before !== plan) emit();
+    return true;
+  }
+  // The boutique plan in force for the store this browser edits ('' when unknown)
+  function boutiquePlan(acc) {
+    var id = currentStoreId(), row = id ? readStorePlans()[id] : null;
+    if (row && BOUTIQUE_NAMES[row.plan]) {
+      var u = row.until ? Date.parse(row.until) : NaN;
+      return isFinite(u) && u < now() ? 'gratuit' : row.plan;
+    }
+    return acc && BOUTIQUE_NAMES[acc.plan] ? acc.plan : '';
+  }
+  // Read the store's plan again from the server (needs her session); resolves with the plan or null
+  function refreshStorePlan() {
+    var id = currentStoreId(), A = root.JeereAuth;
+    if (!id || typeof root.fetch !== 'function' || !A || typeof A.session !== 'function') return Promise.resolve(null);
+    var cfg = A.CONFIG || {};
+    var url = (cfg.url || 'https://aezchxfvzfoqlvzchqyk.supabase.co') + '/rest/v1/stores?select=id,plan,plan_until&id=eq.' + encodeURIComponent(id);
+    return Promise.resolve(A.session()).then(function (ses) {
+      if (!ses || !ses.access_token) return null;
+      return root.fetch(url, { headers: { apikey: cfg.key || 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + ses.access_token } })
+        .then(function (r) { return r.ok ? r.json() : null; });
+    }).then(function (list) {
+      var x = Array.isArray(list) && list[0] ? list[0] : null;
+      if (!x) return null;
+      setStorePlan(x.id, x.plan, x.plan_until || '');
+      return x.plan;
+    }, function () { return null; });
+  }
+
   /* ------------------------------------------------------------------ the live state */
 
   // Everything the apps need to show and gate, computed at `now`.
@@ -285,15 +330,21 @@
         else expired = true;
       }
     }
+    // no Studio subscription of her own, but a boutique plan that includes the Studio: unlocked, as Studio Pro
+    var bp = boutiquePlan(acc);
+    if (signedIn && st === 'free' && INCLUDES_STUDIO.indexOf(bp) !== -1) { st = 'included'; effective = 'pro'; }
     var plan = planById(effective);
     var paidPlan = planById(sub.plan);
-    var unlocked = st === 'trial' || st === 'active' || st === 'canceling' || st === 'due';
+    var unlocked = st === 'trial' || st === 'active' || st === 'canceling' || st === 'due' || st === 'included';
     var seats = plan.seats + (effective === 'agence' ? sub.extraSeats : 0);
     return {
       signedIn: signedIn,
       hasAccount: !!acc,
       account: acc ? { firstName: acc.firstName || '', phone: acc.phone || '', storeName: acc.storeName || '' } : null,
-      status: st,                 // 'free' | 'trial' | 'active' | 'canceling' | 'due'
+      status: st,                 // 'free' | 'trial' | 'active' | 'canceling' | 'due' | 'included' (by the boutique plan)
+      included: st === 'included',
+      boutiquePlan: bp,           // the store's plan: 'gratuit' | 'essentiel' | 'pro' | 'business' | ''
+      boutiquePlanName: BOUTIQUE_NAMES[bp] || '',
       unlocked: unlocked,
       plan: plan,                 // the plan in force (the trial counts as Pro)
       planId: plan.id,
@@ -310,8 +361,8 @@
       seatsUsed: 1 + Math.min(sub.members.length, Math.max(0, seats - 1)),
       pending: sub.pending,
       sub: sub,
-      label: labelFor(st, plan, daysLeft),
-      price: unlocked && st !== 'trial' ? price(sub.plan, sub.period, sub.extraSeats) : null
+      label: st === 'included' ? 'Inclus · ' + BOUTIQUE_NAMES[bp] : labelFor(st, plan, daysLeft),
+      price: unlocked && st !== 'trial' && st !== 'included' ? price(sub.plan, sub.period, sub.extraSeats) : null
     };
   }
   function labelFor(st, plan, daysLeft) {
@@ -689,6 +740,7 @@
     planById: planById, featureById: featureById,
     price: price, discount: discount, quote: quote, isDowngrade: isDowngrade,
     state: state, can: can, limit: limit, badgeShown: badgeShown,
+    INCLUDES_STUDIO: INCLUDES_STUDIO, setStorePlan: setStorePlan, refreshStorePlan: refreshStorePlan, boutiquePlan: function () { return boutiquePlan(readAccountObj()); },
     startTrial: startTrial, scheduleChange: scheduleChange, cancel: cancel, resume: resume,
     setExtraSeats: setExtraSeats, addMember: addMember, removeMember: removeMember, setHideBadge: setHideBadge,
     normalizeSub: normalizeSub, onChange: onChange, refresh: emit,
@@ -711,6 +763,7 @@
         return fetch(BILLING_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: BILLING_KEY, Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ action: 'sync' }) })
           .then(function (r) { return r.json().catch(function () { return null; }); });
       }).then(function (j) {
+        if (j && Array.isArray(j.stores)) j.stores.forEach(function (x) { if (x && x.id) setStorePlan(x.id, x.plan, x.plan_until || ''); });
         return Promise.resolve(A && typeof A.syncPlan === 'function' ? A.syncPlan() : null).then(function () { emit(); return j; });
       }, function () { return null; });
     },
@@ -722,4 +775,6 @@
     PRODUCT_TYPES: PRODUCT_TYPES,
     startProductCheckout: startProductCheckout
   };
+  // in a browser: the store's plan read once the page is up (the Studio, the dashboard, the account page)
+  if (typeof document !== 'undefined' && typeof root.setTimeout === 'function') root.setTimeout(function () { refreshStorePlan(); }, 600);
 })(typeof window !== 'undefined' ? window : globalThis);

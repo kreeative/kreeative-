@@ -613,6 +613,9 @@ html:not(.js) .cv__play { display: none; }
 .plan__orders b { font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
 .plan--pick .plan__orders { border-top-color: var(--line-light); }
 .plan__fee { margin-top: 12px; }
+.plan__studio { margin-top: 10px; font-size: 14px; color: var(--muted); }
+.plan__studio--both { color: var(--ink); font-weight: 600; }
+.plan--pick .plan__studio { color: var(--muted-light); }
 .plan__fee span { display: inline-block; padding: 5px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-deep); font-weight: 500; font-size: 14px; }
 .plan--pick .plan__fee span { background: color-mix(in srgb, var(--accent-light) 18%, transparent); color: var(--accent-light); }
 .plan__for { margin-top: 14px; color: var(--muted); font-size: 15px; }

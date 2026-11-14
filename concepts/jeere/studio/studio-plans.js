@@ -60,6 +60,7 @@
         : s.status === 'active' ? 'Studio ' + s.plan.name + ' · renouvellement le ' + P.date(s.periodEnd)
         : s.status === 'canceling' ? 'Studio ' + s.plan.name + ' jusqu’au ' + P.date(s.periodEnd) + ', puis Découverte'
         : s.status === 'due' ? 'À renouveler avant le ' + P.date(s.endsAt)
+        : s.status === 'included' ? 'Tout le Studio, inclus dans votre formule boutique ' + s.boutiquePlanName
         : 'Gratuit · voir ce que débloque un abonnement';
       b.setAttribute('data-sub', sub);
       b.setAttribute('aria-label', 'Abonnement Studio : ' + s.label + '. ' + sub);
@@ -179,7 +180,7 @@
         if (f.limit && isFinite(lim)) h += '<p class="st-plansheet__limit">Vous avez atteint ' + lim + ' ' + (f.id === 'blocks' ? 'blocs' : 'versions') + ', le maximum de Découverte. Rien n’est effacé&nbsp;: supprimez-en un, ou passez à un abonnement.</p>';
       } else {
         h += '<p class="st-plansheet__eyebrow"><span>Abonnement Studio</span></p>';
-        h += '<h2 id="planTitle">' + esc(s.unlocked ? 'Studio ' + s.plan.name + (s.status === 'trial' ? ' · essai' : '') : 'Votre Studio : Découverte') + '</h2>';
+        h += '<h2 id="planTitle">' + esc(s.unlocked ? 'Studio ' + s.plan.name + (s.status === 'trial' ? ' · essai' : s.status === 'included' ? ' · inclus' : '') : 'Votre Studio : Découverte') + '</h2>';
         h += '<p>' + esc(statusText(s)) + '</p>';
       }
       if (s.unlocked) {
@@ -234,6 +235,7 @@
       if (s.status === 'active') return (s.period === 'an' ? 'Annuel' : 'Mensuel') + ', renouvellement le ' + P.date(s.periodEnd) + '.' + (s.pending ? ' Passage à ' + P.planById(s.pending.plan).name + ' à cette date.' : '');
       if (s.status === 'canceling') return 'Annulé : tout reste débloqué jusqu’au ' + P.date(s.periodEnd) + ', puis le Studio repasse en Découverte.';
       if (s.status === 'due') return 'Votre période est terminée : renouvelez avant le ' + P.date(s.endsAt) + ' pour garder tout le Studio.';
+      if (s.status === 'included') return 'Inclus dans votre formule boutique ' + s.boutiquePlanName + ' : l’éditeur simple et tout le Studio, sans abonnement en plus.';
       return 'Le Studio est gratuit sur votre boutique, avec des limites. Un abonnement, ou l’essai de 14 jours, débloque tout.';
     }
 

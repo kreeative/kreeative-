@@ -250,6 +250,8 @@ window.JEERE_EN = {
   'price.fee1': '1% per online sale',
   'price.fee0': '0% per online sale',
   'price.p1for': 'To get started',
+  'price.ed1': 'Simple editor',
+  'price.ed2': 'Both editors: simple and Studio pro',
   'price.pick': 'For most sellers',
   'price.p2': 'Essential',
   'price.p2price': '3,500',

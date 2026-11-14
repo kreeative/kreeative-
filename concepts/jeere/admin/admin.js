@@ -339,6 +339,7 @@
         const x = Array.isArray(list) && list[0] ? list[0] : null;
         const before = S.storePlans[sid] && S.storePlans[sid].plan;
         S.storePlans[sid] = x ? { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() } : { at: Date.now(), plan: before };
+        if (x && window.JeerePlans && window.JeerePlans.setStorePlan) window.JeerePlans.setStorePlan(sid, x.plan, x.plan_until || '');   // Pro and Business include the Studio
         if (x && x.plan !== before && S.inApp) refresh();
       });
     }
