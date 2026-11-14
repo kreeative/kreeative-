@@ -1679,3 +1679,14 @@ a:not([class]) { font-weight: 600; }
 .a-grid3 { display: grid; gap: 12px; grid-template-columns: 1fr; }
 @media (min-width: 640px) { .a-grid3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .a-label--sm { font-size: 13px; }
+
+/* « Installer Jeere »: the steps, her device first and framed */
+.a-install { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-top: 12px; }
+.a-install.is-mine { border-color: var(--ink); }
+.a-install:not(.is-mine) { opacity: .75; }
+.a-install__t { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; font-weight: 700; }
+.a-install__t small { font-weight: 500; font-size: 12.5px; color: var(--muted); }
+.a-install__steps { margin: 0; padding: 0; list-style: none; counter-reset: ins; display: grid; gap: 6px; font-size: 14px; line-height: 1.45; }
+.a-install__steps li { counter-increment: ins; padding-left: 24px; position: relative; }
+.a-install__steps li::before { content: counter(ins) '.'; position: absolute; left: 0; font-weight: 700; }
+.a-install__steps .a-ico { width: 16px; height: 16px; vertical-align: -3px; }

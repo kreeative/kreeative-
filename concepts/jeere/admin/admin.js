@@ -4255,6 +4255,34 @@
     const j = await pushCall({ action: 'test' });
     toast((j && j.message) || 'Le test n’est pas parti.', { ms: 5000 });
   }
+  /* ---------------------------------------------------------------- install the app (home screen, dock)
+   * Android and desktop Chrome / Edge hand us their own install prompt (beforeinstallprompt): one tap. Elsewhere
+   * (iPhone above all) the steps are shown, the ones of HER device first. */
+  let installEvt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; });
+  window.addEventListener('appinstalled', () => { installEvt = null; if (S.inApp) refresh(); });
+  function installOpen() {
+    if (installEvt) { const ev = installEvt; installEvt = null; try { ev.prompt(); return; } catch (e) { /* the steps */ } }
+    const ua = navigator.userAgent || '';
+    const dev = isIos() ? 'ios' : (/Android/i.test(ua) ? 'android' : 'desktop');
+    const box = (id, icon, title, sub, steps) => H`<section class="a-install${dev === id ? ' is-mine' : ''}"><h3 class="a-install__t">${ico(icon)}<span>${esc(title)}</span><small>${esc(sub)}</small></h3><ol class="a-install__steps">${steps.map((s) => H`<li>${s}</li>`)}</ol></section>`;
+    const all = {
+      ios: box('ios', 'phone', 'iPhone / iPad', 'Safari', ['Ouvrez Jeere dans <strong>Safari</strong>.', 'Touchez <strong>Partager</strong> ' + ico('upload') + ' en bas de l’écran.', 'Touchez <strong>« Sur l’écran d’accueil »</strong>.', 'Confirmez avec <strong>« Ajouter »</strong>.']),
+      android: box('android', 'phone', 'Android', 'Chrome', ['Ouvrez Jeere dans <strong>Chrome</strong>.', 'Touchez le menu <strong>⋮</strong> en haut à droite.', 'Touchez <strong>« Installer l’application »</strong> (ou « Ajouter à l’écran d’accueil »).', 'Confirmez avec <strong>« Installer »</strong>.']),
+      desktop: box('desktop', 'desktop', 'Ordinateur', 'Chrome, Edge', ['Ouvrez Jeere dans <strong>Chrome</strong> ou <strong>Edge</strong>.', 'Cliquez l’icône <strong>Installer</strong> ' + ico('download') + ' au bout de la barre d’adresse.', 'Confirmez avec <strong>« Installer »</strong>.'])
+    };
+    const order = [dev].concat(['ios', 'android', 'desktop'].filter((x) => x !== dev));
+    openDialog(H`<div class="a-dialog__card">${dlgHead('ins-t', 'Installer Jeere')}
+      <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Quelques secondes. Jeere s’ouvre ensuite depuis son icône, comme une application.'))}</p>${order.map((k) => all[k])}</div>
+      <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close>Fermer</button></div></div>`, { labelledby: 'ins-t' });
+  }
+  function installCard() {
+    if (isStandalone()) return '';
+    return H`<section class="a-card" aria-labelledby="h-install"><div class="a-card__head"><div><h3 class="a-card__title" id="h-install">Installer l’application</h3>
+      <p class="a-card__sub">${esc(fr('Jeere sur votre écran d’accueil, avec ses notifications.'))}</p></div></div>
+      <div class="a-btnrow"><button class="a-btn a-btn--primary" type="button" data-act="install">${ico('download')}Installer Jeere</button></div></section>`;
+  }
+
   function pushCard() {
     if (!S.push) { S.push = { state: 'loading' }; pushState().then((x) => { S.push = x; if (S.route && S.route.name === 'parametres') refresh(); }); }
     const st = S.push.state;
@@ -4269,7 +4297,8 @@
     }[st] || '';
     const btn = st === 'on'
       ? H`<button class="a-btn a-btn--ghost" type="button" data-act="push-test">Envoyer un test</button><button class="a-btn a-btn--quiet" type="button" data-act="push-off">Couper sur cet appareil</button>`
-      : (st === 'off' ? H`<button class="a-btn a-btn--primary" type="button" data-act="push-on"${real ? '' : ' disabled'}>Activer les notifications</button>` : '');
+      : (st === 'off' ? H`<button class="a-btn a-btn--primary" type="button" data-act="push-on"${real ? '' : ' disabled'}>Activer les notifications</button>`
+        : (st === 'ios-install' ? H`<button class="a-btn a-btn--primary" type="button" data-act="install">Voir comment installer</button>` : ''));
     return H`<section class="a-card" aria-labelledby="h-push"><div class="a-card__head"><div><h3 class="a-card__title" id="h-push">Notifications sur cet appareil</h3>
         <p class="a-card__sub">${esc(fr(text))}</p></div>${st === 'on' ? H`<span class="a-pill a-tone--ok">Activées</span>` : ''}</div>
       ${!real && st === 'off' ? H`<p class="a-small">${esc(fr('Connectez-vous à votre compte Jeere (pas la démo) pour les activer.'))}</p>` : ''}
@@ -4279,7 +4308,7 @@
   function setNotifications() {
     const n = S.admin.settings.notifications;
     const row = (key, label, hint) => switchRow({ id: 'n-' + key, label, hint, checked: n[key] === true, attrs: 'data-notif="' + key + '"' });
-    return H`${pushCard()}<section class="a-card" aria-labelledby="h-notif"><div class="a-card__head" style="margin-bottom:4px"><div><h3 class="a-card__title" id="h-notif">Prévenez-moi</h3><p class="a-card__sub">Sur le numéro ${esc(phoneFmt((S.account && S.account.phone) || S.admin.settings.payoutPhone) || 'de votre compte')}.</p></div></div>
+    return H`${installCard()}${pushCard()}<section class="a-card" aria-labelledby="h-notif"><div class="a-card__head" style="margin-bottom:4px"><div><h3 class="a-card__title" id="h-notif">Prévenez-moi</h3><p class="a-card__sub">Sur le numéro ${esc(phoneFmt((S.account && S.account.phone) || S.admin.settings.payoutPhone) || 'de votre compte')}.</p></div></div>
       ${row('newOrderWhatsapp', 'Nouvelle commande sur WhatsApp', 'Un message dès qu’une commande arrive, avec le détail.')}
       ${row('newOrderSms', 'Nouvelle commande par SMS', 'Utile quand vous n’avez pas internet.')}
       ${row('dailySummary', 'Résumé du jour', 'Chaque soir : les ventes, les commandes à préparer, l’argent reçu.')}
@@ -4524,6 +4553,7 @@
     'proj-shop': (el) => openShopProject(el),
     'stripe-connect': (el) => stripeConnect(el),
     'push-on': () => pushOn(),
+    'install': () => installOpen(),
     'push-off': () => pushOff(),
     'push-test': () => pushTest(),
     'carte-start': () => { const c = $('#sc-country'); S.stripeCountry = c ? c.value : ''; const card = c && c.closest('.a-card'); if (card) card.hidden = true; mountCarte('activer', S.stripeCountry); },
