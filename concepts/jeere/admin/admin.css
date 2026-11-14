@@ -1205,7 +1205,7 @@ a.a-kpi__part:hover { background: var(--grey-1); }
 .a-planwarn strong { font-weight: 500; }
 
 /* Preview card: three actions */
-.a-preview .a-card__foot.a-preview__foot { grid-template-columns: 1fr 1fr 1fr; }
+.a-preview .a-card__foot.a-preview__foot { grid-template-columns: 1fr 1fr; }   /* Personnaliser on its line, Voir and Partager a half each */
 .a-preview__foot .a-btn { padding: 0 8px; }
 .a-preview__foot .a-btn:first-child { grid-column: 1 / -1; }
 @media (min-width: 1100px) { .a-preview .a-card__foot.a-preview__foot { grid-template-columns: 1fr 1fr; } }

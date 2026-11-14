@@ -1663,7 +1663,7 @@
       b.type = 'button';
       b.addEventListener('click', function () { startEdit(sel.el, sel.frame); });
       var bs = ce('div', 'sk-btns'); bs.appendChild(b); s.appendChild(bs);
-      s.appendChild(ce('p', 'sk-note', SIMPLE ? 'Ou touchez le texte une seconde fois sur la page.' : 'Ou double-cliquez le texte. Entrée valide, Maj + Entrée passe à la ligne, Échap termine.'));
+      if (!SIMPLE) s.appendChild(ce('p', 'sk-note', 'Ou double-cliquez le texte. Entrée valide, Maj + Entrée passe à la ligne, Échap termine.'));
     }
     // image
     var img = imgOf(el);

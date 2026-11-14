@@ -64,21 +64,20 @@
     if (!list.length) {
       // nothing new: the site, its address and its state, and a way to open it
       var none = A.ce('div');
-      none.innerHTML = '<p>Le site en ligne est à jour : aucune modification à publier. Modifiez une page, puis revenez ici.</p>' +
+      none.innerHTML = '<p>Aucune modification à publier.</p>' +
         '<div class="sk-actions"><button class="sk-ghost" type="button" data-close>Fermer</button>' +
         (site.liveUrl ? '<a class="sk-primary sk-btnlink" href="' + A.esc(site.liveUrl) + '" target="_blank" rel="noopener">Voir le site ↗</a>' : '') + '</div>';
       box.appendChild(none);
       A.openModal('Publier', box, { width: '560px' });
       return;
     }
-    box.appendChild(A.ce('p', null, A.plural(list.length, 'fichier part', 'fichiers partent') + ' en <b>une seule</b> publication. Tout le reste du site reste identique.'));
     box.appendChild(A.fileRows(list, true));
     var draftName = 'studio/brouillon-' + (C.slugify(site.id).slice(0, 30) || 'site') + '-' + stamp(new Date());
     var dest = A.ce('div', 'sk-dest');
     dest.innerHTML =
-      '<label><b><input type="radio" name="skTarget" value="live" checked> Mettre en ligne</b><small>' +
-      (isDefault ? 'Sur kreeative.xyz : le site se met à jour en une ou deux minutes.' : 'Dans ' + A.esc(bl(site.branch)) + ', la seule où vit ce site (aperçu Vercel).') + '</small></label>' +
-      '<label><b><input type="radio" name="skTarget" value="draft"> Brouillon</b><small>Une copie à part de ' + A.esc(bl(site.branch)) + ' : Vercel en fait un aperçu, le site en ligne ne change pas.</small></label>';
+      // the two choices, by name only: what each does is said once it is done (the toast, the result)
+      '<label title="' + (isDefault ? 'Le site en ligne se met à jour en une ou deux minutes' : 'Dans ' + A.esc(bl(site.branch)) + ', la seule où vit ce site') + '"><b><input type="radio" name="skTarget" value="live" checked> Mettre en ligne</b></label>' +
+      '<label title="Une copie à part : le site en ligne ne change pas"><b><input type="radio" name="skTarget" value="draft"> Brouillon</b></label>';
     box.appendChild(dest);
     var bwrap = A.ce('label', 'sk-field');
     bwrap.innerHTML = '<span>Nom du brouillon</span><input class="sk-input" id="skDraft" spellcheck="false" autocomplete="off">';
@@ -89,7 +88,7 @@
     msg.innerHTML = '<span>Message de la publication</span><textarea class="sk-textarea" id="skMsg" rows="3" spellcheck="true"></textarea>';
     box.appendChild(msg);
     var auth = A.config.author;
-    box.appendChild(A.ce('p', 'sk-note', 'Autrice : ' + A.esc(auth.name) + ' &lt;' + A.esc(auth.email) + '&gt; · dépôt ' + A.esc(M.repo) + (A.demo ? ' · <b>mode démo</b>' : '')));
+    if (A.demo) box.appendChild(A.ce('p', 'sk-note', '<b>Mode démo</b>'));
     var status = A.ce('div');
     status.id = 'skPubStatus';
     status.style.marginTop = '12px';
@@ -97,7 +96,8 @@
     var act = A.ce('div', 'sk-actions');
     act.innerHTML = '<button class="sk-ghost" type="button" id="skZip">Télécharger les fichiers (.zip)</button><button class="sk-primary" type="button" id="skGo">Publier</button>';
     box.appendChild(act);
-    A.openModal('Publier ' + site.title, box, { width: '680px' });
+    msg.classList.add('sk-pubmsg');
+    A.openModal('Publier', box, { width: '560px' });
     $('skDraft').value = draftName;
     $('skMsg').value = defaultMessage(site, list);
     dest.addEventListener('change', function () { bwrap.hidden = target() !== 'draft'; $('skGo').textContent = target() === 'draft' ? 'Publier le brouillon' : 'Publier'; });
@@ -124,13 +124,13 @@
     var h = A.ce('div');
     var bar = A.ce('div', 'sk-pubhead');
     var state = !live ? '<i class="is-off"></i>Pas encore en ligne' + (site.onlyOnBranch ? ' · ' + A.esc(bl(site.branch)) : '') :
-      list.length ? '<i class="is-warn"></i>En ligne · ' + A.plural(list.length, 'modification non publiée', 'modifications non publiées') :
+      list.length ? '<i class="is-warn"></i>' + A.plural(list.length, 'modification à publier', 'modifications à publier') :
       '<i></i>En ligne · à jour';
     bar.innerHTML = '<img class="sk-pubhead__img" alt="" src="' + A.esc(site.thumbnail) + '" onerror="this.remove()">' +
       '<div class="sk-pubhead__t"><b>' + A.esc(site.title) + '</b>' +
       (live ? '<div class="sk-pubhead__url"><a href="' + A.esc(live) + '" target="_blank" rel="noopener">' + A.esc(live.replace(/^https?:\/\//, '').replace(/\/$/, '')) + ' ↗</a>' +
         '<button class="sk-linkbtn" type="button" data-copy>Copier le lien</button></div>' : '') +
-      '<div class="sk-pubhead__state">' + state + (site.updated && site.updated.date ? ' · dernière mise à jour le ' + A.esc(A.fmtDate(site.updated.date)) : '') + '</div></div>';
+      '<div class="sk-pubhead__state">' + state + '</div></div>';
     h.appendChild(bar);
     if (page && page !== live) {
       var cur = A.page();

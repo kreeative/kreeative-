@@ -44,6 +44,7 @@
   .sk-simple .sk .st-right { left: 0; right: 0; top: auto; bottom: 0; width: auto; height: min(68dvh, 560px); border-left: 0; border-radius: 18px 18px 0 0; transform: translateY(105%); z-index: 70; }
   .sk-simple .sk.is-right-open .st-right { transform: none; }
   .sk-simple .st-right__tabs, .sk-simple .sk-path { display: none; }
+  .sk-simple .st-right__sub, .sk-simple .sk-sec__t small { display: none; }   /* no tag names on a phone */
   .sk-simple .st-right__head { min-height: 52px; padding-left: 16px; }
   .sk-simple .st-right .st-paneltoggle { width: 44px; height: 44px; }
 
@@ -52,4 +53,8 @@
   .sk-simple .sk-modal { padding: 10px; align-items: flex-end; }
   .sk-simple .sk-modal__card { width: 100%; max-width: none; max-height: 88dvh; overflow: auto; border-radius: 18px; }
   .sk-simple .sk-help { grid-template-columns: 1fr; }
+  /* publishing on a phone: the site, the two choices, the button — not the files, the message or the .zip */
+  .sk-simple .sk-files, .sk-simple .sk-pubmsg, .sk-simple #skZip, .sk-simple .sk-pubpage, .sk-simple .sk-pubhead__url .sk-linkbtn { display: none; }
+  .sk-simple .sk-dest { grid-template-columns: 1fr 1fr; }
+  .sk-simple .sk-actions .sk-primary { flex: 1; height: 48px; font-size: 15px; }
 }

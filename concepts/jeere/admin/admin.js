@@ -1405,7 +1405,7 @@
     ];
   }
   function stepItem(s, hidden) {
-    const inner = H`<span class="a-step__ring">${s.done ? ico('check') : ''}</span><span class="a-step__txt"><span class="a-sr">${s.done ? 'Fait' + NB + ': ' : 'À faire' + NB + ': '}</span><span class="a-step__title">${esc(fr(s.title))}</span><span class="a-step__hint">${esc(fr(s.hint))}</span></span>${ico('chev', 'a-step__go')}`;
+    const inner = H`<span class="a-step__ring">${s.done ? ico('check') : ''}</span><span class="a-step__txt"><span class="a-sr">${s.done ? 'Fait' + NB + ': ' : 'À faire' + NB + ': '}</span><span class="a-step__title">${esc(fr(s.title))}</span><span class="a-step__hint a-sr">${esc(fr(s.hint))}</span></span>${ico('chev', 'a-step__go')}`;
     const cls = 'a-step' + (s.done ? ' is-done' : '');
     const data = H` data-step="${esc(s.id || '')}"`;
     const link = s.button
@@ -1516,7 +1516,7 @@
       <div class="a-meter"><div class="a-meter__row"><span>Commandes ce mois-ci</span><strong>${p.orders ? esc(number(used) + ' sur ' + number(p.orders)) : esc(number(used)) + ' · illimitées'}</strong></div>
         ${p.orders ? H`<div class="a-progress__bar" aria-hidden="true"><div class="a-progress__fill${pct >= 80 ? ' is-high' : ''}" style="width:${pct}%"></div></div>` : ''}</div>
       ${L.near ? H`<p class="a-planwarn">${ico('alert')}<span><strong>${esc(fr(L.left ? 'Plus que ' + plural(L.left, 'commande', 'commandes') + ' ce mois-ci.' : 'Vous avez atteint ' + p.orders + ' commandes ce mois-ci.'))}</strong> ${esc(fr(L.policy))}</span></p>` : ''}
-      <p class="a-small" style="margin-top:10px">Toutes les fonctions et l’aide d’une vraie personne sont dans chaque formule.${hasDemoOrders() ? ' Commandes : données d’exemple.' : ''}</p>
+
     </section>`;
   }
   function viewHome() {
@@ -1526,7 +1526,7 @@
     let html = H`<div class="a-page">
       <header class="a-ph"><div class="a-ph__txt"><p class="a-eyebrow">${esc(cap(dateLong(S.now)))}</p>
         <h1 class="a-h1" tabindex="-1">${esc(hello)}</h1>
-        <p class="a-sub">${cfg ? H`Voici où en est ${esc(cfg.store.name || 'votre boutique')}.` : 'Votre boutique vous attend.'}</p></div></header>`;
+        ${cfg ? '' : '<p class="a-sub">Votre boutique vous attend.</p>'}</div></header>`;
     if (!cfg) return html + H`<div class="a-stack">${noStoreCard()}${planCard()}</div></div>`;
     const orders = S.admin.orders;
     const rec = recentOrders();
@@ -1552,7 +1552,7 @@
       ${founder() ? growthCard() : ''}
       ${checkHidden ? '' : H`<section class="a-card a-home__check${allDone ? ' is-ready' : ''}" aria-labelledby="h-check">
         <div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-check">${allDone ? 'Votre boutique est prête' : 'Premiers pas'}</h2>
-          <p class="a-card__sub">${allDone ? 'Les ' + steps.length + ' étapes sont faites. Il ne reste plus qu’à la mettre en ligne.' : 'Les étapes qui comptent avant d’ouvrir. Elles se cochent toutes seules.'}</p></div>
+</div>
           <button class="a-btn a-btn--quiet a-btn--sm a-home__hide" type="button" data-act="checklist-hide" aria-label="Masquer les premiers pas">${ico('x')}<span class="a-home__hidelbl">Masquer</span></button></div>
         <div class="a-progress"><div class="a-progress__bar" role="progressbar" aria-label="Étapes faites" aria-valuemin="0" aria-valuemax="${steps.length}" aria-valuenow="${done}"><div class="a-progress__fill a-progress__fill--rainbow" style="width:${Math.round((done / steps.length) * 100)}%;--p:${Math.max(1, Math.round((done / steps.length) * 100))}"></div></div><span class="a-progress__txt">${done} sur ${steps.length}</span></div>
         ${allDone ? H`<div class="a-card__foot"><button class="a-btn a-btn--primary a-btn--lg" type="button" data-act="publish">${ico('rocket')}Publier ma boutique</button></div>` : ''}
@@ -1564,18 +1564,18 @@
         <div class="a-kpis">
           <div class="a-kpi a-kpi--sales"><span class="a-kpi__label">${ico('wallet')}Ventes · 10 derniers jours</span><span class="a-kpi__value">${money(m.collected + m.due + m.pending)}</span>
             <span class="a-kpi__split">
-              <span class="a-kpi__part"><span class="a-kpi__k"><span class="a-dot a-tone--ok" aria-hidden="true"></span>Encaissé</span><strong>${esc(price(m.collected))}</strong><span class="a-kpi__sub">Mobile money, carte et livraisons payées</span></span>
+              <span class="a-kpi__part"><span class="a-kpi__k"><span class="a-dot a-tone--ok" aria-hidden="true"></span>Encaissé</span><strong>${esc(price(m.collected))}</strong></span>
               <a class="a-kpi__part" href="#commandes?statut=a-encaisser"><span class="a-kpi__k"><span class="a-dot a-tone--warn" aria-hidden="true"></span>À encaisser</span><strong>${esc(price(m.due))}</strong><span class="a-kpi__sub">${m.withCouriers ? esc(fr('dont ' + price(m.withCouriers) + ' chez vos livreurs')) : 'Paiement à la livraison'}</span></a>
-              ${m.pending ? H`<span class="a-kpi__part"><span class="a-kpi__k"><span class="a-dot a-tone--warn" aria-hidden="true"></span>En attente</span><strong>${esc(price(m.pending))}</strong><span class="a-kpi__sub">Paiements mobile money pas encore validés</span></span>` : ''}
+              ${m.pending ? H`<span class="a-kpi__part"><span class="a-kpi__k"><span class="a-dot a-tone--warn" aria-hidden="true"></span>En attente</span><strong>${esc(price(m.pending))}</strong></span>` : ''}
             </span></div>
           <a class="a-kpi" href="#commandes"><span class="a-kpi__label">${ico('receipt')}Commandes</span><span class="a-kpi__value">${esc(number(st.count))}</span><span class="a-kpi__sub">${st.cancelled ? esc(plural(st.cancelled, 'annulée', 'annulées') + (st.failed ? ', dont ' + plural(st.failed, 'livraison échouée', 'livraisons échouées') : '')) : 'Aucune annulée'}</span></a>
-          <div class="a-kpi"><span class="a-kpi__label">${ico('bag')}Panier moyen</span><span class="a-kpi__value">${money(st.avg)}</span><span class="a-kpi__sub">Livraison comprise</span></div>
-          <a class="a-kpi" href="#commandes?statut=a-preparer"><span class="a-kpi__label">${ico('clock')}Commandes à préparer</span><span class="a-kpi__value">${esc(number(todo))}</span><span class="a-kpi__sub">Nouvelles et payées</span></a>
+          <div class="a-kpi"><span class="a-kpi__label">${ico('bag')}Panier moyen</span><span class="a-kpi__value">${money(st.avg)}</span></div>
+          <a class="a-kpi" href="#commandes?statut=a-preparer"><span class="a-kpi__label">${ico('clock')}Commandes à préparer</span><span class="a-kpi__value">${esc(number(todo))}</span></a>
         </div>
-        <div class="a-card" style="margin-top:10px"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title">Ventes par jour et par canal</h3><p class="a-card__sub">${hasDemoOrders() ? 'Les 10 derniers jours, avec des commandes d’exemple' : 'Les 10 derniers jours'}</p></div></div>${chart(orders)}</div>
+        <div class="a-card" style="margin-top:10px"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title">Ventes par jour et par canal</h3></div></div>${chart(orders)}</div>
       </section>
       <section class="a-card a-card--flush a-home__orders" aria-labelledby="h-recent">
-        <div class="a-card__head"><div><h2 class="a-card__title" id="h-recent">Dernières commandes</h2><p class="a-card__sub">${hasDemoOrders() ? 'Données d’exemple, faites à partir de vos produits' : 'Les vôtres, de la boutique et de WhatsApp'}</p></div></div>
+        <div class="a-card__head"><div><h2 class="a-card__title" id="h-recent">Dernières commandes</h2></div></div>
         ${recent.length ? H`<ul class="a-rows" style="margin-top:8px">${recent.map(orderRow)}</ul>` : H`<div class="a-empty"><span class="a-empty__ico">${ico('receipt')}</span><p class="a-empty__title">Pas encore de commande</p><p class="a-empty__text">Partagez votre boutique : vos commandes apparaîtront ici. Une commande reçue sur WhatsApp ? Ajoutez-la.</p>
           <div class="a-btnrow"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="share-store">${ico('share')}Partager ma boutique</button></div></div>`}
         <div class="a-card__foot"><a class="a-more-link" href="#commandes">Voir toutes les commandes${ico('chev')}</a></div>
