@@ -320,6 +320,30 @@
   }
 
   applyLang(storedLang() || 'fr');
+
+  // The Jeere store behind this site (jeere-connect.js): what she changes in Jeere (names, details, prices,
+  // photos) replaces what the page was written with. French only: the store is written in French.
+  var JEERE = { wave: 'p1', lisse: 'p2', frontal: 'p3', perruque: 'p4' };
+  function fromJeere() {
+    var J = window.JeereConnect;
+    if (!J || J.status() !== 'ready') return;
+    $$('[data-product]').forEach(function (p) {
+      var id = p.getAttribute('data-id'), x = J.product(JEERE[id]);
+      if (!x) return;
+      if (x.price > 0) { p.setAttribute('data-price', String(x.price)); $$('[data-money]', p).forEach(function (m) { m.setAttribute('data-money', String(x.price)); }); }
+      if (x.name) I18N.fr['n.' + id] = x.name;
+      if (x.description) I18N.fr['m.' + id] = x.description;
+      if (x.image) {
+        p.setAttribute('data-photo', x.image);
+        var img = $('.product__media img', p);
+        if (img && img.getAttribute('src') !== x.image) { img.removeAttribute('srcset'); img.removeAttribute('sizes'); img.setAttribute('src', x.image); }
+      }
+    });
+    applyLang(lang);
+  }
+  document.addEventListener('jeere:ready', fromJeere);
+  document.addEventListener('jeere:update', fromJeere);
+  fromJeere();
   if (motion) initMotion();
   root.classList.remove('motion-pending');
 
