@@ -32,6 +32,7 @@
  *   [data-jeere-checkout]  goes to the Jeere cart (same tab); disabled (aria-disabled on a link) when empty
  * Script attributes: data-store (required), data-default-cart="p1:1,p2:1" (the cart of a first visit only).
  *
+ * 'jeere:update' { status, products } each time the editor's preview sends a new fiche.
  * Events on document: 'jeere:ready' { status, products } once the fiche is read (or not: status 'offline' |
  * 'notfound'), 'jeere:cart' { store, lines, count, total, url } after every change (and on ready).
  * window.JeereConnect = { ready: Promise, status(), products(), product(id), cart(), add(id, q), set(id, q),
@@ -448,6 +449,7 @@
         if (!isObj(e.data) || e.data.jeerePreview !== slug || !isObj(e.data.fiche)) return;
         preview = true;
         try { S.products = readFiche(e.data.fiche); S.status = 'ready'; drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
+        emit('jeere:update', { status: S.status, products: list() });
       });
       try { window.parent.postMessage({ jeereConnect: 'ready', store: slug }, '*'); } catch (e) { /* not framed by the editor */ }
     }
