@@ -4531,7 +4531,17 @@
     'more': () => { const m = $('#a-more'); if (!m) return; dlgReturn = document.activeElement; try { m.showModal(); } catch (e) { m.setAttribute('open', ''); } document.documentElement.classList.add('a-locked'); },
     'logout': () => logout(),
     'view-store': () => (EXT() ? window.open(EXT().site, '_blank', 'noopener') : customSite() ? window.open(customSite().live, '_blank', 'noopener') : openEditor({ page: 'home', view: 'preview' })),
-    'open-editor': (el, e) => { e.preventDefault(); if (customSite()) { window.location.href = '../studio/sites/#/site/' + customSite().site; return; } openEditor({ page: el.getAttribute('data-page') || 'home', pageId: el.getAttribute('data-page-id'), productId: el.getAttribute('data-product-id'), focus: el.getAttribute('data-focus') }); },
+    'open-editor': (el, e) => { e.preventDefault();
+      // her own design: the simple editor (her site as the preview) on any screen, the Studio on a wide one
+      if (customSite() && window.innerWidth >= 700 && !el.hasAttribute('data-product-id')) {
+        const cs = customSite();
+        actionSheet('Modifier ' + storeName(), [
+          { id: 'simple', icon: 'phone', label: 'Éditeur simple', run: () => openEditor({ page: 'home' }) },
+          { href: '../studio/sites/#/site/' + cs.site, icon: 'desktop', label: 'Studio (design du site)' }
+        ]);
+        return;
+      }
+      openEditor({ page: el.getAttribute('data-page') || 'home', pageId: el.getAttribute('data-page-id'), productId: el.getAttribute('data-product-id'), focus: el.getAttribute('data-focus') }); },
     'discard': () => { const h = S.hash; clearDirty(); if (S.drafts[h]) delete S.drafts[h]; refresh(); focusMain(); toast('Modifications ignorées.'); },
     'save': () => { const f = dirtyForm(); if (f) { if (typeof f.requestSubmit === 'function') f.requestSubmit(); else f.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })); } },
     'start-example': () => startExample(),

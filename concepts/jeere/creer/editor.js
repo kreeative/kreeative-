@@ -533,6 +533,45 @@
     updateUndo();
   }
 
+  /* ------------------------------------------------------------------ her own designs
+   * A site designed for her that sells through a Jeere store (../connect/jeere-connect.js): the simple editor
+   * opens it too. The preview is HER site (framed), fed with the fiche being edited; the panel keeps what such a
+   * site takes from the fiche: the products and the store's settings. Its design is drawn in the Studio. */
+  const CUSTOM_SITES = {
+    'anse': 'https://kreeative.xyz/concepts/anse/', 'seve': 'https://kreeative.xyz/concepts/seve/',
+    'soyeuse': 'https://kreeative.xyz/concepts/soyeuse/', 'michou': 'https://kreeative.xyz/concepts/michou/',
+    'regard': 'https://kreeative.xyz/concepts/regard/', 'vernie': 'https://kreeative.xyz/concepts/vernie/',
+    'minuit': 'https://kreeative.xyz/concepts/minuit/', 'joshua-cooker': 'https://kreeative.xyz/concepts/joshua-cooker/',
+    'sonia-luxury-hair': 'https://kreeative.xyz/concepts/sonia-luxury-hair/'
+  };
+  const CUSTOM_TABS = ['produits', 'boutique'];
+  function customSite() {
+    let slug = '';
+    try { slug = (JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {}).slug || ''; } catch (e) { slug = ''; }
+    return CUSTOM_SITES[slug] ? { slug, url: CUSTOM_SITES[slug] } : null;
+  }
+  function sendCustom() {
+    const c = customSite(), fr = els.store && els.store.querySelector('iframe.b-custom');
+    if (!c || !fr || !fr.contentWindow || !S.config) return;
+    try { fr.contentWindow.postMessage({ jeerePreview: c.slug, fiche: S.config }, new URL(c.url).origin); } catch (e) { /* the site keeps its published content */ }
+  }
+  window.addEventListener('message', (e) => { if (e.data && e.data.jeereConnect === 'ready') sendCustom(); });
+  function renderCustomInto(root, c) {
+    let fr = root.querySelector('iframe.b-custom');
+    if (!fr || fr.getAttribute('data-slug') !== c.slug) {
+      root.className = 'b-customwrap';
+      root.textContent = '';
+      fr = document.createElement('iframe');
+      fr.className = 'b-custom';
+      fr.title = 'Votre site';
+      fr.setAttribute('data-slug', c.slug);
+      fr.addEventListener('load', sendCustom);
+      fr.src = c.url;
+      root.appendChild(fr);
+    } else sendCustom();
+    if (els.screen) els.screen.style.background = '#FFFFFF';
+  }
+
   /* ------------------------------------------------------------------ preview */
 
   function previewVisible() { return !isMobile() || S.view === 'preview'; }
@@ -547,6 +586,10 @@
     if (!S.config || !els.store) return;
     if (!previewVisible()) { S.previewDirty = true; return; }
     S.previewDirty = false;
+    const cs = customSite();
+    document.documentElement.classList.toggle('b-is-custom', !!cs);
+    if (cs) { renderCustomInto(els.store, cs); hideHover(); fit(); return; }
+    if (els.store.classList.contains('b-customwrap')) { els.store.className = ''; els.store.textContent = ''; }
     if (S.page === 'product' && !findProduct(S.productId)) S.productId = S.config.products[0] ? S.config.products[0].id : null;
     // The page shown was deleted (undo, import, the dashboard): the first of the seller's pages, else home
     if (S.page === 'page' && !findCustomPage(S.pageId)) {
@@ -869,6 +912,9 @@
   function setTab(tab, opts = {}) {
     if (S.storeView) setStoreView(false);
     if (TABS.indexOf(tab) === -1) tab = 'sections';
+    const custom = !!customSite();
+    document.documentElement.classList.toggle('b-is-custom', custom);
+    if (custom && CUSTOM_TABS.indexOf(tab) === -1) tab = 'produits';
     const changed = tab !== S.tab;
     S.tab = tab;
     els.tabBtns.forEach((b) => {

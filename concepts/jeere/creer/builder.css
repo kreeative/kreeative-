@@ -1324,3 +1324,10 @@ html.qs-open .b-pick { display: none; }
 html.qs-open .jst img.qs-target, html.qs-open .jst .qs-target img { touch-action: none; cursor: grab; }
 /* decorative layers never take a tap: the photo or text under them does (quick style, crop by finger) */
 #b-store .jst-hero-scrim, #b-store .jst-blob, #b-store .jst-wa-deco, #b-store .jst-about-deco { pointer-events: none; }
+
+/* Her own design in the simple editor (html.b-is-custom): the preview is her site, the panel its products and settings */
+.b-customwrap { display: block; }
+.b-custom { display: block; width: 100%; height: 780px; border: 0; background: #fff; }
+.b-device--desktop .b-custom { height: 720px; }
+.b-is-custom .b-tab[data-tab="sections"], .b-is-custom .b-tab[data-tab="theme"], .b-is-custom .b-tab[data-tab="qualite"],
+.b-is-custom [data-page-select] { display: none !important; }

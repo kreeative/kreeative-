@@ -27,6 +27,8 @@
  *                       in an attribute is replaced), and its <template data-jeere-empty> when the cart is empty
  *   [data-jeere-social]  filled with the seller's networks (Instagram, TikTok, Facebook, set in Jeere > Parametres >
  *                        Boutique): one round icon link each, in the site's own colour; hidden when she has none
+ * In the Jeere editor (the site framed as its preview) the fiche being edited is received by postMessage
+ * ({ jeerePreview: <slug>, fiche }, from jeere.kreeative.xyz only) and shown in place of the published one.
  *   [data-jeere-checkout]  goes to the Jeere cart (same tab); disabled (aria-disabled on a link) when empty
  * Script attributes: data-store (required), data-default-cart="p1:1,p2:1" (the cart of a first visit only).
  *
@@ -74,7 +76,11 @@
   function clampQ(q) { return Math.max(0, Math.min(QMAX, Math.round(Number(q) || 0))); }
   function $$(sel, ctx) { try { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); } catch (e) { return []; } }
   function attrSel(name, id) { return '[' + name + '="' + String(id).replace(/["\\]/g, '') + '"]'; }
-  function httpsImg(v) { return typeof v === 'string' && v.length < 600 && /^https:\/\/[^\s"'<>\\]+$/i.test(v) ? v : ''; }
+  var preview = false; // shown inside the Jeere editor, with the fiche being edited (see init)
+  function httpsImg(v) {
+    if (preview && typeof v === 'string' && /^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+\/=]+$/.test(v)) return v; // a photo she just chose, not yet online
+    return typeof v === 'string' && v.length < 600 && /^https:\/\/[^\s"'<>\\]+$/i.test(v) ? v : '';
+  }
   // « 7 000 FCFA », never broken across lines (the money format of creer/render.js)
   // The store's currency (fiche: store.currency): « 7 000 FCFA », « 24,99 $ CA », « 25 € »
   var CUR = { XOF: ['FCFA', 1], CAD: ['$' + NB + 'CA', 100], USD: ['$' + NB + 'US', 100], EUR: ['€', 100] };
@@ -434,7 +440,19 @@
     // Another tab of the same site changed the cart
     window.addEventListener('storage', function (e) { if (e.key === KEY) { loadCart(); prune(); render(); emit('jeere:cart', cartDetail()); } });
     render();
+    // Inside the Jeere editor (« éditeur simple »): the site is its preview. The editor sends the fiche being
+    // edited, not yet published; it replaces the published one on this page only, for her alone.
+    if (window.parent !== window) {
+      window.addEventListener('message', function (e) {
+        if (!/^https:\/\/jeere\.kreeative\.xyz$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
+        if (!isObj(e.data) || e.data.jeerePreview !== slug || !isObj(e.data.fiche)) return;
+        preview = true;
+        try { S.products = readFiche(e.data.fiche); S.status = 'ready'; drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
+      });
+      try { window.parent.postMessage({ jeereConnect: 'ready', store: slug }, '*'); } catch (e) { /* not framed by the editor */ }
+    }
     fetchStore().then(function (r) {
+      if (preview) r = { ok: false, code: S.status }; // the editor's fiche stays
       if (r.ok) {
         try { S.products = readFiche(r.fiche); S.status = 'ready'; } catch (e) { S.products = null; S.status = 'offline'; }
         try { drawSocial(r.fiche); } catch (e) { /* the page keeps its own */ }
