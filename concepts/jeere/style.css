@@ -511,6 +511,9 @@ html:not(.js) .cv__play { display: none; }
 .custom__name { font: 600 17px/1.2 var(--f-text); }
 .custom__name span { margin-left: 8px; font-weight: 400; font-size: 13px; color: var(--muted); }
 .custom__desc { margin-top: 6px; font-size: 14.5px; color: var(--muted); }
+.custom__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.custom__price span { white-space: nowrap; }
+.custom__price b { font: 600 18px/1.2 var(--f-text); color: var(--ink); font-variant-numeric: tabular-nums; }
 .custom__actions { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
 .custom__actions .btn { min-height: 42px; padding: 0 16px; font-size: 14px; }
 .custom__demo { font-size: 14px; text-decoration: none; font-weight: 600; color: var(--ink); }

@@ -180,9 +180,10 @@ window.JEERE_EN = {
 
   'custom.eyebrow': 'Custom-designed models',
   'custom.title': 'Seven models designed by our designer: shops and appointment booking.',
-  'custom.lead': 'The design and code are yours; the demo images belong to their authors and are replaced by your photos.',
+  'custom.lead': 'The design and code are yours; the demo images belong to their authors and are replaced by your photos. Each model costs 50,000 FCFA, paid once, on top of your plan.',
   'custom.choose': 'Choose this model',
   'custom.demo': 'See the demo',
+  'custom.once': 'one-time payment',
   'custom.seve.k': 'Skincare & cosmetics',
   'custom.seve.d': 'Bottles on a cream ground, serif titles, category filters.',
   'custom.soyeuse.k': 'Wigs & bundles',

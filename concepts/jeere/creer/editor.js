@@ -3876,6 +3876,8 @@
     { slug: 'vernie', name: 'VERNIE', kind: 'Ongles · rendez-vous', desc: 'Carte des prestations, demandes à confirmer, rappel la veille.' },
     { slug: 'minuit', name: 'MINUIT', kind: 'Cils et ongles · rendez-vous', desc: 'Noir et champagne, tarifs, conditions, offre du mois.' },
   ];
+  // what a designer model costs, once, on top of the monthly plan (shown on the cards; the same on the home page)
+  const MODEL_PRICE = `50${NB}000${NB}FCFA`;
   function buildTemplateCards() {
     S.startBuilt = true;
     const box = els.tpls;
@@ -3889,6 +3891,7 @@
         el('div', { class: 'b-tcard__body' },
           el('div', { class: 'b-tcard__head' }, el('h3', { class: 'b-tcard__name', text: m.name }), el('span', { class: 'b-chip', text: m.kind })),
           el('p', { class: 'b-tcard__desc', text: m.desc }),
+          el('p', { class: 'b-tcard__price' }, el('b', { text: MODEL_PRICE }), el('span', { text: 'payé une seule fois' })),
           el('a', { class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', href: `../admin/#boutique=${m.slug}`, 'aria-label': `Choisir le modèle ${m.name}` },
             el('span', { class: 'b-lbl-long', text: 'Choisir ce modèle' }), el('span', { class: 'b-lbl-short', text: 'Choisir' }), icon('i-arrow')),
           el('a', { class: 'b-tcard__demo', href: demo, target: '_blank', rel: 'noopener', text: 'Voir la démo' }))));
