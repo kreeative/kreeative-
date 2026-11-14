@@ -513,6 +513,9 @@ html:not(.js) .cv__play { display: none; }
 .custom__desc { margin-top: 6px; font-size: 14.5px; color: var(--muted); }
 .custom__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
 .custom__price span { white-space: nowrap; }
+.custom__price s { font-size: 14px; color: var(--muted); text-decoration-thickness: 1.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.custom__price s .vh { text-decoration: none; }
+.custom__promo { padding: 2px 8px; border-radius: 999px; background: var(--ink); color: #fff; font: 600 12px/1.5 var(--f-text); font-style: normal; white-space: nowrap; }
 .custom__price b { font: 600 18px/1.2 var(--f-text); color: var(--ink); font-variant-numeric: tabular-nums; }
 .custom__actions { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
 .custom__actions .btn { min-height: 42px; padding: 0 16px; font-size: 14px; }
