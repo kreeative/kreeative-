@@ -330,3 +330,8 @@ h2 { font-size: clamp(34px, 4.2vw, 62px); font-weight: 300; }
   .photo, .panier, .voile { transition: none; }
   .sac:hover .photo, .hero__piece:hover .photo, .atelier__piece:hover .photo { transform: none; }
 }
+
+/* The demonstration bar: one line, « Voir plus » on the right (the details are on mentions-legales/) */
+.concept-bar p { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 auto; max-width: 1200px; white-space: nowrap; }
+.concept-bar strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.concept-bar a.concept-bar__more { flex: none; text-decoration: none; font-weight: 600; font-size: 11px; line-height: 1; padding: 6px 12px; border: 1px solid currentColor; border-radius: 999px; }
