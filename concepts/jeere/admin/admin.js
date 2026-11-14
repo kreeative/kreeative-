@@ -1300,7 +1300,8 @@
     if (!stage) return;
     const o = opts || {};
     const frame = $('.a-mini', stage);
-    const screen = $('.a-mini__screen', stage);
+    const screen = $('.a-mini__page', stage) || $('.a-mini__screen', stage);   // inside the iPhone: under its status bar
+    const iphone = frame && frame.classList.contains('a-iphone');
     const R = window.JeereRender;
     if (!frame || !screen) return;
     const cs = customSite();
@@ -1309,7 +1310,7 @@
       screen.innerHTML = '';
       const f = document.createElement('iframe');
       f.src = cs.live; f.title = 'Aperçu du site'; f.loading = 'lazy'; f.tabIndex = -1;
-      f.setAttribute('style', 'width:390px;height:820px;border:0;display:block;background:#fff');
+      f.setAttribute('style', (iphone ? 'width:402px;height:812px' : 'width:390px;height:820px') + ';border:0;display:block;background:#fff');
       screen.appendChild(f);
     } else if (!R || !cfg) return;
     else {
@@ -1320,14 +1321,16 @@
     }
     const fit = () => {
       const w = stage.clientWidth || 300;
-      const s = Math.max(0.3, Math.min(o.max || 0.62, (w - 24) / 406));
+      const s = Math.max(0.3, Math.min(o.max || 0.62, (w - 24) / (iphone ? 450 : 406)));
       frame.style.setProperty('--s', String(s));
     };
     fit();
     if (window.ResizeObserver) { try { new ResizeObserver(fit).observe(stage); } catch (e) { /* ignore */ } }
   }
+  const IPHONE_STATUS = '<div class="a-iphone__status"><span class="a-iphone__time">9:41</span><span class="a-iphone__icons"><svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="12"><path d="M8 2.6c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .8 10.4 10.4 0 0 0 .8 3.7L2 5c1.6-1.5 3.7-2.4 6-2.4Zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.7 6.7 0 0 0 8 4.4c-1.8 0-3.4.7-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3Zm0 3.6c-.4 0-.8.2-1.1.4L8 11.4l1.1-1.2c-.3-.2-.7-.4-1.1-.4Z"/></svg><span class="a-iphone__batt"><i></i></span></span></div>';
   function miniStage(label) {
-    return H`<div class="a-ministage" aria-hidden="true" inert data-mini><div class="a-mini"><div class="a-mini__screen"></div></div></div>${label ? H`<span class="a-sr">${esc(label)}</span>` : ''}`;
+    // the same iPhone as the gate's: Apple's own bezel (img/iphone-18-pro-silver.webp) around the store, its status bar on top
+    return H`<div class="a-ministage" aria-hidden="true" inert data-mini><div class="a-mini a-iphone a-iphone--live"><div class="a-mini__screen">${IPHONE_STATUS}<div class="a-mini__page"></div></div><img class="a-iphone__frame" alt="" src="img/iphone-18-pro-silver.webp" width="450" height="920" decoding="async"></div></div>${label ? H`<span class="a-sr">${esc(label)}</span>` : ''}`;
   }
 
   /* ------------------------------------------------------------------ ACCUEIL */

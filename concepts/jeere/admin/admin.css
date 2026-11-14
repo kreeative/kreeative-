@@ -1592,6 +1592,10 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
   background: #FEFADC; padding-top: 62px; box-sizing: border-box; }
 .a-iphone .a-mini__shot { height: 100%; }
 .a-iphone__frame { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 6; pointer-events: none; }
+/* the same iPhone around the live preview of her store (Accueil, Apparence): a white screen, the store under the status bar */
+.a-iphone--live { top: 18px; }
+.a-iphone--live .a-mini__screen { background: var(--white); }
+.a-mini__page { width: 402px; height: 812px; overflow: hidden; background: var(--white); }
 .a-iphone__status {
   position: absolute; z-index: 3; top: 0; left: 0; right: 0; height: 62px; display: flex; align-items: center; justify-content: space-between;
   padding: 2px 34px 0 52px; color: #111; font: 600 17px/1 -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif; letter-spacing: -.01em;
