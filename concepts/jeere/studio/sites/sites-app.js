@@ -189,6 +189,11 @@
     try { var v = JSON.parse(localStorage.getItem('jeere-sites-widths')); if (Array.isArray(v)) { v = v.filter(function (w) { return WIDTHS.some(function (x) { return x.w === w; }); }); if (v.length) return v; } } catch (e) { /* default */ }
     return [390, 1440];
   })();
+  /* « Studio simplifié » (a phone, under 700 px): one phone-width preview that fills the screen, the page's own
+     scroll, a tap to choose and a second tap to rewrite, the selection's actions in a bar at the bottom. The same
+     engine and the same publication as the full editor: only the chrome is lighter. */
+  var SIMPLE = (function () { try { return matchMedia('(max-width: 699px)').matches; } catch (e) { return false; } })();
+  if (SIMPLE) { shown = [390]; doc.documentElement.classList.add('sk-simple'); }
 
   function setView(v) { $('sk').setAttribute('data-view', v); $('skEditor').hidden = v !== 'edit'; $('skGate').hidden = v !== 'gate'; }
   // « Tous mes sites »: the projects home, in the dashboard's look (the demo flag goes along)
@@ -746,7 +751,7 @@
     var ww = padX + frames.reduce(function (n, f) { return n + f.w; }, 0) + gap * (frames.length - 1);
     var wh = padY + Math.max.apply(null, frames.map(function (f) { return f.h; }));
     var z = zoom;
-    if (z == null) z = clamp((stage.clientWidth - 16) / ww, 0.1, 1);   // fit the width: a long page scrolls on the canvas
+    if (z == null) z = SIMPLE ? stage.clientWidth / ww : clamp((stage.clientWidth - 16) / ww, 0.1, 1);   // fit the width: a long page scrolls on the canvas
     world.style.transform = 'scale(' + z + ')';
     world.style.setProperty('--inv', String(1 / z));
     sizer.style.width = Math.ceil(ww * z) + 'px';
@@ -803,13 +808,28 @@
       if (editing && editing.frame === f && editing.el.contains(e.target)) return;
       e.preventDefault(); e.stopImmediatePropagation();
     }, true);
+    var tap = null;
     w.addEventListener('pointerdown', function (e) {
       if (mode !== 'edit') return;
       if (editing && editing.frame === f && editing.el.contains(e.target)) return;
       e.stopImmediatePropagation();
+      if (SIMPLE) { tap = { x: e.clientX, y: e.clientY, t: e.target }; return; }
       if (editing) endEdit(false);
       var el = pickable(f, e.target);
       if (el) select(el, f);
+    }, true);
+    w.addEventListener('pointercancel', function () { tap = null; }, true);
+    w.addEventListener('pointerup', function (e) {
+      if (!SIMPLE || !tap || mode !== 'edit') return;
+      var t = tap; tap = null;
+      if (Math.abs(e.clientX - t.x) > 10 || Math.abs(e.clientY - t.y) > 10) return;   // a scroll, not a tap
+      if (editing && editing.frame === f && editing.el.contains(t.t)) return;
+      if (editing) endEdit(false);
+      var el = pickable(f, t.t);
+      if (!el) return;
+      var again = sel && sel.el === el && sel.frame === f;
+      select(el, f);
+      if (again) { var s0 = srcOf(); if (s0 && isTextual(s0)) startEdit(el, f, e.clientX, e.clientY); }
     }, true);
     w.addEventListener('dblclick', function (e) {
       if (mode !== 'edit') return;
@@ -889,7 +909,7 @@
         if (c && o.win) { try { var r = c.getBoundingClientRect(); if (r.top < 0 || r.bottom > o.h) c.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch (e) { /* ok */ } }
       });
       if (!keepTab && tab === 'code') { /* keep */ }
-      if (innerWidth < 900) { $('sk').classList.add('is-right-open'); syncPanels(); }
+      if (innerWidth < 900 && !SIMPLE) { $('sk').classList.add('is-right-open'); syncPanels(); }
     }
     paintBoxes();
     refreshPanel(true);
@@ -935,6 +955,18 @@
       bar.appendChild(b);
     }
     var el = sel.el;
+    if (SIMPLE) {
+      var what = ce('span', 'sk-selbar__what', esc(kindName(String(el.localName))));
+      bar.appendChild(what);
+      if (isTextual(src)) btn('text', 'Texte', function () { startEdit(sel.el, sel.frame); });
+      if (imgOf(el)) btn('img', 'Photo', function () { setTab('content'); $('skFile').click(); });
+      btn('link', 'Réglages', function () { setTab('content'); setPanel('right', false); });
+      btn('hide', isHidden(src) ? 'Afficher' : 'Masquer', function () { opHide(); });
+      var x = ce('button', 'sk-selbar__x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Ne plus sélectionner');
+      x.addEventListener('click', function (e) { e.stopPropagation(); select(null, null); });
+      bar.appendChild(x);
+      return;
+    }
     if (src.parent && src.parent.type === 'el' && src.parent.tag !== 'html') btn('up', 'Parent', function () { selectParent(); }, 'Échap');
     if (isTextual(src)) btn('text', 'Texte', function () { startEdit(sel.el, sel.frame); }, 'Double-clic ou Entrée');
     if (imgOf(el)) btn('img', 'Image', function () { setTab('content'); $('skFile').click(); });
@@ -1631,7 +1663,7 @@
       b.type = 'button';
       b.addEventListener('click', function () { startEdit(sel.el, sel.frame); });
       var bs = ce('div', 'sk-btns'); bs.appendChild(b); s.appendChild(bs);
-      s.appendChild(ce('p', 'sk-note', 'Ou double-cliquez le texte. Entrée valide, Maj + Entrée passe à la ligne, Échap termine.'));
+      s.appendChild(ce('p', 'sk-note', SIMPLE ? 'Ou touchez le texte une seconde fois sur la page.' : 'Ou double-cliquez le texte. Entrée valide, Maj + Entrée passe à la ligne, Échap termine.'));
     }
     // image
     var img = imgOf(el);
@@ -1695,7 +1727,8 @@
       go.appendChild(test);
       sl.appendChild(go);
     }
-    // element actions
+    // element actions (the simplified studio keeps to texts, photos and links: nothing that can break the page)
+    if (SIMPLE) return;
     var sa = section(p, 'Élément', '<' + src.tag + '>');
     var row = ce('div', 'sk-btns');
     [['Dupliquer', opDuplicate, 'sk-ghost'], [isHidden(src) ? 'Afficher' : 'Masquer', opHide, 'sk-ghost'], ['Supprimer', opDelete, 'sk-danger']].forEach(function (x) {

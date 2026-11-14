@@ -886,6 +886,17 @@ diffs des modifications sont exactement ceux attendus.
 Les modifications non publiées restent **sur l’appareil** (IndexedDB) : fermer l’onglet ne perd rien.
 « Enregistrer » (Ctrl S) montre la liste des fichiers modifiés et leur diff.
 
+### Sur téléphone : le Studio simplifié
+
+Sous 700 px, l’éditeur de sites ne s’arrête plus sur « Le Studio se pilote sur ordinateur » : `sites-app.js`
+pose `html.sk-simple` au chargement et `sites-simple.css` allège le chrome. Un seul aperçu, à la largeur du
+téléphone, bord à bord, qui défile comme la page ; en haut le retour vers « Tous mes sites », le choix de la
+page, Annuler et Publier. Un toucher choisit un élément (le doigt qui fait défiler ne choisit rien), un second
+toucher sur un texte le réécrit sur place ; la barre du bas donne Texte, Photo, Réglages (une feuille qui monte,
+onglet Réglages seulement) et Masquer. Rien de ce qui peut casser la page : pas de Dupliquer, de Supprimer, de
+Design ni de Code. Même moteur (`sites-core.js`), mêmes modifications gardées sur l’appareil, même publication.
+Le mode se décide au chargement : tourner le téléphone ne le change pas.
+
 ### Publier
 
 « Publier » envoie les fichiers cochés à la fonction Supabase **`sites-publish`** (projet « Jeere »,

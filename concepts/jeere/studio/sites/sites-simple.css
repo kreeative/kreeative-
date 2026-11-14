@@ -1,0 +1,55 @@
+/* Jeere Studio › Mes sites — « Studio simplifié » : the website editor on a phone (html.sk-simple, under 700 px).
+ * Set by sites-app.js at load. The page fills the screen at phone width and scrolls like a page; the chrome keeps
+ * the way back, the page picker, Annuler and Publier; the selection's actions sit in a bar at the bottom; the
+ * settings come up as a sheet. Everything else of the full editor (rail, panels, tool bar, widths, code) is put away. */
+.sk-back, .sk-simpletag { display: none; }
+@media (max-width: 699px) {
+  /* in place of the « se pilote sur ordinateur » guard */
+  .sk-simple .sk { display: flex; }
+  .sk-simple .sk-guard { display: none; }
+  .sk-simple body { overflow: hidden; }
+
+  .sk-simple .st-rail, .sk-simple .st-ftb, .sk-simple .st-top__center, .sk-simple .st-brand, .sk-simple .st-sep, .sk-simple #skKind,
+  .sk-simple #skModeNav, .sk-simple #skShare, .sk-simple #skHelp, .sk-simple #skRedo, .sk-simple .st-reopen, .sk-simple .sk-left,
+  .sk-simple .st-ab__name, .sk-simple .sk-who, .sk-simple .sk-statusbtn { display: none !important; }
+
+  .sk-simple .st-main { height: 100dvh; }
+  .sk-simple .st-top { height: 52px; padding: 0 8px 0 4px; gap: 4px; }
+  .sk-simple .st-top__left { gap: 2px; overflow: visible; min-width: 0; }
+  .sk-simple .st-top__right { gap: 6px; min-width: 0; flex: none; }
+  .sk-simple .sk-back { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 10px; color: var(--fg-1, #111); }
+  .sk-simple .sk-back svg { width: 22px; height: 22px; }
+  .sk-simple .sk-simpletag { display: none; }
+  .sk-simple .sk-crumbs { min-width: 0; }
+  .sk-simple .sk-crumbs .sk-pagepick { max-width: 44vw; height: 40px; padding: 0 10px; font-size: 14px; }
+  .sk-simple #skUndo { width: 40px; height: 40px; }
+  .sk-simple #skPublish { height: 40px; padding: 0 16px; font-size: 14px; }
+
+  /* the page: phone width, edge to edge, its own scroll */
+  .sk-simple .sk-stage, .sk-simple .sk-scroll { touch-action: pan-y pinch-zoom; }
+  .sk-simple .sk-world { padding: 0 0 96px; gap: 0; }
+  .sk-simple .sk-ab__frame { border-radius: 0; box-shadow: none; }
+  .sk-simple .sk-banner { left: 8px; right: 8px; top: 8px; transform: none; max-width: none; align-items: flex-start; font-size: 12px; line-height: 17px; }
+  .sk-simple .sk-box__tag { display: none; }
+
+  /* the selection's actions: one bar at the bottom of the screen */
+  .sk-simple .sk-selbar { position: fixed; left: 8px !important; right: 8px; top: auto !important; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 60; height: 56px; padding: 6px; gap: 2px; border-radius: 16px; justify-content: space-between; }
+  .sk-simple .sk-selbar button { flex: 1 1 0; min-width: 0; height: 44px; padding: 0 4px; flex-direction: column; justify-content: center; gap: 1px; font-size: 11px; border-radius: 10px; }
+  .sk-simple .sk-selbar button svg { width: 20px; height: 20px; }
+  .sk-simple .sk-selbar__what { flex: none; max-width: 22vw; padding: 0 8px 0 6px; font: 600 12px var(--st-font); color: var(--st-bar-ink, #111); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sk-simple .sk-selbar .sk-selbar__x { flex: none; width: 36px; font-size: 22px; line-height: 1; }
+  .sk-simple .sk-selbar__sep { display: none; }
+
+  /* the settings: a sheet from the bottom, the simple tab only */
+  .sk-simple .sk .st-right { left: 0; right: 0; top: auto; bottom: 0; width: auto; height: min(68dvh, 560px); border-left: 0; border-radius: 18px 18px 0 0; transform: translateY(105%); z-index: 70; }
+  .sk-simple .sk.is-right-open .st-right { transform: none; }
+  .sk-simple .st-right__tabs, .sk-simple .sk-path { display: none; }
+  .sk-simple .st-right__head { min-height: 52px; padding-left: 16px; }
+  .sk-simple .st-right .st-paneltoggle { width: 44px; height: 44px; }
+
+  /* the pages, the dialogs */
+  .sk-simple .sk-pagemenu { left: 8px !important; right: 8px; top: 58px !important; width: auto; max-height: 70dvh; }
+  .sk-simple .sk-modal { padding: 10px; align-items: flex-end; }
+  .sk-simple .sk-modal__card { width: 100%; max-width: none; max-height: 88dvh; overflow: auto; border-radius: 18px; }
+  .sk-simple .sk-help { grid-template-columns: 1fr; }
+}
