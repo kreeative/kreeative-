@@ -3891,7 +3891,7 @@
         el('div', { class: 'b-tcard__body' },
           el('div', { class: 'b-tcard__head' }, el('h3', { class: 'b-tcard__name', text: m.name }), el('span', { class: 'b-chip', text: m.kind })),
           el('p', { class: 'b-tcard__desc', text: m.desc }),
-          el('p', { class: 'b-tcard__price' }, el('b', { text: MODEL_PRICE }), el('span', { text: 'payé une seule fois' })),
+          el('p', { class: 'b-tcard__price' }, el('b', { text: MODEL_PRICE }), el('span', { text: ' payé une seule fois' })),
           el('a', { class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', href: `../admin/#boutique=${m.slug}`, 'aria-label': `Choisir le modèle ${m.name}` },
             el('span', { class: 'b-lbl-long', text: 'Choisir ce modèle' }), el('span', { class: 'b-lbl-short', text: 'Choisir' }), icon('i-arrow')),
           el('a', { class: 'b-tcard__demo', href: demo, target: '_blank', rel: 'noopener', text: 'Voir la démo' }))));
