@@ -584,6 +584,63 @@
   }
   function safeLS() { try { return root.localStorage; } catch (e) { return null; } }
 
+  /* ------------------------------------------------------------------ Safari → the app on the home screen (iPhone)
+   * An iPhone keeps the storage of Safari and of the app added to the home screen apart: the installed app would
+   * start signed out. While she is signed in in Safari, the page carries a one-time pass (the `handoff` function,
+   * 20 minutes, one use) in its address: the icon she adds opens that address, and the app redeems the pass once. */
+  var HANDOFF_FN = CONFIG.url + '/functions/v1/handoff';
+  function isStandalone() { try { return (root.matchMedia && root.matchMedia('(display-mode: standalone)').matches) || root.navigator.standalone === true; } catch (e) { return false; } }
+  function isIos() { try { var n = root.navigator; return /iPhone|iPad|iPod/.test(n.userAgent) || (n.platform === 'MacIntel' && n.maxTouchPoints > 1); } catch (e) { return false; } }
+  function passInUrl() { var m = /[?&]h=([0-9a-f]{64})(?:&|$)/.exec(String(root.location.search || '')); return m ? m[1] : ''; }
+  function urlWithPass(code) {
+    var q = String(root.location.search || '').replace(/([?&])h=[0-9a-f]{64}(&|$)/, function (_, a, b) { return b ? a : ''; }).replace(/[?&]$/, '');
+    if (code) q += (q ? '&' : '?') + 'h=' + code;
+    return root.location.pathname + q + String(root.location.hash || '');
+  }
+  function handoffCall(body, token) {
+    var h = { 'Content-Type': 'application/json', apikey: CONFIG.key };
+    if (token) h.Authorization = 'Bearer ' + token;
+    return withTimeout(fetch(HANDOFF_FN, { method: 'POST', headers: h, body: JSON.stringify(body) }).then(function (r) { return r.json(); }), CONFIG.timeoutMs, 'handoff')
+      .then(function (j) { return j || { ok: false }; }, function () { return { ok: false }; });
+  }
+  // In Safari, signed in: the address carries a fresh pass (renewed before it expires), and the manifest steps
+  // aside so the icon opens THIS address
+  var passTimer = null;
+  function handoffOut() {
+    if (!isIos() || isStandalone() || state.demo || !lsGet(CONFIG.storageKey)) return;
+    var acc = readAccount();
+    if (!acc || !acc.userId || !acc.loggedIn) return;
+    session().then(function (s) {
+      if (!s || !s.access_token) return;
+      return handoffCall({ action: 'create' }, s.access_token).then(function (j) {
+        if (!j.ok || !j.code) return;
+        try {
+          var mf = doc.querySelector('link[rel="manifest"]'); if (mf) mf.parentNode.removeChild(mf);
+          root.history.replaceState(root.history.state, '', urlWithPass(j.code));
+        } catch (e) { /* the app will ask to sign in once */ }
+        if (!passTimer) passTimer = setInterval(function () { if (doc.visibilityState !== 'hidden') handoffOut(); }, 12 * 60000);
+      });
+    });
+  }
+  // In the installed app, signed out, opened with a pass: one sign-in, then the clean address
+  function handoffIn() {
+    var code = passInUrl();
+    if (!code) return false;
+    if (!isStandalone() || lsGet(CONFIG.storageKey)) {
+      // already signed in here (or a plain browser tab): the pass is not needed, and never left in the address bar of a tab
+      if (isStandalone()) { try { root.history.replaceState(root.history.state, '', urlWithPass('')); } catch (e) { /* keep */ } }
+      return false;
+    }
+    handoffCall({ action: 'redeem', code: code }).then(function (j) {
+      if (!j.ok || !j.tokenHash) return null;
+      return client().then(function (sb) { return withTimeout(sb.auth.verifyOtp({ token_hash: j.tokenHash, type: 'magiclink' }), CONFIG.timeoutMs + 6000, 'verify'); })
+        .then(function (r) { return r && !r.error && r.data && r.data.user ? completeLogin(r.data.user, { method: 'email' }) : null; });
+    }).then(function (acc) {
+      if (acc) { try { root.location.replace(urlWithPass('')); } catch (e) { root.location.reload(); } }
+    }, function () { /* she signs in by hand */ });
+    return true;
+  }
+
   root.JeereAuth = {
     CONFIG: CONFIG,
     isDemo: isDemo, why: why, forceDemo: forceDemo, probe: probe,
@@ -598,4 +655,6 @@
   if (!onCompte) {
     if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', watch); else watch();
   }
+  // the pass from Safari to the home-screen app
+  try { if (!handoffIn()) setTimeout(handoffOut, 1200); } catch (e) { /* she signs in by hand */ }
 })();

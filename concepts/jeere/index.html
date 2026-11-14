@@ -42,8 +42,15 @@
     var app = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
     if (!app) return;
     var signed = !!localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token');
-    location.replace(signed ? 'admin/' : 'compte/#connexion');
+    var pass = /[?&]h=([0-9a-f]{64})(?:&|$)/.exec(location.search);
+    location.replace(signed ? 'admin/' : (pass ? 'admin/?h=' + pass[1] : 'compte/#connexion'));
   } catch (e) { /* the page */ } })();</script>
+  <!-- iPhone, in Safari, signed in: the account script carries a one-time pass to the app she adds (compte/auth.js) -->
+  <script>(function () { try {
+    var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!ios || navigator.standalone === true || !localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token')) return;
+    var s = document.createElement('script'); s.src = 'compte/auth.js'; s.defer = true; document.head.appendChild(s);
+  } catch (e) { /* nothing */ } })();</script>
   <meta name="application-name" content="Jeere">
   <script>document.documentElement.classList.add('js');</script>
   <script src="i18n.js" defer></script>
