@@ -1,6 +1,6 @@
-// Jeere — Edge Function `sites-publish` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk).
+// Jehre — Edge Function `sites-publish` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk).
 //
-// The only place that holds the GitHub token of « Mes sites » (Jeere Studio › Mes sites, studio/sites/).
+// The only place that holds the GitHub token of « Mes sites » (Jehre Studio › Mes sites, studio/sites/).
 // It commits the founder's edits to her websites (repository kreeative/kreeative-) in ONE atomic commit
 // through the Git data API (blobs → tree → commit → ref update), several files and images at once.
 //
@@ -45,7 +45,7 @@ const DEFAULT_BRANCH = 'claude/kreeative-portfolio-design-n2a770';
 const AUTHOR = { name: 'Anne-Kelly Kouyate', email: 'annklyy@gmail.com' };
 
 // Where each branch may be written. The default branch serves kreeative.xyz: its home and pages, the
-// case studies (websites/, portfolio/) and the client concepts. Jeere itself (concepts/jeere/), the
+// case studies (websites/, portfolio/) and the client concepts. Jehre itself (concepts/jeere/), the
 // workflows, the tools and the config are never writable from here.
 const SITE_FOLDERS_DEFAULT: RegExp[] = [
   /^websites\/[a-z0-9][a-z0-9-]*\//,
@@ -77,7 +77,7 @@ function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
 const fail = (status: number, code: string, message: string, extra: Record<string, unknown> = {}) => json({ ok: false, code, message, ...extra }, status);
-const NOT_CONNECTED = 'GitHub pas encore connecté : ajoutez le secret GITHUB_TOKEN dans Supabase › Jeere › Edge Functions › Secrets (voir le README « Mes sites »). En attendant, téléchargez les fichiers (.zip).';
+const NOT_CONNECTED = 'GitHub pas encore connecté : ajoutez le secret GITHUB_TOKEN dans Supabase › Jehre › Edge Functions › Secrets (voir le README « Mes sites »). En attendant, téléchargez les fichiers (.zip).';
 
 /* ---------------------------------------------------------------- who is calling */
 
@@ -105,7 +105,7 @@ async function isEditor(u: User): Promise<boolean> {
 }
 async function guard(req: Request): Promise<{ user: User } | { error: Response }> {
   const user = await currentUser(req);
-  if (!user) return { error: fail(401, 'no_session', 'Connectez-vous avec votre compte Jeere (annklyy@gmail.com) pour publier vos sites.') };
+  if (!user) return { error: fail(401, 'no_session', 'Connectez-vous avec votre compte Jehre (annklyy@gmail.com) pour publier vos sites.') };
   if (!(await isEditor(user))) return { error: fail(403, 'not_editor', 'Ce compte ne peut pas publier les sites de kreeative.', { editor: false }) };
   return { user };
 }

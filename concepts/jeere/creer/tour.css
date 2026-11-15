@@ -1,4 +1,4 @@
-/* Jeere — tour.css: the guided tour (tour.js), shared by the Studio and the dashboard.
+/* Jehre — tour.css: the guided tour (tour.js), shared by the Studio and the dashboard.
    Black and white like the rest of the platform; the spotlight is a hole in a dark veil.
    The veil lets every click through (pointer-events: none): only the bubble catches the pointer.
    Phones (< 600 px): the bubble is a bottom sheet (jt--sheet), at the top when the target is at the bottom (jt--top). */
@@ -36,7 +36,7 @@
 .jt :focus-visible { outline: 3px solid var(--jt-ink); outline-offset: 2px; }
 
 .jt__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-/* The guide: the hand-drawn Jeere cloud */
+/* The guide: the hand-drawn Jehre cloud */
 .jt__av { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--jt-grey); color: var(--jt-ink); }
 .jt__cloud { display: block; width: 30px; height: auto; aspect-ratio: 600 / 446; fill: currentColor; }
 .jt__count { flex: 1; margin: 0; font-size: 13px; font-weight: 500; color: var(--jt-muted); font-variant-numeric: tabular-nums; }

@@ -1,4 +1,4 @@
-// Jeere — Edge Function `handoff` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk): carries a session from
+// Jehre — Edge Function `handoff` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk): carries a session from
 // Safari to the app added to the home screen. On an iPhone the two keep separate storage, so the installed app
 // would start signed out. The page puts a one-time pass in the address the icon opens; the app redeems it once.
 //

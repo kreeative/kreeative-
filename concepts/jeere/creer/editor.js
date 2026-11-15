@@ -1,5 +1,5 @@
 /*
- * Jeere Studio — editor.js
+ * Jehre Studio — editor.js
  * The start screen and the store editor. Exposes one global: window.JeereBuilder
  *   openEditor(config, opts)  normalises the fiche boutique and shows the editor; opts (optional):
  *                             { page, pageId, productId } the page to open the preview on
@@ -534,7 +534,7 @@
   }
 
   /* ------------------------------------------------------------------ her own designs
-   * A site designed for her that sells through a Jeere store (../connect/jeere-connect.js): the simple editor
+   * A site designed for her that sells through a Jehre store (../connect/jeere-connect.js): the simple editor
    * opens it too. The preview is HER site (framed), fed with the fiche being edited; the panel keeps what such a
    * site takes from the fiche: the products and the store's settings. Its design is drawn in the Studio. */
   const CUSTOM_SITES = {
@@ -3420,7 +3420,7 @@
     const v = D.validate(S.config);
     const ok = v.status === 'APPROUVÉ';
     const tone = scoreTone(v);
-    tp.append(tabHead('Qualité', 'Nous relisons votre fiche boutique avant publication, comme le fera Jeere.'));
+    tp.append(tabHead('Qualité', 'Nous relisons votre fiche boutique avant publication, comme le fera Jehre.'));
     tp.append(el('div', { class: 'b-score b-tone--' + tone + (ok ? ' is-ok' : '') },
       el('div', { class: 'b-score__top' },
         el('p', { class: 'b-score__num' }, el('strong', { text: String(v.score) }), el('span', { text: '/100' })),
@@ -3560,7 +3560,7 @@
     els.topName.textContent = name;
     // The seller's pages were renamed, added or removed (undo, import, the dashboard): rebuild the selector
     if (S.pagesSig !== pagesSig()) syncPagePicks(); else updateUrl();
-    if (S.open) document.title = `${name} · Jeere Studio`;
+    if (S.open) document.title = `${name} · Jehre Studio`;
     const v = D.validate(S.config);
     els.tabScore.textContent = String(v.score);
     els.tabScore.classList.toggle('is-ok', v.status === 'APPROUVÉ');
@@ -3911,7 +3911,7 @@
     if (!S.startBuilt) buildTemplateCards();
   }
   // The start screen offers the custom-designed models (the demo shops in concepts/, each sold through
-  // a Jeere store). The engine templates (Plateau, Cocody, Treichville) are no longer shown here; the
+  // a Jehre store). The engine templates (Plateau, Cocody, Treichville) are no longer shown here; the
   // assistant still uses them. « Choisir ce modèle » opens the model's store in the dashboard.
   const CUSTOM_MODELS = [
     { slug: 'seve', name: 'SÈVE', kind: 'Soins et cosmétiques', desc: 'Flacons sur fond crème, titres serif, filtres par catégorie.' },
@@ -4049,7 +4049,7 @@
     els.ed.hidden = true;
     els.start.hidden = false;
     document.documentElement.classList.remove('b-editing');
-    document.title = 'Créez votre boutique · Jeere Studio';
+    document.title = 'Créez votre boutique · Jehre Studio';
     renderStart();
     window.scrollTo(0, 0);
     focusEl(els.startTitle);

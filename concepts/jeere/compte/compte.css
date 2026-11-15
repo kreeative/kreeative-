@@ -1,5 +1,5 @@
-/* Jeere — the seller account: sign-up and login with a one-time code (e-mail, SMS or WhatsApp).
-   Black and white, like the editor's chrome (the Jeere logo itself is black ink). Colour only carries a meaning,
+/* Jehre — the seller account: sign-up and login with a one-time code (e-mail, SMS or WhatsApp).
+   Black and white, like the editor's chrome (the Jehre logo itself is black ink). Colour only carries a meaning,
    in small doses: red = error, green = verified / done, orange = attention, blue = information
    (tokens below, same values as ../creer/builder.css; README « Couleurs d’état »).
    Every rule is scoped to a c- class. Designed at 360 px first, with the on-screen keyboard open. */
@@ -52,7 +52,7 @@ a { color: inherit; }
 }
 .c-nowrap { white-space: nowrap; }
 
-/* ---------- The Jeere logo (symbol #cloud): the hand-drawn cloud, black ink, as in the editor ---------- */
+/* ---------- The Jehre logo (symbol #cloud): the hand-drawn cloud, black ink, as in the editor ---------- */
 .c-logo { display: block; padding: 8px 12px 8px 8px; color: var(--ink); text-decoration: none; border-radius: 10px; }
 .c-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
 .c-logo__lock .logo__cloud { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; }
@@ -451,6 +451,6 @@ a { color: inherit; }
 .c-agree__row a { color: inherit; text-decoration: none; font-weight: 600; }
 .c-agree .c-err { margin-top: 6px; }
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }

@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light only">
 <title>Nouvelle adresse e&#8209;mail</title>
-<!-- Jeere — Change email address. Copy everything into Supabase › Authentication › Emails › Message body. Inline styles, tables, Poppins like the site, Helvetica/Arial where a mail app blocks web fonts (Gmail): it reads the same in Gmail, Outlook and Apple Mail. -->
+<!-- Jehre — Change email address. Copy everything into Supabase › Authentication › Emails › Message body. Inline styles, tables, Poppins like the site, Helvetica/Arial where a mail app blocks web fonts (Gmail): it reads the same in Gmail, Outlook and Apple Mail. -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');</style>
 </head>
@@ -18,13 +18,13 @@
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;background-color:#FFFFFF;border-radius:20px;">
         <tr>
           <td align="left" style="padding:32px 32px 8px 32px;">
-            <a href="https://jeere.kreeative.xyz/" style="text-decoration:none;"><img src="https://jeere.kreeative.xyz/img/brand/email-logo.png" width="152" height="48" alt="Jeere" style="display:block;border:0;width:152px;height:auto;"></a>
+            <a href="https://jeere.kreeative.xyz/" style="text-decoration:none;"><img src="https://jeere.kreeative.xyz/img/brand/email-logo.png" width="152" height="48" alt="Jehre" style="display:block;border:0;width:152px;height:auto;"></a>
           </td>
         </tr>
         <tr>
           <td style="padding:24px 32px 0 32px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;color:#111111;">
             <h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-0.5px;color:#111111;">Nouvelle adresse e&#8209;mail</h1>
-            <p style="margin:0;font-size:16px;line-height:1.55;color:#111111;">Bonjour{{ if .Data.first_name }} {{ .Data.first_name }}{{ end }}, pour utiliser {{ .NewEmail }} sur Jeere, tapez ce code sur la page Jeere restée ouverte.</p>
+            <p style="margin:0;font-size:16px;line-height:1.55;color:#111111;">Bonjour{{ if .Data.first_name }} {{ .Data.first_name }}{{ end }}, pour utiliser {{ .NewEmail }} sur Jehre, tapez ce code sur la page Jehre restée ouverte.</p>
           </td>
         </tr>
         <tr>
@@ -51,8 +51,8 @@
               <tr><td style="border-top:1px solid #EBEBE8;font-size:0;line-height:0;">&nbsp;</td></tr>
               <tr>
                 <td style="padding-top:16px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#5E5E5E;">
-                  Jeere, du comptoir à Internet.<br>
-                  Une question&nbsp;? Écrivez à <a href="mailto:contact.jeere@kreeative.xyz?subject=Jeere" style="color:#111111;">contact.jeere@kreeative.xyz</a>.<br>
+                  Jehre, du comptoir à Internet.<br>
+                  Une question&nbsp;? Écrivez à <a href="mailto:contact.jeere@kreeative.xyz?subject=Jehre" style="color:#111111;">contact.jeere@kreeative.xyz</a>.<br>
                   <a href="https://jeere.kreeative.xyz/" style="color:#111111;">jeere.kreeative.xyz</a>
                 </td>
               </tr>

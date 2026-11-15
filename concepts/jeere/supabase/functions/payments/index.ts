@@ -1,14 +1,14 @@
-// Jeere — Edge Function `payments` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk): card payments with
+// Jehre — Edge Function `payments` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk): card payments with
 // Stripe Connect. Each store connects its own Stripe account (Accounts v2, « full » dashboard: her own Stripe); the
 // customer pays by card on Stripe's page, in FCFA (Stripe converts for a card from anywhere: Canada, France,
-// the United States…), and the money is paid out by Stripe to the store's account, never to Jeere.
+// the United States…), and the money is paid out by Stripe to the store's account, never to Jehre.
 //
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/payments
 //   headers: apikey: <publishable key>[, Authorization: Bearer <session> for the store's managers]
 //   body: { action: 'status', storeId }                 → { ok, configured, connected, chargesEnabled, ... }   managers
 //         { action: 'connect', storeId, country }       → { ok, url }  Stripe's onboarding page (create, or finish)  owner
 //         { action: 'session', storeId, country }       → { ok, clientSecret, publishableKey }  the same onboarding inside
-//                                                         Jeere (Stripe Connect embedded components)                owner
+//                                                         Jehre (Stripe Connect embedded components)                owner
 //         { action: 'dashboard', storeId }              → { ok, url }  the seller's own Stripe dashboard        managers
 //         { action: 'disconnect', storeId }             → { ok }  forgets the account here (Stripe keeps it)       managers
 //         { action: 'available', slug }                 → { ok, card }  does this store take cards?                anyone
@@ -21,8 +21,8 @@
 //   async_payment_succeeded mark the order paid (orders.payment_status 'payee'), …expired / async_payment_failed
 //   'echouee'; account.updated refreshes store_payments.
 //
-// Secrets (Supabase › Edge Functions › Secrets): STRIPE_SECRET_KEY (Jeere's platform key, sk_test_… to try it),
-// STRIPE_WEBHOOK_SECRET (the Connect webhook endpoint's whsec_…). Optional: JEERE_CARD_FEE_PCT (Jeere's
+// Secrets (Supabase › Edge Functions › Secrets): STRIPE_SECRET_KEY (Jehre's platform key, sk_test_… to try it),
+// STRIPE_WEBHOOK_SECRET (the Connect webhook endpoint's whsec_…). Optional: JEERE_CARD_FEE_PCT (Jehre's
 // commission on card sales at most, 2 by default; each plan's own rate applies below it), JEERE_SITE (https://jeere.kreeative.xyz).
 // Deployed with verify_jwt = false (the publishable key is not a JWT; Stripe sends no JWT): checked here.
 
@@ -40,7 +40,7 @@ const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 // the publishable key (pk_test_… / pk_live_…, not a secret) for Stripe's embedded onboarding in Gérer
 const PUBLISHABLE_STRIPE = (Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? '').trim();
 const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '2') || 0));
-// Jeere's commission by the STORE's plan (stores.plan, written by the server):
+// Jehre's commission by the STORE's plan (stores.plan, written by the server):
 // the plan's own rate (creer/data.js PLANS), never more than FEE_PCT. Gratuit 2 %, Essentiel 1 %, Pro and Business 0 %.
 // The order's currency for Stripe (« xof », « cad », « usd », « eur »); amounts are already in its smallest unit
 const curOf = (o: Obj | undefined) => { const c = String((o && o.currency) ?? 'XOF').toLowerCase(); return ['xof', 'cad', 'usd', 'eur'].includes(c) ? c : 'xof'; };
@@ -65,7 +65,7 @@ type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
 const str = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n) : '');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const NOT_CONFIGURED = 'Le paiement par carte n’est pas encore activé sur Jeere : réessayez bientôt.';
+const NOT_CONFIGURED = 'Le paiement par carte n’est pas encore activé sur Jehre : réessayez bientôt.';
 
 /* ------------------------------------------------------------------ data */
 const admin = (path: string, init: RequestInit = {}) => fetch(SUPABASE_URL + '/rest/v1/' + path, {
@@ -178,11 +178,11 @@ async function verify(payload: string, header: string): Promise<boolean> {
 }
 
 // The seller's own Stripe account (her full Stripe dashboard): Stripe collects its fees and covers the losses with
-// her, as with a standard Stripe account; she onboards on Stripe's page or inside Jeere (embedded components)
+// her, as with a standard Stripe account; she onboards on Stripe's page or inside Jehre (embedded components)
 async function createAccount(st: Obj, storeId: string, user: { email: string }, country: string): Promise<{ row: Obj } | { error: Response }> {
   if (!COUNTRIES.includes(country)) return { error: json({ ok: false, code: 'country', message: 'Choisissez le pays où votre activité est enregistrée.' }, 400) };
   const fiche = isObj(st.fiche) ? st.fiche : {};
-  const name = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
+  const name = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jehre';
   const r = await stripeV2('POST', 'core/accounts', {
     contact_email: user.email || undefined, display_name: name,
     identity: { country: country.toLowerCase() },
@@ -239,7 +239,7 @@ async function webhook(req: Request) {
     if (!status) return json({ ok: true });
     const o = (await rows('orders?select=id,store_id,number,total,currency,payment_ref,payment_status,status&id=eq.' + orderId))[0];
     if (!o || o.payment_status === 'payee') return json({ ok: true });
-    // Only the session Jeere opened for THIS order, on THIS store's own Stripe account, for the full amount:
+    // Only the session Jehre opened for THIS order, on THIS store's own Stripe account, for the full amount:
     // a seller's own Stripe account (her API keys) could otherwise send a session naming another store's order.
     const p = await payRow(String(o.store_id));
     if (!p || String(ev.account ?? '') !== String(p.account_id)) return json({ ok: true, ignored: 'account' });
@@ -279,7 +279,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // back from Stripe (?paiement=ok&commande=N): the payment read straight from Stripe, so an order never waits
-  // on the webhook. Only the session Jeere opened for this order, on this store's own account, for the full amount.
+  // on the webhook. Only the session Jehre opened for this order, on this store's own account, for the full amount.
   if (action === 'confirm') {
     if (!STRIPE_KEY) return json({ ok: false, code: 'config' }, 503);
     const slug = str(b.slug, 40).toLowerCase();
@@ -314,7 +314,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // the card typed in the store's own cart (Stripe's Payment Element), on the store's own Stripe account: a
-  // PaymentIntent for the order's total, Jeere's fee taken by Stripe. Prices from the order, never from the browser.
+  // PaymentIntent for the order's total, Jehre's fee taken by Stripe. Prices from the order, never from the browser.
   if (action === 'intent') {
     if (!STRIPE_KEY || !PUBLISHABLE_STRIPE) return json({ ok: false, code: 'config', message: NOT_CONFIGURED }, 503);
     const orderId = str(b.orderId, 40);
@@ -330,7 +330,7 @@ Deno.serve(async (req: Request) => {
     if (total <= 0) return json({ ok: false, code: 'empty', message: 'Le panier est vide.' }, 400);
     const pct = feeFor(st);
     const fiche = isObj(st.fiche) ? st.fiche : {};
-    const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
+    const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jehre';
     const customer = isObj(o.customer) ? o.customer : {};
     // the same order asked twice (a second tap): the PaymentIntent already made is reused
     const prev = String(o.payment_ref ?? '');
@@ -367,7 +367,7 @@ Deno.serve(async (req: Request) => {
     const pct = st ? feeFor(st) : FEE_PCT;
     if (!st || !p || !p.charges_enabled) return json({ ok: false, code: 'not_connected', message: 'Cette boutique ne prend pas encore les cartes.' }, 409);
     const fiche = isObj(st.fiche) ? st.fiche : {};
-    const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jeere';
+    const storeName = str(isObj(fiche.store) ? (fiche.store as Obj).name : '', 60) || 'Boutique Jehre';
     const lines = (Array.isArray(o.lines) ? o.lines as Obj[] : []).filter(isObj);
     const items: Obj[] = lines.map((l) => ({
       quantity: Math.max(1, Math.round(Number(l.qty) || 1)),
@@ -407,7 +407,7 @@ Deno.serve(async (req: Request) => {
 
   // everything else: the store's managers
   const user = await userOf(req);
-  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere.' }, 401);
+  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre.' }, 401);
   const storeId = str(b.storeId, 40);
   if (!UUID.test(storeId)) return json({ ok: false, code: 'store', message: 'Boutique introuvable.' }, 400);
   const st = (await rows('stores?select=id,slug,owner,fiche,contact_email&id=eq.' + storeId))[0];
@@ -430,7 +430,7 @@ Deno.serve(async (req: Request) => {
     return json({ ok: false, code: 'owner', message: 'Seule la propriétaire de la boutique peut connecter ou déconnecter son compte Stripe.' }, 403);
   }
 
-  // the onboarding inside Jeere (Stripe's embedded components): a short-lived session for the store's account
+  // the onboarding inside Jehre (Stripe's embedded components): a short-lived session for the store's account
   if (action === 'session') {
     if (!p) {
       const made = await createAccount(st, storeId, user, str(b.country, 2).toUpperCase());

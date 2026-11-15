@@ -1,4 +1,4 @@
-// Jeere Studio › Mes sites — the cards' thumbnails (thumbs/<site id>.webp, 640 × 400, small WebP).
+// Jehre Studio › Mes sites — the cards' thumbnails (thumbs/<site id>.webp, 640 × 400, small WebP).
 // Run from the repository root, with a static server of the repository on BASE:
 //   python3 -m http.server 8941 &
 //   BASE=http://127.0.0.1:8941 node concepts/jeere/studio/sites/thumbs.mjs            (all sites)

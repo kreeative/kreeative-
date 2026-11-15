@@ -1,5 +1,5 @@
 /*
- * Jeere Studio — render.js
+ * Jehre Studio — render.js
  * Turns a fiche boutique (store config v1) into a store page, with one of three tested templates:
  * Plateau (editorial), Cocody (soft) and Treichville (bold).
  *
@@ -23,7 +23,7 @@
  *   page 'page' draws one of the seller's own pages (config.pages: À propos, Livraison et retours,
  *   Contact, Conditions de vente…), picked by pageId (the first page when it is missing or
  *   unknown). Pages with inMenu are in the header (desktop nav, phone menu), pages with inFooter
- *   in a footer column. Every page ends with « Propulsé par Jeere ».
+ *   in a footer column. Every page ends with « Propulsé par Jehre ».
  *   The demo cart lives on the element: rootEl.__jstCart = { [productId]: qty } (1 to 20). The
  *   checkout form lives in rootEl.__jstForm, the open phone menu in rootEl.__jstMenu. Nothing is
  *   sent anywhere: no location, no history, no network request.
@@ -1071,7 +1071,7 @@
    * options.linkBase (a published store's root, e.g. '/b/awa-beaute') gives path addresses
    * (<base>/produits/<id>, <base>/pages/<slug>, <base>/panier…); without it they are in-page fragments
    * (#/produits/p1…). The previews keep intercepting the clicks (onClick), nothing changes there.
-   * The live store (b/b.js) passes it: '/b/<slug>' on Jeere's host, '' on her own domain, and
+   * The live store (b/b.js) passes it: '/b/<slug>' on Jehre's host, '' on her own domain, and
    * '<path>?s=<slug>#' on any other host (fragments then), and understands every one of these forms
    * plus the older #produit/<id>, #page/<slug>. The base is kept in the view, so a navigation keeps it. */
   let LINK_BASE = null;
@@ -1339,11 +1339,11 @@
       '</div></header>';
   }
 
-  // « Propulsé par Jeere »: the Jeere cloud, a simplified trace of the hand-drawn mark (it is drawn 12 px tall, ~2.7KB)
+  // « Propulsé par Jehre »: the Jehre cloud, a simplified trace of the hand-drawn mark (it is drawn 12 px tall, ~2.7KB)
   // inline in currentColor, so the store never depends on the builder's SVG symbols.
   const JEERE_MARK = '<svg class="jst-powered-mark" viewBox="0 0 600 446" fill="currentColor" aria-hidden="true" focusable="false">' +
     '<path fill-rule="evenodd" d="M159 439C124 431 112 426 80 402C67 393 54 386 51 387C44 388 24 363 21 349C19 342 17 338 15 338C13 338 0 279 0 269C0 268 2 267 5 268C9 270 11 266 13 257C16 241 49 204 68 195C77 191 81 187 81 180C82 158 83 153 100 131C117 108 144 90 163 90C169 90 174 84 182 67C212 4 276 -15 332 22C345 30 351 31 375 32C413 32 423 39 435 72C438 81 439 82 452 78C492 67 526 96 525 140C525 163 525 163 542 168C616 188 617 343 543 407C509 435 443 447 411 430C400 425 397 425 373 431C346 438 290 434 280 424C274 418 267 419 255 428C232 445 202 448 159 439ZM339 392C358 388 362 382 354 365C346 348 350 340 369 339C377 338 386 337 388 336C396 333 410 347 418 363C426 381 436 385 459 378C539 357 583 280 542 235C530 222 518 219 523 230C524 233 523 237 521 240C519 244 518 243 518 235C518 230 516 225 514 225C512 225 510 230 510 236C510 246 505 251 495 251C493 251 487 247 481 241C475 235 468 231 466 232C463 232 461 230 461 227C461 224 458 221 454 221C447 221 440 206 444 199C446 197 445 195 443 195C441 195 439 193 439 191C439 189 441 188 445 189C450 191 465 184 465 179C465 174 444 176 439 181C434 185 434 185 438 179C441 175 450 172 462 172C492 170 499 134 472 124C457 119 441 119 444 124C446 126 445 128 443 128C434 128 427 140 430 152C432 166 429 181 424 178C422 177 421 174 422 171C424 167 423 165 420 165C418 165 416 168 416 171C416 174 413 178 409 181C405 183 401 189 401 193C401 200 400 200 396 195C394 191 390 189 387 190C385 191 382 189 382 186C382 183 380 180 376 180C370 180 370 180 376 175C380 172 382 167 382 164C382 154 372 157 368 168C366 175 364 176 364 171C364 168 368 160 374 155C384 145 392 129 396 110C399 100 381 82 370 83C357 85 354 104 364 115C372 124 369 128 361 119C355 113 355 121 360 131C366 142 346 155 341 145C339 142 335 139 332 139C329 139 326 137 326 134C326 130 326 130 323 134C317 145 304 119 304 94C304 66 300 58 283 55C237 48 205 86 223 129C230 146 230 161 223 164C221 165 217 169 216 173C210 196 191 185 175 149C170 137 167 136 151 146C133 157 129 195 145 201C153 203 171 236 165 236C163 236 161 235 161 232C161 230 159 229 157 229C155 229 154 232 155 236C159 247 149 256 135 255C95 252 96 252 87 270C59 324 110 379 188 379C220 379 221 378 218 372C215 366 215 364 221 362C226 360 229 355 231 344C238 302 281 310 281 354C281 376 292 390 309 391C314 392 317 393 316 395C315 397 316 398 320 396C323 395 332 393 339 392ZM416 368C416 367 413 361 409 354C401 342 398 350 405 364C409 371 416 374 416 368ZM556 318C562 306 566 293 565 288C564 281 563 283 559 296C556 306 550 318 545 325C535 338 534 343 541 340C544 339 550 329 556 318ZM253 292C244 283 241 246 247 227C264 178 305 213 292 265C284 298 268 309 253 292ZM347 288C326 263 338 199 363 199C385 199 398 234 388 271C380 302 364 308 347 288Z"/></svg>';
-  const powered = () => '<span class="jst-powered"><span class="jst-powered-by">Propulsé par</span>' + JEERE_MARK + '<b>Jeere</b></span>';
+  const powered = () => '<span class="jst-powered"><span class="jst-powered-by">Propulsé par</span>' + JEERE_MARK + '<b>Jehre</b></span>';
 
   function footer(m, j) {
     const fpages = m.pages.filter((p) => p.inFooter);
@@ -1968,7 +1968,7 @@
         '<p class="jst-pay-note">' + note + '</p>' +
         '<p class="jst-or"><span>ou</span></p>') +
       btn('Commander sur WhatsApp', { size: 'lg', block: true, icon: 'chat', cls: noPay ? '' : 'jst-btn--ghost', attrs: act('wa') }) +
-      (noPay ? '' : '<p class="jst-trust">' + icon('shield') + '<span>Paiement traité par un partenaire agréé par la BCEAO. Jeere ne garde jamais votre argent.</span></p>') +
+      (noPay ? '' : '<p class="jst-trust">' + icon('shield') + '<span>Paiement traité par un partenaire agréé par la BCEAO. Jehre ne garde jamais votre argent.</span></p>') +
       '</div>';
 
     return '<div class="jst-wrap jst-co">' + steps(2) + peek + title + '<div class="jst-co-grid' + (noPay ? ' is-nopay' : '') + '">' + main +
@@ -2545,7 +2545,7 @@
       if (!image) image = photoOf(products.filter((p) => isObj(p) && (p.photo || httpsImg(p.image)))[0]);
       return { title: line(title, 120), description: line(desc, 160), image: image, noindex: noindex, type: type, name: name, product: product };
     } catch (e) {
-      return { title: 'Boutique en ligne · Jeere', description: '', image: '', noindex: false, type: 'website', name: 'Boutique', product: null };
+      return { title: 'Boutique en ligne · Jehre', description: '', image: '', noindex: false, type: 'website', name: 'Boutique', product: null };
     }
   }
 

@@ -1,7 +1,7 @@
--- Jeere — card payments with Stripe Connect (migration `jeere_card_payments`, project « Jeere », ref aezchxfvzfoqlvzchqyk).
+-- Jehre — card payments with Stripe Connect (migration `jeere_card_payments`, project « Jehre », ref aezchxfvzfoqlvzchqyk).
 --
--- Each store can connect its own Stripe account (an Express account under Jeere's Stripe platform): the
--- customer pays by card on Stripe's page, the money goes to the store's Stripe account, never to Jeere.
+-- Each store can connect its own Stripe account (an Express account under Jehre's Stripe platform): the
+-- customer pays by card on Stripe's page, the money goes to the store's Stripe account, never to Jehre.
 --
 --   1. public.store_payments: the store's Stripe account and what Stripe allows it to do. Written only by the
 --      `payments` Edge Function (service role); never readable through the API (the function answers).
@@ -20,7 +20,7 @@ create table if not exists public.store_payments (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-comment on table public.store_payments is 'Jeere: the Stripe account (Connect Express) of a store, for card payments. Written and read only by the `payments` Edge Function.';
+comment on table public.store_payments is 'Jehre: the Stripe account (Connect Express) of a store, for card payments. Written and read only by the `payments` Edge Function.';
 alter table public.store_payments enable row level security;
 revoke all on public.store_payments from anon, authenticated;
 

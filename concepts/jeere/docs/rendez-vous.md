@@ -1,4 +1,4 @@
-# Jeere Rendez-vous — appointments for service businesses
+# Jehre Rendez-vous — appointments for service businesses
 
 What « Commandes » is to a shop, for a lash tech, a nail tech, a hairdresser, a make-up artist: clients book a
 service online, the studio runs its agenda from the dashboard. Built on 13 November 2026.

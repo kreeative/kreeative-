@@ -1,4 +1,4 @@
-// Jeere — Edge Function `relances` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk): ONE reminder e-mail to
+// Jehre — Edge Function `relances` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk): ONE reminder e-mail to
 // someone who started creating an account (code sent) and did not finish, 1 hour to 7 days later. The number of
 // launch-offer spots left in the e-mail is the real one (public.launch_spots).
 //
@@ -11,7 +11,7 @@ const SECRET = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
-const FROM = 'Jeere <bonjour@kreeative.xyz>';
+const FROM = 'Jehre <bonjour@kreeative.xyz>';
 const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jeere.kreeative.xyz').replace(/\/$/, '');
 
 type Obj = Record<string, unknown>;
@@ -31,18 +31,18 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
     : (trial ? 'Votre 1er mois sur le pack Essentiel (3 500 FCFA/mois) est offert.' : '');
   const lines = [
     hi,
-    'Vous avez commencé à créer votre compte Jeere, mais il n’est pas encore terminé : il manque juste le code de connexion.',
+    'Vous avez commencé à créer votre compte Jehre, mais il n’est pas encore terminé : il manque juste le code de connexion.',
     offer,
     'Pour finir, ouvrez ' + link + ', entrez votre adresse e-mail, puis tapez le code à 6 chiffres que vous recevez.',
     'Une question ? Répondez simplement à cet e-mail.',
-    'Kelly, Jeere'
+    'Kelly, Jehre'
   ].filter(Boolean);
-  const subject = active ? 'Finalisez votre inscription : il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' à plus de 10 000 F offerts' : (trial ? 'Finalisez votre inscription : votre 1er mois est offert' : 'Finalisez votre inscription à Jeere');
+  const subject = active ? 'Finalisez votre inscription : il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' à plus de 10 000 F offerts' : (trial ? 'Finalisez votre inscription : votre 1er mois est offert' : 'Finalisez votre inscription à Jehre');
   const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
   const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
     '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;">' +
-    '<tr><td style="padding:26px 28px 6px 28px;font:700 20px/26px ' + font + ';color:#111111;">Jeere</td></tr>' +
+    '<tr><td style="padding:26px 28px 6px 28px;font:700 20px/26px ' + font + ';color:#111111;">Jehre</td></tr>' +
     '<tr><td style="padding:12px 28px 6px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' +
     lines.slice(0, -2).map((l) => '<p style="margin:0 0 14px 0;">' + esc(l) + '</p>').join('') +
     '<p style="margin:6px 0 18px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:12px 22px;border-radius:12px;">Finir mon inscription</a></p>' +

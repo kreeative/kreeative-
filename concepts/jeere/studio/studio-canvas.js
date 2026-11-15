@@ -1,4 +1,4 @@
-/* Jeere Studio — studio-canvas.js: the canvas of the DualEngine nodes (SPEC-DUALENGINE module 1).
+/* Jehre Studio — studio-canvas.js: the canvas of the DualEngine nodes (SPEC-DUALENGINE module 1).
  *
  * Built on studio.js (the infinite canvas, zoom 10 % – 25 600 %, pan, artboards) and studio-engine.js
  * (the documents, the engine history, the layout). The artboards ARE the breakpoint frames: 1200 / 1440

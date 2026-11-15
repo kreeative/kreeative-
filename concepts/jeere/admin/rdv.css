@@ -1,4 +1,4 @@
-/* Jeere — admin/rdv.css: the « Rendez-vous » section of the dashboard (rdv.js). Everything else is admin.css. */
+/* Jehre — admin/rdv.css: the « Rendez-vous » section of the dashboard (rdv.js). Everything else is admin.css. */
 .r-tabs { margin-bottom: 16px; }
 .r-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
 .r-preset { display: grid; gap: 8px; justify-items: start; padding: 16px; border: 1px solid var(--line-2); border-radius: var(--a-r); background: var(--white); color: var(--ink); font: inherit; font-weight: 500; text-align: left; cursor: pointer; }

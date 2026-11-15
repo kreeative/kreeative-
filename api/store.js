@@ -1,9 +1,9 @@
 /*
- * Jeere — api/store.js: a published store's page, with its own <head> and its HTML already in it
+ * Jehre — api/store.js: a published store's page, with its own <head> and its HTML already in it
  * (Vercel serverless function, Node.js, no dependency). Wave 2 of the Studio audit, item 2.
  *
  * Why: WhatsApp, Facebook, X and most link previews do not run JavaScript. The static page b/index.html
- * only carries Jeere's generic card, so a shared store link showed « Boutique en ligne · Jeere ». This
+ * only carries Jehre's generic card, so a shared store link showed « Boutique en ligne · Jehre ». This
  * function serves the SAME page (b/index.html, read from the deployment) with, filled in on the server:
  *   - <title>, description, og:title / og:description / og:image / og:url, twitter:*, canonical, robots
  *     (JeereRender.storeMeta: the Studio's référencement first, then the store's name and tagline),
@@ -23,7 +23,7 @@
  * Vercel serves api/*.js for a project without a framework (« Other »); the files it reads are listed in
  * vercel.json › functions › includeFiles.
  *
- * Environment (optional): JEERE_SB_URL, JEERE_SB_KEY (default: the project « Jeere » and its publishable
+ * Environment (optional): JEERE_SB_URL, JEERE_SB_KEY (default: the project « Jehre » and its publishable
  * key, which only reads published rows — RLS), JEERE_ROOT (where concepts/jeere/ is, for local tests).
  */
 'use strict';

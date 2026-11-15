@@ -1,26 +1,26 @@
-# Créer une boutique sur mesure compatible avec Jeere
+# Créer une boutique sur mesure compatible avec Jehre
 
-Fiche technique pour une autre session qui doit construire une boutique (par exemple la maquette ANSE) qui se vend avec Jeere et se modifie dans son éditeur.
+Fiche technique pour une autre session qui doit construire une boutique (par exemple la maquette ANSE) qui se vend avec Jehre et se modifie dans son éditeur.
 
 ## 1. Où vit le code
 
 - **Dépôt GitHub :** `kreeative/kreeative-`
-- **Jeere :** dossier `concepts/jeere/`, sur la branche `claude/session-setup-kcwzk4`. C'est cette branche que sert https://jeere.kreeative.xyz.
+- **Jehre :** dossier `concepts/jeere/`, sur la branche `claude/session-setup-kcwzk4`. C'est cette branche que sert https://jeere.kreeative.xyz.
 - **Les sites sur mesure des clientes :** un dossier par site dans `concepts/<nom>/`, sur la branche `claude/kreeative-portfolio-design-n2a770`. Cette branche sert https://kreeative.xyz. Exemples :
   - `concepts/joshua-cooker/`
   - `concepts/sonia-luxury-hair/`
 
-Il n'y a **pas de dossier « themes »** à la Shopify. Jeere offre deux façons de faire une boutique, et pour ANSE il faut la deuxième.
+Il n'y a **pas de dossier « themes »** à la Shopify. Jehre offre deux façons de faire une boutique, et pour ANSE il faut la deuxième.
 
-| | A. Boutique Jeere à modèle | B. Site sur mesure + Jeere Connect (**à utiliser pour ANSE**) |
+| | A. Boutique Jehre à modèle | B. Site sur mesure + Jehre Connect (**à utiliser pour ANSE**) |
 |---|---|---|
 | Design | Un des 3 modèles intégrés (`plateau`, `cocody`, `treichville`), réglé par couleurs, polices et sections | Le design de la maquette, en HTML et CSS écrits à la main |
 | Où | Un enregistrement « fiche » JSON dans la base Supabase (`public.stores.fiche`), affiché par `concepts/jeere/b/` | Un dossier de fichiers dans `concepts/<nom>/` |
-| Produits, prix, panier, commandes | Dans la fiche | **Dans une boutique Jeere (sa fiche)** : le site les lit avec `jeere-connect.js` |
+| Produits, prix, panier, commandes | Dans la fiche | **Dans une boutique Jehre (sa fiche)** : le site les lit avec `jeere-connect.js` |
 | Éditeur | L'éditeur de boutique (`concepts/jeere/creer/`) et le Studio (`concepts/jeere/studio/`) | Le Studio, rubrique « Mes sites » (`concepts/jeere/studio/sites/`) : n'importe quel texte, image ou style de la page, sans rien déclarer |
-| Nouveau modèle de design | Demande du code dans Jeere (`creer/render.js`, `creer/store.css`, `creer/data.js`) | Un nouveau dossier, rien à changer dans Jeere |
+| Nouveau modèle de design | Demande du code dans Jehre (`creer/render.js`, `creer/store.css`, `creer/data.js`) | Un nouveau dossier, rien à changer dans Jehre |
 
-Créer un vrai nouveau « modèle » de type A demande de modifier le moteur de Jeere. C'est à demander à la session Jeere : une autre session ne doit pas le faire.
+Créer un vrai nouveau « modèle » de type A demande de modifier le moteur de Jehre. C'est à demander à la session Jehre : une autre session ne doit pas le faire.
 
 ## 2. Structure d'un site sur mesure (méthode B)
 
@@ -36,13 +36,13 @@ concepts/anse/
 - L'éditeur lit le fichier HTML **comme du texte source** et ne réécrit que les octets touchés (`studio/sites/sites-core.js`). Le formatage et les scripts restent intacts.
 - Gardez donc un HTML propre et lisible : un élément par idée, et pas de contenu généré par JavaScript pour ce que la cliente doit pouvoir modifier.
 
-Dans le `<head>`, chargez Jeere Connect :
+Dans le `<head>`, chargez Jehre Connect :
 
 ```html
 <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="anse" defer></script>
 ```
 
-`data-store` est l'adresse (le « slug ») de la boutique Jeere qui porte les produits : 3 à 40 caractères, minuscules, chiffres et tirets.
+`data-store` est l'adresse (le « slug ») de la boutique Jehre qui porte les produits : 3 à 40 caractères, minuscules, chiffres et tirets.
 
 ## 3. Ce qui est modifiable dans l'éditeur
 
@@ -78,7 +78,7 @@ Les types de section disponibles sont `announcement`, `hero`, `categories`, `pro
 
 ## 4. Les produits
 
-Ils vivent dans la fiche de la boutique Jeere (`public.stores.fiche.products`). La forme est normalisée par `normalizeConfig` dans `creer/data.js` :
+Ils vivent dans la fiche de la boutique Jehre (`public.stores.fiche.products`). La forme est normalisée par `normalizeConfig` dans `creer/data.js` :
 
 ```json
 {
@@ -96,15 +96,15 @@ Ils vivent dans la fiche de la boutique Jeere (`public.stores.fiche.products`). 
 }
 ```
 
-- `id` : `p1`, `p2`… Il est donné par Jeere et reste stable. C'est la clé que le site utilise dans `data-jeere-product="p1"`.
+- `id` : `p1`, `p2`… Il est donné par Jehre et reste stable. C'est la clé que le site utilise dans `data-jeere-product="p1"`.
 - `price` : un entier en **FCFA** (pas de centimes).
 - `badge` : `new`, `best`, `promo` ou `null`.
-- `image` : seule une photo envoyée dans Jeere (bucket `store-media`) ou une image `data:` est acceptée.
+- `image` : seule une photo envoyée dans Jehre (bucket `store-media`) ou une image `data:` est acceptée.
 - `art` et `color` : l'illustration utilisée quand le produit n'a pas de photo.
 - **Pas de variantes** (taille, couleur…) dans la fiche aujourd'hui. Un sac en deux couleurs = deux produits.
 - **Le stock et la disponibilité** sont gérés dans le tableau de bord. Un produit épuisé ou retiré passe en `data-jeere-state="off"` sur le site.
 
-**Sur le site sur mesure**, la photo affichée peut rester celle du site (`img/…`). Jeere Connect ne la remplace que si la fiche a une photo en `https`.
+**Sur le site sur mesure**, la photo affichée peut rester celle du site (`img/…`). Jehre Connect ne la remplace que si la fiche a une photo en `https`.
 
 ## 5. Médias et styles
 
@@ -112,11 +112,11 @@ Ils vivent dans la fiche de la boutique Jeere (`public.stores.fiche.products`). 
   - les images sont des fichiers du dossier `img/` ;
   - les styles sont votre CSS, plus les `style="…"` écrits par l'éditeur ;
   - les polices sont libres (Google Fonts ou fichiers dans `fonts/`).
-- **Fiche Jeere :**
+- **Fiche Jehre :**
   - les photos sont envoyées dans le bucket public `store-media` (`creer/media.js`) ;
   - le thème est dans `fiche.theme` : `palette` (un id de `palettes`), `colors` (surcharges), `fonts` (paire : `editorial`, `moderne`, `doux`, `audacieux`, `classique`, `simple`), `typography`, `radius`, `buttons` et `intensity`.
 
-## 6. Le lien entre le site et Jeere (Jeere Connect)
+## 6. Le lien entre le site et Jehre (Jehre Connect)
 
 Le mode d'emploi complet est en tête de `concepts/jeere/connect/jeere-connect.js`. L'essentiel :
 
@@ -128,17 +128,17 @@ Le mode d'emploi complet est en tête de `concepts/jeere/connect/jeere-connect.j
 | `data-jeere-count`, `data-jeere-total` | Le nombre d'articles et le total du panier. |
 | `data-jeere-lines` + `<template data-jeere-line>` | Les lignes du panier. |
 | `data-jeere-inc`, `data-jeere-dec`, `data-jeere-remove` | Plus 1, moins 1, retirer. |
-| `data-jeere-checkout` | Envoie la cliente au panier Jeere de la boutique, qui gère la commande et le paiement. |
+| `data-jeere-checkout` | Envoie la cliente au panier Jehre de la boutique, qui gère la commande et le paiement. |
 
-Le site garde toujours son contenu écrit à la main : si Jeere ne répond pas, la page reste lisible et le panier marche avec les prix de la page.
+Le site garde toujours son contenu écrit à la main : si Jehre ne répond pas, la page reste lisible et le panier marche avec les prix de la page.
 
 ## 7. Dupliquer pour une nouvelle cliente
 
 1. **Copier le dossier** : `concepts/anse/` → `concepts/<cliente>/`. Remplacer textes, images et `data-store`.
-2. **Créer sa boutique Jeere**, celle qui porte les produits :
+2. **Créer sa boutique Jehre**, celle qui porte les produits :
    - soit par « Nouveau projet client » dans le tableau de bord (`/admin/`) ;
    - soit avec une requête SQL comme `concepts/jeere/connect/seed-stores.sql` (fiche JSON complète, `published = true`).
-3. **La rendre modifiable dans le Studio** : c'est la session Jeere qui le fait. Elle ajoute le dossier aux dossiers autorisés de `concepts/jeere/supabase/functions/sites-publish/index.ts` (`SITE_FOLDERS_DEFAULT`), puis régénère `studio/sites/sites.json` (`node concepts/jeere/studio/sites/build-manifest.mjs`).
+3. **La rendre modifiable dans le Studio** : c'est la session Jehre qui le fait. Elle ajoute le dossier aux dossiers autorisés de `concepts/jeere/supabase/functions/sites-publish/index.ts` (`SITE_FOLDERS_DEFAULT`), puis régénère `studio/sites/sites.json` (`node concepts/jeere/studio/sites/build-manifest.mjs`).
 
 ## 8. Exemple minimal complet
 
@@ -187,7 +187,7 @@ Le site garde toujours son contenu écrit à la main : si Jeere ne répond pas, 
 </html>
 ```
 
-**La fiche de la boutique Jeere `anse`** (extrait ; la fiche complète vient de `JEERE_DATA.defaultConfig('plateau', 'fashion')`, puis `normalizeConfig`) :
+**La fiche de la boutique Jehre `anse`** (extrait ; la fiche complète vient de `JEERE_DATA.defaultConfig('plateau', 'fashion')`, puis `normalizeConfig`) :
 
 ```json
 {
@@ -201,8 +201,8 @@ Le site garde toujours son contenu écrit à la main : si Jeere ne répond pas, 
 }
 ```
 
-## 9. Ce qu'il faut demander à la session Jeere
+## 9. Ce qu'il faut demander à la session Jehre
 
-- Créer la boutique Jeere `anse` (sa fiche, ses produits), ou la créer depuis le tableau de bord.
+- Créer la boutique Jehre `anse` (sa fiche, ses produits), ou la créer depuis le tableau de bord.
 - Ajouter `concepts/anse/` aux dossiers modifiables du Studio et à `sites.json`.
 - Toute évolution du moteur : variantes de produits, nouveaux champs de produit, nouveau modèle de type A.

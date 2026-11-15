@@ -1,4 +1,4 @@
-/* Jeere Studio — the power module, loaded after studio.js. One classic IIFE, built entirely on
+/* Jehre Studio — the power module, loaded after studio.js. One classic IIFE, built entirely on
  * window.JeereStudio._internals (the studio's bridge) and on the same contract (JEERE_DATA,
  * JeereRender), feature-detected like everything else.
  *
@@ -1294,7 +1294,7 @@
       mine.forEach(function (a) { g1.appendChild(assetCard(a)); });
       panel.appendChild(g1);
       var demo = demoAssets();
-      panel.appendChild(ce('div', 'st-assets__title', 'Photothèque Jeere (' + demo.length + ')'));
+      panel.appendChild(ce('div', 'st-assets__title', 'Photothèque Jehre (' + demo.length + ')'));
       var g2 = ce('div', 'st-assets__grid');
       g2.id = 'assetsDemo';
       demo.forEach(function (a) { g2.appendChild(assetCard(a)); });

@@ -1,5 +1,5 @@
 /*
- * Jeere — quickstyle.js: quick element styles in the simple editor (phone first).
+ * Jehre — quickstyle.js: quick element styles in the simple editor (phone first).
  * Global: window.JeereQuickStyle = { tap(event), wants(node), open(key), close(), isOpen() }.
  *
  * A tap on a button, a title, a text, an image or an icon of the phone preview opens a bottom

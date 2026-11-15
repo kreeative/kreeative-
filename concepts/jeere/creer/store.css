@@ -1,5 +1,5 @@
 /*
- * Jeere Studio — store.css
+ * Jehre Studio — store.css
  * Styles of the rendered stores (render.js). Everything is scoped under .jst: nothing leaks to
  * the page around the preview. The layout reads only data-device ("phone" ≈ 390 px,
  * "desktop" ≈ 1200 px), never the viewport, because the preview sits in a frame of fixed width.
@@ -309,7 +309,7 @@
   margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--st-line);
   font-size: 12.5px; color: var(--st-muted);
 }
-.jst .jst-powered b { font-weight: 700; letter-spacing: .02em; color: var(--st-text); text-transform: none; } /* the brand word keeps its case: « Jeere » */
+.jst .jst-powered b { font-weight: 700; letter-spacing: .02em; color: var(--st-text); text-transform: none; } /* the brand word keeps its case: « Jehre » */
 
 /* =====================================================================
    PLATEAU — editorial: magazine layout, large serif type, thin lines, space.
@@ -1593,10 +1593,10 @@
 
 /* =====================================================================
    PAGES — the seller's own pages (config.pages, page 'page'), the phone menu, the footer column
-   « Informations » and « Propulsé par Jeere ». Shared base first, then each template, then vivid.
+   « Informations » and « Propulsé par Jehre ». Shared base first, then each template, then vivid.
    ===================================================================== */
 
-/* Footer: the pages column and the Jeere line */
+/* Footer: the pages column and the Jehre line */
 .jst[data-device="desktop"] .jst-footer-top[data-cols="4"] { grid-template-columns: minmax(0, 1.3fr) minmax(0, .8fr) minmax(0, .9fr) minmax(0, 1.2fr); gap: 40px; }
 /* Four columns leave the store name less room: it wraps between words, never inside one */
 .jst[data-device="desktop"] .jst-footer-top[data-cols="4"] .jst-footer-name { overflow-wrap: break-word; }

@@ -1,5 +1,5 @@
 /*
- * Jeere — elstyles.js: element styles, the design layer of the Studio's inspector.
+ * Jehre — elstyles.js: element styles, the design layer of the Studio's inspector.
  *
  * Global: window.JeereElStyles. Loaded right after render.js on every page that renders a store
  * (creer/, admin/, studio/). No library, no build, never throws.

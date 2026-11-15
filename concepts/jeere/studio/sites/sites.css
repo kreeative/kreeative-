@@ -1,4 +1,4 @@
-/* Jeere Studio › Mes sites. The Studio's language (SPEC-DUALENGINE-UI): tokens only, a 4 px grid,
+/* Jehre Studio › Mes sites. The Studio's language (SPEC-DUALENGINE-UI): tokens only, a 4 px grid,
  * Inter 11 / 12 / 13 / 15 (18 for dialog titles), hairlines as inset box-shadows (never a border
  * that moves the layout), layered elevation, colour changes on hover only, transform / opacity
  * animations, prefers-reduced-motion respected. Laptop and iPad; under 700 px the simplified studio (sites-simple.css). */
@@ -498,6 +498,6 @@ html:not([data-theme="dark"]) .dz-hint.is-state { color: #7B3FE4; }
 .st-touch .sk-selbar { height: 44px; }
 .st-touch .sk-selbar button { height: 36px; min-width: 38px; }
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }

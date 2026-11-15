@@ -1,4 +1,4 @@
-/* Jeere — the black panel of compte/ (desktop): small products drawn with the brush, all over the black.
+/* Jehre — the black panel of compte/ (desktop): small products drawn with the brush, all over the black.
    The same hand as the landing's stall (anim/boutique.js): every line is a bundle of 2 or 3 thin strands that
    drift and sometimes cross, landing and lifting a little apart, with a round drop now and then where the
    brush lifts. Bags, baskets, jars, sandals, pagnes, jewels, shea butter… scattered on a loose grid, turned a

@@ -1,7 +1,7 @@
-/* Jeere Studio › Mes sites — the founder's own websites, opened, edited visually and published.
+/* Jehre Studio › Mes sites — the founder's own websites, opened, edited visually and published.
  *
  *   Home      « Tous mes sites » (../mes-sites/, in the dashboard's look): every site of
- *             kreeative/kreeative- (sites.json, built from git by build-manifest.mjs) and her Jeere
+ *             kreeative/kreeative- (sites.json, built from git by build-manifest.mjs) and her Jehre
  *             boutiques. This page is the editor only: #/ goes back there.
  *   Chrome    the boutique editor's own (../studio-shell.css): the rail and its logo menu, the top bar
  *             (Studio + pill, site › page, Aperçus, status, undo / redo, Aperçu, Partager, Publier, ?),
@@ -235,7 +235,7 @@
     if (DEMO) { who = { email: 'démo', github: false, demo: true }; return Promise.resolve(true); }
     return sessionToken().then(function (tok) {
       if (!tok) {
-        gate('Mes sites', 'Connectez-vous avec votre compte Jeere (celui de la fondatrice) pour ouvrir vos sites.', [
+        gate('Mes sites', 'Connectez-vous avec votre compte Jehre (celui de la fondatrice) pour ouvrir vos sites.', [
           link('st-primary', '../../compte/?suite=studio#connexion', 'Me connecter'), link('st-ghostbtn', '../', 'Retour au Studio')
         ]);
         return false;
@@ -247,10 +247,10 @@
           return true;
         }
         try { sessionStorage.setItem('jeere-sites-editor', '0:' + uidOfToken(tok)); } catch (e) { /* ok */ }
-        gate('Accès réservé', '« Mes sites » est l’espace de la fondatrice de Jeere pour ses propres sites web. Il n’est pas ouvert sur ce compte.', [link('st-primary', '../', 'Retour au Studio')]);
+        gate('Accès réservé', '« Mes sites » est l’espace de la fondatrice de Jehre pour ses propres sites web. Il n’est pas ouvert sur ce compte.', [link('st-primary', '../', 'Retour au Studio')]);
         return false;
       }, function () {
-        gate('Connexion impossible', 'Le serveur de Jeere ne répond pas : vérifiez la connexion, puis réessayez.', [link('st-primary', location.href, 'Réessayer')]);
+        gate('Connexion impossible', 'Le serveur de Jehre ne répond pas : vérifiez la connexion, puis réessayez.', [link('st-primary', location.href, 'Réessayer')]);
         return false;
       });
     });
@@ -337,7 +337,7 @@
     if (b.branch === M.defaultBranch && !b.onlyOnBranch) return 'https://' + CFG.liveOrigin + '/' + u;
     return b.previewBase ? b.previewBase + u : null;
   }
-  // E-commerce or not (sites.json « commerce », from the pages: Jeere Connect): the pill of the top bar
+  // E-commerce or not (sites.json « commerce », from the pages: Jehre Connect): the pill of the top bar
   // says it for the page that is open (a page of the Kreeative group belongs to one of its sites)
   function commerceOf(p) {
     var id = (p && p.owner) || (site && site.id);
@@ -444,7 +444,7 @@
       kind.setAttribute('data-kind', com ? 'shop' : 'site');
       $('skKindLabel').textContent = com ? 'Boutique en ligne' : 'Site web';
       kind.setAttribute('data-tip', com ? 'Boutique en ligne' : 'Site web');
-      kind.setAttribute('data-sub', com ? 'Ce site vend en ligne (Jeere Connect)' : 'Un site sur mesure, publié depuis ses fichiers');
+      kind.setAttribute('data-sub', com ? 'Ce site vend en ligne (Jehre Connect)' : 'Un site sur mesure, publié depuis ses fichiers');
       var ic = kind.querySelector('svg');
       if (ic && window.PHI) ic.outerHTML = window.PHI(com ? 'shopping-bag' : 'globe', ' class="st-planchip__ico"');
     }

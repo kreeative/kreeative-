@@ -1,4 +1,4 @@
-# Jeere Studio — l’éditeur avancé (prototype)
+# Jehre Studio — l’éditeur avancé (prototype)
 
 L’éditeur « pour les gens avancés », façon **Figma / Framer / Webflow**, au-dessus de la même
 fiche boutique que l’éditeur simple (`../creer/`). Un plan de travail infini, des aperçus en
@@ -49,7 +49,7 @@ instantanés.
 
 ## Fichiers
 
-Statique, sans build, sans librairie, comme le reste de Jeere. Un seul script, une IIFE,
+Statique, sans build, sans librairie, comme le reste de Jehre. Un seul script, une IIFE,
 un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `getState`, `select`,
 `showPage`, `undo`, `redo`, `fit`, `setZoom`, `save`, `exportJSON`, `SHORTCUTS`).
 
@@ -61,7 +61,7 @@ un global `window.JeereStudio` (exposé aussi pour les tests : `getConfig`, `get
 | `studio-power.js` | Les fonctions avancées, greffées sur le pont : palette de commandes, Mes blocs, Jetons, Historique (versions), onglet Code, panneau Images, superpositions mesures/contrastes, export PNG. IIFE classique, chargée après `studio.js`. |
 | `studio-design.js`, `studio-design.css` | L’onglet **Design** : l’inspecteur élément par élément (voir plus bas), la barre de style rapide et le recadrage sur le canevas, l’aperçu de la page. Écrit `elementStyles` (`../creer/elstyles.js`) par l’historique unique. Expose `window.JeereStudioDesign` pour les tests. |
 | `plans.js` | Les abonnements Studio, sans DOM : `window.JeerePlans` (formules, limites, abonnement en cours, essai, droits) et `window.JeereBilling` (le paiement, derrière un adaptateur de fournisseur). Chargé aussi par `../admin/`, `../compte/` et `../abonnements/`. |
-| `studio-plans.js`, `studio-plans.css` | Les abonnements dans l’éditeur : la pastille de formule de la barre du haut, la feuille « Avec un abonnement Studio », les cadenas, l’essai, le badge « Fait avec Jeere » du dialogue Publier. Définit `S.can`, `S.limit`, `S.gate` sur le pont. Chargé en dernier. Expose `window.JeereStudioPlans` pour les tests. |
+| `studio-plans.js`, `studio-plans.css` | Les abonnements dans l’éditeur : la pastille de formule de la barre du haut, la feuille « Avec un abonnement Studio », les cadenas, l’essai, le badge « Fait avec Jehre » du dialogue Publier. Définit `S.can`, `S.limit`, `S.gate` sur le pont. Chargé en dernier. Expose `window.JeereStudioPlans` pour les tests. |
 | `studio-toolbar.js` | La couche UI3 : barre d’outils flottante, fenêtre d’insertion (S), barre contextuelle de la sélection, infobulles stylées, commentaires locaux (C), carte d’accueil « trois gestes ». Chaîne les `hooks` (ne les remplace jamais). Expose `window.JeereStudioToolbar` pour les tests. |
 | `engine/` | DualEngine (phase A + les ajouts de la phase B : références nominales, piles de polices) : le modèle, l’historique RFC 6902, le solveur Flex / Grid / absolu, le générateur HTML / CSS. Voir `engine/README.md`. |
 | `studio-engine.js` | Le pont fiche ↔ document DualEngine, « Détacher » / « Rattacher », un document et un historique DualEngine par section détachée, la mise en page par artboard, l’export HTML / CSS. `window.JeereStudioEngine`. |
@@ -604,7 +604,7 @@ Sources :
 - Taux : https://www.currencybeacon.com/rates/USD/XOF (≈ 585,6 au 30 octobre 2026) et
   https://www.mexc.co/price/USD/XOF (≈ 560,1) : d’où 575 retenu, à mettre à jour avant le lancement.
 
-### Les formules Jeere Studio
+### Les formules Jehre Studio
 
 | | Découverte | Solo | Pro (le plus choisi) | Agence |
 | --- | --- | --- | --- | --- |
@@ -635,7 +635,7 @@ https://saascrmreview.com/figma-pricing/, https://webflow.com/pricing.
 - **L’annuel** coûte environ 30 % de moins (−32 %, −32 %, −31 %), comme Framer (−33 %).
 - Les montants restent en « 900 », lisibles et faciles à payer par mobile money.
 
-**Le principe des formules** est celui des formules boutique de Jeere : on monte quand on
+**Le principe des formules** est celui des formules boutique de Jehre : on monte quand on
 grandit, pas pour débloquer une fonction. **N’importe quel abonnement payant, et l’essai,
 débloquent tout le Studio.** Solo, Pro et Agence ne diffèrent que par le nombre de boutiques, de
 places et le niveau de support.
@@ -654,10 +654,10 @@ formules », « Mode démo · aucun paiement réel ») :
 | `versions` | Historique (versions nommées) | 3 versions (« 2 / 3 ») ; le 4ᵉ instantané ouvre la feuille, l’instantané automatique attend, jamais une version à elle effacée pour faire de la place |
 | `comments` | outil Commentaire (C, bouton, palette) | cadenas sur l’outil ; l’outil revient à Déplacer et la feuille s’ouvre ; les épingles déjà posées restent visibles |
 | `fonts` | Design › Typographie : les 33 polices du catalogue par élément | cadenas sur chaque police du catalogue ; les polices du modèle restent libres |
-| `badge` | dialogue Publier : « Badge « Fait avec Jeere » » | interrupteur verrouillé ; avec un abonnement, il est retiré par défaut (`hideBadge`) |
+| `badge` | dialogue Publier : « Badge « Fait avec Jehre » » | interrupteur verrouillé ; avec un abonnement, il est retiré par défaut (`hideBadge`) |
 
 Non verrouillé, à dessein :
-- **l’export de la fiche (JSON, Ctrl E)** : Jeere promet l’export des données dans chaque formule ;
+- **l’export de la fiche (JSON, Ctrl E)** : Jehre promet l’export des données dans chaque formule ;
 - **le domaine personnalisé** : il est inclus dans toutes les formules boutique, dans le tableau
   de bord. Le retirer casserait la promesse de la page d’accueil ;
 - **les aperçus de 360 à 1440 px** : le responsive est le cœur du Studio.
@@ -768,10 +768,10 @@ MoMo, Moov Money et la carte. Les fournisseurs `paystack` et `wave` existent dé
    - `activate()` (dans `plans.js`) ne doit plus être appelé côté client hors du mode démo.
    - `JeereBilling.useProvider('paystack')` bascule le parcours.
 
-**BCEAO.** Jeere ne détient jamais l’argent des acheteurs des boutiques : il passe par un
+**BCEAO.** Jehre ne détient jamais l’argent des acheteurs des boutiques : il passe par un
 partenaire agréé et va directement à la vendeuse. L’abonnement Studio est différent : c’est le
-prix d’un logiciel, payé à Jeere elle-même. Encaisser un abonnement SaaS sur le compte marchand de
-Jeere est donc permis, sans rien changer à la règle pour l’argent des boutiques.
+prix d’un logiciel, payé à Jehre elle-même. Encaisser un abonnement SaaS sur le compte marchand de
+Jehre est donc permis, sans rien changer à la règle pour l’argent des boutiques.
 
 ### Tests
 
@@ -795,7 +795,7 @@ La demande de la fondatrice : « Pour le studio pro, ajoute tous les sites web q
 dessus, pour que moi-même je puisse venir modifier et publier les sites web à chaque fois que je veux
 les publier. » **Mes sites** (`studio/sites/`) ouvre chacun de ses sites (le dépôt GitHub
 `kreeative/kreeative-`), le laisse modifier sur place, puis le publie sur GitHub, d’où Vercel met
-kreeative.xyz à jour. Ce ne sont pas des fiches Jeere : rien n’est converti, on modifie le HTML écrit à
+kreeative.xyz à jour. Ce ne sont pas des fiches Jehre : rien n’est converti, on modifie le HTML écrit à
 la main, tel quel.
 
 ### Qui le voit
@@ -899,7 +899,7 @@ Le mode se décide au chargement : tourner le téléphone ne le change pas.
 
 ### Publier
 
-« Publier » envoie les fichiers cochés à la fonction Supabase **`sites-publish`** (projet « Jeere »,
+« Publier » envoie les fichiers cochés à la fonction Supabase **`sites-publish`** (projet « Jehre »,
 `concepts/jeere/supabase/functions/sites-publish/index.ts`), qui fait **un seul commit atomique** avec
 l’API Git data de GitHub (blobs → arbre → commit → mise à jour de la branche, sans forcer), pages et
 images ensemble :
@@ -929,17 +929,17 @@ navigateur, sans librairie), à déposer sur github.com (Add file › Upload fil
 
 1. Sur github.com, connectée au compte **kreeative** : **Settings › Developer settings › Personal access
    tokens › Fine-grained tokens › Generate new token**.
-2. Token name : `Jeere Mes sites`. **Expiration : 1 an** (366 jours au plus ; noter la date, un nouveau
+2. Token name : `Jehre Mes sites`. **Expiration : 1 an** (366 jours au plus ; noter la date, un nouveau
    jeton est à créer avant). Resource owner : **kreeative**.
 3. Repository access : **Only select repositories** › `kreeative/kreeative-`.
 4. Permissions › Repository permissions › **Contents : Read and write** (Metadata : Read-only s’ajoute
    tout seul). Rien d’autre.
 5. **Generate token**, copier le jeton (`github_pat_…`, affiché une seule fois).
-6. **Supabase › projet Jeere › Edge Functions › Secrets › Add new secret** : nom `GITHUB_TOKEN`, valeur
+6. **Supabase › projet Jehre › Edge Functions › Secrets › Add new secret** : nom `GITHUB_TOKEN`, valeur
    le jeton, **Save**. Rien à redéployer.
 7. Dans Mes sites, « Publier » › « Réessayer ».
 
-Le compte doit être celui de `annklyy@gmail.com` côté Jeere (connexion par e-mail sur `compte/`).
+Le compte doit être celui de `annklyy@gmail.com` côté Jehre (connexion par e-mail sur `compte/`).
 Ajouter une autre personne : `insert into public.site_editors (email, note) values ('…', '…');` dans
 l’éditeur SQL de Supabase.
 

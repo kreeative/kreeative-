@@ -1,4 +1,4 @@
-/* Jeere Studio — studio-shell.css: the chrome both editors share, one look, one way of working.
+/* Jehre Studio — studio-shell.css: the chrome both editors share, one look, one way of working.
  * Loaded first by the boutique editor (studio/index.html) and by the website editor (studio/sites/):
  * tokens (light by default, dark under html[data-theme="dark"]), the rail with the logo menu, the top
  * bar (Studio + plan pill, name, Aperçus, status, Aperçu / Partager / Publier / ?), the panels and
@@ -556,6 +556,6 @@ body { font-size: 12px; -webkit-font-smoothing: antialiased; font-feature-settin
 .st-rail__btn.is-on, .st [aria-pressed="true"], .st [aria-selected="true"], .st-left__tabs button.is-on { --ic-b: 1; --ic-sw: 2; }
 .st-guard__link { display: block; margin-top: 14px; font: 500 13px var(--st-font); color: var(--st-ink); text-decoration: none; font-weight: 700; }
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }

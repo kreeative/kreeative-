@@ -1,5 +1,5 @@
-/* Jeere — tableau de bord du vendeur (prototype).
-   Black and white, like the builder: the Jeere logo itself is black ink; the store preview brings the colour.
+/* Jehre — tableau de bord du vendeur (prototype).
+   Black and white, like the builder: the Jehre logo itself is black ink; the store preview brings the colour.
    Colour only carries a meaning, in small doses (badges, dots, icons, chart bars), never as a big area:
    green = done, orange = needs attention, red = problem, blue = information / in progress (see ../creer/README.md).
    Every rule is scoped to an a- class (the store preview keeps its own .jst styles from ../creer/store.css).
@@ -73,7 +73,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .a-nowrap { white-space: nowrap; }
 .a-muted { color: var(--muted); }
 
-/* ---------- The Jeere logo: the hand-drawn cloud, black ink (symbol #cloud) ---------- */
+/* ---------- The Jehre logo: the hand-drawn cloud, black ink (symbol #cloud) ---------- */
 .a-logo { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 12px 6px 8px; color: var(--ink); text-decoration: none; border-radius: 10px; }
 .a-lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); }
 .a-lock .logo__cloud { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; }
@@ -1566,7 +1566,7 @@ body.is-ext .a-card + .a-card { margin-top: 20px; }
   @keyframes tx-fade { from { opacity: 0; } to { opacity: 1; } }
 }
 
-/* Stripe's onboarding inside Jeere (embedded components): a wider dialog, the form scrolls in it */
+/* Stripe's onboarding inside Jehre (embedded components): a wider dialog, the form scrolls in it */
 .a-dialog:has(.a-dialog__card--wide) { width: min(720px, calc(100vw - 24px)); max-width: none; }
 .a-stripe-embed { margin-top: 14px; min-height: 320px; }
 
@@ -1636,7 +1636,7 @@ html { -webkit-tap-highlight-color: transparent; }
 form > .a-btnrow:last-child { margin-bottom: 8px; }
 body.is-ext .a-card + .a-btnrow { margin-top: 20px; }
 
-/* The Ivory Sukundu editor, « Simple »: the page's texts and photos as a form, like the Jeere editor (the phone's
+/* The Ivory Sukundu editor, « Simple »: the page's texts and photos as a form, like the Jehre editor (the phone's
  * default). The site stays loaded out of sight: it is what sends the list of fields. */
 .tx-ed.is-simple .tx-ed__body { grid-template-columns: minmax(0, 1fr); }
 .tx-ed.is-simple .tx-ed__stage { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; opacity: 0; pointer-events: none; }
@@ -1675,7 +1675,7 @@ body.is-ext .a-card + .a-btnrow { margin-top: 20px; }
 /* No resize grip in the corner of text boxes (the two little diagonal lines): they grow with their text instead */
 textarea.a-input, .tx-field textarea { resize: none; }
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }
 
@@ -1684,7 +1684,7 @@ a:not([class]) { font-weight: 600; }
 @media (min-width: 640px) { .a-grid3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .a-label--sm { font-size: 13px; }
 
-/* « Installer Jeere »: the steps, her device first and framed */
+/* « Installer Jehre »: the steps, her device first and framed */
 .a-install { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-top: 12px; }
 .a-install.is-mine { border-color: var(--ink); }
 .a-install:not(.is-mine) { opacity: .75; }

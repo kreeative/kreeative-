@@ -1,4 +1,4 @@
-/* Jeere Studio › Mes sites — « Publier »: the changed files of the open site go to GitHub in one
+/* Jehre Studio › Mes sites — « Publier »: the changed files of the open site go to GitHub in one
  * commit, through the Edge Function `sites-publish` (it alone holds the GitHub token: the browser
  * only sends her Supabase session). « Mettre en ligne » commits on the site's branch (the default
  * branch of the portfolio, the one kreeative.xyz serves); « Brouillon » on a
@@ -25,16 +25,16 @@
   function defaultMessage(site, files) {
     var pages = files.filter(function (f) { return f.kind !== 'image'; }).map(function (f) { return f.path.split('/').slice(-2).join('/'); });
     var imgs = files.filter(function (f) { return f.kind === 'image'; }).length;
-    return site.title + ' : mise à jour depuis Jeere Studio' + (pages.length ? ' (' + pages.slice(0, 3).join(', ') + (pages.length > 3 ? '…' : '') + ')' : '') + (imgs ? ', ' + imgs + ' image' + (imgs > 1 ? 's' : '') : '');
+    return site.title + ' : mise à jour depuis Jehre Studio' + (pages.length ? ' (' + pages.slice(0, 3).join(', ') + (pages.length > 3 ? '…' : '') + ')' : '') + (imgs ? ', ' + imgs + ' image' + (imgs > 1 ? 's' : '') : '');
   }
   function setupSteps() {
     return '<ol class="sk-steps">' +
       '<li>Sur <b>github.com</b>, connectée au compte <b>kreeative</b> : <b>Settings › Developer settings › Personal access tokens › Fine-grained tokens › Generate new token</b>.</li>' +
-      '<li>Nom : <code>Jeere Mes sites</code> · Expiration : <b>1 an</b> (notez la date : un nouveau jeton à créer avant) · Resource owner : <b>kreeative</b>.</li>' +
+      '<li>Nom : <code>Jehre Mes sites</code> · Expiration : <b>1 an</b> (notez la date : un nouveau jeton à créer avant) · Resource owner : <b>kreeative</b>.</li>' +
       '<li>Repository access : <b>Only select repositories</b> › <code>kreeative/kreeative-</code>.</li>' +
       '<li>Permissions › Repository permissions › <b>Contents : Read and write</b> (Metadata : Read-only s’ajoute tout seul). Rien d’autre.</li>' +
       '<li><b>Generate token</b>, puis copiez-le (il ne s’affiche qu’une fois).</li>' +
-      '<li>Sur <b>supabase.com</b> : projet <b>Jeere</b> › <b>Edge Functions › Secrets</b> › <b>Add new secret</b> : nom <code>GITHUB_TOKEN</code>, valeur = le jeton › <b>Save</b>.</li>' +
+      '<li>Sur <b>supabase.com</b> : projet <b>Jehre</b> › <b>Edge Functions › Secrets</b> › <b>Add new secret</b> : nom <code>GITHUB_TOKEN</code>, valeur = le jeton › <b>Save</b>.</li>' +
       '<li>Revenez ici et cliquez <b>Réessayer</b>. Le jeton ne passe jamais par le navigateur.</li>' +
       '</ol>';
   }
@@ -200,7 +200,7 @@
       fail(site, files, r || {});
     }, function () {
       busy(false);
-      fail(site, files, { code: 'network', message: 'Le serveur de Jeere ne répond pas (connexion ?).' });
+      fail(site, files, { code: 'network', message: 'Le serveur de Jehre ne répond pas (connexion ?).' });
     });
   }
 

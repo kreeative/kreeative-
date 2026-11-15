@@ -1,4 +1,4 @@
-/* Jeere — « Abonnements Studio »: the pricing page and its checkout (plan → period → payment →
+/* Jehre — « Abonnements Studio »: the pricing page and its checkout (plan → period → payment →
  * confirmation). Everything comes from ../studio/plans.js (JeerePlans, JeereBilling): the plans,
  * the prices, the comparison table, the subscription saved in the account. The checkout goes
  * through JeereBilling.startCheckout, whose only working provider today is the demo one.
@@ -186,7 +186,7 @@
     var down = P.isDowngrade(ck.plan, ck.period);
     if (ck.step === 'account') {
       var back = encodeURIComponent('abonnements') + '&plan=' + ck.plan + '&periode=' + ck.period;
-      h += '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">Votre compte Jeere d’abord</h2><button class="ab-x" type="button" data-ck="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
+      h += '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">Votre compte Jehre d’abord</h2><button class="ab-x" type="button" data-ck="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
         '<p class="ab-p">L’abonnement est lié à votre compte (gratuit, avec votre numéro WhatsApp). Votre formule et votre période sont gardées&nbsp;: il restera le paiement.</p>' +
         '<div class="ab-dlg__foot ab-dlg__foot--col">' + (s.hasAccount ? '' : '<a class="btn ab-btn ab-btn--primary" data-autofocus href="../compte/?suite=' + back + '#inscription">Créer mon compte</a>') +
         '<a class="btn ab-btn ' + (s.hasAccount ? 'ab-btn--primary" data-autofocus' : 'ab-btn--ghost"') + ' href="../compte/?suite=' + back + '#connexion">Se connecter</a></div>';
@@ -225,7 +225,7 @@
         if (m.kind === 'mobile') {
           h += '<div class="ab-field"><label for="ck-phone">Numéro ' + esc(m.name) + ' qui paie</label><input id="ck-phone" type="tel" inputmode="tel" autocomplete="tel" value="' + esc(ck.phone) + '" placeholder="07 07 12 34 56"' + (ck.error ? ' aria-invalid="true" aria-describedby="ck-err"' : ' aria-describedby="ck-hint"') + '><p class="ab-hint" id="ck-hint">' + esc(m.hint) + '</p></div>';
         } else {
-          h += '<p class="ab-p ab-card">' + ico('card') + '<span>' + esc(m.hint) + ' Jeere ne voit jamais votre numéro de carte.</span></p>';
+          h += '<p class="ab-p ab-card">' + ico('card') + '<span>' + esc(m.hint) + ' Jehre ne voit jamais votre numéro de carte.</span></p>';
         }
         if (ck.error) h += '<p class="ab-err" id="ck-err" role="alert">' + esc(ck.error) + '</p>';
         h += summary(q);
@@ -372,17 +372,17 @@
     var h = '';
     if (dk.step === 'bad') {
       h += dkHead('Ce domaine ne peut pas être acheté ici');
-      h += '<p class="ab-p">' + esc((dk.domain ? '« ' + dk.domain + ' »' + NB + ': ' : '') + 'choisissez un nom sans « www », dans une extension proposée par Jeere (.com, .shop, .store, .online, .net, .co, .site, .boutique). Le .ci se commande sur demande.') + '</p>' +
+      h += '<p class="ab-p">' + esc((dk.domain ? '« ' + dk.domain + ' »' + NB + ': ' : '') + 'choisissez un nom sans « www », dans une extension proposée par Jehre (.com, .shop, .store, .online, .net, .co, .site, .boutique). Le .ci se commande sur demande.') + '</p>' +
         '<div class="ab-dlg__foot"><a class="btn ab-btn ab-btn--primary" data-autofocus href="../admin/#parametres/domaine">Chercher un autre nom</a></div>';
     } else if (dk.step === 'account') {
       var back = encodeURIComponent('abonnements') + '&domaine=' + encodeURIComponent(dk.domain);
-      h += '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">Votre compte Jeere d’abord</h2><button class="ab-x" type="button" data-dk="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
+      h += '<div class="ab-dlg__head"><h2 id="ck-title" tabindex="-1">Votre compte Jehre d’abord</h2><button class="ab-x" type="button" data-dk="close" aria-label="Fermer">' + ico('x') + '</button></div>' +
         '<p class="ab-p">Le domaine ' + esc(dk.domain) + ' sera relié à votre boutique' + NB + ': connectez-vous d’abord (compte gratuit, avec votre numéro WhatsApp).</p>' +
         '<div class="ab-dlg__foot ab-dlg__foot--col"><a class="btn ab-btn ab-btn--primary" data-autofocus href="../compte/?suite=' + back + '#connexion">Se connecter</a><a class="btn ab-btn ab-btn--ghost" href="../compte/?suite=' + back + '#inscription">Créer mon compte</a></div>';
     } else if (dk.step === 'dom') {
       h += dkHead('Votre nom de domaine');
       h += dkSum();
-      h += '<p class="ab-p">Le domaine est enregistré <b>à votre nom</b>' + NB + ': il est à vous, vous pouvez le garder ou le transférer. Jeere l’achète, le relie à votre boutique (cadenas https compris) et vous prévient sur WhatsApp avant chaque renouvellement.</p>';
+      h += '<p class="ab-p">Le domaine est enregistré <b>à votre nom</b>' + NB + ': il est à vous, vous pouvez le garder ou le transférer. Jehre l’achète, le relie à votre boutique (cadenas https compris) et vous prévient sur WhatsApp avant chaque renouvellement.</p>';
       h += '<div class="ab-field"><label for="dk-holder">Nom et prénom du titulaire</label><input id="dk-holder" autocomplete="name" value="' + esc(dk.holder) + '"' + (dk.error && !dk.holder.trim() ? ' aria-invalid="true" aria-describedby="dk-err"' : '') + ' data-autofocus></div>' +
         '<div class="ab-field"><label for="dk-email">E-mail du titulaire</label><input id="dk-email" type="email" inputmode="email" autocomplete="email" value="' + esc(dk.email) + '" placeholder="awa@exemple.com" aria-describedby="dk-email-h"' + (dk.error && !/^\S+@\S+\.\S+$/.test(dk.email) ? ' aria-invalid="true"' : '') + '><p class="ab-hint" id="dk-email-h">Les registres de noms de domaine l’exigent' + NB + ': ils y envoient les avis importants.</p></div>';
       if (dk.error) h += '<p class="ab-err" id="dk-err" role="alert">' + esc(dk.error) + '</p>';
@@ -396,7 +396,7 @@
       }).join('') + '</fieldset>';
       var m = B.methodById(dk.method) || DMS[0];
       if (m.kind === 'mobile') h += '<div class="ab-field"><label for="dk-phone">Numéro ' + esc(m.name) + ' qui paie</label><input id="dk-phone" type="tel" inputmode="tel" autocomplete="tel" value="' + esc(dk.phone) + '" placeholder="07 07 12 34 56"' + (dk.error ? ' aria-invalid="true" aria-describedby="dk-err"' : '') + '><p class="ab-hint">' + esc(m.hint) + '</p></div>';
-      else h += '<p class="ab-p ab-card">' + ico('card') + '<span>' + esc(m.hint) + ' Jeere ne voit jamais votre numéro de carte.</span></p>';
+      else h += '<p class="ab-p ab-card">' + ico('card') + '<span>' + esc(m.hint) + ' Jehre ne voit jamais votre numéro de carte.</span></p>';
       if (dk.error) h += '<p class="ab-err" id="dk-err" role="alert">' + esc(dk.error) + '</p>';
       h += dkSum();
       h += '<div class="ab-dlg__foot"><button class="btn ab-btn ab-btn--ghost" type="button" data-dk="back">' + ico('back') + 'Retour</button><button class="btn ab-btn ab-btn--primary" type="button" data-dk="pay" data-autofocus>Payer ' + esc(P.fcfa(dk.price.buy)) + '</button></div>';
@@ -406,7 +406,7 @@
     } else if (dk.step === 'done') {
       h += dkHead('Commande enregistrée');
       h += '<div class="ab-done"><span class="ab-done__ico">' + ico('check') + '</span><p class="ab-p"><b>' + esc(dk.domain) + '</b>' + NB + ': votre commande est notée' + (dk.result && dk.result.demo ? ' (démo' + NB + ': rien n’a été prélevé et aucun domaine n’est acheté)' : '') + '.</p></div>';
-      h += '<p class="ab-p">Dans Jeere, l’équipe vérifie que le nom est toujours libre, l’achète à votre nom et le relie à votre boutique, en général sous 24' + NB + 'h. Si le nom n’est plus libre, vous êtes remboursée.</p>';
+      h += '<p class="ab-p">Dans Jehre, l’équipe vérifie que le nom est toujours libre, l’achète à votre nom et le relie à votre boutique, en général sous 24' + NB + 'h. Si le nom n’est plus libre, vous êtes remboursée.</p>';
       h += '<dl class="ab-sum"><div><dt>Référence</dt><dd>' + esc(dk.result ? dk.result.reference : '') + '</dd></div><div><dt>Payé</dt><dd>' + esc(P.fcfa(dk.price.buy)) + ' · ' + esc((B.methodById(dk.method) || {}).name || '') + (dk.result && dk.result.demo ? ' (démo)' : '') + '</dd></div></dl>';
       h += '<div class="ab-dlg__foot"><a class="btn ab-btn ab-btn--primary" href="../admin/#parametres/domaine" data-autofocus>Voir mon domaine' + ico('arrow') + '</a></div>';
     }
@@ -475,7 +475,7 @@
     box.setAttribute('role', 'status');
     box.innerHTML = ico(ok ? 'check' : 'info') + '<span>' + (m[1] === 'abonnement'
       ? (ok ? '<b>Paiement reçu, merci' + NB + '!</b> Votre abonnement s’active dans quelques secondes. Le reçu arrive par e-mail.' : 'Paiement annulé : rien n’a été prélevé.')
-      : (ok ? '<b>Paiement reçu' + NB + '!</b> Jeere achète votre domaine et le relie à votre boutique. Comptez quelques minutes (jusqu’à 24' + NB + 'h pour qu’il marche partout).' : 'Paiement annulé : aucun domaine n’a été acheté.')) + '</span>';
+      : (ok ? '<b>Paiement reçu' + NB + '!</b> Jehre achète votre domaine et le relie à votre boutique. Comptez quelques minutes (jusqu’à 24' + NB + 'h pour qu’il marche partout).' : 'Paiement annulé : aucun domaine n’a été acheté.')) + '</span>';
     var main = doc.querySelector('main') || doc.body;
     main.insertBefore(box, main.firstChild);
     if (ok && B.sync) { [500, 4000, 10000].forEach(function (ms) { setTimeout(function () { B.sync(); }, ms); }); }

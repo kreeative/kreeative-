@@ -1,6 +1,6 @@
-/* Jeere Studio — studio-rail.js: the rail on the far left, like Figma's.
+/* Jehre Studio — studio-rail.js: the rail on the far left, like Figma's.
  *
- *  - the Jeere logo at the top opens a small menu, the same in the website editor (sites/index.html):
+ *  - the Jehre logo at the top opens a small menu, the same in the website editor (sites/index.html):
  *    « Tous mes sites » (only for the founder: the link sites/entry.js adds to the top bar is moved here;
  *    it opens mes-sites/, her websites and boutiques), « Tableau de bord » (../admin/), « Mon compte »
  *    (../compte/);

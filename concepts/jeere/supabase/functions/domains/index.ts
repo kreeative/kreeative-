@@ -1,4 +1,4 @@
-// Jeere — Edge Function `domains` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk).
+// Jehre — Edge Function `domains` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk).
 //
 // The only place that holds a Vercel token. The browser (../../../admin/, creer/domains.js) calls it with
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains
@@ -45,7 +45,7 @@ const CNAME_TARGET = 'cname.vercel-dns.com';
 // Domains that are not stores and must never be attached or removed by this function
 const PROTECTED = /(^|\.)(kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|supabase\.co|localhost)$/;
 
-// The TLDs Jeere resells through Vercel (Vercel does not offer .ci or .africa: see README « Domaines »)
+// The TLDs Jehre resells through Vercel (Vercel does not offer .ci or .africa: see README « Domaines »)
 const TLDS = ['com', 'shop', 'store', 'online', 'net', 'co', 'site', 'boutique'];
 
 // Pricing in FCFA: Vercel's price in USD × 600 (a safety margin on ~575 FCFA per USD), + 40 %, + 2 000 FCFA,
@@ -66,7 +66,7 @@ function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
 const fail = (status: number, code: string, message: string, extra: Record<string, unknown> = {}) => json({ ok: false, code, message, ...extra }, status);
-const NOT_CONFIGURED = 'La connexion à Vercel n’est pas encore configurée (pas encore configuré) : l’équipe Jeere relie votre domaine à la main, en général sous 24 h.';
+const NOT_CONFIGURED = 'La connexion à Vercel n’est pas encore configurée (pas encore configuré) : l’équipe Jehre relie votre domaine à la main, en général sous 24 h.';
 
 /* ---------------------------------------------------------------- domain names */
 
@@ -141,9 +141,9 @@ async function patchStore(id: string, patch: Record<string, unknown>): Promise<b
   return r.ok;
 }
 async function ownedStore(req: Request, storeId: unknown): Promise<{ store: Store } | { error: Response }> {
-  if (!SECRET) return { error: fail(500, 'server', 'Le serveur Jeere n’a pas sa clé : réessayez plus tard.') };
+  if (!SECRET) return { error: fail(500, 'server', 'Le serveur Jehre n’a pas sa clé : réessayez plus tard.') };
   const user = await currentUser(req);
-  if (!user) return { error: fail(401, 'login', 'Connectez-vous à votre compte Jeere pour relier un domaine.') };
+  if (!user) return { error: fail(401, 'login', 'Connectez-vous à votre compte Jehre pour relier un domaine.') };
   const store = await loadStore(storeId);
   if (!store || store.owner !== user.id) return { error: fail(403, 'owner', 'Cette boutique n’est pas à votre nom : seule sa propriétaire peut changer son domaine.') };
   return { store };
@@ -204,7 +204,7 @@ async function attach(req: Request, b: Record<string, unknown>) {
   const domain = cleanDomain(b.domain);
   if (!validDomain(domain)) return fail(400, 'format', 'Écrivez le domaine sans espace ni « https », par exemple awabeaute.com ou www.awabeaute.com.');
   const other = await domainTakenBy(domain, o.store.id);
-  if (other) return fail(409, 'taken', 'Ce domaine est déjà relié à une autre boutique Jeere. Si c’est le vôtre, écrivez-nous sur WhatsApp.');
+  if (other) return fail(409, 'taken', 'Ce domaine est déjà relié à une autre boutique Jehre. Si c’est le vôtre, écrivez-nous sur WhatsApp.');
   // a name already served by the project and not this store's: never taken over (it could be removed by « detach »)
   const mine = String(o.store.custom_domain ?? '');
   const apex0 = apexOf(domain);
@@ -291,8 +291,8 @@ async function search(b: Record<string, unknown>) {
 async function buy(req: Request, b: Record<string, unknown>) {
   // Three locks: the token, the team's own key, and an explicit confirm flag. The demo checkout sends none of them.
   if (!VERCEL_TOKEN) return fail(503, 'not_configured', NOT_CONFIGURED);
-  if (!ADMIN_KEY || req.headers.get('x-jeere-admin') !== ADMIN_KEY) return fail(403, 'team_only', 'L’achat réel d’un domaine est fait par l’équipe Jeere, après le paiement de la vendeuse.');
-  if (b.confirm !== true) return fail(400, 'confirm', 'Ajoutez "confirm": true pour acheter vraiment ce domaine (il sera facturé sur le compte Vercel de Jeere).');
+  if (!ADMIN_KEY || req.headers.get('x-jeere-admin') !== ADMIN_KEY) return fail(403, 'team_only', 'L’achat réel d’un domaine est fait par l’équipe Jehre, après le paiement de la vendeuse.');
+  if (b.confirm !== true) return fail(400, 'confirm', 'Ajoutez "confirm": true pour acheter vraiment ce domaine (il sera facturé sur le compte Vercel de Jehre).');
   const domain = cleanDomain(b.domain);
   if (!validDomain(domain) || domain !== apexOf(domain)) return fail(400, 'format', 'Un nom de domaine sans www, par exemple awabeaute.com.');
   const years = Math.max(1, Math.min(10, Math.round(Number(b.years) || 1)));

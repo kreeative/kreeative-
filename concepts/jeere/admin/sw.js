@@ -1,4 +1,4 @@
-/* Jeere — the dashboard's service worker: shows the push notifications (new order, card payment received…)
+/* Jehre — the dashboard's service worker: shows the push notifications (new order, card payment received…)
  * and opens the dashboard on a tap. Nothing is cached here: the dashboard always loads fresh. */
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
@@ -6,7 +6,7 @@ self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : '' }; }
-  const title = d.title || 'Jeere';
+  const title = d.title || 'Jehre';
   e.waitUntil(self.registration.showNotification(title, {
     body: d.body || '',
     tag: d.tag || undefined,

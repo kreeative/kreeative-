@@ -1,4 +1,4 @@
-// Jeere Studio › Mes sites — builds sites.json, the list of every website Anne-Kelly has made in
+// Jehre Studio › Mes sites — builds sites.json, the list of every website Anne-Kelly has made in
 // kreeative/kreeative-, from git alone (nothing is checked out). Run from the repository root:
 //   git fetch origin && node concepts/jeere/studio/sites/build-manifest.mjs
 // It reads the default branch (what kreeative.xyz serves) and every other remote branch, and keeps
@@ -46,9 +46,9 @@ function titleOf(branch, p) {
     return m ? decode(m[1]).replace(/\s+/g, ' ').trim() : '';
   } catch { return ''; }
 }
-// E-commerce or not, from the pages themselves: a site that sells through Jeere (Jeere Connect: it loads
+// E-commerce or not, from the pages themselves: a site that sells through Jehre (Jehre Connect: it loads
 // jeere-connect.js or marks a store with data-store) is a « Boutique en ligne », any other a « Site web ».
-// COMMERCE forces the answer: the Jeere Connect sites (their storefront code is on the Jeere branch before it
+// COMMERCE forces the answer: the Jehre Connect sites (their storefront code is on the Jehre branch before it
 // reaches the branch kreeative.xyz serves) and The Ivory Sukundu (sells, its back office lives elsewhere).
 // Never guessed from a title.
 const COMMERCE = {

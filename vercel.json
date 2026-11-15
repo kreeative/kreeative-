@@ -6,7 +6,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "headers": {
@@ -22,7 +22,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "status": 308,
@@ -35,7 +35,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "status": 308,
@@ -48,7 +48,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "dest": "/api/sitemap"
@@ -58,7 +58,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "dest": "/api/store?slug=$1&path=$2"
@@ -68,7 +68,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "dest": "/concepts/jeere/index.html"
@@ -78,7 +78,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "dest": "/concepts/jeere/$1index.html"
@@ -88,7 +88,7 @@
       "has": [
         {
           "type": "host",
-          "value": "jeere.kreeative.xyz"
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
       "dest": "/concepts/jeere/$1"

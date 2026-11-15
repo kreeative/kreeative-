@@ -1,4 +1,4 @@
-/* Jeere Studio — « Abonnements Studio »: the plan chip, the locks, the upgrade sheet, the badge
+/* Jehre Studio — « Abonnements Studio »: the plan chip, the locks, the upgrade sheet, the badge
  * switch of the publish dialog. The studio's own tokens (studio.css, light and dark themes); text
  * ≥ 4.5:1 on the dialogs and panels of both. */
 
@@ -90,7 +90,7 @@
   background: rgba(245, 184, 0, 0.14); border: 1px solid rgba(245, 184, 0, 0.4);
 }
 
-/* the « Fait avec Jeere » badge switch, in the publish dialog */
+/* the « Fait avec Jehre » badge switch, in the publish dialog */
 .st-badgerow {
   display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 12px 0 2px;
   padding: 10px 12px; border-radius: 10px; background: var(--st-chrome); border: 1px solid var(--st-line-d);

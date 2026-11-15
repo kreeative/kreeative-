@@ -1,4 +1,4 @@
-/* Jeere Studio — studio-inspector.js: the inspector of the DualEngine nodes (SPEC-DUALENGINE module 3),
+/* Jehre Studio — studio-inspector.js: the inspector of the DualEngine nodes (SPEC-DUALENGINE module 3),
  * their layers, the « Détacher » / « Rattacher » actions and the generated code.
  *
  * When a detached section or one of its nodes is selected, the Réglages panel shows the engine's

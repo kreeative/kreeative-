@@ -1,5 +1,5 @@
 /*
- * Jeere Rendez-vous — jeere-booking.css: the default look of the booking steps drawn by jeere-booking.js.
+ * Jehre Rendez-vous — jeere-booking.css: the default look of the booking steps drawn by jeere-booking.js.
  * Loaded by the script itself (unless data-style="none"). It inherits the site's fonts and text colour; a site makes
  * it its own with a few properties on .jb (the defaults below are set with :where(), so any rule of the site wins):
  *

@@ -1,5 +1,5 @@
-// Jeere — Edge Function `push` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk): Web Push notifications to the
-// sellers' phones and computers (the Jeere dashboard installed as an app, or open in a browser).
+// Jehre — Edge Function `push` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk): Web Push notifications to the
+// sellers' phones and computers (the Jehre dashboard installed as an app, or open in a browser).
 //
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/push
 //   body: { action: 'key' }                                   → { ok, publicKey }  the VAPID public key        anyone
@@ -7,7 +7,7 @@
 //         { action: 'unsubscribe', endpoint }                 → { ok }                                           signed in
 //         { action: 'test' }                                  → { ok, sent }  a test notification to my devices signed in
 //         { action: 'notify', storeId, title, body, url, tag } → { ok, sent }  to the store's owner and team    the other
-//                                                               Jeere functions only (header x-jeere-internal)
+//                                                               Jehre functions only (header x-jeere-internal)
 //
 // The VAPID keys are made here the first time and kept in public.push_config (no access for anon or signed-in
 // users): no secret to add by hand. Subscriptions live in public.push_subscriptions (migration jeere_push.sql).
@@ -102,7 +102,7 @@ Deno.serve(async (req: Request) => {
   try {
     if (action === 'key') return json({ ok: true, publicKey: (await keys()).publicKey });
 
-    // from the other Jeere functions (orders, payments): the store's owner and team
+    // from the other Jehre functions (orders, payments): the store's owner and team
     if (action === 'notify') {
       if (req.headers.get('x-jeere-internal') !== SECRET) return json({ ok: false, code: 'forbidden' }, 403);
       const sid = str(b.storeId, 40);
@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const user = await userOf(req);
-    if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere.' }, 401);
+    if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre.' }, 401);
 
     if (action === 'subscribe') {
       const s = isObj(b.subscription) ? b.subscription : {};

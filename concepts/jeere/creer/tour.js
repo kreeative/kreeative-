@@ -1,5 +1,5 @@
 /*
- * Jeere — tour.js: the guided tour shared by the Studio (../creer/) and the dashboard (../admin/).
+ * Jehre — tour.js: the guided tour shared by the Studio (../creer/) and the dashboard (../admin/).
  * Classic script, no library. One global: window.JeereTour
  *   start(def)       shows a tour; def = { id, label, steps, onEnd(reason, index), insets() }. Returns true when
  *                    a first step could be shown. A step = { target, title, text, prepare(dir) }:
@@ -19,7 +19,7 @@
  * screen scrolls the target back into view. Phones (< 600 px): the bubble is a bottom sheet (a top sheet when the target sits at the
  * bottom of the screen) and the target is scrolled into the free part of the screen. Desktop: a bubble next to
  * the target. prefers-reduced-motion: no transition, no smooth scroll.
- * Styles: tour.css (scoped to .jt). The avatar is the Jeere cloud (<symbol id="cloud"> of the page's sprite).
+ * Styles: tour.css (scoped to .jt). The avatar is the Jehre cloud (<symbol id="cloud"> of the page's sprite).
  */
 (function () {
   'use strict';

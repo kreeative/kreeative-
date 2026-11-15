@@ -1,4 +1,4 @@
-/* Jeere — the publish panel (publish.js), mounted in the editor's, the Studio's and the dashboard's
+/* Jehre — the publish panel (publish.js), mounted in the editor's, the Studio's and the dashboard's
    « Publier » dialogs. Black and white like the platform; status colours only with a word and an icon
    (README « Couleurs d’état »). 44 px targets. .jp--dark follows the Studio's chrome. */
 .jp {
@@ -111,6 +111,6 @@
 .jp-hist__l li b.jp-pill { margin-left: 6px; }
 .jp-state .jp-pill + .jp-pill, .jp-state .jp-muted + .jp-pill { margin-left: 8px; }
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }

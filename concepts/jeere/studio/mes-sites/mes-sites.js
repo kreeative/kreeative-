@@ -1,9 +1,9 @@
-/* Jeere Studio › « Tous mes sites » — every site she has made, in the dashboard's look (../../admin/admin.css).
+/* Jehre Studio › « Tous mes sites » — every site she has made, in the dashboard's look (../../admin/admin.css).
  *
  * One grid, two kinds of card, told apart by the small icon in the corner of each:
- *   - « Boutique en ligne » (storefront): her Jeere boutiques — the one of this browser (the fiche the Studio
+ *   - « Boutique en ligne » (storefront): her Jehre boutiques — the one of this browser (the fiche the Studio
  *     edits, localStorage) and, with a real session, every row of public.stores she owns (rpc my_stores) —
- *     and the websites that sell through Jeere (sites.json « commerce », set by build-manifest.mjs from the
+ *     and the websites that sell through Jehre (sites.json « commerce », set by build-manifest.mjs from the
  *     pages: jeere-connect.js / data-store);
  *   - « Site web » (globe): the other websites of kreeative/kreeative- (sites.json), only for an editor of
  *     public.site_editors (the `sites-publish` Edge Function, whoami — the same door as ../sites/entry.js)
@@ -170,7 +170,7 @@
     var cfg = readJSON(CONFIG_KEY), pub = (window.JeerePublish && window.JeerePublish.local && window.JeerePublish.local()) || readJSON('jeere-publish') || {};
     var cards = [];
     var here = cfg && cfg.store ? {
-      id: 'local', kind: 'shop', title: cfg.store.name || 'Ma boutique', label: 'Boutique Jeere · ce navigateur',
+      id: 'local', kind: 'shop', title: cfg.store.name || 'Ma boutique', label: 'Boutique Jehre · ce navigateur',
       logo: cfg.store.logo || null, href: '../', here: true,
       live: pub.published && pub.slug ? 'https://' + address(pub.slug) : null, addr: pub.slug ? address(pub.slug) : '',
       pages: (cfg.pages || []).length, storeId: pub.storeId || '', hay: (cfg.store.name || '') + ' ' + (pub.slug || '')
@@ -185,7 +185,7 @@
       return rest('/rest/v1/stores?select=id,name:fiche->store->>name&id=in.(' + others.map(function (r) { return r.id; }).join(',') + ')', s.access_token).then(function (names) {
         var byId = new Map((names || []).map(function (n) { return [n.id, n.name]; }));
         others.forEach(function (r) {
-          cards.push({ id: r.id, kind: 'shop', title: byId.get(r.id) || r.slug, label: 'Boutique Jeere', addr: address(r.slug),
+          cards.push({ id: r.id, kind: 'shop', title: byId.get(r.id) || r.slug, label: 'Boutique Jehre', addr: address(r.slug),
             live: r.published ? 'https://' + address(r.slug) : null, updated: r.updated_at, href: '../', row: r, hay: (byId.get(r.id) || '') + ' ' + r.slug });
         });
         return cards;
@@ -321,7 +321,7 @@
     }).then(function (res) {
       generated = res.sites.generated || null;
       // her own work first: the sites, then the boutiques (the e-commerce sites are among them, by their icon)
-      // her designs that sell through a Jeere store: one card, the site's, with « Gérer la boutique » (its Jeere
+      // her designs that sell through a Jehre store: one card, the site's, with « Gérer la boutique » (its Jehre
       // store in the dashboard); the store's own card would only say the same thing twice
       var LINKED = { 'concepts--anse': 'anse', 'concepts--seve': 'seve', 'concepts--soyeuse': 'soyeuse', 'concepts--michou': 'michou', 'concepts--regard': 'regard', 'concepts--vernie': 'vernie', 'concepts--minuit': 'minuit', 'concepts--joshua-cooker': 'joshua-cooker', 'concepts--sonia-luxury-hair': 'sonia-luxury-hair', 'websites--the-ivory-sukundu': 'tishe' };
       var norm = function (t) { return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); };
@@ -341,8 +341,8 @@
       var cards = res.sites.cards.filter(function (c) { return c.id !== 'websites--the-ivory-sukundu'; });
       items = cards.concat(shops);
       $('ms-sub').innerHTML = editor
-        ? 'Les sites que vous avez faits et vos boutiques Jeere. Ouvrez-en un&nbsp;: il s’ouvre dans le Studio, prêt à modifier.'
-        : 'Vos boutiques Jeere. Ouvrez-en une&nbsp;: elle s’ouvre dans le Studio, prête à modifier.';
+        ? 'Les sites que vous avez faits et vos boutiques Jehre. Ouvrez-en un&nbsp;: il s’ouvre dans le Studio, prêt à modifier.'
+        : 'Vos boutiques Jehre. Ouvrez-en une&nbsp;: elle s’ouvre dans le Studio, prête à modifier.';
       render();
     });
   }

@@ -1,4 +1,4 @@
-/* Jeere — the seller account (../compte/): sign-up and login with a one-time code, no password.
+/* Jehre — the seller account (../compte/): sign-up and login with a one-time code, no password.
  *
  *   #inscription  prénom + « Recevoir mon code par » e-mail (default) / SMS / WhatsApp ─► code reçu (6 à 10 chiffres)
  *                 ─► nom de la boutique ─► « Comment voulez-vous commencer ? »
@@ -478,7 +478,7 @@
       el.modebar.hidden = !d;
       if (el.modeTxt) {
         el.modeTxt.textContent = why === 'offline'
-          ? 'Jeere est injoignable pour l’instant (pas de connexion ?). Vous pouvez essayer quand même' + NB + ': rien n’est envoyé, le compte reste dans ce navigateur.'
+          ? 'Jehre est injoignable pour l’instant (pas de connexion ?). Vous pouvez essayer quand même' + NB + ': rien n’est envoyé, le compte reste dans ce navigateur.'
           : why === 'local'
             ? 'Version locale' + NB + ': aucun code n’est envoyé, votre compte reste dans ce navigateur.'
             : 'Aucun code n’est envoyé' + NB + ': votre compte reste dans ce navigateur.';
@@ -488,13 +488,13 @@
     if (el.nomatchDemo) el.nomatchDemo.hidden = !d;
     if (el.realTxt) {
       el.realTxt.textContent = d
-        ? 'Mode démo' + NB + ': dans le vrai Jeere, vous entrez avec un code à usage unique, reçu ' + channelsText() + '. Pas de mot de passe.'
+        ? 'Mode démo' + NB + ': dans le vrai Jehre, vous entrez avec un code à usage unique, reçu ' + channelsText() + '. Pas de mot de passe.'
         : 'Pas de mot de passe à retenir' + NB + ': vous entrez avec un code à usage unique, reçu ' + channelsText() + '.';
     }
     if (el.footTxt) {
       el.footTxt.textContent = d
-        ? 'Mode démo Jeere' + NB + ': votre compte reste dans ce navigateur, rien n’est envoyé. Un concept Kreeative.'
-        : 'Votre compte Jeere est enregistré de façon sécurisée. Un concept Kreeative.';
+        ? 'Mode démo Jehre' + NB + ': votre compte reste dans ce navigateur, rien n’est envoyé. Un concept Kreeative.'
+        : 'Votre compte Jehre est enregistré de façon sécurisée. Un concept Kreeative.';
     }
     drawProviders();
     drawMethod('signup');
@@ -553,7 +553,7 @@
   };
   function offText(m) {
     if (A && A.describeError) return A.describeError({ code: 'phone_provider_disabled' }, m).text;
-    return 'Les codes ' + (m === 'whatsapp' ? 'sur WhatsApp' : 'par SMS') + ' ne sont pas encore activés sur Jeere. Recevez votre code par e-mail pour l’instant.';
+    return 'Les codes ' + (m === 'whatsapp' ? 'sur WhatsApp' : 'par SMS') + ' ne sont pas encore activés sur Jehre. Recevez votre code par e-mail pour l’instant.';
   }
   function drawMethod(scope) {
     var m = methodOf(scope);
@@ -612,7 +612,7 @@
   function stateStep() {
     try { var s = root.history.state; return s && typeof s.jc === 'string' ? s.jc : ''; } catch (e) { return ''; }
   }
-  // A local or demo account (no Supabase user) while the real Jeere answers: it cannot publish, so
+  // A local or demo account (no Supabase user) while the real Jehre answers: it cannot publish, so
   // « connexion » is a real sign-in for it, not « Bonjour Test » (wave 2 of the Studio audit)
   function localOnly(acc) { return !!(acc && acc.loggedIn && !acc.userId && !demo()); }
   function resolve() {
@@ -662,7 +662,7 @@
     if (setup) setup(v);
     if (current !== v) return; // the step sent us elsewhere
     drawProgress(v);
-    try { doc.title = (TITLES[v.step] || 'Votre compte') + ' · Jeere'; } catch (e) { /* ignore */ }
+    try { doc.title = (TITLES[v.step] || 'Votre compte') + ' · Jehre'; } catch (e) { /* ignore */ }
     try { root.scrollTo(0, 0); } catch (e) { /* ignore */ }
     var col = doc.querySelector('.c-col');
     if (col) col.scrollTop = 0;
@@ -753,7 +753,7 @@
     if (acc) {
       el.existsTxt.textContent = acc.loggedIn
         ? 'Le compte de ' + (acc.firstName || 'ce vendeur') + ' (' + accLabel(acc) + ') est ouvert sur cet appareil. En créer un nouveau le remplacera.'
-        : 'Un compte Jeere existe déjà sur cet appareil (' + (acc.firstName ? acc.firstName + ', ' : '') + accLabel(acc) + '). En créer un nouveau le remplacera.';
+        : 'Un compte Jehre existe déjà sur cet appareil (' + (acc.firstName ? acc.firstName + ', ' : '') + accLabel(acc) + '). En créer un nouveau le remplacera.';
       var link = el.exists.querySelector('a');
       if (link) link.textContent = acc.loggedIn ? 'Voir mon compte' : 'Se connecter plutôt';
       el.exists.hidden = false;
@@ -880,7 +880,7 @@
     if (localOnly(acc)) {
       if (acc.email) { setMethod('login', 'email'); if (!el.lemail.value) el.lemail.value = acc.email; }
       else if (acc.phone && (providers.sms || providers.whatsapp)) setMethod('login', providers.whatsapp ? 'whatsapp' : 'sms');
-      loginNote('Votre compte de démonstration reste dans ce navigateur, avec votre boutique. Connectez-vous à votre compte Jeere (ou créez-le, c’est gratuit)' + NB + ': la boutique y sera reliée et vous pourrez la publier.');
+      loginNote('Votre compte de démonstration reste dans ce navigateur, avec votre boutique. Connectez-vous à votre compte Jehre (ou créez-le, c’est gratuit)' + NB + ': la boutique y sera reliée et vous pourrez la publier.');
     }
     drawMethod('login');
   };
@@ -897,8 +897,8 @@
     b.textContent = isMail ? f.email : formatPhone(f.phone);
     el.nomatchD.appendChild(b);
     el.nomatchD.appendChild(doc.createTextNode(real
-      ? ' n’a pas encore de compte Jeere. Vérifiez-la, ou créez un compte en une minute.'.replace('Vérifiez-la', isMail ? 'Vérifiez-la' : 'Vérifiez-le')
-      : ' n’est liée à aucun compte Jeere sur cet appareil. Vérifiez-la, ou créez un compte en une minute.'.replace('liée', isMail ? 'liée' : 'lié').replace('Vérifiez-la', isMail ? 'Vérifiez-la' : 'Vérifiez-le')));
+      ? ' n’a pas encore de compte Jehre. Vérifiez-la, ou créez un compte en une minute.'.replace('Vérifiez-la', isMail ? 'Vérifiez-la' : 'Vérifiez-le')
+      : ' n’est liée à aucun compte Jehre sur cet appareil. Vérifiez-la, ou créez un compte en une minute.'.replace('liée', isMail ? 'liée' : 'lié').replace('Vérifiez-la', isMail ? 'Vérifiez-la' : 'Vérifiez-le')));
     el.nomatchRetry.textContent = isMail ? 'Essayer une autre adresse' : 'Essayer un autre numéro';
     el.nomatch.hidden = false;
     el.loginBtn.hidden = true;
@@ -1302,14 +1302,14 @@
     if (!acc) { go('inscription', 'signup', { replace: true, focus: 'none' }); return; }
     el.meAv.textContent = initial(acc.firstName || acc.storeName);
     el.sessionT.textContent = 'Bonjour' + (acc.firstName ? ' ' + acc.firstName : '');
-    if (el.meSub) el.meSub.textContent = acc.userId ? 'Votre compte Jeere est ouvert sur cet appareil.' : 'Compte de démonstration' + NB + ': il reste dans ce navigateur.';
+    if (el.meSub) el.meSub.textContent = acc.userId ? 'Votre compte Jehre est ouvert sur cet appareil.' : 'Compte de démonstration' + NB + ': il reste dans ce navigateur.';
     // A local or demo account: the way to a real sign-in that keeps this browser's store (wave 2)
     var real = $('c-real'), realBtn = $('c-real-login');
     if (real && realBtn) {
       real.hidden = realBtn.hidden = !!acc.userId;
       if (!acc.userId) {
         var keep = SUITE ? '?suite=' + SUITE.id : '';
-        // in demo mode (local version, ?demo=1) the real Jeere is one parameter away
+        // in demo mode (local version, ?demo=1) the real Jehre is one parameter away
         realBtn.setAttribute('href', demo() ? (keep ? keep + '&' : '?') + 'demo=0#connexion' : keep + '#connexion');
       }
     }
@@ -1350,7 +1350,7 @@
       providers = info.providers || providers;
       drawMode();
       if (info.demo) {
-        if (LINK) { go('connexion', 'login', { replace: true, focus: 'title' }); loginNote('Pas de connexion avec Jeere pour finir la connexion. Réessayez quand vous aurez du réseau.'); }
+        if (LINK) { go('connexion', 'login', { replace: true, focus: 'title' }); loginNote('Pas de connexion avec Jehre pour finir la connexion. Réessayez quand vous aurez du réseau.'); }
         return;
       }
       if (LINK && !LINK.ok) {

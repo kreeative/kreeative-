@@ -1,4 +1,4 @@
--- Jeere — client projects (migration `jeere_client_projects`, project « Jeere », ref aezchxfvzfoqlvzchqyk).
+-- Jehre — client projects (migration `jeere_client_projects`, project « Jehre », ref aezchxfvzfoqlvzchqyk).
 --
 -- An agency (a web designer on Studio Agence) builds a store for a client under her own account, shows it
 -- with a private preview link, then hands it over:
@@ -65,7 +65,7 @@ create table if not exists public.store_members (
   added_at timestamptz not null default now(),
   primary key (store_id, user_id)
 );
-comment on table public.store_members is 'Jeere: who else may read and edit a store (agency: the web designer kept after the handover; editor). The owner is stores.owner and is never a member.';
+comment on table public.store_members is 'Jehre: who else may read and edit a store (agency: the web designer kept after the handover; editor). The owner is stores.owner and is never a member.';
 create index if not exists store_members_user_idx on public.store_members (user_id);
 
 /* ------------------------------------------------------------------ 3. invites */
@@ -80,7 +80,7 @@ create table if not exists public.store_invites (
   created_at timestamptz not null default now(),
   accepted_at timestamptz
 );
-comment on table public.store_invites is 'Jeere: an e-mail invited to a store (entretien | remis: she becomes the owner; editor: she may edit). Accepted by accept_store_invites() at her next log-in.';
+comment on table public.store_invites is 'Jehre: an e-mail invited to a store (entretien | remis: she becomes the owner; editor: she may edit). Accepted by accept_store_invites() at her next log-in.';
 create unique index if not exists store_invites_pending_uniq on public.store_invites (store_id, email) where accepted_at is null;
 create index if not exists store_invites_email_idx on public.store_invites (email) where accepted_at is null;
 

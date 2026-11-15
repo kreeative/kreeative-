@@ -1,6 +1,6 @@
-# Jeere — landing page and waitlist
+# Jehre — landing page and waitlist
 
-The first public face of **Jeere**, the all-in-one commerce platform built for Africa: build and
+The first public face of **Jehre**, the all-in-one commerce platform built for Africa: build and
 run an online store and in-person sales from one dashboard, with mobile money (brainstorm of
 2 November 2026). It pitches the product to Abidjan sellers and collects a
 waitlist that doubles as the pool for the seller interviews and the 50-store concierge pilot.
@@ -19,12 +19,12 @@ Live (unlisted): https://kreeative.xyz/concepts/jeere/ · English: add `?lang=en
   labelled as “planned, may still change”.
 - No logos of Wave, Orange, MTN or Moov are used: they appear as plain text.
 - The photos in the example stores are the store builder's demo photos (Unsplash, see
-  [Photos](#photos)), not photos of real Jeere sellers. The footer says « Photos d’exemple : Unsplash ».
+  [Photos](#photos)), not photos of real Jehre sellers. The footer says « Photos d’exemple : Unsplash ».
   The artisan's stall in the hero (« Votre boutique physique, maintenant en ligne ») is an Unsplash photo too (credited on the photo itself).
 
 ## Waitlist
 
-The form saves to Supabase, in the **Jeere** project (organisation « Jeere », region Paris, ref
+The form saves to Supabase, in the **Jehre** project (organisation « Jehre », region Paris, ref
 `aezchxfvzfoqlvzchqyk`), table `public.jeere_waitlist` (migration `create_jeere_waitlist`). Until 5 November 2026 it
 went to the « Kreeative Teach » project, now paused: sign-ups made before that are still there. The page posts straight to the REST API with the
 publishable key; row level security only lets visitors **add** a row, never read one. Read the
@@ -43,7 +43,7 @@ Numbers are personal data: keep the table private, and delete a row when someone
 
 ## Seller accounts (Supabase Auth)
 
-`compte/` creates real accounts in the same **Jeere** Supabase project, with a choice of how the
+`compte/` creates real accounts in the same **Jehre** Supabase project, with a choice of how the
 seller receives her one-time code. Not everyone has WhatsApp on the number she types, so e-mail
 comes first; SMS and WhatsApp are there, and switch on as soon as an SMS provider is configured.
 
@@ -63,7 +63,7 @@ comes first; SMS and WhatsApp are there, and switch on as soon as an SMS provide
   `first_name` and the optional number as user metadata; log-in sends `shouldCreateUser: false`, so an unknown address
   gets « Aucun compte avec cette adresse » and a « Créer un compte » button.
 - **SMS or WhatsApp not configured**: `GET /auth/v1/settings` says whether phone sign-in is on; if not, picking SMS or
-  WhatsApp shows at once « Les codes par SMS ne sont pas encore activés sur Jeere. Recevez votre code par e-mail pour
+  WhatsApp shows at once « Les codes par SMS ne sont pas encore activés sur Jehre. Recevez votre code par e-mail pour
   l'instant… » with a « Recevoir mon code par e-mail » button. The same message comes when the API answers
   `phone_provider_disabled` (« Unsupported phone provider ») or `sms_send_failed`.
 - **Errors in plain French** (`JeereAuth.describeError`): wrong or expired code, too many e-mails or codes (429), an
@@ -80,7 +80,7 @@ comes first; SMS and WhatsApp are there, and switch on as soon as an SMS provide
 | The live site | real: codes go out, the account is in Supabase |
 | `?demo=1` | demo, forced |
 | `localhost`, `127.0.0.1`, `file:` | demo by default, so the tests and offline work never send codes; `?demo=0` uses Supabase locally |
-| Supabase or the CDN unreachable (offline, timeout) | demo, with « Jeere est injoignable… » and « Réessayer »; an error while sending offers « Continuer en mode démo » |
+| Supabase or the CDN unreachable (offline, timeout) | demo, with « Jehre est injoignable… » and « Réessayer »; an error while sending offers « Continuer en mode démo » |
 
 Demo is written on the screen (« Mode démo » banner, « aucun e-mail, SMS ni WhatsApp n'est envoyé » on the code step,
 the footer): any 6-digit code works and the account stays in `localStorage`, as before. The e2e suite runs in it.
@@ -120,7 +120,7 @@ the footer): any 6-digit code works and the account stays in `localStorage`, as 
   `private` schema the API does not expose): copies `first_name`, `phone`, `store_name` from the sign-up metadata (or
   the auth phone), cleaned, and never fails a sign-up on bad input.
 - `get_advisors` (security) after the migration: no finding on the schema. The one left is « Leaked password protection
-  disabled », a dashboard setting about passwords, which Jeere does not use.
+  disabled », a dashboard setting about passwords, which Jehre does not use.
 - **Before real payments**: `plan` and `studio` are writable by the seller today because the checkout is a demo. When
   payments are real, revoke `update (plan, studio)` from `authenticated` and set them from the payment webhook (service role).
 
@@ -145,7 +145,7 @@ today « Supprimer mon compte » clears the device and signs out.
 
 ### What the founder must configure in Supabase
 
-Dashboard → project **Jeere** → **Authentication**.
+Dashboard → project **Jehre** → **Authentication**.
 
 1. **URL Configuration** (`/auth/url-configuration`): Site URL `https://kreeative.xyz/concepts/jeere/compte/`; Redirect
    URLs: add `https://kreeative.xyz/concepts/jeere/compte/**` (and `http://localhost:8911/concepts/jeere/compte/**` to
@@ -153,9 +153,9 @@ Dashboard → project **Jeere** → **Authentication**.
    in an e-mail would open nowhere.
 2. **Email templates** (**Emails → Templates**): Supabase's defaults send only a link. To send the 6-digit code, put
    `{{ .Token }}` in **Confirm signup** (first code of a new account) and **Magic link** (every later code), in French,
-   for example: subject « Votre code Jeere : {{ .Token }} », body
-   `<p>Bonjour {{ .Data.first_name }},</p><p>Votre code Jeere : <strong>{{ .Token }}</strong></p><p>Il est valable
-   1 heure. Ne le partagez avec personne, même pas avec l'équipe Jeere.</p>`. Keep the link out, or keep it too: the
+   for example: subject « Votre code Jehre : {{ .Token }} », body
+   `<p>Bonjour {{ .Data.first_name }},</p><p>Votre code Jehre : <strong>{{ .Token }}</strong></p><p>Il est valable
+   1 heure. Ne le partagez avec personne, même pas avec l'équipe Jehre.</p>`. Keep the link out, or keep it too: the
    page handles both. In **Sign In / Providers → Email**, check that the email OTP length is **6** (the page reads 6
    digits) and keep « Confirm email » on.
 3. **Custom SMTP, before any real seller** (**Emails → SMTP Settings**). Supabase's built-in mailer is for trying Auth
@@ -164,12 +164,12 @@ Dashboard → project **Jeere** → **Authentication**.
    (`email_address_not_authorized` for everyone else; that day the logs still showed one delivered to an outside
    address, but do not count on it). With **Resend**: verify a sending domain (`jeere.shop` or the one
    chosen), create an API key, then in Supabase: host `smtp.resend.com`, port `465`, user `resend`, password = the API
-   key, sender `Jeere <code@…>`. Resend's free plan is 3 000 e-mails a month and 100 a day; Pro is 20 $ a month for
+   key, sender `Jehre <code@…>`. Resend's free plan is 3 000 e-mails a month and 100 a day; Pro is 20 $ a month for
    50 000. Then raise **Rate Limits → emails per hour**.
 4. **SMS** (**Sign In / Providers → Phone**): turn Phone on, choose **Twilio** (the one Supabase documents best, and the
    only one that also does WhatsApp; Vonage, MessageBird and Textlocal are the other choices), paste the Account SID, Auth
-   Token and Messaging Service SID from the Twilio console (a Messaging Service with an alphanumeric sender « Jeere »,
-   free at Twilio), set the SMS message to « Votre code Jeere : {{ .Code }} », raise the code lifetime from 60 s to
+   Token and Messaging Service SID from the Twilio console (a Messaging Service with an alphanumeric sender « Jehre »,
+   free at Twilio), set the SMS message to « Votre code Jehre : {{ .Code }} », raise the code lifetime from 60 s to
    300 s, and set **Rate Limits → SMS per hour**. **Cost to Côte d'Ivoire: 0.4925 $ per SMS segment on Twilio**
    (about 300 FCFA, October 2026 price list), i.e. about 50 times an e-mail. Plivo's public list gives 0.30 $ (Orange),
    0.33 $ (MTN) and 0.50 $ (Moov) for comparison; Vonage and MessageBird publish their Ivorian prices only in their
@@ -178,7 +178,7 @@ Dashboard → project **Jeere** → **Authentication**.
    of SMS pumping fraud. A cheaper route later: a « Send SMS » Auth Hook
    (an Edge Function) calling a local aggregator.
 5. **WhatsApp (optional, secondary)**: needs Twilio (or Twilio Verify) as the phone provider, plus a WhatsApp sender
-   approved on Twilio (a Meta Business account, business verification, the display name « Jeere »). Supabase then sends
+   approved on Twilio (a Meta Business account, business verification, the display name « Jehre »). Supabase then sends
    the code with `channel: 'whatsapp'`. **Cost: Meta's « authentication » rate for Côte d'Ivoire (region « Rest of
    Africa ») is about 0.004 $ per message from 1 October 2026** (as copied from Meta's rate card by Zernio and SleekFlow;
    check the card itself), **plus 0.005 $ per message for Twilio**: about 0.009 $ (≈ 5 FCFA) per code, some 50 times
@@ -218,15 +218,15 @@ Delete the test users afterwards (`delete from auth.users where email like 'jeer
   Both fill with `currentColor` (`fill-rule: evenodd`, the inside of the cloud stays open): ink
   `#111111` on the white UI, white on dark backgrounds (footer, the dark « Avec jeere » column).
   The footer echoes the brand board: the handwritten « jeere » with four small icons (store,
-  payment, chat, delivery) beside a large cloud. Accessible names stay « Jeere ».
+  payment, chat, delivery) beside a large cloud. Accessible names stay « Jehre ».
 - **App and tab icon**: the white cloud on a bright, lively pop blue `#3657FF` (`favicon.svg`, 64×64
   rounded square, with a simplified trace of the cloud, slightly bolder eyes and a tight margin so it
   still reads at 16 px in a tab; `apple-touch-icon.png`, 180×180 full bleed: iOS rounds the corners). The pop blue
   is only for the icon: the site itself stays black and white.
-- **Name**: always written « Jeere » in text (only the J in capital), never « JEERE »; only the
+- **Name**: always written « Jehre » in text (only the J in capital), never « JEERE »; only the
   handwritten wordmark is lowercase « jeere ».
 - **Text weights**: light on purpose: titles in Poppins 400, buttons and labels 500, body 400.
-- **Colours**: black and white for Jeere itself. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
+- **Colours**: black and white for Jehre itself. White `#FFFFFF`, greys `#F5F5F3` / `#EBEBE8`, ink
   `#111111`, muted text `#5E5E5E`. No accent colour: the sellers’ photos and stores bring the
   colour, so only the demo stores and product pictures on the page are in colour. Inside the
   platform (editor, dashboard, account), small status badges, dots and chart bars carry colour codes
@@ -242,7 +242,7 @@ Delete the test users afterwards (`delete from auth.users where email like 'jeer
    WhatsApp number. The card sends nothing: it copies the number into the waitlist form, scrolls there and asks for
    the first name (without JavaScript it simply links to the waitlist). On the right, an editor canvas on a faint grid:
    a store page whose portrait (the beauty store's hero photo) sits in a thick ring of the store colour, with floating
-   editor tools: a text toolbar with the Jeere assistant, a colour tray (Karité, Lagune, Hibiscus, Indigo, Mangue,
+   editor tools: a text toolbar with the Jehre assistant, a colour tray (Karité, Lagune, Hibiscus, Indigo, Mangue,
    Menthe, white: the same bright colours as the store palettes) that recolours the store (the ring, the page tint,
    the soft mat around the product card's photo, the « Ajouter » button; black ring for white), a product card (a real photo of
    raw shea butter) whose quantity updates the “Paiement Wave reçu” chip, and a pause button. The colours change by themselves every 2.8 s
@@ -260,9 +260,9 @@ Delete the test users afterwards (`delete from auth.users where email like 'jeer
    Créer ma boutique e-commerce maintenant » (to sign-up) with the store; then « Revoir ».
    See [Idea to store](#idea-to-store-animation).
 2. Tout-en-un: online store, payments, orders and stock, sell everywhere, everything included.
-3. Aujourd’hui / Avec Jeere.
-4. Pourquoi Jeere: nine common complaints about the big e-commerce platforms (six from sellers,
-   three from their customers), each with Jeere’s answer. Other platforms are not named on the page.
+3. Aujourd’hui / Avec Jehre.
+4. Pourquoi Jehre: nine common complaints about the big e-commerce platforms (six from sellers,
+   three from their customers), each with Jehre’s answer. Other platforms are not named on the page.
 5. How it works, in four steps.
 6. Delivery by commune: pick one of 13 communes and the receipt updates (fee, total, delay).
 7. Templates: Plateau, Cocody and Treichville tabs switch the phone preview, a small store in real photos, each in
@@ -278,7 +278,7 @@ Delete the test users afterwards (`delete from auth.users where email like 'jeer
 8. Diaspora mode (marked “coming soon”), with a delivery photo (a courier with the parcels) as the proof.
 9. Pricing by sales volume, not features: every plan (even Gratuit) has every feature, human
    support on WhatsApp, import/export and one-tap pause. Plans differ only by orders a month
-   (20, 150, 600, unlimited) and Jeere’s fee per online sale (3 %, 1 %, 0 %, 0 %).
+   (20, 150, 600, unlimited) and Jehre’s fee per online sale (3 %, 1 %, 0 %, 0 %).
 9b. « Le Studio · formule Avancée » (`#studio`, on black): the Studio's own subscriptions (Découverte free,
    Solo, Pro, Agence) with a monthly / yearly toggle (`site.js`), « Essayer le Studio 14 jours »
    (`studio/?essai=1`) and « Comparer les formules » (`abonnements/`, the pricing page with its comparison
@@ -367,7 +367,7 @@ Made from a 1179×1466 copy, cropped to the framing `LINES` was traced on (x 2�
 | `img/shop/*.webp` (the online store) | cut-outs of `creer/img/demo` photos | see `creer/img/demo/CREDITS.md` | — |
 
 Known weak spot: the delivery photo was taken in South Africa, not West Africa (nothing better was
-found on Unsplash); replace it with a real Jeere delivery photo when there is one.
+found on Unsplash); replace it with a real Jehre delivery photo when there is one.
 
 ## Physical to online animation (the hero)
 
@@ -410,14 +410,14 @@ line at a time) when the section is within a screen of the viewport, and plays i
 
 ## Domaines
 
-How a Jeere store gets a real address, how a seller connects a domain she bought elsewhere, and how she can
-buy one through Jeere. Everything below is built; what still needs the founder is in
+How a Jehre store gets a real address, how a seller connects a domain she bought elsewhere, and how she can
+buy one through Jehre. Everything below is built; what still needs the founder is in
 [What the founder must do](#what-the-founder-must-do).
 
 ### The free address: `jeere.kreeative.xyz/b/<adresse>`
 
-Jeere does not own `jeere.shop` yet, and `kreeative.xyz`'s DNS is at GoDaddy (so no wildcard
-`*.jeere.kreeative.xyz`). Every store therefore lives on a **path** of the free Jeere host:
+Jehre does not own `jeere.shop` yet, and `kreeative.xyz`'s DNS is at GoDaddy (so no wildcard
+`*.jeere.kreeative.xyz`). Every store therefore lives on a **path** of the free Jehre host:
 
 ```
 https://jeere.kreeative.xyz/b/awa-beaute            the store (vercel.json routes /b/<slug> on that host to b/index.html)
@@ -431,12 +431,12 @@ all go through it, so no screen promises « nom.jeere.shop » any more; an addre
 (`awa-beaute.jeere.shop` in `'jeere-admin'`) is read back with `storeSlug()` and shown in the new form.
 
 **Address rules** (the same in `JEERE_DATA.checkStoreSlug` and in the database's `CHECK`): 3 to 40 characters,
-`a–z`, `0–9` and hyphens, no hyphen first, last or doubled, and none of Jeere's own words
+`a–z`, `0–9` and hyphens, no hyphen first, last or doubled, and none of Jehre's own words
 (`STORE_SLUG_RESERVED` = `public.jeere_slug_reserved`: www, admin, api, app, studio, creer, compte,
 abonnements, b, s, aide, panier, paiement, domaine, mail, ns1, test… 160 words, so they also stay free as
 sub-domains later). `publish-test.js` checks that both lists are identical and that the live database refuses each word.
 
-**The data: `public.stores`** (Supabase « Jeere », migration `create_jeere_stores`, the SQL is in
+**The data: `public.stores`** (Supabase « Jehre », migration `create_jeere_stores`, the SQL is in
 `supabase/migrations/`):
 
 | Column | |
@@ -445,9 +445,9 @@ sub-domains later). `publish-test.js` checks that both lists are identical and t
 | `owner` | `auth.users(id)`, default `auth.uid()`; nullable while accounts are a demo (rows without an owner are written by the team, in SQL) |
 | `slug` | unique, the rules above (CHECK) |
 | `fiche` | the fiche boutique (jsonb object, 1 MiB of text at most; the browser refuses more than 0,9 MB before sending, with a message about the photos) |
-| `show_badge` | « Fait avec Jeere » (true unless a paid Studio plan hides it: `JeerePlans.badgeShown()` when publishing) |
+| `show_badge` | « Fait avec Jehre » (true unless a paid Studio plan hides it: `JeerePlans.badgeShown()` when publishing) |
 | `published`, `published_at` | the switch, and when it was last turned on (a trigger) |
-| `custom_domain` | unique, lower case, never a Jeere / Vercel / Supabase host (CHECK) |
+| `custom_domain` | unique, lower case, never a Jehre / Vercel / Supabase host (CHECK) |
 | `domain_status` | `none` · `pending` · `dns_ok` · `waiting_team` (no Vercel token: the team attaches it) · `attached` · `verified` · `error` |
 | `domain_checked_at`, `created_at`, `updated_at` | |
 
@@ -487,7 +487,7 @@ domain the same from the root (`/produits/<id>`…); on any other host `…/b/?s
 Back works, a link can be shared, opened in a new tab or indexed. **The `<head>`**: the Studio's référencement
 first (`store.seo`, `pages[].seo`: title, description, share image, `noindex`), then the store's name and tagline;
 a product page says « name · price · store » with its photo; canonical, `robots`, `og:*`, `twitter:*`
-(`JeereRender.storeMeta`, shared with the server). « Fait avec Jeere » follows `stores.badge` (computed by the
+(`JeereRender.storeMeta`, shared with the server). « Fait avec Jehre » follows `stores.badge` (computed by the
 database from the owner's plan, migration `jeere_wave2`), else `show_badge`. A loading state, a friendly
 « Boutique introuvable » (noindex) for unknown or unpublished addresses, and « Connexion impossible » with
 « Réessayer ». **Ordering**: the store's checkout has no real payment yet, so « Payer » / « Confirmer la commande »
@@ -514,7 +514,7 @@ store on her verified domain is listed there; `noindex` pages left out). `jeere.
 ### vercel.json: `routes`, not `rewrites`
 
 Vercel serves a file that exists **before** `rewrites` (« the filesystem takes precedence over rewrites »), so the
-old rule could never show Jeere at `jeere.kreeative.xyz/`: the repository root has its own `index.html` (the
+old rule could never show Jehre at `jeere.kreeative.xyz/`: the repository root has its own `index.html` (the
 portfolio). `routes` run before the filesystem, so the file now uses `routes` (it had only one rewrite, nothing
 else to convert). In order:
 
@@ -528,12 +528,12 @@ else to convert). In order:
 | --- | --- | --- |
 | kreeative.xyz, www.kreeative.xyz | everything | unchanged: the filesystem (portfolio, `/concepts/jeere/…`, `/robots.txt`, 404) |
 | kreeative-site.vercel.app, `*-<team>.vercel.app` previews | everything | unchanged |
-| jeere.kreeative.xyz | `/` | the Jeere landing (before: the portfolio's `index.html`) |
+| jeere.kreeative.xyz | `/` | the Jehre landing (before: the portfolio's `index.html`) |
 | jeere.kreeative.xyz | `/creer` · `/creer/` · `/creer/render.js` | 308 `/creer/` · editor · the file |
 | jeere.kreeative.xyz | `/b/awa-beaute`, `/b/awa-beaute/`, `/b/awa-beaute/produits/p1`, `/b/awa-beaute/pages/a-propos`, `/b/awa-beaute/panier` | `api/store.js` (the store page with its own `<head>`) |
 | jeere.kreeative.xyz | `/b/sitemap.xml` | `api/sitemap.js` (the `store-sitemap` Edge Function, as XML) |
 | jeere.kreeative.xyz | `/b/awa-beaute/autre` | 404 |
-| jeere.kreeative.xyz | `/b/b.js`, `/style.css`, `/studio/engine/model.js` | the Jeere files |
+| jeere.kreeative.xyz | `/b/b.js`, `/style.css`, `/studio/engine/model.js` | the Jehre files |
 | jeere.kreeative.xyz | `/robots.txt` | `concepts/jeere/robots.txt` (wave 2: allow, sitemap) |
 | awabeaute.com, www.awabeaute.com, boutique.awabeaute.ci | `/`, `/produits/p1`, `/une/page` | `api/store.js`, which finds the store by its host |
 | kreeative.xyz | `/api/store` | the function, which serves the static page (no store asked) |
@@ -551,7 +551,7 @@ Dashboard › Paramètres › Domaine (`admin/domaines.js`, `admin/domaines.css`
 `window.JeereDomains`):
 
 1. She types her domain: apex (`awabeaute.com`), `www.awabeaute.com` or a sub-domain; « https:// » and a final
-   slash are removed, accents and spaces refused, Jeere's own hosts refused.
+   slash are removed, accents and spaces refused, Jehre's own hosts refused.
 2. She sees exactly what to add, each value with « Copier »: `A @ 76.76.21.21` (apex) and
    `CNAME www cname.vercel-dns.com` (the one she typed is « Obligatoire », the other « Conseillé »); a sub-domain
    gets `CNAME <sub> cname.vercel-dns.com`. Step-by-step guides for GoDaddy, Namecheap, Hostinger, OVHcloud and
@@ -560,7 +560,7 @@ Dashboard › Paramètres › Domaine (`admin/domaines.js`, `admin/domaines.css`
    with what it found (« Pas encore : trouvé parkingpage.namecheap.com »).
 4. When the required record is right, the dashboard calls the Edge Function `domains` (`attach`, then `verify`), which
    checks she owns the store, saves `custom_domain` and adds the domain to the Vercel project. Without the Vercel token
-   it answers « pas encore configuré » and the screen says the Jeere team links it by hand (status « Relié par
+   it answers « pas encore configuré » and the screen says the Jehre team links it by hand (status « Relié par
    l’équipe sous 24 h »). Without a published store she is told to publish first.
 5. Routing: the domain is attached to the same Vercel project; rule 5 above sends it to the store page, which reads
    `location.host` and loads the store whose `custom_domain` is that host (or its www / apex twin).
@@ -577,14 +577,14 @@ not a JWT, the function checks the session itself with `/auth/v1/user`).
 | `search { name }` | anyone | with the token: Vercel's availability and price for .com .shop .store .online .net .co .site .boutique, in USD and FCFA; without: `configured: false` (the dashboard then guesses from the DNS) |
 | `attach { storeId, domain }` | the store's owner | saves the domain, adds it **and its www/apex twin (308 redirect)** to project `prj_fD8DW3XmW3iyaGNXSCquGcApR4AC` (team `team_baaIo2HD3gXK1oOziipXPpAl`, linked to the branch in `VERCEL_GIT_BRANCH`, default `claude/session-setup-kcwzk4`; empty = production), reads its config, sets `domain_status` |
 | `verify { storeId }` | owner | Vercel's verify + config → `attached` / `verified` (returns any TXT verification record to add) |
-| `detach { storeId }` | owner | removes it from the project and the store (never a Jeere / Vercel host) |
+| `detach { storeId }` | owner | removes it from the project and the store (never a Jehre / Vercel host) |
 | `buy { domain, years, expectedPrice, contact, storeId?, confirm: true }` | **the team only** | needs `VERCEL_TOKEN`, the `DOMAINS_ADMIN_KEY` secret sent as `x-jeere-admin`, and `confirm: true`; re-reads the price, refuses if it changed, buys (`autoRenew: false`), attaches it to the store |
 
 Secrets (Supabase › Edge Functions › Secrets): `VERCEL_TOKEN` (missing today), `DOMAINS_ADMIN_KEY` (missing today),
 optional `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, `VERCEL_GIT_BRANCH`. The demo checkout never calls `buy`.
 Tested in Node with a Deno shim (`fn-test.mjs`) and live (`live-api-test.js`).
 
-### Buying a domain through Jeere
+### Buying a domain through Jehre
 
 **Research (6 November 2026).**
 - Vercel sells domains through its registrar API (`/v1/registrar/…`: availability, price, buy; buying needs the
@@ -610,7 +610,7 @@ rounded up to 500 FCFA (`JeereDomains.fcfa`, the same in the Edge Function). The
 (~2 %), the exchange risk, the linking and the support. Renewals follow the same formula on the renewal price, and
 the screens always show both: some extensions are a promotion the first year only.
 
-| TLD | Vercel (buy / renew, USD) | Cost in FCFA (×600) | **Jeere, 1st year** | **Jeere, each renewal** | Margin 1st year / renewal |
+| TLD | Vercel (buy / renew, USD) | Cost in FCFA (×600) | **Jehre, 1st year** | **Jehre, each renewal** | Margin 1st year / renewal |
 | --- | --- | --- | --- | --- | --- |
 | .com | 12,03 / 12,03 | 7 218 | **11 000** | **11 000** | 3 782 / 3 782 |
 | .net | 13,50 / 13,50 | 8 100 | **12 000** | **12 000** | 3 900 / 3 900 |
@@ -625,9 +625,9 @@ the screens always show both: some extensions are a promotion the first year onl
 Advice shown to sellers: .com keeps the same price every year; .shop / .store / .online are cheap only the first year.
 
 **Who owns the domain.** It is registered **in the seller's name** (she is the registrant contact; the checkout asks
-her name and e-mail, which registries require), in Jeere's Vercel team, which manages its DNS. She can transfer it
-out (after the 60-day ICANN lock). `autoRenew` is off: Jeere renews only after she pays, with a WhatsApp reminder
-30 days before; unpaid, it lapses, and her free Jeere address keeps working.
+her name and e-mail, which registries require), in Jehre's Vercel team, which manages its DNS. She can transfer it
+out (after the 60-day ICANN lock). `autoRenew` is off: Jehre renews only after she pays, with a WhatsApp reminder
+30 days before; unpaid, it lapses, and her free Jehre address keeps working.
 
 **The flow.**
 1. Dashboard › Domaine › « Acheter un nom de domaine »: she types a name; the dashboard asks `domains/search`. With the
@@ -653,13 +653,13 @@ curl -X POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains \
 ### What the founder must do
 
 1. **GoDaddy › kreeative.xyz › DNS**: add `CNAME` `jeere` → `659106b38f644a47.vercel-dns-017.com`. Then
-   `https://jeere.kreeative.xyz/` shows Jeere and `https://jeere.kreeative.xyz/b/<adresse>` the stores. If a visitor
+   `https://jeere.kreeative.xyz/` shows Jehre and `https://jeere.kreeative.xyz/b/<adresse>` the stores. If a visitor
    is asked to log in to Vercel, the branch domain is behind Deployment Protection: allow it in Vercel › Project ›
    Settings › Deployment Protection, or point the domain at production.
 2. **A Vercel token**: Vercel › Account Settings › Tokens › « Create », scope = the team that owns the project
    (`team_baaIo2HD3gXK1oOziipXPpAl`), an expiry you will remember. It can add domains to the project and buy domains:
    keep it only in Supabase.
-3. **The secrets**: Supabase › project « Jeere » › Edge Functions › Secrets › add `VERCEL_TOKEN` = the token, and
+3. **The secrets**: Supabase › project « Jehre » › Edge Functions › Secrets › add `VERCEL_TOKEN` = the token, and
    `DOMAINS_ADMIN_KEY` = a long random string kept by the team (only needed for purchases). No redeploy needed. Check with
    `{"action":"status"}`: `configured: true`.
 4. Supabase Auth (the other agent's work): when the account page signs sellers in, expose `window.JeereAuth.getSession()`
@@ -676,10 +676,10 @@ curl -X POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains \
 4. Set `ADDRESS_MODE = 'subdomain'` in `creer/data.js`: every screen shows `awa-beaute.jeere.shop`; old
    `jeere.kreeative.xyz/b/…` links keep working (keep rule 3).
 
-## Jeere Connect (a custom-designed site on a Jeere store)
+## Jehre Connect (a custom-designed site on a Jehre store)
 
 For sites the studio designs by hand (`concepts/joshua-cooker/`, `concepts/sonia-luxury-hair/`): they keep their
-own design, and their products, prices and cart come from a Jeere store, edited in the Jeere editor.
+own design, and their products, prices and cart come from a Jehre store, edited in the Jehre editor.
 
 ```html
 <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="<slug>" defer></script>
@@ -698,26 +698,26 @@ own design, and their products, prices and cart come from a Jeere store, edited 
   add(id, q), set(id, q), clear(), checkoutUrl(), refresh(), formatPrice }` for a site's own script (Sonia's bag).
 - Checkout: same tab to `https://jeere.kreeative.xyz/b/<slug>/panier?panier=p1:2,p3:1`. `b/b.js` fills the store's cart
   from it (its own product ids only, 1 to 20 each), opens the cart, and takes the parameter out of the address. The
-  order then leaves on WhatsApp, as on every Jeere store: the store needs its WhatsApp number in the fiche.
+  order then leaves on WhatsApp, as on every Jehre store: the store needs its WhatsApp number in the fiche.
 - Never breaks the site: Supabase unreachable, store not published, or the script not loading → the hard-coded
   names and prices stay, and the cart still works on the page's prices.
 - Ids are the fiche's (`p1`, `p2`…): `normalizeConfig` renumbers any other id, in the store page and on every publish,
   so the site binds to those. Deleting a product in the editor frees its id for the next new product: check the
   site's `data-jeere-product` after removing one. Names and descriptions are only written where the page is in
   French (`lang`), the fiche's language; prices everywhere (a site may set `JeereConnect.formatPrice`).
-- Photos: Jeere keeps only photos uploaded to Jeere (Supabase Storage) or data URLs; an https photo elsewhere
-  (`kreeative.xyz/…`) is shown by Jeere Connect but not by the Jeere store page, and the editor drops it on publish.
+- Photos: Jehre keeps only photos uploaded to Jehre (Supabase Storage) or data URLs; an https photo elsewhere
+  (`kreeative.xyz/…`) is shown by Jehre Connect but not by the Jehre store page, and the editor drops it on publish.
 - Demo stores: `connect/seed-stores.sql` (`joshua-cooker`, `sonia-luxury-hair`, owner 706a1f96…), to run once in the
   SQL editor; it says what to set before sharing (WhatsApp number, delivery fees).
 - The custom-designed demo shops (« Modèles sur mesure » on the home page, `#sur-mesure-modeles`): ANSE, SÈVE,
-  SOYEUSE and MICHOU (`concepts/<slug>/` on the default branch), each sold through the Jeere store of the same slug
+  SOYEUSE and MICHOU (`concepts/<slug>/` on the default branch), each sold through the Jehre store of the same slug
   (owner 706a1f96…, created in the SQL editor from the products listed in each site's README). They are in
   `admin.js` (`CUSTOM`, `MY_SHOPS`), `mes-sites.js` (`LINKED`), `build-manifest.mjs` (`COMMERCE`) and the folders
   `sites-publish` may write. « Choisir ce modèle » opens the store in the dashboard (`admin/#boutique=<slug>`).
   **When a model is copied for a client, copy the code only, never `img/`**: the demo images belong to their
   authors and brands (Pinterest, CYKLAR, the bag brands) — see each site's `mentions-legales/` page.
 
-## Jeere Rendez-vous (appointments for service businesses)
+## Jehre Rendez-vous (appointments for service businesses)
 
 Lashes, nails, hair, make-up: a store can take **bookings** as well as orders. Clients choose a service, a
 day and a time on the store's site or on `rdv/?b=<slug>`; the studio runs its agenda in the dashboard

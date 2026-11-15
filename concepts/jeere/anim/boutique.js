@@ -1,4 +1,4 @@
-/* Jeere — « Votre boutique physique, maintenant en ligne ».
+/* Jehre — « Votre boutique physique, maintenant en ligne ».
    The real boutique is there first (the photo). Brush strokes in the logo's hand trace it, line by line: every
    line is a bundle of 2 to 5 opaque, equal strands that drift and sometimes cross, with a comb of loose strands
    ending in round drops where the brush lifts (like the cloud and the « jeere » wordmark). As the drawing grows

@@ -1,5 +1,5 @@
 /*
- * Jeere — admin.js: the seller dashboard (front-end prototype, no backend).
+ * Jehre — admin.js: the seller dashboard (front-end prototype, no backend).
  * Global: window.JeereAdmin = { go, state, reload, startTour } (for tests and the console; startTour replays the
  * guided tour of ../creer/tour.js, as « ? Aide » › « Revoir la visite guidée » does).
  *
@@ -69,7 +69,7 @@
   }
   const ico = (name, cls) => '<svg class="a-ico' + (cls ? ' ' + cls : '') + '" aria-hidden="true" focusable="false"><use href="#i-' + name + '"/></svg>';
 
-  // Jeere's own prices (plans, domains): FCFA whatever the store sells in
+  // Jehre's own prices (plans, domains): FCFA whatever the store sells in
   const fcfa = (n) => (D && D.formatFcfa ? D.formatFcfa(n) : Math.round(Number(n) || 0) + NB + 'FCFA');
   const price = (n) => (D && D.formatPrice ? D.formatPrice(n) : Math.round(Number(n) || 0) + NB + 'FCFA');
   const curShort = () => (D && D.currencyInfo ? D.currencyInfo().short : 'FCFA');
@@ -361,8 +361,8 @@
   const statusLabel = (id) => { const s = STATUSES().find((x) => x.id === id); return s ? s.label : id; };
   const channelLabel = (id) => { const c = arr(D && D.ORDER_CHANNELS).find((x) => x.id === id); return c ? c.label : str(id); };
   // a store of hers that keeps its own site and data (The Ivory Sukundu, ./tishe.js): its views replace these while in view
-  // her own designs that sell through a Jeere store (../connect/jeere-connect.js, data-store): the dashboard shows
-  // that site, « Personnaliser » opens it in the website editor; the Jeere store holds the products and orders
+  // her own designs that sell through a Jehre store (../connect/jeere-connect.js, data-store): the dashboard shows
+  // that site, « Personnaliser » opens it in the website editor; the Jehre store holds the products and orders
   const CUSTOM = {
     'anse': { site: 'concepts--anse', live: 'https://kreeative.xyz/concepts/anse/' },
     'seve': { site: 'concepts--seve', live: 'https://kreeative.xyz/concepts/seve/' },
@@ -401,12 +401,12 @@
   function growthCard() {
     loadGrowth();
     const g = S.growth && S.growth.data;
-    if (!g) return H`<section class="a-card a-growth"><h2 class="a-card__title">Croissance de Jeere</h2><p class="a-card__sub">${S.growth && !S.growth.loading ? 'Les chiffres n’ont pas pu se charger.' : 'Chargement…'}</p></section>`;
+    if (!g) return H`<section class="a-card a-growth"><h2 class="a-card__title">Croissance de Jehre</h2><p class="a-card__sub">${S.growth && !S.growth.loading ? 'Les chiffres n’ont pas pu se charger.' : 'Chargement…'}</p></section>`;
     const t = g.totals || {};
     const days = arr(g.days).slice(-7);
     const max = Math.max(1, ...days.map((d) => Number(d.accounts) || 0));
     const fmtDay = (d) => { const x = new Date(d + 'T12:00:00'); return DAYS_SHORT[x.getDay()]; };
-    return H`<section class="a-card a-growth" aria-labelledby="h-growth"><div class="a-card__head"><div><h2 class="a-card__title" id="h-growth">Croissance de Jeere</h2><p class="a-card__sub">Visible par vous seule. Lien à partager : jeere.kreeative.xyz/compte/?ref=tiktok#inscription</p></div></div>
+    return H`<section class="a-card a-growth" aria-labelledby="h-growth"><div class="a-card__head"><div><h2 class="a-card__title" id="h-growth">Croissance de Jehre</h2><p class="a-card__sub">Visible par vous seule. Lien à partager : jeere.kreeative.xyz/compte/?ref=tiktok#inscription</p></div></div>
       <dl class="a-growth__tot">
         <div><dt>Comptes</dt><dd>${esc(number(t.accounts || 0))}</dd></div>
         <div><dt>Boutiques</dt><dd>${esc(number(t.stores || 0))}</dd></div>
@@ -767,7 +767,7 @@
     if (S.restored) { const f = $('#a-main form[data-form="' + S.restored + '"]'); if (f) setDirty(f); }
     updateShell();
     const h1 = $$('#a-main h1').find(visible) || $('#a-main h1');
-    document.title = (h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : TITLES[r.name]) + ' · Jeere';
+    document.title = (h1 ? h1.textContent.replace(/\s+/g, ' ').trim() : TITLES[r.name]) + ' · Jehre';
     if (focus !== false) {
       try { window.scrollTo(0, 0); } catch (e) { /* ignore */ }
       if (focus) focusMain();
@@ -876,7 +876,7 @@
       <button class="a-menu-item" type="button" data-act="help">${ico('help')}Aide · une vraie personne sur WhatsApp</button>
       <a class="a-menu-item" href="${EDITOR_URL}">${ico('palette')}Ouvrir le Studio</a>
       <a class="a-menu-item" href="#parametres/studio">${ico('sparkle')}Studio avancé · ${esc(studioHint())}</a>
-      <a class="a-menu-item" href="../">${ico('home')}Retour à Jeere</a>
+      <a class="a-menu-item" href="../">${ico('home')}Retour à Jehre</a>
       <div class="a-menu-sep" role="separator"></div>
       <button class="a-menu-item" type="button" data-act="logout">${ico('logout')}Se déconnecter</button>`;
     m.hidden = false;
@@ -1062,12 +1062,12 @@
             <div class="a-copy"><label class="a-sr" for="pm-url">Lien d’aperçu privé</label><input class="a-input" id="pm-url" value="${esc(url)}" readonly>
               <button class="a-btn a-btn--primary" type="button" data-act="proj-copy">${ico('copy')}Copier le lien</button></div>
             <p class="a-small"><a class="a-link" href="${esc(url)}" target="_blank" rel="noopener">Ouvrir l’aperçu ${ico('external')}</a></p>`
-            : H`<p class="a-small">${e.remote ? 'Le lien arrive dans un instant : rouvrez cette fenêtre.' : 'Connectez-vous à votre compte Jeere : le projet est alors enregistré sur Jeere et reçoit son lien d’aperçu.'}</p>`}
+            : H`<p class="a-small">${e.remote ? 'Le lien arrive dans un instant : rouvrez cette fenêtre.' : 'Connectez-vous à votre compte Jehre : le projet est alors enregistré sur Jehre et reçoit son lien d’aperçu.'}</p>`}
         </section>
         ${e.role === 'owner' ? H`<section class="a-pm__sec" aria-labelledby="pm-inv"><h3 class="a-pm__h" id="pm-inv">${ico('user')}Accès du client</h3>
           ${invites.length ? H`<ul class="a-pm__invites">${invites.map((i) => H`<li><span><strong>${esc(i.email)}</strong><span class="a-small"> · ${esc(MODE_LABEL[i.mode] || '')} · en attente</span></span>
             <button class="a-btn a-btn--quiet a-btn--sm" type="button" data-act="proj-cancel-invite" data-invite="${esc(i.id)}">Annuler</button></li>`)}</ul>
-            <p class="a-small">Le client se connecte à Jeere avec cette adresse e-mail : le projet s’ouvre chez lui.</p>` : ''}
+            <p class="a-small">Le client se connecte à Jehre avec cette adresse e-mail : le projet s’ouvre chez lui.</p>` : ''}
           ${!e.agency ? H`<button class="a-btn a-btn--primary" type="button" data-act="proj-invite">${ico('share')}Inviter le client</button>` : ''}
           ${e.agency ? H`<p class="a-small"><strong>${esc(e.agency)}</strong> a un accès Agence : cette personne peut encore modifier votre boutique (pack entretien). Vos ventes vont toujours sur votre compte.</p>
             <button class="a-btn a-btn--ghost" type="button" data-act="proj-remove-agency">${ico('lock')}Retirer l’accès Agence</button>` : ''}
@@ -1096,7 +1096,7 @@
     const e = projCurrent();
     if (!e) return;
     const html = H`<form class="a-dialog__card" data-dform="projinvite" novalidate>${dlgHead('pi-t', 'Inviter le client')}
-      <div class="a-dialog__body"><p class="a-dialog__lead">Le client reçoit l’accès en se connectant à Jeere avec cette adresse e-mail. Ses ventes vont toujours sur son propre compte (mobile money, carte), jamais sur le vôtre.</p>
+      <div class="a-dialog__body"><p class="a-dialog__lead">Le client reçoit l’accès en se connectant à Jehre avec cette adresse e-mail. Ses ventes vont toujours sur son propre compte (mobile money, carte), jamais sur le vôtre.</p>
         <div class="a-field"><label class="a-label" for="pi-email">E-mail du client</label><input class="a-input" id="pi-email" name="email" type="email" inputmode="email" autocomplete="off" maxlength="254" placeholder="client@exemple.com" data-autofocus></div>
         <fieldset class="a-fieldset"><legend>Comment remettre le site</legend><div class="a-radios">
           <label class="a-radio"><input type="radio" name="mode" value="entretien" checked><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">Avec pack entretien</span><span class="a-radio__hint">${esc(fr('Le client devient propriétaire : son tableau de bord, ses paiements. Vous gardez un accès Agence pour continuer à modifier le site. Il peut le retirer quand il veut.'))}</span></span></label>
@@ -1133,7 +1133,7 @@
     if (!r.ok) { refillInvite(email, mode, r.message || 'L’invitation n’a pas pu être enregistrée.'); return; }
     closeDialog(true);
     openProject();
-    toast(r.remote ? 'Invitation enregistrée pour ' + email + '. Prévenez votre client : il se connecte à Jeere avec cette adresse.' : 'Démo : invitation enregistrée dans ce navigateur pour ' + email + '.', { ms: 6500, tone: 'ok' });
+    toast(r.remote ? 'Invitation enregistrée pour ' + email + '. Prévenez votre client : il se connecte à Jehre avec cette adresse.' : 'Démo : invitation enregistrée dans ce navigateur pour ' + email + '.', { ms: 6500, tone: 'ok' });
   }
   function cancelProjInvite(el) {
     const e = projCurrent();
@@ -1815,7 +1815,7 @@
           ${svc.length ? H`<optgroup label="Commander une course">${svc.map((x) => H`<option value="svc:${esc(x.service)}"${key === 'svc:' + x.service ? ' selected' : ''}>${esc(x.name + ' : commander une course')}</option>`)}</optgroup>` : ''}
           </select>${ico('down')}</div></div>
           ${cur && cur.phone ? H`<div class="a-btnrow" style="margin-top:10px"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="courier-send" data-id="${esc(o.id)}">${ico('chat')}Envoyer au livreur sur WhatsApp</button><a class="a-link a-small" href="#" data-act="couriers">Gérer mes livreurs</a></div>` : ''}
-          ${cur && cur.service ? H`<p class="a-small" style="margin-top:8px">Démo : la course n’est pas commandée. Dans Jeere, ${esc(courierName(cur))} reçoit l’adresse et le numéro du client.</p>` : ''}
+          ${cur && cur.service ? H`<p class="a-small" style="margin-top:8px">Démo : la course n’est pas commandée. Dans Jehre, ${esc(courierName(cur))} reçoit l’adresse et le numéro du client.</p>` : ''}
           ${!cur ? H`<p class="a-hint" style="margin-top:6px">Il reçoit sur WhatsApp l’adresse, le numéro du client et le montant à encaisser.</p>` : ''}`;
       } else {
         who = H`<div class="a-note" style="margin-top:12px">${ico('bike')}<p>Ajoutez vos livreurs : depuis la commande, ils reçoivent sur WhatsApp l’adresse, le numéro du client et le montant à encaisser.</p></div>
@@ -2257,7 +2257,7 @@
           <button class="a-btn a-btn--ghost" type="button" data-act="share-copy" data-url="${esc(url)}">${ico('copy')}Copier le lien</button>
           ${canNative ? H`<button class="a-btn a-btn--quiet" type="button" data-act="share-native" data-url="${esc(url)}" data-text="${esc(fr(text))}" data-title="${esc(title)}">${ico('share')}Autres applications</button>` : ''}
         </div>
-        <p class="a-small" style="margin-top:12px">Démo : cette adresse n’est pas encore en ligne. Dans Jeere, elle ouvre votre boutique.</p></div></div>`;
+        <p class="a-small" style="margin-top:12px">Démo : cette adresse n’est pas encore en ligne. Dans Jehre, elle ouvre votre boutique.</p></div></div>`;
     openDialog(html, { sheet: true, labelledby: 'sh-t' });
   }
   function shareStore() { shareSheet('Partager ma boutique', 'Découvrez ' + storeName() + ', ma boutique en ligne :', storeUrl()); }
@@ -2302,7 +2302,7 @@
           ${hidden ? H`<button class="a-btn a-btn--ghost a-btn--block" type="button" data-act="checklist-show">${ico('check')}Afficher les premiers pas</button>` : ''}
         </div>` : ''}
         <div class="a-dialog__done"><span class="a-empty__ico">${ico('help')}</span>
-        <p class="a-dialog__lead"><strong>Une vraie personne vous répond.</strong> Dans Jeere, vous écrivez à notre équipe sur WhatsApp, en français : une question sur une commande, un paiement, votre boutique. C’est dans toutes les formules, même Gratuit.</p></div>
+        <p class="a-dialog__lead"><strong>Une vraie personne vous répond.</strong> Dans Jehre, vous écrivez à notre équipe sur WhatsApp, en français : une question sur une commande, un paiement, votre boutique. C’est dans toutes les formules, même Gratuit.</p></div>
         <div class="a-note a-note--line" style="margin-top:8px">${ico('info')}<p>Démo : aucun message n’est envoyé.</p></div></div>
       <div class="a-dialog__foot"><button class="a-btn ${tourOk || hidden ? 'a-btn--ghost' : 'a-btn--primary'}" type="button" data-close${tourOk ? '' : ' data-autofocus'}>J’ai compris</button></div></div>`, { labelledby: 'hp-t' });
   }
@@ -2413,7 +2413,7 @@
       <div class="a-slip__cash">${esc(fr(cash))}</div>
       ${o.note ? H`<div class="a-slip__note"><strong>Note du client :</strong> ${esc(o.note)}</div>` : ''}
       <div class="a-slip__sign"><div>Signature du livreur</div><div>Signature du client, à la réception</div></div>
-      <p class="a-slip__foot">Bon imprimé depuis Jeere${o.manual ? '' : ' · Démo : commande d’exemple'}</p></div>`;
+      <p class="a-slip__foot">Bon imprimé depuis Jehre${o.manual ? '' : ' · Démo : commande d’exemple'}</p></div>`;
   }
   // The slip is printed alone only while html.a-printing is set: « Imprimer le bon », or the browser's own
   // Print on an order's page (beforeprint). Any other print shows the page in view, without the menus.
@@ -2946,7 +2946,7 @@
           <section class="a-card" aria-labelledby="h-bpages"><div class="a-card__head"><div><h2 class="a-card__title" id="h-bpages">Pages</h2><p class="a-card__sub">${esc(plural(pages.length, 'page', 'pages'))} en plus de l’accueil, des produits et du paiement.</p></div></div>
             <ul class="a-rows" style="margin:0 -16px">${pages.slice(0, 6).map((p) => H`<li><a class="a-row" href="#pages/${esc(p.id)}">${ico('pages')}<span class="a-row__main"><span class="a-row__title"><span>${esc(p.title || 'Sans titre')}</span></span></span>${ico('chev', 'a-row__chev')}</a></li>`)}</ul>
             <div class="a-card__foot"><a class="a-btn a-btn--ghost a-btn--block" href="#pages">Gérer les pages</a></div></section>
-          <section class="a-card" aria-labelledby="h-q"><div class="a-card__head"><div><h2 class="a-card__title" id="h-q">Qualité</h2><p class="a-card__sub">Le score de votre fiche, calculé par Jeere.</p></div></div>
+          <section class="a-card" aria-labelledby="h-q"><div class="a-card__head"><div><h2 class="a-card__title" id="h-q">Qualité</h2><p class="a-card__sub">Le score de votre fiche, calculé par Jehre.</p></div></div>
             <p class="a-summary"><span class="a-big">${v.score}<small class="a-muted" style="font-size:15px"> / 100</small></span><span class="a-chip ${v.score >= 80 ? 'a-chip--ink' : 'a-chip--line'}">${esc(v.status || '')}</span></p>
             ${arr(v.issues).slice(0, 3).map((i) => H`<p class="a-small" style="margin-top:8px">${esc(fr(i.message))}</p>`)}
             <div class="a-card__foot"><button class="a-btn a-btn--ghost a-btn--block" type="button" data-act="open-editor" data-page="home">Améliorer dans le Studio</button></div></section>
@@ -3034,7 +3034,7 @@
             ${switchRow({ id: 'pg-menu', label: 'Dans le menu', hint: 'En haut de la boutique (5 liens au plus sur ordinateur) et dans le menu du téléphone.', checked: v.inMenu, attrs: 'name="inMenu"' })}
             ${switchRow({ id: 'pg-foot', label: 'En bas de page', hint: 'Dans la colonne de liens en bas de chaque page.', checked: v.inFooter, attrs: 'name="inFooter"' })}
           </section>
-          ${kind ? H`<section class="a-card" aria-labelledby="h-pgx"><div class="a-card__head"><div><h2 class="a-card__title" id="h-pgx">Texte d’exemple</h2><p class="a-card__sub">Jeere a écrit un premier texte pour votre type de boutique. Vous pouvez le remettre à tout moment.</p></div></div>
+          ${kind ? H`<section class="a-card" aria-labelledby="h-pgx"><div class="a-card__head"><div><h2 class="a-card__title" id="h-pgx">Texte d’exemple</h2><p class="a-card__sub">Jehre a écrit un premier texte pour votre type de boutique. Vous pouvez le remettre à tout moment.</p></div></div>
             <button class="a-btn a-btn--ghost" type="button" data-act="page-reset" data-id="${esc(p0.id)}">${ico('refresh')}Remettre le texte d’exemple</button>
             ${kind === 'terms' ? H`<p class="a-small" style="margin-top:10px">Ce modèle n’est pas un conseil juridique : faites-le vérifier avant d’ouvrir votre boutique.</p>` : ''}</section>` : ''}
           ${isNew ? '' : H`<section class="a-card" aria-labelledby="h-pgm"><div class="a-card__head"><h2 class="a-card__title" id="h-pgm">Plus d’actions</h2></div>
@@ -3141,7 +3141,7 @@
     const kind = D.pageKind(p);
     const def = D.defaultPages(S.config.store.niche, { name: S.config.store.name, city: S.config.store.city }).find((x) => D.pageKind(x) === kind);
     if (!def) return;
-    const ok = await confirmBox({ title: 'Remettre le texte d’exemple ?', text: 'Le texte actuel de « ' + p.title + ' » sera remplacé par celui de Jeere, adapté à votre boutique.', ok: 'Remettre le texte' });
+    const ok = await confirmBox({ title: 'Remettre le texte d’exemple ?', text: 'Le texte actuel de « ' + p.title + ' » sera remplacé par celui de Jehre, adapté à votre boutique.', ok: 'Remettre le texte' });
     if (!ok) { focusMain(); return; }
     const form = $('#a-main form[data-form="page"]');
     if (form) { form.elements.body.value = def.body; updateCount(form.elements.body); setDirty(form); form.elements.body.focus(); toast('Texte d’exemple remis. Enregistrez pour le garder.'); }
@@ -3168,7 +3168,7 @@
     const list = S.admin.promos;
     return H`<div class="a-page a-page--narrow">
       ${pageHead('Codes promo', 'Une réduction pour vos clients fidèles, à partager sur WhatsApp ou dans votre statut.')}
-      <div class="a-note a-note--line" style="margin-bottom:12px">${ico('info')}<p><strong>Démo :</strong> les codes restent dans ce navigateur ; le paiement de votre boutique ne les applique pas encore. Dans Jeere, le client tape le code au moment de payer.</p></div>
+      <div class="a-note a-note--line" style="margin-bottom:12px">${ico('info')}<p><strong>Démo :</strong> les codes restent dans ce navigateur ; le paiement de votre boutique ne les applique pas encore. Dans Jehre, le client tape le code au moment de payer.</p></div>
       <section class="a-card a-card--flush" aria-labelledby="h-promos"><div class="a-card__head"><div><h2 class="a-card__title" id="h-promos">Vos codes</h2><p class="a-card__sub">${list.length ? esc(plural(list.filter((x) => x.active).length, 'code actif', 'codes actifs')) : 'Aucun code pour l’instant.'}</p></div></div>
         ${list.length ? H`<ul class="a-rows" style="margin-top:8px">${list.map((x, i) => H`<li class="a-promo"><span class="a-promo__code">${esc(x.code)}</span>
           <span class="a-promo__main"><span class="a-promo__val">${esc(promoLabel(x))}</span><span class="a-row__meta">${x.active ? 'Actif' : 'En pause'}</span></span>
@@ -3270,7 +3270,7 @@
       const pt = Math.round((o.total || 0) * 0.0195);
       const d = toDate(o.date);
       return H`<li class="a-payout"><span class="a-payout__main"><span class="a-payout__t">${d ? esc(dateShort(d)) : ''} · ${esc(payLabel(o.payment))} · <a class="a-link" href="#commandes/${esc(o.id.replace('#', ''))}">${esc(o.id)}</a></span>
-        <span class="a-payout__fees">${esc(fr('Jeere ' + price(j) + ' · partenaire ' + price(pt)))}</span></span>
+        <span class="a-payout__fees">${esc(fr('Jehre ' + price(j) + ' · partenaire ' + price(pt)))}</span></span>
         <span class="a-payout__amt"><span class="a-payout__from">${esc(price(o.total))}</span><strong>${esc(price(o.total - j - pt))}</strong></span></li>`;
     });
     const sum = paid.reduce((t, o) => t + (o.total || 0) - Math.round((o.total || 0) * fee / 100) - Math.round((o.total || 0) * 0.0195), 0);
@@ -3330,18 +3330,18 @@
             <p class="a-small" style="margin-bottom:10px">Exemple pour une vente de ${esc(price(ex))} payée en mobile money :</p>
             <div class="a-fee">
               <div class="a-fee__row"><span>Votre vente</span><span>${esc(price(ex))}</span></div>
-              <div class="a-fee__row"><span>Jeere (${esc(fr(p.fee + ' %'))})</span><span>${esc(jeere ? '−' + NB + price(jeere) : price(0))}</span></div>
+              <div class="a-fee__row"><span>Jehre (${esc(fr(p.fee + ' %'))})</span><span>${esc(jeere ? '−' + NB + price(jeere) : price(0))}</span></div>
               <div class="a-fee__row"><span>Partenaire de paiement (environ 1,95 %)</span><span>−${NB}${esc(price(partner))}</span></div>
               <div class="a-fee__row is-total"><span>Vous recevez environ</span><span>${esc(price(ex - jeere - partner))}</span></div>
             </div>
             <ul class="a-checks a-checks--sm" style="margin-top:14px">
-              <li>${ico('check')}<span><strong>Mobile money et carte :</strong> les frais de Jeere et du partenaire sont retenus par le partenaire au moment du versement. Vous recevez le reste, sans rien avancer.</span></li>
-              <li>${ico('check')}<span><strong>Paiement à la livraison :</strong> Jeere ne prend rien. Le livreur encaisse et vous remet l’argent.</span></li>
+              <li>${ico('check')}<span><strong>Mobile money et carte :</strong> les frais de Jehre et du partenaire sont retenus par le partenaire au moment du versement. Vous recevez le reste, sans rien avancer.</span></li>
+              <li>${ico('check')}<span><strong>Paiement à la livraison :</strong> Jehre ne prend rien. Le livreur encaisse et vous remet l’argent.</span></li>
             </ul>
             <p class="a-small" style="margin-top:10px">Les frais du partenaire s’ajoutent : par exemple 1,95 % pour le mobile money. Tarifs prévus pour le lancement.</p>
           </section>
           ${payoutsCard()}
-          <section class="a-card a-card--ink" aria-labelledby="h-trust"><h2 class="a-card__title" id="h-trust">${ico('shield')}Jeere ne garde jamais votre argent</h2>
+          <section class="a-card a-card--ink" aria-labelledby="h-trust"><h2 class="a-card__title" id="h-trust">${ico('shield')}Jehre ne garde jamais votre argent</h2>
             <p style="margin-top:8px;font-size:14px;line-height:1.55;color:rgba(255,255,255,.82)">Chaque paiement passe par un partenaire agréé par la BCEAO et arrive directement sur votre numéro. Vos clients valident avec leur code secret, qu’ils ne donnent jamais, ni à vous ni au livreur.</p></section>
         </div>
       </div></div>`;
@@ -3533,7 +3533,7 @@
   async function payCall(body) {
     const A = window.JeereAuth;
     const s = A && typeof A.session === 'function' ? await Promise.resolve(A.session()).catch(() => null) : null;
-    if (!s || !s.access_token) return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour connecter Stripe.' };
+    if (!s || !s.access_token) return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre pour connecter Stripe.' };
     const r = await fetch(PAY_FN, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify(body) }).catch(() => null);
     return r ? r.json().catch(() => ({ ok: false })) : { ok: false, message: 'Pas de connexion internet.' };
   }
@@ -3548,7 +3548,7 @@
     }
     if (st.loading || !st.ok) return '';
     let txt, tone;
-    if (!st.configured) { txt = 'Le paiement par carte sera bientôt activé sur Jeere.'; tone = 'muted'; }
+    if (!st.configured) { txt = 'Le paiement par carte sera bientôt activé sur Jehre.'; tone = 'muted'; }
     else if (st.chargesEnabled) { txt = 'Stripe est connecté : vos clients paient par carte, depuis n’importe quel pays. L’argent arrive sur votre compte Stripe.'; tone = 'ok'; }
     else if (st.connected) { txt = 'Stripe est connecté, mais votre inscription n’est pas terminée : Stripe demande encore des informations.'; tone = 'warn'; }
     else return '';
@@ -3559,12 +3559,12 @@
     const st = S.stripe || {};
     if (st.connected) { stripeConnect(); return; }
     openDialog(H`<form class="a-dialog__card" data-dform="stripe" novalidate>${dlgHead('sp-t', 'Accepter les cartes avec Stripe')}
-      <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Vos clients paient par carte (Visa, Mastercard…) depuis n’importe quel pays : France, Canada, États-Unis… Stripe verse l’argent sur votre compte bancaire. Jeere ne touche jamais votre argent.'))}</p>
+      <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Vos clients paient par carte (Visa, Mastercard…) depuis n’importe quel pays : France, Canada, États-Unis… Stripe verse l’argent sur votre compte bancaire. Jehre ne touche jamais votre argent.'))}</p>
         <div class="a-field"><label class="a-label" for="sp-country">Pays où votre activité est enregistrée</label><div class="a-selectwrap"><select class="a-input" id="sp-country" name="country">${STRIPE_COUNTRIES.map(([v, l]) => H`<option value="${v}">${esc(l)}</option>`)}</select>${ico('down')}</div>
           <p class="a-hint">${esc(fr('Stripe vous demande ensuite votre identité et le compte bancaire qui reçoit l’argent. Pour une activité en Côte d’Ivoire, le paiement par carte passera par un partenaire local (bientôt).'))}</p></div></div>
       <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Annuler</button><button class="a-btn a-btn--primary" type="button" data-act="stripe-connect">Continuer</button></div></form>`, { labelledby: 'sp-t' });
   }
-  // Stripe's onboarding INSIDE Jeere (Connect embedded components), in Jeere's look; Stripe's own page as a fallback
+  // Stripe's onboarding INSIDE Jehre (Connect embedded components), in Jehre's look; Stripe's own page as a fallback
   function loadConnectJs() {
     if (window.StripeConnect && window.StripeConnect.init) return Promise.resolve(window.StripeConnect);
     return new Promise((res, rej) => {
@@ -3575,7 +3575,7 @@
       sc.addEventListener('error', () => { clearInterval(t); rej(new Error('connect.js')); });
     });
   }
-  /* Paiements › Carte bancaire, a full page (#paiements/carte/<tab>): Stripe's own components INSIDE Jeere, in Jeere's
+  /* Paiements › Carte bancaire, a full page (#paiements/carte/<tab>): Stripe's own components INSIDE Jehre, in Jehre's
    * look — the activation (onboarding), then the payments (refunds, disputes), the payouts and the account. */
   const CARTE_TABS = [['activer', 'Activation', 'account-onboarding'], ['ventes', 'Paiements', 'payments'], ['versements', 'Versements', 'payouts'], ['compte', 'Mon compte', 'account-management']];
   function viewCarte(tab) {
@@ -3590,7 +3590,7 @@
     const needCountry = t === 'activer' && !st.connected;
     S.mounts.push(() => mountCarte(t));
     return H`<div class="a-page a-page--wide"><header class="a-ph"><div class="a-ph__txt"><h1 class="a-h1" tabindex="-1">Paiements par carte</h1>
-        <p class="a-sub">${esc(fr(active ? 'Vos ventes par carte, vos versements et votre compte, gérés ici.' : 'Activez la carte : Stripe vérifie votre identité et votre compte bancaire. Vos informations vont directement à Stripe, Jeere ne les voit pas.'))}</p></div>
+        <p class="a-sub">${esc(fr(active ? 'Vos ventes par carte, vos versements et votre compte, gérés ici.' : 'Activez la carte : Stripe vérifie votre identité et votre compte bancaire. Vos informations vont directement à Stripe, Jehre ne les voit pas.'))}</p></div>
         <div class="a-ph__actions"><a class="a-btn a-btn--quiet a-btn--sm" href="#paiements">${ico('back')}Paiements</a></div></header>
       <nav class="a-stripe-tabs" aria-label="Rubriques">${CARTE_TABS.filter((x) => active || x[0] === 'activer' || st.connected).map(([k, l]) => H`<a class="a-btn a-btn--ghost a-btn--sm" href="#paiements/carte/${k}"${k === t ? ' aria-current="page"' : ''}>${esc(l)}</a>`)}</nav>
       <div id="a-stripe-banner"></div>
@@ -3626,10 +3626,10 @@
     const frame = box.closest('.a-stripe-page');
     if (frame) frame.hidden = false;
     try { inst = await stripeInstance(country); } catch (e) {
-      // Stripe refused (a missing permission on Jeere's key, no publishable key…): a clear message, then Stripe's own page
+      // Stripe refused (a missing permission on Jehre's key, no publishable key…): a clear message, then Stripe's own page
       const raw = String((e && e.message) || '');
       const why = /permission|lacks access|restricted/i.test(raw)
-        ? 'Le paiement par carte n’est pas encore ouvert sur Jeere : la clé Stripe de la plateforme n’a pas encore toutes ses autorisations. Réessayez un peu plus tard.'
+        ? 'Le paiement par carte n’est pas encore ouvert sur Jehre : la clé Stripe de la plateforme n’a pas encore toutes ses autorisations. Réessayez un peu plus tard.'
         : (/STRIPE_PUBLISHABLE_KEY|publique/i.test(raw) ? 'Le paiement par carte se termine sur la page de Stripe.' : 'Stripe n’a pas pu s’ouvrir ici. Réessayez dans un instant.');
       box.innerHTML = '';
       box.classList.add('is-msg');
@@ -3892,7 +3892,7 @@
             <div class="a-field"><label class="a-label" for="t-phone">Numéro WhatsApp</label><input class="a-input" id="t-phone" name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="Ex. : 05 44 12 34 56"></div></div>
           <fieldset class="a-fieldset"><legend>Rôle</legend><div class="a-radios a-radios--3">${roles.map((r, i) => H`<label class="a-radio"><input type="radio" name="role" value="${esc(r.id)}"${i === 1 ? ' checked' : ''}><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">${esc(r.label)}</span>${r.hint ? H`<span class="a-radio__hint">${esc(fr(r.hint))}</span>` : ''}</span></label>`)}</div></fieldset>
           <div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">${ico('plus')}Inviter</button></div>
-          <p class="a-small" style="margin-top:8px">Démo : aucune invitation n’est envoyée. Dans Jeere, la personne reçoit un lien sur WhatsApp.</p>
+          <p class="a-small" style="margin-top:8px">Démo : aucune invitation n’est envoyée. Dans Jehre, la personne reçoit un lien sur WhatsApp.</p>
         </form></section>`;
   }
   function saveInviteForm(form) {
@@ -3949,7 +3949,7 @@
           <button class="a-seg__btn" type="button" data-act="cycle" data-v="semaine" aria-pressed="${b.cycle === 'semaine' && weekOk ? 'true' : 'false'}"${weekOk ? '' : ' disabled aria-describedby="h-week"'}>Par semaine</button></div>
           ${weekOk ? '' : H`<p class="a-hint" id="h-week">Le paiement à la semaine existe pour la formule Essentiel : 1 000 FCFA par semaine.</p>`}</div>` : ''}
         <div class="a-card__foot">
-          ${cur.priceMonth ? (realBilling() ? H`<button class="a-btn a-btn--primary" type="button" data-act="billing-portal">${ico('card')}Mon espace de paiement</button>` : H`<button class="a-btn a-btn--primary" type="button" data-act="pay-mm">${ico('phone')}Payer par mobile money</button>`) : H`<p class="a-small">Rien à payer avec la formule Gratuit : Jeere prend ${esc(fr(cur.fee + ' %'))} par vente en ligne.</p>`}
+          ${cur.priceMonth ? (realBilling() ? H`<button class="a-btn a-btn--primary" type="button" data-act="billing-portal">${ico('card')}Mon espace de paiement</button>` : H`<button class="a-btn a-btn--primary" type="button" data-act="pay-mm">${ico('phone')}Payer par mobile money</button>`) : H`<p class="a-small">Rien à payer avec la formule Gratuit : Jehre prend ${esc(fr(cur.fee + ' %'))} par vente en ligne.</p>`}
           ${cur.priceMonth && !realBilling() ? H`<button class="a-btn a-btn--ghost" type="button" data-act="pause">${ico(b.paused ? 'refresh' : 'pause')}${b.paused ? 'Reprendre l’abonnement' : 'Mettre en pause'}</button>` : ''}
         </div>
         ${cur.priceMonth ? H`<p class="a-small" style="margin-top:8px">${b.paused ? 'En pause : rien n’est prélevé. Reprenez quand vous voulez.' : esc(fr('Prochain paiement : ' + due + '. Rien n’est prélevé sans vous.'))}</p>` : ''}
@@ -4017,7 +4017,7 @@
         <p class="a-big">${esc(paidNow ? P.fcfa(pr.perMonth) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${paidNow ? ' / mois' : (s.status === 'trial' ? ' pendant l’essai' : '')}</small></p>
         <dl class="a-dl" style="margin-top:14px">${rows}</dl>${pend}
         <div class="a-card__foot a-btnrow">${acts}</div>
-        <p class="a-small" style="margin-top:10px">${realBilling() ? H`Paiement par carte sur Stripe, renouvelé automatiquement. Factures, carte et résiliation : <button class="a-link" type="button" data-act="billing-portal">mon espace de paiement</button>.` : H`Mode démo : rien n’est prélevé. Dans Jeere, le mobile money n’est jamais débité tout seul : une demande à valider arrive à chaque échéance, avec ${P.GRACE_DAYS} jours pour renouveler.`}</p></section>`;
+        <p class="a-small" style="margin-top:10px">${realBilling() ? H`Paiement par carte sur Stripe, renouvelé automatiquement. Factures, carte et résiliation : <button class="a-link" type="button" data-act="billing-portal">mon espace de paiement</button>.` : H`Mode démo : rien n’est prélevé. Dans Jehre, le mobile money n’est jamais débité tout seul : une demande à valider arrive à chaque échéance, avec ${P.GRACE_DAYS} jours pour renouveler.`}</p></section>`;
 
     // seats (Pro: 2, Agence: 5 and more)
     const owner = S.account || {};
@@ -4122,7 +4122,7 @@
     clearDirty();
     afterStudio(name + ' a une place dans le Studio (démo : aucune invitation envoyée).', '#sm-name');
   }
-  // Real billing (the `billing` function, Stripe): Jeere with a real account. The plan itself is written by the
+  // Real billing (the `billing` function, Stripe): Jehre with a real account. The plan itself is written by the
   // server once Stripe confirms the payment; the page reads it back (JeereAuth.syncPlan).
   const realBilling = () => !!(window.JeereBilling && typeof window.JeereBilling.isReal === 'function' && window.JeereBilling.isReal());
   async function choosePlan(id) {
@@ -4193,7 +4193,7 @@
     if (!card) return;
     card.outerHTML = H`<div class="a-dialog__card">${dlgHead('pm-t', 'Demande prête')}
       <div class="a-dialog__body"><div class="a-dialog__done"><span class="a-empty__ico">${ico('check')}</span>
-        <p class="a-dialog__lead">Dans Jeere, vous recevriez maintenant une demande de <strong>${esc(price(amount))}</strong> sur le ${esc(phoneFmt(phone))} (${esc(op ? op.label : '')}). Validez-la avec votre code secret, que vous ne donnez jamais à personne.</p>
+        <p class="a-dialog__lead">Dans Jehre, vous recevriez maintenant une demande de <strong>${esc(price(amount))}</strong> sur le ${esc(phoneFmt(phone))} (${esc(op ? op.label : '')}). Validez-la avec votre code secret, que vous ne donnez jamais à personne.</p>
         <p class="a-small">Démo : aucune demande n’a été envoyée.</p></div></div>
       <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close data-autofocus>Fermer</button></div></div>`;
     const btn = $('[data-autofocus]', dialogEl());
@@ -4211,7 +4211,7 @@
     const s = A && typeof A.session === 'function' ? await Promise.resolve(A.session()).catch(() => null) : null;
     const headers = { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w' };
     if (s && s.access_token) headers.Authorization = 'Bearer ' + s.access_token;
-    else if (body.action !== 'key') return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour recevoir les notifications.' };
+    else if (body.action !== 'key') return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre pour recevoir les notifications.' };
     const r = await fetch(PUSH_FN, { method: 'POST', headers, body: JSON.stringify(body) }).catch(() => null);
     return r ? r.json().catch(() => ({ ok: false })) : { ok: false, message: 'Pas de connexion internet.' };
   }
@@ -4232,7 +4232,7 @@
     return Uint8Array.from(raw, (c) => c.charCodeAt(0));
   }
   async function pushOn() {
-    if (!pushOk()) { toast(isIos() ? 'Sur iPhone : touchez Partager › « Sur l’écran d’accueil », ouvrez Jeere depuis l’écran d’accueil, puis activez ici.' : 'Ce navigateur ne reçoit pas de notifications.', { ms: 8000 }); return; }
+    if (!pushOk()) { toast(isIos() ? 'Sur iPhone : touchez Partager › « Sur l’écran d’accueil », ouvrez Jehre depuis l’écran d’accueil, puis activez ici.' : 'Ce navigateur ne reçoit pas de notifications.', { ms: 8000 }); return; }
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { toast('Notifications refusées. Autorisez-les dans les réglages du navigateur pour être prévenue.', { ms: 7000 }); S.push = null; refresh(); return; }
     const k = await pushCall({ action: 'key' });
@@ -4270,20 +4270,20 @@
     const dev = isIos() ? 'ios' : (/Android/i.test(ua) ? 'android' : 'desktop');
     const box = (id, icon, title, sub, steps) => H`<section class="a-install${dev === id ? ' is-mine' : ''}"><h3 class="a-install__t">${ico(icon)}<span>${esc(title)}</span><small>${esc(sub)}</small></h3><ol class="a-install__steps">${steps.map((s) => H`<li>${s}</li>`)}</ol></section>`;
     const all = {
-      ios: box('ios', 'phone', 'iPhone / iPad', 'Safari', ['Ouvrez Jeere dans <strong>Safari</strong>.', 'Touchez <strong>Partager</strong> ' + ico('upload') + ' en bas de l’écran.', 'Touchez <strong>« Sur l’écran d’accueil »</strong>.', 'Confirmez avec <strong>« Ajouter »</strong>.']),
-      android: box('android', 'phone', 'Android', 'Chrome', ['Ouvrez Jeere dans <strong>Chrome</strong>.', 'Touchez le menu <strong>⋮</strong> en haut à droite.', 'Touchez <strong>« Installer l’application »</strong> (ou « Ajouter à l’écran d’accueil »).', 'Confirmez avec <strong>« Installer »</strong>.']),
-      desktop: box('desktop', 'desktop', 'Ordinateur', 'Chrome, Edge', ['Ouvrez Jeere dans <strong>Chrome</strong> ou <strong>Edge</strong>.', 'Cliquez l’icône <strong>Installer</strong> ' + ico('download') + ' au bout de la barre d’adresse.', 'Confirmez avec <strong>« Installer »</strong>.'])
+      ios: box('ios', 'phone', 'iPhone / iPad', 'Safari', ['Ouvrez Jehre dans <strong>Safari</strong>.', 'Touchez <strong>Partager</strong> ' + ico('upload') + ' en bas de l’écran.', 'Touchez <strong>« Sur l’écran d’accueil »</strong>.', 'Confirmez avec <strong>« Ajouter »</strong>.']),
+      android: box('android', 'phone', 'Android', 'Chrome', ['Ouvrez Jehre dans <strong>Chrome</strong>.', 'Touchez le menu <strong>⋮</strong> en haut à droite.', 'Touchez <strong>« Installer l’application »</strong> (ou « Ajouter à l’écran d’accueil »).', 'Confirmez avec <strong>« Installer »</strong>.']),
+      desktop: box('desktop', 'desktop', 'Ordinateur', 'Chrome, Edge', ['Ouvrez Jehre dans <strong>Chrome</strong> ou <strong>Edge</strong>.', 'Cliquez l’icône <strong>Installer</strong> ' + ico('download') + ' au bout de la barre d’adresse.', 'Confirmez avec <strong>« Installer »</strong>.'])
     };
     const order = [dev].concat(['ios', 'android', 'desktop'].filter((x) => x !== dev));
-    openDialog(H`<div class="a-dialog__card">${dlgHead('ins-t', 'Installer Jeere')}
-      <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Quelques secondes. Jeere s’ouvre ensuite depuis son icône, comme une application.'))}</p>${order.map((k) => all[k])}</div>
+    openDialog(H`<div class="a-dialog__card">${dlgHead('ins-t', 'Installer Jehre')}
+      <div class="a-dialog__body"><p class="a-dialog__lead">${esc(fr('Quelques secondes. Jehre s’ouvre ensuite depuis son icône, comme une application.'))}</p>${order.map((k) => all[k])}</div>
       <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close>Fermer</button></div></div>`, { labelledby: 'ins-t' });
   }
   function installCard() {
     if (isStandalone()) return '';
     return H`<section class="a-card" aria-labelledby="h-install"><div class="a-card__head"><div><h3 class="a-card__title" id="h-install">Installer l’application</h3>
-      <p class="a-card__sub">${esc(fr('Jeere sur votre écran d’accueil, avec ses notifications.'))}</p></div></div>
-      <div class="a-btnrow"><button class="a-btn a-btn--primary" type="button" data-act="install">${ico('download')}Installer Jeere</button></div></section>`;
+      <p class="a-card__sub">${esc(fr('Jehre sur votre écran d’accueil, avec ses notifications.'))}</p></div></div>
+      <div class="a-btnrow"><button class="a-btn a-btn--primary" type="button" data-act="install">${ico('download')}Installer Jehre</button></div></section>`;
   }
 
   function pushCard() {
@@ -4293,9 +4293,9 @@
     const text = {
       loading: 'Un instant…',
       on: 'Activées sur cet appareil : vous êtes prévenue à chaque nouvelle commande et à chaque paiement par carte, même tableau de bord fermé.',
-      off: 'Recevez une notification sur ce téléphone ou cet ordinateur à chaque nouvelle commande et à chaque paiement par carte, même quand Jeere est fermé.',
-      denied: 'Les notifications sont bloquées pour Jeere dans ce navigateur. Autorisez-les dans ses réglages (le cadenas à côté de l’adresse), puis revenez ici.',
-      'ios-install': 'Sur iPhone, ajoutez d’abord Jeere à l’écran d’accueil : touchez Partager, puis « Sur l’écran d’accueil ». Ouvrez Jeere depuis son icône et activez les notifications ici.',
+      off: 'Recevez une notification sur ce téléphone ou cet ordinateur à chaque nouvelle commande et à chaque paiement par carte, même quand Jehre est fermé.',
+      denied: 'Les notifications sont bloquées pour Jehre dans ce navigateur. Autorisez-les dans ses réglages (le cadenas à côté de l’adresse), puis revenez ici.',
+      'ios-install': 'Sur iPhone, ajoutez d’abord Jehre à l’écran d’accueil : touchez Partager, puis « Sur l’écran d’accueil ». Ouvrez Jehre depuis son icône et activez les notifications ici.',
       unsupported: 'Ce navigateur ne reçoit pas de notifications. Essayez avec Chrome, Edge, Firefox ou Safari à jour.'
     }[st] || '';
     const btn = st === 'on'
@@ -4304,7 +4304,7 @@
         : (st === 'ios-install' ? H`<button class="a-btn a-btn--primary" type="button" data-act="install">Voir comment installer</button>` : ''));
     return H`<section class="a-card" aria-labelledby="h-push"><div class="a-card__head"><div><h3 class="a-card__title" id="h-push">Notifications sur cet appareil</h3>
         <p class="a-card__sub">${esc(fr(text))}</p></div>${st === 'on' ? H`<span class="a-pill a-tone--ok">Activées</span>` : ''}</div>
-      ${!real && st === 'off' ? H`<p class="a-small">${esc(fr('Connectez-vous à votre compte Jeere (pas la démo) pour les activer.'))}</p>` : ''}
+      ${!real && st === 'off' ? H`<p class="a-small">${esc(fr('Connectez-vous à votre compte Jehre (pas la démo) pour les activer.'))}</p>` : ''}
       ${btn ? H`<div class="a-btnrow">${btn}</div>` : ''}</section>`;
   }
 
@@ -4336,7 +4336,7 @@
           return H`<li><a class="a-row" href="#pages/${esc(p.id)}">${ico('shield')}<span class="a-row__main"><span class="a-row__title"><span>${esc(p.title)}</span></span><span class="a-row__meta">${draft ? 'Modèle à faire relire' : (p.body.trim() ? 'Rédigée' : 'Vide')}</span></span>${draft ? H`<span class="a-chip a-chip--line a-tone--warn">${ico('alert')}À relire</span>` : H`<span class="a-pill a-pill--check a-tone--ok">${ico('check')}Prête</span>`}${ico('chev', 'a-row__chev')}</a></li>`;
         })}</ul>` : H`<p class="a-small" style="padding:0 16px 16px">Aucune page légale pour l’instant.</p>`}
         <div class="a-card__foot"><a class="a-btn a-btn--ghost" href="#pages">Gérer toutes les pages</a></div></section>
-      <div class="a-note">${ico('info')}<p>Les textes de Jeere sont des modèles, pas des conseils juridiques : faites-les vérifier avant d’ouvrir votre boutique.</p></div>`;
+      <div class="a-note">${ico('info')}<p>Les textes de Jehre sont des modèles, pas des conseils juridiques : faites-les vérifier avant d’ouvrir votre boutique.</p></div>`;
   }
 
   function setDonnees() {
@@ -4419,7 +4419,7 @@
     if (app) app.hidden = true;
     if (gate) gate.hidden = false;
     document.body.classList.add('is-gate');
-    document.title = 'Connectez-vous · Jeere';
+    document.title = 'Connectez-vous · Jehre';
     const acc = S.account;
     const t = $('#a-gate-title');
     const lead = $('#a-gate-lead');
@@ -4526,7 +4526,7 @@
     'search-open': () => openSearch(),
     'search-close': () => { closeSearch(); const b = $('.a-top__searchbtn'); if (b) b.focus(); },
     'demo-info': () => openDialog(H`<div class="a-dialog__card">${dlgHead('di-t', 'Ceci est une démo')}<div class="a-dialog__body">
-        <p class="a-dialog__lead">Le tableau de bord de Jeere, en prototype. Rien n’est envoyé sur internet : votre compte, votre boutique et vos réglages restent dans ce navigateur.</p>
+        <p class="a-dialog__lead">Le tableau de bord de Jehre, en prototype. Rien n’est envoyé sur internet : votre compte, votre boutique et vos réglages restent dans ce navigateur.</p>
         <ul class="a-checks" style="margin-top:14px"><li>${ico('check')}<span>Les produits, les pages, les paiements acceptés et la livraison que vous changez ici sont vraiment écrits dans votre boutique : le Studio les montre.</span></li>
           <li>${ico('check')}<span>Les commandes, les clients et les chiffres sont des exemples fabriqués à partir de vos produits.</span></li>
           <li>${ico('check')}<span>Les connecteurs, le domaine, l’équipe et l’abonnement ne connectent, ne vérifient et ne prélèvent rien.</span></li></ul></div>
@@ -4644,7 +4644,7 @@
     'connector-open': (el) => openConnector(el.getAttribute('data-id')),
     'connector-off': (el) => disconnect(el.getAttribute('data-id')),
     'connector-notify': (el) => { S.admin.notify[el.getAttribute('data-id')] = true; saveAdmin(); refresh('[data-act="connector-notify"][data-id="' + el.getAttribute('data-id') + '"]'); toast('C’est noté : nous vous prévenons sur WhatsApp dès qu’il est prêt (démo).'); },
-    'domain-verify': () => toast('Démo : la vérification du domaine n’est pas faite dans ce prototype. Dans Jeere, elle se fait toute seule.', { ms: 5000 }),
+    'domain-verify': () => toast('Démo : la vérification du domaine n’est pas faite dans ce prototype. Dans Jehre, elle se fait toute seule.', { ms: 5000 }),
     'domain-remove': async () => {
       const d = S.admin.settings.customDomain;
       const ok = await confirmBox({ title: 'Retirer ' + d + ' ?', text: 'Votre boutique reste sur ' + subdomain() + '.', ok: 'Retirer le domaine' });
@@ -4869,13 +4869,13 @@
       const ok = back[2] === 'ok';
       setTimeout(() => toast(back[1] === 'abonnement'
         ? (ok ? 'Paiement reçu, merci ! Votre nouvelle formule s’active dans quelques secondes.' : 'Paiement annulé : rien n’a été prélevé.')
-        : (ok ? 'Paiement reçu ! Jeere achète votre domaine et le relie à votre boutique : comptez quelques minutes.' : 'Paiement annulé : aucun domaine n’a été acheté.'), { ms: 8000 }), 600);
+        : (ok ? 'Paiement reçu ! Jehre achète votre domaine et le relie à votre boutique : comptez quelques minutes.' : 'Paiement annulé : aucun domaine n’a été acheté.'), { ms: 8000 }), 600);
       if (ok) [500, 4000, 10000].forEach((ms) => setTimeout(() => { S.storePlans = {}; Promise.resolve(window.JeereBilling && window.JeereBilling.sync ? window.JeereBilling.sync() : null).then(() => { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); }, () => {}); }, ms));
     } else if (window.JeereBilling && window.JeereBilling.sync) {
       // a payment the webhook has not brought yet
       Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && Array.isArray(j.stores)) { S.storePlans = S.storePlans || {}; j.stores.forEach((x) => { S.storePlans[x.id] = { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() }; }); } if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
     }
-    // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jeere store here
+    // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jehre store here
     const bm = /[#&]boutique=([a-z0-9-]+)/.exec(window.location.hash || '');
     if (bm && CUSTOM[bm[1]]) {
       const shop = founder() ? MY_SHOPS.find((x) => x.slug === bm[1]) : null;

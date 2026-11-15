@@ -1,4 +1,4 @@
--- Jeere : notifications push (téléphone et ordinateur des vendeuses)
+-- Jehre : notifications push (téléphone et ordinateur des vendeuses)
 -- Les appareils inscrits, et les clés de signature (créées par la fonction `push`, jamais lues par le navigateur).
 
 create table if not exists public.push_subscriptions (

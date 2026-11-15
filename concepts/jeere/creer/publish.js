@@ -1,9 +1,9 @@
 /*
- * Jeere — publish.js: publishing a store for real (classic script, deferred, no library).
+ * Jehre — publish.js: publishing a store for real (classic script, deferred, no library).
  * Global: window.JeerePublish. Loaded after data.js by the editor (creer/), the Studio (../studio/),
  * the dashboard (../admin/) and the public store page (../b/). Styles: publish.css (scoped under .jp).
  *
- * A published store is a row of public.stores in the Supabase project « Jeere » (migration
+ * A published store is a row of public.stores in the Supabase project « Jehre » (migration
  * create_jeere_stores): its address (slug), its fiche boutique (jsonb, 1 MB max), published, show_badge.
  * Anyone reads published rows with the publishable key; only the owner (auth.uid()) writes, so
  * publishing needs a signed-in Supabase user. The session is read, in this order, from
@@ -61,7 +61,7 @@
     long: '40 caractères au plus.',
     chars: 'Lettres sans accent (a à z), chiffres et tirets seulement.',
     hyphen: 'Pas de tiret au début, à la fin, ni deux à la suite.',
-    reserved: 'Cette adresse est réservée à Jeere : choisissez-en une autre.',
+    reserved: 'Cette adresse est réservée à Jehre : choisissez-en une autre.',
     taken: 'Déjà prise par une autre boutique.',
     yours: 'C’est déjà l’adresse de votre boutique.',
     ok: 'Libre : elle est à vous si vous publiez maintenant.',
@@ -242,7 +242,7 @@
       if (!s) {
         var sz = bytes(text);
         if (sz > MAX_BYTES && !M) return { ok: false, code: 'too_big', size: sz, message: fr('Votre boutique pèse ' + (sz / 1e6).toFixed(1).replace('.', ',') + ' Mo, surtout à cause des photos : 0,9 Mo au plus. Retirez quelques photos, puis publiez.') };
-        return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour publier : votre boutique est pour l’instant enregistrée dans ce navigateur seulement.' };
+        return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre pour publier : votre boutique est pour l’instant enregistrée dans ce navigateur seulement.' };
       }
       // Her photos still inline go to Storage first (media.js, wave 2): the published fiche holds URLs, so
       // the 1 MB of the table is text, not pictures. `text` stays the local fiche's (« not online yet »).
@@ -497,7 +497,7 @@
       } else {
         if (st.signedIn === false) {
           h += '<p class="jp-state"><span class="jp-pill jp-pill--warn">' + icon('alert') + 'Pas encore en ligne</span></p>' +
-            '<p class="jp-lead">' + esc(fr('Votre boutique est enregistrée dans ce navigateur seulement : personne d’autre ne la voit. Pour la mettre en ligne à son adresse, connectez-vous à votre compte Jeere (gratuit).')) + '</p>';
+            '<p class="jp-lead">' + esc(fr('Votre boutique est enregistrée dans ce navigateur seulement : personne d’autre ne la voit. Pour la mettre en ligne à son adresse, connectez-vous à votre compte Jehre (gratuit).')) + '</p>';
         } else if (st.signedIn) {
           h += '<p class="jp-lead">' + esc(fr('Choisissez son adresse : vos clients la tapent ou la reçoivent sur WhatsApp. Vous pourrez la changer.')) + '</p>';
         } else {

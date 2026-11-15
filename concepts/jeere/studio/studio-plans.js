@@ -1,5 +1,5 @@
-/* Jeere Studio — « Abonnements Studio » in the editor: the plan chip of the top bar, the upgrade
- * sheet, the locks on what Découverte does not include, the 14-day trial, the « Fait avec Jeere »
+/* Jehre Studio — « Abonnements Studio » in the editor: the plan chip of the top bar, the upgrade
+ * sheet, the locks on what Découverte does not include, the 14-day trial, the « Fait avec Jehre »
  * badge of the publish dialog. Loaded last, built on window.JeereStudio._internals and on
  * window.JeerePlans (plans.js). Like the other modules it only chains the studio's hooks.
  *
@@ -112,7 +112,7 @@
       if (prevTool) prevTool.apply(this, arguments);
     };
 
-    /* The publish / share dialog: the « Fait avec Jeere » badge, and the PNG button's lock */
+    /* The publish / share dialog: the « Fait avec Jehre » badge, and the PNG button's lock */
     function decorateShare() {
       var body = $('shareBody');
       if (!body) return;
@@ -130,20 +130,20 @@
         if (actions) body.insertBefore(row, actions); else body.appendChild(row);
       }
       var shown = P.badgeShown();
-      row.innerHTML = '<div class="st-badgerow__txt"><b id="badgeLbl">Badge « Fait avec Jeere »</b><span>' +
+      row.innerHTML = '<div class="st-badgerow__txt"><b id="badgeLbl">Badge « Fait avec Jehre »</b><span>' +
         (s.unlocked ? (shown ? 'Affiché en bas de votre boutique.' : 'Retiré : votre boutique est à votre seul nom.') : 'Affiché en bas de votre boutique en Découverte. Un abonnement Studio le retire.') + '</span></div>';
       var sw = ce('button', 'st-switch' + (s.unlocked ? '' : ' is-locked'));
       sw.type = 'button';
       sw.id = 'badgeSwitch';
       sw.setAttribute('role', 'switch');
       sw.setAttribute('aria-checked', String(!shown));
-      sw.setAttribute('aria-label', 'Retirer le badge « Fait avec Jeere »' + (s.unlocked ? '' : ' (avec un abonnement Studio)'));
+      sw.setAttribute('aria-label', 'Retirer le badge « Fait avec Jehre »' + (s.unlocked ? '' : ' (avec un abonnement Studio)'));
       sw.innerHTML = '<span class="st-switch__knob" aria-hidden="true"></span>' + (s.unlocked ? '' : LOCK);
       sw.addEventListener('click', function () {
         if (!P.state().unlocked) { S.gate('badge'); return; }
         P.setHideBadge(P.badgeShown());
         decorateShare();
-        toast(P.badgeShown() ? 'Le badge « Fait avec Jeere » sera affiché.' : 'Badge « Fait avec Jeere » retiré.', 'ok');
+        toast(P.badgeShown() ? 'Le badge « Fait avec Jehre » sera affiché.' : 'Badge « Fait avec Jehre » retiré.', 'ok');
         var again = $('badgeSwitch');
         if (again) again.focus();
       });
@@ -194,7 +194,7 @@
       if (s.trialAvailable) {
         h += '<div class="st-plansheet__trial"><button class="st-primary" type="button" id="planTrial">Essayer 14 jours gratuitement</button><span>Tout le Studio, sans moyen de paiement. Ensuite, retour en Découverte si vous ne choisissez rien.</span></div>';
       } else if (!s.signedIn && !s.unlocked) {
-        h += '<div class="st-plansheet__trial st-plansheet__trial--acct"><span>' + (s.hasAccount ? 'Connectez-vous pour démarrer votre essai de 14 jours ou vous abonner.' : 'L’essai de 14 jours et les abonnements sont liés à votre compte Jeere (gratuit, avec votre numéro WhatsApp).') + '</span>' +
+        h += '<div class="st-plansheet__trial st-plansheet__trial--acct"><span>' + (s.hasAccount ? 'Connectez-vous pour démarrer votre essai de 14 jours ou vous abonner.' : 'L’essai de 14 jours et les abonnements sont liés à votre compte Jehre (gratuit, avec votre numéro WhatsApp).') + '</span>' +
           '<div class="st-plansheet__acts">' + (s.hasAccount ? '' : '<a class="st-primary st-btnlink" href="../compte/?suite=studio#inscription" id="planSignup">Créer mon compte</a>') +
           '<a class="' + (s.hasAccount ? 'st-primary st-btnlink' : 'st-ghostbtn') + '" href="../compte/?suite=studio#connexion" id="planLogin">Se connecter</a></div></div>';
       }
@@ -272,8 +272,8 @@
       if ($('proAccount')) $('proAccount').hidden = !on;
       var s = P.state();
       if (on && $('proAccountText')) $('proAccountText').textContent = s.hasAccount
-        ? 'Connectez-vous à votre compte Jeere pour démarrer votre essai de 14 jours, puis revenez ici.'
-        : 'Votre essai est lié à votre compte Jeere : créez-le en une minute avec votre numéro WhatsApp, puis revenez ici.';
+        ? 'Connectez-vous à votre compte Jehre pour démarrer votre essai de 14 jours, puis revenez ici.'
+        : 'Votre essai est lié à votre compte Jehre : créez-le en une minute avec votre numéro WhatsApp, puis revenez ici.';
       if (on && $('proSignup')) $('proSignup').hidden = s.hasAccount;
       var f = on ? ($('proSignup') && !$('proSignup').hidden ? $('proSignup') : $('proLogin')) : $('proTrial');
       if (f) f.focus();

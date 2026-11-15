@@ -1,5 +1,5 @@
 /*
- * Jeere Studio — fontfile.js
+ * Jehre Studio — fontfile.js
  * Reads a font file the seller imports (Thème › Polices › « Mes polices »): its real family name, weight and
  * style (the `name`, `OS/2`, `head`, `fvar` tables), whether it has the French accents and ɛ ɔ ŋ Ɛ Ɔ Ŋ (`cmap`),
  * and makes a TTF / OTF lighter by packing it as WOFF (zlib, CompressionStream). No library: a small sfnt parser,

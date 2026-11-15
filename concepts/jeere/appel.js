@@ -1,4 +1,4 @@
-/* Jeere — « Réserver un appel » (Sur mesure): the dialog, sent to the `appel` function, which saves the request and
+/* Jehre — « Réserver un appel » (Sur mesure): the dialog, sent to the `appel` function, which saves the request and
  * tells the founder by e-mail. The source (?ref=tiktok …) goes with it. */
 (function () {
   'use strict';

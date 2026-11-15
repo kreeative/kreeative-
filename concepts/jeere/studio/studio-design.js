@@ -1,4 +1,4 @@
-/* Jeere Studio — the « Design » tab: a Framer-level inspector for every element of the store.
+/* Jehre Studio — the « Design » tab: a Framer-level inspector for every element of the store.
  *
  * Loaded after studio.js, studio-power.js and studio-toolbar.js; built on the studio's bridge
  * (window.JeereStudio._internals) and on ../creer/elstyles.js (window.JeereElStyles: the element

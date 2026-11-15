@@ -1,4 +1,4 @@
-/* Jeere — landing page and waitlist (concept by Kreeative)
+/* Jehre — landing page and waitlist (concept by Kreeative)
    Designed at 360 px first, then scaled up. Black and white only.
    The only photos are the store builder's demo photos (creer/img/demo/, WebP, Unsplash) in the
    example stores: the hero canvas, the template mock-ups and the diaspora card. They are
@@ -12,7 +12,7 @@
 }
 
 :root {
-  /* Jeere is black and white, nothing else: the sellers' photos and stores bring the colour.
+  /* Jehre is black and white, nothing else: the sellers' photos and stores bring the colour.
      The "accent" names are kept so every rule has one place to change. */
   --accent: #111111;
   --accent-deep: #111111;
@@ -427,7 +427,7 @@ html:not(.js) .cv__play { display: none; }
 .compare__col--after .ico { color: var(--accent-light); margin-top: 1px; }
 @media (min-width: 800px) { .compare { grid-template-columns: 1fr 1fr; } .compare__col { padding: 34px 32px; } }
 
-/* Why Jeere: complaint elsewhere, then Jeere's answer */
+/* Why Jehre: complaint elsewhere, then Jehre's answer */
 .vs-group + .vs-group { margin-top: 44px; }
 .vs-group__title { font: 500 13px/1.3 var(--f-text); letter-spacing: .12em; text-transform: uppercase; color: var(--muted-light); padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--line-light); }
 .vs-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
@@ -1044,7 +1044,7 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; 
 /* « En savoir plus » in bold, never underlined */
 .promo__go, .promo:hover .promo__go { text-decoration: none; font-weight: 800; }
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }
 

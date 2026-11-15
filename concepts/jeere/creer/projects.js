@@ -1,5 +1,5 @@
 /*
- * Jeere — projects.js: client projects, the project switcher's data (classic script, deferred, no library).
+ * Jehre — projects.js: client projects, the project switcher's data (classic script, deferred, no library).
  * Global: window.JeereProjects. Loaded after data.js and publish.js by the dashboard (../admin/), the editor
  * (creer/) and the Studio (../studio/).
  *
@@ -454,7 +454,7 @@
     });
   }
 
-  // The private preview: on Jeere's own host the public address, elsewhere (a local server, a preview
+  // The private preview: on Jehre's own host the public address, elsewhere (a local server, a preview
   // deployment) the store page of this site with ?s=
   function previewUrl(e) {
     if (!e || !e.slug || !e.token) return '';

@@ -1,4 +1,4 @@
-/* Jeere Studio — the door to « Mes sites » (../mes-sites/: every site she has made, her websites and her
+/* Jehre Studio — the door to « Mes sites » (../mes-sites/: every site she has made, her websites and her
  * boutiques), for the founder only.
  *
  * Loaded by the boutique editor (studio/index.html) and by the dashboard (admin/index.html), one script tag.

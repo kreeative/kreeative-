@@ -1,5 +1,5 @@
 /*
- * Jeere Studio — studio-preview.js: the Preview mode (wave 2 of the Studio audit, item 11).
+ * Jehre Studio — studio-preview.js: the Preview mode (wave 2 of the Studio audit, item 11).
  * Loaded after studio.js. Builds on window.JeereStudio._internals; no library, French UI.
  *
  * « Aperçu » (the ▶ button of the top bar, or P) opens the store full-screen, as a customer sees it,

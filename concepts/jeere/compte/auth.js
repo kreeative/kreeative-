@@ -1,4 +1,4 @@
-/* Jeere — real seller accounts on Supabase Auth, and the bridge to localStorage 'jeere-account'.
+/* Jehre — real seller accounts on Supabase Auth, and the bridge to localStorage 'jeere-account'.
  *
  * Loaded (classic script, deferred) by ../compte/ and by every page that reads the account
  * (../creer/, ../admin/, ../studio/, ../abonnements/). No build, no import: supabase-js is loaded
@@ -188,10 +188,10 @@
     var by = method === 'whatsapp' ? 'WhatsApp' : 'SMS';
     var byPhrase = method === 'whatsapp' ? 'sur WhatsApp' : 'par SMS';
     if (code === 'phone_provider_disabled' || code === 'sms_send_failed' || /unsupported phone provider|phone.*(disabled|not enabled)|sms provider|twilio|messagebird|vonage|textlocal|whatsapp/i.test(msg)) {
-      return { kind: 'provider', text: 'Les codes ' + byPhrase + ' ne sont pas encore activés sur Jeere. Recevez votre code par e-mail pour l’instant' + NB + ': c’est gratuit et ça marche tout de suite.', by: by };
+      return { kind: 'provider', text: 'Les codes ' + byPhrase + ' ne sont pas encore activés sur Jehre. Recevez votre code par e-mail pour l’instant' + NB + ': c’est gratuit et ça marche tout de suite.', by: by };
     }
     if (err && (err.name === 'TimeoutError' || err.name === 'AuthRetryableFetchError' || /failed to fetch|fetch failed|networkerror|load failed|network request failed|timed out|could not be downloaded|did not load/i.test(msg))) {
-      return { kind: 'network', text: 'Pas de connexion avec Jeere. Vérifiez votre connexion Internet, puis réessayez.' };
+      return { kind: 'network', text: 'Pas de connexion avec Jehre. Vérifiez votre connexion Internet, puis réessayez.' };
     }
     if (status === 429 || /rate.?limit|over_.*rate|too many/i.test(code + ' ' + msg)) {
       if (code === 'over_email_send_rate_limit' || /email rate limit/i.test(msg)) {
@@ -207,13 +207,13 @@
       return { kind: 'code', text: 'Ce code est incorrect ou a expiré. Vérifiez les chiffres, ou demandez un nouveau code.' };
     }
     if (code === 'otp_disabled' || /signups not allowed for otp|user not found/i.test(msg)) {
-      return { kind: 'nouser', text: 'Aucun compte Jeere avec cette adresse.' };
+      return { kind: 'nouser', text: 'Aucun compte Jehre avec cette adresse.' };
     }
     if (code === 'signup_disabled' || /signups? (are )?disabled|signups not allowed/i.test(msg)) {
       return { kind: 'closed', text: 'Les inscriptions sont fermées pour le moment. Réessayez bientôt.' };
     }
     if (code === 'email_address_not_authorized') {
-      return { kind: 'mail', text: 'Jeere ne peut pas encore envoyer d’e-mail à cette adresse (envoi en cours de configuration). Réessayez plus tard ou utilisez une autre méthode.' };
+      return { kind: 'mail', text: 'Jehre ne peut pas encore envoyer d’e-mail à cette adresse (envoi en cours de configuration). Réessayez plus tard ou utilisez une autre méthode.' };
     }
     if (code === 'email_address_invalid' || /email address .* is invalid|invalid email|unable to validate email/i.test(msg)) {
       return { kind: 'invalid', text: 'Cette adresse e-mail n’est pas acceptée. Vérifiez-la, ou utilisez-en une autre.' };
@@ -221,7 +221,7 @@
     if (code === 'validation_failed' && /phone/i.test(msg) || /invalid phone|phone number/i.test(msg)) {
       return { kind: 'invalid', text: 'Ce numéro n’est pas accepté. Vérifiez-le, avec l’indicatif du pays.' };
     }
-    return { kind: 'other', text: 'Un problème est survenu chez Jeere. Réessayez dans un instant.' };
+    return { kind: 'other', text: 'Un problème est survenu chez Jehre. Réessayez dans un instant.' };
   }
 
   /* ------------------------------------------------------------------ the code */

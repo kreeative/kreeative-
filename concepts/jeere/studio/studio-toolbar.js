@@ -1,10 +1,10 @@
-/* Jeere Studio — the UI3 layer: the floating tool bar (bottom centre), the section insert
+/* Jehre Studio — the UI3 layer: the floating tool bar (bottom centre), the section insert
  * popover (S), the contextual bar pinned on the selection, styled tooltips (name + shortcut after
  * 400 ms), local comment pins (C) and the first-run « three gestures » card.
  *
  * Loaded after studio.js and studio-power.js; builds on window.JeereStudio._internals and plugs
  * into its hooks (chained, never overwritten). Comments live in 'jeere-studio-ui' (ui.comments):
- * local to this browser — sharing them with a team needs the Jeere backend.
+ * local to this browser — sharing them with a team needs the Jehre backend.
  */
 (function () {
   'use strict';
@@ -453,7 +453,7 @@
       var body = $('commentsBody');
       if (!body) return;
       body.innerHTML = '';
-      body.appendChild(ce('div', 'st-comments__note', '<b>Local à ce navigateur.</b> Ces notes ne partent nulle part : le partage avec votre équipe (et les réponses) arrive avec le backend Jeere.'));
+      body.appendChild(ce('div', 'st-comments__note', '<b>Local à ce navigateur.</b> Ces notes ne partent nulle part : le partage avec votre équipe (et les réponses) arrive avec le backend Jehre.'));
       var all = comments();
       var open = all.filter(function (c) { return !c.resolved; });
       var done = all.filter(function (c) { return c.resolved; });

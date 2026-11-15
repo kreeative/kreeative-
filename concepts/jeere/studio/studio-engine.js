@@ -1,4 +1,4 @@
-/* Jeere Studio — studio-engine.js: DualEngine as the Studio's document and layout core.
+/* Jehre Studio — studio-engine.js: DualEngine as the Studio's document and layout core.
  *
  * Loaded after studio.js and the other modules, with ../creer/engine-sections.js and engine/*.js.
  * Exposes window.JeereStudioEngine (used by studio-canvas.js, studio-inspector.js and the tests).
@@ -1674,7 +1674,7 @@
       var out = DE.exportDocument(doc, {});
       var map = readableClasses(doc, slug(S.sectionName(s)).slice(0, 24) || 'section');
       var swap = function (text) { return String(text).replace(/\bde-[0-9a-zA-Z]{8}\b/g, function (c) { return map[c] || c; }); };
-      return { html: swap(out.html).replace('<head>', '<head>\n<!-- Exporté depuis Jeere Studio (DualEngine) : classes nommées d’après les calques -->'), css: swap(out.css), body: swap(out.body), warnings: out.warnings, classes: map };
+      return { html: swap(out.html).replace('<head>', '<head>\n<!-- Exporté depuis Jehre Studio (DualEngine) : classes nommées d’après les calques -->'), css: swap(out.css), body: swap(out.body), warnings: out.warnings, classes: map };
     }
     function download(name, text, type) {
       try {

@@ -1,5 +1,5 @@
 /*
- * Jeere — api/sitemap.js: https://jeere.kreeative.xyz/b/sitemap.xml (vercel.json routes it here).
+ * Jehre — api/sitemap.js: https://jeere.kreeative.xyz/b/sitemap.xml (vercel.json routes it here).
  * The list itself is made by the Supabase Edge Function `store-sitemap` (every published store, its pages
  * and its products). Supabase serves every GET response of an Edge Function as text/plain, which a search
  * engine may not read as XML: this function fetches it and serves it again as application/xml, cached

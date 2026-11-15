@@ -1,4 +1,4 @@
--- Jeere : un abonnement = une boutique. Le plan passe du compte à la boutique (écrit par le serveur seulement).
+-- Jehre : un abonnement = une boutique. Le plan passe du compte à la boutique (écrit par le serveur seulement).
 alter table public.stores add column if not exists plan text not null default 'gratuit';
 alter table public.stores add column if not exists plan_until timestamptz;
 alter table public.stores add column if not exists plan_promo text;
@@ -54,7 +54,7 @@ $f$;
 revoke all on function public.launch_spots() from public;
 grant execute on function public.launch_spots() to anon, authenticated;
 
--- le badge « Fait avec Jeere » : obligatoire sauf si CETTE boutique est sur un plan payant, ou Studio débloqué
+-- le badge « Fait avec Jehre » : obligatoire sauf si CETTE boutique est sur un plan payant, ou Studio débloqué
 create or replace function public.jeere_stores_badge()
  returns trigger language plpgsql security definer set search_path to '' as $f$
 begin

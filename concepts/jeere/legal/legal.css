@@ -1,4 +1,4 @@
-/* Jeere — legal pages (mentions légales, confidentialité). On top of ../style.css. */
+/* Jehre — legal pages (mentions légales, confidentialité). On top of ../style.css. */
 .lg { background: var(--paper); color: var(--ink); }
 .lg-head { border-bottom: 1px solid var(--line); background: var(--paper); }
 .lg-head__in { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: var(--head-h); }
@@ -48,6 +48,6 @@
   .lg-head .logo__cloud { width: 40px; }
 }
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }

@@ -1,6 +1,6 @@
--- Jeere — appointments (migration `jeere_bookings`, project « Jeere », ref aezchxfvzfoqlvzchqyk).
+-- Jehre — appointments (migration `jeere_bookings`, project « Jehre », ref aezchxfvzfoqlvzchqyk).
 --
--- Service businesses (lashes, nails, hair, braids, make-up…) take bookings with Jeere, the way a shop takes orders.
+-- Service businesses (lashes, nails, hair, braids, make-up…) take bookings with Jehre, the way a shop takes orders.
 --
 --   1. public.booking_settings: one row per store that takes appointments. `settings` holds her services, add-ons,
 --      team, opening hours, booking rules (slot step, notice, buffer, deposit) and policies; `seq` numbers her
@@ -23,7 +23,7 @@ create table if not exists public.booking_settings (
   seq integer not null default 100,
   updated_at timestamptz not null default now()
 );
-comment on table public.booking_settings is 'Jeere: a store''s appointment settings (services, add-ons, team, hours, rules, policies) and its appointment counter. Server only (the `bookings` Edge Function).';
+comment on table public.booking_settings is 'Jehre: a store''s appointment settings (services, add-ons, team, hours, rules, policies) and its appointment counter. Server only (the `bookings` Edge Function).';
 
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
@@ -58,7 +58,7 @@ create table if not exists public.appointments (
     store_id with =, staff_id with =, tstzrange(starts_at, busy_until, '[)') with &&
   ) where (status <> 'annule')
 );
-comment on table public.appointments is 'Jeere: appointments of the stores. Written and read only by the `bookings` Edge Function. No two live appointments of one person of one store can overlap (exclusion constraint).';
+comment on table public.appointments is 'Jehre: appointments of the stores. Written and read only by the `bookings` Edge Function. No two live appointments of one person of one store can overlap (exclusion constraint).';
 create index if not exists appointments_store_idx on public.appointments (store_id, starts_at);
 
 create table if not exists public.booking_blocks (
@@ -71,7 +71,7 @@ create table if not exists public.booking_blocks (
   created_at timestamptz not null default now(),
   constraint booking_blocks_times check (ends_at > starts_at)
 );
-comment on table public.booking_blocks is 'Jeere: time a store closes to bookings (day off, break, holiday), for one person (staff_id) or everyone (''''). Server only.';
+comment on table public.booking_blocks is 'Jehre: time a store closes to bookings (day off, break, holiday), for one person (staff_id) or everyone (''''). Server only.';
 create index if not exists booking_blocks_store_idx on public.booking_blocks (store_id, starts_at);
 
 alter table public.booking_settings enable row level security;

@@ -1,5 +1,5 @@
 /*
- * Jeere — jcolor.js: the colour picker of the Studio and of the simple editor (never a native
+ * Jehre — jcolor.js: the colour picker of the Studio and of the simple editor (never a native
  * <input type="color">). Global: window.JeereColor = { open(opts), close() }.
  *
  * A popover (anchor) or an inline panel (container, the simple editor's bottom sheet), in the

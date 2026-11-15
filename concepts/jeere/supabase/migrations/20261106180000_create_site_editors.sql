@@ -1,5 +1,5 @@
--- Jeere — who may edit and publish the kreeative websites from the Studio's « Mes sites »
--- (migration `create_site_editors`, project « Jeere », ref aezchxfvzfoqlvzchqyk).
+-- Jehre — who may edit and publish the kreeative websites from the Studio's « Mes sites »
+-- (migration `create_site_editors`, project « Jehre », ref aezchxfvzfoqlvzchqyk).
 --
 -- A tiny allow-list read by the `sites-publish` Edge Function only (with the service role).
 -- Row level security is on and there is NO policy, and the API roles have no privilege at all:
@@ -14,7 +14,7 @@ create table if not exists public.site_editors (
 );
 
 comment on table public.site_editors is
-  'Who may publish the kreeative websites from Jeere Studio « Mes sites » (sites-publish Edge Function). RLS on, no policy, no API privilege: server only.';
+  'Who may publish the kreeative websites from Jehre Studio « Mes sites » (sites-publish Edge Function). RLS on, no policy, no API privilege: server only.';
 
 alter table public.site_editors enable row level security;
 

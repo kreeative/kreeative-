@@ -1,6 +1,6 @@
-// Jeere — Edge Function `orders` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk).
+// Jehre — Edge Function `orders` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk).
 //
-// Places the orders of Jeere stores and sends their e-mails (like Shopify's notifications), with the
+// Places the orders of Jehre stores and sends their e-mails (like Shopify's notifications), with the
 // templates each store edits in its dashboard (stores.notifications).
 //
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/orders
@@ -71,7 +71,7 @@ const DEFAULTS: Record<Kind, { on: boolean; to: 'client' | 'boutique'; label: st
   nouvelle: {
     on: true, to: 'boutique', label: 'Nouvelle commande (à la boutique)',
     subject: 'Nouvelle commande {{commande.numero}} · {{commande.total}}',
-    body: 'Nouvelle commande {{commande.numero}} de {{client.nom}} ({{client.telephone}}).\n\n{{commande.articles}}\n\nLivraison : {{livraison.commune}}, {{livraison.adresse}}\nTotal : {{commande.total}}\nPaiement : {{paiement}}\nNote : {{commande.note}}\n\nRetrouvez-la dans votre tableau de bord Jeere.'
+    body: 'Nouvelle commande {{commande.numero}} de {{client.nom}} ({{client.telephone}}).\n\n{{commande.articles}}\n\nLivraison : {{livraison.commune}}, {{livraison.adresse}}\nTotal : {{commande.total}}\nPaiement : {{paiement}}\nNote : {{commande.note}}\n\nRetrouvez-la dans votre tableau de bord Jehre.'
   },
   expediee: {
     on: true, to: 'client', label: 'Commande en route (au client)',
@@ -141,7 +141,7 @@ function html(store: Obj, subject: string, body: string) {
     '<tr><td style="padding:26px 28px 8px 28px;border-bottom:3px solid ' + accent + ';">' +
     (/^https:\/\//.test(logo) ? '<img src="' + esc(logo) + '" alt="' + name + '" height="40" style="display:block;height:40px;width:auto;border:0;">' : '<div style="font:700 20px/26px ' + font + ';color:#111111;">' + name + '</div>') +
     '</td></tr><tr><td style="padding:22px 28px 6px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' + paras + '</td></tr>' +
-    '<tr><td style="padding:10px 28px 26px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">' + name + ' · boutique propulsée par Jeere</td></tr>' +
+    '<tr><td style="padding:10px 28px 26px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">' + name + ' · boutique propulsée par Jehre</td></tr>' +
     '</table></td></tr></table></body></html>';
 }
 function render(store: Obj, kind: Kind, o: Order, override?: Obj) {
@@ -290,7 +290,7 @@ Deno.serve(async (req: Request) => {
 
   // everything else: the store's managers
   const user = await userOf(req);
-  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere.' }, 401);
+  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre.' }, 401);
 
   if (action === 'status') {
     const oid = str(b.orderId, 40);

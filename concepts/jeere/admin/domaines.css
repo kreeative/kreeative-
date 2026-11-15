@@ -1,4 +1,4 @@
-/* Jeere — « Paramètres › Domaine » (domaines.js). Built on admin.css (tokens, cards, buttons, pills). */
+/* Jehre — « Paramètres › Domaine » (domaines.js). Built on admin.css (tokens, cards, buttons, pills). */
 .dm-steps { margin: 16px 0 0; padding: 0 0 0 22px; display: grid; gap: 18px; }
 .dm-steps > li::marker { font-weight: 600; }
 .dm-recs { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }

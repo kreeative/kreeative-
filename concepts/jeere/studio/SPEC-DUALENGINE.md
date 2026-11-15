@@ -1,6 +1,6 @@
 # DualEngine — Spécifications techniques, fonctionnelles et architecturales
 
-*Moteur de design et de développement no-code fusionnant la liberté vectorielle au pixel près (Figma) et la structure sémantique Web native (Framer). Version 1.0 — base du Studio Jeere v3.*
+*Moteur de design et de développement no-code fusionnant la liberté vectorielle au pixel près (Figma) et la structure sémantique Web native (Framer). Version 1.0 — base du Studio Jehre v3.*
 
 ---
 
@@ -786,7 +786,7 @@ transition: transform 612ms linear(0, 0.0431, 0.1567, 0.3112 … 1.0021, 0.9994,
 
 `V` déplacer · `K` échelle · `F` frame · `R` rectangle · `O` ellipse · `L` ligne · `P` plume · `Shift+P` crayon · `T` texte · `Shift+Ctrl+K` image · `C` commentaire · `H` main · `Espace` main temporaire · `Shift+A` auto layout · `Ctrl+Alt+K` créer un composant · `Ctrl+Alt+B` détacher · `Ctrl+G` grouper · `Ctrl+Shift+G` dégrouper · `Ctrl+D` dupliquer · `Ctrl+Shift+H` masquer · `Ctrl+Shift+L` verrouiller · `Ctrl+R` renommer · `Ctrl+]`/`[` ordre z · `Alt` (maintenu) cotes · `Shift+2` zoom sélection · `Ctrl+Shift+'` grille de pixels · `Shift+E` prototype · `Shift+D` mode dev · `Ctrl+K` palette de commandes · `?` aide.
 
-### C. Feuille de route d'implémentation (Studio Jeere v3)
+### C. Feuille de route d'implémentation (Studio Jehre v3)
 
 | Phase | Périmètre | Critère de sortie |
 | --- | --- | --- |

@@ -1,5 +1,5 @@
-/* Jeere Studio — builder chrome: start screen, editor, modals.
-   Black and white (the Jeere logo itself is black ink): the stores in the preview bring the colour.
+/* Jehre Studio — builder chrome: start screen, editor, modals.
+   Black and white (the Jehre logo itself is black ink): the stores in the preview bring the colour.
    Colour only carries a meaning, in small doses (badges, dots, icons): green = done, orange = attention,
    red = problem, blue = information. Tokens below, documented in README.md « Couleurs d’état ».
    Every rule is scoped to a b- class so nothing leaks into the store preview (.jst) or the assistant (.jwz).
@@ -57,7 +57,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
   display: block; width: 20px; height: 20px; flex: none;
   fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
 }
-/* The Jeere logo (symbols #cloud and #wordmark in index.html): the hand-drawn cloud, black ink, like the landing page */
+/* The Jehre logo (symbols #cloud and #wordmark in index.html): the hand-drawn cloud, black ink, like the landing page */
 .b-logo__lock { display: inline-flex; align-items: center; gap: 0; color: var(--ink); vertical-align: middle; }
 .b-logo__lock .logo__cloud { display: block; flex: none; height: 32px; width: auto; aspect-ratio: 600 / 446; fill: currentColor; }
 .b-logo__lock .logo__wordmark { display: block; flex: none; height: 28px; width: auto; aspect-ratio: 900 / 479; fill: currentColor; }
@@ -138,7 +138,7 @@ html.b-modal-open, html.b-modal-open body { overflow: hidden; }
 .b-acct__txt { min-width: 0; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .b-acct__name { font-weight: 500; }
 .b-acct__short { display: none; }
-/* « Retour à Jeere » only where the account links have room beside it (the logo also leads back) */
+/* « Retour à Jehre » only where the account links have room beside it (the logo also leads back) */
 @media (max-width: 799.98px) { .b-shead__nav > .b-only-wide { display: none; } }
 @media (max-width: 639.98px) {
   .b-shead__nav { gap: 12px; }

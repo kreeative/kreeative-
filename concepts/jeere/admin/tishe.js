@@ -1,10 +1,10 @@
 /*
- * Jeere — tishe.js: The Ivory Sukundu (theivorysukundu.com) inside the Jeere dashboard.
+ * Jehre — tishe.js: The Ivory Sukundu (theivorysukundu.com) inside the Jehre dashboard.
  * Global: window.JeereTishe. Loaded before admin.js, which asks it for the views while that store is the one in view.
  *
  * The store keeps its own data (Stripe orders, products, codes, the announcement bar, shipping rates) and its own API,
  * https://www.theivorysukundu.com/api/admin ({ action, … }, a session token in Authorization). This file speaks to it
- * from here: nothing is copied into Jeere, every change is saved there, on the live shop.
+ * from here: nothing is copied into Jehre, every change is saved there, on the live shop.
  *
  * Sign-in: the store emails a link to its owner address (action link, to: 'jeere'); the link comes back to
  * ../admin/#tishe=<token>, which is swapped for a 30-day session (action redeem), kept in 'jeere-tishe-auth'.
@@ -23,7 +23,7 @@
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* blocked */ } }
   function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* blocked */ } }
-  // the Jeere account signed in on this device (the TISHE session belongs to ONE account)
+  // the Jehre account signed in on this device (the TISHE session belongs to ONE account)
   function uid() { try { var a = JSON.parse(lsGet('jeere-account') || 'null'); return a && a.userId ? String(a.userId) : ''; } catch (e) { return ''; } }
   function auth() {
     try {
@@ -115,7 +115,7 @@
     }, function (e) { T.error = e.message; }).then(function () { T.redeeming = false; refresh(); });
   })();
 
-  // Her Jeere account is enough: the store checks her Jeere session (Supabase) and opens a 30-day session,
+  // Her Jehre account is enough: the store checks her Jehre session (Supabase) and opens a 30-day session,
   // no email (action « jeere », see the store's api/admin.ts). The email link stays as the way in without it.
   function autoConnect() {
     if (T.autoTried || auth()) return;
@@ -129,7 +129,7 @@
     }).then(function (j) {
       lsSet(K_AUTH, JSON.stringify({ token: j.token, expiresAt: j.expiresAt, email: j.email, userId: uid() }));
       T.error = null;
-    }, function () { /* not signed in to Jeere, or the store does not know this door yet: the email link */ T.error = null; T.autoTried = true; })
+    }, function () { /* not signed in to Jehre, or the store does not know this door yet: the email link */ T.error = null; T.autoTried = true; })
       .then(function () { T.redeeming = false; refresh(); });
   }
   function signInView() {
@@ -570,7 +570,7 @@
 
   var ORIGIN = 'https://www.theivorysukundu.com';
   var ED = { changes: {}, fields: [], pages: [], route: '/', imgKey: null, device: 'desktop', mode: '' };
-  // « Simple »: the page's texts and photos as a form (the phone's default, like the Jeere editor); « Sur le site »:
+  // « Simple »: the page's texts and photos as a form (the phone's default, like the Jehre editor); « Sur le site »:
   // click the text right on the site. The site stays loaded behind the form: it is what lists the fields.
   function edMode() { if (!ED.mode) ED.mode = (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) ? 'simple' : 'site'; return ED.mode; }
   var LABELS = { hero: 'Accueil', campaign: 'Campagne', collection: 'Collection', reviews: 'Avis', lengths: 'Guide des longueurs', ourhair: 'Nos cheveux', circle: 'The Circle', contact: 'Contact', footer: 'Pied de page' };

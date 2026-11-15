@@ -1,17 +1,17 @@
 /*
- * Jeere Connect — jeere-connect.js: a custom-designed site sells with a Jeere store (classic script, no library).
+ * Jehre Connect — jeere-connect.js: a custom-designed site sells with a Jehre store (classic script, no library).
  *
  *   <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="<slug>" defer></script>
  *
  * The site keeps its own design. This script reads the store's PUBLISHED fiche from Supabase (REST, the
  * publishable key: row level security only shows published rows, never the owner), puts the store's names,
  * prices, descriptions and photos into the site's own markup, keeps a cart in localStorage (one per store)
- * and sends the buyer to the store's Jeere cart: https://jeere.kreeative.xyz/b/<slug>/panier?panier=p1:2,p3:1
- * (b/b.js fills the cart from that parameter; the order then leaves on WhatsApp, as on any Jeere store).
+ * and sends the buyer to the store's Jehre cart: https://jeere.kreeative.xyz/b/<slug>/panier?panier=p1:2,p3:1
+ * (b/b.js fills the cart from that parameter; the order then leaves on WhatsApp, as on any Jehre store).
  * If Supabase cannot be reached or the store is not published, the page keeps its hard-coded content and
  * its cart still works (prices read from the page); nothing here ever throws into the site.
  *
- * Markup (any element, any classes; ids are the fiche's product ids: p1, p2… as in the Jeere editor):
+ * Markup (any element, any classes; ids are the fiche's product ids: p1, p2… as in the Jehre editor):
  *   [data-jeere-product="p1"]            a product card. Gets data-jeere-state="on" | "off" (off: missing from
  *                                        the fiche or out of stock; its add buttons are disabled, « Épuisé »)
  *     [data-jeere-name] [data-jeere-desc] text from the fiche (only where the page is in French: the fiche is)
@@ -25,11 +25,11 @@
  *                       ([data-jeere-name], [data-jeere-qty], [data-jeere-price], [data-jeere-line-total],
  *                       [data-jeere-photo], [data-jeere-inc], [data-jeere-dec], [data-jeere-remove]; « {name} »
  *                       in an attribute is replaced), and its <template data-jeere-empty> when the cart is empty
- *   [data-jeere-social]  filled with the seller's networks (Instagram, TikTok, Facebook, set in Jeere > Parametres >
+ *   [data-jeere-social]  filled with the seller's networks (Instagram, TikTok, Facebook, set in Jehre > Parametres >
  *                        Boutique): one round icon link each, in the site's own colour; hidden when she has none
- * In the Jeere editor (the site framed as its preview) the fiche being edited is received by postMessage
+ * In the Jehre editor (the site framed as its preview) the fiche being edited is received by postMessage
  * ({ jeerePreview: <slug>, fiche }, from jeere.kreeative.xyz only) and shown in place of the published one.
- *   [data-jeere-checkout]  goes to the Jeere cart (same tab); disabled (aria-disabled on a link) when empty
+ *   [data-jeere-checkout]  goes to the Jehre cart (same tab); disabled (aria-disabled on a link) when empty
  * Script attributes: data-store (required), data-default-cart="p1:1,p2:1" (the cart of a first visit only).
  *
  * 'jeere:update' { status, products } each time the editor's preview sends a new fiche.
@@ -77,7 +77,7 @@
   function clampQ(q) { return Math.max(0, Math.min(QMAX, Math.round(Number(q) || 0))); }
   function $$(sel, ctx) { try { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); } catch (e) { return []; } }
   function attrSel(name, id) { return '[' + name + '="' + String(id).replace(/["\\]/g, '') + '"]'; }
-  var preview = false; // shown inside the Jeere editor, with the fiche being edited (see init)
+  var preview = false; // shown inside the Jehre editor, with the fiche being edited (see init)
   function httpsImg(v) {
     if (preview && typeof v === 'string' && /^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+\/=]+$/.test(v)) return v; // a photo she just chose, not yet online
     return typeof v === 'string' && v.length < 600 && /^https:\/\/[^\s"'<>\\]+$/i.test(v) ? v : '';
@@ -338,7 +338,7 @@
       if (again && !again.disabled) { try { again.focus({ preventScroll: true }); } catch (e) { again.focus(); } }
     }
   }
-  // Her networks (fiche.store.social: handles, cleaned by the Jeere app), in every [data-jeere-social]
+  // Her networks (fiche.store.social: handles, cleaned by the Jehre app), in every [data-jeere-social]
   var SOCIAL = {
     instagram: { label: 'Instagram', re: /^[A-Za-z0-9._]{1,30}$/, url: function (h) { return 'https://www.instagram.com/' + h + '/'; },
       svg: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6" fill="currentColor"/>' },
@@ -441,7 +441,7 @@
     // Another tab of the same site changed the cart
     window.addEventListener('storage', function (e) { if (e.key === KEY) { loadCart(); prune(); render(); emit('jeere:cart', cartDetail()); } });
     render();
-    // Inside the Jeere editor (« éditeur simple »): the site is its preview. The editor sends the fiche being
+    // Inside the Jehre editor (« éditeur simple »): the site is its preview. The editor sends the fiche being
     // edited, not yet published; it replaces the published one on this page only, for her alone.
     if (window.parent !== window) {
       window.addEventListener('message', function (e) {

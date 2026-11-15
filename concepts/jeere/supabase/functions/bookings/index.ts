@@ -1,4 +1,4 @@
-// Jeere — Edge Function `bookings` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk).
+// Jehre — Edge Function `bookings` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk).
 //
 // Appointments for service businesses (lashes, nails, hair…): what `orders` is to a shop. A store's services, team,
 // hours and rules live in public.booking_settings; its appointments in public.appointments. Nothing here is readable
@@ -311,7 +311,7 @@ const MAILS: Record<Kind, { to: 'client' | 'boutique'; subject: string; body: st
   rdv_demande: { to: 'client', subject: 'Votre demande de rendez-vous chez {{boutique.nom}}',
     body: 'Bonjour {{client.prenom}},\n\nNous avons bien reçu votre demande. Nous vous confirmons le rendez-vous très vite.\n\n{{rdv.resume}}\n\n{{rdv.acompte_texte}}Suivre votre demande : {{rdv.lien}}\n\n{{boutique.nom}}' },
   rdv_nouveau: { to: 'boutique', subject: 'Nouveau rendez-vous n° {{rdv.numero}} · {{rdv.date_courte}} à {{rdv.heure}}',
-    body: 'Nouveau rendez-vous de {{client.nom}} ({{client.telephone}}).\n\n{{rdv.resume}}\n\nAcompte : {{rdv.acompte}}\nPaiement : {{paiement}}\nNote : {{rdv.note}}\n\nRetrouvez-le dans votre agenda Jeere.' },
+    body: 'Nouveau rendez-vous de {{client.nom}} ({{client.telephone}}).\n\n{{rdv.resume}}\n\nAcompte : {{rdv.acompte}}\nPaiement : {{paiement}}\nNote : {{rdv.note}}\n\nRetrouvez-le dans votre agenda Jehre.' },
   rdv_confirme: { to: 'client', subject: 'Rendez-vous confirmé : {{rdv.date}} à {{rdv.heure}}',
     body: 'Bonjour {{client.prenom}},\n\nBonne nouvelle : votre rendez-vous est confirmé.\n\n{{rdv.resume}}\n\n{{rdv.adresse_texte}}Pour le déplacer ou l’annuler : {{rdv.lien}}\n\n{{boutique.nom}}' },
   rdv_rappel: { to: 'client', subject: 'Rappel : votre rendez-vous de demain à {{rdv.heure}}',
@@ -369,7 +369,7 @@ function htmlMail(store: Obj, subject: string, body: string) {
     '<tr><td style="padding:26px 28px 8px 28px;border-bottom:3px solid ' + accentOf(store) + ';">' +
     (info.logo ? '<img src="' + esc(info.logo) + '" alt="' + name + '" height="40" style="display:block;height:40px;width:auto;border:0;">' : '<div style="font:700 20px/26px ' + font + ';color:#111111;">' + name + '</div>') +
     '</td></tr><tr><td style="padding:22px 28px 6px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' + paras + '</td></tr>' +
-    '<tr><td style="padding:10px 28px 26px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">' + name + ' · rendez-vous pris avec Jeere</td></tr>' +
+    '<tr><td style="padding:10px 28px 26px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">' + name + ' · rendez-vous pris avec Jehre</td></tr>' +
     '</table></td></tr></table></body></html>';
 }
 function renderMail(st: Obj, S: Settings, kind: Kind, a: Obj) {
@@ -605,7 +605,7 @@ Deno.serve(async (req: Request) => {
 
   /* ---------- everything else: the store's managers */
   const user = await userOf(req);
-  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere.' }, 401);
+  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre.' }, 401);
   const forbidden = () => json({ ok: false, code: 'forbidden', message: 'Cette boutique n’est pas à vous.' }, 403);
   // the store of the request: by its id, or through one of its appointments / blocks
   let st: Obj | undefined, appt: Obj | undefined;

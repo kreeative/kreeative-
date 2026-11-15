@@ -1,4 +1,4 @@
-/* Jeere Studio — the advanced editor (Figma / Framer / Webflow-like) over the same fiche
+/* Jehre Studio — the advanced editor (Figma / Framer / Webflow-like) over the same fiche
  * boutique as ../creer/. One classic script, one global: window.JeereStudio.
  *
  * It loads ../creer/data.js (JEERE_DATA) and ../creer/render.js (JeereRender) and codes
@@ -3927,8 +3927,8 @@
     var html = '';
     if (publish) {
       html += '<p>' + (v && v.status === 'APPROUVÉ'
-        ? 'Votre boutique est prête. La mise en ligne arrive avec le backend Jeere : en attendant, rien n’est publié — ce prototype garde tout dans ce navigateur.'
-        : 'Quelques points sont à corriger avant la mise en ligne. La publication réelle arrive avec le backend Jeere : rien n’est publié pour l’instant.') + '</p>';
+        ? 'Votre boutique est prête. La mise en ligne arrive avec le backend Jehre : en attendant, rien n’est publié — ce prototype garde tout dans ce navigateur.'
+        : 'Quelques points sont à corriger avant la mise en ligne. La publication réelle arrive avec le backend Jehre : rien n’est publié pour l’instant.') + '</p>';
       if (v) {
         html += '<div class="st-share__score"><span class="st-pill ' + (v.status === 'APPROUVÉ' ? 'st-pill--ok' : 'st-pill--err') + '">' + esc(v.status || '') + '</span>' +
           '<span>Qualité : <b>' + esc(String(v.score != null ? v.score : '—')) + ' / 100</b></span></div>';
@@ -3948,7 +3948,7 @@
     if (livePublish) {
       html = v ? '<div class="st-share__score"><span class="st-pill ' + (v.status === 'APPROUVÉ' ? 'st-pill--ok' : 'st-pill--err') + '">' + esc(v.status || '') + '</span><span>Qualité : <b>' + esc(String(v.score != null ? v.score : '—')) + ' / 100</b></span></div>' : '';
     } else {
-      html += '<div class="st-share__addr"><code>' + esc(sub) + '</code><span style="color:var(--st-ink-dim);font-size:11px">votre adresse Jeere</span></div>';
+      html += '<div class="st-share__addr"><code>' + esc(sub) + '</code><span style="color:var(--st-ink-dim);font-size:11px">votre adresse Jehre</span></div>';
       html += '<p class="st-modal__note">Prototype : l’enregistrement est local à ce navigateur. La publication en un clic, le domaine et les connecteurs s’activent à l’ouverture du backend.</p>';
     }
     body.innerHTML = html;

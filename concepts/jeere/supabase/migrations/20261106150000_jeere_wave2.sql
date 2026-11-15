@@ -1,8 +1,8 @@
--- Jeere — wave 2 of the Studio audit (migration `jeere_wave2`, project « Jeere », ref aezchxfvzfoqlvzchqyk).
+-- Jehre — wave 2 of the Studio audit (migration `jeere_wave2`, project « Jehre », ref aezchxfvzfoqlvzchqyk).
 --
 --   1. The Studio entitlements live on the server: profiles.plan and profiles.studio are no longer
 --      writable from a browser; the `studio-plan` Edge Function (service role) writes them. The badge
---      « Fait avec Jeere » follows the owner's plan, computed by the server (stores.badge, a computed
+--      « Fait avec Jehre » follows the owner's plan, computed by the server (stores.badge, a computed
 --      column read with ?select=…,badge, and a trigger that refuses show_badge = false without a plan).
 --   2. Publish history: public.store_versions keeps the last 10 published fiches of each store
 --      (written by a trigger on stores, read by the owner), for « Restaurer ».
@@ -96,7 +96,7 @@ create table if not exists public.store_versions (
     constraint store_versions_fiche_size check (octet_length(fiche::text) <= 1048576),
   published_at timestamptz not null default now()
 );
-comment on table public.store_versions is 'Jeere: the last 10 published fiches of each store (trigger on stores). The owner reads them; nobody writes them from a browser. « Restaurer » publishes one again.';
+comment on table public.store_versions is 'Jehre: the last 10 published fiches of each store (trigger on stores). The owner reads them; nobody writes them from a browser. « Restaurer » publishes one again.';
 create index if not exists store_versions_store_idx on public.store_versions (store_id, published_at desc);
 create index if not exists store_versions_owner_idx on public.store_versions (owner);
 

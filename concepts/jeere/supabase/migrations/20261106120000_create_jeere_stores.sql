@@ -1,4 +1,4 @@
--- Jeere — published stores (migration `create_jeere_stores`, project « Jeere », ref aezchxfvzfoqlvzchqyk).
+-- Jehre — published stores (migration `create_jeere_stores`, project « Jehre », ref aezchxfvzfoqlvzchqyk).
 --
 -- One row per store: its public address (slug → https://jeere.kreeative.xyz/b/<slug>), the fiche
 -- boutique it renders (the same JSON as the editor's), whether it is online, and its own domain.
@@ -10,7 +10,7 @@
 --                                 service role), so nobody can mark a domain « verified » from a browser.
 -- The other agent's public.profiles table (id = auth.users.id) is not touched: ownership is auth.users(id).
 
--- The reserved addresses: Jeere's own paths and the subdomains it may need when stores move to
+-- The reserved addresses: Jehre's own paths and the subdomains it may need when stores move to
 -- <slug>.jeere.shop. Same list as JeerePublish.RESERVED (creer/publish.js); keep both in step.
 create or replace function public.jeere_slug_reserved(p_slug text)
 returns boolean
@@ -59,7 +59,7 @@ create table public.stores (
   fiche jsonb not null default '{}'::jsonb
     constraint stores_fiche_object check (jsonb_typeof(fiche) = 'object')
     constraint stores_fiche_size check (octet_length(fiche::text) <= 1048576),
-  -- « Fait avec Jeere » at the bottom of the store. Off only for a paid Studio plan: today the
+  -- « Fait avec Jehre » at the bottom of the store. Off only for a paid Studio plan: today the
   -- browser says so (JeerePlans.badgeShown); with real billing a trigger will check the subscription.
   show_badge boolean not null default true,
   published boolean not null default false,
@@ -82,7 +82,7 @@ create table public.stores (
   updated_at timestamptz not null default now()
 );
 
-comment on table public.stores is 'Jeere stores: public address (slug), fiche boutique (jsonb, 1 MB max), published flag, custom domain. Anyone reads published rows; only the owner writes; only the domains Edge Function writes the domain columns.';
+comment on table public.stores is 'Jehre stores: public address (slug), fiche boutique (jsonb, 1 MB max), published flag, custom domain. Anyone reads published rows; only the owner writes; only the domains Edge Function writes the domain columns.';
 
 create index stores_owner_idx on public.stores (owner);
 create index stores_published_slug_idx on public.stores (slug) where published;

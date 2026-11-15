@@ -1,5 +1,5 @@
 /*
- * Jeere Studio — data.js
+ * Jehre Studio — data.js
  * The contract shared by the editor, the renderer and the questionnaire.
  *
  * Everything a store is made of lives in one "fiche boutique" (store config JSON, version 1).
@@ -118,7 +118,7 @@
     var c = currencyInfo(code === undefined ? CUR : code);
     return formatAmount(n, c.code) + ' ' + c.short;
   }
-  // Jeere's own prices (plans, domains): always FCFA, whatever the store sells in
+  // Jehre's own prices (plans, domains): always FCFA, whatever the store sells in
   function formatFcfa(n) { return formatNumber(n) + ' FCFA'; }
 
   function applyName(text, name) {
@@ -1788,7 +1788,7 @@
    *   placeholder?, max? (characters for text/textarea, value for number), min?,
    *   options? [{ value, label }] (select: value has the type stored in the fiche),
    *   itemFields? [FieldDef], itemLabel?, itemDefaults? (new sub-item), maxItems? }
-   * 'photo' is a demo photo id (DEMO_PHOTOS) or null, set by Jeere from the niche: it is not a form
+   * 'photo' is a demo photo id (DEMO_PHOTOS) or null, set by Jehre from the niche: it is not a form
    * field of its own, the section's 'image' field shows it while the seller has no image.
    */
 
@@ -3485,13 +3485,13 @@
   function layoutForWidth(w) { return Number(w) >= BREAKPOINTS.tablet ? 'desktop' : 'phone'; }
   function bpForWidth(w) { w = Number(w) || 0; return w < BREAKPOINTS.tablet ? 'phone' : (w < BREAKPOINTS.desktop ? 'tablet' : 'desktop'); }
 
-  /* The free address of every store (README « Domaines »). Jeere does not own jeere.shop yet, so a
-   * store lives on a path of the free Jeere host: https://jeere.kreeative.xyz/b/<slug>. To move every
+  /* The free address of every store (README « Domaines »). Jehre does not own jeere.shop yet, so a
+   * store lives on a path of the free Jehre host: https://jeere.kreeative.xyz/b/<slug>. To move every
    * store to <slug>.jeere.shop later, buy the domain, put its DNS on Vercel with a wildcard and set
    * ADDRESS_MODE = 'subdomain': every screen follows (storeAddress), old addresses still parse (storeSlug). */
   var PUBLIC_HOST = 'jeere.kreeative.xyz';
   var STORE_PATH = '/b/';
-  var ADDRESS_MODE = 'path'; // 'path' (today) | 'subdomain' (once jeere.shop is Jeere's)
+  var ADDRESS_MODE = 'path'; // 'path' (today) | 'subdomain' (once jeere.shop is Jehre's)
   var SUBDOMAIN_SUFFIX = '.jeere.shop';
   var STORE_PREFIX = ADDRESS_MODE === 'subdomain' ? '' : PUBLIC_HOST + STORE_PATH; // 'jeere.kreeative.xyz/b/'
   var DOMAIN_SUFFIX = ADDRESS_MODE === 'subdomain' ? SUBDOMAIN_SUFFIX : '';
@@ -3500,7 +3500,7 @@
   var DNS_TARGET = 'cname.vercel-dns.com';
 
   /* Store addresses (slugs): 3 to 40 characters, a–z 0–9 and hyphens, none first, last or doubled, and
-   * not one of Jeere's own words. The same rule is a CHECK on public.stores.slug (Supabase migration
+   * not one of Jehre's own words. The same rule is a CHECK on public.stores.slug (Supabase migration
    * create_jeere_stores); keep STORE_SLUG_RESERVED in step with public.jeere_slug_reserved. */
   var STORE_SLUG_MIN = 3, STORE_SLUG_MAX = 40;
   var STORE_SLUG_RESERVED = [
@@ -3563,7 +3563,7 @@
 
   /* ------------------------------------------------------------------ plans
    * Exactly the landing page's pricing (../index.html#tarifs). Prices in whole FCFA; orders per
-   * month (null = unlimited); fee = Jeere's commission per online sale, in %. Every feature and
+   * month (null = unlimited); fee = Jehre's commission per online sale, in %. Every feature and
    * human support are in every plan: a seller moves up when she sells more, never to unlock a
    * feature. The payment partner's own fees come on top (PLAN_NOTE).
    */
@@ -3630,7 +3630,7 @@
     {
       id: 'mobile-money', category: 'paiements', name: 'Paiement mobile money', icon: 'phone',
       payments: ['wave', 'orange', 'mtn', 'moov'],
-      description: 'Vos clients vous paient directement sur votre Wave, Orange Money, MTN MoMo ou Moov Money, juste après leur commande. L’argent arrive chez vous, jamais chez Jeere, et sans frais Jeere.',
+      description: 'Vos clients vous paient directement sur votre Wave, Orange Money, MTN MoMo ou Moov Money, juste après leur commande. L’argent arrive chez vous, jamais chez Jehre, et sans frais Jehre.',
       fields: [
         { key: 'wave', label: 'Votre lien de paiement Wave (conseillé)', type: 'url', placeholder: 'https://pay.wave.com/m/…', help: 'Dans l’application Wave Business : Encaisser › Lien de paiement. Le client paie le montant exact en un geste.' },
         { key: 'wavePhone', label: 'Ou votre numéro Wave', type: 'tel', placeholder: '07 07 12 34 56' },
@@ -3688,7 +3688,7 @@
     },
     {
       id: 'facebook', category: 'reseaux', name: 'Facebook', icon: 'people', soon: true,
-      description: 'Montrez vos produits sur votre page Facebook et retrouvez dans Jeere les commandes reçues sur Messenger.',
+      description: 'Montrez vos produits sur votre page Facebook et retrouvez dans Jehre les commandes reçues sur Messenger.',
       fields: [
         { key: 'page', label: 'Page Facebook', type: 'text', placeholder: 'facebook.com/awabeaute' },
         { key: 'shop', label: 'Afficher mes produits sur ma page', type: 'toggle', default: 'true' }
@@ -3714,7 +3714,7 @@
     },
     {
       id: 'livreurs', category: 'livraison', name: 'Mes livreurs', icon: 'bike',
-      description: 'Les noms et numéros de vos propres livreurs : Jeere leur envoie sur WhatsApp l’adresse du client et le montant à encaisser.',
+      description: 'Les noms et numéros de vos propres livreurs : Jehre leur envoie sur WhatsApp l’adresse du client et le montant à encaisser.',
       fields: [
         { key: 'courier1Name', label: 'Livreur 1 : prénom', type: 'text', placeholder: 'Ibrahim' },
         { key: 'courier1Phone', label: 'Livreur 1 : numéro', type: 'tel', placeholder: '07 07 12 34 56' },
@@ -3747,7 +3747,7 @@
       note: 'Chez votre registraire, ajoutez un enregistrement A pour @ vers ' + DNS_APEX_A + ' et un CNAME pour www vers ' + DNS_TARGET + '. La vérification peut prendre jusqu’à 48 h.'
     },
     {
-      id: 'assistant', category: 'ia', name: 'Assistant Jeere', icon: 'sparkle', soon: true,
+      id: 'assistant', category: 'ia', name: 'Assistant Jehre', icon: 'sparkle', soon: true,
       description: 'Il écrit vos descriptions de produits et répond à vos clients sur WhatsApp, avec vos prix, vos délais et vos frais de livraison.',
       fields: [],
       note: 'Bientôt : nous vous prévenons sur WhatsApp dès qu’il est prêt.'

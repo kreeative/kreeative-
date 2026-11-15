@@ -1,6 +1,6 @@
--- Jeere — orders and order e-mails (migration `jeere_orders`, project « Jeere », ref aezchxfvzfoqlvzchqyk).
+-- Jehre — orders and order e-mails (migration `jeere_orders`, project « Jehre », ref aezchxfvzfoqlvzchqyk).
 --
---   1. public.orders: every order placed on a Jeere store (its own page or a custom site linked with Jeere
+--   1. public.orders: every order placed on a Jehre store (its own page or a custom site linked with Jehre
 --      Connect). Written only by the `orders` Edge Function (service role), which recomputes the prices from
 --      the published fiche; read and updated (status, note) by the people who manage the store.
 --   2. stores.notifications: the store's e-mail templates (like Shopify's notifications), edited from the
@@ -64,7 +64,7 @@ create table if not exists public.orders (
   updated_at timestamptz not null default now(),
   constraint orders_number_unique unique (store_id, number)
 );
-comment on table public.orders is 'Jeere: orders of the stores. Inserted only by the `orders` Edge Function (prices recomputed from the published fiche); read and updated (status, note) by those who manage the store.';
+comment on table public.orders is 'Jehre: orders of the stores. Inserted only by the `orders` Edge Function (prices recomputed from the published fiche); read and updated (status, note) by those who manage the store.';
 create index if not exists orders_store_idx on public.orders (store_id, created_at desc);
 
 alter table public.orders enable row level security;

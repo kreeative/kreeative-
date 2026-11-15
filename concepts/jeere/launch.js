@@ -1,4 +1,4 @@
-/* Jeere — the launch offer, live (public.launch_spots): « Essentiel offered 3 months to the first 100 », with the
+/* Jehre — the launch offer, live (public.launch_spots): « Essentiel offered 3 months to the first 100 », with the
  * REAL number of spots left. Fills every [data-launch], hides [data-free-plan] while the free plan is set aside,
  * and marks [data-launch-plan] (the Essentiel card). Nothing shows if the offer is over or the count can't load. */
 (function () {

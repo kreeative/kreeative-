@@ -1,8 +1,8 @@
-// Jeere — Edge Function `studio-plan` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk).
+// Jehre — Edge Function `studio-plan` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk).
 //
 // The only writer of a seller's entitlements: public.profiles.plan (the store plan) and
 // public.profiles.studio (the Studio subscription, the shape of studio/plans.js). Browsers can no longer
-// write those two columns (migration jeere_wave2 revokes it); the badge « Fait avec Jeere » on her stores
+// write those two columns (migration jeere_wave2 revokes it); the badge « Fait avec Jehre » on her stores
 // is decided from them by the database (stores.badge, trigger stores_badge).
 //
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/studio-plan
@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
   let body: Record<string, unknown> = {};
   try { const b = await req.json(); if (isObj(b)) body = b; } catch { /* empty */ }
   const user = await userOf(req);
-  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere.' }, 401);
+  if (!user) return json({ ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre.' }, 401);
   const prof = await profile(user.id);
   if (!prof) return json({ ok: false, code: 'profile', message: 'Profil introuvable.' }, 404);
   const prev = isObj(prof.studio) ? prof.studio : null;

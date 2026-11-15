@@ -1,6 +1,6 @@
-// Jeere — Edge Function `billing` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk): what sellers pay JEERE,
-// by card through Stripe (Jeere's own Stripe account, not Connect): the Studio subscriptions, the boutique plans,
-// and the domain names Jeere buys for them. Mobile money comes later (CinetPay).
+// Jehre — Edge Function `billing` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk): what sellers pay JEERE,
+// by card through Stripe (Jehre's own Stripe account, not Connect): the Studio subscriptions, the boutique plans,
+// and the domain names Jehre buys for them. Mobile money comes later (CinetPay).
 //
 //   POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/billing
 //   headers: apikey: <publishable key>, Authorization: Bearer <her Supabase session>
@@ -10,7 +10,7 @@
 //         { action: 'portal', returnUrl }                       → { ok, url } her Stripe billing portal (cards, invoices, cancel)
 //         { action: 'domain', domain, storeId?, returnUrl }     → { ok, url, price } Stripe Checkout (one payment)
 //         { action: 'sync' }                                    → her subscriptions read from Stripe and applied now
-//   Stripe's webhook (events of Jeere's own account) POSTs here with Stripe-Signature:
+//   Stripe's webhook (events of Jehre's own account) POSTs here with Stripe-Signature:
 //     customer.subscription.created / updated / deleted → profiles.plan (boutique) or profiles.studio (Studio)
 //     invoice.paid                                        → the invoice in profiles.studio.invoices
 //     checkout.session.completed (kind domain, paid)      → buys the domain at Vercel, adds it to the store
@@ -48,9 +48,9 @@ const STUDIO: Record<string, { name: string; month: number; year: number }> = {
 };
 // Boutique plans (creer/data.js PLANS): per month, and per week where offered
 const BOUTIQUE: Record<string, { name: string; month: number; week: number | null }> = {
-  essentiel: { name: 'Jeere Essentiel', month: 3500, week: 1000 },
-  pro: { name: 'Jeere Pro', month: 10000, week: null },
-  business: { name: 'Jeere Business', month: 25000, week: null }
+  essentiel: { name: 'Jehre Essentiel', month: 3500, week: 1000 },
+  pro: { name: 'Jehre Pro', month: 10000, week: null },
+  business: { name: 'Jehre Business', month: 25000, week: null }
 };
 const FX = 600, MARGIN = 0.40, FIXED = 2000;
 const domainFcfa = (usd: number) => Math.ceil((usd * FX * (1 + MARGIN) + FIXED) / 500) * 500;
@@ -68,7 +68,7 @@ const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.i
 const str = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n) : '');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fail = (status: number, code: string, message: string, extra: Obj = {}) => json({ ok: false, code, message, ...extra }, status);
-const NOT_CONFIGURED = 'Le paiement par carte n’est pas encore activé sur Jeere : réessayez bientôt.';
+const NOT_CONFIGURED = 'Le paiement par carte n’est pas encore activé sur Jehre : réessayez bientôt.';
 
 /* ------------------------------------------------------------------ data */
 const admin = (path: string, init: RequestInit = {}) => fetch(SUPABASE_URL + '/rest/v1/' + path, {
@@ -111,7 +111,7 @@ async function stripe(method: string, path: string, body?: Obj): Promise<{ ok: b
 }
 const stripeError = (d: Obj) => (isObj(d.error) ? str(d.error.message, 300) : '') || 'Stripe a refusé la demande.';
 
-// Her Stripe customer: found by metadata.user_id, else created (one per Jeere account)
+// Her Stripe customer: found by metadata.user_id, else created (one per Jehre account)
 async function customerFor(user: { id: string; email: string }, name: string): Promise<string | null> {
   const found = await stripe('GET', 'customers/search', { query: "metadata['user_id']:'" + user.id + "'", limit: 1 });
   const list = found.ok && Array.isArray(found.data.data) ? found.data.data as Obj[] : [];
@@ -124,7 +124,7 @@ async function customerFor(user: { id: string; email: string }, name: string): P
   const made = await stripe('POST', 'customers', { email: user.email || undefined, name: name || undefined, metadata: { user_id: user.id } });
   return made.ok ? String(made.data.id) : null;
 }
-// Back to the page she came from, on Jeere only
+// Back to the page she came from, on Jehre only
 function backUrl(v: unknown, fallback: string) {
   const u = str(v, 300);
   return /^https:\/\/(jeere\.kreeative\.xyz|kreeative\.xyz|localhost)(:\d+)?\//.test(u) ? u.replace(/#.*$/, '') : fallback;
@@ -158,7 +158,7 @@ async function teamMail(subject: string, text: string) {
   if (!RESEND_KEY) return;
   await fetch('https://api.resend.com/emails', {
     method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'Jeere <commandes@kreeative.xyz>', to: [TEAM_EMAIL], subject, text })
+    body: JSON.stringify({ from: 'Jehre <commandes@kreeative.xyz>', to: [TEAM_EMAIL], subject, text })
   }).catch(() => null);
 }
 
@@ -245,7 +245,7 @@ async function buyDomain(session: Obj) {
   const expected = Number(md.usd);
   const cd = isObj(session.customer_details) ? session.customer_details as Obj : {};
   const ad = isObj(cd.address) ? cd.address as Obj : {};
-  const full = str(cd.name, 80) || 'Client Jeere';
+  const full = str(cd.name, 80) || 'Client Jehre';
   const parts = full.split(' ');
   const contact = {
     firstName: parts[0], lastName: parts.slice(1).join(' ') || parts[0], email: str(cd.email, 120) || TEAM_EMAIL,
@@ -303,7 +303,7 @@ Deno.serve(async (req: Request) => {
   if (action === 'prices') return json({ ok: true, configured: !!STRIPE_KEY, studio: STUDIO, boutique: BOUTIQUE, domains: { fx: FX, margin: MARGIN, fixed: FIXED } });
   if (!STRIPE_KEY) return fail(503, 'not_configured', NOT_CONFIGURED);
   const user = await userOf(req);
-  if (!user) return fail(401, 'login', 'Connectez-vous à votre compte Jeere pour payer.');
+  if (!user) return fail(401, 'login', 'Connectez-vous à votre compte Jehre pour payer.');
   const pr = await profile(user.id);
   const name = str(pr?.first_name, 40);
 

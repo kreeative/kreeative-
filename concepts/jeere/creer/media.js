@@ -1,5 +1,5 @@
 /*
- * Jeere — media.js: the seller's photos in Supabase Storage (classic script, deferred, no library).
+ * Jehre — media.js: the seller's photos in Supabase Storage (classic script, deferred, no library).
  * Wave 2 of the Studio audit, item 9. Loaded after data.js and publish.js by the editor (creer/) and the
  * Studio (../studio/). Global: window.JeereMedia.
  *

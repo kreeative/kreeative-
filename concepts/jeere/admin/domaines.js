@@ -1,5 +1,5 @@
 /*
- * Jeere — admin/domaines.js: the dashboard's « Paramètres › Domaine » page (classic script, deferred).
+ * Jehre — admin/domaines.js: the dashboard's « Paramètres › Domaine » page (classic script, deferred).
  * Global: window.JeereAdminDomains = { html(ctx), mount(ctx), state() }. admin.js calls html() from
  * setDomaine() and mount() once the page is in the DOM; this file then redraws its own part (#a-dm).
  *
@@ -7,7 +7,7 @@
  * Uses ../creer/domains.js (JeereDomains) and ../creer/publish.js (JeerePublish), and admin.css's classes.
  *
  * Three cards:
- *   1. Votre adresse Jeere: jeere.kreeative.xyz/b/<slug>, online or not, « Publier ».
+ *   1. Votre adresse Jehre: jeere.kreeative.xyz/b/<slug>, online or not, « Publier ».
  *   2. Votre propre nom de domaine (bought elsewhere): the exact records to add, a guide per registrar,
  *      « Vérifier » (DNS-over-HTTPS from the browser, each record ✓ / ✗), then the `domains` Edge Function
  *      attaches it to the Vercel project (or answers « pas encore configuré »: the team does it).
@@ -52,7 +52,7 @@
     var rec = P ? P.local() : null;
     var on = !!(rec && rec.published && rec.storeId);
     var addr = on ? P.address(rec.slug) : (ctx.address() || '');
-    return '<section class="a-card" aria-labelledby="h-dfree"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dfree">Votre adresse Jeere <span class="a-chip">Gratuite</span></h3>' +
+    return '<section class="a-card" aria-labelledby="h-dfree"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dfree">Votre adresse Jehre <span class="a-chip">Gratuite</span></h3>' +
       '<p class="a-card__sub">' + esc(fr('Incluse dans toutes les formules, avec le cadenas de sécurité (https).')) + '</p></div></div>' +
       '<div class="a-domain">' + ico('globe') + '<span class="a-domain__name">' + esc(addr) + '</span>' +
       (on ? '<span class="a-pill a-pill--check a-tone--ok">' + ico('check') + 'En ligne</span>' : '<span class="a-pill a-pill--check a-tone--warn">' + ico('clock') + 'Pas encore en ligne</span>') + '</div>' +
@@ -91,20 +91,20 @@
   }
   function serverNote() {
     var s = st.server;
-    if (st.attaching) return '<div class="a-note a-note--line" role="status">' + ico('clock') + '<p>' + esc('Connexion au serveur Jeere…') + '</p></div>';
+    if (st.attaching) return '<div class="a-note a-note--line" role="status">' + ico('clock') + '<p>' + esc('Connexion au serveur Jehre…') + '</p></div>';
     if (!s) return '';
     if (s.ok && s.configured === false) {
       return '<div class="a-note a-note--line" role="status">' + ico('info') + '<p><strong>' + esc(fr('Domaine enregistré pour votre boutique.')) + '</strong> ' +
-        esc(fr('La liaison automatique avec notre hébergeur n’est pas encore configurée : l’équipe Jeere relie votre domaine à la main, en général sous 24 h. Vous n’avez rien d’autre à faire que le réglage DNS ci-dessus.')) + '</p></div>';
+        esc(fr('La liaison automatique avec notre hébergeur n’est pas encore configurée : l’équipe Jehre relie votre domaine à la main, en général sous 24 h. Vous n’avez rien d’autre à faire que le réglage DNS ci-dessus.')) + '</p></div>';
     }
     if (s.ok) {
       var v = (s.verification || []).filter(function (x) { return x && x.value; });
       return '<div class="a-note a-note--line" role="status">' + ico(s.status === 'verified' ? 'check' : 'info') + '<p>' +
-        esc(fr(s.status === 'verified' ? 'Votre domaine est relié : votre boutique est en ligne à cette adresse, avec le cadenas https.' : 'Votre domaine est relié à Jeere. Dès que le DNS est bon, le cadenas https se crée tout seul (quelques minutes).')) + '</p>' +
+        esc(fr(s.status === 'verified' ? 'Votre domaine est relié : votre boutique est en ligne à cette adresse, avec le cadenas https.' : 'Votre domaine est relié à Jehre. Dès que le DNS est bon, le cadenas https se crée tout seul (quelques minutes).')) + '</p>' +
         (v.length ? '<p>' + esc(fr('Ce domaine est déjà utilisé ailleurs : ajoutez aussi cet enregistrement de vérification : ')) + v.map(function (x) { return '<span class="dm-code">' + esc(x.type + ' ' + x.name + ' ' + x.value) + '</span>'; }).join(' ') + '</p>' : '') + '</div>';
     }
     if (s.code === 'unpublished' || s.code === 'login') return '<div class="a-note a-note--strong" role="status">' + ico('alert') + '<p>' + esc(fr(s.message)) + '</p>' + (s.code === 'unpublished' ? '<p style="margin-top:8px"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-dm="publish">Publier ma boutique</button></p>' : '') + '</div>';
-    return '<div class="a-note a-note--err" role="alert">' + ico('alert') + '<p>' + esc(fr(s.message || 'Le serveur Jeere n’a pas pu relier le domaine.')) + '</p></div>';
+    return '<div class="a-note a-note--err" role="alert">' + ico('alert') + '<p>' + esc(fr(s.message || 'Le serveur Jehre n’a pas pu relier le domaine.')) + '</p></div>';
   }
   function ownCard() {
     var a = adm();
@@ -117,7 +117,7 @@
         '<input class="a-input" id="dm-domain" name="domain" maxlength="253" placeholder="awabeaute.com" autocapitalize="off" spellcheck="false" autocomplete="off" inputmode="url"' + (st.formError ? ' aria-invalid="true" aria-describedby="dm-domain-err"' : ' aria-describedby="dm-domain-h"') + '>' +
         (st.formError ? '<p class="a-error" id="dm-domain-err">' + esc(st.formError) + '</p>' : '<p class="a-hint" id="dm-domain-h">' + esc(fr('Sans « https:// » : awabeaute.com, www.awabeaute.com ou boutique.awabeaute.ci.')) + '</p>') + '</div>' +
         '<div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">' + ico('link') + 'Continuer</button></div></form>' +
-        '<p class="a-small" style="margin-top:12px">' + esc(fr('Pas encore de domaine ? Achetez-le avec Jeere, plus bas : nous faisons le réglage pour vous.')) + '</p></section>';
+        '<p class="a-small" style="margin-top:12px">' + esc(fr('Pas encore de domaine ? Achetez-le avec Jehre, plus bas : nous faisons le réglage pour vous.')) + '</p></section>';
     }
     var info = dom();
     var list = J.records(d);
@@ -125,7 +125,7 @@
     var verdict = '';
     if (c) {
       verdict = c.ok
-        ? '<div class="a-note a-note--line" role="status">' + ico('check') + '<p><strong>' + esc(fr('Le réglage DNS est bon.')) + '</strong> ' + esc(fr(c.all ? 'Toutes les adresses mènent à Jeere.' : 'L’enregistrement conseillé manque encore, mais votre domaine fonctionne.')) + '</p></div>'
+        ? '<div class="a-note a-note--line" role="status">' + ico('check') + '<p><strong>' + esc(fr('Le réglage DNS est bon.')) + '</strong> ' + esc(fr(c.all ? 'Toutes les adresses mènent à Jehre.' : 'L’enregistrement conseillé manque encore, mais votre domaine fonctionne.')) + '</p></div>'
         : '<div class="a-note a-note--strong" role="status">' + ico('alert') + '<p><strong>' + esc(fr('Pas encore bon.')) + '</strong> ' + esc(fr(c.error ? 'La vérification n’a pas pu se faire (pas de connexion) : réessayez.' : 'Ajoutez les enregistrements marqués ✗ chez votre registraire, puis revérifiez. Un changement peut mettre jusqu’à 48 h à se voir.')) + '</p></div>';
     }
     return '<section class="a-card" aria-labelledby="h-dcust">' + head +
@@ -174,7 +174,7 @@
       rows = '<p class="a-error" role="alert">' + esc(fr(r.message)) + '</p>';
     }
     var orders = (adm() && Array.isArray(adm().domainOrders)) ? adm().domainOrders : [];
-    return '<section class="a-card" aria-labelledby="h-dbuy"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dbuy">Acheter un nom de domaine avec Jeere</h3>' +
+    return '<section class="a-card" aria-labelledby="h-dbuy"><div class="a-card__head"><div><h3 class="a-card__title" id="h-dbuy">Acheter un nom de domaine avec Jehre</h3>' +
       '<p class="a-card__sub">' + esc(fr('Nous l’achetons à votre nom, nous le relions à votre boutique et nous le renouvelons avec vous. Paiement par mobile money.')) + '</p></div></div>' +
       '<form class="a-form" data-form="dm-search" data-light novalidate role="search"><div class="a-field"><label class="a-label" for="dm-q">Le nom que vous voulez</label>' +
       '<div class="dm-search"><input class="a-input" id="dm-q" name="q" maxlength="63" placeholder="awabeaute" value="' + esc(st.q) + '" autocapitalize="off" spellcheck="false" autocomplete="off">' +
@@ -183,12 +183,12 @@
       '<li>' + esc(fr('Le prix affiché comprend le domaine pour un an, sa liaison à votre boutique et le cadenas https.')) + '</li>' +
       '<li>' + esc(fr('Certaines extensions (.shop, .store, .online, .site) sont moins chères la première année : le prix de renouvellement est indiqué à côté. Le .com garde le même prix chaque année.')) + '</li>' +
       '<li>' + esc(fr('Le domaine est à vous : il est enregistré à votre nom. Vous pouvez le transférer ailleurs quand vous voulez (après 60 jours, la règle de l’ICANN).')) + '</li>' +
-      '<li>' + esc(fr('Nous vous prévenons sur WhatsApp 30 jours avant l’échéance. Sans paiement, le domaine n’est pas renouvelé ; votre adresse Jeere gratuite, elle, reste.')) + '</li>' +
+      '<li>' + esc(fr('Nous vous prévenons sur WhatsApp 30 jours avant l’échéance. Sans paiement, le domaine n’est pas renouvelé ; votre adresse Jehre gratuite, elle, reste.')) + '</li>' +
       '<li>' + esc(fr('Le .ci passe par un bureau d’enregistrement ivoirien agréé par l’ARTCI : sur demande.')) + '</li></ul></details>' +
       (orders.length ? '<div class="dm-orders"><p class="a-label" style="margin-top:16px">Vos commandes de domaines</p><ul>' + orders.map(function (o) {
         return '<li><span class="dm-res__name">' + esc(o.domain) + '</span><span class="a-small">' + esc(money(o.amount) + ' · ' + (o.demo ? 'démo : rien n’a été prélevé ni acheté' : (o.status || ''))) + '</span></li>';
       }).join('') + '</ul></div>' : '') +
-      '<div class="a-note a-note--line" style="margin-top:14px">' + ico('info') + '<p>' + esc(fr('Démo : le paiement est simulé et aucun domaine n’est acheté. Dans Jeere, l’achat réel est fait par notre serveur après votre paiement.')) + '</p></div></section>';
+      '<div class="a-note a-note--line" style="margin-top:14px">' + ico('info') + '<p>' + esc(fr('Démo : le paiement est simulé et aucun domaine n’est acheté. Dans Jehre, l’achat réel est fait par notre serveur après votre paiement.')) + '</p></div></section>';
   }
 
   /* ---------------------------------------------------------------- render + events */
@@ -224,7 +224,7 @@
     var rec = P ? P.local() : null;
     var a = adm();
     if (!rec || !rec.storeId) {
-      st.server = { ok: false, code: 'unpublished', message: 'Pour que Jeere relie ce domaine à votre boutique, publiez-la d’abord (avec votre compte). Le réglage DNS, lui, peut se faire dès maintenant.' };
+      st.server = { ok: false, code: 'unpublished', message: 'Pour que Jehre relie ce domaine à votre boutique, publiez-la d’abord (avec votre compte). Le réglage DNS, lui, peut se faire dès maintenant.' };
       redraw();
       return Promise.resolve();
     }
@@ -268,7 +268,7 @@
   }
   function onRemove() {
     var d = adm().settings.customDomain;
-    var ask = ctx.confirm ? ctx.confirm({ title: 'Retirer ' + d + ' ?', text: 'Votre boutique reste sur ' + (ctx.address() || 'son adresse Jeere') + '.', ok: 'Retirer le domaine' })
+    var ask = ctx.confirm ? ctx.confirm({ title: 'Retirer ' + d + ' ?', text: 'Votre boutique reste sur ' + (ctx.address() || 'son adresse Jehre') + '.', ok: 'Retirer le domaine' })
       : Promise.resolve(window.confirm(fr('Retirer ' + d + ' ?')));
     ask.then(function (yes) {
       if (!yes) return;

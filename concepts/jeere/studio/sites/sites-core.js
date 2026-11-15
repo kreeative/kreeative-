@@ -1,4 +1,4 @@
-/* Jeere Studio › Mes sites — the core, without any UI: read a hand-written HTML page as SOURCE TEXT,
+/* Jehre Studio › Mes sites — the core, without any UI: read a hand-written HTML page as SOURCE TEXT,
  * map every element of the live page (the artboard iframe) to its exact place in that text, and
  * change only the bytes an edit touches. Nothing is ever re-serialised: the doctype, the head, the
  * scripts, the comments and the formatting of everything she did not edit stay byte-identical.

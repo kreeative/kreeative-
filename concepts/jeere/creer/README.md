@@ -1,11 +1,11 @@
-# Jeere Studio — store editor prototype
+# Jehre Studio — store editor prototype
 
-A working prototype of the Jeere store builder: a seller picks a template **or** describes her
-store to the Jeere assistant, then edits it in an editor with a live preview of the **whole
+A working prototype of the Jehre store builder: a seller picks a template **or** describes her
+store to the Jehre assistant, then edits it in an editor with a live preview of the **whole
 store**, from the home page to the checkout and the order confirmation, and can see the
 **fiche boutique** (the store config JSON) behind it.
 
-It demonstrates Jeere's key architecture: **the AI never writes code.** It fills a fiche
+It demonstrates Jehre's key architecture: **the AI never writes code.** It fills a fiche
 boutique; our three tested templates render it; the editor edits the very same JSON. A store is
 data, not a generated website.
 
@@ -28,7 +28,7 @@ sitemap. French only (Côte d'Ivoire, prices in FCFA).
       ▼                                                                  │ « Personnaliser », « Voir »
 Start screen « Créez votre boutique »                                    ▼ ('jeere-studio-open')
  ├─ Partir d'un modèle ─ Plateau · Cocody · Treichville ─┐
- ├─ Décrire ma boutique ─ l'assistant Jeere (chat) ──────┼──► Editor + live preview ──► Fiche boutique (JSON)
+ ├─ Décrire ma boutique ─ l'assistant Jehre (chat) ──────┼──► Editor + live preview ──► Fiche boutique (JSON)
  └─ Partir de zéro ─ « Bientôt »                         │      (same JSON in and out; the dashboard
                                                           │       reads and writes it too)
                                                           └─ JEERE_DATA.defaultConfig / JeereWizard.generate
@@ -70,7 +70,7 @@ Plain static files: no build step, no framework, no library. Classic scripts loa
 | `domains.js` | A seller's own domain: validation, the DNS records to add, registrar guides, the DNS-over-HTTPS check, the resale prices in FCFA, the `domains` Edge Function client, domain search. Loaded by the dashboard and the checkout. | `window.JeereDomains` |
 | `tour.js`, `tour.css` | The guided tour shared by the editor and the dashboard: a spotlight on one area, a short bubble with the cloud as the guide, « Suivant » / « Retour » / « Passer », « 2/8 ». See [Guided tours and « Premiers pas »](#guided-tours-and-premiers-pas). Styles scoped under `.jt`. | `window.JeereTour` |
 | `fontfile.js`, `brotli-dict.bin` | Reads a font file the seller imports (« Mes polices »): its family name, weight and style from the `name`, `OS/2`, `head`, `fvar` tables, its letters from `cmap`; TTF, OTF, WOFF (zlib through `DecompressionStream`) and WOFF2 (its own Brotli decoder, RFC 7932; `brotli-dict.bin` is Brotli's static dictionary, RFC 7932 Appendix A, 122 784 bytes, MIT, fetched only for a WOFF2 that uses it); packs a TTF / OTF as WOFF (`toWoff`, `CompressionStream`). Pure, no DOM, loads in Node. Editor only. See [Her own fonts](#her-own-fonts-mes-polices-themecustomfonts). | `window.JeereFontFile` |
-| `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jeere assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
+| `wizard.js`, `wizard.css` | « Décrire ma boutique »: the local Jehre assistant, a chat that asks 6 questions (name, what you sell, style, colour, needs, city and WhatsApp), understands free text by keywords, handles corrections, and ends with a summary card. `generate(answers)` (always a vivid fiche) and `understand(text, step)` are pure and exposed for tests. Styles scoped under `.jwz`. | `window.JeereWizard` |
 | `schema.json` | JSON Schema (draft 2020-12) of the fiche boutique v1, `pages` included. | — |
 | `prompts.md` | In French: the single AI assistant of the real product — system prompt, its one tool, the free code around it, the self-improvement loop, the TypeScript orchestration and the cost estimate. The assistant can also adapt the 4 default pages. | — |
 | `README.md` | This file: the whole prototype, the account and the dashboard included. | — |
@@ -407,7 +407,7 @@ live there too. On the confirmation the order is placed: the header bag shows no
   livraison » is selected) with a note under it (mobile money: « Vous recevrez une demande de
   14 500 FCFA sur votre téléphone (Wave). Validez-la avec votre code secret : ne le donnez jamais,
   ni au vendeur ni au livreur. »), the secondary « Commander sur WhatsApp » and the trust line
-  « Paiement traité par un partenaire agréé par la BCEAO. Jeere ne garde jamais votre argent. ».
+  « Paiement traité par un partenaire agréé par la BCEAO. Jehre ne garde jamais votre argent. ».
   - **The commune is never preselected** (its fee would sit in the total unseen; a store with a
     single zone is the exception): the select opens on « Choisissez votre commune », the summary
     says « Livraison : À choisir », the button « Payer 13 000 FCFA + livraison » and the delay line
@@ -532,7 +532,7 @@ JeereRender.render(config, rootEl, { device, page: 'page', pageId: 'pg3' });
   section links (5 links at most in all); on the phone the menu icon opens a small in-preview menu
   (home, the `inMenu` pages, the cart). The footer has a column of the `inFooter` pages. Clicking
   them navigates inside the preview and dispatches `jst:navigate` with `{ page: 'page', pageId }`.
-  Every store page ends with a discreet « Propulsé par Jeere » (the mark is inline SVG in
+  Every store page ends with a discreet « Propulsé par Jehre » (the mark is inline SVG in
   `currentColor`, so the store does not depend on the builder's symbols).
 - **In the editor**: the page selector lists the 5 pages in « Parcours d'achat », then the group
   « Vos pages » (option values `'page:pg1'`…), with a « Gérer les pages » link to
@@ -644,18 +644,18 @@ font, no image request).
   .logo__wordmark { display: block; height: 28px; width: auto; aspect-ratio: 900 / 479; fill: currentColor; }
   ```
 
-  The link around it carries the accessible name (« Jeere, retour à l’accueil »). The start
+  The link around it carries the accessible name (« Jehre, retour à l’accueil »). The start
   screen footer shows the cloud and the handwritten « jeere » side by side.
 - **Chat avatar** (wizard and the start screen's chat demo): the cloud in white on a black circle.
   The account page's message uses it in ink on a white circle; its dark aside has a large, faint
   white cloud; the dashboard's loading splash shows the cloud in ink.
-- **« Propulsé par Jeere »** in a store's footer: the cloud drawn inline by `render.js` (a
+- **« Propulsé par Jehre »** in a store's footer: the cloud drawn inline by `render.js` (a
   simplified trace of about 2.7KB, 12 px tall, `currentColor`), so a store never needs the page's symbols.
 - **Favicon**: `../favicon.svg`, the black cloud (simplified trace, bolder eyes, sized for 16 px tabs)
   on a bright pop blue `#3657FF` rounded square, and
   `../apple-touch-icon.png` (180×180) for home screens.
-- **The brand word** is written « Jeere » in the UI copy (« l'assistant Jeere », « Retour à
-  Jeere »). Code identifiers keep their names: `JEERE_DATA`, `jeere-studio-config`, `.jst`, `.jwz`.
+- **The brand word** is written « Jehre » in the UI copy (« l'assistant Jehre », « Retour à
+  Jehre »). Code identifiers keep their names: `JEERE_DATA`, `jeere-studio-config`, `.jst`, `.jwz`.
 
 ## The store's logo (`store.logo`)
 
@@ -687,7 +687,7 @@ cannot be read, so the tab shows the initial on the accent colour);
 **Render** (`render.js`, `store.css` « the seller's logo »): with a logo, the header of the three
 templates (phone and desktop, the phone menu open too), the checkout header (« Paiement sécurisé »; the
 confirmation uses the normal header) and the footer's brand column show
-`<img class="jst-logo-img" alt="{store name}" width height>` instead of the name; « Propulsé par Jeere »
+`<img class="jst-logo-img" alt="{store name}" width height>` instead of the name; « Propulsé par Jehre »
 stays. render.js computes the display size from the image's own proportions: the height of
 `logoSize`, narrowed (never stretched, `object-fit: contain` as a safety) to fit 200 px on a phone header and
 360 px on a computer (120 / 220 px when the name is next to it), at most 36 / 48 px tall at the checkout
@@ -1299,7 +1299,7 @@ Auth) »: schema, modes, what to configure).
   activés » until an SMS provider is configured); « Mode démo » with `?demo=1`, on localhost and when
   Supabase is unreachable: then nothing is sent, any 6-digit code works, and the screen says so (a
   « Mode démo » banner, « aucun e-mail, SMS ni WhatsApp n'est envoyé » on the code step). The consent
-  line reads « En continuant, vous acceptez les conditions et la politique de confidentialité de Jeere. »
+  line reads « En continuant, vous acceptez les conditions et la politique de confidentialité de Jehre. »
 - **Saved** as `'jeere-account'` = `{ version: 1, firstName, phone, storeName, createdAt, plan,
   loggedIn }` plus, when present, `email`, `userId` (a real Supabase account), `method` (`'email'`,
   `'sms'` or `'whatsapp'`) and `studio`. `phone` is normalised with `normalizeWhatsapp`
@@ -1332,7 +1332,7 @@ sidebar from 960 px (logo, store name, « Voir la boutique », the sections), a 
 768 px tablet gets the phone shell). Hash routes, so the Back button works, and sub-routes such as
 `#commandes/1055`, `#produits/nouveau`, `#pages/pg3` or `#parametres/abonnement`. A search box
 (full screen on the phone, « / » on desktop) finds orders, products and customers; the account
-menu shows the plan, « Retour à Jeere » (`../`) and « Se déconnecter » (`loggedIn: false`, back to
+menu shows the plan, « Retour à Jehre » (`../`) and « Se déconnecter » (`loggedIn: false`, back to
 the gate). A form with unsaved changes shows a save bar (« Ignorer » / « Enregistrer », Ctrl+S)
 and is kept as a draft when she leaves it. `window.JeereAdmin = { go(hash), state(), reload() }`
 is there for tests.
@@ -1352,7 +1352,7 @@ is there for tests.
 | `#boutique` | « Boutique en ligne »: theme (template, palette, intensity, « Personnaliser »), pages, navigation (`inMenu` / `inFooter`), a preferences summary (→ `#parametres/boutique`), « Voir » and « Partager » |
 | `#pages` | The fiche's pages (see above); on the phone, « Monter » / « Descendre » are in each page's « ⋯ » sheet |
 | `#promos` | « Codes promo »: a small list kept in `'jeere-admin'.promos` (`{ code, kind: 'pct' \| 'fcfa', value, active }`); demo: the store's checkout does not apply them yet |
-| `#paiements` | « Encaissement » first (a strong note and « Connecter le paiement mobile money » when Wave / Orange Money / MTN MoMo are on but cannot be collected; each « À connecter » chip opens it), the 6 methods on or off (`fiche.payments`), « Argent chez les livreurs » (cash-on-delivery orders on the road, « Reçu du livreur »), the plan's Jeere fee per sale and the partner's fee (« par exemple 1,95 % pour le mobile money »), how fees are taken (by the partner at payout; nothing on cash on delivery: to confirm with the founder), « Versements » (each online sale and what is paid out after the fees), « Jeere ne garde jamais votre argent » |
+| `#paiements` | « Encaissement » first (a strong note and « Connecter le paiement mobile money » when Wave / Orange Money / MTN MoMo are on but cannot be collected; each « À connecter » chip opens it), the 6 methods on or off (`fiche.payments`), « Argent chez les livreurs » (cash-on-delivery orders on the road, « Reçu du livreur »), the plan's Jehre fee per sale and the partner's fee (« par exemple 1,95 % pour le mobile money »), how fees are taken (by the partner at payout; nothing on cash on delivery: to confirm with the founder), « Versements » (each online sale and what is paid out after the fees), « Jehre ne garde jamais votre argent » |
 | `#livraison` | Delivery zones and fees (the delivery section's `settings.zones`, a delivery section is created if there is none), delays, couriers (« Mes livreurs », Yango, Gozem) |
 | `#connecteurs` | The connectors catalogue (below): category chips that jump to each group, « Pour bien démarrer » (mobile money, WhatsApp, Mes livreurs) first, compact rows for the rest on the phone; « Démo : aucune connexion réelle n'est faite. » |
 | `#parametres` | A hub: Paiements, Livraison, Connecteurs (their own pages), then Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`admin/domaines.js`: the free address `jeere.kreeative.xyz/b/<slug>` and « Publier », her own domain with the exact DNS records, guides per registrar and a real DNS check, and « Acheter un nom de domaine »: see `../README.md`, « Domaines »), Équipe (invite by name, phone and role; the signed-in seller cannot remove herself), Abonnement (the 4 plans, change, what happens at the order limit, mois/semaine for paid plans, « Mettre en pause », « Payer par mobile money »: a demo dialog), Studio avancé (`#parametres/studio`: the Studio subscription — plan, renewal, cancel / resume, a move down, seats, demo invoices; see `../studio/README.md`, « Abonnements Studio »), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
@@ -1390,7 +1390,7 @@ JEERE_DATA.normalizeAdmin(saved, config, now);    // repairs any saved value; ke
 `TEAM_ROLES` gives the three roles with a French hint, `OPERATOR_OPTIONS` the four payout
 operators (plain text), `DNS_APEX_A` (`76.76.21.21`) and `DNS_TARGET` (`cname.vercel-dns.com`), the generic Vercel
 records of a seller's own domain. The store address: `PUBLIC_HOST`, `STORE_PATH`, `ADDRESS_MODE` (`'path'` today,
-`'subdomain'` once jeere.shop is Jeere's), `storeAddress(slug)`, `storeUrl(slug)`, `storeSlug(any old address)`,
+`'subdomain'` once jeere.shop is Jehre's), `storeAddress(slug)`, `storeUrl(slug)`, `storeSlug(any old address)`,
 `storeSlugFor(name)`, `checkStoreSlug(slug)` and `STORE_SLUG_RESERVED` (the same list as the database).
 `ADMIN_DEFAULTS` is shared: clone it before changing it.
 
@@ -1423,10 +1423,10 @@ JEERE_DATA.CONNECTORS = [{ id, category, name, description, icon, fields: [{ key
 | | `meta-pixel` | Pixel Meta | pixel id |
 | | `tiktok-pixel` | Pixel TikTok | pixel id |
 | Nom de domaine | `domain` | Nom de domaine | domain (A `@` → `76.76.21.21`, CNAME `www` → `cname.vercel-dns.com`; the whole flow is Paramètres › Domaine) |
-| Intelligence artificielle | `assistant` | Assistant Jeere (writes descriptions, answers customers on WhatsApp) | none: `soon: true`, « Bientôt » |
+| Intelligence artificielle | `assistant` | Assistant Jehre (writes descriptions, answers customers on WhatsApp) | none: `soon: true`, « Bientôt » |
 
 Every connector has a one-sentence French `description`; `note` carries the honest small print
-(the partner's fees, « Jeere ne garde jamais votre argent », consent before any measurement). In
+(the partner's fees, « Jehre ne garde jamais votre argent », consent before any measurement). In
 the prototype nothing is connected: the dialog saves the values in `'jeere-admin'` and the page
 says « Démo : aucune connexion réelle n'est faite. » In the real product each connector is a
 server-side integration (the payment partner's API and webhooks, the WhatsApp Business Platform,
@@ -1436,7 +1436,7 @@ Meta and TikTok catalogue APIs…), with secrets that never reach the browser.
 
 `JEERE_DATA.PLANS` is exactly the landing page's pricing (`../index.html#tarifs`):
 
-| id | name | price | orders per month | Jeere fee per online sale |
+| id | name | price | orders per month | Jehre fee per online sale |
 | --- | --- | --- | --- | --- |
 | `gratuit` | Gratuit | 0 FCFA | 20 | 3 % |
 | `essentiel` | Essentiel (`recommended`) | 3 000 FCFA / mois, or 1 000 FCFA par semaine | 150 | 1 % |
@@ -1615,7 +1615,7 @@ boutique ».
 
 ## What is simulated
 
-- **The assistant runs locally, without AI.** In this prototype, « l'assistant Jeere » understands
+- **The assistant runs locally, without AI.** In this prototype, « l'assistant Jehre » understands
   keywords (accents and case ignored), handles corrections and always ends with a valid, vivid
   fiche. It says so under its summary card. In the real product, **one** AI assistant (one model,
   one API key, one tool that fills the same fiche) takes its place, and this local assistant stays
@@ -1688,14 +1688,14 @@ In a browser, at 360 px wide (Chrome device mode, a cheap Android phone) and on 
    Télécharger, Importer (import an older fiche without `intensity`: it opens in vivid).
 7. Reload: « Reprendre ma boutique » brings the store back, on its saved intensity.
 8. « Décrire ma boutique »: the avatar is the white cloud on black, the copy says « l'assistant
-   Jeere ». Answer by chips and by free text (« slt c Mariam Hair, jvd des perruques »), try a
+   Jehre ». Answer by chips and by free text (« slt c Mariam Hair, jvd des perruques »), try a
    correction (« non, plutôt audacieux »), then « Ouvrir l'éditeur »: the store is vivid.
 9. No horizontal scroll at 360 px, the input stays above the on-screen keyboard, Esc closes the
    dialogs, everything works with the keyboard.
 10. Page selector, « Vos pages »: open À propos, Livraison et retours, Contact (with its WhatsApp
     block) and Conditions de vente, on both devices; the header menu (desktop) and the phone menu
     list the `inMenu` pages, the footer lists the `inFooter` pages and ends with « Propulsé par
-    Jeere ». Ask the assistant for « Chez Fanta » in Bouaké: the pages say « Chez Fanta » and
+    Jehre ». Ask the assistant for « Chez Fanta » in Bouaké: the pages say « Chez Fanta » and
     « Bouaké ».
 11. `../compte/` (`?demo=1`): sign up with a first name and an e-mail, then by SMS and by WhatsApp
     (any 6-digit code; paste a code; wait for « Renvoyer le code »), name the store, pick « Aller au
@@ -1825,6 +1825,6 @@ value).
   portfolio and not in the sitemap.
 - No logos or brand colours of Wave, Orange, MTN or Moov, on any page including the checkout:
   they appear as plain text with neutral chips or icons.
-- Jeere never holds the sellers' money: the checkout says so, and the real payments go through a
+- Jehre never holds the sellers' money: the checkout says so, and the real payments go through a
   partner approved by the BCEAO.
 - All content is a made-up example (Awa Beauté, Maison Adjoa, Pointure 225…).

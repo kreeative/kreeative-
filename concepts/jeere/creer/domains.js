@@ -1,5 +1,5 @@
 /*
- * Jeere — domains.js: a seller's own domain name (classic script, no DOM, no library).
+ * Jehre — domains.js: a seller's own domain name (classic script, no DOM, no library).
  * Global: window.JeereDomains. Loaded by the dashboard (../admin/) and the checkout (../abonnements/),
  * after data.js (and publish.js for the session). README « Domaines » explains the whole flow.
  *
@@ -46,7 +46,7 @@
     if (/[^a-z0-9.-]/.test(d)) return bad('Lettres sans accent, chiffres, points et tirets seulement : par exemple awabeaute.com.');
     if (d.indexOf('.') === -1) return bad('Il manque l’extension : awabeaute.com, awabeaute.ci, awabeaute.shop…');
     if (!/^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(d) || d.length > 253) return bad('Ce nom de domaine n’est pas valide : vérifiez les points et les tirets.');
-    if (PROTECTED.test(d)) return bad('Ce domaine appartient à Jeere ou à son hébergeur : utilisez le vôtre.');
+    if (PROTECTED.test(d)) return bad('Ce domaine appartient à Jehre ou à son hébergeur : utilisez le vôtre.');
     var apex = apexOf(d);
     var kind = d === apex ? 'apex' : (d === 'www.' + apex ? 'www' : 'sub');
     return { ok: true, domain: d, apex: apex, kind: kind, message: '' };
@@ -162,7 +162,7 @@
   var TLDS = ['com', 'shop', 'store', 'online', 'net', 'co', 'site', 'boutique'];
   // Not sold by Vercel: through an accredited Ivorian registrar (ARTCI), by the team, on request
   var LOCAL = { ci: { label: '.ci', approx: 15000, note: 'Par un bureau d’enregistrement agréé par l’ARTCI (NIC.CI) : l’équipe s’en occupe, écrivez-nous.' } };
-  // Jeere's price: USD × 600 FCFA (a safety margin on ~575), + 40 %, + 2 000 FCFA of handling, rounded up to 500 FCFA.
+  // Jehre's price: USD × 600 FCFA (a safety margin on ~575), + 40 %, + 2 000 FCFA of handling, rounded up to 500 FCFA.
   // Same formula as the Edge Function (supabase/functions/domains).
   var FX = 600, MARGIN = 0.40, FIXED = 2000;
   function fcfa(usd) {
@@ -189,8 +189,8 @@
       var b = { action: action };
       Object.keys(body || {}).forEach(function (k) { b[k] = body[k]; });
       return fetch(FN_URL, { method: 'POST', headers: h, body: JSON.stringify(b) })
-        .then(function (r) { return r.json().then(function (j) { j.httpStatus = r.status; return j; }, function () { return { ok: false, code: 'server', httpStatus: r.status, message: 'Le serveur Jeere ne répond pas comme prévu.' }; }); },
-          function () { return { ok: false, code: 'network', message: 'Pas de connexion au serveur Jeere : réessayez.' }; });
+        .then(function (r) { return r.json().then(function (j) { j.httpStatus = r.status; return j; }, function () { return { ok: false, code: 'server', httpStatus: r.status, message: 'Le serveur Jehre ne répond pas comme prévu.' }; }); },
+          function () { return { ok: false, code: 'network', message: 'Pas de connexion au serveur Jehre : réessayez.' }; });
     });
   }
 

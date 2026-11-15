@@ -1,4 +1,4 @@
-/* Jeere Studio — the subscription and entitlements module (« Abonnements Studio »).
+/* Jehre Studio — the subscription and entitlements module (« Abonnements Studio »).
  *
  * One small classic script, no DOM, no library: loaded by the Studio, the dashboard (../admin/),
  * the account page (../compte/) and the pricing page (../abonnements/), after ../creer/data.js
@@ -26,7 +26,7 @@
  *     members: [{ id, name, phone, at }],               people given a Studio seat (owner not listed)
  *     invoices: [{ id, date, label, plan, period, amount, credit, method, status, provider, ref }],
  *     method: 'wave' | 'orange' | 'mtn' | 'moov' | 'card' | '',
- *     hideBadge: boolean                                « Fait avec Jeere » removed (paid plans)
+ *     hideBadge: boolean                                « Fait avec Jehre » removed (paid plans)
  *   }
  *
  * The server's copy is the reference (wave 2): public.profiles.studio, written only by the `studio-plan`
@@ -49,7 +49,7 @@
    * (about 30 % less, like Framer). Set just under Framer, Webflow and Figma (README, « Abonnements Studio »).
    * EUR at the fixed CFA peg; USD indicative (README). Every paid plan (and the
    * trial) unlocks the whole Studio: the plans differ only by how many stores and seats, and the
-   * support — the same rule as Jeere's store plans, where you move up because you grow.
+   * support — the same rule as Jehre's store plans, where you move up because you grow.
    */
   var FX = { EUR: 655.957, USD: 575 };
 
@@ -60,7 +60,7 @@
       month: 0, year: 0, sites: 1, seats: 1, seatsMax: 1, extraSeat: 0, extraSeatYear: 0,
       limits: { blocks: 3, versions: 3 },
       support: 'Aide humaine sur WhatsApp',
-      points: ['Le Studio complet sur 1 boutique : calques, sections, Design, aperçus de 360 à 1440 px', '3 blocs et 3 versions enregistrés', 'Badge « Fait avec Jeere » sur la boutique']
+      points: ['Le Studio complet sur 1 boutique : calques, sections, Design, aperçus de 360 à 1440 px', '3 blocs et 3 versions enregistrés', 'Badge « Fait avec Jehre » sur la boutique']
     },
     {
       id: 'solo', name: 'Studio Solo', label: 'Studio Solo', paid: true,
@@ -68,7 +68,7 @@
       month: 7900, year: 5400, sites: 1, seats: 1, seatsMax: 1, extraSeat: 0, extraSeatYear: 0,
       limits: { blocks: 20, versions: 15 },
       support: 'Aide humaine sur WhatsApp',
-      points: ['Tout le Studio débloqué, sur 1 boutique', 'Export du code et des images, commentaires', 'Sans le badge « Fait avec Jeere »']
+      points: ['Tout le Studio débloqué, sur 1 boutique', 'Export du code et des images, commentaires', 'Sans le badge « Fait avec Jehre »']
     },
     {
       id: 'pro', name: 'Studio Pro', label: 'Studio Pro', paid: true, recommended: true,
@@ -97,7 +97,7 @@
     { id: 'versions', name: 'Historique des versions', limit: 'versions', text: 'Vos versions nommées (« avant la promo Tabaski ») : 3 en Découverte, 15 avec un abonnement.' },
     { id: 'comments', name: 'Commentaires', text: 'Des notes épinglées sur les aperçus, pour travailler à plusieurs ou avec votre cliente.' },
     { id: 'fonts', name: 'Polices par élément', text: 'Les 33 polices du catalogue, élément par élément, en plus des polices de votre modèle.' },
-    { id: 'badge', name: 'Sans badge « Fait avec Jeere »', text: 'Votre boutique sans le petit badge « Fait avec Jeere » en bas de page.' }
+    { id: 'badge', name: 'Sans badge « Fait avec Jehre »', text: 'Votre boutique sans le petit badge « Fait avec Jehre » en bas de page.' }
   ];
 
   /* The comparison table of the pricing page, row by row: [label, decouverte, solo, pro, agence].
@@ -117,7 +117,7 @@
     ['Places en plus', false, false, false, 'dès 9 900 FCFA / mois'],
     ['Commentaires épinglés', false, true, true, true],
     { group: 'Votre boutique en ligne' },
-    ['Badge « Fait avec Jeere »', 'Affiché', 'Retiré', 'Retiré', 'Retiré'],
+    ['Badge « Fait avec Jehre »', 'Affiché', 'Retiré', 'Retiré', 'Retiré'],
     ['Domaine personnalisé', 'Inclus', 'Inclus', 'Inclus', 'Inclus'],
     ['Export de la fiche boutique (JSON)', true, true, true, true],
     { group: 'Aide' },
@@ -391,8 +391,8 @@
 
   function needAccount() {
     var s = state();
-    if (!s.hasAccount) return { ok: false, reason: 'account', message: 'Créez votre compte Jeere (gratuit) pour continuer.' };
-    if (!s.signedIn) return { ok: false, reason: 'login', message: 'Connectez-vous à votre compte Jeere pour continuer.' };
+    if (!s.hasAccount) return { ok: false, reason: 'account', message: 'Créez votre compte Jehre (gratuit) pour continuer.' };
+    if (!s.signedIn) return { ok: false, reason: 'login', message: 'Connectez-vous à votre compte Jehre pour continuer.' };
     return null;
   }
 
@@ -570,7 +570,7 @@
     writeSub(s.sub);
     return { ok: true };
   }
-  // Is the « Fait avec Jeere » badge shown on the store?
+  // Is the « Fait avec Jehre » badge shown on the store?
   function badgeShown() { var s = state(); return !s.unlocked || !s.sub.hideBadge; }
 
   /* ------------------------------------------------------------------ change events */
@@ -584,8 +584,8 @@
   }
 
   /* ================================================================== JeereBilling
-   * The checkout, behind a provider adapter. Jeere is paid for its own software here (a SaaS
-   * subscription): that is not the store's buyers' money, which Jeere never holds (BCEAO).
+   * The checkout, behind a provider adapter. Jehre is paid for its own software here (a SaaS
+   * subscription): that is not the store's buyers' money, which Jehre never holds (BCEAO).
    *
    *   JeereBilling.startCheckout(planId, period, method, { phone, extraSeats }) → Promise of
    *     { ok: true, invoice, state } | { ok: false, reason, message }
@@ -638,7 +638,7 @@
   var ROUTES = { wave: 'wave', orange: 'paystack', mtn: 'paystack', moov: 'paystack', card: 'paystack' };
   var activeProvider = 'demo';
 
-  /* Real billing (the `billing` Edge Function, Stripe): on Jeere with a real account (JeereAuth not in demo).
+  /* Real billing (the `billing` Edge Function, Stripe): on Jehre with a real account (JeereAuth not in demo).
    * The card only for now — mobile money comes with CinetPay. The browser never activates a plan: Stripe's
    * webhook writes it on the server, and the page reads it back (JeereAuth.syncPlan) on return. */
   var BILLING_URL = 'https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/billing';
@@ -650,7 +650,7 @@
   function billingCall(body) {
     var A = root.JeereAuth;
     return Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then(function (s) {
-      if (!s || !s.access_token) return { ok: false, reason: 'login', message: 'Connectez-vous à votre compte Jeere pour payer.' };
+      if (!s || !s.access_token) return { ok: false, reason: 'login', message: 'Connectez-vous à votre compte Jehre pour payer.' };
       return fetch(BILLING_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: BILLING_KEY, Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify(body) })
         .then(function (r) { return r.json().catch(function () { return { ok: false }; }); });
     }).then(function (j) {
@@ -682,7 +682,7 @@
     var s = state();
     var intent = {
       amount: q.due, currency: 'XOF', method: m.id, phone: phone,
-      reference: rid('jsub_'), description: 'Jeere ' + q.label,
+      reference: rid('jsub_'), description: 'Jehre ' + q.label,
       customer: { name: s.account && s.account.firstName, phone: s.account && s.account.phone },
       metadata: { plan: q.plan.id, period: q.period, extraSeats: q.extraSeats }
     };
@@ -722,7 +722,7 @@
     var s = state();
     var intent = {
       amount: amount, currency: 'XOF', method: m.id, phone: phone, reference: rid('j' + pr.type.slice(0, 3) + '_'),
-      description: 'Jeere ' + str(pr.label, 80), customer: { name: s.account && s.account.firstName, phone: s.account && s.account.phone },
+      description: 'Jehre ' + str(pr.label, 80), customer: { name: s.account && s.account.firstName, phone: s.account && s.account.phone },
       metadata: pr.metadata || {}
     };
     var prov = providerFor(m.id);

@@ -1,23 +1,23 @@
 /*
- * Jeere Rendez-vous — jeere-booking.js: a custom-designed site takes appointments with a Jeere store (classic script,
+ * Jehre Rendez-vous — jeere-booking.js: a custom-designed site takes appointments with a Jehre store (classic script,
  * no library). The sister of jeere-connect.js, for service businesses: lashes, nails, hair, braids, make-up…
  *
  *   <script src="https://jeere.kreeative.xyz/connect/jeere-booking.js" data-store="<slug>" defer></script>
  *
  * The site keeps its own design. This script reads what the store offers from the `bookings` Edge Function (services,
- * add-ons, team, opening hours, policies: what she set in Jeere › Rendez-vous), fills the site's own markup, and
+ * add-ons, team, opening hours, policies: what she set in Jehre › Rendez-vous), fills the site's own markup, and
  * draws the booking steps where the site asks for them. Free times come from the server, in HER time zone; the
  * server checks every booking again and the database refuses a double booking.
  * If the function cannot be reached or she does not take bookings online, the page keeps its hard-coded content and
  * the booking area says so; nothing here ever throws into the site.
  *
  * Script attributes:
- *   data-store="regard"          the store's address on Jeere (required), or data-store-param="b" to read it from ?b=
+ *   data-store="regard"          the store's address on Jehre (required), or data-store-param="b" to read it from ?b=
  *   data-book-url="reserver/"    the page that holds [data-jeere-booking], when « Réserver » buttons live on other pages
  *   data-manage-url="rendez-vous/"  the page that holds [data-jeere-appointment] (default: the booking page itself)
  *   data-style="none"            do not load the default look (connect/jeere-booking.css): the site styles .jb-* itself
  *
- * Markup (any element, any classes; ids are hers: s1, s2… as in Jeere › Rendez-vous › Prestations):
+ * Markup (any element, any classes; ids are hers: s1, s2… as in Jehre › Rendez-vous › Prestations):
  *   [data-jeere-booking]          the booking steps are drawn here (service, add-ons, person, day and time, details)
  *   [data-jeere-appointment]      « my appointment » (from the link of her e-mail, ?rdv=<token>): see, move, cancel.
  *                                 Without one, [data-jeere-booking] shows it when the address carries ?rdv=
@@ -331,7 +331,7 @@
   }
   function ics(a, name) {
     var z = function (iso) { return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); };
-    var text = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Jeere//Rendez-vous//FR', 'BEGIN:VEVENT', 'UID:jeere-' + a.number + '-' + z(a.start) + '@jeere', 'DTSTAMP:' + z(new Date().toISOString()),
+    var text = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Jehre//Rendez-vous//FR', 'BEGIN:VEVENT', 'UID:jeere-' + a.number + '-' + z(a.start) + '@jeere', 'DTSTAMP:' + z(new Date().toISOString()),
       'DTSTART:' + z(a.start), 'DTEND:' + z(a.end), 'SUMMARY:' + (a.service.name + ' · ' + name).replace(/[,;\\]/g, ' '),
       a.store && a.store.address ? 'LOCATION:' + a.store.address.replace(/[,;\\]/g, ' ') : '', 'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
     return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(text);

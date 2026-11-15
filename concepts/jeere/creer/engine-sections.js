@@ -1,5 +1,5 @@
 /*
- * Jeere — engine-sections.js: the store side of the Studio's DualEngine sections.
+ * Jehre — engine-sections.js: the store side of the Studio's DualEngine sections.
  *
  * A section the seller « détache » in the Studio (studio/studio-engine.js) keeps its id, type, enabled
  * flag and settings, and gains an optional key `engine`: the free nodes of that section, a small

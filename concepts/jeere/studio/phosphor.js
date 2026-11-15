@@ -1,4 +1,4 @@
-/* Jeere Studio — the icons: Phosphor Icons, « Regular » weight (MIT licence, phosphoricons.com), the set
+/* Jehre Studio — the icons: Phosphor Icons, « Regular » weight (MIT licence, phosphoricons.com), the set
  * kreeative.xyz uses: rounded ends, the same proportions everywhere. window.JPH.svg(name, attrs) gives the
  * whole <svg> (viewBox 256, filled outlines that take the text colour); JPH.paths(name) the drawing alone. */
 (function (root) {

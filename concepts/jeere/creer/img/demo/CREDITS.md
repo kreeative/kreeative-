@@ -1,6 +1,6 @@
 # Demo photo credits
 
-The example stores of Jeere show these 69 photos (8 per niche: 6 products, the hero, the about
+The example stores of Jehre show these 69 photos (8 per niche: 6 products, the hero, the about
 section; plus 5 for the mock-ups of the landing page). They all come from [Unsplash](https://unsplash.com)
 and are used under the [Unsplash License](https://unsplash.com/license): free to use, commercial use
 included, without asking for permission, and without having to credit anyone. We credit the

@@ -1,4 +1,4 @@
-// Jeere — Edge Function `appel` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk): « Réserver un appel avec
+// Jehre — Edge Function `appel` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk): « Réserver un appel avec
 // notre designer » for a fully custom website. Saves the request (public.design_requests) and e-mails the founder
 // (the addresses of public.site_editors), who calls back on WhatsApp.
 //
@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
       const lines = ['Nouvelle demande d’appel : site sur mesure', 'Prénom : ' + firstName, 'WhatsApp : ' + whatsapp + ' (' + wa + ')', 'Lien : ' + (link || '—'), 'Besoin : ' + (need || '—'), 'Source : ' + (source || 'direct')];
       await fetch('https://api.resend.com/emails', {
         method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: 'Jeere <bonjour@kreeative.xyz>', to, subject: 'Appel designer : ' + firstName,
+        body: JSON.stringify({ from: 'Jehre <bonjour@kreeative.xyz>', to, subject: 'Appel designer : ' + firstName,
           text: lines.join('\n'), html: '<div style="font:15px/1.6 Helvetica,Arial,sans-serif;color:#111">' + lines.map((l) => '<p style="margin:0 0 8px">' + esc(l) + '</p>').join('') + '<p><a href="' + wa + '">Écrire sur WhatsApp</a></p></div>' })
       }).catch(() => null);
     }

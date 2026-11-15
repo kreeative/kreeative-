@@ -1,4 +1,4 @@
-/* Jeere Studio — the advanced editor's chrome (Figma-like), over the light store canvas.
+/* Jehre Studio — the advanced editor's chrome (Figma-like), over the light store canvas.
  * Everything is scoped under .st / the studio's own ids; the stores in the artboards keep
  * ../creer/store.css (.jst). Platform UI: Inter on a strict 11 / 12 / 13 / 15 (18 for dialog
  * titles) scale, Poppins for the brand mark only, no underlines, colour only where it means
@@ -1066,7 +1066,7 @@ html.st-previewing { overflow: hidden; }
 body.st-rowdragging, body.st-rowdragging * { cursor: grabbing !important; user-select: none; }
 
 /* ==================================================================== the rail (studio-rail.js), Figma-like
- * A narrow bar on the far left, the whole height: the Jeere logo (its menu: mes sites, tableau de bord,
+ * A narrow bar on the far left, the whole height: the Jehre logo (its menu: mes sites, tableau de bord,
  * éditeur simple, compte, thème), the switch of the left panel (Calques / Insérer / Images), the theme.
  * Its width comes out of the left panel below 1280 px, so the canvas keeps the room it had. */
 
@@ -1164,6 +1164,6 @@ body.st-rowdragging, body.st-rowdragging * { cursor: grabbing !important; user-s
 .st-tplcard { gap: 3px; }
 
 
-/* No underlines on the Jeere site: text links are bold instead (the founder's rule) */
+/* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }

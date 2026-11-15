@@ -1,4 +1,4 @@
-// Jeere — Edge Function `store-sitemap` (Supabase project « Jeere », ref aezchxfvzfoqlvzchqyk).
+// Jehre — Edge Function `store-sitemap` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk).
 //
 // https://jeere.kreeative.xyz/b/sitemap.xml (vercel.json proxies that address here): every published
 // store, its pages and its products, in the sitemaps.org format, for Google and the other engines.

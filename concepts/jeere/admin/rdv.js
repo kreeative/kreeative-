@@ -1,5 +1,5 @@
 /*
- * Jeere — admin/rdv.js: the dashboard's « Rendez-vous » section (classic script, deferred, loaded before admin.js).
+ * Jehre — admin/rdv.js: the dashboard's « Rendez-vous » section (classic script, deferred, loaded before admin.js).
  * Global: window.JeereAdminRdv = { view(route) → HTML, pendingCount() }. admin.js calls view() for #rendez-vous[/…];
  * this file loads its own data from the `bookings` Edge Function and asks admin.js to redraw (JeereAdmin.ui.refresh).
  *
@@ -45,7 +45,7 @@
   function call(body) {
     var A = window.JeereAuth;
     return Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).catch(function () { return null; }).then(function (s) {
-      if (!s || !s.access_token) return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jeere pour voir vos rendez-vous.' };
+      if (!s || !s.access_token) return { ok: false, code: 'login', message: 'Connectez-vous à votre compte Jehre pour voir vos rendez-vous.' };
       return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify(body) })
         .then(function (r) { return r.json().catch(function () { return { ok: false }; }); }, function () { return { ok: false, code: 'offline', message: 'Pas de connexion internet.' }; });
     });
@@ -163,7 +163,7 @@
     var rec = storeRec();
     if (!rec) {
       return '<div class="a-page">' + head('Rendez-vous', 'Prenez des réservations en ligne : cils, ongles, coiffure, soins…') +
-        card(empty('clock', 'Mettez d’abord votre boutique en ligne', 'Les rendez-vous se prennent sur votre adresse Jeere ou sur votre site. Publiez votre boutique, puis revenez ici pour ajouter vos prestations et vos horaires.', '<a class="a-btn a-btn--primary" href="#boutique">Publier ma boutique</a>')) + '</div>';
+        card(empty('clock', 'Mettez d’abord votre boutique en ligne', 'Les rendez-vous se prennent sur votre adresse Jehre ou sur votre site. Publiez votre boutique, puis revenez ici pour ajouter vos prestations et vos horaires.', '<a class="a-btn a-btn--primary" href="#boutique">Publier ma boutique</a>')) + '</div>';
     }
     if (rec.storeId !== R.storeId) { R = fresh(); R.storeId = rec.storeId; }
     if (!R.loaded) {
@@ -310,7 +310,7 @@
     rows.push(['Prix', (svc.from ? 'dès' + NB : '') + money(a.total)]);
     rows.push(['Cliente', esc(c.name || '') + (c.phone ? '<br><a class="a-link" href="tel:' + esc(String(c.phone).replace(/[^\d+]/g, '')) + '">' + esc(c.phone) + '</a>' : '') + (c.email ? '<br>' + esc(c.email) : '')]);
     if (a.note) rows.push(['Son message', fr(a.note)]);
-    rows.push(['Pris', { site: 'sur votre site', jeere: 'sur votre page Jeere', manuel: 'par vous' }[a.source] || 'en ligne']);
+    rows.push(['Pris', { site: 'sur votre site', jeere: 'sur votre page Jehre', manuel: 'par vous' }[a.source] || 'en ligne']);
     var dep = '';
     if (a.deposit) {
       dep = '<div class="r-dep"><p><b>Acompte : ' + money(a.deposit) + '</b>' + (a.payment ? ' · ' + esc(a.payment) : '') + '</p><div class="a-btnrow">' +

@@ -1,6 +1,6 @@
 /*
- * Jeere Studio — wizard.js
- * « l’assistant Jeere » : the « Décrire ma boutique » flow, as a chat. Its avatar is the Jeere cloud
+ * Jehre Studio — wizard.js
+ * « l’assistant Jehre » : the « Décrire ma boutique » flow, as a chat. Its avatar is the Jehre cloud
  * (the hand-drawn mark of the logo), white on a black circle.
  *
  * Global: window.JeereWizard = {
@@ -15,7 +15,7 @@
  * There is no AI in this prototype. The assistant reads keywords (accents and case ignored), negations
  * (« pas d’avis »), corrections at any moment (« non, plutôt audacieux »), answers given ahead of time
  * (« Awa Beauté, je vends du karité ») and phone numbers, then fills the same fiche boutique that the
- * editor edits. In Jeere, one AI will answer in its place and fill the same fiche.
+ * editor edits. In Jehre, one AI will answer in its place and fill the same fiche.
  * Replies are chosen deterministically from the answers (no Math.random), so the demo is stable.
  *
  * Pure parts (understand, generate) never touch the DOM: the file loads in Node with global.window = {}.
@@ -361,7 +361,7 @@
 
   const FAQ = [
     { re: W('gratuit|gratuite|combien|prix|tarifs?|cout|coute|coutera|abonnement|payant|commission'),
-      a: 'Ce prototype est gratuit, et Jeere n’est pas encore lancé. Pour connaître les prix dès qu’ils sont fixés, rejoignez la liste d’attente sur la page d’accueil.' },
+      a: 'Ce prototype est gratuit, et Jehre n’est pas encore lancé. Pour connaître les prix dès qu’ils sont fixés, rejoignez la liste d’attente sur la page d’accueil.' },
     { re: /(?:modifier|changer|corriger|retoucher).*(?:apres|ensuite|plus tard)|(?:apres|ensuite|plus tard).*(?:modifier|changer|corriger)/,
       a: 'Oui : tout se change ensuite dans l’éditeur, les textes, les produits, les couleurs et les photos.' },
     // A function: the answer follows the demo photo catalogue (empty for now: illustrations)
@@ -371,7 +371,7 @@
     { re: W('publier|publie|en ligne|lien|url|site|mettre en ligne|visible|clients? voir'),
       a: 'C’est un prototype : rien n’est publié, et vos réponses restent dans ce navigateur.' },
     { re: W('ia|intelligence artificielle|robot|bot|humain|chatgpt|vrai|une personne'),
-      a: 'Je suis une démo : je comprends des mots-clés, sans IA. Dans Jeere, une seule IA répondra à ma place et remplira la même fiche boutique.' },
+      a: 'Je suis une démo : je comprends des mots-clés, sans IA. Dans Jehre, une seule IA répondra à ma place et remplira la même fiche boutique.' },
     { re: W('paiement|payer|wave|orange money|mtn|moov|mobile money|momo'),
       a: 'Vos clients pourront payer par Wave, Orange Money, MTN MoMo ou Moov Money, ou à la livraison. Vous cocherez vos moyens de paiement dans l’éditeur.' }
   ];
@@ -1195,8 +1195,8 @@
   /* ================================================================== the steps */
 
   const Q = {
-    intro: ['Bonjour ! Je suis l’assistant Jeere. En six petites questions, je prépare votre boutique : textes, produits d’exemple et couleurs. Vous pourrez tout changer ensuite.',
-      'Bonjour ! Moi, c’est l’assistant Jeere. Répondez à six petites questions et je monte votre boutique, prête à être retouchée.'],
+    intro: ['Bonjour ! Je suis l’assistant Jehre. En six petites questions, je prépare votre boutique : textes, produits d’exemple et couleurs. Vous pourrez tout changer ensuite.',
+      'Bonjour ! Moi, c’est l’assistant Jehre. Répondez à six petites questions et je monte votre boutique, prête à être retouchée.'],
     name: ['Pour commencer, comment s’appelle votre boutique ?', 'D’abord, quel est le nom de votre boutique ?', 'On commence par le nom : comment s’appelle votre boutique ?'],
     niche: ['Que vendez-vous ? Touchez une catégorie, ou dites-le avec vos mots.',
       'Qu’est-ce que vous vendez ? Choisissez ci-dessous, ou écrivez-le simplement : « des perruques », « attiéké et garba »…',
@@ -1727,7 +1727,7 @@
   /* ================================================================== DOM: chips, cards, messages */
 
   const ICON = {
-    // The Jeere cloud (the #cloud symbol of creer/index.html, the only page the wizard runs in)
+    // The Jehre cloud (the #cloud symbol of creer/index.html, the only page the wizard runs in)
     mark: '<svg class="jwz-mark" viewBox="0 0 600 446" aria-hidden="true" focusable="false"><use href="#cloud"/></svg>',
     x: '<svg class="jwz-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 7 10 10M17 7 7 17"/></svg>',
     restart: '<svg class="jwz-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg>',
@@ -2093,7 +2093,7 @@
     body.appendChild(actions);
     card.appendChild(body);
     frag.appendChild(card);
-    frag.appendChild(el('p', 'jwz-note', fr('Démo : ici l’assistant comprend des mots-clés. Dans Jeere, une seule IA répondra à sa place et remplira la même fiche boutique.')));
+    frag.appendChild(el('p', 'jwz-note', fr('Démo : ici l’assistant comprend des mots-clés. Dans Jehre, une seule IA répondra à sa place et remplira la même fiche boutique.')));
     return frag;
   }
 
@@ -2174,7 +2174,7 @@
       '<header class="jwz-head">' +
         '<span class="jwz-av" aria-hidden="true">' + ICON.mark + '</span>' +
         '<div class="jwz-head__txt">' +
-          '<h2 class="jwz-title" id="jwz-title" tabindex="-1">L’assistant Jeere</h2>' +
+          '<h2 class="jwz-title" id="jwz-title" tabindex="-1">L’assistant Jehre</h2>' +
           '<p class="jwz-sub" id="jwz-sub">' + fr('Démo · 6 petites questions') + '</p>' +
         '</div>' +
         '<button type="button" class="jwz-ibtn" data-jwz="restart" aria-label="Recommencer la conversation" title="Recommencer">' + ICON.restart + '</button>' +
@@ -2183,7 +2183,7 @@
       '<div class="jwz-progress" aria-hidden="true"><span></span></div>' +
       '<div class="jwz-scroll" tabindex="-1">' +
         '<div class="jwz-inner">' +
-          '<div class="jwz-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation avec l’assistant Jeere"></div>' +
+          '<div class="jwz-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation avec l’assistant Jehre"></div>' +
           '<div class="jwz-msg jwz-msg--bot jwz-typing" hidden aria-hidden="true"><span class="jwz-msg__av">' + ICON.mark + '</span>' +
             '<span class="jwz-bubble jwz-dots"><i></i><i></i><i></i></span></div>' +
           '<div class="jwz-quick"></div>' +

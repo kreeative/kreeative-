@@ -157,7 +157,7 @@
       ]
     },
     "photo": {
-      "description": "Optional. null, or the id of a Jeere demo photo (JEERE_DATA.DEMO_PHOTOS: a real photo hosted with the app in creer/img/demo/). Set by Jeere from the niche (defaultConfig), never by the assistant, which keeps the value it finds. Shown while there is no image; without either, the illustration shows. normalizeConfig turns an id the catalogue does not know into null; validate() never reports a missing photo.",
+      "description": "Optional. null, or the id of a Jehre demo photo (JEERE_DATA.DEMO_PHOTOS: a real photo hosted with the app in creer/img/demo/). Set by Jehre from the niche (defaultConfig), never by the assistant, which keeps the value it finds. Shown while there is no image; without either, the illustration shows. normalizeConfig turns an id the catalogue does not know into null; validate() never reports a missing photo.",
       "type": ["string", "null"],
       "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },

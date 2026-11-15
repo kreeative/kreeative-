@@ -1,24 +1,24 @@
--- Jeere Connect — the two demo stores of the custom sites (concepts/joshua-cooker/, concepts/sonia-luxury-hair/).
--- Project « Jeere » (ref aezchxfvzfoqlvzchqyk), table public.stores (migration create_jeere_stores).
+-- Jehre Connect — the two demo stores of the custom sites (concepts/joshua-cooker/, concepts/sonia-luxury-hair/).
+-- Project « Jehre » (ref aezchxfvzfoqlvzchqyk), table public.stores (migration create_jeere_stores).
 -- NOT applied automatically: run it once in the SQL editor (it can be run again: on conflict (slug) it
 -- replaces the fiche and keeps the store published; the owner of an existing row never changes, trigger
 -- jeere_stores_touch).
 --
 -- Owner: 706a1f96-346c-4b74-83fe-2b683517f54d (her account: the stores then show up in « Mes boutiques » and she edits names, prices
--- and descriptions in the Jeere editor; the custom sites read them from the published fiche).
+-- and descriptions in the Jehre editor; the custom sites read them from the published fiche).
 --
--- Each fiche is a normal Jeere store config: JEERE_DATA.defaultConfig(template, niche) from creer/data.js
+-- Each fiche is a normal Jehre store config: JEERE_DATA.defaultConfig(template, niche) from creer/data.js
 -- (Joshua: treichville + food; Sonia: cocody + hair), the store's own name, texts and products, then
 -- JEERE_DATA.normalizeConfig, exactly what JeerePublish.ficheOf publishes. The sample reviews and stock
 -- photos of the templates are taken out.
 --
 -- Before sharing the stores:
---   - store.whatsapp is empty: the Jeere cart then says the store does not take orders yet. Set the number in
+--   - store.whatsapp is empty: the Jehre cart then says the store does not take orders yet. Set the number in
 --     the editor (or here, "whatsapp":"+225…") so « Commander sur WhatsApp » sends the order.
 --   - the delivery zones and fees are the template's sample communes: check them in the editor.
---   - product ids are p1, p2… (Jeere's format, kept by normalizeConfig): the sites bind to them with
---     data-jeere-product="p1". Joshua's photos are https URLs on kreeative.xyz in products[].image: Jeere Connect
---     shows them, the Jeere store page draws its illustration instead (it only shows photos uploaded to Jeere),
+--   - product ids are p1, p2… (Jehre's format, kept by normalizeConfig): the sites bind to them with
+--     data-jeere-product="p1". Joshua's photos are https URLs on kreeative.xyz in products[].image: Jehre Connect
+--     shows them, the Jehre store page draws its illustration instead (it only shows photos uploaded to Jehre),
 --     and a republish from the editor drops them (the custom site then keeps its own photos).
 
 begin;

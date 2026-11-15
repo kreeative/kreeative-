@@ -1,4 +1,4 @@
-/* Jeere — the public store page (b/): only the page around the store. The store itself is render.js +
+/* Jehre — the public store page (b/): only the page around the store. The store itself is render.js +
    creer/store.css (scoped under .jst), exactly as in the editor. Phone first, no horizontal scroll. */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -29,7 +29,7 @@ body.jb { margin: 0; min-height: 100vh; background: #FFFFFF; color: #111111; fon
 .jb-btn svg { width: 18px; height: 18px; flex: none; }
 .jb-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #F5F5F3; padding: 2px 6px; border-radius: 6px; overflow-wrap: anywhere; color: #111111; }
 
-/* « Fait avec Jeere », after the store (never over it) */
+/* « Fait avec Jehre », after the store (never over it) */
 .jb-badge-row { display: flex; justify-content: center; padding: 14px 16px 22px; background: #FFFFFF; }
 .jb-badge {
   display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px;
