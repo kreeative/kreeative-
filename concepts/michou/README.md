@@ -1,6 +1,6 @@
-# MICHOU — model shop by Kreeative for Jeere
+# MICHOU — model shop by Kreeative for Jehre
 
-A streetwear shop for a **fictional brand**, made as a model for Jeere: a dark editorial hero, a
+A streetwear shop for a **fictional brand**, made as a model for Jehre: a dark editorial hero, a
 black ribbon, product cards on light grey (after the « Represent » layout), and a product page in
 monospace lowercase with sizes in round pills and « porté avec » (after an iPad reference).
 French, prices in FCFA. Fonts: Archivo (expanded, extra bold) for the wordmark and titles, Fragment
@@ -20,16 +20,16 @@ Live (unlisted): https://kreeative.xyz/concepts/michou/
 - `boutique/index.html` — every product, filters tout / vestes / hauts / bas (also `#bas` etc.).
 - `produits/<produit>/index.html` — photo, price (old price struck through), « autres pièces »,
   sizes XXS–XXL, add button, details / size guide / delivery, « porté avec ».
-- `commande/` — the Jeere checkout (store `michou`), as in ANSE.
+- `commande/` — the Jehre checkout (store `michou`), as in ANSE.
 
-## Sizes (Jeere has no variants)
+## Sizes (Jehre has no variants)
 
 The « + » on a card and the product page ask for a size before adding to the cart. `site.js` keeps
 the sizes in `localStorage` (`michou:tailles`, one size per item), shows them in the cart lines, and
 `commande/commande.js` writes them at the top of the order's note, for example
 « Tailles : T-shirt Racing Délavé M ; Jort Denim Noir L, L ». The shop sees them in the order.
 
-## The Jeere store `michou` (to create — Jeere session)
+## The Jehre store `michou` (to create — Jehre session)
 
 | id | name | category | price (FCFA) | badge |
 |---|---|---|---|---|
@@ -62,5 +62,5 @@ never use them for a real client.
 demo images are not ours, who they belong to, how to ask for removal, and that **anyone reusing this
 model may take the layout and code but must replace every image before publishing**, and must not
 download or repost the demo images. `img/IMAGES-A-NE-PAS-PUBLIER.txt` repeats it inside the image
-folder, so it travels with any copy. When Jeere copies this model for a client, it should copy the
+folder, so it travels with any copy. When Jehre copies this model for a client, it should copy the
 code only and leave the images out.

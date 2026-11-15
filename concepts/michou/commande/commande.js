@@ -1,7 +1,7 @@
 /* MICHOU — the checkout, on the site itself.
  *
- * The cart is Jeere Connect's (localStorage, data-store="michou"). This page reads the store's published fiche
- * (delivery zones, payment methods), then places the order with Jeere's `orders` function, which recomputes
+ * The cart is Jehre Connect's (localStorage, data-store="michou"). This page reads the store's published fiche
+ * (delivery zones, payment methods), then places the order with Jehre's `orders` function, which recomputes
  * prices and delivery fees from the fiche, records the order in the dashboard (Gérer › Commandes) and sends
  * the e-mails. For « Carte bancaire », the `payments` function then opens Stripe Checkout and Stripe sends the
  * buyer back here with ?paiement=ok|annule&commande=<n>.
@@ -152,7 +152,7 @@
   });
   communes.addEventListener('change', function () { if (communes.getAttribute('aria-invalid')) setErr('commune', !communes.value); });
 
-  // Jeere has no sizes: they go in the order's note, « Tailles : Doudoune Brillante M ; Cargo Chaîne L, XL »
+  // Jehre has no sizes: they go in the order's note, « Tailles : Doudoune Brillante M ; Cargo Chaîne L, XL »
   function sizesNote(lines, note) {
     var s = window.MichouSizes ? window.MichouSizes.read() : {};
     var parts = lines.map(function (l) { return l.name + ' ' + ((s[l.id] || []).join(', ') || 'taille à préciser'); });

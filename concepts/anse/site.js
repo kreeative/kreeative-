@@ -1,5 +1,5 @@
 /* ANSE — concept by Kreeative: reveal on scroll, the cart drawer, cart thumbnails, the checkout link.
-   Products, prices and the cart itself come from Jeere Connect (data-store="anse"). */
+   Products, prices and the cart itself come from Jehre Connect (data-store="anse"). */
 (function () {
   'use strict';
 

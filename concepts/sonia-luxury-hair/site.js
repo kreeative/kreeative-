@@ -321,7 +321,7 @@
 
   applyLang(storedLang() || 'fr');
 
-  // The Jeere store behind this site (jeere-connect.js): what she changes in Jeere (names, details, prices,
+  // The Jehre store behind this site (jeere-connect.js): what she changes in Jehre (names, details, prices,
   // photos) replaces what the page was written with. French only: the store is written in French.
   var JEERE = { wave: 'p1', lisse: 'p2', frontal: 'p3', perruque: 'p4' };
   function fromJeere() {

@@ -1,6 +1,6 @@
-# SOYEUSE — model shop by Kreeative for Jeere
+# SOYEUSE — model shop by Kreeative for Jehre
 
-A hair shop (bundles, wigs, accessories) for a **fictional brand**, made as a model for Jeere: blush
+A hair shop (bundles, wigs, accessories) for a **fictional brand**, made as a model for Jehre: blush
 pink, the thin display face Hastegi with its ligatures (`fonts/Hastegi.otf`, self-hosted) and Montserrat, an arched hero, a
 scrolling ribbon, « shop by category » circles, a large « glam » visual, reviews, care tips.
 French, prices in FCFA.
@@ -22,7 +22,7 @@ Live (unlisted): https://kreeative.xyz/concepts/soyeuse/
   from the address: `boutique/#perruques`).
 - `produits/<produit>/index.html` — one page per product: photo, price, specs, « Ajouter au
   panier », « Commander maintenant », care / delivery / payment, other products.
-- `commande/` — the Jeere checkout, the same as ANSE's (`commande.js`, store `soyeuse`).
+- `commande/` — the Jehre checkout, the same as ANSE's (`commande.js`, store `soyeuse`).
 - `site.js` — filters, cart drawer, cart thumbnails, « Commander maintenant », newsletter message.
 
 ## Logo and palette
@@ -47,7 +47,7 @@ for a client site, check that the licence covers web embedding for that client.
   model generated with Higgsfield (Soul 2.0) for this demo. The alt texts say the images are AI-generated.
 - For a real client, replace them with the client's own photos (under the same names, or in the Studio).
 
-## The Jeere store `soyeuse` (to create — Jeere session)
+## The Jehre store `soyeuse` (to create — Jehre session)
 
 | id | name | category | price (FCFA) | badge |
 |---|---|---|---|---|
@@ -72,5 +72,5 @@ every page and `SLUG` in `commande/commande.js`.
 demo images are not ours, who they belong to, how to ask for removal, and that **anyone reusing this
 model may take the layout and code but must replace every image before publishing**, and must not
 download or repost the demo images. `img/IMAGES-A-NE-PAS-PUBLIER.txt` repeats it inside the image
-folder, so it travels with any copy. When Jeere copies this model for a client, it should copy the
+folder, so it travels with any copy. When Jehre copies this model for a client, it should copy the
 code only and leave the images out.

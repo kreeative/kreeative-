@@ -1,5 +1,5 @@
 /* SOYEUSE — concept by Kreeative: shop filters, cart drawer, cart thumbnails, « Commander maintenant »,
-   newsletter message, reveal on scroll. Products, prices and the cart come from Jeere Connect
+   newsletter message, reveal on scroll. Products, prices and the cart come from Jehre Connect
    (data-store="soyeuse"); the checkout is commande/ (commande.js). */
 (function () {
   'use strict';

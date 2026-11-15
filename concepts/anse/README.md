@@ -10,10 +10,10 @@ Live (unlisted): https://kreeative.xyz/concepts/anse/
 
 - Private proposal: `noindex, nofollow`, not linked from the portfolio, not in the sitemap.
   Keep the concept bar and the footer note.
-- Products, prices and the cart come from the Jeere store **`anse`** through Jeere Connect
-  (`data-store="anse"` in the `<head>`). If Jeere does not answer, the page keeps its own names
+- Products, prices and the cart come from the Jehre store **`anse`** through Jehre Connect
+  (`data-store="anse"` in the `<head>`). If Jehre does not answer, the page keeps its own names
   and prices and the cart still adds them up.
-- Orders are real Jeere orders (Gérer › Commandes, with the e-mails), placed on the site's own
+- Orders are real Jehre orders (Gérer › Commandes, with the e-mails), placed on the site's own
   checkout. The concept bar says they are test orders and nothing is shipped.
 
 ## Pages
@@ -25,16 +25,16 @@ Live (unlisted): https://kreeative.xyz/concepts/anse/
   1. contact (name, phone, optional e-mail), delivery (commune with its fee, address, note),
      payment (Wave, Orange Money, MTN MoMo, Moov, cash on delivery, card);
   2. communes, fees and payment methods are read from the store's published fiche, so they follow
-     the Jeere dashboard; « Carte bancaire » only shows when the store's Stripe is connected
+     the Jehre dashboard; « Carte bancaire » only shows when the store's Stripe is connected
      (`payments` → `available`);
-  3. « Confirmer la commande » calls Jeere's `orders` function (`action: 'place'`, `source: 'site'`):
+  3. « Confirmer la commande » calls Jehre's `orders` function (`action: 'place'`, `source: 'site'`):
      it recomputes prices and fees from the fiche, records the order and sends the e-mails;
   4. for a card, the `payments` function opens Stripe Checkout, which comes back to
      `commande/?paiement=ok|annule&commande=<n>`;
   5. the confirmation shows the order number, lines, delivery and total, and empties the cart.
 - `site.js` — reveal on scroll, the cart drawer, cart thumbnails, « Commander maintenant ».
 
-## Products (one colour = one Jeere product, no variants)
+## Products (one colour = one Jehre product, no variants)
 
 | id | name | price (FCFA) | frame colour | image |
 |---|---|---|---|---|
@@ -49,7 +49,7 @@ Live (unlisted): https://kreeative.xyz/concepts/anse/
 
 The card photos carry `data-jeere-photo`: if the store's product has an `https` photo, it
 replaces the page's. The frame effect needs a **cut-out photo on a transparent background**, so
-either leave the product photo empty in Jeere or upload the same transparent `.webp`.
+either leave the product photo empty in Jehre or upload the same transparent `.webp`.
 
 ## Settings per bag (Studio, Design panel)
 
@@ -65,7 +65,7 @@ Each one is a plain CSS property in `style="…"` on its own element, no CSS var
 Plain light background, front view at bag height, handles raised and fully visible, soft
 light. Then cut out the background and save as `.webp` with transparency.
 
-## Notes for Jeere
+## Notes for Jehre
 
 - The Studio needs `concepts/anse/` **and its sub-pages** (`produits/*/index.html`,
   `commande/index.html`) in its editable sites.
@@ -77,7 +77,7 @@ light. Then cut out the background and save as `.webp` with transparency.
 
 Copy `concepts/anse/` to `concepts/<client>/`, replace texts, images, `data-store` and `SLUG` in
 `commande/commande.js` (plus the `PHOTOS` map in `site.js`), then ask
-the Jeere session to create the store and add the folder to the Studio's editable sites.
+the Jehre session to create the store and add the folder to the Studio's editable sites.
 
 ## Mentions légales and image rights
 
@@ -85,5 +85,5 @@ the Jeere session to create the store and add the folder to the Studio's editabl
 demo images are not ours, who they belong to, how to ask for removal, and that **anyone reusing this
 model may take the layout and code but must replace every image before publishing**, and must not
 download or repost the demo images. `img/IMAGES-A-NE-PAS-PUBLIER.txt` repeats it inside the image
-folder, so it travels with any copy. When Jeere copies this model for a client, it should copy the
+folder, so it travels with any copy. When Jehre copies this model for a client, it should copy the
 code only and leave the images out.

@@ -1,6 +1,6 @@
 /* MICHOU — concept by Kreeative: header over the hero, size pickers (cards and product page), sizes kept
    with the cart, cart drawer, shop filters, reveal on scroll. Products, prices and the cart come from
-   Jeere Connect (data-store="michou"); the checkout is commande/ (commande.js), which sends the sizes in
+   Jehre Connect (data-store="michou"); the checkout is commande/ (commande.js), which sends the sizes in
    the order's note. */
 (function () {
   'use strict';

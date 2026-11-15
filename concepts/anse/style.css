@@ -2,7 +2,7 @@
    Le cadre (.cadre) porte sa couleur en style="background-color:…".
    La photo (.photo) porte sa taille et sa position en style="width:…; margin-top:…" :
    un margin-top négatif fait monter le sac, donc dépasser les anses au-dessus du cadre.
-   Ces trois réglages se changent sac par sac dans le panneau Design du Studio Jeere. */
+   Ces trois réglages se changent sac par sac dans le panneau Design du Studio Jehre. */
 
 :root {
   --ink: #1d1c1a;

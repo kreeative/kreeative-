@@ -1,7 +1,7 @@
-# VERNIE — appointment model site by Kreeative for Jeere
+# VERNIE — appointment model site by Kreeative for Jehre
 
 A nail studio (Russian manicure, gel, acrylic, nail art) for a **fictional studio**, made as a model for
-service businesses on Jeere: warm greige page, soft rounded cards, a grey condensed title under a script word,
+service businesses on Jehre: warm greige page, soft rounded cards, a grey condensed title under a script word,
 typewriter text. After the « Reverie » booking-site look. French, prices in FCFA.
 
 Live (unlisted): https://kreeative.xyz/concepts/vernie/
@@ -22,17 +22,17 @@ Live (unlisted): https://kreeative.xyz/concepts/vernie/
 - `mentions-legales/` — legal notice and image rights.
 - `site.js` — reveals on scroll only.
 
-## Bookings: Jeere Rendez-vous
+## Bookings: Jehre Rendez-vous
 
 Every page loads `https://jeere.kreeative.xyz/connect/jeere-booking.js` with `data-store="vernie"`. The script
-reads the studio's services, add-ons, hours and policies from Jeere (dashboard › Rendez-vous), fills the menu,
+reads the studio's services, add-ons, hours and policies from Jehre (dashboard › Rendez-vous), fills the menu,
 the hours and the conditions, makes every `[data-jeere-book]` button open the booking, and draws the steps in
 `[data-jeere-booking]` and « my appointment » in `[data-jeere-appointment]`. See `../regard/README.md` for the
 markup; it is the same.
 
-The Jeere store `vernie` holds 10 services (hands, feet, nail art), 5 add-ons, one person, Tuesday to Saturday
+The Jehre store `vernie` holds 10 services (hands, feet, nail art), 5 add-ons, one person, Tuesday to Saturday
 hours, a 30 % deposit, and **manual confirmation**: a booking is a request until the studio confirms it in
-Jeere. REGARD shows the other mode (automatic confirmation, two people).
+Jehre. REGARD shows the other mode (automatic confirmation, two people).
 
 ## Fonts and palette
 
@@ -44,7 +44,7 @@ taupe `#5c544e`, soft `#efece8`, butter `#f2e6a8`.
 **All photos are placeholders found on Pinterest and Instagram**, at the owner's request, to show the direction;
 two carry their author's signature (@nailsbyandrrea, @aashleysnails). They belong to their authors and are not
 licensed for this use: keep the page unlisted, and replace every one before a studio publishes this model
-(`img/IMAGES-A-NE-PAS-PUBLIER.txt`). When Jeere copies this model for a client, it should copy the code only.
+(`img/IMAGES-A-NE-PAS-PUBLIER.txt`). When Jehre copies this model for a client, it should copy the code only.
 
 ## Duplicate for a client
 

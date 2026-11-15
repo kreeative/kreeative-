@@ -1,5 +1,5 @@
 /* SÈVE — concept by Kreeative: carousel, tabs, catalogue filters and sort, cart drawer, cart thumbnails,
-   « Commander maintenant », reveal on scroll. Products, prices and the cart come from Jeere Connect
+   « Commander maintenant », reveal on scroll. Products, prices and the cart come from Jehre Connect
    (data-store="seve"); the checkout is commande/ (commande.js). */
 (function () {
   'use strict';

@@ -1,6 +1,6 @@
-# SÈVE — model shop by Kreeative for Jeere
+# SÈVE — model shop by Kreeative for Jehre
 
-A scented body-care shop for a **fictional brand**, made as a model to show what a Jeere shop can
+A scented body-care shop for a **fictional brand**, made as a model to show what a Jehre shop can
 look like: studio packshots on one cream ground, condensed serif titles, a dark green rounded
 header, a split hero, a product carousel, a catalogue with category filters. French, prices in FCFA.
 
@@ -24,11 +24,11 @@ Live (unlisted): https://kreeative.xyz/concepts/seve/
 - `produits/<produit>/index.html` — one page per product: packshot, price, description,
   « Ajouter au panier », « Commander maintenant », benefits / notes / use, related products.
 - `commande/` — the checkout, the same as ANSE's (`commande.js`, store `seve`): contact, delivery
-  commune and fee, payment method from the store's fiche, order placed with Jeere's `orders`
+  commune and fee, payment method from the store's fiche, order placed with Jehre's `orders`
   function, card payments through `payments` (Stripe), confirmation with the order number.
 - `site.js` — carousel, tabs, filters, sort, cart drawer, cart thumbnails, « Commander maintenant ».
 
-## The Jeere store `seve` (to create — Jeere session)
+## The Jehre store `seve` (to create — Jehre session)
 
 The site reads `data-store="seve"`. Products, one per id, no variants:
 
@@ -75,5 +75,5 @@ warm neutral background, soft side light, a leaf shadow or a natural prop (stone
 demo images are not ours, who they belong to, how to ask for removal, and that **anyone reusing this
 model may take the layout and code but must replace every image before publishing**, and must not
 download or repost the demo images. `img/IMAGES-A-NE-PAS-PUBLIER.txt` repeats it inside the image
-folder, so it travels with any copy. When Jeere copies this model for a client, it should copy the
+folder, so it travels with any copy. When Jehre copies this model for a client, it should copy the
 code only and leave the images out.

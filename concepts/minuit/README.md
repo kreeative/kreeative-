@@ -1,7 +1,7 @@
-# MINUIT — appointment model site by Kreeative for Jeere
+# MINUIT — appointment model site by Kreeative for Jehre
 
 A beauty studio that does lashes, nails and brows, for a **fictional studio**, made as a model for service
-businesses on Jeere: black page, champagne lines, a thin serif in capitals, script accents. After the
+businesses on Jehre: black page, champagne lines, a thin serif in capitals, script accents. After the
 « Styled by Lola » booking-site banners. French, prices in FCFA.
 
 Live (unlisted): https://kreeative.xyz/concepts/minuit/
@@ -11,7 +11,7 @@ Live (unlisted): https://kreeative.xyz/concepts/minuit/
 - `noindex, nofollow`, not linked from the portfolio, not in the sitemap.
 - Keep the concept bar: MINUIT is fictional, bookings made here are trials and nobody is waiting.
 - The address, phone, e-mail, Instagram and hashtag are examples.
-- « L'offre du mois » (−20 %) is an example of a banner: Jeere does not apply a discount to a booking. The
+- « L'offre du mois » (−20 %) is an example of a banner: Jehre does not apply a discount to a booking. The
   banner says the discount is given at the studio; a studio that keeps it must honour it by hand.
 
 ## Pages
@@ -24,15 +24,15 @@ Live (unlisted): https://kreeative.xyz/concepts/minuit/
 - `rendez-vous/` — « my appointment », from the link of the confirmation e-mail.
 - `mentions-legales/` — legal notice and image rights.
 
-## Bookings: Jeere Rendez-vous
+## Bookings: Jehre Rendez-vous
 
 Every page loads `https://jeere.kreeative.xyz/connect/jeere-booking.js` with `data-store="minuit"`: the price
-list, the hours, the address and the conditions come from Jeere (dashboard › Rendez-vous), every
+list, the hours, the address and the conditions come from Jehre (dashboard › Rendez-vous), every
 `[data-jeere-book]` opens the booking, and the steps are drawn in `[data-jeere-booking]`. The markup is the
 same as `../regard/` (see its README); the dark look of the steps is at the end of `style.css`
 (`.jb { --jb-accent: #e3d9cc; --jb-on-accent: #0a0a0a; … }`).
 
-The Jeere store `minuit` holds 12 services (lashes, nails, brows), 4 add-ons, two people (Kady: lashes and
+The Jehre store `minuit` holds 12 services (lashes, nails, brows), 4 add-ons, two people (Kady: lashes and
 brows, Nina: nails), Tuesday to Sunday hours, a 5 000 FCFA deposit and automatic confirmation.
 
 ## Fonts and palette
@@ -45,7 +45,7 @@ Black `#0a0a0a`, ivory `#f3efe9`, champagne `#e3d9cc` (bars: a gradient `#8d8479
 **All photos are placeholders found on Pinterest and Instagram**, at the owner's request, to show the direction;
 one carries its author's signature (@nailsbyandrrea). They belong to their authors and to the people in them,
 and are not licensed for this use: keep the page unlisted, and replace every one before a studio publishes
-this model (`img/IMAGES-A-NE-PAS-PUBLIER.txt`). When Jeere copies this model for a client, it should copy the
+this model (`img/IMAGES-A-NE-PAS-PUBLIER.txt`). When Jehre copies this model for a client, it should copy the
 code only.
 
 ## Duplicate for a client
