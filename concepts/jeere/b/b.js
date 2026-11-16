@@ -58,8 +58,8 @@
     location.search.slice(1).split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) { try { q[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' ')); } catch (e) { /* bad escape */ } } });
     var host = location.hostname.toLowerCase();
     // Her own domain: every path is her store, the links are paths from the root
-    // Her free address <slug>.myshop.jehre.com: the store of that name, links from the root
-    var shop = /^([a-z0-9][a-z0-9-]{1,38}[a-z0-9])\.myshop\.jehre\.com$/.exec(host);
+    // Her free address <slug>.store.jehre.com: the store of that name, links from the root
+    var shop = /^([a-z0-9][a-z0-9-]{1,38}[a-z0-9])\.store\.jehre\.com$/.exec(host);
     if (shop) return { slug: shop[1], base: '', rest: location.pathname };
     if (!JEERE_HOST.test(host)) return { host: host, base: '', rest: location.pathname };
     // « Aperçu privé » (client projects): ?apercu=<token> shows the store even before it is published

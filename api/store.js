@@ -36,8 +36,8 @@ const SB_URL = process.env.JEERE_SB_URL || 'https://aezchxfvzfoqlvzchqyk.supabas
 const SB_KEY = process.env.JEERE_SB_KEY || 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
 const PUBLIC_HOST = 'jehre.com';
 const COLS = 'id,slug,fiche,show_badge,published,published_at,custom_domain,domain_status,updated_at';
-// a store's own free address: <slug>.myshop.jehre.com (the wildcard domain of the project)
-const SHOP_HOST = /^([a-z0-9][a-z0-9-]{1,38}[a-z0-9])\.myshop\.jehre\.com$/;
+// a store's own free address: <slug>.store.jehre.com (the wildcard domain of the project)
+const SHOP_HOST = /^([a-z0-9][a-z0-9-]{1,38}[a-z0-9])\.store\.jehre\.com$/;
 const JEERE_HOST = /^(jehre\.com|jeere\.kreeative\.xyz|kreeative\.xyz|localhost|127\.0\.0\.1)$|\.kreeative\.xyz$|\.vercel\.app$/;
 
 function rootDir() {
