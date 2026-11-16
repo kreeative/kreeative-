@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
     const m = mail(String(p.first_name || '').split(' ')[0].slice(0, 40), left, months, active, Number(spots?.spots ?? 10), !!(spots && spots.trial));
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to: [p.email], subject: m.subject, html: m.html, text: m.text, reply_to: 'contact.jeere@kreeative.xyz' })
+      body: JSON.stringify({ from: FROM, to: [p.email], subject: m.subject, html: m.html, text: m.text, reply_to: 'contact@jehre.com' })
     }).catch(() => null);
     const ok = !!(r && r.ok);
     // recorded either way: never two reminders to the same person

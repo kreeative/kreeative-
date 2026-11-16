@@ -323,7 +323,7 @@ window.JEERE_EN = {
   'faq.q6': 'I sell digital products (e-books, courses).',
   'faq.a6': 'Physical products come first. Automatic downloads and payment links for digital products will follow later.',
   'faq.q7': 'What do you do with my number?',
-  'faq.a7': 'We only use it to message you about Jehre. It is never sold or shared. To delete your sign-up, write to <a href="mailto:contact.jeere@kreeative.xyz?subject=Jehre%20%C2%B7%20waitlist">contact.jeere@kreeative.xyz</a>.',
+  'faq.a7': 'We only use it to message you about Jehre. It is never sold or shared. To delete your sign-up, write to <a href="mailto:contact@jehre.com?subject=Jehre%20%C2%B7%20waitlist">contact@jehre.com</a>.',
 
   'join.eyebrow': 'Waitlist',
   'join.title': 'Join the first 10 stores.',
@@ -381,6 +381,6 @@ window.JEERE_EN = {
   'contact.or': 'Or directly:',
   'foot.tag': 'The all-in-one platform to sell online and in person.',
   'foot.nav': 'Footer',
-  'foot.small': 'Jehre is in its pilot phase in Abidjan: stores, orders, card payments (Stripe) and mobile money to your own number already work; features marked “Soon” are on the way, and prices may change. Jehre never holds sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:contact.jeere@kreeative.xyz?subject=Jehre">contact.jeere@kreeative.xyz</a>',
+  'foot.small': 'Jehre is in its pilot phase in Abidjan: stores, orders, card payments (Stripe) and mobile money to your own number already work; features marked “Soon” are on the way, and prices may change. Jehre never holds sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:contact@jehre.com?subject=Jehre">contact@jehre.com</a>',
   'foot.photos': 'Sample photos: <a href="https://unsplash.com/" target="_blank" rel="noopener">Unsplash</a> · Cover illustration: <a href="https://www.instagram.com/prince_edja/" target="_blank" rel="noopener">@prince_edja</a>'
 };

@@ -52,7 +52,7 @@
               <tr>
                 <td style="padding-top:16px;font-family:'Poppins','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#5E5E5E;">
                   Jehre, du comptoir à Internet.<br>
-                  Une question&nbsp;? Écrivez à <a href="mailto:contact.jeere@kreeative.xyz?subject=Jehre" style="color:#111111;">contact.jeere@kreeative.xyz</a>.<br>
+                  Une question&nbsp;? Écrivez à <a href="mailto:contact@jehre.com?subject=Jehre" style="color:#111111;">contact@jehre.com</a>.<br>
                   <a href="https://jehre.com/" style="color:#111111;">jehre.com</a>
                 </td>
               </tr>
