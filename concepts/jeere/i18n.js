@@ -180,7 +180,7 @@ window.JEERE_EN = {
 
   'custom.eyebrow': 'Custom-designed models',
   'custom.title': 'Seven models designed by our designer: shops and appointment booking.',
-  'custom.lead': 'The design and code are yours; the demo images belong to their authors and are replaced by your photos. Launch offer: 25,000 FCFA instead of 50,000, paid once, on top of your plan. ANSE: 150,000 FCFA, assisted set-up included.',
+  'custom.lead': 'The design and code are yours; the demo images belong to their authors and are replaced by your photos. Each model is paid once, on top of your plan: the price is on its card.',
   'custom.choose': 'Choose this model',
   'custom.demo': 'See the demo',
   'custom.once': 'one-time payment',
