@@ -734,3 +734,7 @@ Everything is in [docs/rendez-vous.md](docs/rendez-vous.md).
   domain is bought, stores live at `jehre.com/b/<adresse>` (see [Domaines](#domaines)); only the
   hero illustration still shows « chezawa.jeere.shop » (the hero is frozen: change `.bt__url` when it is not).
 - Add the @annklyy links (TikTok, Instagram) to the footer once you start posting.
+
+## Hébergement
+
+Jehre a son propre projet Vercel, « jehre » (équipe management-7548), relié à ce dépôt. Les adresses jehre.com et *.store.jehre.com y sont rattachées à la branche de l’application ; le portfolio reste dans le projet « kreeative-site ».
