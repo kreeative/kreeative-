@@ -23,10 +23,7 @@ works.
 | `/websites/the-ivory-sukundu/`                    | `websites/the-ivory-sukundu/index.html` (client store)          |
 | `/websites/kreeator-academy/`                     | `websites/kreeator-academy/index.html`                          |
 | `/websites/guillemot/`                            | `websites/guillemot/index.html`                                 |
-| `/websites/cameleon/`                             | `websites/cameleon/index.html`                                  |
-| `/websites/jessicas-secrets/`                     | `websites/jessicas-secrets/index.html`                          |
 | `/websites/kreeative/`                            | `websites/kreeative/index.html` (this site)                     |
-| `/concepts/jessicas-secrets/`                     | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/about/`, `/shop/`, `/teach/`, `/services/`              | their `index.html`                                              |
 | `/the-kreeative-designer-newsletter/`             | `the-kreeative-designer-newsletter/index.html`                  |
 | any unknown URL                                   | `404.html`                                                      |

@@ -49,6 +49,36 @@
       "source": "/pricing/:path*",
       "destination": "/services/",
       "permanent": false
+    },
+    {
+      "source": "/websites/cameleon",
+      "destination": "/websites/",
+      "permanent": false
+    },
+    {
+      "source": "/websites/cameleon/",
+      "destination": "/websites/",
+      "permanent": false
+    },
+    {
+      "source": "/websites/jessicas-secrets",
+      "destination": "/websites/",
+      "permanent": false
+    },
+    {
+      "source": "/websites/jessicas-secrets/",
+      "destination": "/websites/",
+      "permanent": false
+    },
+    {
+      "source": "/concepts/jessicas-secrets",
+      "destination": "/websites/",
+      "permanent": false
+    },
+    {
+      "source": "/concepts/jessicas-secrets/:path*",
+      "destination": "/websites/",
+      "permanent": false
     }
   ]
 }

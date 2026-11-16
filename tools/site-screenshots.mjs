@@ -12,7 +12,6 @@ const SITES = [
   ['rich',     'https://richandfriends.xyz/'],
   ['keewal',   'https://keewaomeere.vercel.app/'],
   // Reveals its sections as you scroll, so it is scrolled through before the long capture.
-  ['cameleon', 'https://cameleon-concept.vercel.app/', { scrollFirst: true }],
   // An app that fits the window, so instead of a long capture it gets a second
   // screen (a dish page). The clock is set to lunchtime in New York so the
   // restaurant shows as open.
@@ -20,7 +19,6 @@ const SITES = [
   // Its sections rise into place as you scroll, so it is scrolled through before the long capture.
   ['guillemot', 'https://guillemot.vercel.app/', { scrollFirst: true }],
   // Served from this site. Its sections rise into place as you scroll, so it is scrolled through first too.
-  ['jessicas', 'https://kreeative.xyz/concepts/jessicas-secrets/', { scrollFirst: true }],
   // The brand page, scrolled through first so its lazy photos load for the long
   // capture. The clock is set to a weekday morning in Toronto so the bakery is open.
   ['bakery', 'https://the-bakery-concept.vercel.app/', { scrollFirst: true, time: '2026-10-06T14:30:00Z' }],
