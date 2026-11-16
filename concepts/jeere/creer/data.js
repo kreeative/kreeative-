@@ -3491,7 +3491,7 @@
    * ADDRESS_MODE = 'subdomain': every screen follows (storeAddress), old addresses still parse (storeSlug). */
   var PUBLIC_HOST = 'jehre.com';
   var STORE_PATH = '/b/';
-  var ADDRESS_MODE = 'path'; // 'path' (today) | 'subdomain' (once jeere.shop is Jehre's)
+  var ADDRESS_MODE = 'subdomain'; // 'path' (today) | 'subdomain' (once jeere.shop is Jehre's)
   var SUBDOMAIN_SUFFIX = '.store.jehre.com';
   var STORE_PREFIX = ADDRESS_MODE === 'subdomain' ? '' : PUBLIC_HOST + STORE_PATH; // 'jehre.com/b/'
   var DOMAIN_SUFFIX = ADDRESS_MODE === 'subdomain' ? SUBDOMAIN_SUFFIX : '';
@@ -3742,7 +3742,7 @@
     },
     {
       id: 'domain', category: 'domaine', name: 'Nom de domaine', icon: 'globe',
-      description: 'Utilisez votre propre adresse, par exemple awabeaute.ci, à la place de votre adresse ' + PUBLIC_HOST + STORE_PATH + '….',
+      description: 'Utilisez votre propre adresse, par exemple awabeaute.ci, à la place de votre adresse ' + (ADDRESS_MODE === 'subdomain' ? 'nom' + SUBDOMAIN_SUFFIX + '.' : PUBLIC_HOST + STORE_PATH + '….'),
       fields: [{ key: 'domain', label: 'Votre nom de domaine', type: 'text', placeholder: 'awabeaute.ci' }],
       note: 'Chez votre registraire, ajoutez un enregistrement A pour @ vers ' + DNS_APEX_A + ' et un CNAME pour www vers ' + DNS_TARGET + '. La vérification peut prendre jusqu’à 48 h.'
     },

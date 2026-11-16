@@ -247,8 +247,10 @@ async function handler(req, res) {
     const proto = 'https://';
     const own = row.custom_domain && row.domain_status === 'verified' ? row.custom_domain : '';
     const origin = onJeere ? proto + PUBLIC_HOST + '/b/' + row.slug : proto + rawHost;
-    const canonicalOrigin = own ? proto + own : (onJeere ? origin : proto + rawHost);
-    const url = canonicalOrigin + (view.route || (onJeere && !own ? '' : '/'));
+    // the address search engines keep: her own domain, else her free address <slug>.store.jehre.com
+    const shopHost = onJeere || SHOP_HOST.test(rawHost);
+    const canonicalOrigin = own ? proto + own : (shopHost ? proto + row.slug + '.store.jehre.com' : proto + rawHost);
+    const url = canonicalOrigin + (view.route || '/');
     const meta = R.storeMeta(cfg, view, { abs: (s) => { try { return new URL(s, 'https://' + PUBLIC_HOST + '/').href; } catch (e) { return ''; } } });
     if (row.preview) meta.noindex = true; // a private preview is never indexed
     const linkBase = onJeere ? '/b/' + row.slug : '';
