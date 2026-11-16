@@ -14,7 +14,7 @@
 //
 // Prices, lines and delivery fees are recomputed here from the store's published fiche: what the browser
 // sends is only which products and how many. E-mails go through Resend (secret RESEND_API_KEY) from
-// « <store name> <commandes@kreeative.xyz> » with the shop's address as reply-to; without the secret the
+// « <store name> <commandes@jehre.com> » with the shop's address as reply-to; without the secret the
 // order is still recorded and the answer says the e-mails are waiting.
 // Deployed with verify_jwt = false (the publishable key is not a JWT): sessions are checked here.
 
@@ -26,7 +26,7 @@ const SECRET = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
-const FROM_ADDRESS = Deno.env.get('ORDERS_FROM') ?? 'commandes@kreeative.xyz';
+const FROM_ADDRESS = Deno.env.get('ORDERS_FROM') ?? 'commandes@jehre.com';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

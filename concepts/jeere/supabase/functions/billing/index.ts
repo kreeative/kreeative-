@@ -158,7 +158,7 @@ async function teamMail(subject: string, text: string) {
   if (!RESEND_KEY) return;
   await fetch('https://api.resend.com/emails', {
     method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'Jehre <commandes@kreeative.xyz>', to: [TEAM_EMAIL], subject, text })
+    body: JSON.stringify({ from: 'Jehre <commandes@jehre.com>', to: [TEAM_EMAIL], subject, text })
   }).catch(() => null);
 }
 

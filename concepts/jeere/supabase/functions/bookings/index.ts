@@ -39,7 +39,7 @@ const SECRET = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
-const FROM_ADDRESS = Deno.env.get('BOOKINGS_FROM') ?? Deno.env.get('ORDERS_FROM') ?? 'commandes@kreeative.xyz';
+const FROM_ADDRESS = Deno.env.get('BOOKINGS_FROM') ?? Deno.env.get('ORDERS_FROM') ?? 'commandes@jehre.com';
 const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jehre.com').replace(/\/$/, '');
 
 const CORS = {
