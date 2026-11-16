@@ -36,6 +36,8 @@ const SB_URL = process.env.JEERE_SB_URL || 'https://aezchxfvzfoqlvzchqyk.supabas
 const SB_KEY = process.env.JEERE_SB_KEY || 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
 const PUBLIC_HOST = 'jehre.com';
 const COLS = 'id,slug,fiche,show_badge,published,published_at,custom_domain,domain_status,updated_at';
+// a store's own free address: <slug>.myshop.jehre.com (the wildcard domain of the project)
+const SHOP_HOST = /^([a-z0-9][a-z0-9-]{1,38}[a-z0-9])\.myshop\.jehre\.com$/;
 const JEERE_HOST = /^(jehre\.com|jeere\.kreeative\.xyz|kreeative\.xyz|localhost|127\.0\.0\.1)$|\.kreeative\.xyz$|\.vercel\.app$/;
 
 function rootDir() {
@@ -228,7 +230,7 @@ async function handler(req, res) {
   if (!onJeere && (!rawHost || JEERE_HOST.test(rawHost))) { send(res, 200, tpl, 'no-store'); return; }
 
   const apercu = onJeere ? String(q.apercu || '') : '';
-  const got = apercu ? await fetchPreview(slug, apercu) : await fetchRow(onJeere ? { slug } : { host: rawHost });
+  const got = apercu ? await fetchPreview(slug, apercu) : await fetchRow(onJeere ? { slug } : (SHOP_HOST.test(rawHost) ? { slug: SHOP_HOST.exec(rawHost)[1] } : { host: rawHost }));
   if (!got.ok && apercu) { send(res, 200, tpl.replace('<meta name="theme-color"', '<meta name="robots" content="noindex">\n  <meta name="theme-color"'), 'private, no-store'); return; }
   if (!got.ok) {
     // Not found (yet): the page itself, kept out of the index; b.js asks again and says « Boutique

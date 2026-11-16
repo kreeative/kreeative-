@@ -3492,7 +3492,7 @@
   var PUBLIC_HOST = 'jehre.com';
   var STORE_PATH = '/b/';
   var ADDRESS_MODE = 'path'; // 'path' (today) | 'subdomain' (once jeere.shop is Jehre's)
-  var SUBDOMAIN_SUFFIX = '.jeere.shop';
+  var SUBDOMAIN_SUFFIX = '.myshop.jehre.com';
   var STORE_PREFIX = ADDRESS_MODE === 'subdomain' ? '' : PUBLIC_HOST + STORE_PATH; // 'jehre.com/b/'
   var DOMAIN_SUFFIX = ADDRESS_MODE === 'subdomain' ? SUBDOMAIN_SUFFIX : '';
   // A seller's own domain: the generic Vercel records (A for the apex, CNAME for www and subdomains)
