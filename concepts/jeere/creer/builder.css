@@ -1331,3 +1331,6 @@ html.qs-open .jst img.qs-target, html.qs-open .jst .qs-target img { touch-action
 .b-device--desktop .b-custom { height: 720px; }
 .b-is-custom .b-tab[data-tab="sections"], .b-is-custom .b-tab[data-tab="theme"], .b-is-custom .b-tab[data-tab="qualite"],
 .b-is-custom [data-page-select] { display: none !important; }
+
+/* The name typed, while the handwritten « jehre » is redrawn */
+.b-logo__lock .logo__wordmark.jh-word { height: auto; aspect-ratio: auto; font: 700 24px/1 'Poppins', sans-serif; letter-spacing: -0.045em; color: inherit; }
