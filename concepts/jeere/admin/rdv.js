@@ -104,13 +104,13 @@
   }
 
   /* ---------------------------------------------------------------- loading */
-  function loadSettings() {
+  function loadSettings(quiet) {
     R.loading = true; R.error = '';
     return call({ action: 'settings', storeId: R.storeId }).then(function (j) {
       R.loading = false;
-      if (!j.ok) { R.error = j.message || 'Vos rendez-vous n’ont pas pu être chargés.'; redraw(); return; }
+      if (!j.ok) { R.error = j.message || 'Vos rendez-vous n’ont pas pu être chargés.'; if (!quiet) redraw(); return; }
       R.loaded = true; R.settings = j.settings; R.store = j.store; R.bookingUrl = j.bookingUrl; R.pays = j.payments || []; R.configured = !!j.configured;
-      redraw();
+      if (quiet) { if (ui().shell) ui().shell(); } else redraw();
     });
   }
   function loadList(day) {
@@ -670,6 +670,19 @@
     view: view,
     // requests waiting for her answer: the badge of the menu
     pendingCount: function () { var rec = storeRec(); return rec && rec.storeId === R.storeId ? R.pending.length : 0; },
-    state: function () { return R; }
+    state: function () { return R; },
+    // does this store already take appointments (at least one prestation saved)? null while not known
+    configured: function () {
+      var rec = storeRec();
+      if (!rec || rec.storeId !== R.storeId || !R.loaded) return null;
+      return !!(R.configured && R.settings && (R.settings.services || []).length);
+    },
+    // asks once, without drawing anything: the menu shows « Rendez-vous » only to the stores that use it
+    probe: function () {
+      var rec = storeRec();
+      if (!rec) return;
+      if (rec.storeId !== R.storeId) { R = fresh(); R.storeId = rec.storeId; }
+      if (!R.loaded && !R.loading && !R.error) loadSettings(true);
+    }
   };
 })();

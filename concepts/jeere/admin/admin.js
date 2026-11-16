@@ -815,6 +815,22 @@
     if (EXT()) return EXT().thumb;
     try { const b = D && typeof D.brand === 'function' && S.config ? D.brand(S.config) : null; return b && b.logo ? b.logo : null; } catch (e) { return null; }
   }
+  // « Rendez-vous » is for the stores that sell services: she said so (at creation or in Paramètres › Boutique), or
+  // the store already has prestations. A shop of bags never sees it.
+  function rdvOn() {
+    if (EXT() || !S.admin) return false;
+    const v = S.admin.settings.rdv;
+    if (v === true || v === false) return v;
+    let wanted = false;
+    try { wanted = window.localStorage.getItem('jeere-rdv-wanted') === '1'; if (wanted) window.localStorage.removeItem('jeere-rdv-wanted'); } catch (e) { /* no storage */ }
+    if (wanted) { S.admin.settings.rdv = true; saveAdmin(true); return true; }
+    const R = window.JeereAdminRdv;
+    if (!R || !R.configured) return false;
+    const c = R.configured();
+    if (c === null) { if (R.probe) R.probe(); return false; }
+    if (c) { S.admin.settings.rdv = true; saveAdmin(true); }
+    return c;
+  }
   function todoCount() { if (EXT()) return EXT().todo(); return S.admin ? S.admin.orders.filter((o) => o.status === 'new' || o.status === 'paid').length : 0; }
   function updateShell() {
     const name = storeName();
@@ -840,7 +856,9 @@
     $$('[data-bind="user-initial"]').forEach((n) => { n.textContent = initials(acc.firstName || name).charAt(0) || 'J'; });
     const todo = todoCount();
     $$('[data-bind="todo-count"]').forEach((n) => { n.hidden = !todo; n.textContent = String(todo); n.setAttribute('aria-label', plural(todo, 'commande à préparer', 'commandes à préparer')); });
-    const rdvTodo = window.JeereAdminRdv && !EXT() ? window.JeereAdminRdv.pendingCount() : 0;
+    const rdvShow = rdvOn();
+    $$('[data-nav="rendez-vous"], [data-more="rendez-vous"]').forEach((n) => { const li = n.closest('li') || n; li.hidden = !rdvShow; });
+    const rdvTodo = window.JeereAdminRdv && rdvShow ? window.JeereAdminRdv.pendingCount() : 0;
     $$('[data-bind="rdv-count"]').forEach((n) => { n.hidden = !rdvTodo; n.textContent = String(rdvTodo); n.setAttribute('aria-label', rdvTodo + ' rendez-vous à confirmer'); });
     $$('[data-bind="todo-dot"]').forEach((n) => { n.hidden = !todo; });
     const cur = S.route ? S.route.name : 'accueil';
@@ -3825,6 +3843,8 @@
   function setBoutique() {
     const lang = S.admin.settings.language;
     return H`${S.config ? H`<section class="a-card" aria-labelledby="h-sb"><div class="a-card__head"><div><h3 class="a-card__title" id="h-sb">Votre boutique</h3><p class="a-card__sub">Écrit dans votre fiche boutique : le Studio et la boutique le montrent aussi.</p></div></div>${prefsForm(takeDraft('prefs'))}</section>` : noStoreCard()}
+      ${EXT() ? '' : H`<section class="a-card" aria-labelledby="h-sv"><div class="a-card__head"><div><h3 class="a-card__title" id="h-sv">Ce que vous vendez</h3></div></div>
+        ${switchRow({ id: 's-rdv', label: 'Je propose des services sur rendez-vous', hint: 'Cils, ongles, coiffure, soins… Ajoute « Rendez-vous » à votre menu : prestations, horaires et agenda.', checked: rdvOn(), attrs: 'data-rdvon' })}</section>`}
       <section class="a-card" aria-labelledby="h-sl"><div class="a-card__head"><div><h3 class="a-card__title" id="h-sl">Langue et devise</h3></div></div>
         <fieldset class="a-fieldset" style="margin-top:0"><legend>Langue de la boutique</legend><div class="a-radios a-radios--2">
           <label class="a-radio"><input type="radio" name="lang" value="fr" data-lang${lang === 'fr' ? ' checked' : ''}><span class="a-radio__dot"></span><span class="a-radio__txt"><span class="a-radio__label">Français</span><span class="a-radio__hint">La langue de vos clients en Côte d’Ivoire.</span></span></label>
@@ -4760,6 +4780,7 @@
     if (t.hasAttribute('data-promo')) { const x = S.admin.promos[parseInt(t.getAttribute('data-promo'), 10)]; if (x) { x.active = t.checked; saveAdmin(); refresh('[data-promo="' + t.getAttribute('data-promo') + '"]'); toast('Code ' + x.code + (x.active ? ' actif.' : ' en pause.')); } return; }
     if (t.id === 'no-commune') { const f = t.closest('form'); const o = t.options[t.selectedIndex]; if (f && o) { f.elements.fee.value = number(Number(o.getAttribute('data-fee')) || 0); newOrderTotals(f); } return; }
     if (t.hasAttribute('data-currency')) { setCurrency(t.value); return; }
+    if (t.hasAttribute('data-rdvon')) { S.admin.settings.rdv = !!t.checked; saveAdmin(); updateShell(); toast(t.checked ? '« Rendez-vous » est dans votre menu.' : '« Rendez-vous » est retiré du menu.'); return; }
     if (t.hasAttribute('data-lang')) { S.admin.settings.language = t.value === 'en' ? 'en' : 'fr'; saveAdmin(); toast(t.value === 'en' ? 'Boutique en anglais : bientôt. Le tableau de bord reste en français dans ce prototype.' : 'Boutique en français.', { ms: 4500 }); return; }
     const form = t.closest('#a-main form[data-form]');
     if (!form || form.hasAttribute('data-light')) return;

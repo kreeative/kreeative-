@@ -1866,6 +1866,24 @@
       });
       wrap.appendChild(b);
     });
+    // not an option of the page: « Rendez-vous » in her dashboard (read once by ../admin/admin.js), off unless ticked
+    (function () {
+      const b = el('button', 'jwz-chip jwz-chip--toggle');
+      b.type = 'button';
+      let on = false;
+      try { on = root.localStorage.getItem('jeere-rdv-wanted') === '1'; } catch (e) { /* no storage */ }
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      const c = el('span', 'jwz-check');
+      c.innerHTML = ICON.check;
+      b.appendChild(c);
+      b.appendChild(el('span', 'jwz-chip__label', 'Je propose des services sur rendez-vous'));
+      b.addEventListener('click', () => {
+        on = !on;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        try { if (on) root.localStorage.setItem('jeere-rdv-wanted', '1'); else root.localStorage.removeItem('jeere-rdv-wanted'); } catch (e) { /* no storage */ }
+      });
+      wrap.appendChild(b);
+    })();
     box.appendChild(wrap);
     const go = el('button', 'jwz-btn jwz-btn--primary jwz-go');
     go.type = 'button';

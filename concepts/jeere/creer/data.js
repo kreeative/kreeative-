@@ -3869,7 +3869,10 @@
         lowStock: toBool(n.lowStock, d.notifications.lowStock)
       },
       team: team,
-      billing: { cycle: b.cycle === 'semaine' ? 'semaine' : 'mois', paused: b.paused === true }
+      billing: { cycle: b.cycle === 'semaine' ? 'semaine' : 'mois', paused: b.paused === true },
+      // « Je propose des services sur rendez-vous »: true / false once she chose, else undefined (the dashboard
+      // then shows « Rendez-vous » only to a store that already has prestations)
+      rdv: s.rdv === true ? true : s.rdv === false ? false : undefined
     };
   }
 

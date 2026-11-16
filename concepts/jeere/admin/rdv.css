@@ -71,3 +71,6 @@ button.r-row:hover { background: var(--grey-1); }
 .r-hrow__closed { margin: 0; color: var(--muted); font-size: 14px; }
 @media (max-width: 640px) { .r-hrow { grid-template-columns: minmax(0, 1fr); } .r-hrow__pause { margin-left: 0; flex-basis: 100%; } }
 .r-save { margin: 14px 0 18px; }
+
+/* the cards of a page never touch: Prestations, Horaires, Réservation en ligne stack several of them */
+.a-page > .a-card + .a-card, .a-page > form > .a-card + .a-card { margin-top: 16px; }
