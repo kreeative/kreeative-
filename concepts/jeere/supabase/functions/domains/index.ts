@@ -33,9 +33,9 @@ const SECRET = (() => {
 
 const VERCEL_TOKEN = Deno.env.get('VERCEL_TOKEN') ?? '';
 const ADMIN_KEY = Deno.env.get('DOMAINS_ADMIN_KEY') ?? '';
-const PROJECT_ID = Deno.env.get('VERCEL_PROJECT_ID') || 'prj_fD8DW3XmW3iyaGNXSCquGcApR4AC';
+const PROJECT_ID = Deno.env.get('VERCEL_PROJECT_ID') || 'prj_sm5rloic5l934qiErQnQ6YZqD0z7';
 const TEAM_ID = Deno.env.get('VERCEL_TEAM_ID') || 'team_baaIo2HD3gXK1oOziipXPpAl';
-const GIT_BRANCH = Deno.env.get('VERCEL_GIT_BRANCH') ?? 'claude/session-setup-kcwzk4';
+const GIT_BRANCH = Deno.env.get('VERCEL_GIT_BRANCH') ?? '';
 const API = 'https://api.vercel.com';
 
 // The generic Vercel records (what Vercel's dashboard shows for any project domain)

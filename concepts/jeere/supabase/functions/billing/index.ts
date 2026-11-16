@@ -32,9 +32,9 @@ const SECRET = (() => {
 const STRIPE_KEY = (Deno.env.get('STRIPE_SECRET_KEY') ?? '').trim();
 const WEBHOOK_SECRET = (Deno.env.get('STRIPE_BILLING_WEBHOOK_SECRET') ?? '').trim();
 const VERCEL_TOKEN = (Deno.env.get('VERCEL_TOKEN') ?? '').trim();
-const PROJECT_ID = Deno.env.get('VERCEL_PROJECT_ID') || 'prj_fD8DW3XmW3iyaGNXSCquGcApR4AC';
+const PROJECT_ID = Deno.env.get('VERCEL_PROJECT_ID') || 'prj_sm5rloic5l934qiErQnQ6YZqD0z7';
 const TEAM_ID = Deno.env.get('VERCEL_TEAM_ID') || 'team_baaIo2HD3gXK1oOziipXPpAl';
-const GIT_BRANCH = Deno.env.get('VERCEL_GIT_BRANCH') ?? 'claude/session-setup-kcwzk4';
+const GIT_BRANCH = Deno.env.get('VERCEL_GIT_BRANCH') ?? '';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const TEAM_EMAIL = Deno.env.get('JEERE_TEAM_EMAIL') ?? 'annklyy@gmail.com';
 const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jehre.com').replace(/\/$/, '');

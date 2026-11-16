@@ -15,9 +15,9 @@ const SECRET = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const VERCEL_TOKEN = Deno.env.get('VERCEL_TOKEN') ?? '';
-const PROJECT_ID = Deno.env.get('VERCEL_PROJECT_ID') || 'prj_fD8DW3XmW3iyaGNXSCquGcApR4AC';
+const PROJECT_ID = Deno.env.get('VERCEL_PROJECT_ID') || 'prj_sm5rloic5l934qiErQnQ6YZqD0z7';
 const TEAM_ID = Deno.env.get('VERCEL_TEAM_ID') || 'team_baaIo2HD3gXK1oOziipXPpAl';
-const GIT_BRANCH = Deno.env.get('VERCEL_GIT_BRANCH') ?? 'claude/session-setup-kcwzk4';
+const GIT_BRANCH = Deno.env.get('VERCEL_GIT_BRANCH') ?? '';
 const SUFFIX = '.store.jehre.com';
 const SLUG = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 const MAX_ADDS = 25; // per call: the next call (an hour later at most) takes the rest
@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
   const added: string[] = [], failed: { name: string; code: string }[] = [];
   for (const s of missing.slice(0, MAX_ADDS)) {
     const name = s + SUFFIX;
-    const r = await vercel(`/v10/projects/${PROJECT_ID}/domains`, { method: 'POST', body: JSON.stringify({ name, gitBranch: GIT_BRANCH }) });
+    const r = await vercel(`/v10/projects/${PROJECT_ID}/domains`, { method: 'POST', body: JSON.stringify(GIT_BRANCH ? { name, gitBranch: GIT_BRANCH } : { name }) });
     if (r.ok) added.push(name);
     else if (r.status === 400 || r.status === 409) { let code = ''; try { const e = await r.json() as { error?: { code?: string; message?: string } }; code = String((e.error && (e.error.code || e.error.message)) || ''); } catch { /* none */ } if (!/already|in_use|exists/i.test(code)) failed.push({ name, code: r.status + ' ' + code }); }
     else { let code = String(r.status); try { const e = await r.json() as { error?: { code?: string } }; code = (e.error && e.error.code) || code; } catch { /* keep the status */ } failed.push({ name, code }); }
