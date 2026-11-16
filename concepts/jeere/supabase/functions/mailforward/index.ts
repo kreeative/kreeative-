@@ -24,7 +24,7 @@ const FALLBACK_FROM = 'bonjour@' + DOMAIN;
 type Obj = Record<string, unknown>;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 const resend = (path: string, init: RequestInit = {}) => fetch('https://api.resend.com' + path, {
-  ...init, headers: { Authorization: 'Bearer ' + (init.method === 'POST' ? RESEND_KEY : READ_KEY), 'Content-Type': 'application/json', ...(init.headers ?? {}) }
+  ...init, headers: { Authorization: 'Bearer ' + READ_KEY, 'Content-Type': 'application/json', ...(init.headers ?? {}) }
 });
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
 // « Awa <awa@mail.com> » → { name: 'Awa', email: 'awa@mail.com' }
@@ -83,13 +83,13 @@ Deno.serve(async (req: Request) => {
   const send = (withFiles: boolean) => resend('/emails', {
     method: 'POST',
     body: JSON.stringify({
-      from: ((from.name || from.email || 'Message').replace(/[<>"]/g, '') + ' (via Jehre)') + ' <' + (to[0] || FALLBACK_FROM) + '>',
+      from: '"' + (from.name || from.email || 'Message').replace(/[<>"\\\r\n]/g, '').slice(0, 70) + ' (via Jehre)" <' + (to[0] || FALLBACK_FROM) + '>',
       to: [FORWARD_TO], reply_to: from.email || undefined, subject, text, html,
       attachments: withFiles && attachments.length ? attachments : undefined
     })
   });
   let s = await send(true);
   if (!s.ok && attachments.length) s = await send(false);
-  if (!s.ok) { await forget(id); return json({ ok: false, code: 'send', status: s.status }, 502); }
+  if (!s.ok) { await forget(id); return json({ ok: false, code: 'send', status: s.status, why: (await s.text().catch(() => '')).slice(0, 300) }, 502); }
   return json({ ok: true, forwarded: id, to: to[0], files: attachments.length });
 });
