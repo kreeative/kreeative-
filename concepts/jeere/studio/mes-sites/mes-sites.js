@@ -34,7 +34,7 @@
   var CONFIG_KEY = (D.STORAGE_KEYS && D.STORAGE_KEYS.config) || 'jeere-studio-config';
 
   function readJSON(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
-  function address(slug) { return D.storeAddress ? D.storeAddress(slug) : 'jeere.kreeative.xyz/b/' + slug; }
+  function address(slug) { return D.storeAddress ? D.storeAddress(slug) : 'jehre.com/b/' + slug; }
 
   /* ---------------------------------------------------------------- small UI: toasts, the dialog */
   function toast(msg) {

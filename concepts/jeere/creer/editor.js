@@ -686,7 +686,7 @@
       const pg = findCustomPage(S.pageId);
       if (pg && typeof pg.slug === 'string' && pg.slug) path = '/pages/' + pg.slug;
     }
-    els.url.textContent = (S.site || (typeof D.subdomainFor === 'function' ? D.subdomainFor(storeName()) : 'jeere.kreeative.xyz/b/' + slug(storeName()))) + path;
+    els.url.textContent = (S.site || (typeof D.subdomainFor === 'function' ? D.subdomainFor(storeName()) : 'jehre.com/b/' + slug(storeName()))) + path;
     updateFav();
   }
   // The tab icon in the address bar: the seller's icon, else her logo, else her initial on her colour

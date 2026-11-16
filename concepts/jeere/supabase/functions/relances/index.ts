@@ -12,7 +12,7 @@ const SECRET = (() => {
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const FROM = 'Jehre <bonjour@kreeative.xyz>';
-const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jeere.kreeative.xyz').replace(/\/$/, '');
+const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jehre.com').replace(/\/$/, '');
 
 type Obj = Record<string, unknown>;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
@@ -47,7 +47,7 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
     lines.slice(0, -2).map((l) => '<p style="margin:0 0 14px 0;">' + esc(l) + '</p>').join('') +
     '<p style="margin:6px 0 18px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:12px 22px;border-radius:12px;">Finir mon inscription</a></p>' +
     lines.slice(-2).map((l) => '<p style="margin:0 0 14px 0;">' + esc(l) + '</p>').join('') +
-    '</td></tr><tr><td style="padding:6px 28px 24px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">Vous recevez ce seul rappel parce que vous avez demandé un code de connexion sur jeere.kreeative.xyz. Vous n’en recevrez pas d’autre.</td></tr>' +
+    '</td></tr><tr><td style="padding:6px 28px 24px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">Vous recevez ce seul rappel parce que vous avez demandé un code de connexion sur jehre.com. Vous n’en recevrez pas d’autre.</td></tr>' +
     '</table></td></tr></table></body></html>';
   return { subject, html, text: lines.join('\n\n') };
 }

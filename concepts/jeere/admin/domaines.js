@@ -7,7 +7,7 @@
  * Uses ../creer/domains.js (JeereDomains) and ../creer/publish.js (JeerePublish), and admin.css's classes.
  *
  * Three cards:
- *   1. Votre adresse Jehre: jeere.kreeative.xyz/b/<slug>, online or not, « Publier ».
+ *   1. Votre adresse Jehre: jehre.com/b/<slug>, online or not, « Publier ».
  *   2. Votre propre nom de domaine (bought elsewhere): the exact records to add, a guide per registrar,
  *      « Vérifier » (DNS-over-HTTPS from the browser, each record ✓ / ✗), then the `domains` Edge Function
  *      attaches it to the Vercel project (or answers « pas encore configuré »: the team does it).

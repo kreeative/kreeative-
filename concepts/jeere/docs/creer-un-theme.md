@@ -5,7 +5,7 @@ Fiche technique pour une autre session qui doit construire une boutique (par exe
 ## 1. Où vit le code
 
 - **Dépôt GitHub :** `kreeative/kreeative-`
-- **Jehre :** dossier `concepts/jeere/`, sur la branche `claude/session-setup-kcwzk4`. C'est cette branche que sert https://jeere.kreeative.xyz.
+- **Jehre :** dossier `concepts/jeere/`, sur la branche `claude/session-setup-kcwzk4`. C'est cette branche que sert https://jehre.com.
 - **Les sites sur mesure des clientes :** un dossier par site dans `concepts/<nom>/`, sur la branche `claude/kreeative-portfolio-design-n2a770`. Cette branche sert https://kreeative.xyz. Exemples :
   - `concepts/joshua-cooker/`
   - `concepts/sonia-luxury-hair/`
@@ -39,7 +39,7 @@ concepts/anse/
 Dans le `<head>`, chargez Jehre Connect :
 
 ```html
-<script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="anse" defer></script>
+<script src="https://jehre.com/connect/jeere-connect.js" data-store="anse" defer></script>
 ```
 
 `data-store` est l'adresse (le « slug ») de la boutique Jehre qui porte les produits : 3 à 40 caractères, minuscules, chiffres et tirets.
@@ -151,7 +151,7 @@ Le site garde toujours son contenu écrit à la main : si Jehre ne répond pas, 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ANSE · Sacs</title>
-  <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="anse" defer></script>
+  <script src="https://jehre.com/connect/jeere-connect.js" data-store="anse" defer></script>
   <style>
     body { margin: 0; font-family: system-ui, sans-serif; }
     .sacs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; padding: 24px; }

@@ -3486,14 +3486,14 @@
   function bpForWidth(w) { w = Number(w) || 0; return w < BREAKPOINTS.tablet ? 'phone' : (w < BREAKPOINTS.desktop ? 'tablet' : 'desktop'); }
 
   /* The free address of every store (README « Domaines »). Jehre does not own jeere.shop yet, so a
-   * store lives on a path of the free Jehre host: https://jeere.kreeative.xyz/b/<slug>. To move every
+   * store lives on a path of the free Jehre host: https://jehre.com/b/<slug>. To move every
    * store to <slug>.jeere.shop later, buy the domain, put its DNS on Vercel with a wildcard and set
    * ADDRESS_MODE = 'subdomain': every screen follows (storeAddress), old addresses still parse (storeSlug). */
-  var PUBLIC_HOST = 'jeere.kreeative.xyz';
+  var PUBLIC_HOST = 'jehre.com';
   var STORE_PATH = '/b/';
   var ADDRESS_MODE = 'path'; // 'path' (today) | 'subdomain' (once jeere.shop is Jehre's)
   var SUBDOMAIN_SUFFIX = '.jeere.shop';
-  var STORE_PREFIX = ADDRESS_MODE === 'subdomain' ? '' : PUBLIC_HOST + STORE_PATH; // 'jeere.kreeative.xyz/b/'
+  var STORE_PREFIX = ADDRESS_MODE === 'subdomain' ? '' : PUBLIC_HOST + STORE_PATH; // 'jehre.com/b/'
   var DOMAIN_SUFFIX = ADDRESS_MODE === 'subdomain' ? SUBDOMAIN_SUFFIX : '';
   // A seller's own domain: the generic Vercel records (A for the apex, CNAME for www and subdomains)
   var DNS_APEX_A = '76.76.21.21';
@@ -3538,13 +3538,13 @@
     if (checkStoreSlug(s)) s = (s.slice(0, STORE_SLUG_MAX - 9).replace(/-+$/g, '') + '-boutique').replace(/^-+/, '');
     return checkStoreSlug(s) ? 'ma-boutique' : s;
   }
-  // 'awa-beaute' → 'jeere.kreeative.xyz/b/awa-beaute' (shown without https://)
+  // 'awa-beaute' → 'jehre.com/b/awa-beaute' (shown without https://)
   function storeAddress(slug) {
     var s = str(slug, '') || 'ma-boutique';
     return ADDRESS_MODE === 'subdomain' ? s + SUBDOMAIN_SUFFIX : PUBLIC_HOST + STORE_PATH + s;
   }
   function storeUrl(slug) { return 'https://' + storeAddress(slug); }
-  // Any address a store ever had → its slug: 'https://jeere.kreeative.xyz/b/awa-beaute', 'awa-beaute.jeere.shop'
+  // Any address a store ever had → its slug: 'https://jehre.com/b/awa-beaute', 'awa-beaute.jeere.shop'
   // (saved before November 2026) or 'awa-beaute' → 'awa-beaute'. '' when nothing is left.
   function storeSlug(addr) {
     var s = str(addr, '').trim().toLowerCase().replace(/^https?:\/\//, '');
@@ -3555,7 +3555,7 @@
     return slugify(s).slice(0, STORE_SLUG_MAX).replace(/-+$/g, '');
   }
 
-  // 'Awa Beauté' → 'jeere.kreeative.xyz/b/awa-beaute' (the free address of every store; the name is
+  // 'Awa Beauté' → 'jehre.com/b/awa-beaute' (the free address of every store; the name is
   // historical: it gives <slug>.jeere.shop once ADDRESS_MODE is 'subdomain').
   function subdomainFor(name) {
     return storeAddress(storeSlugFor(name));

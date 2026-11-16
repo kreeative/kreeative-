@@ -123,7 +123,7 @@
   }
   function subdomainFor(name) {
     if (typeof D.subdomainFor === 'function') { try { return D.subdomainFor(name); } catch (e) { /* fall through */ } }
-    return 'jeere.kreeative.xyz/b/' + (slugify(name).slice(0, 40).replace(/-+$/g, '') || 'ma-boutique');
+    return 'jehre.com/b/' + (slugify(name).slice(0, 40).replace(/-+$/g, '') || 'ma-boutique');
   }
   function planName(id) {
     var list = Array.isArray(D.PLANS) ? D.PLANS : [];

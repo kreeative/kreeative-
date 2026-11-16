@@ -2,7 +2,7 @@
  * Jehre Rendez-vous — jeere-booking.js: a custom-designed site takes appointments with a Jehre store (classic script,
  * no library). The sister of jeere-connect.js, for service businesses: lashes, nails, hair, braids, make-up…
  *
- *   <script src="https://jeere.kreeative.xyz/connect/jeere-booking.js" data-store="<slug>" defer></script>
+ *   <script src="https://jehre.com/connect/jeere-booking.js" data-store="<slug>" defer></script>
  *
  * The site keeps its own design. This script reads what the store offers from the `bookings` Edge Function (services,
  * add-ons, team, opening hours, policies: what she set in Jehre › Rendez-vous), fills the site's own markup, and

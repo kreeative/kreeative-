@@ -22,7 +22,7 @@ const PUBLISHABLE = (() => {
 const SECRET = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jeere.kreeative.xyz').replace(/\/$/, '');
+const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jehre.com').replace(/\/$/, '');
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

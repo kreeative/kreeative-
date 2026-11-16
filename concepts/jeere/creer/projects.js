@@ -184,7 +184,7 @@
     var s = {};
     s[K_CONFIG] = text;
     s[K_PUBLISH] = JSON.stringify({ version: 1, slug: str(row.slug), storeId: str(row.id), ownerId: '', published: row.published === true, publishedAt: str(row.published_at), hash: row.published && P && P.hash ? P.hash(text) : '' });
-    s[K_ADMIN] = JSON.stringify({ version: 1, subdomainChosen: true, settings: { subdomain: D.storeAddress ? D.storeAddress(row.slug) : 'jeere.kreeative.xyz/b/' + row.slug } });
+    s[K_ADMIN] = JSON.stringify({ version: 1, subdomainChosen: true, settings: { subdomain: D.storeAddress ? D.storeAddress(row.slug) : 'jehre.com/b/' + row.slug } });
     return s;
   }
 
@@ -461,8 +461,8 @@
     var q = 'apercu=' + encodeURIComponent(e.token);
     var host = '';
     try { host = window.location.hostname; } catch (err) { host = ''; }
-    if (host === (D.PUBLIC_HOST || 'jeere.kreeative.xyz') || !/^(localhost|127\.0\.0\.1|\[::1\])$|\.vercel\.app$|kreeative\.xyz$/.test(host)) {
-      return 'https://' + (D.storeAddress ? D.storeAddress(e.slug) : 'jeere.kreeative.xyz/b/' + e.slug) + '?' + q;
+    if (host === (D.PUBLIC_HOST || 'jehre.com') || /^jeere\.kreeative\.xyz$/.test(host) || !/^(localhost|127\.0\.0\.1|\[::1\])$|\.vercel\.app$|kreeative\.xyz$/.test(host)) {
+      return 'https://' + (D.storeAddress ? D.storeAddress(e.slug) : 'jehre.com/b/' + e.slug) + '?' + q;
     }
     try { return new URL('../b/?s=' + encodeURIComponent(e.slug) + '&' + q, document.baseURI).href; } catch (err) { return ''; }
   }

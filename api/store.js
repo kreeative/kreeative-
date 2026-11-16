@@ -17,7 +17,7 @@
  * « Aperçu privé »: …/b/<slug>?apercu=<token> serves the store even unpublished (rpc store_preview), noindex
  * and never cached (client projects, migration jeere_client_projects).
  * Routes (vercel.json):
- *   jeere.kreeative.xyz/b/<slug>[/produits/<id> | /pages/<slug> | /panier | /paiement]
+ *   jehre.com/b/<slug>[/produits/<id> | /pages/<slug> | /panier | /paiement]
  *        → /api/store?slug=<slug>&path=<rest>
  *   <her own domain>/<any path without a dot> → /api/store?path=<path>   (the host header says which store)
  * Vercel serves api/*.js for a project without a framework (« Other »); the files it reads are listed in
@@ -34,9 +34,9 @@ const vm = require('vm');
 
 const SB_URL = process.env.JEERE_SB_URL || 'https://aezchxfvzfoqlvzchqyk.supabase.co';
 const SB_KEY = process.env.JEERE_SB_KEY || 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
-const PUBLIC_HOST = 'jeere.kreeative.xyz';
+const PUBLIC_HOST = 'jehre.com';
 const COLS = 'id,slug,fiche,show_badge,published,published_at,custom_domain,domain_status,updated_at';
-const JEERE_HOST = /^(jeere\.kreeative\.xyz|kreeative\.xyz|localhost|127\.0\.0\.1)$|\.kreeative\.xyz$|\.vercel\.app$/;
+const JEERE_HOST = /^(jehre\.com|jeere\.kreeative\.xyz|kreeative\.xyz|localhost|127\.0\.0\.1)$|\.kreeative\.xyz$|\.vercel\.app$/;
 
 function rootDir() {
   const cands = [process.env.JEERE_ROOT, path.join(__dirname, '..'), process.cwd()].filter(Boolean);

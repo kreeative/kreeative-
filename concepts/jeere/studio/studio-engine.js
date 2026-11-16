@@ -1641,9 +1641,9 @@
      *   - the root is a <section> (a <div> on the canvas);
      *   - the classes are readable, from the layer names (« hero__titre », « hero__bouton-2 »), not the
      *     engine's hashed « de-xxxxxxxx » (those stay in the Studio, where they key the nodes);
-     *   - the photos point to the public copy of the demo photos (https://jeere.kreeative.xyz/creer/img/…),
+     *   - the photos point to the public copy of the demo photos (https://jehre.com/creer/img/…),
      *     never to the address the Studio runs on (http://localhost…); her own photos are embedded. */
-    var PUBLIC_ORIGIN = 'https://jeere.kreeative.xyz/';
+    var PUBLIC_ORIGIN = 'https://jehre.com/';
     function publicUrl(u) {
       u = String(u || '');
       if (/^data:/i.test(u)) return u;

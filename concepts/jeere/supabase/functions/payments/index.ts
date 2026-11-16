@@ -23,7 +23,7 @@
 //
 // Secrets (Supabase › Edge Functions › Secrets): STRIPE_SECRET_KEY (Jehre's platform key, sk_test_… to try it),
 // STRIPE_WEBHOOK_SECRET (the Connect webhook endpoint's whsec_…). Optional: JEERE_CARD_FEE_PCT (Jehre's
-// commission on card sales at most, 2 by default; each plan's own rate applies below it), JEERE_SITE (https://jeere.kreeative.xyz).
+// commission on card sales at most, 2 by default; each plan's own rate applies below it), JEERE_SITE (https://jehre.com).
 // Deployed with verify_jwt = false (the publishable key is not a JWT; Stripe sends no JWT): checked here.
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? 'https://aezchxfvzfoqlvzchqyk.supabase.co';
@@ -50,7 +50,7 @@ function feeFor(store: Obj): number {
   const plan = String(store.plan ?? 'gratuit');
   return Math.min(FEE_PCT, plan in PLAN_FEE ? PLAN_FEE[plan] : FEE_PCT);
 }
-const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jeere.kreeative.xyz').replace(/\/$/, '');
+const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jehre.com').replace(/\/$/, '');
 // Countries where a store's Stripe account can be opened (Stripe Connect Express)
 const COUNTRIES = ['CA', 'US', 'FR', 'BE', 'CH', 'GB', 'DE', 'ES', 'IT', 'NL', 'PT', 'IE', 'LU'];
 

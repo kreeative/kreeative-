@@ -110,7 +110,7 @@ function vars(store: Obj, o: Order) {
   return {
     'boutique.nom': str(st.name, 80) || str(store.slug, 40),
     'boutique.whatsapp': str(st.whatsapp, 30),
-    'boutique.lien': 'https://jeere.kreeative.xyz/b/' + str(store.slug, 40),
+    'boutique.lien': 'https://jehre.com/b/' + str(store.slug, 40),
     'client.nom': name, 'client.prenom': name.split(' ')[0] || name,
     'client.telephone': str(c.phone, 30), 'client.email': str(c.email, 120),
     'livraison.commune': str(c.commune, 60) || '—', 'livraison.adresse': str(c.address, 200) || '—',

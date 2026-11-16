@@ -166,9 +166,9 @@
   /* multi-selection ({ kind: 'multi', ids: [...] }): always section ids, in fiche order */
   /* the store's public address as the Studio shows it (référencement, pages): the store's NAME through
    * JEERE_DATA.subdomainFor (it used to receive the whole fiche: « object-object.jeere.shop »). One
-   * helper, so the address can move (jeere.kreeative.xyz/b/<slug>) in one place. */
+   * helper, so the address can move (jehre.com/b/<slug>) in one place. */
   /* the store's public address: the one chosen when publishing (the dashboard's settings), else the one its name
-   * gives — « jeere.kreeative.xyz/b/<adresse> » (creer/data.js, storeAddress) */
+   * gives — « jehre.com/b/<adresse> » (creer/data.js, storeAddress) */
   function storeAddress(path) {
     var name = (state.config && state.config.store && state.config.store.name) || '';
     var base = '';
@@ -178,7 +178,7 @@
       if (chosen && typeof D.storeSlug === 'function' && typeof D.storeAddress === 'function') base = D.storeAddress(D.storeSlug(chosen));
       if (!base && typeof D.subdomainFor === 'function') base = D.subdomainFor(name);
     } catch (e) { /* the default */ }
-    if (!base) base = 'jeere.kreeative.xyz/b/ma-boutique';
+    if (!base) base = 'jehre.com/b/ma-boutique';
     return String(base).replace(/^https?:\/\//, '').replace(/\/$/, '') + (path || '');
   }
 
@@ -3922,7 +3922,7 @@
     if (titleEl) titleEl.textContent = publish ? 'Publier la boutique' : 'Partager la fiche';
     var v = null;
     try { v = D.validate(D.normalizeConfig(state.config)); } catch (e) { v = null; }
-    var sub = 'jeere.kreeative.xyz/b/ma-boutique';
+    var sub = 'jehre.com/b/ma-boutique';
     try { if (D.subdomainFor && state.config.store) sub = D.subdomainFor(state.config.store.name); } catch (e) { /* default */ }
     var html = '';
     if (publish) {

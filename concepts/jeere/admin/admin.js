@@ -406,7 +406,7 @@
     const days = arr(g.days).slice(-7);
     const max = Math.max(1, ...days.map((d) => Number(d.accounts) || 0));
     const fmtDay = (d) => { const x = new Date(d + 'T12:00:00'); return DAYS_SHORT[x.getDay()]; };
-    return H`<section class="a-card a-growth" aria-labelledby="h-growth"><div class="a-card__head"><div><h2 class="a-card__title" id="h-growth">Croissance de Jehre</h2><p class="a-card__sub">Visible par vous seule. Lien à partager : jeere.kreeative.xyz/compte/?ref=tiktok#inscription</p></div></div>
+    return H`<section class="a-card a-growth" aria-labelledby="h-growth"><div class="a-card__head"><div><h2 class="a-card__title" id="h-growth">Croissance de Jehre</h2><p class="a-card__sub">Visible par vous seule. Lien à partager : jehre.com/compte/?ref=tiktok#inscription</p></div></div>
       <dl class="a-growth__tot">
         <div><dt>Comptes</dt><dd>${esc(number(t.accounts || 0))}</dd></div>
         <div><dt>Boutiques</dt><dd>${esc(number(t.stores || 0))}</dd></div>
@@ -443,7 +443,7 @@
   }
   const EXT = () => (founder() && window.JeereTishe && window.JeereTishe.on() ? window.JeereTishe : null);
   const storeName = () => (EXT() ? EXT().name : (S.config && S.config.store.name) || (S.account && S.account.storeName) || 'Ma boutique');
-  const subdomain = () => EXT() ? EXT().url : (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jeere.kreeative.xyz/b/ma-boutique');
+  const subdomain = () => EXT() ? EXT().url : (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jehre.com/b/ma-boutique');
   const findOrder = (id) => S.admin.orders.find((o) => o.id === id) || null;
   const findProduct = (id) => (S.config ? S.config.products.find((p) => p.id === id) : null) || null;
   const findPage = (id) => (S.config ? arr(S.config.pages).find((p) => p.id === id) : null) || null;
@@ -3854,7 +3854,7 @@
     // (The address is now chosen in the « Publier » dialog, which checks it is free; kept for older drafts.)
     const s = slugify(form.elements.sub.value).slice(0, 40).replace(/-+$/, '');
     if (!s || s.length < 3) { invalid(form.elements.sub, 'Trois caractères au moins, par exemple awa-beaute.'); focusFirstError(form); return; }
-    const addr = D && D.storeAddress ? D.storeAddress(s) : 'jeere.kreeative.xyz/b/' + s;
+    const addr = D && D.storeAddress ? D.storeAddress(s) : 'jehre.com/b/' + s;
     S.admin.settings.subdomain = addr;
     S.admin.subdomainChosen = true;
     saveAdmin();

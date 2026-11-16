@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /compte/
 
-Sitemap: https://jeere.kreeative.xyz/b/sitemap.xml
+Sitemap: https://jehre.com/b/sitemap.xml

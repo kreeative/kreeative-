@@ -1,6 +1,6 @@
 # E-mails Jehre (Supabase Auth)
 
-À coller dans Supabase › Authentication › Emails (projet « Jehre »). Chaque fichier .txt contient le code à copier-coller tel quel dans le champ « Message body ». Chaque modèle montre le code ({{ .Token }}) en grand, avec le logo de Jehre (`/img/brand/email-logo.png`, servi par jeere.kreeative.xyz).
+À coller dans Supabase › Authentication › Emails (projet « Jehre »). Chaque fichier .txt contient le code à copier-coller tel quel dans le champ « Message body ». Chaque modèle montre le code ({{ .Token }}) en grand, avec le logo de Jehre (`/img/brand/email-logo.png`, servi par jehre.com).
 
 | Modèle Supabase | Fichier | Objet (Subject) |
 | --- | --- | --- |

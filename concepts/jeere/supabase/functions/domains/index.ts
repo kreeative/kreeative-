@@ -43,7 +43,7 @@ const APEX_A = '76.76.21.21';
 const CNAME_TARGET = 'cname.vercel-dns.com';
 
 // Domains that are not stores and must never be attached or removed by this function
-const PROTECTED = /(^|\.)(kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|supabase\.co|localhost)$/;
+const PROTECTED = /(^|\.)(jehre\.com|kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|supabase\.co|localhost)$/;
 
 // The TLDs Jehre resells through Vercel (Vercel does not offer .ci or .africa: see README « Domaines »)
 const TLDS = ['com', 'shop', 'store', 'online', 'net', 'co', 'site', 'boutique'];

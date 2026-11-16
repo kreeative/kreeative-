@@ -1,6 +1,6 @@
 // Jehre — Edge Function `store-sitemap` (Supabase project « Jehre », ref aezchxfvzfoqlvzchqyk).
 //
-// https://jeere.kreeative.xyz/b/sitemap.xml (vercel.json proxies that address here): every published
+// https://jehre.com/b/sitemap.xml (vercel.json proxies that address here): every published
 // store, its pages and its products, in the sitemaps.org format, for Google and the other engines.
 //   GET https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/store-sitemap   → application/xml
 // A store on her own verified domain is listed at that domain. Pages or stores marked « noindex » in the
@@ -16,7 +16,7 @@ const SECRET = (() => {
 const PUBLISHABLE = (() => {
   try { return JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') ?? '{}').default ?? ''; } catch { return ''; }
 })() || Deno.env.get('SUPABASE_ANON_KEY') || 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
-const PUBLIC_HOST = 'jeere.kreeative.xyz';
+const PUBLIC_HOST = 'jehre.com';
 
 type Row = { slug: string; updated_at: string; custom_domain: string | null; domain_status: string | null; pages?: string[]; products?: string[]; noindex?: boolean };
 

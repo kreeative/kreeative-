@@ -1,12 +1,12 @@
 /*
  * Jehre Connect — jeere-connect.js: a custom-designed site sells with a Jehre store (classic script, no library).
  *
- *   <script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="<slug>" defer></script>
+ *   <script src="https://jehre.com/connect/jeere-connect.js" data-store="<slug>" defer></script>
  *
  * The site keeps its own design. This script reads the store's PUBLISHED fiche from Supabase (REST, the
  * publishable key: row level security only shows published rows, never the owner), puts the store's names,
  * prices, descriptions and photos into the site's own markup, keeps a cart in localStorage (one per store)
- * and sends the buyer to the store's Jehre cart: https://jeere.kreeative.xyz/b/<slug>/panier?panier=p1:2,p3:1
+ * and sends the buyer to the store's Jehre cart: https://jehre.com/b/<slug>/panier?panier=p1:2,p3:1
  * (b/b.js fills the cart from that parameter; the order then leaves on WhatsApp, as on any Jehre store).
  * If Supabase cannot be reached or the store is not published, the page keeps its hard-coded content and
  * its cart still works (prices read from the page); nothing here ever throws into the site.
@@ -28,7 +28,7 @@
  *   [data-jeere-social]  filled with the seller's networks (Instagram, TikTok, Facebook, set in Jehre > Parametres >
  *                        Boutique): one round icon link each, in the site's own colour; hidden when she has none
  * In the Jehre editor (the site framed as its preview) the fiche being edited is received by postMessage
- * ({ jeerePreview: <slug>, fiche }, from jeere.kreeative.xyz only) and shown in place of the published one.
+ * ({ jeerePreview: <slug>, fiche }, from jehre.com only) and shown in place of the published one.
  *   [data-jeere-checkout]  goes to the Jehre cart (same tab); disabled (aria-disabled on a link) when empty
  * Script attributes: data-store (required), data-default-cart="p1:1,p2:1" (the cart of a first visit only).
  *
@@ -45,7 +45,7 @@
 
   var SB_URL = 'https://aezchxfvzfoqlvzchqyk.supabase.co';
   var SB_KEY = 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
-  var STORE_ORIGIN = 'https://jeere.kreeative.xyz';
+  var STORE_ORIGIN = 'https://jehre.com';
   var NB = '\u00a0';
   var QMAX = 20;
   var TIMEOUT = 6000;
@@ -445,7 +445,7 @@
     // edited, not yet published; it replaces the published one on this page only, for her alone.
     if (window.parent !== window) {
       window.addEventListener('message', function (e) {
-        if (!/^https:\/\/jeere\.kreeative\.xyz$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
+        if (!/^https:\/\/(jehre\.com|jeere\.kreeative\.xyz)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
         if (!isObj(e.data) || e.data.jeerePreview !== slug || !isObj(e.data.fiche)) return;
         preview = true;
         try { S.products = readFiche(e.data.fiche); S.status = 'ready'; drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }

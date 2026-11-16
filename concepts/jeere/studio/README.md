@@ -439,7 +439,7 @@ Les sections du modèle restent des **composants** ; « Détacher » en fait des
   l’inspecteur dit « Lié à Produit · nom » avec « Ouvrir le produit » et « Délier ».
 - **Export HTML / CSS** : la racine est une `<section>`, les classes sont nommées d’après les calques
   (`nos-soins__nom`, `-2` en cas de doublon ; les classes `de-xxxxxxxx` restent internes au Studio), les
-  photos d’exemple pointent vers leur copie publique (`https://jeere.kreeative.xyz/creer/img/…`), jamais
+  photos d’exemple pointent vers leur copie publique (`https://jehre.com/creer/img/…`), jamais
   vers l’adresse locale du Studio ; les photos de la vendeuse sont embarquées.
 
 Points d’accroche ajoutés à `studio.js` (petits, localisés) : `ZOOM_MIN / ZOOM_MAX`, `pushEntry` et
@@ -516,7 +516,7 @@ focus itinérant), ↑/↓ passent de ligne en ligne, Entrée ou Espace sélecti
 ## Publier, partager
 
 « Publier » ouvre le dialogue de **publication réelle** (`../creer/publish.js`, Supabase) : le score
-qualité, l’adresse `jeere.kreeative.xyz/b/<slug>` vérifiée en direct, « Publier ma boutique » /
+qualité, l’adresse `jehre.com/b/<slug>` vérifiée en direct, « Publier ma boutique » /
 « Mettre à jour la boutique ». Vague 2 :
 - **Brouillon et en ligne** sont dits à part : « Brouillon = en ligne » ou « Brouillon modifié » (ce que
   le Studio édite est le brouillon, le lien montre la dernière version publiée).
@@ -810,7 +810,7 @@ la **publication**, que seule la fonction peut faire.
 
 **Mode démo** (tests) : sur un hôte local seulement (localhost, 127.0.0.1, file:), `sites/?demo=1`
 ou `localStorage['jeere-sites-demo'] = '1'` (`studio/?sites=demo` le pose) ouvre tout sans compte. Il
-n’existe pas sur kreeative.xyz ni sur jeere.kreeative.xyz.
+n’existe pas sur kreeative.xyz ni sur jehre.com.
 
 ### Les sites (`sites/sites.json`)
 
@@ -967,7 +967,7 @@ l’éditeur SQL de Supabase.
 - Pas de déplacement d’élément par glisser (Dupliquer + Supprimer, ou l’onglet Code).
 - « Dupliquer la page » crée une page `.html` à côté de l’originale ; pas de suppression ni de
   renommage de page.
-- Sur jeere.kreeative.xyz (où les chemins sont réécrits vers `concepts/jeere/`), les pages sont lues
+- Sur jehre.com (où les chemins sont réécrits vers `concepts/jeere/`), les pages sont lues
   depuis GitHub (raw) et leurs fichiers depuis kreeative.xyz : préférer l’adresse
   `…/concepts/jeere/studio/sites/` du déploiement kreeative-site. Les sites d’une autre branche sont
   toujours lus depuis GitHub et l’aperçu Vercel de leur branche.

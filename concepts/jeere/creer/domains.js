@@ -23,7 +23,7 @@
   var SB_KEY = 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
   var DOH = 'https://dns.google/resolve';
   var NB = ' ';
-  var PROTECTED = /(^|\.)(kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|supabase\.co|localhost)$/;
+  var PROTECTED = /(^|\.)(jehre\.com|kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|supabase\.co|localhost)$/;
   var TWO_LEVEL = /\.(co|com|net|org|gouv|edu|ac|or|go)\.[a-z]{2}$/;
 
   function str(v) { return typeof v === 'string' ? v : (v == null ? '' : String(v)); }

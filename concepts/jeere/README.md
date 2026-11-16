@@ -296,7 +296,7 @@ style.css    tokens, layout, responsive rules (360 px first)
 site.js      language, delivery demo, template tabs, waitlist form, hero canvas, hidden fallback
              for a photo that cannot load, scroll-in
 abonnements/  the Studio's pricing page and checkout (« Abonnements Studio », see studio/README.md)
-b/           the public store page (index.html, b.js, b.css): jeere.kreeative.xyz/b/<adresse> and sellers' own domains
+b/           the public store page (index.html, b.js, b.css): jehre.com/b/<adresse> and sellers' own domains
 supabase/    the SQL of public.stores (migrations/) and the Edge Function `domains` (functions/), see « Domaines »
 anim/boutique.js  the hero animation: the traced stall lines, the brush-stroke builder, the burst, play and
              replay (the motion itself is CSS in style.css, « Physical to online »)
@@ -414,13 +414,13 @@ How a Jehre store gets a real address, how a seller connects a domain she bought
 buy one through Jehre. Everything below is built; what still needs the founder is in
 [What the founder must do](#what-the-founder-must-do).
 
-### The free address: `jeere.kreeative.xyz/b/<adresse>`
+### The free address: `jehre.com/b/<adresse>`
 
 Jehre does not own `jeere.shop` yet, and `kreeative.xyz`'s DNS is at GoDaddy (so no wildcard
-`*.jeere.kreeative.xyz`). Every store therefore lives on a **path** of the free Jehre host:
+`*.jehre.com`). Every store therefore lives on a **path** of the free Jehre host:
 
 ```
-https://jeere.kreeative.xyz/b/awa-beaute            the store (vercel.json routes /b/<slug> on that host to b/index.html)
+https://jehre.com/b/awa-beaute            the store (vercel.json routes /b/<slug> on that host to b/index.html)
 https://kreeative.xyz/concepts/jeere/b/?s=awa-beaute the same page on any host (previews, kreeative.xyz, a local server)
 https://awabeaute.com/                               her own domain (below): the store whose custom_domain is the host
 ```
@@ -481,7 +481,7 @@ it with `creer/render.js` + `store.css`. **Breakpoints** (`JEERE_DATA.BREAKPOINT
 layout under 768 px, the computer layout from 768 px (the Studio's 768 artboard), the element styles' tablet values
 under 1200 px. Detached Studio sections render (`engine-sections.js` loads the DualEngine on demand).
 **Addresses** (wave 2, one format end to end: `render.js` writes the links with `options.linkBase`, `b.js` reads and
-pushes them): `jeere.kreeative.xyz/b/<slug>/produits/<id>`, `/pages/<slug>`, `/panier`, `/paiement`; on her own
+pushes them): `jehre.com/b/<slug>/produits/<id>`, `/pages/<slug>`, `/panier`, `/paiement`; on her own
 domain the same from the root (`/produits/<id>`…); on any other host `…/b/?s=<slug>#/produits/<id>`. Older links
 (`#/produits/…`, `#produit/p2`, `#page/a-propos`, `#panier`) still open the right view and the address is cleaned.
 Back works, a link can be shared, opened in a new tab or indexed. **The `<head>`**: the Studio's référencement
@@ -493,10 +493,10 @@ database from the owner's plan, migration `jeere_wave2`), else `show_badge`. A l
 « Réessayer ». **Ordering**: the store's checkout has no real payment yet, so « Payer » / « Confirmer la commande »
 opens WhatsApp to the shop's number with the order written (items, commune and fee, total, payment method, name)
 and says so; the preview's demo confirmation is never shown to a customer. Assets are added by the page's first
-script with the right base (`/` on jeere.kreeative.xyz, `/concepts/jeere/` elsewhere), never as relative links.
+script with the right base (`/` on jehre.com, `/concepts/jeere/` elsewhere), never as relative links.
 
 **Link previews and crawlers** (`api/store.js`, a Vercel serverless function, Node, no dependency; wave 2): WhatsApp,
-Facebook and X do not run JavaScript, so `jeere.kreeative.xyz/b/<slug>…` and every page of her own domain go
+Facebook and X do not run JavaScript, so `jehre.com/b/<slug>…` and every page of her own domain go
 through this function. It reads the published row (REST, publishable key), and serves `b/index.html` with the
 store's own `<title>`, description, `og:*`, `twitter:*`, canonical (her verified domain if any), `robots`, JSON-LD
 (`Store`, and `Product` with its price in XOF on a product page), the store drawn by `render.js` in the phone
@@ -506,41 +506,41 @@ Vercel's edge (`stale-while-revalidate` 10 min). Any failure serves the static p
 the store itself as before. Why not a Supabase Edge Function: Supabase serves every `GET` that returns `text/html`
 as `text/plain` (documented), so a browser would show the source. Vercel serves `api/*.js` for a project without
 a framework; `vercel.json › functions › includeFiles` ships `b/index.html`, `creer/data.js` and `creer/render.js`
-with it. **Sitemap**: `jeere.kreeative.xyz/b/sitemap.xml` → `api/sitemap.js`, which serves as `application/xml`
+with it. **Sitemap**: `jehre.com/b/sitemap.xml` → `api/sitemap.js`, which serves as `application/xml`
 the list made by the Edge Function **`store-sitemap`** (every published store, its pages and products; a
-store on her verified domain is listed there; `noindex` pages left out). `jeere.kreeative.xyz/robots.txt`
+store on her verified domain is listed there; `noindex` pages left out). `jehre.com/robots.txt`
 (`concepts/jeere/robots.txt`) points to it.
 
 ### vercel.json: `routes`, not `rewrites`
 
 Vercel serves a file that exists **before** `rewrites` (« the filesystem takes precedence over rewrites »), so the
-old rule could never show Jehre at `jeere.kreeative.xyz/`: the repository root has its own `index.html` (the
+old rule could never show Jehre at `jehre.com/`: the repository root has its own `index.html` (the
 portfolio). `routes` run before the filesystem, so the file now uses `routes` (it had only one rewrite, nothing
 else to convert). In order:
 
-1. `jeere.kreeative.xyz` + `/concepts/jeere/…` → 308 to `/…` (old links).
-2. `jeere.kreeative.xyz` + `/creer`, `/admin`, `/compte`, `/abonnements`, `/studio`, `/b` → 308 with the final slash.
-3. `jeere.kreeative.xyz` + `/b/sitemap.xml` → `/api/sitemap` (wave 2); `/b/<slug>` with an optional `/produits/<id>`, `/pages/<slug>`, `/panier` or `/paiement` (optional final slash) → `/api/store?slug=<slug>&path=<rest>` (wave 2; before: `b/index.html` directly).
-4. `jeere.kreeative.xyz` + `/` → `/concepts/jeere/index.html`; a path ending in `/` → its `index.html`; any other path → `/concepts/jeere/<path>`.
+1. `jehre.com` + `/concepts/jeere/…` → 308 to `/…` (old links).
+2. `jehre.com` + `/creer`, `/admin`, `/compte`, `/abonnements`, `/studio`, `/b` → 308 with the final slash.
+3. `jehre.com` + `/b/sitemap.xml` → `/api/sitemap` (wave 2); `/b/<slug>` with an optional `/produits/<id>`, `/pages/<slug>`, `/panier` or `/paiement` (optional final slash) → `/api/store?slug=<slug>&path=<rest>` (wave 2; before: `b/index.html` directly).
+4. `jehre.com` + `/` → `/concepts/jeere/index.html`; a path ending in `/` → its `index.html`; any other path → `/concepts/jeere/<path>`.
 5. **Any other host** that is not `kreeative.xyz`, `*.kreeative.xyz` (www, jeere), `*.vercel.app` (kreeative-site.vercel.app, previews) or `localhost`, for a path without a dot outside `/concepts/jeere/` → `/api/store?path=/<path>` (wave 2: a seller's domain, the host says which store; its files, `/concepts/jeere/creer/render.js`…, have a dot and fall through to the filesystem).
 
 | Host | Path | Result |
 | --- | --- | --- |
 | kreeative.xyz, www.kreeative.xyz | everything | unchanged: the filesystem (portfolio, `/concepts/jeere/…`, `/robots.txt`, 404) |
 | kreeative-site.vercel.app, `*-<team>.vercel.app` previews | everything | unchanged |
-| jeere.kreeative.xyz | `/` | the Jehre landing (before: the portfolio's `index.html`) |
-| jeere.kreeative.xyz | `/creer` · `/creer/` · `/creer/render.js` | 308 `/creer/` · editor · the file |
-| jeere.kreeative.xyz | `/b/awa-beaute`, `/b/awa-beaute/`, `/b/awa-beaute/produits/p1`, `/b/awa-beaute/pages/a-propos`, `/b/awa-beaute/panier` | `api/store.js` (the store page with its own `<head>`) |
-| jeere.kreeative.xyz | `/b/sitemap.xml` | `api/sitemap.js` (the `store-sitemap` Edge Function, as XML) |
-| jeere.kreeative.xyz | `/b/awa-beaute/autre` | 404 |
-| jeere.kreeative.xyz | `/b/b.js`, `/style.css`, `/studio/engine/model.js` | the Jehre files |
-| jeere.kreeative.xyz | `/robots.txt` | `concepts/jeere/robots.txt` (wave 2: allow, sitemap) |
+| jehre.com | `/` | the Jehre landing (before: the portfolio's `index.html`) |
+| jehre.com | `/creer` · `/creer/` · `/creer/render.js` | 308 `/creer/` · editor · the file |
+| jehre.com | `/b/awa-beaute`, `/b/awa-beaute/`, `/b/awa-beaute/produits/p1`, `/b/awa-beaute/pages/a-propos`, `/b/awa-beaute/panier` | `api/store.js` (the store page with its own `<head>`) |
+| jehre.com | `/b/sitemap.xml` | `api/sitemap.js` (the `store-sitemap` Edge Function, as XML) |
+| jehre.com | `/b/awa-beaute/autre` | 404 |
+| jehre.com | `/b/b.js`, `/style.css`, `/studio/engine/model.js` | the Jehre files |
+| jehre.com | `/robots.txt` | `concepts/jeere/robots.txt` (wave 2: allow, sitemap) |
 | awabeaute.com, www.awabeaute.com, boutique.awabeaute.ci | `/`, `/produits/p1`, `/une/page` | `api/store.js`, which finds the store by its host |
 | kreeative.xyz | `/api/store` | the function, which serves the static page (no store asked) |
 | awabeaute.com | `/concepts/jeere/creer/render.js`, demo photos | the files |
 
 `vroute.js` (a model of this router) and `vroute-test.js` (scratchpad `publish/`) check each line; `vserver.js`
-serves the worktree by `Host` header with the same model, so the tests open `http://jeere.kreeative.xyz:8921/b/…`
+serves the worktree by `Host` header with the same model, so the tests open `http://jehre.com:8921/b/…`
 and `http://awabeaute.test:8921/` in Chromium. Not checked by a deploy: that `has`/`missing` host values match as
 documented (`value` string, `{ suf }`). **Any other domain added to the project later that is not a store must be
 added to the `missing` list of rule 5.**
@@ -653,7 +653,7 @@ curl -X POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains \
 ### What the founder must do
 
 1. **GoDaddy › kreeative.xyz › DNS**: add `CNAME` `jeere` → `659106b38f644a47.vercel-dns-017.com`. Then
-   `https://jeere.kreeative.xyz/` shows Jehre and `https://jeere.kreeative.xyz/b/<adresse>` the stores. If a visitor
+   `https://jehre.com/` shows Jehre and `https://jehre.com/b/<adresse>` the stores. If a visitor
    is asked to log in to Vercel, the branch domain is behind Deployment Protection: allow it in Vercel › Project ›
    Settings › Deployment Protection, or point the domain at production.
 2. **A Vercel token**: Vercel › Account Settings › Tokens › « Create », scope = the team that owns the project
@@ -674,7 +674,7 @@ curl -X POST https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/domains \
 3. Add a host-based route before rule 5: host `{ "suf": ".jeere.shop" }` (not `www.`), paths without a dot →
    `/concepts/jeere/b/index.html`, and add `*.jeere.shop` hosts to b.js's lookup (slug = the first label).
 4. Set `ADDRESS_MODE = 'subdomain'` in `creer/data.js`: every screen shows `awa-beaute.jeere.shop`; old
-   `jeere.kreeative.xyz/b/…` links keep working (keep rule 3).
+   `jehre.com/b/…` links keep working (keep rule 3).
 
 ## Jehre Connect (a custom-designed site on a Jehre store)
 
@@ -682,7 +682,7 @@ For sites the studio designs by hand (`concepts/joshua-cooker/`, `concepts/sonia
 own design, and their products, prices and cart come from a Jehre store, edited in the Jehre editor.
 
 ```html
-<script src="https://jeere.kreeative.xyz/connect/jeere-connect.js" data-store="<slug>" defer></script>
+<script src="https://jehre.com/connect/jeere-connect.js" data-store="<slug>" defer></script>
 ```
 
 - `connect/jeere-connect.js` reads the store's **published** fiche (`GET /rest/v1/stores?slug=eq.<slug>&published=is.true&select=slug,fiche`,
@@ -696,7 +696,7 @@ own design, and their products, prices and cart come from a Jehre store, edited 
   fills a first visit (Joshua's mockup shows two dishes). A `jeere:cart` event on `document` after each change (and
   `jeere:ready` once the fiche is read), and `window.JeereConnect = { ready, status(), products(), product(id), cart(),
   add(id, q), set(id, q), clear(), checkoutUrl(), refresh(), formatPrice }` for a site's own script (Sonia's bag).
-- Checkout: same tab to `https://jeere.kreeative.xyz/b/<slug>/panier?panier=p1:2,p3:1`. `b/b.js` fills the store's cart
+- Checkout: same tab to `https://jehre.com/b/<slug>/panier?panier=p1:2,p3:1`. `b/b.js` fills the store's cart
   from it (its own product ids only, 1 to 20 each), opens the cart, and takes the parameter out of the address. The
   order then leaves on WhatsApp, as on every Jehre store: the store needs its WhatsApp number in the fiche.
 - Never breaks the site: Supabase unreachable, store not published, or the script not loading → the hard-coded
@@ -731,6 +731,6 @@ Everything is in [docs/rendez-vous.md](docs/rendez-vous.md).
 - Pick the domain: `jeere.com` is taken; `jeere.shop`, `jeere.app` and `getjeere.com` were
   free on 3 November 2026 (GoDaddy); `jeere.shop` was still free on Vercel on 6 November 2026
   (2,99 $ the first year, then 38,39 $ a year). `.ci` must be checked with the Ivorian registry. Until a
-  domain is bought, stores live at `jeere.kreeative.xyz/b/<adresse>` (see [Domaines](#domaines)); only the
+  domain is bought, stores live at `jehre.com/b/<adresse>` (see [Domaines](#domaines)); only the
   hero illustration still shows « chezawa.jeere.shop » (the hero is frozen: change `.bt__url` when it is not).
 - Add the @annklyy links (TikTok, Instagram) to the footer once you start posting.

@@ -399,7 +399,7 @@
     var b = pageSrc(p);
     if (!b.onlyOnBranch && ROOT && (p.local || p.isNew)) return ROOT + C.dirOf(p.from || p.path);
     if (b.previewBase) return b.previewBase + C.dirOf(p.from || p.path);
-    // not served here (the jeere.kreeative.xyz host, or a branch without a preview): the live site's own files
+    // not served here (the jehre.com host, or a branch without a preview): the live site's own files
     return 'https://' + CFG.liveOrigin + '/' + C.dirOf(p.from || p.path);
   }
   function readText(buf) {

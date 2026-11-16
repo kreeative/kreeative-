@@ -23,7 +23,7 @@ service online, the studio runs its agenda from the dashboard. Built on 13 Novem
 | Tables `booking_settings`, `appointments`, `booking_blocks` | `supabase/migrations/20261113150000_jeere_bookings.sql` |
 | Edge Function `bookings` (everything goes through it) | `supabase/functions/bookings/index.ts` |
 | The booking steps on any site | `connect/jeere-booking.js`, `connect/jeere-booking.css` |
-| A booking page for every store, with no site to build | `rdv/index.html` → `jeere.kreeative.xyz/rdv/?b=<slug>` |
+| A booking page for every store, with no site to build | `rdv/index.html` → `jehre.com/rdv/?b=<slug>` |
 | The dashboard section | `admin/rdv.js`, `admin/rdv.css` (hooked in `admin/admin.js`: route `rendez-vous`) |
 | Three model sites | `concepts/regard/` (lashes), `concepts/vernie/` (nails) and `concepts/minuit/` (lashes and nails, dark), on the branch kreeative.xyz serves |
 
@@ -48,7 +48,7 @@ service online, the studio runs its agenda from the dashboard. Built on 13 Novem
   (`settings.openUntil`, « j'ouvre mon agenda jusqu'au 31 décembre »). The booking calendar stops at that day
   (`config.until`). Booked times disappear by themselves.
 - **The client's link** (`manage_url`, `?rdv=<64 hex>`) is the only key to an appointment from outside. It
-  goes back to the site she booked on when that site is kreeative.xyz, jeere.kreeative.xyz or the store's own
+  goes back to the site she booked on when that site is kreeative.xyz, jehre.com or the store's own
   domain; otherwise to `rdv/`.
 - **Deposits are tracked, not charged.** The client chooses a means (Wave, Orange Money…); the studio sends
   the payment request and marks the deposit « reçu ». Card deposits through Stripe are not wired yet (the
@@ -64,7 +64,7 @@ service online, the studio runs its agenda from the dashboard. Built on 13 Novem
 ## Putting it on a site
 
 ```html
-<script src="https://jeere.kreeative.xyz/connect/jeere-booking.js" data-store="regard"
+<script src="https://jehre.com/connect/jeere-booking.js" data-store="regard"
         data-book-url="reserver/" data-manage-url="rendez-vous/" defer></script>
 
 <div data-jeere-booking></div>           <!-- the booking steps -->

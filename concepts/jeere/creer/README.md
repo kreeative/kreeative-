@@ -540,9 +540,9 @@ JeereRender.render(config, rootEl, { device, page: 'page', pageId: 'pg3' });
   is edited in the dashboard, not in the editor. **In the dashboard**: `#pages` lists, adds, edits
   (title, slug auto-filled and editable, body with a counter, menu, footer), reorders and deletes
   them; `#boutique` › « Navigation » toggles `inMenu` / `inFooter`.
-- **Address**: a page is shown everywhere as `jeere.kreeative.xyz/b/<store>/pages/<slug>` (the dashboard's
+- **Address**: a page is shown everywhere as `jehre.com/b/<store>/pages/<slug>` (the dashboard's
   address field, the editor's desktop frame and its « Vos pages » rows), like Shopify's
-  `/pages/…`. `jeere.kreeative.xyz/b/<store>` follows the store's name until the seller publishes at an address
+  `/pages/…`. `jehre.com/b/<store>` follows the store's name until the seller publishes at an address
   or adds her own domain in the dashboard (Paramètres › Domaine); the editor's frame then shows
   that one (it reads `'jeere-admin'`, never writes it).
 
@@ -1355,7 +1355,7 @@ is there for tests.
 | `#paiements` | « Encaissement » first (a strong note and « Connecter le paiement mobile money » when Wave / Orange Money / MTN MoMo are on but cannot be collected; each « À connecter » chip opens it), the 6 methods on or off (`fiche.payments`), « Argent chez les livreurs » (cash-on-delivery orders on the road, « Reçu du livreur »), the plan's Jehre fee per sale and the partner's fee (« par exemple 1,95 % pour le mobile money »), how fees are taken (by the partner at payout; nothing on cash on delivery: to confirm with the founder), « Versements » (each online sale and what is paid out after the fees), « Jehre ne garde jamais votre argent » |
 | `#livraison` | Delivery zones and fees (the delivery section's `settings.zones`, a delivery section is created if there is none), delays, couriers (« Mes livreurs », Yango, Gozem) |
 | `#connecteurs` | The connectors catalogue (below): category chips that jump to each group, « Pour bien démarrer » (mobile money, WhatsApp, Mes livreurs) first, compact rows for the rest on the phone; « Démo : aucune connexion réelle n'est faite. » |
-| `#parametres` | A hub: Paiements, Livraison, Connecteurs (their own pages), then Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`admin/domaines.js`: the free address `jeere.kreeative.xyz/b/<slug>` and « Publier », her own domain with the exact DNS records, guides per registrar and a real DNS check, and « Acheter un nom de domaine »: see `../README.md`, « Domaines »), Équipe (invite by name, phone and role; the signed-in seller cannot remove herself), Abonnement (the 4 plans, change, what happens at the order limit, mois/semaine for paid plans, « Mettre en pause », « Payer par mobile money »: a demo dialog), Studio avancé (`#parametres/studio`: the Studio subscription — plan, renewal, cancel / resume, a move down, seats, demo invoices; see `../studio/README.md`, « Abonnements Studio »), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
+| `#parametres` | A hub: Paiements, Livraison, Connecteurs (their own pages), then Boutique (name, tagline, city, WhatsApp, language FR/EN, FCFA), Domaine (`admin/domaines.js`: the free address `jehre.com/b/<slug>` and « Publier », her own domain with the exact DNS records, guides per registrar and a real DNS check, and « Acheter un nom de domaine »: see `../README.md`, « Domaines »), Équipe (invite by name, phone and role; the signed-in seller cannot remove herself), Abonnement (the 4 plans, change, what happens at the order limit, mois/semaine for paid plans, « Mettre en pause », « Payer par mobile money »: a demo dialog), Studio avancé (`#parametres/studio`: the Studio subscription — plan, renewal, cancel / resume, a move down, seats, demo invoices; see `../studio/README.md`, « Abonnements Studio »), Notifications, Pages légales, Données (export the fiche as JSON, the orders as CSV, « Supprimer mon compte » with a typed confirmation, which clears the 4 keys) |
 
 Every phone number typed in the dashboard (WhatsApp, payout, team, couriers, a new order, payment) follows the
 account page's rule: `+` and 8 to 15 digits, and exactly 10 digits after +225. « ? Aide » (top bar) and « Aide · une
@@ -1381,7 +1381,7 @@ JEERE_DATA.ADMIN_DEFAULTS = {            // the settings; subdomain '' = fill wi
   team: [],                              // { name, phone, role: 'proprietaire' | 'gestion' | 'livraison' }
   billing: { cycle: 'mois', paused: false }  // or 'semaine'
 };
-JEERE_DATA.subdomainFor('Awa Beauté');  // 'jeere.kreeative.xyz/b/awa-beaute' (storeAddress(storeSlugFor(name)))
+JEERE_DATA.subdomainFor('Awa Beauté');  // 'jehre.com/b/awa-beaute' (storeAddress(storeSlugFor(name)))
 JEERE_DATA.adminDefaults(config, account, now);   // a fresh 'jeere-admin': settings (subdomain, payout
                                                   // number, the owner in the team), {} connectors, 14 demo orders
 JEERE_DATA.normalizeAdmin(saved, config, now);    // repairs any saved value; keeps unknown keys (stock…)
@@ -1626,7 +1626,7 @@ boutique ».
   Function with the Anthropic SDK (`claude-haiku-5-5` by default), and a cost estimate (about
   $0.007 per generated store with Claude Haiku 5.5).
 - **Publishing is real, once the seller is signed in to Supabase.** « Publier » writes the fiche to
-  `public.stores` and the store is online at `https://jeere.kreeative.xyz/b/<adresse>` (`../b/`). Until the
+  `public.stores` and the store is online at `https://jehre.com/b/<adresse>` (`../b/`). Until the
   account page signs sellers in with Supabase Auth, the dialog says the store is saved in this browser only;
   the editor still autosaves to `localStorage` on this device. See `../README.md`, « Domaines ».
 - **The account is a demo.** No SMS or WhatsApp message is sent and any 6-digit code is
@@ -1814,7 +1814,7 @@ value).
 3. Start the « il se nourrit lui-même » loop: anonymised kept stores (opt-in), the nightly job that
    updates the defaults library (template, palette and intensity per niche), the few-shot examples
    and the keyword lists.
-4. ~~A real public store page~~: done (`../b/`, `jeere.kreeative.xyz/b/<adresse>`, pages in the hash). Next: render
+4. ~~A real public store page~~: done (`../b/`, `jehre.com/b/<adresse>`, pages in the hash). Next: render
    the meta tags on a server so WhatsApp and Facebook previews show the store.
 5. « Partir de zéro », then real orders: the checkout creates the order and sends it on WhatsApp,
    delivery by commune, and mobile-money payments through a payment partner approved by the BCEAO.

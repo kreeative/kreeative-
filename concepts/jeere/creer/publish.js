@@ -51,9 +51,9 @@
 
   /* ------------------------------------------------------------------ addresses */
 
-  function address(slug) { return D.storeAddress ? D.storeAddress(slug) : 'jeere.kreeative.xyz/b/' + slug; }
+  function address(slug) { return D.storeAddress ? D.storeAddress(slug) : 'jehre.com/b/' + slug; }
   function url(slug) { return 'https://' + address(slug); }
-  var PREFIX = (D.STORE_PREFIX != null ? D.STORE_PREFIX : 'jeere.kreeative.xyz/b/');
+  var PREFIX = (D.STORE_PREFIX != null ? D.STORE_PREFIX : 'jehre.com/b/');
 
   var SLUG_MESSAGES = {
     empty: 'Choisissez une adresse, par exemple awa-beaute.',

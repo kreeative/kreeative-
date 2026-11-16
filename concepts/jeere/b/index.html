@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <!-- Asset paths: '/' on jeere.kreeative.xyz (vercel.json maps it onto /concepts/jeere/), the folder itself
+  <!-- Asset paths: '/' on jehre.com (vercel.json maps it onto /concepts/jeere/), the folder itself
        under /concepts/jeere/ (any host, ?s=<slug>), /concepts/jeere/ on a seller's own domain. The files are
        added from here, not as relative links in the markup, so no request goes to a wrong path first. -->
   <script>
     (function () {
       var p = location.pathname, k = '/concepts/jeere/', i = p.indexOf(k);
-      var base = i !== -1 ? p.slice(0, i + k.length) : (location.hostname === 'jeere.kreeative.xyz' ? '/' : k);
+      var base = i !== -1 ? p.slice(0, i + k.length) : (/^(jehre\.com|jeere\.kreeative\.xyz)$/.test(location.hostname) ? '/' : k);
       var h = document.head;
       var b = document.createElement('base');
       b.href = base;
@@ -29,7 +29,7 @@
   <meta property="og:site_name" content="Jehre">
   <meta property="og:title" content="Boutique en ligne · Jehre">
   <meta property="og:description" content="Une boutique en ligne faite avec Jehre : commandez sur WhatsApp, payez par mobile money ou à la livraison.">
-  <meta property="og:image" content="https://jeere.kreeative.xyz/img/og.jpg">
+  <meta property="og:image" content="https://jehre.com/img/og.jpg">
   <meta property="og:locale" content="fr_CI">
   <meta name="twitter:card" content="summary_large_image">
   <!-- /jb:meta -->

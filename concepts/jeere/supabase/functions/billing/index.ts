@@ -37,7 +37,7 @@ const TEAM_ID = Deno.env.get('VERCEL_TEAM_ID') || 'team_baaIo2HD3gXK1oOziipXPpAl
 const GIT_BRANCH = Deno.env.get('VERCEL_GIT_BRANCH') ?? 'claude/session-setup-kcwzk4';
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const TEAM_EMAIL = Deno.env.get('JEERE_TEAM_EMAIL') ?? 'annklyy@gmail.com';
-const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jeere.kreeative.xyz').replace(/\/$/, '');
+const SITE = (Deno.env.get('JEERE_SITE') ?? 'https://jehre.com').replace(/\/$/, '');
 
 /* ------------------------------------------------------------------ prices (FCFA, XOF has no decimals) */
 // Studio (studio/plans.js): month = billed monthly; year = the price per month billed yearly
@@ -127,7 +127,7 @@ async function customerFor(user: { id: string; email: string }, name: string): P
 // Back to the page she came from, on Jehre only
 function backUrl(v: unknown, fallback: string) {
   const u = str(v, 300);
-  return /^https:\/\/(jeere\.kreeative\.xyz|kreeative\.xyz|localhost)(:\d+)?\//.test(u) ? u.replace(/#.*$/, '') : fallback;
+  return /^https:\/\/(jehre\.com|jeere\.kreeative\.xyz|kreeative\.xyz|localhost)(:\d+)?\//.test(u) ? u.replace(/#.*$/, '') : fallback;
 }
 const withParam = (u: string, p: string) => u + (u.includes('?') ? '&' : '?') + p;
 
@@ -140,7 +140,7 @@ async function vercel(path: string, init: RequestInit = {}) {
   return { ok: r.ok, status: r.status, body };
 }
 const DOMAIN_RE = /^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/;
-const PROTECTED = /(^|\.)(kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|supabase\.co)$/;
+const PROTECTED = /(^|\.)(jehre\.com|kreeative\.xyz|vercel\.app|vercel\.com|jeere\.shop|supabase\.co)$/;
 async function domainQuote(domain: string) {
   const [av, pr] = await Promise.all([
     vercel('/v1/registrar/domains/availability', { method: 'POST', body: JSON.stringify({ domains: [domain] }) }),
