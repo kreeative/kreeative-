@@ -196,7 +196,7 @@
   function html(c) {
     ctx = c || ctx;
     if (!J || !ctx || !adm()) return '<section class="a-card"><p>' + esc('Cette page n’a pas pu se charger : rechargez.') + '</p></section>';
-    return '<div id="a-dm" class="a-stack">' + freeCard() + ownCard() + buyCard() + '</div>';
+    return '<div id="a-dm" class="a-stack">' + freeCard() + buyCard() + ownCard() + '</div>';
   }
   function redraw(focusSel) {
     var root = document.getElementById('a-dm');
