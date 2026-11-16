@@ -1332,5 +1332,6 @@ html.qs-open .jst img.qs-target, html.qs-open .jst .qs-target img { touch-action
 .b-is-custom .b-tab[data-tab="sections"], .b-is-custom .b-tab[data-tab="theme"], .b-is-custom .b-tab[data-tab="qualite"],
 .b-is-custom [data-page-select] { display: none !important; }
 
-/* The name typed, while the handwritten « jehre » is redrawn */
-.b-logo__lock .logo__wordmark.jh-word { height: auto; aspect-ratio: auto; font: 700 24px/1 'Poppins', sans-serif; letter-spacing: -0.045em; color: inherit; }
+/* « jehre » written by hand (../img/brand/jehre-wordmark.png as a mask, in the colour of the text) */
+.b-logo__lock .logo__wordmark.jh-word { display: inline-block; font-size: 0; line-height: 0; height: 34px; width: auto; aspect-ratio: 1666 / 912; background: currentColor;
+  -webkit-mask: url("../img/brand/jehre-wordmark.png") center / contain no-repeat; mask: url("../img/brand/jehre-wordmark.png") center / contain no-repeat; }
