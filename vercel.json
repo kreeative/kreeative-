@@ -79,6 +79,16 @@
       "source": "/concepts/jessicas-secrets/:path*",
       "destination": "/websites/",
       "permanent": false
+    },
+    {
+      "source": "/websites/keewal-meere",
+      "destination": "/websites/",
+      "permanent": false
+    },
+    {
+      "source": "/websites/keewal-meere/",
+      "destination": "/websites/",
+      "permanent": false
     }
   ]
 }

@@ -17,7 +17,6 @@ works.
 | `/portfolio/banking-ux-case-study/`               | draft template, `noindex`, not linked yet                       |
 | `/websites/`                                      | `websites/index.html` (every website and product)               |
 | `/websites/rich-and-friends/`                     | `websites/rich-and-friends/index.html`                          |
-| `/websites/keewal-meere/`                         | `websites/keewal-meere/index.html`                              |
 | `/websites/tabouret/`                             | `websites/tabouret/index.html`                                  |
 | `/websites/the-bakery/`                           | `websites/the-bakery/index.html`                                |
 | `/websites/the-ivory-sukundu/`                    | `websites/the-ivory-sukundu/index.html` (client store)          |
