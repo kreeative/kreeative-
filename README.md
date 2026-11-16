@@ -16,15 +16,12 @@ works.
 | `/portfolio/nexatech/`                                      | `portfolio/nexatech/index.html` (Lyzma Industries)               |
 | `/websites/rich-and-friends/`                               | `websites/rich-and-friends/index.html`                           |
 | `/websites/keewal-meere/`                                   | `websites/keewal-meere/index.html`                               |
-| `/websites/cameleon/`                                       | `websites/cameleon/index.html`                                   |
 | `/websites/tabouret/`                                       | `websites/tabouret/index.html`                                   |
 | `/websites/guillemot/`                                      | `websites/guillemot/index.html`                                  |
 | `/websites/the-bakery/`                                     | `websites/the-bakery/index.html`                                 |
 | `/websites/the-ivory-sukundu/`                              | `websites/the-ivory-sukundu/index.html`                          |
 | `/websites/anse/`                                           | `websites/anse/index.html`                                       |
 | `/websites/michou/`                                         | `websites/michou/index.html`                                     |
-| `/websites/jessicas-secrets/`                               | `websites/jessicas-secrets/index.html`                           |
-| `/concepts/jessicas-secrets/`                               | `concepts/jessicas-secrets/` (the concept itself, with its own README) |
 | `/pricing/`                                                 | `pricing/index.html`                                             |
 | `/the-kreeative-designer-newsletter/`                       | `the-kreeative-designer-newsletter/index.html`                   |
 | any unknown URL                                             | `404.html`                                                       |
