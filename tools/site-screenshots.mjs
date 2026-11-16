@@ -10,7 +10,6 @@ import fs from 'node:fs';
 
 const SITES = [
   ['rich',     'https://richandfriends.xyz/'],
-  ['keewal',   'https://keewaomeere.vercel.app/'],
   // Reveals its sections as you scroll, so it is scrolled through before the long capture.
   // An app that fits the window, so instead of a long capture it gets a second
   // screen (a dish page). The clock is set to lunchtime in New York so the
