@@ -70,11 +70,12 @@
     if (!s.signedIn) { el.hidden = true; el.innerHTML = ''; return; }
     var who = s.account && s.account.firstName ? s.account.firstName + ', ' : '';
     var txt;
+    var pn = s.plan && s.plan.name ? String(s.plan.name).replace(/^Studio\s+/, '') : '';   // « Studio Agence » → « Agence »
     if (s.status === 'trial') txt = 'votre essai du Studio court encore ' + s.daysLeft + NB + 'jour' + (s.daysLeft > 1 ? 's' : '') + ', jusqu’au ' + P.date(s.endsAt) + '.';
-    else if (s.lifetime) txt = 'vous avez le Studio ' + s.plan.name + ' offert à vie.';
-    else if (s.status === 'active') txt = 'vous êtes en Studio ' + s.plan.name + ' ' + (s.period === 'an' ? 'annuel' : 'mensuel') + ', renouvellement le ' + P.date(s.periodEnd) + '.';
-    else if (s.status === 'canceling') txt = 'Studio ' + s.plan.name + ' jusqu’au ' + P.date(s.periodEnd) + ', puis Découverte (annulé).';
-    else if (s.status === 'due') txt = 'votre Studio ' + s.plan.name + ' est à renouveler avant le ' + P.date(s.endsAt) + '.';
+    else if (s.lifetime) txt = 'vous avez le Studio ' + pn + ' offert à vie.';
+    else if (s.status === 'active') txt = 'vous êtes en Studio ' + pn + ' ' + (s.period === 'an' ? 'annuel' : 'mensuel') + ', renouvellement le ' + P.date(s.periodEnd) + '.';
+    else if (s.status === 'canceling') txt = 'Studio ' + pn + ' jusqu’au ' + P.date(s.periodEnd) + ', puis Découverte (annulé).';
+    else if (s.status === 'due') txt = 'votre Studio ' + pn + ' est à renouveler avant le ' + P.date(s.endsAt) + '.';
     else if (s.status === 'included') txt = 'tout le Studio est inclus dans votre formule boutique ' + s.boutiquePlanName + ' : rien à payer en plus.';
     else txt = 'vous êtes en Découverte (gratuit)' + (s.trialAvailable ? ' : votre essai de 14 jours vous attend.' : '.');
     el.hidden = false;

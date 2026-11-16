@@ -179,5 +179,5 @@
 @media (max-width: 399px) { .ab-method .ico { display: none; } }
 
 /* back from Stripe */
-.ab-flash { display: flex; gap: 10px; align-items: flex-start; max-width: 1160px; margin: 18px auto 0; padding: 14px 16px; border-radius: 14px; background: #F1FBF5; border: 1px solid #BFE8CF; font-size: 15px; color: var(--ink); }
+.ab-flash { display: flex; gap: 10px; align-items: flex-start; width: calc(100% - 40px); max-width: 1160px; margin: 28px auto; padding: 14px 16px; border-radius: 14px; background: #F1FBF5; border: 1px solid #BFE8CF; font-size: 15px; color: var(--ink); }
 .ab-flash .ico { flex: none; margin-top: 2px; }
