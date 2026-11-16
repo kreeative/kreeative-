@@ -2912,7 +2912,6 @@
     let ty = null;
     try { ty = D.typography && isObj(cfg.theme.typography) ? D.typography(cfg) : null; } catch (e) { ty = null; }
     const fontsName = ty && ty.custom ? ty.display.name + ' · ' + ty.text.name : (fonts ? fonts.name : cfg.theme.fonts);
-    const intens = arr(D.INTENSITY_OPTIONS).length ? D.INTENSITY_OPTIONS : [{ value: 'vivid', label: 'Vives' }, { value: 'soft', label: 'Douces' }];
     const pages = arr(cfg.pages);
     const v = validateFiche();
     const st = cfg.store;
@@ -2929,8 +2928,6 @@
                 <div><dt>Palette</dt><dd>${shown ? H`<span class="a-pal" aria-hidden="true">${sw(shown.bg)}${sw(shown.surface)}${sw(shown.accent)}${sw(shown.text)}</span> ` : ''}${esc(pal ? pal.name : cfg.theme.palette)}${ownColors ? ', avec vos couleurs' : ''}</dd></div>
                 <div><dt>Polices</dt><dd>${esc(fontsName)}</dd></div>
                 <div><dt>Logo</dt><dd>${storeLogo() ? H`<span class="a-logothumb"><img src="${esc(storeLogo())}" alt="${esc(fr('Logo de ' + (st.name || 'la boutique')))}"></span> ` : 'Le nom, écrit avec la police du thème · '}<a class="a-link" href="${EDITOR_URL}" data-act="open-editor" data-page="home" data-focus="logo">${storeLogo() ? 'Modifier' : 'Ajouter un logo'}</a></dd></div></dl>
-                <div class="a-field"><span class="a-label" id="l-int">Couleurs</span><div class="a-seg" role="group" aria-labelledby="l-int">${intens.map((o) => H`<button class="a-seg__btn" type="button" data-act="intensity" data-v="${esc(o.value)}" aria-pressed="${cfg.theme.intensity === o.value ? 'true' : 'false'}">${esc(o.label)}</button>`)}</div>
-                  <p class="a-hint">${esc(fr((intens.find((o) => o.value === cfg.theme.intensity) || intens[0]).hint || ''))}</p></div>
                 <div class="a-card__foot"><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('palette')}Personnaliser le thème</button></div></div></div>
           </section>
           <section class="a-card" aria-labelledby="h-nav"><div class="a-card__head"><div><h2 class="a-card__title" id="h-nav">Navigation</h2><p class="a-card__sub">Les pages affichées dans le menu et en bas de votre boutique. Sur ordinateur, le menu montre 5 liens au plus.</p></div></div>
