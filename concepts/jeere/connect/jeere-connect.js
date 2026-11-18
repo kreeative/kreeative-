@@ -459,7 +459,9 @@
       if (r.ok && window.parent === window) {
         try {
           var vu = STORE_ORIGIN + '/api/visit', vd = JSON.stringify({ slug: slug, path: location.pathname });
-          if (!(navigator.sendBeacon && navigator.sendBeacon(vu, vd))) fetch(vu, { method: 'POST', body: vd, keepalive: true, mode: 'no-cors' }).catch(function () {});
+          var ping = function () { if (!(navigator.sendBeacon && navigator.sendBeacon(vu, vd))) fetch(vu, { method: 'POST', body: vd, keepalive: true, mode: 'no-cors' }).catch(function () {}); };
+          ping();
+          setInterval(function () { if (!document.hidden) { try { ping(); } catch (e) { /* next minute */ } } }, 60000);
         } catch (e) { /* a visit that is not counted never breaks the site */ }
       }
       if (r.ok) {

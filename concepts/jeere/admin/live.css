@@ -29,5 +29,3 @@
 .lv-none { display: block !important; color: var(--muted); font-size: 14px; }
 .lv-foot { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px; color: var(--muted); }
 .lv-foot .a-ico { flex: none; margin-top: 1px; }
-/* The Ivory Sukundu has its own site: no « En direct » while it is the store in view */
-body.is-ext [data-nav="direct"], body.is-ext [data-more="direct"] { display: none; }

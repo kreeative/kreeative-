@@ -43,16 +43,24 @@
     return [x, v[1] * ca - z * sa, v[1] * sa + z * ca];
   }
 
-  function load() {
+  // The Ivory Sukundu is not a Jehre store: its visits are kept under its name (public.visit_sites)
+  var EXT_SITE = 'the-ivory-sukundu';
+  function target() {
+    if (ext()) return { key: 'site:' + EXT_SITE, fn: 'site_visits_live', body: { p_site: EXT_SITE } };
     var rec = storeRec();
-    if (!rec || L.loading) return;
+    return rec ? { key: rec.storeId, fn: 'store_visits_live', body: { p_store: rec.storeId } } : null;
+  }
+  function load() {
+    var tg = target();
+    if (!tg || L.loading) return;
     var A = window.JeereAuth;
     L.loading = true;
     Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).catch(function () { return null; }).then(function (s) {
       if (!s || !s.access_token) throw new Error('Connectez-vous à votre compte Jehre pour voir vos visiteurs.');
-      return fetch(SB + '/rest/v1/rpc/store_visits_live', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ p_store: rec.storeId }) });
+      return fetch(SB + '/rest/v1/rpc/' + tg.fn, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify(tg.body) });
     }).then(function (r) { return r.json(); }).then(function (j) {
       if (!j || j.ok !== true) throw new Error('Vos visiteurs n’ont pas pu être chargés.');
+      if (tg.key !== L.storeId) return;               // she changed store meanwhile
       L.data = j; L.error = ''; L.at = Date.now();
     }).catch(function (e) { L.error = (e && e.message) || 'Pas de connexion internet.'; })
       .then(function () { L.loading = false; paint(); });
@@ -165,10 +173,9 @@
   }
 
   function view() {
-    if (ext()) return '<div class="a-page">' + head('Qui regarde votre boutique, et d’où.') + note('globe', 'Pas encore pour cette boutique', 'The Ivory Sukundu a son propre site : ses visites ne passent pas par Jehre.') + '</div>';
-    var rec = storeRec();
-    if (!rec) return '<div class="a-page">' + head('Qui regarde votre boutique, et d’où.') + note('globe', 'Mettez d’abord votre boutique en ligne', 'Dès qu’elle est publiée, chaque visite apparaît ici, sur le globe.') + '</div>';
-    if (rec.storeId !== L.storeId) { L.storeId = rec.storeId; L.data = null; L.error = ''; L.at = 0; }
+    var tg = target();
+    if (!tg) return '<div class="a-page">' + head('Qui regarde votre boutique, et d’où.') + note('globe', 'Mettez d’abord votre boutique en ligne', 'Dès qu’elle est publiée, chaque visite apparaît ici, sur le globe.') + '</div>';
+    if (tg.key !== L.storeId) { L.storeId = tg.key; L.data = null; L.error = ''; L.at = 0; }
     setTimeout(start, 0);
     return '<div class="a-page lv">' + head('Qui regarde votre boutique, et d’où. Mis à jour toutes les 20' + NB + 'secondes.') +
       '<p class="a-error" id="lv-err" hidden></p>' +

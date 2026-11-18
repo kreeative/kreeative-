@@ -626,7 +626,9 @@
     try {
       var url = 'https://jehre.com/api/visit';
       var data = JSON.stringify({ slug: String(store.slug).toLowerCase(), path: location.pathname });
-      if (!(navigator.sendBeacon && navigator.sendBeacon(url, data))) fetch(url, { method: 'POST', body: data, keepalive: true, mode: 'no-cors' }).catch(function () {});
+      var ping = function () { if (!(navigator.sendBeacon && navigator.sendBeacon(url, data))) fetch(url, { method: 'POST', body: data, keepalive: true, mode: 'no-cors' }).catch(function () {}); };
+      ping();
+      setInterval(function () { if (!document.hidden) { try { ping(); } catch (e) { /* next minute */ } } }, 60000);
     } catch (e) { /* a visit that is not counted never breaks the store */ }
   }
   function show(store) {

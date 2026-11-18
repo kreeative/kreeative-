@@ -759,7 +759,7 @@
     S.mounts = [];
     S.restored = null;
     let html;
-    try { html = EXT() ? EXT().view(r) : VIEWS[r.name](r); } catch (e) { html = errorView(); }
+    try { html = EXT() && r.name !== 'direct' ? EXT().view(r) : VIEWS[r.name](r); } catch (e) { html = errorView(); }
     S.rendering = true;
     try { main.innerHTML = html; } finally { S.rendering = false; }
     S.mounts.forEach((fn) => { try { fn(); } catch (e) { /* a view's extra never breaks the page */ } });
