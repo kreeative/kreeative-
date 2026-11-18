@@ -2,5 +2,9 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /compte/
+Disallow: /creer/
+Disallow: /studio/
+Disallow: /pitch/
 
+Sitemap: https://jehre.com/sitemap.xml
 Sitemap: https://jehre.com/b/sitemap.xml

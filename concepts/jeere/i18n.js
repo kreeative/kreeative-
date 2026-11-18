@@ -1,7 +1,7 @@
 // English version of every string on the page. French is the default and lives in index.html.
 window.JEERE_EN = {
-  'meta.title': 'Jehre · All your business, in one place',
-  'meta.description': 'Jehre, the all-in-one platform to build and run your online store and your in-person sales, with no code. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, prices in FCFA. Waitlist open in Abidjan.',
+  'meta.title': 'Jehre · Build your online store in Francophone Africa',
+  'meta.description': 'Build your online store from your phone, with no code. Get paid by Wave, Orange Money, MTN MoMo or card, delivery fees by area, prices in FCFA.',
 
   'skip': 'Skip to content',
   'nav.home': 'Jehre, home',
