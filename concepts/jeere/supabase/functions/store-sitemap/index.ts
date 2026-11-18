@@ -51,10 +51,11 @@ Deno.serve(async (req: Request) => {
   const out: string[] = [];
   for (const s of list) {
     if (!s || !/^[a-z0-9-]{3,40}$/.test(s.slug) || s.noindex) continue;
-    const base = s.custom_domain && s.domain_status === 'verified' ? 'https://' + s.custom_domain : 'https://' + PUBLIC_HOST + '/b/' + s.slug;
+    // her own domain, else her free address: the same one the store page gives as canonical (api/store.js)
+    const base = s.custom_domain && s.domain_status === 'verified' ? 'https://' + s.custom_domain : 'https://' + s.slug + '.store.' + PUBLIC_HOST;
     const last = s.updated_at ? new Date(s.updated_at).toISOString().slice(0, 10) : '';
     const url = (u: string, prio: string) => out.push('  <url><loc>' + esc(u) + '</loc>' + (last ? '<lastmod>' + last + '</lastmod>' : '') + '<priority>' + prio + '</priority></url>');
-    url(base + (s.custom_domain && s.domain_status === 'verified' ? '/' : ''), '1.0');
+    url(base + '/', '1.0');
     for (const p of s.pages || []) if (/^[a-z0-9-]{1,60}$/.test(p)) url(base + '/pages/' + p, '0.5');
     for (const id of s.products || []) if (/^[A-Za-z0-9_-]{1,40}$/.test(id)) url(base + '/produits/' + encodeURIComponent(id), '0.8');
     if (out.length > 49000) break;
