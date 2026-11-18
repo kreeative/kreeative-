@@ -1694,3 +1694,7 @@ a:not([class]) { font-weight: 600; }
 .a-install__steps li { counter-increment: ins; padding-left: 24px; position: relative; }
 .a-install__steps li::before { content: counter(ins) '.'; position: absolute; left: 0; font-weight: 700; }
 .a-install__steps .a-ico { width: 16px; height: 16px; vertical-align: -3px; }
+
+/* A button, or a row of buttons, never touches what sits above it (a field, a note, a list, a table…).
+   :where keeps this at the lowest priority: any rule that already sets its own spacing still wins. */
+:where(.a-field, .a-fieldset, .a-input, textarea, select, .a-selectwrap, .a-hint, .a-error, .a-note, .a-switchrow, .a-radios, .a-seg, .a-table, .a-rows, .a-dns, .a-otable-wrap, p, ul, ol, dl, table, .a-grid, .a-cols, .a-stack) + :where(.a-btnrow, .a-btn, .a-card__foot) { margin-top: 16px; }
