@@ -455,6 +455,13 @@
     }
     fetchStore().then(function (r) {
       if (preview) r = { ok: false, code: S.status }; // the editor's fiche stays
+      // « En direct » in her dashboard: one signal per page opened, never from the editor's preview (/api/visit)
+      if (r.ok && window.parent === window) {
+        try {
+          var vu = STORE_ORIGIN + '/api/visit', vd = JSON.stringify({ slug: slug, path: location.pathname });
+          if (!(navigator.sendBeacon && navigator.sendBeacon(vu, vd))) fetch(vu, { method: 'POST', body: vd, keepalive: true, mode: 'no-cors' }).catch(function () {});
+        } catch (e) { /* a visit that is not counted never breaks the site */ }
+      }
       if (r.ok) {
         try { S.products = readFiche(r.fiche); S.status = 'ready'; } catch (e) { S.products = null; S.status = 'offline'; }
         try { drawSocial(r.fiche); } catch (e) { /* the page keeps its own */ }

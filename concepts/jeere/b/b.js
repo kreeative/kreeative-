@@ -616,12 +616,26 @@
     return cart;
   }
 
+  // « En direct » in her dashboard: one signal per page opened (never from the editor's preview, nor a private
+  // preview). The server keeps a city and a daily hash, no address: see /api/visit.
+  var visited = false;
+  function visit(store) {
+    if (visited || !store || !store.slug || store.published === false || S.target.apercu) return;
+    try { if (window.top !== window) return; } catch (e) { return; }
+    visited = true;
+    try {
+      var url = 'https://jehre.com/api/visit';
+      var data = JSON.stringify({ slug: String(store.slug).toLowerCase(), path: location.pathname });
+      if (!(navigator.sendBeacon && navigator.sendBeacon(url, data))) fetch(url, { method: 'POST', body: data, keepalive: true, mode: 'no-cors' }).catch(function () {});
+    } catch (e) { /* a visit that is not counted never breaks the store */ }
+  }
   function show(store) {
     var cfg;
     try { cfg = D.normalizeConfig(store.fiche); } catch (e) { cfg = null; }
     if (!cfg) { stateView('notfound'); return; }
     S.store = store;
     S.config = cfg;
+    visit(store);
     S.status = 'ready';
     S.device = deviceFor();
     readSiteBack(store.slug, store);

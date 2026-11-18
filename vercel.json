@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "^/api/visit$",
+      "dest": "/api/visit"
+    },
+    {
       "src": "^/(admin|compte|studio|creer|abonnements)(/.*)?$",
       "has": [
         {

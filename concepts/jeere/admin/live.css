@@ -1,0 +1,33 @@
+/* Jehre — « En direct »: the globe of visitors (admin/live.js) */
+.lv-grid { display: grid; gap: 16px; align-items: start; }
+@media (min-width: 980px) { .lv-grid { grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); } }
+.lv-side { display: grid; gap: 16px; min-width: 0; }
+.lv-side > .a-card + .a-card { margin-top: 0; }
+.lv-stage { display: grid; justify-items: center; gap: 12px; padding-bottom: 18px; }
+.lv-globe { width: 100%; display: grid; place-items: center; min-height: 260px; }
+#lv-globe { display: block; max-width: 100%; cursor: grab; touch-action: none; }
+#lv-globe:active { cursor: grabbing; }
+.lv-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; font-size: 13px; color: var(--muted); }
+.lv-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.lv-dot { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); }
+.lv-dot.is-on { background: rgb(34, 201, 126); box-shadow: 0 0 0 4px rgba(34, 201, 126, .22); }
+.lv-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+.lv-num { display: grid; gap: 2px; min-width: 0; }
+.lv-num--big { grid-column: 1 / -1; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.lv-num__l { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.lv-num strong { font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; }
+.lv-num--big strong { font-size: 56px; }
+.lv-countries, .lv-last { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lv-countries li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(60px, 1.2fr) auto; gap: 10px; align-items: center; font-size: 14px; }
+.lv-c__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lv-c__bar { height: 8px; border-radius: 4px; background: var(--grey-1); overflow: hidden; }
+.lv-c__bar i { display: block; height: 100%; border-radius: 4px; background: var(--ink); }
+.lv-c__n { font-weight: 600; font-variant-numeric: tabular-nums; }
+.lv-last li { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.lv-l__where { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lv-l__when { flex: none; color: var(--muted); font-size: 13px; }
+.lv-none { display: block !important; color: var(--muted); font-size: 14px; }
+.lv-foot { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px; color: var(--muted); }
+.lv-foot .a-ico { flex: none; margin-top: 1px; }
+/* The Ivory Sukundu has its own site: no « En direct » while it is the store in view */
+body.is-ext [data-nav="direct"], body.is-ext [data-more="direct"] { display: none; }

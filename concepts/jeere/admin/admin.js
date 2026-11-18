@@ -26,9 +26,9 @@
   const KEYS = (D && D.STORAGE_KEYS) || { config: 'jeere-studio-config', account: 'jeere-account', admin: 'jeere-admin', open: 'jeere-studio-open', tour: 'jeere-tour' };
   const EDITOR_URL = '../creer/';
   const COMPTE_URL = '../compte/';
-  const ROUTES = ['accueil', 'commandes', 'rendez-vous', 'produits', 'clients', 'boutique', 'pages', 'promos', 'paiements', 'livraison', 'connecteurs', 'parametres'];
+  const ROUTES = ['accueil', 'direct', 'commandes', 'rendez-vous', 'produits', 'clients', 'boutique', 'pages', 'promos', 'paiements', 'livraison', 'connecteurs', 'parametres'];
   const TITLES = {
-    accueil: 'Accueil', commandes: 'Commandes', 'rendez-vous': 'Rendez-vous', produits: 'Produits', clients: 'Clients', boutique: 'Boutique en ligne',
+    accueil: 'Accueil', direct: 'En direct', commandes: 'Commandes', 'rendez-vous': 'Rendez-vous', produits: 'Produits', clients: 'Clients', boutique: 'Boutique en ligne',
     pages: 'Pages', promos: 'Codes promo', paiements: 'Paiements', livraison: 'Livraison', connecteurs: 'Connecteurs', parametres: 'Paramètres'
   };
   // The phone's bottom bar: the rest of the sections are under « Plus »
@@ -4418,6 +4418,8 @@
   const VIEWS = {
     // « Rendez-vous » is ./rdv.js (services, hours, agenda: the `bookings` function)
     'rendez-vous': (r) => (window.JeereAdminRdv ? window.JeereAdminRdv.view(r) : errorView()),
+    // « En direct » is ./live.js: the visitors of the store, on a globe
+    direct: () => (window.JeereAdminLive ? window.JeereAdminLive.view() : errorView()),
     accueil: viewHome, commandes: viewOrders, produits: viewProducts, clients: viewClients, boutique: viewBoutique,
     pages: viewPages, promos: viewPromos, paiements: viewPaiements, livraison: viewLivraison, connecteurs: viewConnecteurs, parametres: viewParametres
   };
