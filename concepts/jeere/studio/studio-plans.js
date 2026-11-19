@@ -49,16 +49,29 @@
 
     /* ---------------------------------------------------------------- the top chip */
 
+    // The welcome window: someone whose Studio is already unlocked (a subscription, a gift, her boutique plan)
+    // is not offered a trial nor shown prices: one button, « Commencer »
+    function paintWelcome() {
+      var s = P.state(), on = !!s.unlocked;
+      if ($('proNote')) $('proNote').hidden = on;
+      if ($('proTrial')) $('proTrial').hidden = on || s.status === 'trial';
+      var link = document.querySelector('#proActions .st-textlink');
+      if (link) link.hidden = on;
+      if ($('proTry')) { $('proTry').textContent = on ? 'Commencer' : 'Continuer en Découverte'; $('proTry').className = on ? 'st-primary' : 'st-ghostbtn'; }
+      var badge = document.querySelector('#proModal .st-badge');
+      if (badge) badge.textContent = on ? s.plan.label + (s.lifetime ? ' · offert à vie' : s.status === 'trial' ? ' · essai' : '') : 'Formule Avancée';
+    }
     function paintChip() {
+      paintWelcome();
       var s = P.state();
       var b = $('planChip'), l = $('planChipLabel');
       if (!b || !l) return;
       l.textContent = s.label;
       b.setAttribute('data-state', s.status);
       var sub = s.status === 'trial' ? 'Essai de tout le Studio jusqu’au ' + P.date(s.endsAt)
-        : s.lifetime ? 'Studio ' + s.plan.name + ' · offert à vie'
-        : s.status === 'active' ? 'Studio ' + s.plan.name + ' · renouvellement le ' + P.date(s.periodEnd)
-        : s.status === 'canceling' ? 'Studio ' + s.plan.name + ' jusqu’au ' + P.date(s.periodEnd) + ', puis Découverte'
+        : s.lifetime ? s.plan.label + ' · offert à vie'
+        : s.status === 'active' ? s.plan.label + ' · renouvellement le ' + P.date(s.periodEnd)
+        : s.status === 'canceling' ? s.plan.label + ' jusqu’au ' + P.date(s.periodEnd) + ', puis Découverte'
         : s.status === 'due' ? 'À renouveler avant le ' + P.date(s.endsAt)
         : s.status === 'included' ? 'Tout le Studio, inclus dans votre formule boutique ' + s.boutiquePlanName
         : 'Gratuit · voir ce que débloque un abonnement';
@@ -180,7 +193,7 @@
         if (f.limit && isFinite(lim)) h += '<p class="st-plansheet__limit">Vous avez atteint ' + lim + ' ' + (f.id === 'blocks' ? 'blocs' : 'versions') + ', le maximum de Découverte. Rien n’est effacé&nbsp;: supprimez-en un, ou passez à un abonnement.</p>';
       } else {
         h += '<p class="st-plansheet__eyebrow"><span>Abonnement Studio</span></p>';
-        h += '<h2 id="planTitle">' + esc(s.unlocked ? 'Studio ' + s.plan.name + (s.status === 'trial' ? ' · essai' : s.status === 'included' ? ' · inclus' : '') : 'Votre Studio : Découverte') + '</h2>';
+        h += '<h2 id="planTitle">' + esc(s.unlocked ? s.plan.label + (s.status === 'trial' ? ' · essai' : s.status === 'included' ? ' · inclus' : '') : 'Votre Studio : Découverte') + '</h2>';
         h += '<p>' + esc(statusText(s)) + '</p>';
       }
       if (s.unlocked) {
@@ -311,11 +324,11 @@
         closeSheet();
         toast(s.status === 'trial'
           ? 'Essai démarré : tout le Studio est débloqué pendant ' + P.TRIAL_DAYS + ' jours.'
-          : 'Studio ' + s.plan.name + ' actif : tout le Studio est débloqué.', 'ok');
+          : s.plan.label + ' actif : tout le Studio est débloqué.', 'ok');
       } else if (last.unlocked && !s.unlocked) {
         toast('Retour en Découverte : vos blocs, versions et commentaires restent là ; les fonctions avancées sont verrouillées.', 'info');
       } else if (last.unlocked && s.unlocked && last.planId !== s.planId) {
-        toast('Studio ' + s.plan.name + ' actif.', 'ok');
+        toast(s.plan.label + ' actif.', 'ok');
       }
       last = s;
     }

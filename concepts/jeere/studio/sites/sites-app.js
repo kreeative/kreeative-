@@ -500,7 +500,16 @@
   function pageName(p) {
     var rel = p.subPath ? p.path : (site.path ? p.path.slice(site.path.length + 1) : p.path);
     var one = p.sub && site.pages.filter(function (x) { return x.owner === p.owner; }).length === 1;
-    return p.sub ? (one ? p.sub : p.sub + ' · ' + (shortTitle(p.title) || rel)) : (shortTitle(p.title) || rel);
+    return p.sub ? (one ? p.sub : p.sub + ' · ' + (pageTitle(p, rel) || rel)) : (pageTitle(p, rel) || rel);
+  }
+  // « Commande — ANSE » is « Commande » in the list of ANSE's pages, and its first page is « Accueil »:
+  // the name of the site is already written above the list
+  function pageTitle(p, rel) {
+    if (/^(index\.html)?$/.test(String(rel || '').replace(/^\/+/, ''))) return 'Accueil';
+    var t = shortTitle(p.title);
+    var m = /^(.*\S)\s+[—–|·-]\s+([^—–|·]+)$/.exec(t);
+    if (m && site && String(site.title || '').toLowerCase().indexOf(m[2].trim().toLowerCase()) >= 0) t = m[1].trim();
+    return t;
   }
   // The page menu at the top: a search, then every page by section; picking one opens it
   function togglePageMenu(btn) {
@@ -561,7 +570,7 @@
       // a client site or concept with one page: its name; with several, « Name · page title »
       var name = pageName(p);
       b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><g style="opacity:calc(1 - var(--ic-b,0))"><g transform="translate(3.65 2.75)"><path d="M5.4.5H0" transform="translate(5.255 12.2)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1.5"/><path d="M3.356.5H0" transform="translate(5.255 8.189)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1.5"/><path d="M16.51,5.55,10.84.15A18.2,18.2,0,0,0,8.39,0C2.1,0,0,2.32,0,9.25S2.1,18.5,8.39,18.5s8.4-2.31,8.4-9.25A21.045,21.045,0,0,0,16.51,5.55Z" transform="translate(0)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1.5"/><path d="M0,0V2.661A3.363,3.363,0,0,0,3.364,6.024H6.315" transform="translate(10.284 0.083)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1.5"/></g></g><g style="opacity:var(--ic-b,0)"><g transform="translate(3.5 2)"><path d="M4.674,20A4.7,4.7,0,0,1,0,15.29V4.51A4.493,4.493,0,0,1,4.465,0H9.752a.458.458,0,0,1,.455.46V3.68a3.341,3.341,0,0,0,3.308,3.34c.423,0,.794,0,1.122.006.257,0,.481,0,.68,0,.141,0,.323,0,.521,0,.229,0,.486-.005.716-.005A.448.448,0,0,1,17,7.47v8.04A4.473,4.473,0,0,1,12.554,20Zm.01-6.359a.756.756,0,0,0,.743.75h5.386a.756.756,0,0,0,.743-.75.742.742,0,0,0-.743-.741H5.426A.742.742,0,0,0,4.684,13.64Zm0-4.99a.742.742,0,0,0,.743.74H8.772a.742.742,0,0,0,.743-.74.756.756,0,0,0-.743-.75H5.426A.756.756,0,0,0,4.684,8.65Zm8.964-3.091a2.018,2.018,0,0,1-2-2.017V.906a.473.473,0,0,1,.814-.334l3.986,4.187a.477.477,0,0,1-.34.806h-.691C14.793,5.567,14.149,5.564,13.648,5.559Z" fill="currentColor"/></g></g></svg>' +
-        '<span class="sk-page__t"><b>' + esc(name) + '</b><small>' + esc(rel.replace(/(^|\/)index\.html$/, '$1') || '/') + (p.isNew ? ' · nouvelle' : '') + (p.src && p.src.onlyOnBranch ? ' · pas encore en ligne' : '') + '</small></span>' +
+        '<span class="sk-page__t"><b>' + esc(name) + '</b><small>' + esc('/' + rel.replace(/(^|\/)index\.html$/, '$1').replace(/\/$/, '')) + (p.isNew ? ' · nouvelle' : '') + (p.src && p.src.onlyOnBranch ? ' · pas encore en ligne' : '') + '</small></span>' +
         (dirty ? '<span class="sk-page__dot" title="Modifications non publiées"></span>' : '');
       b.addEventListener('click', function () { location.hash = '#/site/' + site.id + '/' + p.path; closeDrawers(); });
       return b;
@@ -856,14 +865,33 @@
   // what the selection is, in words (the head of the right panel)
   var KIND_NAME = { h1: 'Titre', h2: 'Titre', h3: 'Titre', h4: 'Titre', h5: 'Titre', h6: 'Titre', p: 'Texte', span: 'Texte', strong: 'Texte', em: 'Texte', a: 'Lien', button: 'Bouton',
     img: 'Image', picture: 'Image', svg: 'Dessin', video: 'Vidéo', section: 'Section', header: 'En-tête', footer: 'Pied de page', nav: 'Menu', ul: 'Liste', ol: 'Liste', li: 'Élément de liste',
-    form: 'Formulaire', input: 'Champ', textarea: 'Champ', label: 'Libellé', main: 'Contenu', article: 'Article', aside: 'Encadré', figure: 'Figure', body: 'Page' };
+    form: 'Formulaire', input: 'Champ', textarea: 'Champ', label: 'Libellé', main: 'Contenu', article: 'Article', aside: 'Encadré', figure: 'Image et légende', body: 'Page',
+    figcaption: 'Légende', b: 'Texte', i: 'Texte', small: 'Texte', u: 'Texte', sup: 'Texte', sub: 'Texte', blockquote: 'Citation', hr: 'Séparateur', table: 'Tableau', iframe: 'Contenu intégré',
+    select: 'Liste déroulante', details: 'Dépliant', summary: 'Titre du dépliant', audio: 'Son', dl: 'Liste', dt: 'Terme', dd: 'Définition', time: 'Date', address: 'Adresse' };
   function kindName(tag) { return KIND_NAME[tag] || 'Bloc'; }
+  // « hero__text », « concept-bar », « panier » → « hero text », « concept bar », « panier »: the name its maker gave it,
+  // readable, next to what it is. Nothing is shown when the name says nothing (« c1 », « js-x », a hash).
+  function hintOf(id, cls) {
+    var raw = String(id || cls || '').replace(/^(js|is|has|u|l|c|o)-/, '');
+    var t = raw.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (/^(head|header|foot|footer|main|nav|body|page|wrap|wrapper|container|inner|content|section|row|col|box|block|item|list|link|text|title|img|image)$/.test(t)) return '';   // says nothing more than what it is
+    return t.length < 3 || /^\w{1,2}\d|\d{3,}|^[a-f0-9]{6,}$/.test(t) ? '' : t.slice(0, 28);
+  }
+  // the technical name, kept for the tooltips and the Code tab only
   function describe(el) {
     if (!el) return '';
     var n = String(el.localName);
     var id = el.getAttribute('id');
     var cls = (el.getAttribute('class') || '').split(/\s+/).filter(Boolean)[0];
     return n + (id ? '#' + id : cls ? '.' + cls : '');
+  }
+  // what she reads: « Titre », « Bloc · hero text », « Section · collection »
+  function nameOf(el) {
+    if (!el) return '';
+    var tag = String(el.localName), k = kindName(tag);
+    if (KIND_NAME[tag] && !/^(section|header|footer|nav|aside|article|form|ul|ol)$/.test(tag)) return k;
+    var h = hintOf(el.getAttribute('id'), (el.getAttribute('class') || '').split(/\s+/).filter(Boolean)[0]);
+    return k + (h ? ' · ' + h : '');
   }
   function placeBox(box, f, el) {
     if (!el || !el.isConnected || !f.ready) { box.hidden = true; return; }
@@ -891,7 +919,7 @@
         placeBox(f.sbox, f, s);
         f.sbox.classList.toggle('sk-box--editing', !!editing && editing.frame === f);
         var tag = f.sbox.querySelector('.sk-box__tag');
-        if (tag && s) tag.textContent = describe(s);
+        if (tag && s) { tag.textContent = nameOf(s); tag.title = describe(s); }
       });
       placeSelbar();
     });
@@ -971,9 +999,11 @@
     if (isTextual(src)) btn('text', 'Texte', function () { startEdit(sel.el, sel.frame); }, 'Double-clic ou Entrée');
     if (imgOf(el)) btn('img', 'Image', function () { setTab('content'); $('skFile').click(); });
     bar.appendChild(ce('span', 'sk-selbar__sep'));
-    btn('dup', 'Dupliquer', function () { opDuplicate(); }, 'Ctrl D');
-    btn('hide', isHidden(src) ? 'Afficher' : 'Masquer', function () { opHide(); }, 'Ctrl ⇧ H');
-    btn('del', 'Supprimer', function () { opDelete(); }, 'Suppr');
+    if (!/^(body|html|head)$/.test(src.tag)) {
+      btn('dup', 'Dupliquer', function () { opDuplicate(); }, 'Ctrl D');
+      btn('hide', isHidden(src) ? 'Afficher' : 'Masquer', function () { opHide(); }, 'Ctrl ⇧ H');
+      btn('del', 'Supprimer', function () { opDelete(); }, 'Suppr');
+    }
   }
 
   /* ================================================================ history */
@@ -1124,13 +1154,22 @@
     var revert = function () { undoes.forEach(function (f) { f(); }); };
     return commit(label, text, apply, revert);
   }
+  // « Taille », « Marge en haut »: the name of a style change in the history, as the Design tab calls it
+  function styleLabel(prop) {
+    var out = '';
+    STYLE_GROUPS.forEach(function (g) { g.rows.forEach(function (r) {
+      if (r[0] === prop) out = r[1];
+      else if (r[2] === 'quad' && prop.indexOf(r[0] + '-') === 0) out = r[1] + ' ' + ({ top: 'en haut', right: 'à droite', bottom: 'en bas', left: 'à gauche' }[prop.slice(r[0].length + 1)] || '');
+    }); });
+    return out || 'Style';
+  }
   function opStyle(src, prop, value, label) {
     var text = C.setStyle(cur.text, src, prop, value, false);
     var olds = [], lives = [];
     eachLive(src, function (l) { lives.push(l); olds.push([l, l.style.getPropertyValue(prop), l.style.getPropertyPriority(prop)]); });
     var apply = function () { lives.forEach(function (l) { if (value) l.style.setProperty(prop, value); else l.style.removeProperty(prop); }); };
     var revert = function () { olds.forEach(function (o) { if (o[1]) o[0].style.setProperty(prop, o[1], o[2]); else o[0].style.removeProperty(prop); }); };
-    return commit(label || 'Style : ' + prop, text, apply, revert, { coalesce: 'style:' + prop + ':' + src.start + ':' + cur.path, redo: apply });
+    return commit(label || styleLabel(prop), text, apply, revert, { coalesce: 'style:' + prop + ':' + src.start + ':' + cur.path, redo: apply });
   }
   function opRawStyle(src, css) {
     var text = C.setAttr(cur.text, src, 'style', css ? css : null);
@@ -1142,11 +1181,11 @@
   }
   function opHide() {
     var src = srcOf();
-    if (!src) return;
+    if (!src || /^(body|html|head)$/.test(src.tag)) return;      // the whole page is never hidden
     var hid = isHidden(src);
     opStyle(src, 'display', hid ? '' : 'none', hid ? 'Afficher' : 'Masquer');
     cur.undo[cur.undo.length - 1].coalesce = null;
-    toast(hid ? 'Élément affiché.' : 'Élément masqué (display: none). Retrouvez-le dans « Structure ».', 'info');
+    toast(hid ? 'Élément affiché.' : 'Élément masqué. Retrouvez-le dans « Calques ».', 'info', hid ? null : { label: 'Annuler', run: undo });
   }
   function opDuplicate() {
     var src = srcOf();
@@ -1497,13 +1536,14 @@
     var primary = frames.find(function (f) { return f.ready; });
     function label(e) {
       var id = C.attrValue(text, e, 'id'), cls = (C.attrValue(text, e, 'class') || '').split(/\s+/).filter(Boolean)[0];
-      var name = e.tag + (id ? '#' + id : cls ? '.' + cls : '');
+      var name = kindName(e.tag);
       var t = '';
       if (isTextual(e)) {
         t = '';
-        (function walk(n) { n.children.forEach(function (c) { if (c.type === 'text') t += C.decode(text.slice(c.start, c.end)); else if (c.type === 'el') walk(c); }); })(e);
+        (function walk(n) { n.children.forEach(function (c) { if (c.type === 'text') t += C.decode(text.slice(c.start, c.end)); else if (c.type === 'el') { if (c.tag === 'br') t += ' '; else walk(c); } }); })(e);
         t = t.replace(/\s+/g, ' ').trim().slice(0, 40);
-      } else if (e.tag === 'img') t = (C.attrValue(text, e, 'alt') || C.attrValue(text, e, 'src') || '').slice(0, 40);
+      } else if (e.tag === 'img') t = (C.attrValue(text, e, 'alt') || String(C.attrValue(text, e, 'src') || '').split('/').pop() || '').slice(0, 40);
+      else t = hintOf(id, cls);
       return esc(name) + (t ? ' <em>' + esc(t) + '</em>' : '');
     }
     function row(e, depth) {
@@ -1567,14 +1607,14 @@
     }
     box.hidden = false;
     if (ti) ti.textContent = kindName(src.tag);
-    if (su) su.textContent = describe(sel.el);
+    if (su) { var hs = hintOf(sel.el.getAttribute('id'), (sel.el.getAttribute('class') || '').split(/\s+/).filter(Boolean)[0]); su.textContent = KIND_NAME[src.tag] && !/^(section|header|footer|nav|aside|article|form|ul|ol)$/.test(src.tag) ? '' : hs; su.title = describe(sel.el); }
     var chain = [];
     for (var n = src; n && n.type === 'el' && n.tag !== 'html'; n = n.parent) chain.unshift(n);
     var text = cur.text;
     chain.forEach(function (n, k) {
       if (k) box.appendChild(ce('span', 'sk-path__sep', '›'));
       var id = C.attrValue(text, n, 'id'), cls = (C.attrValue(text, n, 'class') || '').split(/\s+/).filter(Boolean)[0];
-      var b = ce('button', n === src ? 'is-cur' : '', esc(n.tag + (id ? '#' + id : cls ? '.' + cls : '')));
+      var b = ce('button', n === src ? 'is-cur' : '', esc(kindName(n.tag)));
       b.type = 'button';
       b.title = n.tag + (id ? '#' + id : '') + (cls ? '.' + (C.attrValue(text, n, 'class') || '').trim().split(/\s+/).join('.') : '');
       b.addEventListener('click', function () { var l = counterpart(sel.frame, n); if (l) select(l, sel.frame); });
@@ -1645,7 +1685,12 @@
     var done = function () { if (el.value !== el._last) { el._last = el.value; fn(el.value); } };
     el._last = el.value;
     el.addEventListener('change', done);
-    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); done(); } e.stopPropagation(); });
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); done(); }
+      // Ctrl Z / Ctrl Y with nothing being typed here: let the page's own undo hear it (see onKey)
+      if ((e.ctrlKey || e.metaKey) && /^[zy]$/i.test(e.key) && el.value === el._last) return;
+      e.stopPropagation();
+    });
     el.addEventListener('blur', function () { if (!panelBusy) setTimeout(refreshPanel, 0); });
   }
 
@@ -1656,7 +1701,7 @@
     var text = cur.text, el = sel.el;
     // text
     if (isTextual(src)) {
-      var s = section(p, 'Texte', '<' + src.tag + '>');
+      var s = section(p, 'Texte');
       var plain = el.textContent.replace(/\s+/g, ' ').trim();
       s.appendChild(ce('p', 'sk-note', esc(plain.slice(0, 160)) + (plain.length > 160 ? '…' : '')));
       var b = ce('button', 'sk-ghost', 'Modifier le texte sur la page');
@@ -1669,10 +1714,11 @@
     var img = imgOf(el);
     var imgSrc = img && frames.length && sel.frame.map.l2s.get(img);
     if (img && imgSrc) {
-      var si = section(p, 'Image', C.attrValue(text, imgSrc, 'src') ? '' : 'sans src');
+      var si = section(p, 'Image', C.attrValue(text, imgSrc, 'src') ? '' : 'aucun fichier');
       var pv = ce('div', 'sk-img', '<img alt="" src="' + esc(img.currentSrc || img.src) + '">');
       si.appendChild(pv);
-      si.appendChild(ce('p', 'sk-note', '<code>' + esc(C.attrValue(text, imgSrc, 'src') || '') + '</code>'));
+      var fileName = String(C.attrValue(text, imgSrc, 'src') || '').split(/[?#]/)[0].split('/').pop();
+      if (fileName) { var fn = ce('p', 'sk-note sk-file', esc(fileName)); fn.title = C.attrValue(text, imgSrc, 'src') || ''; si.appendChild(fn); }
       var bs2 = ce('div', 'sk-btns');
       var up = ce('button', 'sk-primary', 'Remplacer…'); up.type = 'button';
       up.addEventListener('click', function () { $('skFile')._bg = false; $('skFile').click(); });
@@ -1681,9 +1727,10 @@
       bs2.appendChild(up); bs2.appendChild(pk);
       si.appendChild(bs2);
       var alt = input(C.attrValue(text, imgSrc, 'alt') || '', 'alt', 'Ce que montre l’image');
-      field(si, 'Texte alternatif (alt)', alt);
+      field(si, 'Description de l’image', alt);
+      si.appendChild(ce('p', 'sk-note', 'Lue par Google et aux personnes qui ne voient pas l’image.'));
       onCommit(alt, function (v) { opAttrs([{ src: imgNow(), name: 'alt', value: v }], 'Texte alternatif'); });
-      if (C.attr(imgSrc, 'srcset')) si.appendChild(ce('p', 'sk-note', 'Cette image a plusieurs tailles (srcset) : en la remplaçant, une seule taille est gardée.'));
+      if (C.attr(imgSrc, 'srcset')) si.appendChild(ce('p', 'sk-note', 'Cette image existe en plusieurs tailles : en la remplaçant, une seule est gardée.'));
     } else {
       var bgi = sel.frame.win.getComputedStyle(el).backgroundImage;
       if (bgi && /url\(/.test(bgi)) {
@@ -1697,16 +1744,16 @@
         pk2.addEventListener('click', function () { pickImage(function (rel, abs) { setBackground(srcOf(), rel, abs); }); });
         bs3.appendChild(up2); bs3.appendChild(pk2);
         sb.appendChild(bs3);
-        sb.appendChild(ce('p', 'sk-note', 'La nouvelle image s’écrit dans le style de l’élément (background-image).'));
+
       }
     }
     // link
     var a = src.tag === 'a' ? src : null;
     for (var n = src.parent; !a && n && n.type === 'el'; n = n.parent) if (n.tag === 'a') a = n;
     if (a) {
-      var sl = section(p, 'Lien', a === src ? '' : 'du parent <a>');
+      var sl = section(p, 'Lien', a === src ? '' : 'du bloc qui l’entoure');
       var href = input(C.attrValue(text, a, 'href') || '', 'href', 'https://… ou page.html ou #section');
-      field(sl, 'Adresse (href)', href);
+      field(sl, 'Adresse du lien', href);
       onCommit(href, function (v) { opAttrs([{ src: linkNow(), name: 'href', value: v.trim() }], 'Lien'); });
       var tg = ce('select', 'sk-select');
       tg.setAttribute('data-k', 'target');
@@ -1729,15 +1776,16 @@
     }
     // element actions (the simplified studio keeps to texts, photos and links: nothing that can break the page)
     if (SIMPLE) return;
-    var sa = section(p, 'Élément', '<' + src.tag + '>');
+    var sa = section(p, 'Élément');
     var row = ce('div', 'sk-btns');
     [['Dupliquer', opDuplicate, 'sk-ghost'], [isHidden(src) ? 'Afficher' : 'Masquer', opHide, 'sk-ghost'], ['Supprimer', opDelete, 'sk-danger']].forEach(function (x) {
       var b2 = ce('button', x[2], x[0]); b2.type = 'button'; b2.addEventListener('click', x[1]); row.appendChild(b2);
     });
     sa.appendChild(row);
-    if (/^(body|html|head)$/.test(src.tag)) row.querySelectorAll('button').forEach(function (b3, k) { if (k !== 1) b3.disabled = true; });
-    var idv = input(C.attrValue(text, src, 'id') || '', 'id', 'aucun');
-    field(sa, 'Identifiant (id, pour les liens #)', idv);
+    if (/^(body|html|head)$/.test(src.tag)) row.querySelectorAll('button').forEach(function (b3) { b3.disabled = true; });
+    var idv = input(C.attrValue(text, src, 'id') || '', 'id', 'aucune');
+    field(sa, 'Ancre', idv);
+    sa.appendChild(ce('p', 'sk-note', 'Un nom court pour faire un lien vers cet endroit de la page : monsite.com/#nom.'));
     onCommit(idv, function (v) { opAttrs([{ src: srcOf(), name: 'id', value: v.trim() || null }], 'Identifiant'); });
   }
 
@@ -1747,7 +1795,7 @@
     { t: 'Typographie', rows: [
       ['font-size', 'Taille', 'num', 'px'], ['font-weight', 'Graisse', 'select', ['', '300', '400', '500', '600', '700', '800', '900']],
       ['line-height', 'Interligne', 'num', ''], ['letter-spacing', 'Lettres', 'num', 'px'],
-      ['text-align', 'Alignement', 'seg', [['left', 'G'], ['center', 'C'], ['right', 'D'], ['justify', 'J']]],
+      ['text-align', 'Aligner', 'seg', [['left', 'À gauche', 'M3 4h10M3 8h6M3 12h8'], ['center', 'Au centre', 'M3 4h10M5 8h6M4 12h8'], ['right', 'À droite', 'M3 4h10M7 8h6M5 12h8'], ['justify', 'Justifié', 'M3 4h10M3 8h10M3 12h10']]],
       ['color', 'Couleur', 'color'], ['text-transform', 'Casse', 'select', ['', 'none', 'uppercase', 'lowercase', 'capitalize']],
       ['font-family', 'Police', 'font']
     ] },
@@ -1757,6 +1805,31 @@
     { t: 'Bordure', rows: [['border-radius', 'Rayon', 'num', 'px'], ['border-width', 'Épaisseur', 'num', 'px'], ['border-style', 'Trait', 'select', ['', 'none', 'solid', 'dashed', 'dotted']], ['border-color', 'Couleur', 'color']] },
     { t: 'Effets', rows: [['opacity', 'Opacité', 'num', ''], ['box-shadow', 'Ombre', 'select', ['', 'none', '0 1px 2px rgba(0,0,0,.12)', '0 4px 12px rgba(0,0,0,.15)', '0 12px 32px rgba(0,0,0,.2)']]] }
   ];
+  // the words for the values of a list: « 300 » is « Fine », « uppercase » is « Majuscules »
+  var VALUE_NAME = {
+    'font-weight': { '100': 'Très fine', '200': 'Extra-fine', '300': 'Fine', '400': 'Normale', '500': 'Moyenne', '600': 'Demi-grasse', '700': 'Grasse', '800': 'Très grasse', '900': 'Noire', normal: 'Normale', bold: 'Grasse' },
+    'text-transform': { none: 'Telle qu’écrite', uppercase: 'Majuscules', lowercase: 'Minuscules', capitalize: 'Initiales en majuscules' },
+    'border-style': { none: 'Aucun', solid: 'Plein', dashed: 'Tirets', dotted: 'Pointillés', double: 'Double' },
+    'box-shadow': { none: 'Aucune', '0 1px 2px rgba(0,0,0,.12)': 'Légère', '0 4px 12px rgba(0,0,0,.15)': 'Moyenne', '0 12px 32px rgba(0,0,0,.2)': 'Forte' }
+  };
+  function valueName(prop, v) {
+    v = String(v == null ? '' : v).trim();
+    var m = VALUE_NAME[prop] || {};
+    return m[v] || (prop === 'box-shadow' ? 'Sur mesure' : v);
+  }
+  // a measure as she would say it: « 109.44px » → « 109 », « -6.0192px » → « -6 », « normal » → « auto »
+  function niceMeasure(v, unit) {
+    v = String(v == null ? '' : v).trim();
+    if (!v) return '';
+    if (v === 'normal' || v === 'auto') return 'auto';
+    if (v === 'none') return 'aucune';
+    var m = /^(-?\d*\.?\d+)(px|)$/.exec(v);
+    if (m && (m[2] === unit || !m[2] || unit === '')) {
+      var n = +m[1], r = Math.abs(n) < 10 && Math.round(n) !== n ? Math.round(n * 10) / 10 : Math.round(n);
+      return String(r === 0 ? 0 : r) + (m[2] && m[2] !== unit ? m[2] : '');
+    }
+    return v;
+  }
   var groupClosed = (function () { try { return JSON.parse(localStorage.getItem('jeere-sites-groups')) || {}; } catch (e) { return {}; } })();
   function toHex(c) {
     var m = /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?/.exec(c || '');
@@ -1768,8 +1841,8 @@
   function stylePanel(p, src) {
     var el = sel.el, cs = sel.frame.win.getComputedStyle(el);
     var css = C.attrValue(cur.text, src, 'style') || '';
-    var head = section(p, 'Style de l’élément', '<' + src.tag + '>');
-    head.appendChild(ce('p', 'sk-note', 'Écrit dans l’attribut style de cet élément seulement, à toutes les largeurs. Les valeurs grises sont celles de la feuille de style du site.'));
+    var head = section(p, 'Style');
+    head.appendChild(ce('p', 'sk-note', 'Pour cet élément seulement, sur tous les écrans. En gris : le style d’origine du site.'));
     STYLE_GROUPS.forEach(function (g) {
       var box = ce('div', 'dz-g' + (groupClosed[g.t] ? ' is-closed' : ''));
       var has = g.rows.some(function (r) { return r[2] === 'quad' ? ['', '-top', '-right', '-bottom', '-left'].some(function (s2) { return C.styleValue(css, r[0] + s2); }) : C.styleValue(css, r[0]); });
@@ -1780,7 +1853,7 @@
       g.rows.forEach(function (r) { inner.appendChild(styleRow(src, el, cs, css, r)); });
       p.appendChild(box);
     });
-    var sc = section(p, 'CSS en ligne', 'style=""');
+    var sc = section(p, 'CSS de cet élément', 'avancé');
     var ta = ce('textarea', 'sk-textarea sk-code');
     ta.style.minHeight = '72px';
     ta.value = css;
@@ -1813,7 +1886,7 @@
     else if (kind === 'select') {
       var s = ce('select', 'dz-select' + (own ? ' is-set' : ''));
       s.setAttribute('data-k', prop);
-      r[3].forEach(function (v) { var o = ce('option', null, v ? esc(v) : esc('Site (' + (cs.getPropertyValue(prop) || '—').slice(0, 24) + ')')); o.value = v; if (v === own) o.selected = true; s.appendChild(o); });
+      r[3].forEach(function (v) { var o = ce('option', null, v ? esc(valueName(prop, v)) : esc('Du site · ' + valueName(prop, cs.getPropertyValue(prop) || '—').slice(0, 24))); o.value = v; if (v === own) o.selected = true; s.appendChild(o); });
       if (own && r[3].indexOf(own) < 0) { var o2 = ce('option', null, esc(own)); o2.value = own; o2.selected = true; s.appendChild(o2); }
       s.addEventListener('change', function () { set(s.value); });
       ctl.appendChild(s);
@@ -1821,9 +1894,10 @@
       var sg = ce('div', 'dz-seg dz-seg--txt dz-seg--fill');
       var eff = own || cs.getPropertyValue(prop);
       r[3].forEach(function (o) {
-        var b = ce('button', (o[0] === own ? 'is-on' : ''), esc(o[1]));
+        var b = ce('button', (o[0] === own ? 'is-on' : ''), o[2] ? '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="' + o[2] + '"/></svg>' : esc(o[1]));
         b.type = 'button';
-        b.title = o[0];
+        b.setAttribute('aria-label', o[1]);
+        b.setAttribute('data-tip', o[1]);
         if (!own && o[0] === eff) b.style.color = 'var(--dz-fg-2)';
         b.addEventListener('click', function () { set(o[0] === own ? '' : o[0]); });
         sg.appendChild(b);
@@ -1831,8 +1905,7 @@
       ctl.appendChild(sg);
     } else if (kind === 'color') ctl.appendChild(colorField(prop, own, cs.getPropertyValue(prop), set));
     else if (kind === 'font') {
-      var fi = ce('input', 'sk-input');
-      fi.style.minHeight = '24px'; fi.style.height = '24px'; fi.style.fontSize = '11px';
+      var fi = ce('input', 'dz-text');
       fi.value = own; fi.placeholder = (cs.getPropertyValue(prop) || '').split(',')[0].replace(/["']/g, '');
       fi.setAttribute('data-k', prop);
       fi.setAttribute('list', 'skFonts');
@@ -1844,7 +1917,10 @@
       ['top', 'right', 'bottom', 'left'].forEach(function (side, k) {
         var pp = prop + '-' + side;
         var ov = C.styleValue(css, pp);
-        q.appendChild(numField(pp, ov, cs.getPropertyValue(pp), 'px', function (v) { var s = srcOf(); if (s) opStyle(s, pp, v); }, ['H', 'D', 'B', 'G'][k]));
+        var cell = numField(pp, ov, cs.getPropertyValue(pp), 'px', function (v) { var s = srcOf(); if (s) opStyle(s, pp, v); }, ['↑', '→', '↓', '←'][k]);
+        cell.classList.add('dz-num--cell');
+        cell.setAttribute('data-tip', ['En haut', 'À droite', 'En bas', 'À gauche'][k]);
+        q.appendChild(cell);
       });
       ctl.appendChild(q);
       dot.className = 'dz-dot dz-dot--none';
@@ -1872,9 +1948,11 @@
     var lab = ce('span', 'dz-num__l dz-scrub' + (letter ? '' : ' is-empty'), letter ? esc(letter) : '');
     var inp = ce('input');
     inp.setAttribute('data-k', prop);
-    inp.value = own;
-    var ph = String(computed || '').trim();
+    // the unit sits beside the field: « 24 », not « 24px px »
+    inp.value = unit && own && own.slice(-unit.length) === unit && /^-?[\d.]+$/.test(own.slice(0, -unit.length)) ? own.slice(0, -unit.length) : own;
+    var ph = niceMeasure(computed, unit);
     inp.placeholder = ph.length > 14 ? ph.slice(0, 14) + '…' : ph;
+    if (!own && ph && !/^-?[\d.]+$/.test(ph)) box.classList.add('is-word');   // « auto », « aucune »: no unit beside a word
     inp.inputMode = 'decimal';
     inp.spellcheck = false;
     box.appendChild(lab); box.appendChild(inp);
@@ -1886,7 +1964,7 @@
       if (/^-?\d+(\.\d+)?$/.test(v) && unit) v += unit;
       return v;
     }
-    function num() { var m = /^(-?\d+(?:\.\d+)?)(.*)$/.exec(inp.value || inp.placeholder); return m ? { n: +m[1], u: m[2] || unit } : null; }
+    function num() { var m = /^(-?\d+(?:\.\d+)?)(.*)$/.exec(inp.value || inp.placeholder); return m ? { n: +m[1], u: m[2] } : null; }
     onCommit(inp, function (v) { set(norm(v)); });
     inp.addEventListener('keydown', function (e) {
       if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
@@ -1896,7 +1974,7 @@
       var n = Math.round((x.n + (e.key === 'ArrowUp' ? step : -step)) * 100) / 100;
       inp.value = n + (x.u || '');
       inp._last = inp.value;
-      set(inp.value);
+      set(norm(inp.value));
     });
     lab.addEventListener('pointerdown', function (e) {
       e.preventDefault();
@@ -1910,7 +1988,7 @@
         var n = Math.round((start.n + Math.round(dx / 2) * k) * 100) / 100;
         if (prop === 'opacity') n = clamp(n, 0, 1);
         inp.value = n + (start.u || '');
-        set(inp.value);
+        set(norm(inp.value));
       }
       function up() { doc.removeEventListener('pointermove', mv); doc.removeEventListener('pointerup', up); doc.body.classList.remove('dz-scrubbing'); refreshPanel(); }
       doc.addEventListener('pointermove', mv);
@@ -1928,7 +2006,8 @@
     var hex = ce('input', 'dz-hex');
     hex.setAttribute('data-k', prop);
     hex.value = own ? (toHex(own) || own) : '';
-    hex.placeholder = toHex(computed) || computed;
+    var hc = toHex(computed) || computed;
+    hex.placeholder = /^#[0-9A-F]{6}00$/.test(hc) || computed === 'transparent' ? 'Transparent' : hc;
     hex.spellcheck = false;
     box.appendChild(sw); box.appendChild(hex);
     onCommit(hex, function (v) { v = v.trim(); if (/^[0-9a-f]{3,8}$/i.test(v)) v = '#' + v; set(v); });
@@ -1962,11 +2041,11 @@
   function codePanel(p, src) {
     var text = cur.text;
     if (!src) {
-      var s0 = section(p, 'Code de la page', cur.path);
-      s0.appendChild(ce('p', 'sk-note', 'Choisissez un élément pour voir et modifier son code exact. Le fichier entier fait ' + text.length + ' caractères.'));
+      var s0 = section(p, 'Code de la page');
+      s0.appendChild(ce('p', 'sk-note', 'Choisissez un élément sur la page pour voir et modifier son code.'));
       return;
     }
-    var s = section(p, 'Code de l’élément', 'octets ' + src.start + '–' + src.end);
+    var s = section(p, 'Code de l’élément');
     var ta = ce('textarea', 'sk-textarea sk-code');
     ta.value = text.slice(src.start, src.end);
     ta.setAttribute('data-k', 'code');
@@ -1985,7 +2064,7 @@
     cp.addEventListener('click', function () { try { navigator.clipboard.writeText(ta.value); toast('Code copié.', 'ok'); } catch (e) { ta.select(); } });
     bs.appendChild(ap); bs.appendChild(cp);
     s.appendChild(bs);
-    s.appendChild(ce('p', 'sk-note', 'C’est le texte exact du fichier pour cet élément : le reste de la page ne bouge pas. Ctrl Entrée applique.'));
+    s.appendChild(ce('p', 'sk-note', 'Le code de cet élément, tel qu’il est dans la page. Le reste ne bouge pas. Ctrl Entrée pour appliquer.'));
     ta.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); ap.click(); } });
     ta.addEventListener('blur', function () { if (!panelBusy) setTimeout(refreshPanel, 0); });
   }
@@ -1994,19 +2073,19 @@
 
   function seoPanel(p) {
     var seo = C.readSEO(cur.tree);
-    var s = section(p, 'Référencement de la page', cur.path);
+    var s = section(p, 'Dans Google');
     var live = pageLiveUrl(site, cur.page) || '';
     var prev = ce('div', 'sk-seo-prev');
     function paint() { prev.innerHTML = '<small>' + esc(live.replace(/^https?:\/\//, '')) + '</small><b>' + esc(t.value || 'Sans titre') + '</b><p>' + esc((d.value || '').slice(0, 170)) + '</p>'; }
     var t = input(seo.title, 'seo-title', 'Le titre dans Google et l’onglet');
     var tc = ce('span', 'sk-count');
-    field(s, 'Titre (title)', t).querySelector('span').appendChild(tc);
+    field(s, 'Titre', t).querySelector('span').appendChild(tc);
     var d = ce('textarea', 'sk-textarea');
     d.value = seo.description;
     d.setAttribute('data-k', 'seo-desc');
     d.rows = 3;
     var dc = ce('span', 'sk-count');
-    field(s, 'Description (meta description)', d).querySelector('span').appendChild(dc);
+    field(s, 'Description', d).querySelector('span').appendChild(dc);
     function counts() {
       tc.textContent = t.value.length + ' / 60'; tc.classList.toggle('is-long', t.value.length > 60);
       dc.textContent = d.value.length + ' / 160'; dc.classList.toggle('is-long', d.value.length > 160);
@@ -2017,9 +2096,9 @@
     counts();
     onCommit(t, function (v) { opSEO('title', v); });
     onCommit(d, function (v) { opSEO('description', v); });
-    var so = section(p, 'Image de partage (og:image)', '1200 × 630 conseillé');
+    var so = section(p, 'Image de partage', '1200 × 630 conseillé');
     var og = input(seo.ogImage, 'seo-og', 'https://kreeative.xyz/assets/img/og/…');
-    var ogPrev = ce('div', 'sk-img', seo.ogImage ? '<img alt="" src="' + esc(seo.ogImage) + '" onerror="this.remove()">' : '');
+    var ogPrev = ce('div', 'sk-img sk-img--og', seo.ogImage ? '<img alt="" src="' + esc(seo.ogImage) + '" onerror="this.remove()">' : '');
     so.appendChild(ogPrev);
     field(so, 'Adresse de l’image', og);
     onCommit(og, function (v) { opSEO('ogImage', v.trim()); });
@@ -2034,11 +2113,11 @@
     });
     bs.appendChild(pk);
     so.appendChild(bs);
-    so.appendChild(ce('p', 'sk-note', 'Les balises og:title, og:description, twitter:… qui répétaient l’ancienne valeur suivent la nouvelle.'));
+    so.appendChild(ce('p', 'sk-note', 'L’image qui accompagne le lien sur WhatsApp, Instagram et Facebook. Le titre et la description du partage suivent ceux de la page.'));
     var sp = section(p, 'La page');
-    sp.appendChild(ce('p', 'sk-note', (cur.isNew ? 'Nouvelle page (copie de ' + esc(cur.from) + ').' : 'Fichier ' + esc(cur.path) + ' · ' + cur.text.length + ' caractères · ' + cur.tree.elements.length + ' éléments.') + (live ? ' <a class="sk-linkbtn" href="' + esc(live) + '" target="_blank" rel="noopener">Voir en ligne ↗</a>' : '')));
-    if (cur.noScripts) sp.appendChild(ce('p', 'sk-note sk-note--warn', 'Affichée sans ses scripts (elle redirige ailleurs à l’ouverture).'));
-    var tg = ce('button', 'sk-ghost', cur.noScripts ? 'Réactiver les scripts' : 'Afficher sans les scripts'); tg.type = 'button';
+    sp.appendChild(ce('p', 'sk-note', (cur.isNew ? 'Nouvelle page (copie de ' + esc(cur.from) + ').' : plural(cur.tree.elements.length, 'élément', 'éléments') + ' sur cette page.') + (live ? ' <a class="sk-linkbtn" href="' + esc(live) + '" target="_blank" rel="noopener">Voir en ligne ↗</a>' : '')));
+    if (cur.noScripts) sp.appendChild(ce('p', 'sk-note sk-note--warn', 'Page figée : ses animations et ses scripts sont à l’arrêt (elle redirige ailleurs à l’ouverture).'));
+    var tg = ce('button', 'sk-ghost', cur.noScripts ? 'Réactiver les animations' : 'Figer la page'); tg.type = 'button';
     tg.addEventListener('click', function () { cur.noScripts = !cur.noScripts; sel = null; frames.forEach(loadFrame); refreshPanel(); });
     var bs2 = ce('div', 'sk-btns'); bs2.appendChild(tg); sp.appendChild(bs2);
   }
@@ -2059,6 +2138,10 @@
     if (!$('skModal').hidden) { if (e.key === 'Escape') { e.preventDefault(); closeModal(); } return; }
     var mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
     if (mod && k === 's') { e.preventDefault(); showChanges(); return; }
+    // Ctrl Z in a field of the panel that is not being typed in (a list just chosen, a number just set) undoes
+    // the change in the page: the browser's own undo has nothing to undo there
+    if (typing && mod && (k === 'z' || k === 'y') && $('skPanel') && $('skPanel').contains(t) &&
+        (t.tagName === 'SELECT' || (t._last !== undefined && t.value === t._last))) { typing = false; try { t.blur(); } catch (er) { /* ok */ } }
     if (typing) return;
     if (!cur || $('sk').getAttribute('data-view') !== 'edit') return;
     if (mod && k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }

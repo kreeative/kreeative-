@@ -4057,7 +4057,7 @@
     else acts = H`<a class="a-btn a-btn--primary" href="../studio/">${ico('sparkle')}Ouvrir le Studio</a><a class="a-btn a-btn--ghost" href="../abonnements/">Changer de formule</a>
         ${sub.period === 'mois' ? H`<a class="a-btn a-btn--ghost" href="${ckUrl(sub.plan, 'an')}">Passer à l’annuel (−${P.discount(sub.plan)} %)</a>` : (s.pending ? '' : H`<button class="a-btn a-btn--ghost" type="button" data-act="studio-monthly">Passer au mensuel</button>`)}
         <button class="a-btn a-btn--quiet" type="button" data-act="studio-cancel">Annuler l’abonnement</button>`;
-    const cur = H`<section class="a-card" aria-labelledby="h-st"><div class="a-card__head"><div><h3 class="a-card__title" id="h-st">${esc(s.unlocked ? 'Studio ' + s.plan.name : 'Studio Découverte')} ${chip}</h3>
+    const cur = H`<section class="a-card" aria-labelledby="h-st"><div class="a-card__head"><div><h3 class="a-card__title" id="h-st">${esc(s.unlocked ? s.plan.label : 'Studio Découverte')} ${chip}</h3>
           <p class="a-card__sub">${esc(s.status === 'trial' ? 'Essai de tout le Studio, comme Studio Pro' : s.plan.for)}</p></div></div>
         <p class="a-big">${esc(paidNow ? P.fcfa(pr.perMonth) : '0' + NB + 'FCFA')}<small class="a-muted" style="font-size:14px;font-weight:500">${paidNow ? ' / mois' : (s.status === 'trial' ? ' pendant l’essai' : '')}</small></p>
         <dl class="a-dl" style="margin-top:14px">${rows}</dl>${pend}
