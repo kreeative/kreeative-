@@ -199,10 +199,11 @@ kbd { font: var(--fw-medium) 11px/16px var(--font-ui); color: var(--fg-3); backg
 .sk-field > span { color: var(--fg-3); font-size: 11px; line-height: 16px; display: flex; justify-content: space-between; }
 .sk-input, .sk-textarea, .sk-select {
   width: 100%; min-height: var(--ctl-md); padding: var(--sp-1) var(--sp-2); border: 0; border-radius: var(--r-sm); background: var(--bg-input); color: var(--fg-1);
-  box-shadow: inset 0 0 0 var(--hair) var(--line-2), inset 0 1px 0 rgba(0, 0, 0, 0.2); font: var(--fw-regular) 12px/16px var(--font-ui); outline: none;
+  box-shadow: inset 0 0 0 1px transparent; font: var(--fw-regular) 12px/16px var(--font-ui); outline: none;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
 }
-.sk-input:hover, .sk-textarea:hover, .sk-select:hover { box-shadow: inset 0 0 0 var(--hair) var(--line-3); }
-.sk-input:focus, .sk-textarea:focus, .sk-select:focus { box-shadow: inset 0 0 0 1px var(--focus-ring); }
+.sk-input:hover, .sk-textarea:hover, .sk-select:hover { background-color: var(--bg-active); }
+.sk-input:focus, .sk-textarea:focus, .sk-select:focus { background-color: var(--bg-panel, transparent); box-shadow: inset 0 0 0 1.5px var(--sel), 0 0 0 3px var(--sel-soft); }
 .sk-input::placeholder, .sk-textarea::placeholder { color: var(--fg-3); }
 .sk-textarea { resize: vertical; min-height: var(--sp-12); }
 .sk-code { font: 11px/16px var(--font-mono); white-space: pre; tab-size: 2; min-height: 240px; }

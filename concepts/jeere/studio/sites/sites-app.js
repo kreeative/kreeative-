@@ -1783,7 +1783,7 @@
     });
     sa.appendChild(row);
     if (/^(body|html|head)$/.test(src.tag)) row.querySelectorAll('button').forEach(function (b3) { b3.disabled = true; });
-    var idv = input(C.attrValue(text, src, 'id') || '', 'id', 'aucune');
+    var idv = input(C.attrValue(text, src, 'id') || '', 'id', 'ex. contact');
     field(sa, 'Ancre', idv);
     sa.appendChild(ce('p', 'sk-note', 'Un nom court pour faire un lien vers cet endroit de la page : monsite.com/#nom.'));
     onCommit(idv, function (v) { opAttrs([{ src: srcOf(), name: 'id', value: v.trim() || null }], 'Identifiant'); });
