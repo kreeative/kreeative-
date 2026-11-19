@@ -759,6 +759,7 @@
     S.mounts = [];
     S.restored = null;
     let html;
+    S.viewExt = !!EXT();                           // which store this page is drawn for (see updateShell)
     try { html = EXT() && r.name !== 'direct' ? EXT().view(r) : VIEWS[r.name](r); } catch (e) { html = errorView(); }
     S.rendering = true;
     try { main.innerHTML = html; } finally { S.rendering = false; }
@@ -850,6 +851,12 @@
     });
     $$('[data-bind="store-url"]').forEach((n) => { n.textContent = subdomain(); });
     updateProjShell();
+    // The page in view was drawn before we knew she manages The Ivory Sukundu (her account arrives a moment
+    // after the first draw): the menu would say one store and the page show another. Draw the page again.
+    if (S.route && !S.rendering && typeof S.viewExt === 'boolean' && S.viewExt !== !!EXT() && !S.extRedraw) {
+      S.extRedraw = true;
+      setTimeout(() => { S.extRedraw = false; if (S.viewExt !== !!EXT()) refresh(); }, 0);
+    }
     document.body.classList.toggle('is-ext', !!EXT());
     const acc = S.account || {};
     $$('[data-bind="user-name"]').forEach((n) => { n.textContent = acc.firstName || 'Mon compte'; });
