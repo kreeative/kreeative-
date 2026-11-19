@@ -442,6 +442,16 @@
     }, () => {});
   }
   const EXT = () => (founder() && window.JeereTishe && window.JeereTishe.on() ? window.JeereTishe : null);
+  // The Ivory Sukundu is the store in view, but we do not know yet that this account manages it (the account
+  // arrives a moment after the page): wait, instead of showing another store's numbers. Six seconds at most.
+  const BOOT = Date.now();
+  const extPending = () => {
+    if (founder() || !(window.JeereTishe && window.JeereTishe.on()) || Date.now() - BOOT > 6000) return false;
+    const uid = S.account && S.account.userId ? String(S.account.userId) : '';
+    let cached = null;
+    try { cached = sessionStorage.getItem('jeere-sites-editor'); } catch (e) { cached = null; }
+    return !uid || cached !== '0:' + uid;
+  };
   const storeName = () => (EXT() ? EXT().name : (S.config && S.config.store.name) || (S.account && S.account.storeName) || 'Ma boutique');
   const subdomain = () => EXT() ? EXT().url : (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jehre.com/b/ma-boutique');
   const findOrder = (id) => S.admin.orders.find((o) => o.id === id) || null;
@@ -760,7 +770,18 @@
     S.restored = null;
     let html;
     S.viewExt = !!EXT();                           // which store this page is drawn for (see updateShell)
-    try { html = EXT() && r.name !== 'direct' ? EXT().view(r) : VIEWS[r.name](r); } catch (e) { html = errorView(); }
+    if (extPending()) {
+      S.viewExt = null;
+      html = H`<div class="a-page"><header class="a-ph"><div class="a-ph__txt"><h1 class="a-h1" tabindex="-1">The Ivory Sukundu</h1></div></header><section class="a-card"><p class="a-card__sub">Ouverture de la boutique…</p></section></div>`;
+      setTimeout(() => {
+        if (S.viewExt !== null) return;
+        try { const a = readAccount(); if (a) S.account = a; } catch (e) { /* keep the one we have */ }
+        checkFounder();
+        refresh();
+      }, 350);
+    } else {
+      try { html = EXT() && r.name !== 'direct' ? EXT().view(r) : VIEWS[r.name](r); } catch (e) { html = errorView(); }
+    }
     S.rendering = true;
     try { main.innerHTML = html; } finally { S.rendering = false; }
     S.mounts.forEach((fn) => { try { fn(); } catch (e) { /* a view's extra never breaks the page */ } });

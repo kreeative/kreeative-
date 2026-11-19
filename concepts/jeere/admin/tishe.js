@@ -714,7 +714,23 @@
 
   /* ------------------------------------------------------------------ what the store manages elsewhere */
 
+  function settingsView() {
+    var a = auth() || {};
+    var row = function (k, v) { return '<div class="tx-dl__row"><dt>' + esc(k) + '</dt><dd>' + v + '</dd></div>'; };
+    var link = function (href, label) { return '<a class="a-btn a-btn--ghost" href="' + href + '" target="_blank" rel="noopener">' + ico('external') + esc(label) + '</a>'; };
+    return page('Paramètres', 'The Ivory Sukundu a son propre site : ses réglages se font chez les services qui la font tourner.',
+      card('<dl class="tx-dl" style="margin-top:0">' +
+        row('Boutique', 'The Ivory Sukundu') +
+        row('Adresse', '<a class="a-link" href="' + SITE + '" target="_blank" rel="noopener">theivorysukundu.com</a>') +
+        row('Connectée avec', esc(a.email || OWNER)) +
+        '</dl>', 'Votre boutique') +
+      card('<p class="a-card__sub">Les paiements par carte, les remboursements et les virements vers votre banque.</p><div class="a-btnrow">' + link('https://dashboard.stripe.com', 'Ouvrir Stripe') + '</div>', 'Paiements') +
+      card('<p class="a-card__sub">Les e-mails envoyés à vos clientes : confirmations de commande, expédition, offres.</p><div class="a-btnrow">' + link('https://resend.com/emails', 'Ouvrir Resend') + '</div>', 'E-mails') +
+      card('<p class="a-card__sub">Le nom de domaine et l’hébergement du site.</p><div class="a-btnrow">' + link('https://vercel.com/dashboard', 'Ouvrir Vercel') + '</div>', 'Nom de domaine et hébergement') +
+      card('<p class="a-card__sub">Vous restez connectée 30 jours sur cet appareil. Votre compte Jehre suffit pour revenir.</p><div class="a-btnrow"><button class="a-btn a-btn--quiet" type="button" data-tx="signout">' + ico('logout') + 'Déconnecter la boutique de ce navigateur</button></div>', 'Cet appareil'));
+  }
   function elsewhere(title) {
+    if (title === 'parametres') return settingsView();
     var where = {
       paiements: ['Les paiements passent par Stripe, en dollars canadiens et américains.', 'https://dashboard.stripe.com', 'Ouvrir Stripe'],
       pages: ['Les pages de theivorysukundu.com sont écrites dans son code : elles ne se modifient pas encore ici.', SITE, 'Voir la boutique'],
