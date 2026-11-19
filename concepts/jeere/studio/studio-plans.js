@@ -211,25 +211,29 @@
           '<div class="st-plansheet__acts">' + (s.hasAccount ? '' : '<a class="st-primary st-btnlink" href="../compte/?suite=studio#inscription" id="planSignup">Créer mon compte</a>') +
           '<a class="' + (s.hasAccount ? 'st-primary st-btnlink' : 'st-ghostbtn') + '" href="../compte/?suite=studio#connexion" id="planLogin">Se connecter</a></div></div>';
       }
-      // the plans, monthly or yearly
+      // the plans, monthly or yearly — not for a Studio given for life or included in her boutique plan: nothing to buy
+      var gift = s.lifetime || s.status === 'included';
+      if (!gift) {
       h += '<div class="st-plansheet__bar"><span class="st-plansheet__lbl" id="planPerLbl">Facturation</span><span class="st-seg" role="group" aria-labelledby="planPerLbl">' +
         '<button type="button" data-per="mois" aria-pressed="' + (sheetPeriod === 'mois') + '"' + (sheetPeriod === 'mois' ? ' class="is-on"' : '') + '>Mensuel</button>' +
         '<button type="button" data-per="an" aria-pressed="' + (sheetPeriod === 'an') + '"' + (sheetPeriod === 'an' ? ' class="is-on"' : '') + '>Annuel · −' + P.discount('solo') + NB + '%</button></span></div>';
       h += '<ul class="st-plans">';
       P.PLANS.filter(function (p) { return p.paid; }).forEach(function (p) {
         var cur = s.unlocked && s.status !== 'trial' && s.paidPlan.id === p.id;
-        h += '<li class="st-plan' + (p.recommended ? ' is-pick' : '') + (cur ? ' is-cur' : '') + '">' +
-          '<div class="st-plan__head"><b class="st-plan__name">' + esc(p.name) + '</b>' + (cur ? '<span class="st-pill st-pill--ok">Votre formule</span>' : (p.recommended ? '<span class="st-pill">Le plus choisi</span>' : '')) + '</div>' +
+        var pick = p.recommended && !(s.unlocked && s.status !== 'trial');
+        h += '<li class="st-plan' + (pick ? ' is-pick' : '') + (cur ? ' is-cur' : '') + '">' +
+          '<div class="st-plan__head"><b class="st-plan__name">' + esc(p.name) + '</b>' + (cur ? '<span class="st-pill st-pill--ok">Votre formule</span>' : (pick ? '<span class="st-pill">Le plus choisi</span>' : '')) + '</div>' +
           '<p class="st-plan__for">' + esc(p.for) + '</p>' + priceLine(p) +
           '<ul class="st-plan__pts">' + p.points.map(function (t) { return '<li>' + CHECK + '<span>' + esc(t) + '</span></li>'; }).join('') + '</ul>' +
           (cur ? '<a class="st-ghostbtn st-plan__cta" href="../admin/#parametres/studio">Gérer</a>'
-            : '<a class="' + (p.recommended ? 'st-primary st-btnlink' : 'st-ghostbtn') + ' st-plan__cta" href="' + esc(checkoutUrl(p)) + '" data-plan="' + esc(p.id) + '">Choisir ' + esc(p.name) + '</a>') +
+            : '<a class="' + (pick ? 'st-primary st-btnlink' : 'st-ghostbtn') + ' st-plan__cta" href="' + esc(checkoutUrl(p)) + '" data-plan="' + esc(p.id) + '">Choisir ' + esc(p.name) + '</a>') +
           '</li>';
       });
       h += '</ul>';
-      h += '<div class="st-plansheet__foot"><a class="st-textlink" href="../abonnements/#comparer">Comparer toutes les formules</a>' +
+      }
+      h += '<div class="st-plansheet__foot">' + (gift ? '' : '<a class="st-textlink" href="../abonnements/#comparer">Comparer toutes les formules</a>') +
         (s.signedIn ? '<a class="st-textlink" href="../admin/#parametres/studio">Gérer mon abonnement</a>' : '') +
-        '<span class="st-demo">Mode démo · aucun paiement réel</span></div>';
+        (window.JeereAuth && typeof window.JeereAuth.isDemo === 'function' && !window.JeereAuth.isDemo() ? '' : '<span class="st-demo">Mode démo · aucun paiement réel</span>') + '</div>';
       body.innerHTML = h;
       Array.prototype.forEach.call(body.querySelectorAll('[data-per]'), function (b) {
         b.addEventListener('click', function () {

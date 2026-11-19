@@ -517,6 +517,8 @@ body { font-size: 12px; -webkit-font-smoothing: antialiased; font-feature-settin
 /* the dark theme: an active tool, chip or toggle is light on dark, its glyph dark (it was white on white) */
 :root[data-theme="dark"] :is(.st-abchips button.is-on, .st-ftb__btn.is-on, .st-ftb__btn[aria-expanded="true"], .st-iconbtn.is-on, .st-iconbtn[aria-pressed="true"]) { color: var(--st-chrome); }
 :root[data-theme="dark"] .st-ftb__btn.is-on:hover { background: #FFFFFF; }
+/* the same in dark for every chosen option: the accent is white there, so its text is dark (it was white on white) */
+:root[data-theme="dark"] :is(.st-seg button.is-on, .st-tool.is-on, .st-devices button.is-on, .st-preview__w.is-on) { color: var(--st-chrome); }
 
 /* a finger (html.st-touch, iPad): the buttons of the top bar reach 44 px high in both editors */
 .st-touch .st-top .st-iconbtn { height: 44px; }
@@ -559,3 +561,14 @@ body { font-size: 12px; -webkit-font-smoothing: antialiased; font-feature-settin
 /* No underlines on the Jehre site: text links are bold instead (the founder's rule) */
 a { text-decoration: none; }
 a:not([class]) { font-weight: 600; }
+
+/* ---- small finishes found while going through every screen ---- */
+/* the close cross and the switches use the Studio's font, not the browser's Arial */
+.st-modal__close, .st-switch, .st-modal button, .st-drawer button { font-family: var(--st-font); }
+/* dark theme: a switch that is on has a white track, so its knob is dark (it was white on white) */
+:root[data-theme="dark"] .st-switch[aria-checked="true"] .st-switch__knob { background: var(--st-chrome); box-shadow: none; }
+/* the head of the right panel: the name on one line, what it is under it (it was cut after a few letters) */
+.st-right__head { flex-wrap: wrap; row-gap: 0; align-content: center; }
+.st-right__head > span:first-child, .st-right__head > #inspTitle, .st-right__head > #skInspTitle { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-right__head > .st-right__sub { order: 3; flex: 0 0 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: -2px 0 0; max-width: none; }
+.st-right__head > .st-right__sub:empty { display: none; }

@@ -879,6 +879,9 @@
       setTimeout(() => { S.extRedraw = false; if (S.viewExt !== !!EXT()) refresh(); }, 0);
     }
     document.body.classList.toggle('is-ext', !!EXT());
+    // « Démo » and its note are for the demo account: a real account (it has a user id) never sees them
+    const realAcct = !!(S.account && S.account.userId);
+    $$('.a-chip--demo, .a-side__demo').forEach((n) => { n.hidden = realAcct; });
     const acc = S.account || {};
     $$('[data-bind="user-name"]').forEach((n) => { n.textContent = acc.firstName || 'Mon compte'; });
     $$('[data-bind="user-initial"]').forEach((n) => { n.textContent = initials(acc.firstName || name).charAt(0) || 'J'; });

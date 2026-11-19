@@ -3442,11 +3442,11 @@
     frag.appendChild(gpay);
 
     var gf = group('Fiche boutique', false);
-    var exp = ce('button', 'st-addbtn', 'Exporter le JSON — Ctrl E');
+    var exp = ce('button', 'st-addbtn', 'Télécharger une sauvegarde — Ctrl E');
     exp.type = 'button';
     exp.addEventListener('click', exportJSON);
     gf.body.appendChild(exp);
-    var imp = ce('button', 'st-addbtn', 'Importer un JSON');
+    var imp = ce('button', 'st-addbtn', 'Ouvrir une sauvegarde');
     imp.type = 'button';
     imp.addEventListener('click', function () { $('importFile').click(); });
     gf.body.appendChild(imp);
@@ -3894,7 +3894,7 @@
     var reader = new FileReader();
     reader.onload = function () {
       var parsed = null;
-      try { parsed = JSON.parse(String(reader.result)); } catch (e) { toast('Ce fichier n’est pas un JSON valide.', 'err'); return; }
+      try { parsed = JSON.parse(String(reader.result)); } catch (e) { toast('Ce fichier n’est pas une sauvegarde de boutique.', 'err'); return; }
       var normalized;
       try { normalized = D.normalizeConfig(parsed); } catch (e) { toast('Cette fiche n’a pas pu être lue.', 'err'); return; }
       commit('Import de la fiche', function (c) {
@@ -3972,17 +3972,17 @@
     }
     var row = ce('div', 'st-share__row');
     // one primary action per dialog: when publishing, the JSON is the secondary way out
-    var dl = ce('button', livePublish ? 'st-ghostbtn' : 'st-primary', 'Télécharger le JSON');
+    var dl = ce('button', livePublish ? 'st-ghostbtn' : 'st-primary', 'Télécharger une sauvegarde');
     dl.type = 'button';
     dl.addEventListener('click', exportJSON);
     row.appendChild(dl);
     if (hooks.exportPNG) {
-      var png = ce('button', 'st-ghostbtn', 'Exporter en image (PNG)');
+      var png = ce('button', 'st-ghostbtn', 'Exporter en image');
       png.type = 'button';
       png.addEventListener('click', function () { hooks.exportPNG(); });
       row.appendChild(png);
     }
-    var cp = ce('button', 'st-ghostbtn', 'Copier le JSON');
+    var cp = ce('button', 'st-ghostbtn', 'Copier la sauvegarde');
     cp.type = 'button';
     cp.addEventListener('click', function () {
       var json = '';
