@@ -3337,7 +3337,7 @@
     wa.addEventListener('change', () => { wa.value = S.config.store.whatsapp; });
 
     tp.append(group('b-g-store', 'Informations', null,
-      textField({ key: 'name', label: 'Nom de la boutique', type: 'text', max: 40, placeholder: 'Awa Beauté' }, storeAcc('name'), 'b-f-store-name', { autocomplete: 'organization' }),
+      textField({ key: 'name', label: 'Nom de la boutique', type: 'text', max: 40 }, storeAcc('name'), 'b-f-store-name', { autocomplete: 'organization' }),
       textField({ key: 'tagline', label: 'Slogan', type: 'text', max: 80, placeholder: 'Soins naturels faits à Abidjan' }, storeAcc('tagline'), 'b-f-store-tagline',
         { hint: 'Une phrase courte, affichée en bas de votre boutique.' }),
       el('div', { class: 'b-field' },
