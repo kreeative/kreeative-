@@ -95,6 +95,11 @@ p { margin: 0; }
 .partners__label { flex-basis: 100%; font: 600 11px/1.6 var(--sans); font-style: normal; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fog); }
 .partners .nb { white-space: nowrap; }
 .partners .nb + .nb::before { content: "·"; padding-right: 12px; }
+/* the brands: two columns when the card is wide enough, one name per line otherwise, no dots */
+.partners.brands { display: grid; grid-template-columns: repeat(2, max-content); gap: 2px 24px; }
+.partners.brands .partners__label { grid-column: 1 / -1; }
+.partners.brands .nb + .nb::before { content: none; }
+@container (max-width: 470px) { .partners.brands { grid-template-columns: max-content; } }
 /* the countries and the partners read as one block: one rule above them */
 .audience + .partners { border-top: 0; padding-top: 0; margin-top: -8px; }
 /* narrow desktops: the text card is the taller one, so it tightens to stay close to the feed's height */
@@ -226,6 +231,18 @@ p { margin: 0; }
 .more { margin-top: 22px; font-size: 14px; color: var(--fog); }
 .more a { color: var(--pink); }
 @media (max-width: 900px) { .feature, .feature--story { grid-template-columns: minmax(0, 1fr); } .sites { grid-template-columns: repeat(2, minmax(0, 1fr)); } .story { max-width: 300px; } }
+
+/* media kit: the brands on the pink, one rule between names */
+.kit { background: var(--pink); color: var(--cocoa); }
+.kit .eyebrow { color: var(--cocoa); }
+.kit .h2 em { color: var(--rose); }
+.brandlist { list-style: none; margin: 0 0 40px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 4vw, 56px); border-top: 1px solid rgba(59, 35, 31, 0.25); }
+.brandlist li { padding: 22px 0; border-bottom: 1px solid rgba(59, 35, 31, 0.25); font: 300 clamp(1.8rem, 3.6vw, 3rem)/1.1 var(--display); letter-spacing: -0.03em; min-width: 0; }
+.kit__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
+.kit__actions p { color: var(--ink-soft); }
+.kit .btn--pink { background: var(--cocoa); border-color: var(--cocoa); color: var(--pink); }
+.kit .btn--pink:hover { background: var(--ink); }
+@media (max-width: 700px) { .brandlist { grid-template-columns: minmax(0, 1fr); } }
 
 /* statement */
 .statement { background: linear-gradient(rgba(36, 19, 15, 0.84), rgba(36, 19, 15, 0.88)), var(--leopard) center / cover; text-align: center; }
