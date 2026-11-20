@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Vercel also serves this page at /aissakee with no slash: the base keeps style.css, fonts and images resolving to this folder -->
+<base href="/aissakee/">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aïssa Kee · UGC creator and designer in Toronto</title>
+<meta name="description" content="Aïssa Kee makes UGC for beauty and lifestyle brands in English and French: hook-first videos, carousels and photos, edited and ready to post. Toronto.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#24130f">
+<meta property="og:title" content="Aïssa Kee · UGC creator and designer">
+<meta property="og:description" content="UGC for beauty and lifestyle brands, in English and French.">
+<meta property="og:image" content="https://kreeative.xyz/aissakee/img/profusion-cart-1400.webp">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/fraunces-300-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- CONTENT -->
+<svg class="fx" aria-hidden="true" focusable="false">
+  <!-- Ink that sinks into the paper, as a displacement map does in Photoshop: the edges follow the
+       fibres and the density varies, like pen or toner on cotton paper. Used on the "Who is she?" card. -->
+  <filter id="ink" x="-4%" y="-25%" width="108%" height="150%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="fibres"/>
+    <feDisplacementMap in="SourceGraphic" in2="fibres" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+    <feGaussianBlur in="rough" stdDeviation="0.35" result="bleed"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="3" seed="13" result="blot"/>
+    <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.6 0 0 0 0.55" result="density"/>
+    <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="1" seed="5" result="speck"/>
+    <feColorMatrix in="speck" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.4 0 0 0 0.25" result="pores"/>
+    <feComposite in="bleed" in2="density" operator="in" result="inked"/>
+    <feComposite in="inked" in2="pores" operator="in"/>
+  </filter>
+  <filter id="print" x="-4%" y="-25%" width="108%" height="150%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3" result="fibres"/>
+    <feDisplacementMap in="SourceGraphic" in2="fibres" scale="1" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.3" numOctaves="2" seed="21" result="blot"/>
+    <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.5 0 0 0 0.66" result="density"/>
+    <feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="9" result="speck"/>
+    <feColorMatrix in="speck" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.6 0 0 0 0.2" result="pores"/>
+    <feComposite in="rough" in2="density" operator="in" result="inked"/>
+    <feComposite in="inked" in2="pores" operator="in"/>
+  </filter>
+</svg>
+<header class="top">
+  <div class="wrap top__in">
+    <a class="brand" href="#top" aria-label="Aïssa Kee, back to the top">
+      <span class="mono" aria-hidden="true">AK</span>
+      <span><span class="brand__name">Aïssa Kee</span><span class="brand__sub">UGC creator · Toronto</span></span>
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a href="#media-kit">Media kit</a>
+      <a href="#services">Services</a>
+      <a class="btn" href="#contact">Work with me</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap hero__in">
+      <div class="hero__copy">
+        <p class="eyebrow">UGC creator · Designer · Toronto</p>
+        <h1 class="h1" id="hero-title">Aïssa <em>Kee</em></h1>
+        <p class="lede">UGC for beauty and lifestyle brands, filmed in Toronto, in English and in French. I write the hook, film it, edit it and hand you posts that are ready to run.</p>
+        <div class="hero__actions">
+          <a class="btn btn--pink" href="#work">See the work</a>
+          <a class="btn" href="#contact">Work with me</a>
+        </div>
+        <dl class="stats">
+          <div><dt>4.4M</dt><dd>TikTok views in the last 12 months</dd></div>
+          <div><dt>3.4M</dt><dd>people watched my videos</dd></div>
+          <div><dt>16.4%</dt><dd>engagement: likes, comments and shares per view</dd></div>
+          <div><dt>91%</dt><dd>of my views came from the For You page</dd></div>
+        </dl>
+        <p class="stats__note">From my TikTok analytics (@keekyt), Oct 18, 2025 to Oct 17, 2026.</p>
+        <p class="partners audience"><span class="partners__label">Top countries</span><span class="nb">Canada</span><span class="nb">France</span><span class="nb">Côte d’Ivoire</span></p>
+        <p class="partners brands"><span class="partners__label">Brands I’ve worked with</span><span class="nb">MONDAY Haircare</span><span class="nb">Profusion Cosmetics × Walmart</span><span class="nb">CapCut</span><span class="nb">Aelfric Eden</span></p>
+      </div>
+
+      <article class="profile" aria-label="My Instagram, @aissakee">
+        <div class="profile__head">
+          <span class="mono" aria-hidden="true">AK</span>
+          <div><p class="profile__name">Aïssa Kee</p><p class="profile__handle">@aissakee · kreeative.xyz</p></div>
+        </div>
+        <div class="profile__btns">
+          <a class="btn" href="https://www.instagram.com/aissakee/" target="_blank" rel="noopener" aria-label="Follow @aissakee on Instagram">Follow</a>
+          <button class="btn" type="button" data-share="https://kreeative.xyz/aissakee/">Share</button>
+        </div>
+        <div class="feed">
+          <div class="tile"><img class="t-portrait" src="img/portrait-480.webp" width="480" height="640" alt="Portrait of Kee" loading="eager"></div>
+          <div class="tile"><img class="t-monday" src="img/monday-story-600.webp" width="600" height="1067" alt="MONDAY Haircare Instagram Story, #MONDAYpartner" loading="eager"></div>
+          <div class="tile"><img src="img/profusion-step02-720.webp" width="720" height="900" alt="Step 2 of Kee’s Profusion Cosmetics × Walmart makeup carousel" loading="eager"></div>
+          <div class="tile"><img src="img/photo-nails-600.webp" width="600" height="900" alt="Almond nails with pink swirls and gold chrome" loading="eager"></div>
+          <div class="tile"><img src="img/profusion-cart-720.webp" width="720" height="900" alt="Glam (cart) list, Walmart edition" loading="eager"></div>
+          <div class="tile"><img class="t-ugg" src="img/photo-ugg-600.webp" width="600" height="1066" alt="UGG boots unboxed in their box" loading="eager"></div>
+          <div class="tile"><img class="t-nyx" src="img/photo-nyx-900.webp" width="900" height="600" alt="NYX Butter Gloss between pink almond nails" loading="eager"></div>
+          <div class="tile"><img src="img/photo-nails2-600.webp" width="600" height="800" alt="Square French tips with rhinestones on white faux fur" loading="eager"></div>
+          <div class="tile tile--leopard t-center" aria-hidden="true">
+            <div class="t-card"><b>Who is she?</b><span class="printed printed--sm"><img class="ph" src="img/portrait-480.webp" width="480" height="640" alt=""></span>
+              <dl><div><dt>Name</dt><dd>Aïssa Kee</dd></div><div><dt>Job</dt><dd>Creator &amp; designer</dd></div><div><dt>Fav verse</dt><dd>Philippians 4:13</dd></div></dl>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <p>UGC videos · Carousels · Unboxings · Product photos · Get ready with me · Voiceover reviews · English &amp; French · Edited in-house ·&nbsp;</p>
+      <p>UGC videos · Carousels · Unboxings · Product photos · Get ready with me · Voiceover reviews · English &amp; French · Edited in-house ·&nbsp;</p>
+    </div>
+  </div>
+
+  <section class="band light" id="about" aria-labelledby="about-title">
+    <div class="wrap about__in">
+      <div class="leo-panel">
+        <div class="idcard">
+          <p class="idcard__mono" aria-hidden="true">AK</p>
+          <h3>Who is she?</h3>
+          <span class="printed"><img class="idcard__ph" src="img/portrait-480.webp" srcset="img/portrait-480.webp 480w, img/portrait-960.webp 960w" sizes="230px" width="480" height="640" alt="Portrait of Kee: long brown hair, a cream top and a small cross necklace" loading="lazy"></span>
+          <dl>
+            <dt>Name</dt><dd>Aïssa Kee</dd>
+            <dt>Based in</dt><dd>Toronto</dd>
+            <dt>Does</dt><dd>UGC, design, Kreeative</dd>
+            <dt>Speaks</dt><dd>English &amp; French</dd>
+            <dt>Fav verse</dt><dd class="verse">“I can do all things through Christ who strengthens me.” Philippians 4:13</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="about__copy">
+        <p class="eyebrow">About</p>
+        <h2 class="h2" id="about-title">Who is <em>she?</em></h2>
+        <p class="lede">Hi, I’m Kee. I’m a student in Toronto, a self-taught designer and the founder of Kreeative, my design studio. I make UGC that feels like a recommendation from a friend: a real routine, real hands, a real reason to buy.</p>
+        <ul class="ticks">
+          <li><b>Hook first.</b> I write the first line before I film, so a stranger stops on it.</li>
+          <li><b>Ready to post.</b> I shoot, edit, caption and design my own content, so you get finished files, not raw clips.</li>
+          <li><b>English and French.</b> The same script in both languages on request, for Canada, France and Francophone Africa.</li>
+          <li><b>Honest.</b> I say what I would tell a friend, and I show the product working.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Portfolio</p>
+        <h2 class="h2" id="work-title">Selected <em>work</em></h2>
+        <div class="filters" role="group" aria-label="Filter the work">
+          <button class="chip" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="chip" type="button" data-filter="beauty" aria-pressed="false">Beauty</button>
+          <button class="chip" type="button" data-filter="lifestyle" aria-pressed="false">Lifestyle</button>
+          <button class="chip" type="button" data-filter="design" aria-pressed="false">Design</button>
+        </div>
+      </div>
+      <div class="work">
+        <article class="feature" data-cat="beauty">
+          <div class="feature__copy">
+            <p class="eyebrow">Profusion Cosmetics × Walmart</p>
+            <h3>Glam <em>(cart)</em> list</h3>
+            <p>An eight-slide makeup carousel: the basket first, then each step on my own face, with every product named and where to find it.</p>
+            <div class="pills"><span class="pill">Carousel · 8 slides</span><span class="pill">Beauty</span><span class="pill">Walmart edition</span></div>
+          </div>
+          <div class="slides">
+            <figure><img src="img/profusion-cart-720.webp" srcset="img/profusion-cart-720.webp 720w, img/profusion-cart-1400.webp 1400w" sizes="(max-width: 900px) 46vw, 340px" width="720" height="900" alt="Slide 2, the glam cart: a pink Walmart basket holding the Profusion Mauves palette, Wing It eyeliner, Radiant Glow highlighter and Totally Set spray" loading="lazy"></figure>
+            <figure><img src="img/profusion-step02-720.webp" srcset="img/profusion-step02-720.webp 720w, img/profusion-step02-1400.webp 1400w" sizes="(max-width: 900px) 46vw, 340px" width="720" height="900" alt="Slide 4, step 2, clean it up: Kee placing concealer with the Eyeshadow Brush Trio" loading="lazy"></figure>
+          </div>
+        </article>
+
+        <article class="feature feature--story" data-cat="beauty">
+          <div class="story"><img src="img/monday-story-600.webp" srcset="img/monday-story-600.webp 600w, img/monday-story-1200.webp 1200w" sizes="(max-width: 900px) 70vw, 320px" width="600" height="1067" alt="Instagram Story: MONDAY Haircare Moisture Hydration shampoo and conditioner, Original Dry Shampoo and Vanilla Glaze mist on a pink duvet, captioned So so in love, @mondayhaircare, #MONDAYpartner" loading="lazy"></div>
+          <div class="feature__copy">
+            <p class="eyebrow">MONDAY Haircare · #MONDAYpartner</p>
+            <h3>So so <em>in love</em></h3>
+            <p>A partnered Instagram Story: the Moisture Hydration shampoo and conditioner, the Original Dry Shampoo and the Vanilla Glaze hair and body mist, laid out in the brand’s own pink.</p>
+            <div class="pills"><span class="pill">Instagram Story</span><span class="pill">Partnership</span><span class="pill">Haircare</span></div>
+          </div>
+        </article>
+
+        <!-- UGC videos: hidden until Kee's files are in. Each video is prepared with tools/aissakee-videos.sh
+             (720 px wide, no cropping, no metadata or location, a cover frame). To show the block, remove
+             "hidden" and give it data-cat="beauty lifestyle" so the filters reach it. One figure per video:
+             <figure class="vid" data-cat="beauty"><video src="video/NAME-720.mp4" poster="video/NAME-poster.webp"
+               width="720" height="1280" controls playsinline preload="none" aria-label="WHAT IT SHOWS"></video>
+               <figcaption><span>FORMAT</span><b>BRAND OR TOPIC</b></figcaption></figure> -->
+        <div class="videos-block" hidden>
+          <div class="subhead"><h3>UGC videos</h3><p>Written, filmed and edited by me.</p></div>
+          <div class="videos"></div>
+        </div>
+
+        <div class="photos-block" data-cat="beauty lifestyle">
+          <div class="subhead"><h3>UGC photos</h3><p>Unboxing, product and detail shots.</p></div>
+          <div class="photos">
+            <figure class="ph" data-cat="lifestyle"><img src="img/photo-ugg-600.webp" srcset="img/photo-ugg-600.webp 600w, img/photo-ugg-1200.webp 1200w" sizes="(max-width: 700px) 28vw, 200px" width="600" height="1066" alt="UGG boots unboxed in their box, wrapped in UGG tissue paper on a white duvet" loading="lazy"><figcaption><span>Unboxing</span><b>UGG</b></figcaption></figure>
+            <figure class="ph ph--wide" data-cat="beauty"><img src="img/photo-nyx-900.webp" srcset="img/photo-nyx-900.webp 900w, img/photo-nyx-1600.webp 1600w" sizes="(max-width: 700px) 92vw, 520px" width="900" height="600" alt="NYX Butter Gloss held between pink almond nails on a grey woven throw" loading="lazy"><figcaption><span>Product close-up</span><b>NYX Butter Gloss</b></figcaption></figure>
+            <figure class="ph" data-cat="beauty"><img src="img/photo-nails-600.webp" srcset="img/photo-nails-600.webp 600w, img/photo-nails-1200.webp 1200w" sizes="(max-width: 700px) 32vw, 230px" width="600" height="900" alt="Almond nails with pink swirls, gold chrome outlines and gold studs" loading="lazy"><figcaption><span>Detail shot</span><b>Nail art</b></figcaption></figure>
+            <figure class="ph" data-cat="beauty"><img src="img/photo-nails2-600.webp" srcset="img/photo-nails2-600.webp 600w, img/photo-nails2-1200.webp 1200w" sizes="(max-width: 700px) 36vw, 260px" width="600" height="800" alt="Square French tips with brown spots, rhinestones and gold details, on white faux fur" loading="lazy"><figcaption><span>Detail shot</span><b>French tips</b></figcaption></figure>
+          </div>
+        </div>
+
+        <div data-cat="design">
+          <div class="subhead"><h3>I design, too</h3><p>Websites I designed and built through Kreeative.</p></div>
+          <div class="sites">
+            <a class="site" href="https://kreeative.xyz/websites/rich-and-friends/" target="_blank" rel="noopener"><div class="site__phone"><img src="img/site-rich-phone-390.webp" srcset="img/site-rich-phone-390.webp 390w, img/site-rich-phone-780.webp 780w" sizes="(max-width: 900px) 45vw, 270px" width="390" height="844" alt="Rich &amp; Friends on a phone" loading="lazy"></div><span><b>Rich &amp; Friends</b><small>Web app</small></span></a>
+            <a class="site" href="https://kreeative.xyz/websites/the-bakery/" target="_blank" rel="noopener"><div class="site__phone"><img src="img/site-bakery-phone-390.webp" srcset="img/site-bakery-phone-390.webp 390w, img/site-bakery-phone-780.webp 780w" sizes="(max-width: 900px) 45vw, 270px" width="390" height="844" alt="The Bakery on a phone" loading="lazy"></div><span><b>The Bakery</b><small>Bakery concept</small></span></a>
+            <a class="site" href="https://kreeative.xyz/websites/guillemot/" target="_blank" rel="noopener"><div class="site__phone"><img src="img/site-guillemot-phone-390.webp" srcset="img/site-guillemot-phone-390.webp 390w, img/site-guillemot-phone-780.webp 780w" sizes="(max-width: 900px) 45vw, 270px" width="390" height="844" alt="Guillemot on a phone" loading="lazy"></div><span><b>Guillemot</b><small>Fine-dining concept</small></span></a>
+            <a class="site" href="https://kreeative.xyz/websites/tabouret/" target="_blank" rel="noopener"><div class="site__phone"><img src="img/site-tabouret-phone-390.webp" srcset="img/site-tabouret-phone-390.webp 390w, img/site-tabouret-phone-780.webp 780w" sizes="(max-width: 900px) 45vw, 270px" width="390" height="844" alt="Tabouret on a phone" loading="lazy"></div><span><b>Tabouret</b><small>Restaurant concept</small></span></a>
+          </div>
+          <p class="more">Flyers, media kits and the rest of the studio’s work: <a href="https://kreeative.xyz/" target="_blank" rel="noopener">kreeative.xyz</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band kit" id="media-kit" aria-labelledby="kit-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Media kit</p>
+        <h2 class="h2" id="kit-title">Brands I’ve <em>worked with</em></h2>
+      </div>
+      <ul class="brandlist">
+        <li>MONDAY Haircare</li>
+        <li>Profusion Cosmetics × Walmart</li>
+        <li>CapCut</li>
+        <li>Aelfric Eden</li>
+      </ul>
+      <div class="kit__actions">
+        <a class="btn btn--pink" href="aissa-kee-media-kit.pdf" download>Download my media kit (PDF)</a>
+        <p>My numbers, audience, brands and services on one page. Rates on request.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band statement" aria-labelledby="lang-title">
+    <div class="wrap">
+      <h2 id="lang-title">Made in English.<br><em>Et en français.</em></h2>
+      <p>One creator, two languages: the same script for audiences in Canada, France and Francophone Africa.</p>
+    </div>
+  </section>
+
+  <section class="band light" id="services" aria-labelledby="services-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Services</p>
+        <h2 class="h2" id="services-title">What I make <em>for brands</em></h2>
+      </div>
+      <div class="cards">
+        <article class="card"><h3>UGC videos</h3><p>Talking head, product demo, voiceover review, unboxing, get ready with me. Hook first, captioned, ready to post.</p></article>
+        <article class="card"><h3>Carousels and photos</h3><p>Step-by-step carousels like the Profusion one, plus unboxing, product and detail shots in your brand’s look.</p></article>
+        <article class="card"><h3>French versions</h3><p>The same script filmed again in French on request, for your Francophone audience.</p></article>
+        <article class="card"><h3>Edits and design</h3><p>Already have footage? My studio, Kreeative, edits Reels from $160 CAD and designs flyers, media kits and websites.</p></article>
+      </div>
+      <div class="rates">
+        <p>Rates depend on the deliverables, the usage and the timeline.</p>
+        <a class="btn btn--pink" href="mailto:partnerships@kreeative.xyz?subject=Rates%20and%20media%20kit">Ask for my rates</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="leo-strip" aria-hidden="true"></div>
+  <section class="band contact" id="contact" aria-labelledby="contact-title">
+    <div class="wrap contact__in">
+      <p class="eyebrow">Contact</p>
+      <h2 class="h2" id="contact-title">Let’s make something <em>worth stopping for.</em></h2>
+      <p class="lede">Send me the product, the platform and your dates.</p>
+      <div class="mail">
+        <span class="mail__addr" id="mail-addr">partnerships@kreeative.xyz</span>
+        <button class="btn" type="button" data-copy="partnerships@kreeative.xyz">Copy email</button>
+        <a class="btn btn--pink" href="mailto:partnerships@kreeative.xyz">Email me</a>
+      </div>
+      <div class="socials">
+        <a href="https://www.instagram.com/aissakee/" target="_blank" rel="noopener">Instagram · @aissakee</a>
+        <a href="https://www.tiktok.com/@keekyt" target="_blank" rel="noopener">TikTok · @keekyt</a>
+      </div>
+      <p class="sign" aria-hidden="true">Aïssa Kee</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <span>© 2026 Aïssa Kee · Toronto</span>
+    <span>Site by <a href="https://kreeative.xyz/" target="_blank" rel="noopener">Kreeative</a></span>
+  </div>
+</footer>
+<script src="site.js"></script>
+<!-- /CONTENT -->
+</body>
+</html>
