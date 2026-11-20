@@ -50,6 +50,7 @@ Kee, 12 November: "I want my personal account Aïssa Kee to be more about motiva
 
 - The personal accounts (@aissakee, @keekyt, YouTube) build trust and audience. Since 12 November, @aissakee leads with motivation and manifesting with faith (above); my life, beauty, UGC and student life come in through it.
 - Kreeative is the business they point to: websites, flyers, video editing, media kit templates, and the formation.
+- **The portfolio is in my name, Kelly Kouyaté** (20 November), live at kreeative.xyz/aissakee with a "Pages I manage" section: Aïssa Kee (Instagram @aissakee, TikTok @keekyt) and Kreeative (kreeative.xyz, Instagram @bykreeative). Media kit PDF: `aissakee/kelly-kouyate-media-kit.pdf`.
 - **Brands I've worked with** (Kee, 20 November; on the portfolio and the media kit): MONDAY Haircare, Profusion Cosmetics × Walmart, CapCut, Aelfric Eden. UGG and NYX were not collaborations. No rates shown.
 - I also do UGC and brand collabs myself: a Profusion Cosmetics × Walmart makeup carousel, and a MONDAY Haircare partnership (an Instagram Story tagged #MONDAYpartner: the Moisture Hydration shampoo and conditioner, the Original Dry Shampoo and the Vanilla Glaze hair and body mist). Also in the portfolio, as product shots with no partnership claimed until I confirm one: an UGG unboxing, NYX Butter Gloss, and a nail close-up.
 
