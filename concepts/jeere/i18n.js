@@ -382,5 +382,6 @@ window.JEERE_EN = {
   'foot.tag': 'The all-in-one platform to sell online and in person.',
   'foot.nav': 'Footer',
   'foot.small': 'Jehre is in its pilot phase in Abidjan: stores, orders, card payments (Stripe) and mobile money to your own number already work; features marked “Soon” are on the way, and prices may change. Jehre never holds sellers’ money. An idea born at <a href="https://kreeative.xyz">Kreeative</a>. Contact: <a href="mailto:contact@jehre.com?subject=Jehre">contact@jehre.com</a>',
+  'foot.rights': '© 2026 Jehre™. All rights reserved.',
   'foot.photos': 'Sample photos: <a href="https://unsplash.com/" target="_blank" rel="noopener">Unsplash</a> · Cover illustration: <a href="https://www.instagram.com/prince_edja/" target="_blank" rel="noopener">@prince_edja</a>'
 };
