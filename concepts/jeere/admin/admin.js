@@ -2339,6 +2339,33 @@
     const panel = dlg ? $('#a-publish-panel', dlg) : null;
     if (panel && live) window.JeerePublish.mount(panel, { getConfig: () => S.config, showScore: false });
   }
+  // The payment of a designer model. Without a real account she is sent to create one first (the model is remembered).
+  function openModelBuy(slug) {
+    const JM = window.JeereModels, m = JM && JM.bySlug(slug);
+    if (!m) return;
+    const real = !!(window.JeereBilling && window.JeereBilling.isReal && window.JeereBilling.isReal());
+    if (!real) { JM.buy(slug); return; }
+    const dlg = openDialog(H`<div class="a-dialog__card">${dlgHead('mdb-t', 'Modèle ' + m.name)}
+      <div class="a-dialog__body">
+        <img src="${JM.thumb(slug)}" alt="" width="640" height="400" style="display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)">
+        <p class="a-dialog__lead" style="margin-top:12px"><strong>${JM.priceLabel(m)}</strong>, payé une seule fois.</p>
+        <p class="a-dialog__lead" style="margin-top:6px">${m.kind}. Après le paiement, notre équipe installe votre boutique dans ce modèle et vous écrit.</p>
+        <p class="a-error" id="mdb-err" hidden style="margin-top:10px"></p></div>
+      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close data-mdb-later>Plus tard</button><button class="a-btn a-btn--primary" type="button" data-mdb-pay data-autofocus>Payer par carte</button></div></div>`, { labelledby: 'mdb-t' });
+    if (!dlg) return;
+    const later = $('[data-mdb-later]', dlg), pay = $('[data-mdb-pay]', dlg), err = $('#mdb-err', dlg);
+    if (later) later.addEventListener('click', () => JM.forget());
+    if (pay) pay.addEventListener('click', () => {
+      pay.disabled = true; pay.textContent = 'Ouverture du paiement…';
+      let storeId = ''; try { const r = window.JeerePublish && window.JeerePublish.local(); storeId = (r && r.storeId) || ''; } catch (e) { /* none */ }
+      const st = (S.config && S.config.store) || {};
+      JM.buy(slug, { storeId, shopName: st.name || '', sells: st.tagline || '' }).then((r) => {
+        if (r && r.ok) return;
+        pay.disabled = false; pay.textContent = 'Payer par carte';
+        if (err) { err.hidden = false; err.textContent = (r && r.message) || 'Le paiement n’a pas pu s’ouvrir. Réessayez.'; }
+      });
+    });
+  }
   function isPublished() { try { const r = window.JeerePublish && window.JeerePublish.local(); return !!(r && r.published && r.storeId); } catch (e) { return false; } }
   // « ? Aide » (top bar, sidebar, « Plus »): the guided tour again, « Premiers pas » back on the home page, a real person
   function openHelp() {
@@ -4925,6 +4952,25 @@
     } else if (window.JeereBilling && window.JeereBilling.sync) {
       // a payment the webhook has not brought yet
       Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && Array.isArray(j.stores)) { S.storePlans = S.storePlans || {}; j.stores.forEach((x) => { S.storePlans[x.id] = { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() }; }); } if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
+    }
+    // A designer model: « Choisir ce modèle » (#modele=<slug>), the model she picked before creating her account
+    // (creer/models.js remembers it), and the way back from its payment (?modele=ok|annule)
+    const mBack = /[?&]modele=(ok|annule)(?:&nom=([a-z]+))?/.exec(window.location.search);
+    const mHash = /[#&]modele=([a-z]+)/.exec(window.location.hash || '');
+    const JM = window.JeereModels;
+    if (mBack) {
+      try { history.replaceState(null, '', window.location.pathname + '#accueil'); } catch (e) { /* keep */ }
+      if (JM) JM.forget();
+      const mm = JM && JM.bySlug(mBack[2] || '');
+      if (mBack[1] === 'ok') setTimeout(() => openDialog(H`<div class="a-dialog__card">${dlgHead('mdl-t', 'Paiement reçu, merci !')}
+        <div class="a-dialog__body"><p class="a-dialog__lead">Votre modèle <strong>${mm ? mm.name : ''}</strong> est payé. Notre équipe installe votre boutique dans ce modèle et vous écrit par e-mail dès qu’elle est prête.</p>
+        <p class="a-dialog__lead" style="margin-top:10px">En attendant, ajoutez déjà vos produits ici.</p></div>
+        <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close>D’accord</button></div></div>`, { labelledby: 'mdl-t' }), 700);
+      else setTimeout(() => toast('Paiement annulé : rien n’a été prélevé.', { ms: 7000 }), 600);
+    } else if (JM && (mHash || JM.wanted())) {
+      const slug = mHash ? mHash[1] : JM.wanted();
+      if (mHash) { try { history.replaceState(null, '', window.location.pathname + window.location.search + '#accueil'); } catch (e) { /* ignore */ } }
+      if (JM.bySlug(slug)) setTimeout(() => openModelBuy(slug), 900);
     }
     // « Gérer la boutique » from Mes sites on one of her own designs: #boutique=<slug> opens its Jehre store here
     const bm = /[#&]boutique=([a-z0-9-]+)/.exec(window.location.hash || '');

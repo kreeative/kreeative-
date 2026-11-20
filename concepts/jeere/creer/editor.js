@@ -3940,7 +3940,7 @@
           // a model with its own price (ANSE: no launch discount, set up with her) or the launch offer
           m.price ? el('p', { class: 'b-tcard__price' }, el('b', { text: m.price }), el('span', { text: m.note || ' payé une seule fois' }))
             : el('p', { class: 'b-tcard__price' }, el('b', { text: MODEL_PRICE }), el('s', { 'aria-label': `au lieu de ${MODEL_PRICE_WAS}`, text: ` ${MODEL_PRICE_WAS}` }), el('em', { class: 'b-tcard__promo', text: `−50${NB}%` }), el('span', { text: ' payé une seule fois' })),
-          el('a', { class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', href: `../admin/#boutique=${m.slug}`, 'aria-label': `Choisir le modèle ${m.name}` },
+          el('a', { class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', href: `../admin/#modele=${m.slug}`, 'aria-label': `Choisir le modèle ${m.name}` },
             el('span', { class: 'b-lbl-long', text: 'Choisir ce modèle' }), el('span', { class: 'b-lbl-short', text: 'Choisir' }), icon('i-arrow')),
           el('a', { class: 'b-tcard__demo', href: demo, target: '_blank', rel: 'noopener', text: 'Voir la démo' }))));
     });

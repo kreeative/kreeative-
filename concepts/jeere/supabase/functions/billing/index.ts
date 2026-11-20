@@ -55,6 +55,11 @@ const BOUTIQUE: Record<string, { name: string; month: number; week: number | nul
 const FX = 600, MARGIN = 0.40, FIXED = 2000;
 const domainFcfa = (usd: number) => Math.ceil((usd * FX * (1 + MARGIN) + FIXED) / 500) * 500;
 const DAY = 86400000;
+// The designer models, paid once (FCFA). The same prices as on the cards of the home page and of the editor.
+const MODELS: Record<string, { name: string; price: number }> = {
+  seve: { name: 'SÈVE', price: 25000 }, soyeuse: { name: 'SOYEUSE', price: 25000 }, michou: { name: 'MICHOU', price: 50000 },
+  anse: { name: 'ANSE', price: 150000 }, regard: { name: 'REGARD', price: 50000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 }
+};
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -273,6 +278,29 @@ async function buyDomain(session: Obj) {
   await report(true, 'Acheté chez Vercel pour ' + price + ' USD. ' + attached);
 }
 
+// A model paid by card: written down, and the team is told to install it on her store (done by hand for now)
+async function recordModel(session: Obj) {
+  const md = isObj(session.metadata) ? session.metadata : {};
+  const slug = str(md.model, 20), m = MODELS[slug];
+  const cd = isObj(session.customer_details) ? session.customer_details as Obj : {};
+  const paid = Math.round(Number(session.amount_total) || 0);
+  const userId = str(md.user_id, 40), storeId = str(md.store_id, 40);
+  await admin('model_purchases', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({
+    session_id: str(session.id, 120), user_id: UUID.test(userId) ? userId : null, store_id: UUID.test(storeId) ? storeId : null, model: slug,
+    amount: paid, email: str(cd.email, 120), phone: str(cd.phone, 30), shop_name: str(md.shop_name, 60), sells: str(md.sells, 120)
+  }) });
+  await teamMail('À FAIRE — modèle acheté : ' + (m ? m.name : slug),
+    'Modèle : ' + (m ? m.name : slug) + '\nPayé : ' + paid + ' FCFA (Stripe ' + str(session.id, 80) + ')\nCliente : ' + (str(cd.name, 80) || '?') + ' · ' + str(cd.email, 120) + ' · ' + str(cd.phone, 30) +
+    '\nBoutique : ' + (str(md.shop_name, 60) || '?') + (storeId ? ' (' + storeId + ')' : ' (pas encore créée)') + '\nElle vend : ' + (str(md.sells, 120) || '?') +
+    '\n\nÀ faire : installer sa boutique dans ce modèle, puis lui écrire.');
+  const to = str(cd.email, 120);
+  if (RESEND_KEY && to) await fetch('https://api.resend.com/emails', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: 'Jehre <bonjour@jehre.com>', to: [to], reply_to: 'contact@jehre.com', subject: 'Votre modèle ' + (m ? m.name : '') + ' est payé',
+      text: 'Bonjour,\n\nMerci ! Votre paiement de ' + paid + ' FCFA pour le modèle ' + (m ? m.name : slug) + ' est bien reçu.\n\nNotre équipe installe maintenant votre boutique dans ce modèle et vous écrit dès qu’elle est prête. En attendant, vous pouvez déjà ajouter vos produits dans votre tableau de bord : ' + SITE + '/admin/\n\nUne question ? Répondez à cet e-mail.\n\nL’équipe Jehre' })
+  }).catch(() => null);
+}
+
 async function webhook(req: Request) {
   const payload = await req.text();
   if (!(await verify(payload, req.headers.get('Stripe-Signature') ?? ''))) return json({ ok: false, code: 'signature' }, 400);
@@ -285,6 +313,10 @@ async function webhook(req: Request) {
   if (type === 'invoice.paid') { await addInvoice(obj); return json({ ok: true }); }
   if (type === 'checkout.session.completed' && isObj(obj.metadata) && (obj.metadata as Obj).kind === 'domain' && obj.payment_status === 'paid') {
     await buyDomain(obj);
+    return json({ ok: true });
+  }
+  if (type === 'checkout.session.completed' && isObj(obj.metadata) && (obj.metadata as Obj).kind === 'model' && obj.payment_status === 'paid') {
+    await recordModel(obj);
     return json({ ok: true });
   }
   return json({ ok: true });
@@ -387,6 +419,29 @@ Deno.serve(async (req: Request) => {
     const portal = await stripe('POST', 'billing_portal/sessions', { customer, return_url: backUrl(b.returnUrl, SITE + '/abonnements/') });
     if (!portal.ok) return fail(502, 'stripe', stripeError(portal.data) + ' (Stripe › Paramètres › Portail client : activez-le une fois.)');
     return json({ ok: true, url: portal.data.url });
+  }
+
+  // a designer model, paid once: { action: 'model', model, storeId?, shopName?, sells?, returnUrl }
+  if (action === 'model') {
+    const slug = str(b.model, 20).toLowerCase(), m = MODELS[slug];
+    if (!m) return fail(400, 'model', 'Ce modèle n’existe pas.');
+    let storeId = str(b.storeId, 40);
+    if (storeId) {
+      const st = (await rows('stores?select=id,owner&id=eq.' + (UUID.test(storeId) ? storeId : '00000000-0000-0000-0000-000000000000')))[0];
+      if (!st || st.owner !== user.id) storeId = '';
+    }
+    const customer = await customerFor(user, name);
+    const back = backUrl(b.returnUrl, SITE + '/admin/');
+    const session = await stripe('POST', 'checkout/sessions', {
+      mode: 'payment', locale: 'fr', client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
+      line_items: [{ quantity: 1, price_data: { currency: 'xof', unit_amount: m.price, product_data: { name: 'Modèle ' + m.name + ' · boutique Jehre', description: 'Payé une seule fois. Notre équipe installe votre boutique dans ce modèle.' } } }],
+      phone_number_collection: { enabled: true }, allow_promotion_codes: true,
+      metadata: { kind: 'model', user_id: user.id, model: slug, store_id: storeId, shop_name: str(b.shopName, 60), sells: str(b.sells, 120) },
+      payment_intent_data: { description: 'Modèle ' + m.name, metadata: { kind: 'model', model: slug } },
+      success_url: withParam(back, 'modele=ok&nom=' + slug), cancel_url: withParam(back, 'modele=annule')
+    });
+    if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
+    return json({ ok: true, url: session.data.url, price: m.price, model: slug });
   }
 
   if (action === 'domain') {

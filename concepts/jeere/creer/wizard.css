@@ -285,3 +285,21 @@ html.jwz-lock, html.jwz-lock body { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .jwz *, .jwz *::before, .jwz *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---- the quiz ends on the designer model made for what she sells ---- */
+.jwz-shot--img { height: auto; aspect-ratio: 16 / 10; pointer-events: auto; }
+.jwz-shot--img::after { display: none; }
+.jwz-shot--img img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.jwz-card__kind { display: inline-block; margin: -6px 0 10px; padding: 3px 10px; border-radius: 999px; background: var(--jwz-g1); font-size: 12.5px; font-weight: 500; }
+.jwz-card__desc { margin: 0 0 12px; font-size: 14px; line-height: 1.45; color: var(--jwz-muted); }
+.jwz-card__price { margin: 0; font-size: 14px; }
+.jwz-card__price strong { font-size: 19px; font-weight: 600; letter-spacing: -.01em; }
+.jwz-card__price s { color: var(--jwz-muted); }
+.jwz-card__price span { color: var(--jwz-muted); }
+a.jwz-btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.jwz-btn:disabled { opacity: .55; cursor: default; }
+.jwz-card__more { margin: 14px 0 0; font-size: 13px; color: var(--jwz-muted); }
+.jwz-link { padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--jwz-ink); cursor: pointer; }
+.jwz-link:hover { opacity: .7; }
+.jwz-card.jwz-card--model { display: block; }
+.jwz-card--model .jwz-shot--img { min-height: 0; border-right: 0; border-bottom: 1px solid var(--jwz-line); }

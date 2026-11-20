@@ -27,6 +27,9 @@
   const D = () => root.JEERE_DATA;
   const NB = ' ';
   const STEPS = ['name', 'niche', 'template', 'palette', 'needs', 'contact'];
+  // What is asked. The style and the colours are no longer questions: the quiz ends on the designer model made for
+  // what she sells (models.js), and the simple shop under it takes the style advised for her trade.
+  const ASK = ['name', 'niche', 'needs', 'contact'];
   const NEED_KEYS = ['whatsapp', 'delivery', 'cod', 'reviews', 'categories', 'announcement'];
   const PROVISIONAL_NAME = 'Ma boutique';
   const STORE_KEY = 'jeere-studio-config';
@@ -1121,7 +1124,7 @@
     clearTimeout(S.timer);
     Object.assign(S, {
       started: false, answers: freshAnswers(), filled: {}, step: null, misses: {}, hash: 2166136261,
-      person: null, nameHint: null, provisional: false, reask: null, fixFrom: null,
+      said: '', person: null, nameHint: null, provisional: false, reask: null, fixFrom: null,
       contactCity: null, contactPhone: null, askedPhone: false, phoneRetry: false, pendingPhone: null,
       config: null, queue: [], post: [], current: null, flushing: false, burst: 0, replaceAsk: null, notedNeeds: false,
       excl: {}, summarized: false, cityNoted: null
@@ -1144,6 +1147,14 @@
     return allowed('palette', id, idsOf(D().palettes));
   }
   function shopPhrase() { const n = nicheOf(); return n ? NICHE_COPY[n].shop : 'votre boutique'; }
+  // the designer model made for what she sells (models.js), or null when none fits
+  function modelFor() {
+    const M = root.JeereModels;
+    if (!M) return null;
+    let rdv = false;
+    try { rdv = root.localStorage.getItem('jeere-rdv-wanted') === '1'; } catch (e) { /* no storage */ }
+    return M.bySlug(M.match({ niche: S.answers.niche, rdv: rdv, text: S.said }));
+  }
   function nicheShort() { const n = nicheOf(); return n ? NICHE_COPY[n].short : 'votre boutique'; }
   function paletteName(id) { return D().palettes[id] ? D().palettes[id].name : id; }
   function cityPhrase(city) { const m = /^(.+), Abidjan$/.exec(city || ''); return m ? m[1] + ', à Abidjan' : city; }
@@ -1195,8 +1206,8 @@
   /* ================================================================== the steps */
 
   const Q = {
-    intro: ['Bonjour ! Je suis l’assistant Jehre. En six petites questions, je prépare votre boutique : textes, produits d’exemple et couleurs. Vous pourrez tout changer ensuite.',
-      'Bonjour ! Moi, c’est l’assistant Jehre. Répondez à six petites questions et je monte votre boutique, prête à être retouchée.'],
+    intro: ['Bonjour ! Je suis l’assistant Jehre. En quatre petites questions, je trouve le modèle fait pour vous et je prépare votre boutique.',
+      'Bonjour ! Moi, c’est l’assistant Jehre. Répondez à quatre petites questions : je vous montre le modèle fait pour ce que vous vendez.'],
     name: ['Pour commencer, comment s’appelle votre boutique ?', 'D’abord, quel est le nom de votre boutique ?', 'On commence par le nom : comment s’appelle votre boutique ?'],
     niche: ['Que vendez-vous ? Touchez une catégorie, ou dites-le avec vos mots.',
       'Qu’est-ce que vous vendez ? Choisissez ci-dessous, ou écrivez-le simplement : « des perruques », « attiéké et garba »…',
@@ -1251,7 +1262,7 @@
   }
 
   function isFilled(step) { return !!S.filled[step]; }
-  function nextStep() { return STEPS.filter((s) => !S.filled[s])[0] || null; }
+  function nextStep() { return ASK.filter((s) => !S.filled[s])[0] || null; }
   function advance() { const n = nextStep(); if (n) ask(n); else summary(); }
 
   function ask(step, mode) {
@@ -1597,7 +1608,7 @@
     }
     if (it === 'thanks') { say('Avec plaisir !'); reAsk(step); return; }
     if (it === 'back') {
-      const prev = STEPS.slice(0, STEPS.indexOf(step)).filter((s) => isFilled(s)).pop();
+      const prev = ASK.slice(0, Math.max(0, ASK.indexOf(step))).filter((s) => isFilled(s)).pop();
       if (prev) { S.filled[prev] = false; S.reask = prev; ask(prev, 'fix'); return; }
       say('Nous sommes au tout début.'); reAsk(step); return;
     }
@@ -1646,7 +1657,7 @@
     then(() => setQuick(fixChips()));
   }
   function fixChips() {
-    const list = STEPS.filter((s) => isFilled(s)).map((s) => ({ label: FIELD_LABEL[s], onPick: () => fixField(s) }));
+    const list = ASK.filter((s) => isFilled(s)).map((s) => ({ label: FIELD_LABEL[s], onPick: () => fixField(s) }));
     list.push({ label: 'Rien, on continue', onPick: () => fixNothing() });
     return chips(list, 'Ce que je dois corriger');
   }
@@ -1690,9 +1701,9 @@
       S.summarized = true;
       say('Je prépare votre boutique…');
       const v = D().validate(S.config);
-      say(pick(['C’est prêt ! Voici votre boutique. Les 6 produits sont des exemples : vous mettrez les vôtres dans l’éditeur.',
-        'Voilà votre boutique ! Je l’ai remplie avec 6 produits d’exemple, que vous remplacerez par les vôtres.'], 'sum'),
-      { sr: 'Modèle ' + D().templates[S.config.template].name + ', palette ' + paletteName(S.config.theme.palette) + ', qualité ' + v.score + ' sur 100, ' + v.status.toLowerCase() + '.' });
+      const mdl = modelFor();
+      if (mdl) say('C’est prêt ! Pour ' + nicheShort() + ', le modèle fait pour vous est ' + mdl.name + '.', { sr: 'Modèle conseillé : ' + mdl.name + ', ' + root.JeereModels.priceLabel(mdl) + ', payé une seule fois.' });
+      else say('C’est prêt ! Nous n’avons pas encore de modèle dessiné pour ' + nicheShort() + ' : notre designer peut créer le vôtre, ou commencez tout de suite avec la version simple.', { sr: 'Qualité ' + v.score + ' sur 100.' });
     }
     then(() => setQuick(buildCard(S.config)));
   }
@@ -1712,8 +1723,8 @@
     if (it === 'faq') say(u.info.faq);
     else if (it === 'thanks' || it === 'yes') say('Avec plaisir ! Touchez « Ouvrir l’éditeur » pour ajouter vos produits, vos prix et vos photos.');
     else if (it === 'greeting') say('Bonjour ! Votre boutique est prête : ouvrez l’éditeur, ou dites-moi ce qu’il faut changer.');
-    else if (it === 'help') say('Dites-moi ce qu’il faut changer, par exemple « mets du vert », « style audacieux », « pas d’avis » ou « le nom c’est … ». Tout se modifie aussi dans l’éditeur.');
-    else say('Je n’ai pas compris ce qu’il faut changer. Dites-moi par exemple « mets du vert », « style audacieux », « pas d’avis » ou « le nom c’est … ». Tout se modifie aussi dans l’éditeur.');
+    else if (it === 'help') say('Dites-moi ce qu’il faut changer, par exemple « le nom c’est … », « je vends des perruques » ou « pas d’avis ».');
+    else say('Je n’ai pas compris ce qu’il faut changer. Dites-moi par exemple « le nom c’est … », « je vends des perruques » ou « pas d’avis ».');
     then(() => setQuick(buildCard(S.config)));
     run();
   }
@@ -1940,6 +1951,7 @@
     clearQuick();
     addMe(text);
     S.hash = hashStr(S.hash + '|' + text);
+    S.said = (String(S.said || '') + ' ' + text).slice(-900);
     const step = S.step === 'fix' ? 'summary' : S.step;
     const u = understand(text, step, { niche: S.answers.niche });
     u.raw = text;
@@ -2008,7 +2020,7 @@
   function setPlaceholder(step) {
     const P = {
       name: 'Le nom de votre boutique', niche: 'Ce que vous vendez', template: 'Le style, en un mot', palette: 'Une couleur : vert, rose…',
-      needs: 'Par exemple : pas d’avis', contact: 'Ville et numéro WhatsApp', phone: 'Votre numéro WhatsApp', summary: 'Par exemple : mets du vert',
+      needs: 'Par exemple : pas d’avis', contact: 'Ville et numéro WhatsApp', phone: 'Votre numéro WhatsApp', summary: 'Par exemple : le nom c’est …',
       fix: 'Ce que je dois corriger'
     };
     if (S.el.input) S.el.input.placeholder = fr(P[step] || 'Votre réponse');
@@ -2016,8 +2028,8 @@
   }
   function updateProgress() {
     if (!S.el.bar) return;
-    const n = STEPS.filter((s) => isFilled(s)).length;
-    S.el.bar.style.width = (S.step === 'summary' ? 100 : Math.round((n / STEPS.length) * 100)) + '%';
+    const n = ASK.filter((s) => isFilled(s)).length;
+    S.el.bar.style.width = (S.step === 'summary' ? 100 : Math.round((n / ASK.length) * 100)) + '%';
   }
 
   /* ---------- summary card ---------- */
@@ -2034,7 +2046,16 @@
     const card = el('section', 'jwz-card');
     card.setAttribute('aria-labelledby', 'jwz-card-title');
 
-    if (root.JeereRender && typeof root.JeereRender.render === 'function') {
+    const M = root.JeereModels;
+    const mdl = modelFor();
+    if (mdl) {
+      card.classList.add('jwz-card--model');
+      const shot = el('div', 'jwz-shot jwz-shot--img');
+      const im = el('img');
+      im.src = M.thumb(mdl.slug); im.alt = fr('Aperçu du modèle ' + mdl.name); im.loading = 'lazy'; im.decoding = 'async';
+      shot.appendChild(im);
+      card.appendChild(shot);
+    } else if (root.JeereRender && typeof root.JeereRender.render === 'function') {
       const shot = el('div', 'jwz-shot');
       shot.setAttribute('aria-hidden', 'true');
       shot.setAttribute('inert', '');
@@ -2046,12 +2067,22 @@
     }
 
     const body = el('div', 'jwz-card__body');
-    body.appendChild(el('p', 'jwz-card__eyebrow', 'Votre boutique'));
-    const h = el('h3', 'jwz-card__title', cfg.store.name);
+    body.appendChild(el('p', 'jwz-card__eyebrow', mdl ? fr('Le modèle fait pour ' + cfg.store.name) : 'Votre boutique'));
+    const h = el('h3', 'jwz-card__title', mdl ? mdl.name : cfg.store.name);
     h.id = 'jwz-card-title';
     body.appendChild(h);
     if (S.provisional) body.appendChild(el('p', 'jwz-card__hint', fr('Nom provisoire : dites-moi « le nom c’est … » quand vous l’avez.')));
 
+    if (mdl) {
+      body.appendChild(el('p', 'jwz-card__kind', fr(mdl.kind)));
+      body.appendChild(el('p', 'jwz-card__desc', fr(mdl.desc)));
+      const pr = el('p', 'jwz-card__price');
+      pr.appendChild(el('strong', '', M.priceLabel(mdl)));
+      if (mdl.was) { const was = el('s', '', M.fcfa(mdl.was)); was.setAttribute('aria-label', 'au lieu de ' + M.fcfa(mdl.was)); pr.appendChild(document.createTextNode(' ')); pr.appendChild(was); }
+      pr.appendChild(el('span', '', fr(' · ' + (mdl.note || 'payé une seule fois'))));
+      body.appendChild(pr);
+      body.appendChild(el('p', 'jwz-card__next', fr('Après le paiement, notre équipe installe votre boutique dans ce modèle et vous écrit.')));
+    }
     const dl = el('dl', 'jwz-facts');
     const fact = (k, val, pre) => {
       const row = el('div', 'jwz-fact');
@@ -2073,10 +2104,10 @@
     q2.appendChild(el('strong', '', v.score + '/100'));
     q2.appendChild(el('span', 'jwz-badge' + (v.status === 'APPROUVÉ' ? '' : ' jwz-badge--todo'), v.status));
     fact('Qualité', q2);
-    body.appendChild(dl);
+    if (!mdl) body.appendChild(dl);
 
     const first = v.issues.filter((i) => i.level !== 'tip')[0] || v.issues[0];
-    if (first) {
+    if (first && !mdl) {
       const nx = el('p', 'jwz-card__next');
       nx.appendChild(el('strong', '', fr('À faire ensuite : ')));
       nx.appendChild(document.createTextNode(fr(first.message)));
@@ -2097,21 +2128,52 @@
       no.addEventListener('click', () => { S.replaceAsk = null; setQuick(buildCard(S.config)); focusEl(S.el.quick.querySelector('.jwz-btn--primary')); });
       actions.appendChild(yes);
       actions.appendChild(no);
+    } else if (mdl) {
+      const buy = el('button', 'jwz-btn jwz-btn--primary');
+      buy.type = 'button';
+      buy.innerHTML = '<span>Acheter ce modèle</span>' + ICON.arrow;
+      buy.addEventListener('click', () => {
+        buy.disabled = true;
+        // her answers are kept: the shop she just described is the one her dashboard opens on
+        try { if (!savedOther(cfg) && !root.localStorage.getItem(STORE_KEY)) root.localStorage.setItem(STORE_KEY, JSON.stringify(D().normalizeConfig(cfg))); } catch (e) { /* no storage */ }
+        Promise.resolve(M.buy(mdl.slug, { shopName: cfg.store.name, sells: nicheShort() })).then((r) => {
+          if (r && (r.ok || r.reason === 'account')) return;
+          buy.disabled = false;
+          say((r && r.message) || 'Le paiement n’a pas pu s’ouvrir. Réessayez.'); run();
+        });
+      });
+      const demo = el('a', 'jwz-btn jwz-btn--ghost', 'Voir la démo');
+      demo.href = M.demo(mdl.slug); demo.target = '_blank'; demo.rel = 'noopener';
+      actions.appendChild(buy);
+      actions.appendChild(demo);
     } else {
       const open = el('button', 'jwz-btn jwz-btn--primary');
       open.type = 'button';
-      open.innerHTML = '<span>Ouvrir l’éditeur</span>' + ICON.arrow;
+      open.innerHTML = '<span>Commencer avec la version simple</span>' + ICON.arrow;
       open.addEventListener('click', () => openEditorFromChat(false));
-      const again = el('button', 'jwz-btn jwz-btn--ghost', 'Recommencer');
-      again.type = 'button';
-      again.addEventListener('click', () => restart());
+      const made = el('a', 'jwz-btn jwz-btn--ghost', 'Un site sur mesure');
+      made.href = '../#sur-mesure';
       actions.appendChild(open);
-      actions.appendChild(again);
+      actions.appendChild(made);
     }
     body.appendChild(actions);
+    if (!S.replaceAsk) {
+      const more = el('p', 'jwz-card__more');
+      if (mdl) {
+        const free = el('button', 'jwz-link', 'Commencer gratuitement avec la version simple');
+        free.type = 'button';
+        free.addEventListener('click', () => openEditorFromChat(false));
+        more.appendChild(free);
+        more.appendChild(document.createTextNode(' · '));
+      }
+      const again = el('button', 'jwz-link', 'Recommencer');
+      again.type = 'button';
+      again.addEventListener('click', () => restart());
+      more.appendChild(again);
+      body.appendChild(more);
+    }
     card.appendChild(body);
     frag.appendChild(card);
-    frag.appendChild(el('p', 'jwz-note', fr('Démo : ici l’assistant comprend des mots-clés. Dans Jehre, une seule IA répondra à sa place et remplira la même fiche boutique.')));
     return frag;
   }
 
@@ -2193,7 +2255,7 @@
         '<span class="jwz-av" aria-hidden="true">' + ICON.mark + '</span>' +
         '<div class="jwz-head__txt">' +
           '<h2 class="jwz-title" id="jwz-title" tabindex="-1">L’assistant Jehre</h2>' +
-          '<p class="jwz-sub" id="jwz-sub">' + fr('Démo · 6 petites questions') + '</p>' +
+          '<p class="jwz-sub" id="jwz-sub">' + fr('4 petites questions') + '</p>' +
         '</div>' +
         '<button type="button" class="jwz-ibtn" data-jwz="restart" aria-label="Recommencer la conversation" title="Recommencer">' + ICON.restart + '</button>' +
         '<button type="button" class="jwz-ibtn" data-jwz="close" aria-label="Fermer l’assistant" title="Fermer (Échap)">' + ICON.x + '</button>' +
