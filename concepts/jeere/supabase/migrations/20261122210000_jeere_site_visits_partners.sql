@@ -1,0 +1,5 @@
+-- Applied with the Supabase MCP (jeere_site_visits_partners): public.site_visits_live also answers a partner of
+-- The Ivory Sukundu (public.ext_store_access, site 'tishe') for that store's visits ('the-ivory-sukundu') and for
+-- nothing else; the founder (public.site_editors) still sees every site. Only the access test of the function changed:
+--   not (exists (select 1 from public.site_editors where lower(email) = mail)
+--        or (p_site = 'the-ivory-sukundu' and exists (select 1 from public.ext_store_access a where a.site = 'tishe' and a.email = mail)))
