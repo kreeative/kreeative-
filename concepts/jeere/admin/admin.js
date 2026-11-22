@@ -2566,14 +2566,43 @@
         <p class="a-dialog__lead" style="margin-top:12px">${m.kind}. Les photos et les textes du modèle sont remplacés par les vôtres.</p>
         ${m.installIncluded ? H`<p class="a-dialog__lead" style="margin-top:8px"><strong>${JM.priceLabel(m)}</strong>, payé une seule fois, installation par notre équipe incluse.</p>` : H`<div class="a-mopts" role="radiogroup" aria-label="Qui installe votre boutique">
           <label class="a-mopt"><input type="radio" name="mdb-opt" value="self" checked><span class="a-mopt__b"><span class="a-mopt__t">Je remplis moi-même<b>${JM.priceLabel(m)}</b></span><span class="a-mopt__d">Vous ajoutez vous-même vos produits, vos prix et vos photos depuis votre tableau de bord.</span></span></label>
-          <label class="a-mopt"><input type="radio" name="mdb-opt" value="install"><span class="a-mopt__b"><span class="a-mopt__t">Jehre installe tout pour moi<b>${JM.fcfa(m.price + JM.INSTALL)}</b></span><span class="a-mopt__d">Vous nous envoyez votre logo, vos photos, vos textes et vos prix. Nous mettons tout en place. 2 séries de corrections incluses.</span></span></label></div>
-          <p class="a-small" style="margin-top:8px">Payé une seule fois. L’abonnement de la boutique est à part.</p>`}
+          <label class="a-mopt"><input type="radio" name="mdb-opt" value="install"><span class="a-mopt__b"><span class="a-mopt__t">Jehre installe tout pour moi<b>${JM.fcfa(m.price + JM.INSTALL)}</b></span><span class="a-mopt__d">Vous nous envoyez votre logo, vos photos, vos textes et vos prix. Nous mettons tout en place. 2 séries de corrections incluses.</span></span></label>
+          <label class="a-mopt"><input type="radio" name="mdb-opt" value="custom"><span class="a-mopt__b"><span class="a-mopt__t">Un site 100 % sur mesure<b>Sur devis</b></span><span class="a-mopt__d">Vous ne voulez pas d’un modèle ? Le designer de Kreeative dessine un site unique, rien que pour vous. On en parle d’abord ensemble.</span></span></label></div>
+          <div data-mdb-custom hidden style="margin-top:12px">
+            <div class="a-field"><label class="a-label" for="mdb-wa">Votre numéro WhatsApp</label><input class="a-input" id="mdb-wa" type="tel" inputmode="tel" maxlength="30" value="${esc((S.account && S.account.phone) || '')}" placeholder="+225 07 07 12 34 56"></div>
+            <div class="a-field"><label class="a-label" for="mdb-need">Votre idée (facultatif)</label><textarea class="a-input" id="mdb-need" rows="3" maxlength="800"></textarea></div></div>
+          <p class="a-small" data-mdb-note style="margin-top:8px">Payé une seule fois. L’abonnement de la boutique est à part.</p>`}
         <p class="a-error" id="mdb-err" hidden style="margin-top:10px"></p></div>
       <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close data-mdb-later>Plus tard</button><button class="a-btn a-btn--primary" type="button" data-mdb-pay data-autofocus>Payer par carte</button></div></div>`, { labelledby: 'mdb-t' });
     if (!dlg) return;
     const later = $('[data-mdb-later]', dlg), pay = $('[data-mdb-pay]', dlg), err = $('#mdb-err', dlg);
     if (later) later.addEventListener('click', () => JM.forget());
+    // option 3, a made-to-measure site: no payment here, a call is asked for (the `appel` function tells the founder)
+    const isCustom = () => { const o = $('input[name="mdb-opt"]:checked', dlg); return !!(o && o.value === 'custom'); };
+    const payLabel = () => (isCustom() ? 'Demander un appel' : 'Payer par carte');
+    dlg.addEventListener('change', (e) => {
+      if (!e.target || e.target.name !== 'mdb-opt') return;
+      const box = $('[data-mdb-custom]', dlg), note = $('[data-mdb-note]', dlg);
+      if (box) box.hidden = !isCustom();
+      if (note) note.textContent = isCustom() ? 'Rien à payer maintenant. On vous écrit sur WhatsApp pour fixer l’appel.' : 'Payé une seule fois. L’abonnement de la boutique est à part.';
+      if (pay) pay.textContent = payLabel();
+      if (err) err.hidden = true;
+    });
     if (pay) pay.addEventListener('click', () => {
+      if (isCustom()) {
+        const wa = str($('#mdb-wa', dlg).value).trim(), st0 = (S.config && S.config.store) || {};
+        if (wa.replace(/\D/g, '').length < 8) { if (err) { err.hidden = false; err.textContent = 'Écrivez un numéro WhatsApp complet, avec l’indicatif.'; } $('#mdb-wa', dlg).focus(); return; }
+        pay.disabled = true; pay.textContent = 'Envoi…';
+        fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/appel', { method: 'POST', headers: { apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName: (S.account && S.account.firstName) || st0.name || 'Cliente Jehre', whatsapp: wa, link: st0.name || '', need: ('Modèle regardé : ' + m.name + '. ' + str($('#mdb-need', dlg).value).trim()).slice(0, 800), source: 'tableau-de-bord' }) })
+          .then((r) => r.json().catch(() => ({ ok: false })), () => ({ ok: false }))
+          .then((j) => {
+            if (j && j.ok) { JM.forget(); closeDialog(); toast('C’est noté. On vous écrit sur WhatsApp très vite pour votre site sur mesure.', { tone: 'ok', ms: 7000 }); return; }
+            pay.disabled = false; pay.textContent = payLabel();
+            if (err) { err.hidden = false; err.textContent = (j && j.message) || 'La demande n’est pas partie. Réessayez.'; }
+          });
+        return;
+      }
       pay.disabled = true; pay.textContent = 'Ouverture du paiement…';
       let storeId = ''; try { const r = window.JeerePublish && window.JeerePublish.local(); storeId = (r && r.storeId) || ''; } catch (e) { /* none */ }
       const st = (S.config && S.config.store) || {};
