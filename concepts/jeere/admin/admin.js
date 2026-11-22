@@ -4996,10 +4996,18 @@
       try { history.replaceState(null, '', window.location.pathname + '#accueil'); } catch (e) { /* keep */ }
       if (JM) JM.forget();
       const mm = JM && JM.bySlug(mBack[2] || '');
-      if (mBack[1] === 'ok') setTimeout(() => openDialog(H`<div class="a-dialog__card">${dlgHead('mdl-t', 'Paiement reçu, merci !')}
-        <div class="a-dialog__body"><p class="a-dialog__lead">Votre modèle <strong>${mm ? mm.name : ''}</strong> est payé. Vous recevez un e-mail avec la suite : répondez-y avec votre logo, et avec vos photos et vos textes si vous avez pris l’installation.</p>
-        <p class="a-dialog__lead" style="margin-top:10px">En attendant, ajoutez déjà vos produits ici.</p></div>
-        <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close>D’accord</button></div></div>`, { labelledby: 'mdl-t' }), 700);
+      const withInstall = !!(JM && JM.paidInstall && JM.paidInstall());
+      const mail = 'mailto:contact@jehre.com?subject=' + encodeURIComponent('Mon modèle ' + (mm ? mm.name : '') + ' : ' + (withInstall ? 'mes contenus' : 'mon logo'));
+      if (mBack[1] === 'ok') setTimeout(() => openDialog(withInstall ? H`<div class="a-dialog__card">${dlgHead('mdl-t', 'Paiement reçu, merci !')}
+        <div class="a-dialog__body"><p class="a-dialog__lead">Votre modèle <strong>${mm ? mm.name : ''}</strong> et son installation sont payés. Nous nous occupons de tout.</p>
+        <p class="a-dialog__lead" style="margin-top:12px"><strong>Envoyez-nous maintenant :</strong></p>
+        <ol class="a-nextsteps"><li>Votre logo</li><li>Vos photos (vous, votre travail, vos produits)</li><li>Vos produits ou prestations, avec les prix</li><li>Votre texte de présentation, votre ville et vos horaires</li><li>Votre numéro WhatsApp</li></ol>
+        <p class="a-dialog__lead" style="margin-top:12px">Écrivez à <strong>contact@jehre.com</strong>, ou répondez à l’e-mail que vous venez de recevoir. Dès que nous avons tout, nous installons votre boutique et nous vous écrivons. 2 séries de corrections sont incluses.</p></div>
+        <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Plus tard</button><a class="a-btn a-btn--primary" href="${mail}">Envoyer mes contenus</a></div></div>`
+        : H`<div class="a-dialog__card">${dlgHead('mdl-t', 'Paiement reçu, merci !')}
+        <div class="a-dialog__body"><p class="a-dialog__lead">Votre modèle <strong>${mm ? mm.name : ''}</strong> est payé.</p>
+        <ol class="a-nextsteps"><li>Envoyez votre logo à <strong>contact@jehre.com</strong> : nous mettons votre boutique sur ce modèle et nous vous écrivons.</li><li>Pendant ce temps, ajoutez vos produits, vos prix et vos photos ici, dans « Produits ».</li></ol></div>
+        <div class="a-dialog__foot"><a class="a-btn a-btn--ghost" href="${mail}">Envoyer mon logo</a><a class="a-btn a-btn--primary" href="#produits" data-close>Ajouter mes produits</a></div></div>`, { labelledby: 'mdl-t' }), 700);
       else setTimeout(() => toast('Paiement annulé : rien n’a été prélevé.', { ms: 7000 }), 600);
     } else if (JM && (mHash || JM.wanted())) {
       const slug = mHash ? mHash[1] : JM.wanted();

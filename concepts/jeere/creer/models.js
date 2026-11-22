@@ -66,6 +66,7 @@
       try { root.location.assign(new URL('../compte/', root.location.href).href.replace(/[?#].*$/, '') + '#inscription'); } catch (e) { /* stay */ }
       return Promise.resolve({ ok: false, reason: 'account', message: 'Créez votre compte Jehre (gratuit), puis payez votre modèle.' });
     }
+    try { root.localStorage.setItem(KEY + '-install', c.install === true || m.installIncluded ? '1' : '0'); } catch (e) { /* no storage */ }
     return Promise.resolve(B.buyModel(slug, { install: c.install === true, storeId: c.storeId || '', shopName: c.shopName || '', sells: c.sells || '', returnUrl: adminUrl() }))
       .then(function (r) { if (r && r.ok) forget(); return r; });
   }
@@ -74,6 +75,8 @@
     LIST: LIST, INSTALL: INSTALL, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
     thumb: function (slug, base) { return (base || '../') + 'studio/sites/thumbs/concepts--' + slug + '.webp'; },
     demo: function (slug) { return 'https://kreeative.xyz/concepts/' + slug + '/'; },
-    want: want, wanted: wanted, forget: forget, buy: buy
+    want: want, wanted: wanted, forget: forget, buy: buy,
+    // once, on the way back from the payment: did she pay for the installation?
+    paidInstall: function () { var v = null; try { v = root.localStorage.getItem(KEY + '-install'); root.localStorage.removeItem(KEY + '-install'); } catch (e) { /* no storage */ } return v === '1'; }
   };
 })(typeof window !== 'undefined' ? window : globalThis);

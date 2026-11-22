@@ -1724,3 +1724,7 @@ a:not([class]) { font-weight: 600; }
 .a-mopt__t { display: flex; justify-content: space-between; gap: 12px; font-weight: 600; font-size: 15px; }
 .a-mopt__t b { font-weight: 700; white-space: nowrap; }
 .a-mopt__d { display: block; margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+
+/* what comes next, after a payment */
+.a-nextsteps { margin: 10px 0 0; padding-left: 24px; list-style: decimal; display: grid; gap: 6px; font-size: 15px; line-height: 1.5; }
+.a-nextsteps li { list-style: decimal; }
