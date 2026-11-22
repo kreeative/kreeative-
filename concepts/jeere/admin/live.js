@@ -45,7 +45,9 @@
 
   // The Ivory Sukundu is not a Jehre store: its visits are kept under its name (public.visit_sites)
   var EXT_SITE = 'the-ivory-sukundu';
+  var forced = null;   // the founder looks at a site by its name (« jehre-com »), not at the store in view
   function target() {
+    if (forced) return { key: 'site:' + forced, fn: 'site_visits_live', body: { p_site: forced } };
     if (ext()) return { key: 'site:' + EXT_SITE, fn: 'site_visits_live', body: { p_site: EXT_SITE } };
     var rec = storeRec();
     return rec ? { key: rec.storeId, fn: 'store_visits_live', body: { p_store: rec.storeId } } : null;
@@ -90,12 +92,23 @@
     $('lv-countries').innerHTML = c.length ? c.map(function (x) {
       return '<li><span class="lv-c__name">' + esc(country(x.country)) + '</span><span class="lv-c__bar"><i style="width:' + Math.max(6, Math.round(100 * x.n / max)) + '%"></i></span><span class="lv-c__n">' + x.n + '</span></li>';
     }).join('') : '<li class="lv-none">Pas encore de visite ces dernières 24' + NB + 'heures.</li>';
-    var p = ((d && d.points) || []).slice(0, 6);
+    var pg = $('lv-pages');
+    if (pg) {
+      var ps = (d && d.pages) || [], pmax = ps.length ? ps[0].n : 1;
+      pg.innerHTML = ps.length ? ps.map(function (x) { return '<li><span class="lv-c__name">' + esc(pageName(x.path)) + '</span><span class="lv-c__bar"><i style="width:' + Math.max(6, Math.round(100 * x.n / pmax)) + '%"></i></span><span class="lv-c__n">' + x.n + '</span></li>'; }).join('') : '<li class="lv-none">Pas encore de visite ces dernières 24' + NB + 'heures.</li>';
+    }
+    var p = ((d && d.points) || []).slice(0, forced ? 12 : 6);
     $('lv-last').innerHTML = p.length ? p.map(function (x) {
-      return '<li><span class="lv-dot' + (x.live ? ' is-on' : '') + '"></span><span class="lv-l__where">' + esc([x.city, x.country ? country(x.country) : ''].filter(Boolean).join(', ') || 'Lieu inconnu') + '</span><span class="lv-l__when">' + esc(ago(x.at)) + '</span></li>';
+      return '<li><span class="lv-dot' + (x.live ? ' is-on' : '') + '"></span><span class="lv-l__where">' + esc([x.city, x.country ? country(x.country) : ''].filter(Boolean).join(', ') || 'Lieu inconnu') + (x.path ? ' <small class="lv-l__path">' + esc(pageName(x.path)) + '</small>' : '') + '</span><span class="lv-l__when">' + esc(ago(x.at)) + '</span></li>';
     }).join('') : '<li class="lv-none">Partagez le lien de votre boutique : vos visiteurs apparaîtront ici.</li>';
   }
 
+  // a page of jehre.com, as she would call it
+  function pageName(p) {
+    var m = { '/': 'Accueil', '/creer/': 'Créer une boutique', '/compte/': 'Compte', '/admin/': 'Tableau de bord', '/abonnements/': 'Tarifs du Studio', '/studio/': 'Studio', '/a-propos/': 'À propos', '/pitch/': 'Pitch' };
+    var k = String(p || '/').replace(/index\.html$/, ''); if (k.charAt(k.length - 1) !== '/') k += '/';
+    return m[k] || k;
+  }
   function draw(now) {
     var cv = document.getElementById('lv-globe');
     if (!cv) { stop(); return; }
@@ -184,6 +197,7 @@
             '<div class="lv-num"><span class="lv-num__l">7' + NB + 'jours</span><strong id="lv-week">–</strong></div>' +
           '</section>' +
           '<section class="a-card"><div class="a-card__head"><h2 class="a-card__title">Par pays</h2></div><ul class="lv-countries" id="lv-countries"></ul></section>' +
+          (forced ? '<section class="a-card"><div class="a-card__head"><h2 class="a-card__title">Pages regardées</h2></div><ul class="lv-countries" id="lv-pages"></ul></section>' : '') +
           '<section class="a-card"><div class="a-card__head"><h2 class="a-card__title">Dernières visites</h2></div><ul class="lv-last" id="lv-last"></ul></section>' +
         '</div>' +
       '</div>';
@@ -209,17 +223,17 @@
       '<div class="lv-demo"><p class="lv-demo__tag">Aperçu · visiteurs d’exemple</p>' + stage() + '</div></div>';
   }
 
-  function view() {
+  function view(top) {
     var tg = target();
-    if (!tg) return '<div class="a-page">' + head('Qui regarde votre boutique, et d’où.') + note('globe', 'Mettez d’abord votre boutique en ligne', 'Dès qu’elle est publiée, chaque visite apparaît ici, sur le globe.') + '</div>';
+    if (!tg) return '<div class="a-page">' + head('Qui regarde votre boutique, et d’où.') + (top || '') + note('globe', 'Mettez d’abord votre boutique en ligne', 'Dès qu’elle est publiée, chaque visite apparaît ici, sur le globe.') + '</div>';
     if (tg.key !== L.storeId) { L.storeId = tg.key; L.data = null; L.error = ''; L.at = 0; }
     setTimeout(start, 0);
-    return '<div class="a-page lv">' + head('Qui regarde votre boutique, et d’où. Mis à jour toutes les 20' + NB + 'secondes.') +
+    return '<div class="a-page lv">' + head(forced ? 'Qui est sur jehre.com en ce moment, et d’où. Mis à jour toutes les 20' + NB + 'secondes.' : 'Qui regarde votre boutique, et d’où. Mis à jour toutes les 20' + NB + 'secondes.') + (top || '') +
       '<p class="a-error" id="lv-err" hidden></p>' +
       stage() +
       '<p class="a-small lv-foot">' + ico('info') + 'Jehre garde la ville d’où vient une visite, jamais l’adresse de l’appareil. Les visites de plus de 30' + NB + 'jours sont effacées.</p>' +
     '</div>';
   }
 
-  window.JeereAdminLive = { view: view, preview: preview, state: function () { return L; } };
+  window.JeereAdminLive = { view: view, preview: preview, site: function (v) { if (v !== undefined) forced = v || null; return forced; }, state: function () { return L; } };
 })();

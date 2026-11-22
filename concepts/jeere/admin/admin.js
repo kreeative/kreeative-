@@ -4737,7 +4737,19 @@
     // « Rendez-vous » is ./rdv.js (services, hours, agenda: the `bookings` function)
     'rendez-vous': (r) => (window.JeereAdminRdv ? window.JeereAdminRdv.view(r) : errorView()),
     // « En direct » is ./live.js: the visitors of the store, on a globe
-    direct: () => (!window.JeereAdminLive ? errorView() : liveAllowed() ? window.JeereAdminLive.view() : liveLocked()),
+    direct: () => {
+      const LV = window.JeereAdminLive;
+      if (!LV) return errorView();
+      // the founder: her store, or jehre.com itself
+      if (acctsAllowed() || founder()) {
+        if (!S.liveScopeSet) { S.liveScopeSet = true; LV.site('jehre-com'); }   // she opens it on the Jehre site first
+        const on = LV.site() === 'jehre-com';
+        const tabs = H`<div class="lv-scope" role="group" aria-label="Ce que vous regardez"><button class="a-filter" type="button" data-live-scope="jehre-com" aria-pressed="${on ? 'true' : 'false'}">Jehre (le site)</button><button class="a-filter" type="button" data-live-scope="" aria-pressed="${on ? 'false' : 'true'}">Ma boutique</button></div>`;
+        return LV.view(tabs);
+      }
+      LV.site(null);
+      return liveAllowed() ? LV.view() : liveLocked();
+    },
     accueil: viewHome, commandes: viewOrders, produits: viewProducts, clients: viewClients, boutique: viewBoutique,
     pages: viewPages, promos: viewPromos, paiements: viewPaiements, livraison: viewLivraison, connecteurs: viewConnecteurs, parametres: viewParametres
   };
@@ -5213,6 +5225,7 @@
       // a payment the webhook has not brought yet
       Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && Array.isArray(j.stores)) { S.storePlans = S.storePlans || {}; j.stores.forEach((x) => { S.storePlans[x.id] = { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() }; }); } if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
     }
+    document.addEventListener('click', (e) => { const sc = e.target && e.target.closest ? e.target.closest('[data-live-scope]') : null; if (sc && window.JeereAdminLive) { window.JeereAdminLive.site(sc.getAttribute('data-live-scope') || null); refresh(); } });
     document.addEventListener('click', (e) => { const u = e.target && e.target.closest ? e.target.closest('[data-model-use]') : null; if (u) { e.preventDefault(); useModel(u.getAttribute('data-model-use')); } });
     document.addEventListener('click', (e) => { const b = e.target && e.target.closest ? e.target.closest('[data-model-buy]') : null; if (b) { e.preventDefault(); openModelBuy(b.getAttribute('data-model-buy')); } });
     document.addEventListener('input', (e) => {

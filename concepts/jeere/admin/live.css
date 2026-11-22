@@ -47,3 +47,6 @@
 .lv-demo__tag { position: absolute; z-index: 2; left: 14px; top: 14px; margin: 0; padding: 4px 11px; border-radius: 99px; background: var(--ink); color: var(--white); font-size: 12px; font-weight: 500; }
 /* a light veil: she sees the globe, the numbers and the lists, but it stays a preview */
 .lv-demo > .lv-grid { filter: blur(2px); pointer-events: none; user-select: none; }
+
+.lv-l__path { display: block; color: var(--muted); font-size: 12.5px; }
+.lv-scope { display: inline-flex; gap: 6px; margin: 0 0 16px; }

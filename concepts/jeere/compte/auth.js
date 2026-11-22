@@ -677,3 +677,19 @@
     window.history.back();
   });
 })();
+
+/* « En direct · Jehre (le site) » in the founder's dashboard: one signal per page of jehre.com opened, then one a
+ * minute while it stays in view (/api/visit, the name « jehre-com » of public.visit_sites). The server keeps a city
+ * and a daily hash, never an address. Not on a test address, not inside a frame. */
+(function () {
+  'use strict';
+  try {
+    if (typeof window === 'undefined' || window.__jehreVisit || window.top !== window) return;
+    if (!/^(www\.)?jehre\.com$/.test(location.hostname)) return;
+    window.__jehreVisit = true;
+    var url = 'https://jehre.com/api/visit', data = JSON.stringify({ slug: 'jehre-com', path: location.pathname });
+    var ping = function () { if (!(navigator.sendBeacon && navigator.sendBeacon(url, data))) fetch(url, { method: 'POST', body: data, keepalive: true, mode: 'no-cors' }).catch(function () {}); };
+    ping();
+    setInterval(function () { if (!document.hidden) { try { ping(); } catch (e) { /* next minute */ } } }, 60000);
+  } catch (e) { /* a visit that is not counted never breaks the page */ }
+})();
