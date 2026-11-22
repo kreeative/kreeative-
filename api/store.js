@@ -218,6 +218,56 @@ function send(res, status, html, cache) {
   res.end(html);
 }
 
+/* ------------------------------------------------------------------ a designer model she bought
+ * Her address (<slug>.store.jehre.com, or her own domain) shows the model her account paid for (public.store_model):
+ * the model's page, read from the Kreeative site, with her store in it. Its scripts read HER store (data-store),
+ * its pictures and styles stay on the Kreeative site, its page links stay on her address. The demo band goes,
+ * the model's name and city become hers. Any failure: her simple store, as before. */
+const MODEL_ORIGIN = 'https://kreeative.xyz/concepts/';
+const MODEL_NAMES = { seve: 'SÈVE', soyeuse: 'SOYEUSE', michou: 'MICHOU', anse: 'ANSE', regard: 'REGARD', vernie: 'VERNIE', minuit: 'MINUIT' };
+const ASSET = /\.(?:css|js|mjs|webp|avif|png|jpe?g|gif|svg|ico|woff2?|ttf|otf|mp4|webm|json)(?:[?#].*)?$/i;
+async function storeModel(slug) {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/store_model', {
+      method: 'POST', headers: { apikey: SB_KEY, Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_slug: slug }), signal: AbortSignal.timeout(2500)
+    });
+    const m = r.ok ? await r.json() : null;
+    return typeof m === 'string' && MODEL_NAMES[m] ? m : null;
+  } catch (e) { return null; }
+}
+const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function textEsc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+async function modelPage(model, rest, row, cfg) {
+  const clean = String(rest || '').replace(/^\/+/, '').replace(/\.\.+/g, '');
+  if (clean && !/^[a-z0-9-]+(?:\/[a-z0-9-]+)*\/?$/i.test(clean)) return null;
+  const pageUrl = MODEL_ORIGIN + model + '/' + (clean && !clean.endsWith('/') ? clean + '/' : clean);
+  let r;
+  try { r = await fetch(pageUrl, { signal: AbortSignal.timeout(4000), headers: { Accept: 'text/html' } }); } catch (e) { return null; }
+  if (!r.ok || !/text\/html/.test(r.headers.get('content-type') || '')) return null;
+  let html = await r.text();
+  const abs = (v) => { try { return new URL(v, pageUrl).href; } catch (e) { return v; } };
+  // pictures, styles and scripts from the Kreeative site; page links stay relative (her address)
+  html = html.replace(/\b(src|href|poster)=("|')([^"']+)\2/g, (all, a, q, v) => (/^(?:[a-z]+:|\/\/|#|data:)/i.test(v) || !ASSET.test(v) ? all : a + '=' + q + abs(v) + q));
+  html = html.replace(/\bsrcset=("|')([^"']+)\1/g, (all, q, v) => 'srcset=' + q + v.split(',').map((part) => { const t = part.trim().split(/\s+/); return /^(?:[a-z]+:|\/\/|data:)/i.test(t[0]) ? part : [abs(t[0])].concat(t.slice(1)).join(' '); }).join(', ') + q);
+  // her store, not the model's
+  html = html.replace(/data-store="[a-z0-9-]+"/g, 'data-store="' + row.slug + '"');
+  // the demo band and the demo words
+  html = html.replace(/<p class="concept">[\s\S]*?<\/p>/g, '').replace(/<div class="concept-bar"[\s\S]*?<\/div>/g, '');
+  html = html.replace(/\s*(?:—|-)\s*(?:boutique|site) de démonstration\.?/gi, '').replace(/<p class="avis__note-exemple">[\s\S]*?<\/p>/g, '');
+  html = html.replace(/,? ?(?:studio|boutique|site) de démonstration ?:?/gi, ' :').replace(/ : :/g, ' :');
+  html = html.replace(/<meta name="robots" content="noindex, nofollow">/, '<meta name="robots" content="index, follow">');
+  // her name and city in place of the model's
+  const name = String((cfg.store && cfg.store.name) || '').trim().slice(0, 40);
+  const city = String((cfg.store && cfg.store.city) || '').split(',')[0].trim().slice(0, 40);
+  if (name) {
+    const n = MODEL_NAMES[model];
+    html = html.replace(new RegExp('(?<![\\p{L}])' + escRe(n) + '(?![\\p{L}])', 'gu'), textEsc(name));
+  }
+  if (city && city !== 'Abidjan') html = html.replace(/(?<![\p{L}-])Abidjan(?![\p{L}])/gu, textEsc(city));
+  return html;
+}
+
 async function handler(req, res) {
   let tpl;
   try { tpl = template(); } catch (e) { res.statusCode = 500; res.end('Store page missing'); return; }
@@ -238,6 +288,15 @@ async function handler(req, res) {
     if (got.code === 'notfound') send(res, 200, tpl.replace('<meta name="theme-color"', '<meta name="robots" content="noindex">\n  <meta name="theme-color"'), 'public, max-age=0, s-maxage=10');
     else send(res, 200, tpl, 'no-store');
     return;
+  }
+  // her own address (not jehre.com/b/…, which keeps the cart and the payment): the model she bought
+  if (!onJeere && !got.row.preview && !/^\/?(?:panier|paiement|confirmation|produits\/|pages\/)/.test(rest)) {
+    const model = await storeModel(got.row.slug);
+    if (model) {
+      let page = null;
+      try { const { D } = lib(); page = await modelPage(model, rest, got.row, D.normalizeConfig(got.row.fiche)); } catch (e) { page = null; }
+      if (page) { send(res, 200, page, 'public, max-age=0, s-maxage=60, stale-while-revalidate=600'); return; }
+    }
   }
   try {
     const { D, R } = lib();
