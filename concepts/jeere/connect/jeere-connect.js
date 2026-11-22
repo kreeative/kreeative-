@@ -120,7 +120,7 @@
         (stock && toInt(stock[p.id]) === 0);
       map[p.id] = {
         id: p.id, name: str(p.name).trim(), price: price === null || price < 0 ? null : price,
-        description: str(p.description).trim(), image: httpsImg(p.image), available: !off
+        description: str(p.description).trim(), image: httpsImg(p.image), available: !off, badge: str(p.badge)
       };
     });
     return map;
@@ -236,9 +236,54 @@
   }
   function outsideLines(el) { return !(el.closest && el.closest('[data-jeere-lines]')); }
 
+  // Her model site, like a theme: each product case of the page (its own number, kept in data-jeere-slot-…) shows
+  // the product she chose for it in the editor (store.slots), or is hidden ('-'). Done before bind(), and again each
+  // time the editor sends a new fiche, so everything after works with the real product id (the cart too).
+  var SLOT_ATTRS = ['product', 'name', 'desc', 'price', 'photo', 'add', 'inc', 'dec', 'remove'];
+  function remapSlots(fiche) {
+    var map = fiche && isObj(fiche.store) && isObj(fiche.store.slots) ? fiche.store.slots : {};
+    SLOT_ATTRS.forEach(function (n) {
+      var a = 'data-jeere-' + n, keep = 'data-jeere-slot-' + n;
+      $$('[' + a + ']').filter(outsideLines).forEach(function (el) {
+        var slot = el.getAttribute(keep);
+        if (slot === null) { slot = el.getAttribute(a); if (!slot || !ID_RE.test(slot)) return; el.setAttribute(keep, slot); }
+        var to = typeof map[slot] === 'string' ? map[slot] : slot;
+        if (n === 'product') {
+          if (to === '-') { if (!el.hasAttribute('data-jeere-hid')) { el.setAttribute('data-jeere-hid', el.style.display || ''); el.style.display = 'none'; } }
+          else if (el.hasAttribute('data-jeere-hid')) { el.style.display = el.getAttribute('data-jeere-hid'); el.removeAttribute('data-jeere-hid'); }
+        }
+        el.setAttribute(a, to === '-' ? slot : to);
+      });
+    });
+  }
+
+  // A product CARD (one of several side by side), not the page of one product
+  function isCard(c) { return !!(c && c.parentElement && c.parentElement.querySelectorAll(':scope > [data-jeere-product]').length > 1); }
+  // On a seller's own store (not the model's demo), what a card says of the DEMO product goes: the old price, the
+  // « -19 % », « noir délavé · xs à xl ». Its label (Nouveau…) follows her product's own.
+  var DEMO_STORES = { michou: 1, seve: 1, soyeuse: 1, anse: 1 };
+  var BADGE_FR = { 'new': 'Nouveau', best: 'Best-seller', promo: 'Promo' };
+  function cleanCards() {
+    if (DEMO_STORES[slug] && !inEditor) return;
+    $$('[data-jeere-product]').filter(isCard).forEach(function (c) {
+      var p = S.products && S.products[c.getAttribute('data-jeere-product')];
+      Array.prototype.forEach.call(c.querySelectorAll('s, del, [class*="promo"], [class*="meta"]'), function (el) {
+        if (el.hasAttribute('data-jeere-price') || el.hasAttribute('data-jeere-name') || el.querySelector('[data-jeere-price],[data-jeere-name],[data-jeere-photo]')) return;
+        el.style.display = 'none';
+      });
+      Array.prototype.forEach.call(c.querySelectorAll('[class*="tag"], [class*="badge"]'), function (el) {
+        if (el.children.length || el.hasAttribute('data-jeere-price') || el.hasAttribute('data-jeere-name')) return;
+        var t = p && BADGE_FR[p.badge];
+        if (t) { el.textContent = t; el.style.display = ''; } else el.style.display = 'none';
+      });
+    });
+  }
+  var inEditor = false;
+
   // Names, prices, descriptions, photos and states from the fiche (once it is read)
   function bind() {
     if (!S.products) return;
+    try { cleanCards(); } catch (e) { /* the card keeps what it had */ }
     $$('[data-jeere-product]').forEach(function (c) {
       var id = c.getAttribute('data-jeere-product');
       c.setAttribute('data-jeere-state', sellable(id) ? 'on' : 'off');
@@ -453,16 +498,24 @@
   function editImgs() { return $$('img').filter(function (el) { return !skip(el); }); }
   // what she can change on this page, numbered in page order: texts (t), pictures (i), the category of a
   // service card (c); and what comes from elsewhere: a product card (p), the list of her services (s)
+  function credit(el) {
+    var sel = 'a[href*="kreeative.xyz"]';
+    return !!((el.closest && el.closest(sel)) || (el.querySelector && el.querySelector(sel) && (el.textContent || '').length < 400));
+  }
   function cardOf(el) { return el.closest ? el.closest('a[data-jeere-book]:not([data-jeere-book=""]), [data-jeere-service]') : null; }
   function keyed() {
     var base = pagePath(), out = [], nt = 0, nc = 0;
     editTexts().forEach(function (el) {
       var card = cardOf(el), cat = card && /pill|cat|tag|badge/.test(String(el.className || ''));
       if (cat) out.push({ el: el, kind: 'c', key: base + '|c|' + (nc++), ref: card.getAttribute('data-jeere-book') || card.getAttribute('data-jeere-service') || '' });
+      // « Modèle par Kreeative »: the designer's signature stays as it is (it keeps its number, so the other texts keep theirs)
+      else if (credit(el)) nt++;
+      // what a product card says comes from the product (the dashboard), not from here; numbers kept
+      else if (isCard(el.closest('[data-jeere-product]'))) nt++;
       else out.push({ el: el, kind: 't', key: base + '|t|' + (nt++) });
     });
     editImgs().forEach(function (el, n) { out.push({ el: el, kind: 'i', key: base + '|i|' + n }); });
-    $$('[data-jeere-product]').forEach(function (el) { if (!skip(el.parentElement || el)) out.push({ el: el, kind: 'p', key: base + '|p|' + el.getAttribute('data-jeere-product'), ref: el.getAttribute('data-jeere-product') }); });
+    $$('[data-jeere-product]').forEach(function (el) { var slot = el.getAttribute('data-jeere-slot-product') || el.getAttribute('data-jeere-product'); if (!skip(el.parentElement || el)) out.push({ el: el, kind: 'p', key: base + '|p|' + slot, ref: slot }); });
     $$('[data-jeere-services]').forEach(function (el, n) { out.push({ el: el, kind: 's', key: base + '|s|' + n }); });
     return out;
   }
@@ -630,7 +683,8 @@
         if (!isObj(e.data) || e.data.jeerePreview !== slug || !isObj(e.data.fiche)) return;
         preview = true;
         parentOrigin = e.origin;
-        try { S.products = readFiche(e.data.fiche); S.status = 'ready'; drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
+        inEditor = true;
+        try { S.products = readFiche(e.data.fiche); S.status = 'ready'; remapSlots(e.data.fiche); drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
         try { brand(e.data.fiche); applySite(e.data.fiche); if (e.data.edit) pickOn(); sendMap(); } catch (err) { /* the page keeps what it had */ }
         emit('jeere:update', { status: S.status, products: list() });
       });
@@ -648,7 +702,7 @@
         } catch (e) { /* a visit that is not counted never breaks the site */ }
       }
       if (r.ok) {
-        try { S.products = readFiche(r.fiche); S.status = 'ready'; } catch (e) { S.products = null; S.status = 'offline'; }
+        try { S.products = readFiche(r.fiche); S.status = 'ready'; remapSlots(r.fiche); } catch (e) { S.products = null; S.status = 'offline'; }
         try { drawSocial(r.fiche); } catch (e) { /* the page keeps its own */ }
         try { applySite(r.fiche); } catch (e) { /* the page keeps its own */ }
       } else S.status = r.code;

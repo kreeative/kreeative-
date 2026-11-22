@@ -3041,6 +3041,17 @@
     // the designer model in use, among those she bought (the server checks the purchase), and what she changed in
     // each of the others, kept for the day she comes back to it
     if (typeof srcStore.model === 'string' && MODEL_RE.test(srcStore.model)) store.model = srcStore.model;
+    // her model site, like a theme: each product case of the model (p1, p2…) shows the product she chose for it
+    // (a product id), or is hidden ('-'). No entry: the case shows the product of the same number.
+    if (isObj(srcStore.slots)) {
+      var slots = {}, nsl = 0;
+      Object.keys(srcStore.slots).forEach(function (k) {
+        var v = srcStore.slots[k];
+        if (nsl >= 80 || !/^p\d{1,3}$/.test(k) || typeof v !== 'string' || !(v === '-' || /^p\d{1,4}$/.test(v)) || v === k) return;
+        slots[k] = v; nsl++;
+      });
+      if (nsl) store.slots = slots;
+    }
     if (isObj(srcStore.siteBy)) {
       var by = {};
       Object.keys(srcStore.siteBy).forEach(function (mk) { if (!MODEL_RE.test(mk)) return; var one = normSite(srcStore.siteBy[mk]); if (one) by[mk] = one; });

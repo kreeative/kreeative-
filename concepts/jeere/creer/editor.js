@@ -584,8 +584,6 @@
     if (c && e.data && e.data.jeerePick && typeof e.data.jeerePick.key === 'string') {
       try { if (e.origin !== new URL(c.url).origin) return; } catch (err) { return; }
       const pk = e.data.jeerePick;
-      // a product touched on her site: its own form opens, right here (name, price, photo, description)
-      if (pk.kind === 'p' && pk.ref && findProduct(pk.ref)) { openProductHere(pk.ref); return; }
       S.sitePick = null;
       if (typeof pk.sec === 'number' && pk.sec >= 0) S.siteOpen = pk.sec;
       S.siteFocus = pk.key;
@@ -603,16 +601,14 @@
       if (S.tab === 'site') { const ae = document.activeElement; if (!(ae && els.tp.site.contains(ae) && /INPUT|TEXTAREA|SELECT/.test(ae.tagName))) renderTab(); }
     }
   });
-  // A product of her site, opened in the « Produits » tab with its form ready
-  function openProductHere(id) {
-    S.openProduct = id;
-    if (S.tab !== 'produits') setTab('produits'); else renderTab();
-    setTimeout(() => {
-      const row = els.tp.produits ? els.tp.produits.querySelector('[data-pid="' + CSS.escape(id) + '"]') : null;
-      if (!row) return;
-      row.scrollIntoView({ block: 'start', behavior: 'smooth' });
-      const f = row.querySelector('input:not([type=file]):not([type=hidden]), textarea'); if (f) { try { f.focus({ preventScroll: true }); } catch (err) { /* fine */ } }
-    }, 80);
+  // Which product a case of her model site shows (store.slots): her choice, '-' to hide the case, or back to the
+  // product of the same number (no entry)
+  function setSlot(slot, value) {
+    const st = S.config.store;
+    st.slots = st.slots || {};
+    if (!value || value === slot) delete st.slots[slot]; else st.slots[slot] = value;
+    if (!Object.keys(st.slots).length) delete st.slots;
+    change({ now: true });
   }
   // Her change to a text or a picture of the model (store.site), or back to the model's own (value null)
   function setSiteEdit(kind, key, value, typing) {
@@ -748,21 +744,28 @@
     if (linked.length) {
       if (m && m.rdv) body.append(el('div', { class: 'b-sitefrom' }, icon('i-info'), el('span', { text: 'Les prestations affichées ici (noms, prix, durées, catégories) viennent de vos réglages de rendez-vous : le site les affiche tout seul.' })));
       else {
-        // the products of this section, each one a touch away from its form
-        const seen = {}, list = el('ul', { class: 'b-siteprods', 'aria-label': 'Produits de cette section' });
+        // like a theme: for each case of this section, the product it shows. The products themselves (photos,
+        // prices, quantities) are managed in the dashboard, not here.
+        const seen = {}, slots = (S.config.store.slots) || {};
+        let nth = 0;
         linked.forEach((x) => {
-          const pr = x.kind === 'p' && x.ref && !seen[x.ref] ? findProduct(x.ref) : null;
-          if (!pr) return;
-          seen[x.ref] = true;
-          list.append(el('li', {}, el('button', { type: 'button', class: 'b-siteprod', on: { click: () => openProductHere(pr.id) } },
-            pr.image ? el('img', { src: pr.image, alt: '', loading: 'lazy' }) : el('span', { class: 'b-siteprod__no' }, icon('i-tag')),
-            el('span', { class: 'b-siteprod__t' }, el('span', { class: 'b-siteprod__n', text: pr.name || 'Produit sans nom' }), el('span', { class: 'b-siteprod__p', text: D.formatPrice(pr.price) })),
-            el('span', { class: 'b-siteprod__go', text: 'Modifier' }))));
+          if (x.kind !== 'p' || !x.ref || seen[x.ref]) return;
+          seen[x.ref] = true; nth++;
+          const cur = typeof slots[x.ref] === 'string' ? slots[x.ref] : (findProduct(x.ref) ? x.ref : '');
+          const sel = el('select', { class: 'b-input', id: 'slot-' + x.ref, 'aria-label': 'Produit de la case ' + nth, on: { change: (e) => { setSlot(x.ref, e.target.value); renderTab(); } } },
+            el('option', { value: '', text: 'Choisir un produit…' }),
+            ...S.config.products.map((pr) => el('option', { value: pr.id, text: (pr.name || 'Produit sans nom') + ' · ' + D.formatPrice(pr.price) })),
+            el('option', { value: '-', text: 'Masquer cette case' }));
+          sel.value = cur;
+          const pr = cur && cur !== '-' ? findProduct(cur) : null;
+          body.append(el('div', { class: 'b-slot', 'data-site-key': x.key },
+            pr && pr.image ? el('img', { src: pr.image, alt: '', loading: 'lazy' }) : el('span', { class: 'b-slot__no' }, icon(cur === '-' ? 'i-eye-off' : 'i-tag')),
+            el('div', { class: 'b-slot__f' }, el('label', { class: 'b-label', for: 'slot-' + x.ref, text: 'Case ' + nth }), el('div', { class: 'b-select' }, sel))));
         });
-        if (list.children.length) body.append(el('p', { class: 'b-label', text: 'Produits de cette section' }), list);
+        body.append(el('p', { class: 'b-hint', text: 'Choisissez quel produit va dans chaque case. Les photos, les prix et les quantités se changent dans votre tableau de bord.' }));
       }
       body.append(m && m.rdv ? el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations')
-        : el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', on: { click: () => setTab('produits') } }, icon('i-tag'), 'Tous mes produits'));
+        : el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#produits', 'data-leave': '' }, icon('i-dash'), 'Gérer mes produits'));
     }
     if (!imgs.length && !texts.length && !linked.length && sec.icon !== 'header') body.append(el('p', { class: 'b-hint', text: 'Cette section n’a rien à modifier.' }));
     return body;
@@ -1823,6 +1826,7 @@
   function renderProducts(tp) {
     const cs0 = customSite();
     if (cs0 && cs0.rdv) { renderServicesInfo(tp, cs0); return; }
+    if (cs0 && cs0.bought) { renderProductsInfo(tp); return; }
     const ps = S.config.products;
     const lim = productLimit();
     const sorting = S.reorder.produits && ps.length > 1;
@@ -3858,6 +3862,20 @@
     tp.append(list);
     tp.append(el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations'));
     tp.append(el('p', { class: 'b-note', text: 'Le nom de votre salon, votre ville et votre WhatsApp se changent dans l’onglet Boutique.' }));
+  }
+  // « Produits » for a shop model she bought: the list, to look at. Like a theme, the editor places the products;
+  // they are created and changed in the dashboard (photos, prices, quantities).
+  function renderProductsInfo(tp) {
+    tp.append(tabHead('Produits', 'Vos produits se gèrent dans votre tableau de bord : photos, prix, quantités. Ici, vous choisissez seulement où ils apparaissent sur le site.'));
+    tp.append(el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#produits', 'data-leave': '' }, icon('i-dash'), 'Gérer mes produits'));
+    const ps = S.config.products;
+    if (!ps.length) { tp.append(el('p', { class: 'b-empty b-empty--box', text: 'Aucun produit pour l’instant.' })); return; }
+    const ul = el('ul', { class: 'b-siteprods', 'aria-label': 'Vos produits' });
+    ps.forEach((pr) => ul.append(el('li', {}, el('div', { class: 'b-siteprod b-siteprod--ro' },
+      pr.image ? el('img', { src: pr.image, alt: '', loading: 'lazy' }) : el('span', { class: 'b-siteprod__no' }, icon('i-tag')),
+      el('span', { class: 'b-siteprod__t' }, el('span', { class: 'b-siteprod__n', text: pr.name || 'Produit sans nom' }), el('span', { class: 'b-siteprod__p', text: D.formatPrice(pr.price) }))))));
+    tp.append(ul);
+    tp.append(el('p', { class: 'b-hint', text: 'Pour placer un produit sur le site : onglet Sections, ouvrez la section, puis choisissez le produit de chaque case.' }));
   }
   const RENDER = { site: renderSite, sections: renderSections, produits: renderProducts, theme: renderTheme, boutique: renderBoutique, qualite: renderQuality };
 
