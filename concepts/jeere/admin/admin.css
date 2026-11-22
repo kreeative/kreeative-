@@ -1698,3 +1698,7 @@ a:not([class]) { font-weight: 600; }
 /* A button, or a row of buttons, never touches what sits above it (a field, a note, a list, a table…).
    :where keeps this at the lowest priority: any rule that already sets its own spacing still wins. */
 :where(.a-field, .a-fieldset, .a-input, textarea, select, .a-selectwrap, .a-hint, .a-error, .a-note, .a-switchrow, .a-radios, .a-seg, .a-table, .a-rows, .a-dns, .a-otable-wrap, p, ul, ol, dl, table, .a-grid, .a-cols, .a-stack) + :where(.a-btnrow, .a-btn, .a-card__foot) { margin-top: 16px; }
+
+/* « Pro » next to a menu entry that comes with the Pro plan */
+.a-navtag { margin-left: auto; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line-2); font-size: 10.5px; font-weight: 600; font-style: normal; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--white); }
+.a-navtag[hidden] { display: none; }

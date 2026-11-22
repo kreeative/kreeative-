@@ -1,0 +1,4 @@
+-- Applied with the Supabase MCP (jeere_visits_live_pro): « En direct » (the globe of visitors) comes with the Pro
+-- plan (and Business). store_visits_live answers { ok: false, reason: 'plan' } for a store on another plan; the
+-- rest of the function is unchanged (see 20261118170000_jeere_store_visits.sql).
+-- The visits are still recorded for every store, so the globe has its history the day she moves to Pro.

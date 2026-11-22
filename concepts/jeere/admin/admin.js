@@ -347,6 +347,16 @@
   }
   const planId = () => { const r = storePlanRow(); return r ? r.plan : (S.account && S.account.plan); };
   const plan = () => PLANS().find((p) => p.id === planId()) || PLANS()[0] || { id: 'gratuit', name: 'Gratuit', fee: 3, orders: 20, priceMonth: 0, priceLabel: '0 FCFA', feeLabel: '3 % par vente en ligne', ordersLabel: '' };
+  // « En direct » (the globe of visitors) comes with the Pro plan, and Business. The Ivory Sukundu is her own site.
+  const liveAllowed = () => !!EXT() || ['pro', 'business'].indexOf(planId()) !== -1;
+  function liveLocked() {
+    const pro = PLANS().find((x) => x.id === 'pro');
+    return H`<div class="a-page"><header class="a-ph"><div class="a-ph__txt"><h1 class="a-h1" tabindex="-1">En direct</h1><p class="a-sub">Qui regarde votre boutique, et d’où.</p></div></header>
+      <section class="a-card"><div class="a-empty"><span class="a-empty__ico">${ico('globe')}</span>
+        <p class="a-empty__title">Inclus dans la formule Pro</p>
+        <p class="a-empty__text">Voyez vos visiteurs en direct sur un globe : combien sont là maintenant, depuis quel pays et quelle ville.${pro && pro.priceLabel ? ' Formule Pro : ' + esc(pro.priceLabel) + '.' : ''}</p>
+        <div class="a-btnrow" style="justify-content:center"><a class="a-btn a-btn--primary" href="#parametres/abonnement">Passer à la formule Pro</a></div></div></section></div>`;
+  }
   const CONNECTORS = () => arr(D && D.CONNECTORS);
   const connector = (id) => CONNECTORS().find((c) => c.id === id) || null;
   function conn(id) {
@@ -889,6 +899,13 @@
     $$('[data-bind="todo-count"]').forEach((n) => { n.hidden = !todo; n.textContent = String(todo); n.setAttribute('aria-label', plural(todo, 'commande à préparer', 'commandes à préparer')); });
     const rdvShow = rdvOn();
     $$('[data-nav="rendez-vous"], [data-more="rendez-vous"]').forEach((n) => { const li = n.closest('li') || n; li.hidden = !rdvShow; });
+    // « En direct » carries a small « Pro » next to its name until her plan has it
+    const liveOk = liveAllowed();
+    $$('[data-nav="direct"], [data-more="direct"]').forEach((n) => {
+      let tag = n.querySelector('.a-navtag');
+      if (!tag) { tag = document.createElement('em'); tag.className = 'a-navtag'; tag.textContent = 'Pro'; n.appendChild(tag); }
+      tag.hidden = liveOk;
+    });
     const rdvTodo = window.JeereAdminRdv && rdvShow ? window.JeereAdminRdv.pendingCount() : 0;
     $$('[data-bind="rdv-count"]').forEach((n) => { n.hidden = !rdvTodo; n.textContent = String(rdvTodo); n.setAttribute('aria-label', rdvTodo + ' rendez-vous à confirmer'); });
     $$('[data-bind="todo-dot"]').forEach((n) => { n.hidden = !todo; });
@@ -4477,7 +4494,7 @@
     // « Rendez-vous » is ./rdv.js (services, hours, agenda: the `bookings` function)
     'rendez-vous': (r) => (window.JeereAdminRdv ? window.JeereAdminRdv.view(r) : errorView()),
     // « En direct » is ./live.js: the visitors of the store, on a globe
-    direct: () => (window.JeereAdminLive ? window.JeereAdminLive.view() : errorView()),
+    direct: () => (!window.JeereAdminLive ? errorView() : liveAllowed() ? window.JeereAdminLive.view() : liveLocked()),
     accueil: viewHome, commandes: viewOrders, produits: viewProducts, clients: viewClients, boutique: viewBoutique,
     pages: viewPages, promos: viewPromos, paiements: viewPaiements, livraison: viewLivraison, connecteurs: viewConnecteurs, parametres: viewParametres
   };
