@@ -2555,15 +2555,22 @@
     toast(isPublished() ? 'Modèle ' + m.name + ' choisi. Publiez pour le mettre en ligne.' : 'Modèle ' + m.name + ' choisi.', { ms: 6000 });
   }
   // The payment of a designer model. Without a real account she is sent to create one first (the model is remembered).
+  // « Choisir » a designer model: its own page (#boutique/modele/<slug>), not a pop-up. Three ways: she fills it in
+  // herself (paid by card at once), Jehre installs it (a questionnaire, then a quote to sign), or a made-to-measure site.
   function openModelBuy(slug) {
     const JM = window.JeereModels, m = JM && JM.bySlug(slug);
     if (!m) return;
     const real = !!(window.JeereBilling && window.JeereBilling.isReal && window.JeereBilling.isReal());
     if (!real) { JM.buy(slug); return; }
-    const dlg = openDialog(H`<div class="a-dialog__card">${dlgHead('mdb-t', 'Modèle ' + m.name)}
-      <div class="a-dialog__body">
-        <img src="${JM.thumb(slug)}" alt="" width="640" height="400" style="display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)">
-        <p class="a-dialog__lead" style="margin-top:12px">${m.kind}. Les photos et les textes du modèle sont remplacés par les vôtres.</p>
+    go('boutique/modele/' + slug);
+  }
+  function viewModelBuy(slug) {
+    const JM = window.JeereModels, m = JM && JM.bySlug(slug);
+    if (!m) return viewBoutique({ name: 'boutique', parts: [] });
+    return H`<div class="a-page">${pageHead('Modèle ' + m.name, m.kind + '. Les photos et les textes du modèle sont remplacés par les vôtres.', H`<a class="a-btn a-btn--ghost" href="${JM.demo(slug)}" target="_blank" rel="noopener">Voir la démo</a>`, { href: '#boutique', label: 'Boutique en ligne' })}
+      <div class="a-mpage" data-mdb="${slug}">
+        <div class="a-mpage__img"><img src="${JM.thumb(slug)}" alt="" width="640" height="400"></div>
+        <section class="a-card a-mpage__opts"><h2 class="a-card__title">Comment voulez-vous l’installer ?</h2>
         ${m.installIncluded ? H`<p class="a-dialog__lead" style="margin-top:8px"><strong>${JM.priceLabel(m)}</strong>, payé une seule fois, installation par notre équipe incluse.</p>` : H`<div class="a-mopts" role="radiogroup" aria-label="Qui installe votre boutique">
           <label class="a-mopt"><input type="radio" name="mdb-opt" value="self" checked><span class="a-mopt__b"><span class="a-mopt__t">Je remplis moi-même<b>${JM.priceLabel(m)}</b></span><span class="a-mopt__d">Vous ajoutez vous-même vos produits, vos prix et vos photos depuis votre tableau de bord.</span></span></label>
           <label class="a-mopt"><input type="radio" name="mdb-opt" value="install"><span class="a-mopt__b"><span class="a-mopt__t">Jehre installe tout pour moi<b>Dès ${JM.fcfa(m.price + JM.installPrice(m))}</b></span><span class="a-mopt__d">Nous mettons tout en place : jusqu’à 10 produits et 2 séries de corrections. Au-delà, c’est sur devis. Répondez à 3 questions, vous recevez votre devis à signer.</span></span></label>
@@ -2576,11 +2583,14 @@
             <div class="a-field"><label class="a-label" for="mdb-wa">Votre numéro WhatsApp</label><input class="a-input" id="mdb-wa" type="tel" inputmode="tel" maxlength="30" value="${esc((S.account && S.account.phone) || '')}" placeholder="+225 07 07 12 34 56"></div>
             <div class="a-field"><label class="a-label" for="mdb-need">Précisions (facultatif)</label><textarea class="a-input" id="mdb-need" rows="3" maxlength="800"></textarea></div></div>
           <p class="a-small" data-mdb-note style="margin-top:8px">Payé une seule fois. L’abonnement de la boutique est à part.</p>`}
-        <p class="a-error" id="mdb-err" hidden style="margin-top:10px"></p></div>
-      <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close data-mdb-later>Plus tard</button><button class="a-btn a-btn--primary" type="button" data-mdb-pay data-autofocus>Payer par carte</button></div></div>`, { labelledby: 'mdb-t' });
-    if (!dlg) return;
-    const later = $('[data-mdb-later]', dlg), pay = $('[data-mdb-pay]', dlg), err = $('#mdb-err', dlg);
-    if (later) later.addEventListener('click', () => JM.forget());
+        <p class="a-error" id="mdb-err" hidden style="margin-top:10px"></p>
+        <div class="a-formfoot" style="margin-top:16px"><a class="a-btn a-btn--ghost" href="#boutique" data-mdb-later>Plus tard</a><button class="a-btn a-btn--primary" type="button" data-mdb-pay>Payer par carte</button></div></section></div></div>`;
+  }
+  // the page's choices and its button (delegated: the page is redrawn like any other)
+  function modelBuyEvent(kind, dlg) {
+    const slug = dlg.getAttribute('data-mdb'), JM = window.JeereModels, m = JM && JM.bySlug(slug);
+    if (!m) return;
+    const pay = $('[data-mdb-pay]', dlg), err = $('#mdb-err', dlg);
     // option 3, a made-to-measure site: no payment here, a call is asked for (the `appel` function tells the founder)
     // option 2, the installation: 10 products and 2 rounds of changes are included, more is quoted. So no payment here
     // either: a short questionnaire, and the founder sends a quote to sign and pay.
@@ -2588,8 +2598,7 @@
     const isQuote = () => optVal() === 'install';
     const isCustom = () => optVal() === 'custom' || isQuote();
     const payLabel = () => (isQuote() ? 'Recevoir mon devis' : isCustom() ? 'Demander un appel' : 'Payer par carte');
-    dlg.addEventListener('change', (e) => {
-      if (!e.target || e.target.name !== 'mdb-opt') return;
+    if (kind === 'change') {
       const box = $('[data-mdb-custom]', dlg), note = $('[data-mdb-note]', dlg);
       const qb = $('[data-mdb-quote]', dlg);
       if (qb) qb.hidden = !isQuote();
@@ -2597,8 +2606,9 @@
       if (note) note.textContent = isQuote() ? 'Rien à payer maintenant. Vous recevez votre devis sur WhatsApp : vous le signez, vous payez, puis vous envoyez vos photos et vos textes.' : isCustom() ? 'Rien à payer maintenant. On vous écrit sur WhatsApp pour fixer l’appel.' : 'Payé une seule fois. L’abonnement de la boutique est à part.';
       if (pay) pay.textContent = payLabel();
       if (err) err.hidden = true;
-    });
-    if (pay) pay.addEventListener('click', () => {
+      return;
+    }
+    {
       if (isCustom()) {
         const wa = str($('#mdb-wa', dlg).value).trim(), st0 = (S.config && S.config.store) || {}, quote = isQuote();
         if (wa.replace(/\D/g, '').length < 8) { if (err) { err.hidden = false; err.textContent = 'Écrivez un numéro WhatsApp complet, avec l’indicatif.'; } $('#mdb-wa', dlg).focus(); return; }
@@ -2607,7 +2617,7 @@
           body: JSON.stringify({ firstName: (S.account && S.account.firstName) || st0.name || 'Cliente Jehre', whatsapp: wa, link: st0.name || '', need: ((quote ? 'DEVIS INSTALLATION. Modèle : ' + m.name + '. Produits : ' + $('#mdb-q-n', dlg).value + '. Photos prêtes : ' + $('#mdb-q-ph', dlg).value + '. Logo : ' + $('#mdb-q-lg', dlg).value + '. E-mail : ' + myEmail() + '. ' : 'Modèle regardé : ' + m.name + '. ') + str($('#mdb-need', dlg).value).trim()).slice(0, 800), source: quote ? 'devis-installation' : 'tableau-de-bord' }) })
           .then((r) => r.json().catch(() => ({ ok: false })), () => ({ ok: false }))
           .then((j) => {
-            if (j && j.ok) { JM.forget(); closeDialog(); toast(quote ? 'C’est noté. Vous recevez votre devis sur WhatsApp très vite.' : 'C’est noté. On vous écrit sur WhatsApp très vite pour votre site sur mesure.', { tone: 'ok', ms: 7000 }); return; }
+            if (j && j.ok) { JM.forget(); go('boutique'); toast(quote ? 'C’est noté. Vous recevez votre devis sur WhatsApp très vite.' : 'C’est noté. On vous écrit sur WhatsApp très vite pour votre site sur mesure.', { tone: 'ok', ms: 7000 }); return; }
             pay.disabled = false; pay.textContent = payLabel();
             if (err) { err.hidden = false; err.textContent = (j && j.message) || 'La demande n’est pas partie. Réessayez.'; }
           });
@@ -2622,7 +2632,7 @@
         pay.disabled = false; pay.textContent = 'Payer par carte';
         if (err) { err.hidden = false; err.textContent = (r && r.message) || 'Le paiement n’a pas pu s’ouvrir. Réessayez.'; }
       });
-    });
+    }
   }
   function isPublished() { try { const r = window.JeerePublish && window.JeerePublish.local(); return !!(r && r.published && r.storeId); } catch (e) { return false; } }
   // « ? Aide » (top bar, sidebar, « Plus »): the guided tour again, « Premiers pas » back on the home page, a real person
@@ -4856,7 +4866,7 @@
       LV.site(null);
       return liveAllowed() ? LV.view() : liveLocked();
     },
-    accueil: viewHome, commandes: viewOrders, produits: viewProducts, clients: viewClients, boutique: viewBoutique,
+    accueil: viewHome, commandes: viewOrders, produits: viewProducts, clients: viewClients, boutique: (r) => (r && r.parts && r.parts[0] === 'modele' ? viewModelBuy(r.parts[1]) : viewBoutique()),
     pages: viewPages, promos: viewPromos, paiements: viewPaiements, livraison: viewLivraison, connecteurs: viewConnecteurs, parametres: viewParametres
   };
 
@@ -5335,6 +5345,13 @@
     }
     document.addEventListener('click', (e) => { const sc = e.target && e.target.closest ? e.target.closest('[data-live-scope]') : null; if (sc && window.JeereAdminLive) { window.JeereAdminLive.site(sc.getAttribute('data-live-scope') || null); refresh(); } });
     document.addEventListener('click', (e) => { const u = e.target && e.target.closest ? e.target.closest('[data-model-use]') : null; if (u) { e.preventDefault(); useModel(u.getAttribute('data-model-use')); } });
+    document.addEventListener('change', (e) => { const box = e.target && e.target.name === 'mdb-opt' && e.target.closest ? e.target.closest('[data-mdb]') : null; if (box) modelBuyEvent('change', box); });
+    document.addEventListener('click', (e) => {
+      const t = e.target && e.target.closest ? e.target.closest('[data-mdb-pay],[data-mdb-later]') : null, box = t ? t.closest('[data-mdb]') : null;
+      if (!box) return;
+      if (t.hasAttribute('data-mdb-later')) { if (window.JeereModels) window.JeereModels.forget(); return; }
+      e.preventDefault(); modelBuyEvent('click', box);
+    });
     document.addEventListener('click', (e) => { const b = e.target && e.target.closest ? e.target.closest('[data-model-buy]') : null; if (b) { e.preventDefault(); openModelBuy(b.getAttribute('data-model-buy')); } });
     document.addEventListener('input', (e) => {
       const q = e.target && e.target.matches && e.target.matches('[data-accts-q]') ? e.target.value.trim().toLowerCase() : null;

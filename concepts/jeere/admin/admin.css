@@ -1759,3 +1759,9 @@ a:not([class]) { font-weight: 600; }
 .a-rdvh__day { margin: 12px 8px 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
 
 @media (min-width: 1100px) { .a-home--svc { grid-template-areas: "today side" "check side" "orders side"; } }
+
+/* a designer model, on its own page: the model on the left, the three ways to get it on the right */
+.a-mpage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; align-items: start; }
+.a-mpage__img img { display: block; width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); }
+.a-mpage__opts .a-field { margin-top: 10px; }
+@media (max-width: 900px) { .a-mpage { grid-template-columns: 1fr; } }
