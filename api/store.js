@@ -306,7 +306,7 @@ async function handler(req, res) {
         const { D } = lib();
         page = await modelPage(model, rest, got.row, D.normalizeConfig(got.row.fiche), 'https://' + (own || got.row.slug + '.store.jehre.com'));
       } catch (e) { page = null; }
-      if (page) { send(res, 200, page, 'public, max-age=0, s-maxage=60, stale-while-revalidate=600'); return; }
+      if (page) { send(res, 200, page, 'public, max-age=0, s-maxage=60, stale-while-revalidate=86400'); return; }
     }
   }
   try {
@@ -334,7 +334,7 @@ async function handler(req, res) {
     if (body) html = between(html, 'jb:body', body + '\n    ' + data + '\n');
     else html = html.replace('</main>', '  ' + data + '\n  </main>');
     // the private preview is not cached by Vercel (the token is in the query, and a store not online must not linger)
-    send(res, 200, html, row.preview ? 'private, no-store' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+    send(res, 200, html, row.preview ? 'private, no-store' : 'public, max-age=0, s-maxage=60, stale-while-revalidate=86400');
   } catch (e) {
     send(res, 200, tpl, 'no-store');
   }

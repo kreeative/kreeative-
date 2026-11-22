@@ -6,6 +6,32 @@
       "dest": "/api/visit"
     },
     {
+      "src": "^/(?!api/).+\\.(?:js|css)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com|.+\\.store\\.jehre\\.com)"
+        }
+      ],
+      "headers": {
+        "Cache-Control": "public, max-age=300"
+      },
+      "continue": true
+    },
+    {
+      "src": "^/(?!api/).+\\.(?:webp|png|jpg|jpeg|svg|gif|ico|woff2|woff|mp4)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com|.+\\.store\\.jehre\\.com)"
+        }
+      ],
+      "headers": {
+        "Cache-Control": "public, max-age=86400"
+      },
+      "continue": true
+    },
+    {
       "src": "^/(admin|compte|studio|creer|abonnements)(/.*)?$",
       "has": [
         {
