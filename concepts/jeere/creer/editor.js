@@ -715,7 +715,40 @@
       if (own) r.append(el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', title: 'Remettre la photo du modèle', on: { click: () => { setSiteEdit('i', x.key, null); renderTab(); } } }, 'Remettre'));
       r.addEventListener('mouseenter', () => focusOnSite(x.key));
       body.append(r);
+      // a photo that is a link (« Hauts », « Bas »…): where it leads, one of her categories or one of her products
+      if (x.link && !(m && m.rdv)) {
+        const lkey = x.key.replace('|i|', '|l|'), cur = (site.l && site.l[lkey]) || '';
+        const cats = Array.from(new Set(S.config.products.map((pr) => String(pr.category || '').trim()).filter(Boolean)));
+        const sel = el('select', { class: 'b-input', id: id + '-to', on: { change: (e) => { setSiteEdit('l', lkey, e.target.value || null); renderTab(); } } },
+          el('option', { value: '', text: 'Comme le modèle' }),
+          el('optgroup', { label: 'Une catégorie' }, ...cats.map((c) => el('option', { value: 'c:' + c, text: c }))),
+          el('optgroup', { label: 'Un produit' }, ...S.config.products.map((pr) => el('option', { value: 'p:' + pr.id, text: pr.name || 'Produit sans nom' }))));
+        sel.value = cur;
+        body.append(el('div', { class: 'b-field b-sitelink' }, el('label', { class: 'b-label', for: id + '-to', text: 'Cette photo mène à' }), el('div', { class: 'b-select' }, sel)));
+      }
     });
+    // her networks live in the footer: real links (the same as Paramètres › Boutique)
+    if (sec.icon === 'footer') {
+      const soc = S.config.store.social || {};
+      body.append(el('p', { class: 'b-label', style: 'margin-top:6px', text: 'Vos réseaux sociaux' }));
+      [['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['facebook', 'Facebook']].forEach((n) => {
+        const idn = 'b-soc-' + n[0];
+        const inp = el('input', { class: 'b-input', id: idn, type: 'text', value: soc[n[0]] ? '@' + soc[n[0]] : '', placeholder: '@votrenom ou le lien de votre page', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+        const err = el('p', { class: 'b-hint', hidden: true, text: 'Ce nom n’est pas reconnu. Collez le lien de votre page ' + n[1] + ', ou écrivez votre nom avec @.' });
+        inp.addEventListener('change', () => {
+          const raw = inp.value.trim(), h = raw ? D.socialHandle(n[0], raw) : null;
+          if (raw && !h) { err.hidden = false; return; }
+          err.hidden = true;
+          const st = S.config.store; st.social = st.social || {};
+          if (h) st.social[n[0]] = h; else delete st.social[n[0]];
+          if (!Object.keys(st.social).length) delete st.social;
+          inp.value = h ? '@' + h : '';
+          change({ now: true });
+        });
+        body.append(el('div', { class: 'b-field' }, el('label', { class: 'b-label', for: idn, text: n[1] }), inp, err));
+      });
+      body.append(el('p', { class: 'b-hint', text: 'Vos visiteurs touchent l’icône et arrivent sur votre page. Laissez vide pour ne pas afficher un réseau.' }));
+    }
     // texts
     texts.forEach((x, i) => {
       const id = 'b-sf-' + sec.n + '-t' + i, own = changed(x);

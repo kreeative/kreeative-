@@ -1412,3 +1412,6 @@ html.qs-open .jst img.qs-target, html.qs-open .jst .qs-target img { touch-action
 .b-siteprod--ro:hover { border-color: var(--line, #E3E1DC); }
 .b-slot__f .b-select { display: block; width: 100%; }
 .b-slot__f .b-select select { width: 100%; max-width: none; }
+.b-sitelink { margin: -4px 0 14px; }
+.b-sitelink .b-select { display: block; }
+.b-sitelink select { width: 100%; }

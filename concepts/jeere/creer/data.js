@@ -3020,15 +3020,16 @@
     // « <page>|t|<n> » / « <page>|i|<n> » (connect/jeere-connect.js numbers them the same way)
     var MODEL_RE = /^(?:seve|soyeuse|michou|anse|regard|vernie|minuit)$/;
     var normSite = function (src0) {
-      var site = {}, SK = /^\/[a-z0-9\/-]{0,60}\|[tich]\|\d{1,4}$/;
+      var site = {}, SK = /^\/[a-z0-9\/-]{0,60}\|[tichl]\|\d{1,4}$/;
       if (!isObj(src0)) return null;
-      ['t', 'i', 'c', 'h'].forEach(function (k) {
+      ['t', 'i', 'c', 'h', 'l'].forEach(function (k) {
         var src2 = isObj(src0[k]) ? src0[k] : null, out = {}, n = 0;
         if (!src2) return;
         Object.keys(src2).forEach(function (key) {
           if (n >= 400 || !SK.test(key)) return;
           var v = typeof src2[key] === 'string' ? src2[key] : '';
-          if (k !== 'i') { v = v.replace(/[\u0000-\u0008\u000B-\u001F]/g, '').slice(0, 800); if (!v.trim()) return; }
+          if (k === 'l') { if (!/^(?:c:[^\u0000-\u001F]{1,40}|p:p\d{1,4})$/.test(v)) return; }
+          else if (k !== 'i') { v = v.replace(/[\u0000-\u0008\u000B-\u001F]/g, '').slice(0, 800); if (!v.trim()) return; }
           else if (!/^https:\/\/[^\s"'<>]{8,600}$/i.test(v) && !(/^data:image\/(?:png|jpe?g|webp|gif);base64,/.test(v) && v.length < 2200000)) return;
           out[key] = v; n++;
         });

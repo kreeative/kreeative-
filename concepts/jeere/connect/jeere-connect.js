@@ -498,6 +498,50 @@
   function editImgs() { return $$('img').filter(function (el) { return !skip(el); }); }
   // what she can change on this page, numbered in page order: texts (t), pictures (i), the category of a
   // service card (c); and what comes from elsewhere: a product card (p), the list of her services (s)
+  // a photo that is a link of the page (a campaign tile « Hauts », « Bas »…), not a product card's
+  function photoLink(img) {
+    var a = img.closest ? img.closest('a[href]') : null;
+    return a && !a.closest('[data-jeere-product]') && !a.closest('header') ? a : null;
+  }
+  // « Hauts & T-shirts » → « hauts-t-shirts »: the name of a category in the page's own filters (letters and dashes)
+  function catSlug(t) {
+    var s = String(t || '').toLowerCase();
+    try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { /* old browser */ }
+    return s.replace(/[^a-z]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  // On a seller's own store, the shop's filters are HER categories: each card takes its product's category, the
+  // filter buttons take her category names (the model's own are for its demo products).
+  function applyCats(fiche) {
+    if (DEMO_STORES[slug] && !inEditor) return;
+    var prods = Array.isArray(fiche.products) ? fiche.products : [], cat = {};
+    prods.forEach(function (p) { if (p && p.id) cat[p.id] = String(p.category || '').trim(); });
+    var shown = [];
+    $$('[data-jeere-product][data-cat]').forEach(function (c) {
+      if (c.hasAttribute('data-jeere-hid')) return;
+      var name = cat[c.getAttribute('data-jeere-product')] || '';
+      c.setAttribute('data-cat', catSlug(name) || 'autres');
+      if (name && shown.indexOf(name) === -1) shown.push(name);
+    });
+    var pills = $$('[data-filter]').filter(function (b) { return b.getAttribute('data-filter') !== 'tout' && !b.hasAttribute('data-jeere-pill'); });
+    if (!pills.length) return;
+    $$('[data-jeere-pill]').forEach(function (b) { b.parentNode.removeChild(b); });
+    pills.forEach(function (b, i) {
+      if (i < shown.length) { b.hidden = false; b.style.display = ''; b.textContent = shown[i].toLowerCase(); b.setAttribute('data-filter', catSlug(shown[i])); }
+      else { b.hidden = true; b.style.display = 'none'; }
+    });
+    // more categories than the model has buttons: the extra ones, working the same way
+    var last = pills[pills.length - 1];
+    shown.slice(pills.length).forEach(function (name) {
+      var b = last.cloneNode(true);
+      b.hidden = false; b.style.display = ''; b.textContent = name.toLowerCase(); b.setAttribute('data-filter', catSlug(name)); b.setAttribute('data-jeere-pill', ''); b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () {
+        var want = b.getAttribute('data-filter');
+        $$('[data-filter]').forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+        $$('[data-jeere-product][data-cat]').forEach(function (c) { c.hidden = c.getAttribute('data-cat') !== want; });
+      });
+      last.parentNode.appendChild(b);
+    });
+  }
   function credit(el) {
     var sel = 'a[href*="kreeative.xyz"]';
     return !!((el.closest && el.closest(sel)) || (el.querySelector && el.querySelector(sel) && (el.textContent || '').length < 400));
@@ -555,7 +599,7 @@
     if (!editing || !parentOrigin) return;
     var all = sections(), base = pagePath();
     var items = keyed().map(function (x) {
-      return { key: x.key, kind: x.kind, ref: x.ref || '', label: label(x), text: x.kind === 't' || x.kind === 'c' ? (x.el.textContent || '').replace(/\s+/g, ' ').trim() : '', role: role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
+      return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: label(x), text: x.kind === 't' || x.kind === 'c' ? (x.el.textContent || '').replace(/\s+/g, ' ').trim() : '', role: role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
         tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && (x.el.textContent || '').length > 70 };
     });
     var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER' }; });
@@ -586,7 +630,8 @@
   }
   function applySite(fiche) {
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
-    var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {};
+    var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {}, ll = isObj(site.l) ? site.l : {};
+    try { applyCats(fiche); } catch (e) { /* the model's filters stay */ }
     try { applyLogo(fiche); } catch (e) { /* the model's name stays */ }
     // the sections she hides (in the editor they stay, greyed, so she can bring them back)
     var hh = isObj(site.h) ? site.h : {}, base0 = pagePath();
@@ -607,6 +652,17 @@
         if (typeof t[x.key] === 'string') x.el.textContent = t[x.key];
         else if (preview) x.el.innerHTML = original[x.key];
       } else {
+        var lk = photoLink(x.el), to = typeof ll[x.key.replace('|i|', '|l|')] === 'string' ? ll[x.key.replace('|i|', '|l|')] : '';
+        if (lk) {
+          if (!lk.hasAttribute('data-jeere-href')) lk.setAttribute('data-jeere-href', lk.getAttribute('href'));
+          var was = lk.getAttribute('data-jeere-href'), href = was;
+          if (to.indexOf('c:') === 0) href = was.replace(/#.*$/, '') + '#' + catSlug(to.slice(2));
+          else if (to.indexOf('p:') === 0) {
+            var pa = document.querySelector(attrSel('data-jeere-product', to.slice(2)) + ' a[href]:not([href^="#"])');
+            if (pa) href = pa.getAttribute('href');
+          }
+          lk.setAttribute('href', href);
+        }
         var v = typeof im[x.key] === 'string' ? im[x.key] : '';
         if (v) { x.el.removeAttribute('srcset'); x.el.src = v; }
         else if (preview && original[x.key].src) { x.el.src = original[x.key].src; if (original[x.key].srcset) x.el.setAttribute('srcset', original[x.key].srcset); }
