@@ -551,7 +551,8 @@
     if (CUSTOM_SITES[slug]) return { slug, url: CUSTOM_SITES[slug] };
     // the designer model she bought: the editor shows it, with her products in it
     const m = window.JeereModels && window.JeereModels.mine ? window.JeereModels.mine() : null;
-    return m && CUSTOM_SITES[m] ? { slug: m, url: CUSTOM_SITES[m], bought: true } : null;
+    const mm = m && window.JeereModels.bySlug(m);
+    return m && CUSTOM_SITES[m] ? { slug: m, url: CUSTOM_SITES[m], bought: true, rdv: !!(mm && mm.rdv) } : null;
   }
   // asked once to the server when the editor opens: a model bought on another device shows here too
   let mineAsked = false;
@@ -581,6 +582,27 @@
       root.appendChild(fr);
     } else sendCustom();
     if (els.screen) els.screen.style.background = '#FFFFFF';
+    iphone(S.device === 'phone');
+  }
+  // the phone preview of her model: the real iPhone, its status bar on top of her site
+  function iphone(on) {
+    const d = els.device;
+    if (!d) return;
+    d.classList.toggle('b-device--iphone', on);
+    let f = d.querySelector('.b-iphone__frame'), st = d.querySelector('.b-iphone__status');
+    if (on && !f) {
+      f = document.createElement('img');
+      f.className = 'b-iphone__frame'; f.alt = ''; f.width = 450; f.height = 920; f.decoding = 'async';
+      f.src = '../admin/img/iphone-18-pro-silver.webp';
+      d.appendChild(f);
+    }
+    if (on && !st && els.screen) {
+      st = document.createElement('div');
+      st.className = 'b-iphone__status'; st.setAttribute('aria-hidden', 'true');
+      st.innerHTML = '<span>9:41</span><span class="b-iphone__icons"><svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><i class="b-iphone__batt"><b></b></i></span>';
+      els.screen.insertBefore(st, els.screen.firstChild);
+    }
+    if (!on) { if (f) f.remove(); if (st) st.remove(); }
   }
 
   /* ------------------------------------------------------------------ preview */
@@ -601,6 +623,7 @@
     document.documentElement.classList.toggle('b-is-custom', !!cs);
     if (cs) { renderCustomInto(els.store, cs); hideHover(); fit(); return; }
     if (els.store.classList.contains('b-customwrap')) { els.store.className = ''; els.store.textContent = ''; }
+    iphone(false);
     if (S.page === 'product' && !findProduct(S.productId)) S.productId = S.config.products[0] ? S.config.products[0].id : null;
     // The page shown was deleted (undo, import, the dashboard): the first of the seller's pages, else home
     if (S.page === 'page' && !findCustomPage(S.pageId)) {
@@ -799,7 +822,13 @@
     const W = els.device.offsetWidth;
     const H = els.device.offsetHeight;
     if (!W || avail <= 0) return;
-    const s = Math.min(1, Math.max(0.12, avail / W));
+    let s = Math.min(1, Math.max(0.12, avail / W));
+    // the real iPhone: as tall as the stage, the whole phone in view
+    if (els.device.classList.contains('b-device--iphone') && !isMobile()) {
+      const top = els.dwrap.getBoundingClientRect().top - els.stage.getBoundingClientRect().top + els.stage.scrollTop;
+      const availH = els.stage.clientHeight - top - 20;
+      if (availH > 200) s = Math.min(s, availH / H);
+    }
     S.scale = s;
     els.device.style.transform = s === 1 ? '' : `scale(${s})`;
     els.device.style.setProperty('--inv', String(1 / s));
@@ -926,6 +955,9 @@
     const custom = !!customSite();
     document.documentElement.classList.toggle('b-is-custom', custom);
     if (custom && CUSTOM_TABS.indexOf(tab) === -1) tab = 'produits';
+    // the « Produits » tab is « Prestations » for a booking model
+    const pt = document.querySelector('#b-tab-produits span');
+    if (pt) pt.textContent = custom && customSite().rdv ? 'Prestations' : 'Produits';
     const changed = tab !== S.tab;
     S.tab = tab;
     els.tabBtns.forEach((b) => {
@@ -1539,6 +1571,8 @@
   }
 
   function renderProducts(tp) {
+    const cs0 = customSite();
+    if (cs0 && cs0.rdv) { renderServicesInfo(tp, cs0); return; }
     const ps = S.config.products;
     const lim = productLimit();
     const sorting = S.reorder.produits && ps.length > 1;
@@ -3561,6 +3595,20 @@
     if (opts.reveal) revealInPreview(t);
   }
 
+  // A booking model (REGARD, VERNIE, MINUIT): her site shows her services, prices and free times, which are set in
+  // the dashboard (Rendez-vous). The panel says so and takes her there.
+  function renderServicesInfo(tp, cs) {
+    const m = window.JeereModels && window.JeereModels.bySlug(cs.slug);
+    tp.append(tabHead('Prestations', 'Votre site ' + (m ? m.name : '') + ' affiche vos prestations, vos prix et vos créneaux libres. Vos clientes réservent directement.'));
+    const list = el('ul', { class: 'b-svcinfo' });
+    [['Vos prestations et leurs prix', 'Pose de cils, remplissage, rehaussement…'], ['Leur durée', 'Pour calculer les créneaux libres'],
+      ['Vos jours et vos horaires', 'Et vos congés'], ['L’acompte', 'Si vous en demandez un à la réservation']].forEach((x) => {
+      list.append(el('li', {}, el('strong', { text: x[0] }), el('span', { text: x[1] })));
+    });
+    tp.append(list);
+    tp.append(el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations'));
+    tp.append(el('p', { class: 'b-note', text: 'Le nom de votre salon, votre ville et votre WhatsApp se changent dans l’onglet Boutique.' }));
+  }
   const RENDER = { sections: renderSections, produits: renderProducts, theme: renderTheme, boutique: renderBoutique, qualite: renderQuality };
 
   /* ------------------------------------------------------------------ meta (top bar, title, score) */

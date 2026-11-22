@@ -936,6 +936,7 @@
   // the store already has prestations. A shop of bags never sees it.
   function rdvOn() {
     if (EXT() || !S.admin) return false;
+    { const mm = myModel(); const jm = mm && window.JeereModels && window.JeereModels.bySlug(mm.model); if (jm && jm.rdv) return true; }
     const v = S.admin.settings.rdv;
     if (v === true || v === false) return v;
     let wanted = false;
