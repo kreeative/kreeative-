@@ -83,7 +83,10 @@
       return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/rpc/my_models', { method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + ses.access_token }, body: '{}' })
         .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (j) { if (Array.isArray(j)) setMine(j[0] ? j[0].model : ''); return mine(); });
+        .then(function (j) {
+          if (Array.isArray(j)) { var cur = mine(), owned = j.map(function (x) { return x.model; }); if (!cur || owned.indexOf(cur) === -1) setMine(j[0] ? j[0].model : ''); }
+          return mine();
+        });
     }).catch(function () { return mine(); });
   }
 

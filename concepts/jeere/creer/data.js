@@ -3015,10 +3015,12 @@
     }
     // Her changes to a designer model's page (the editor, clicking on the site): texts and pictures by place,
     // « <page>|t|<n> » / « <page>|i|<n> » (connect/jeere-connect.js numbers them the same way)
-    if (isObj(srcStore.site)) {
+    var MODEL_RE = /^(?:seve|soyeuse|michou|anse|regard|vernie|minuit)$/;
+    var normSite = function (src0) {
       var site = {}, SK = /^\/[a-z0-9\/-]{0,60}\|[tich]\|\d{1,4}$/;
+      if (!isObj(src0)) return null;
       ['t', 'i', 'c', 'h'].forEach(function (k) {
-        var src2 = isObj(srcStore.site[k]) ? srcStore.site[k] : null, out = {}, n = 0;
+        var src2 = isObj(src0[k]) ? src0[k] : null, out = {}, n = 0;
         if (!src2) return;
         Object.keys(src2).forEach(function (key) {
           if (n >= 400 || !SK.test(key)) return;
@@ -3029,7 +3031,17 @@
         });
         if (n) site[k] = out;
       });
-      if (Object.keys(site).length) store.site = site;
+      return Object.keys(site).length ? site : null;
+    };
+    var site1 = normSite(srcStore.site);
+    if (site1) store.site = site1;
+    // the designer model in use, among those she bought (the server checks the purchase), and what she changed in
+    // each of the others, kept for the day she comes back to it
+    if (typeof srcStore.model === 'string' && MODEL_RE.test(srcStore.model)) store.model = srcStore.model;
+    if (isObj(srcStore.siteBy)) {
+      var by = {};
+      Object.keys(srcStore.siteBy).forEach(function (mk) { if (!MODEL_RE.test(mk)) return; var one = normSite(srcStore.siteBy[mk]); if (one) by[mk] = one; });
+      if (Object.keys(by).length) store.siteBy = by;
     }
     // Her networks (Paramètres › Boutique): Instagram, TikTok, Facebook, as handles; the footer shows their icons
     if (isObj(srcStore.social)) {

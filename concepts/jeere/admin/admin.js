@@ -417,11 +417,14 @@
           body: '{}' }).then((r) => (r.ok ? r.json() : null));
       }).catch(() => null).then((j) => {
         S.myModels = { loading: false, list: Array.isArray(j) ? j : [] };
-        if (Array.isArray(j) && window.JeereModels && window.JeereModels.setMine) window.JeereModels.setMine(j[0] ? j[0].model : '');
+        if (Array.isArray(j) && window.JeereModels && window.JeereModels.setMine) { const mm0 = myModel(); window.JeereModels.setMine(mm0 ? mm0.model : ''); }
         if (S.myModels.list.length && S.inApp) refresh();
       });
     }
-    return S.myModels && S.myModels.list.length ? S.myModels.list[0] : null;
+    if (!(S.myModels && S.myModels.list.length)) return null;
+    // the one in use: the one she chose for this store (if she bought it), else the latest she bought
+    const want = S.config && S.config.store ? S.config.store.model : '';
+    return S.myModels.list.filter((x) => x.model === want)[0] || S.myModels.list[0];
   }
   // A service business: she bought a booking model. Her dashboard speaks of appointments and services, not of
   // orders and products.
@@ -2522,13 +2525,34 @@
   function designerModels() {
     const JM = window.JeereModels;
     if (!JM || EXT()) return '';
+    const owned = (S.myModels && S.myModels.list ? S.myModels.list : []).map((x) => x.model), cur = myModel() ? myModel().model : '';
     return H`<section class="a-card" aria-labelledby="h-models"><div class="a-card__head"><div><h2 class="a-card__title" id="h-models">Modèles de designer</h2>
-      <p class="a-card__sub">Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.</p></div></div>
+      <p class="a-card__sub">${owned.length > 1 ? 'Les modèles achetés sont à vous : passez de l’un à l’autre quand vous voulez, vos textes et vos photos sont gardés pour chacun.' : 'Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.'}</p></div></div>
       <ul class="a-models">${JM.LIST.map((m) => H`<li class="a-model">
         <a class="a-model__shot" href="${JM.demo(m.slug)}" target="_blank" rel="noopener" aria-label="${esc(fr('Voir la démo du modèle ' + m.name))}"><img src="${JM.thumb(m.slug)}" alt="" width="640" height="400" loading="lazy" decoding="async"></a>
         <div class="a-model__body"><p class="a-model__name">${esc(m.name)}</p><p class="a-model__kind">${esc(m.kind)}</p>
           <p class="a-model__price"><strong>${esc(JM.priceLabel(m))}</strong>${m.was ? H` <s>${esc(JM.fcfa(m.was))}</s>` : ''}</p>
-          <div class="a-model__acts"><button class="a-btn a-btn--primary a-btn--sm" type="button" data-model-buy="${m.slug}">Choisir</button><a class="a-btn a-btn--ghost a-btn--sm" href="${JM.demo(m.slug)}" target="_blank" rel="noopener">Voir la démo</a></div></div></li>`)}</ul></section>`;
+          <div class="a-model__acts">${cur === m.slug ? H`<span class="a-chip a-chip--ink">Modèle utilisé</span>` : owned.indexOf(m.slug) !== -1 ? H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-model-use="${m.slug}">Utiliser ce modèle</button>` : H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-model-buy="${m.slug}">Choisir</button>`}<a class="a-btn a-btn--ghost a-btn--sm" href="${JM.demo(m.slug)}" target="_blank" rel="noopener">Voir la démo</a></div>
+          ${owned.indexOf(m.slug) !== -1 ? H`<p class="a-small" style="margin-top:8px">Acheté · il est à vous</p>` : ''}</div></li>`)}</ul></section>`;
+  }
+  // She owns several models: this one becomes her site's. What she changed in the one she leaves is kept
+  // (store.siteBy) and comes back the day she returns to it.
+  function useModel(slug) {
+    const JM = window.JeereModels, m = JM && JM.bySlug(slug);
+    const owned = (S.myModels && S.myModels.list ? S.myModels.list : []).map((x) => x.model);
+    if (!m || owned.indexOf(slug) === -1 || !S.config) return;
+    const st = S.config.store, from = myModel() ? myModel().model : '';
+    if (from === slug) return;
+    st.siteBy = st.siteBy || {};
+    if (from && st.site) st.siteBy[from] = st.site;
+    if (from && !st.site) delete st.siteBy[from];
+    if (st.siteBy[slug]) { st.site = st.siteBy[slug]; delete st.siteBy[slug]; } else delete st.site;
+    if (!Object.keys(st.siteBy).length) delete st.siteBy;
+    st.model = slug;
+    if (!saveConfig(S.config)) return;
+    JM.setMine(slug);
+    refresh();
+    toast(isPublished() ? 'Modèle ' + m.name + ' choisi. Publiez pour le mettre en ligne.' : 'Modèle ' + m.name + ' choisi.', { ms: 6000 });
   }
   // The payment of a designer model. Without a real account she is sent to create one first (the model is remembered).
   function openModelBuy(slug) {
@@ -5189,6 +5213,7 @@
       // a payment the webhook has not brought yet
       Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && Array.isArray(j.stores)) { S.storePlans = S.storePlans || {}; j.stores.forEach((x) => { S.storePlans[x.id] = { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() }; }); } if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
     }
+    document.addEventListener('click', (e) => { const u = e.target && e.target.closest ? e.target.closest('[data-model-use]') : null; if (u) { e.preventDefault(); useModel(u.getAttribute('data-model-use')); } });
     document.addEventListener('click', (e) => { const b = e.target && e.target.closest ? e.target.closest('[data-model-buy]') : null; if (b) { e.preventDefault(); openModelBuy(b.getAttribute('data-model-buy')); } });
     document.addEventListener('input', (e) => {
       const q = e.target && e.target.matches && e.target.matches('[data-accts-q]') ? e.target.value.trim().toLowerCase() : null;
