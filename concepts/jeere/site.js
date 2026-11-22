@@ -102,8 +102,8 @@
     $$('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false'); });
     if (save) { try { localStorage.setItem('jeere-lang', lang); } catch (e) {} }
     updateReceipt(false);
-    updateHero();
-    syncPause();
+    if (typeof updateHero === "function") updateHero();
+    if (typeof syncPause === "function") syncPause();
     heroPlaceholder();
     setRole(currentRole());
     if (lastDone) showDone(lastDone.dup, lastDone.name, true);
@@ -316,7 +316,9 @@
   heroTel.addEventListener('input', function () { if (!heroErr.hidden && heroTel.value.replace(/\D/g, '').length >= 8) heroBad(false); });
 
   /* ---------- Hero canvas: palette swatches, quantity, auto-demo ---------- */
+  (function () {
   var cv = $('[data-canvas]');
+  if (!cv) return; // the hero shows a picture now
   $('.cv__ui', cv).removeAttribute('inert'); // the controls work from here on
   var swatches = $$('[data-swatch]', cv);
   var pauseBtn = $('[data-pause]', cv);
@@ -374,6 +376,8 @@
   }
   syncPause();
   runDemo();
+
+  })();
 
   /* ---------- Demo photos: one that cannot load (missing, offline) is hidden, so its colour tile,
      ring or frame shows alone instead of a broken image. Errors do not bubble: listen in the capture

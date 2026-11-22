@@ -228,57 +228,9 @@
         <a class="hero__try" href="creer/"><span data-i18n="hero.try">ou essayer l’éditeur</span><svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
 
-      <!-- Editor canvas: a store page being edited, with floating tools. Decorative, except the small
-           "Aperçu interactif" group (colours, quantity, pause), which works and is announced.
-           The group is inert until site.js runs, so without JavaScript its buttons are not offered.
-           The product photo is a demo photo of the store builder (creer/img/demo/, Unsplash): in the
-           accent ring of the page and on the product card, so the swatches recolour around it. -->
-      <div class="hero__visual">
-        <p class="vh" data-i18n="hero.canvasAlt">Aperçu de l’éditeur Jehre&nbsp;: une boutique de beurre de karité dont on change les couleurs d’une touche, une barre d’outils de texte avec l’assistant Jehre, une fiche produit à 6&nbsp;500&nbsp;FCFA et un paiement Wave reçu.</p>
-        <div class="cv" data-canvas data-tint="karite">
-          <div class="cv__grid" aria-hidden="true"></div>
-          <div class="cv__page" aria-hidden="true">
-            <span class="cv__logo">A</span>
-            <span class="cv__icons"><svg><use href="#i-user"/></svg><svg><use href="#i-search"/></svg><svg><use href="#i-bag"/></svg></span>
-            <span class="cv__stage"><img src="creer/img/demo/beauty/serum-eclat-baobab.webp" width="1000" height="1250" alt="" decoding="async" style="object-position:50% 45%"></span>
-            <svg class="cv__ph cv__ph--1"><use href="#i-image"/></svg>
-            <svg class="cv__ph cv__ph--2"><use href="#i-image"/></svg>
-            <svg class="cv__ph cv__ph--3"><use href="#i-image"/></svg>
-          </div>
-          <div class="cv__float cv__tools" aria-hidden="true">
-            <span class="cv__ai" title="Assistant Jehre" data-i18n-attr="title:hero.toolAi"><svg><use href="#i-sparkle"/></svg></span>
-            <span><svg><use href="#i-type"/></svg></span>
-            <span><svg><use href="#i-bold"/></svg></span>
-            <span><svg><use href="#i-italic"/></svg></span>
-            <span><svg><use href="#i-link"/></svg></span>
-            <span><svg><use href="#i-list"/></svg></span>
-            <span><svg><use href="#i-olist"/></svg></span>
-          </div>
-          <div class="cv__ui" role="group" aria-label="Aperçu interactif" data-i18n-attr="aria-label:hero.ui" inert>
-            <div class="cv__float cv__tray">
-              <button class="cv__sw" type="button" data-swatch="karite" style="--sw:#EE5A2A" aria-pressed="true" aria-label="Couleur Karité" data-i18n-attr="aria-label:hero.swatch.karite"></button>
-              <button class="cv__sw" type="button" data-swatch="lagune" style="--sw:#00BFCB" aria-pressed="false" aria-label="Couleur Lagune" data-i18n-attr="aria-label:hero.swatch.lagune"></button>
-              <button class="cv__sw" type="button" data-swatch="hibiscus" style="--sw:#DE0F7B" aria-pressed="false" aria-label="Couleur Hibiscus" data-i18n-attr="aria-label:hero.swatch.hibiscus"></button>
-              <button class="cv__sw" type="button" data-swatch="indigo" style="--sw:#3657FF" aria-pressed="false" aria-label="Couleur Indigo" data-i18n-attr="aria-label:hero.swatch.indigo"></button>
-              <button class="cv__sw" type="button" data-swatch="mangue" style="--sw:#FFB000" aria-pressed="false" aria-label="Couleur Mangue" data-i18n-attr="aria-label:hero.swatch.mangue"></button>
-              <button class="cv__sw" type="button" data-swatch="menthe" style="--sw:#14C46C" aria-pressed="false" aria-label="Couleur Menthe" data-i18n-attr="aria-label:hero.swatch.menthe"></button>
-              <button class="cv__sw" type="button" data-swatch="blanc" style="--sw:#FFFFFF" aria-pressed="false" aria-label="Couleur Blanc" data-i18n-attr="aria-label:hero.swatch.blanc"></button>
-            </div>
-            <div class="cv__float cv__card">
-              <div class="cv__img" aria-hidden="true"><img src="creer/img/demo/beauty/beurre-karite-fouette.webp" width="1000" height="1250" alt="" decoding="async"></div>
-              <p class="cv__name" data-i18n="hero.product">Beurre de karité brut</p>
-              <p class="cv__price" data-hero-price>6&nbsp;500&nbsp;FCFA</p>
-              <div class="cv__step">
-                <button type="button" data-step="-1" aria-label="Retirer un pot" data-i18n-attr="aria-label:hero.less" aria-disabled="true"><svg class="ico" aria-hidden="true"><use href="#i-minus"/></svg></button>
-                <output data-qty aria-live="polite">1</output>
-                <button type="button" data-step="1" aria-label="Ajouter un pot" data-i18n-attr="aria-label:hero.more"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
-              </div>
-              <button class="cv__add" type="button" data-add><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg><span data-i18n="hero.add">Ajouter</span></button>
-            </div>
-            <p class="cv__chip" data-chip><span class="cv__ok" aria-hidden="true"><svg class="ico"><use href="#i-check"/></svg></span><span><span data-i18n="hero.paid">Paiement Wave reçu</span> · <span data-hero-total>6&nbsp;500&nbsp;FCFA</span></span></p>
-            <button class="cv__play" type="button" data-pause aria-label="Mettre en pause l’animation" data-label-pause="Mettre en pause l’animation" data-label-play="Lancer l’animation" data-i18n-attr="data-label-pause:hero.pause;data-label-play:hero.play"><svg class="ico cv__i-pause" aria-hidden="true"><use href="#i-pause"/></svg><svg class="ico cv__i-play" aria-hidden="true"><use href="#i-play"/></svg></button>
-          </div>
-        </div>
+      <!-- The hero's picture: three stores on phones (the models MICHOU, SOYEUSE and REGARD). -->
+      <div class="hero__visual hero__visual--phones">
+        <img src="img/hero-boutiques-1040.webp" srcset="img/hero-boutiques-1040.webp 1040w, img/hero-boutiques.webp 2080w" sizes="(min-width: 1000px) 45vw, 92vw" width="1040" height="900" alt="Trois boutiques Jehre sur téléphone" decoding="async" fetchpriority="high">
       </div>
     </div>
 

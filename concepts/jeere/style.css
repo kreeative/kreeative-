@@ -1064,3 +1064,7 @@ a:not([class]) { font-weight: 600; }
 .bt__mark.jh-word { display: block; height: clamp(54px, 5.4vw, 78px) !important; color: var(--cream); }
 .logo__wordmark.jh-word { height: 36px !important; margin: -8px 0 -6px; vertical-align: middle; }
 .foot__word.jh-word { display: block; height: clamp(70px, 9vw, 118px) !important; }
+
+/* the hero's picture: three stores on phones */
+.hero__visual--phones img { display: block; width: 100%; height: auto; }
+@media (max-width: 999px) { .hero__visual--phones { max-width: 560px; margin: 0 auto; } }
