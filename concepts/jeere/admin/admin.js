@@ -423,17 +423,24 @@
     }
     return S.myModels && S.myModels.list.length ? S.myModels.list[0] : null;
   }
+  // A service business: she bought a booking model. Her dashboard speaks of appointments and services, not of
+  // orders and products.
+  function serviceMode() {
+    const mm = myModel(), jm = mm && window.JeereModels ? window.JeereModels.bySlug(mm.model) : null;
+    return !!(jm && jm.rdv);
+  }
   // On the home page: where her model stands, and what she has to send
   function modelCard() {
     const mm = myModel(), JM = window.JeereModels, m = mm && JM ? JM.bySlug(mm.model) : null;
     if (!m || mm.installed_at) return '';
     const mail = 'mailto:contact@jehre.com?subject=' + encodeURIComponent('Mon modèle ' + m.name + ' : ' + (mm.install ? 'mes contenus' : 'mon logo'));
     return H`<section class="a-card a-mymodel" aria-labelledby="h-mymodel"><img class="a-mymodel__img" src="${JM.thumb(m.slug)}" alt="" width="640" height="400">
-      <div class="a-mymodel__b"><p class="a-chip a-chip--ink">Installation en cours</p><h2 class="a-card__title" id="h-mymodel">Votre modèle ${esc(m.name)} est payé</h2>
+      <div class="a-mymodel__b"><p class="a-chip a-chip--ink">${mm.install ? 'Installation en cours' : 'Votre modèle'}</p><h2 class="a-card__title" id="h-mymodel">Votre modèle ${esc(m.name)} est payé</h2>
       <p class="a-card__sub">${mm.install
         ? 'Notre équipe installe votre boutique dans ce modèle. Envoyez-nous votre logo, vos photos, vos prestations ou produits avec les prix, votre texte de présentation et votre numéro WhatsApp. L’aperçu montre le modèle tel qu’il est : votre nom et vos contenus le remplacent à l’installation.'
-        : 'Envoyez-nous votre logo : nous mettons votre boutique sur ce modèle et nous vous écrivons. En attendant, ajoutez vos produits et vos prix dans « Produits ». L’aperçu montre le modèle tel qu’il est, avant l’installation.'}</p>
-      <div class="a-btnrow"><a class="a-btn a-btn--primary" href="${mail}">${mm.install ? 'Envoyer mes contenus' : 'Envoyer mon logo'}</a><a class="a-btn a-btn--ghost" href="${JM.demo(m.slug)}" target="_blank" rel="noopener">Voir le modèle</a></div></div></section>`;
+        : (m.rdv ? 'Votre site est en ligne avec ce modèle. Ajoutez vos prestations et vos horaires dans « Rendez-vous », puis touchez « Personnaliser » pour mettre votre logo, vos photos et vos textes.'
+          : 'Votre site est en ligne avec ce modèle. Ajoutez vos produits dans « Produits », puis touchez « Personnaliser » pour mettre votre logo, vos photos et vos textes.')}</p>
+      <div class="a-btnrow">${mm.install ? H`<a class="a-btn a-btn--primary" href="${mail}">Envoyer mes contenus</a>` : H`<button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">Personnaliser mon site</button>`}<a class="a-btn a-btn--ghost" href="${JM.demo(m.slug)}" target="_blank" rel="noopener">Voir le modèle</a></div></div></section>`;
   }
   // The founder's own boutiques (MY_SHOPS, The Ivory Sukundu) are shown to HER account only: the `sites-publish`
   // function says who she is (public.site_editors), the answer kept per account for this tab.
@@ -991,6 +998,9 @@
     $$('[data-bind="todo-count"]').forEach((n) => { n.hidden = !todo; n.textContent = String(todo); n.setAttribute('aria-label', plural(todo, 'commande à préparer', 'commandes à préparer')); });
     const rdvShow = rdvOn();
     $$('[data-nav="rendez-vous"], [data-more="rendez-vous"]').forEach((n) => { const li = n.closest('li') || n; li.hidden = !rdvShow; });
+    // a service business has appointments and services, not orders and products
+    const svcOnly = serviceMode();
+    $$('[data-nav="produits"], [data-more="produits"], [data-nav="commandes"], [data-more="commandes"]').forEach((n) => { const li = n.closest('li') || n; li.hidden = svcOnly; });
     // « En direct » carries a small « Pro » next to its name until her plan has it
     const liveOk = liveAllowed();
     $$('[data-nav="direct"], [data-more="direct"]').forEach((n) => {
@@ -1548,6 +1558,20 @@
     const v = validateFiche();
     const ps = pagesState();
     const shared = !!onboarding().sharedAt;
+    if (serviceMode()) {
+      const hm = window.JeereAdminRdv && window.JeereAdminRdv.home ? window.JeereAdminRdv.home() : null;
+      const ok = !!(hm && hm.configured);
+      return [
+        { id: 'services', done: ok, title: 'Ajoutez vos prestations', hint: 'Vos prestations, leurs prix et leur durée : vos clientes les voient sur votre site et réservent.', href: '#rendez-vous/prestations' },
+        { id: 'hours', done: ok, title: 'Indiquez vos jours et vos horaires', hint: 'Pour que seuls vos créneaux libres soient proposés.', href: '#rendez-vous/horaires' },
+        { id: 'site', done: !!(S.config.store.site || storeLogo()), title: 'Mettez vos photos et vos textes', hint: 'Votre logo, vos photos, votre présentation : touchez-les sur votre site pour les changer.', act: 'open-editor' },
+        { id: 'whatsapp', done: phoneOk(cfg.store.whatsapp), title: 'Ajoutez votre numéro WhatsApp', hint: 'Vos clientes vous écrivent, et vous recevez les demandes.', href: '#parametres/boutique',
+          quick: S.account && !S.forClient && phoneOk(S.account.phone) ? { act: 'use-my-wa', icon: 'chat', label: 'Utiliser mon numéro ' + phoneFmt(S.account.phone) } : null },
+        { id: 'wave', done: isOn('mobile-money'), title: 'Connectez Wave et le mobile money', hint: 'Pour recevoir les acomptes et les paiements directement chez vous.', href: '#paiements' },
+        { id: 'share', done: shared, title: 'Partagez le lien sur WhatsApp', hint: 'Sur votre statut et à vos clientes : c’est comme ça qu’arrivent les premières réservations.', act: 'share-store', button: true },
+        { id: 'address', done: !!ad.settings.customDomain || ad.subdomainChosen === true, title: 'Choisissez l’adresse de votre site', hint: subdomain() + ' est gratuite. Vous pouvez aussi prendre votre propre nom de domaine.', href: '#parametres/domaine' }
+      ];
+    }
     return [
       { id: 'products', done: photos >= 3, title: 'Ajoutez 3 produits avec une vraie photo', hint: photos ? photos + ' sur 3 pour l’instant. Une photo nette, à la lumière du jour, vend mieux qu’un dessin.' : 'Une photo nette, à la lumière du jour, vend mieux qu’un dessin.', href: '#produits' },
       { id: 'wave', done: isOn('mobile-money'), title: 'Connectez Wave et le mobile money', hint: 'Votre numéro Wave, Orange Money, MTN MoMo ou Moov Money : vos clients paient, l’argent arrive directement chez vous.', href: '#paiements' },
@@ -1703,6 +1727,7 @@
     const sample = hasDemoOrders() ? sampleChip() : '';
     const todayTxt = (todo ? plural(todo, 'commande à préparer', 'commandes à préparer') : 'Rien à préparer') + (dueAll.dueN ? ' · ' + number(dueAll.dueN) + ' à encaisser' : '');
     html += modelCard();
+    if (serviceMode()) return html + serviceHome(steps, next, open, checkHidden, done, allDone);
     html += H`<div class="a-home">
       <section class="a-today a-home__today" aria-labelledby="h-today">
         <a class="a-today__main" href="#commandes?statut=a-preparer"><span class="a-today__k" id="h-today">Aujourd’hui</span><span class="a-today__v">${esc(fr(todayTxt))}</span>${ico('chev', 'a-today__go')}</a>
@@ -1750,6 +1775,50 @@
     </div></div>`;
     S.mounts.push(() => mountMini($('#a-main [data-mini]'), S.config, { max: 0.62 }));
     return html;
+  }
+
+  function serviceHome(steps, next, open, checkHidden, done, allDone) {
+    const hm = window.JeereAdminRdv && window.JeereAdminRdv.home ? window.JeereAdminRdv.home() : null;
+    const todayN = hm ? hm.today.length : 0, pend = hm ? hm.pending.length : 0;
+    const todayTxt = hm ? (todayN ? plural(todayN, 'rendez-vous aujourd’hui', 'rendez-vous aujourd’hui') : 'Aucun rendez-vous aujourd’hui') + (pend ? ' · ' + plural(pend, 'demande à confirmer', 'demandes à confirmer') : '') : 'Chargement de vos rendez-vous…';
+    let list = '';
+    if (!hm) list = H`<p class="a-small" style="padding:8px 20px 16px">Chargement…</p>`;
+    else if (!hm.next.length && !pend) list = H`<div class="a-empty"><span class="a-empty__ico">${ico('clock')}</span><p class="a-empty__title">Pas encore de rendez-vous à venir</p><p class="a-empty__text">Partagez le lien de votre site : vos clientes réservent toutes seules, et leurs rendez-vous s’affichent ici.</p>
+        <div class="a-btnrow"><button class="a-btn a-btn--ghost a-btn--sm" type="button" data-act="share-store">${ico('share')}Partager mon site</button></div></div>`;
+    else {
+      let last = '';
+      const rows = [];
+      if (pend) rows.push(H`<li class="a-rdvh__day">À confirmer</li>` + hm.pending.map(hm.row).join(''));
+      hm.next.forEach((a) => { const d = hm.dayLabel(a); if (d !== last) { rows.push(H`<li class="a-rdvh__day">${esc(d.charAt(0).toUpperCase() + d.slice(1))}</li>`); last = d; } rows.push(hm.row(a)); });
+      list = H`<ul class="r-list a-rdvh">${rows.join('')}</ul>`;
+    }
+    const out = H`<div class="a-home a-home--svc">
+      <section class="a-today a-home__today" aria-labelledby="h-today">
+        <a class="a-today__main" href="#rendez-vous"><span class="a-today__k" id="h-today">Aujourd’hui</span><span class="a-today__v">${esc(fr(todayTxt))}</span>${ico('chev', 'a-today__go')}</a>
+        <a class="a-btn a-btn--inv a-today__btn" href="#rendez-vous">${ico('clock')}Voir l’agenda</a>
+      </section>
+      ${founder() ? growthCard() : ''}${acctsAllowed() ? accountsCard() : ''}
+      ${checkHidden ? '' : H`<section class="a-card a-home__check${allDone ? ' is-ready' : ''}" aria-labelledby="h-check">
+        <div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-check">${allDone ? 'Votre site est prêt' : 'Premiers pas'}</h2></div>
+          <button class="a-btn a-btn--quiet a-btn--sm a-home__hide" type="button" data-act="checklist-hide" aria-label="Masquer les premiers pas">${ico('x')}<span class="a-home__hidelbl">Masquer</span></button></div>
+        <ul class="a-steps" id="a-steps">${steps.map((s) => stepItem(s, !open && next.indexOf(s) < 0))}</ul>
+      </section>`}
+      <section class="a-card a-card--flush a-home__orders" aria-labelledby="h-next">
+        <div class="a-card__head"><div><h2 class="a-card__title" id="h-next">Prochains rendez-vous</h2></div></div>
+        ${list}
+        <div class="a-card__foot"><a class="a-more-link" href="#rendez-vous">Voir tout l’agenda${ico('chev')}</a></div>
+      </section>
+      <div class="a-home__side">
+        <section class="a-card a-preview a-home__preview" aria-labelledby="h-prev">
+          <div class="a-card__head" style="margin-bottom:0"><div style="min-width:0"><h2 class="a-card__title" id="h-prev">Votre site</h2><p class="a-preview__url">${ico('globe')}<span>${esc(subdomain())}</span></p></div></div>
+          ${miniStage('Aperçu de votre site')}
+          <div class="a-card__foot a-preview__foot"><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('edit')}Personnaliser</button></div>
+        </section>
+        ${planCard('a-home__plan')}
+      </div>
+    </div></div>`;
+    S.mounts.push(() => mountMini($('#a-main [data-mini]'), S.config, { max: 0.62 }));
+    return out;
   }
 
   /* ------------------------------------------------------------------ COMMANDES */

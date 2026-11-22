@@ -110,9 +110,10 @@
       R.loading = false;
       if (!j.ok) { R.error = j.message || 'Vos rendez-vous n’ont pas pu être chargés.'; if (!quiet) redraw(); return; }
       R.loaded = true; R.settings = j.settings; R.store = j.store; R.bookingUrl = j.bookingUrl; R.pays = j.payments || []; R.configured = !!j.configured;
-      if (quiet) { if (ui().shell) ui().shell(); } else redraw();
+      if (quiet) { if (ui().shell) ui().shell(); if (wantHome) redraw(); } else redraw();
     });
   }
+  var wantHome = false;   // the dashboard's home is waiting for the appointments
   function loadList(day) {
     var from = Date.parse(toUtc(addDays(monday(day), -7), '00:00')), to = from + 49 * DAY;
     R.listLoading = true; R.listError = '';
@@ -678,6 +679,24 @@
       return !!(R.configured && R.settings && (R.settings.services || []).length);
     },
     // asks once, without drawing anything: the menu shows « Rendez-vous » only to the stores that use it
+    // the home page of a service business: today's and the coming appointments, the requests to confirm.
+    // Loads quietly what is missing; null while it is not known.
+    home: function () {
+      var rec = storeRec();
+      if (!rec) return null;
+      if (rec.storeId !== R.storeId) { R = fresh(); R.storeId = rec.storeId; }
+      wantHome = true;
+      if (!R.loaded) { if (!R.loading && !R.error) loadSettings(true); return null; }
+      if (!R.from) { if (!R.listLoading) loadList(localDate(new Date().toISOString())); return null; }
+      var today = R.today || localDate(new Date().toISOString()), now = Date.now();
+      var live = (R.appts || []).filter(function (a) { return a.status !== 'annule' && Date.parse(a.ends_at) >= now; }).sort(function (a, b) { return Date.parse(a.starts_at) - Date.parse(b.starts_at); });
+      return {
+        configured: !!(R.configured && R.settings && (R.settings.services || []).length),
+        today: live.filter(function (a) { return localDate(a.starts_at) === today; }),
+        next: live.slice(0, 6), pending: (R.pending || []).slice(), row: apptRow,
+        dayLabel: function (a) { var d = localDate(a.starts_at); return d === today ? 'Aujourd’hui' : new Date(Date.parse(toUtc(d, '12:00'))).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }); }
+      };
+    },
     probe: function () {
       var rec = storeRec();
       if (!rec) return;

@@ -1753,3 +1753,9 @@ a:not([class]) { font-weight: 600; }
 .a-buy__img { width: 96px; height: 60px; object-fit: cover; object-position: top center; border-radius: 8px; border: 1px solid var(--line); flex: none; }
 .a-buy__b { flex: 1 1 200px; min-width: 0; }
 .a-buy__t { margin: 0 0 2px; font-weight: 600; }
+
+/* a service business's home: the coming appointments by day */
+.a-rdvh { margin: 4px 0 0; padding: 0 12px; list-style: none; }
+.a-rdvh__day { margin: 12px 8px 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+
+@media (min-width: 1100px) { .a-home--svc { grid-template-areas: "today side" "check side" "orders side"; } }
