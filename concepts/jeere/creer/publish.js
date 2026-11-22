@@ -41,6 +41,12 @@
   var NB = ' ';
   var PUBLIC_COLS = 'id,slug,fiche,show_badge,published,published_at,custom_domain,domain_status,updated_at';
 
+  // A new address (<slug>.store.jehre.com) gets its security certificate on its first visit: until then the browser
+  // shows « connection closed ». Asked here right after the first publication, so it is ready when she opens it.
+  function warm(u) {
+    if (!u || typeof fetch !== 'function' || !/^https:\/\/[a-z0-9-]+\.store\.jehre\.com/.test(u)) return;
+    [0, 4000, 12000, 30000].forEach(function (ms) { setTimeout(function () { try { fetch(u, { mode: 'no-cors', cache: 'no-store' }).catch(function () { /* not yet */ }); } catch (e) { /* old browser */ } }, ms); });
+  }
   function str(v) { return typeof v === 'string' ? v : (v == null ? '' : String(v)); }
   function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
   var ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -283,6 +289,7 @@
         if (!r.ok || !Array.isArray(r.body) || !r.body[0]) return errorFrom(r);
         var row = r.body[0];
         saveLocal({ slug: row.slug, storeId: row.id, ownerId: s.userId, published: true, publishedAt: row.published_at || new Date().toISOString(), hash: hash(text) });
+        warm(url(row.slug));
         return { ok: true, store: row, url: url(row.slug), media: media };
       });
     }
@@ -586,7 +593,7 @@
         }
         st.rec = local();
         st.edit = false;
-        st.info = online() ? fr('C’est en ligne ! Partagez votre lien : vos clients peuvent commander dès maintenant.') : '';
+        st.info = online() ? fr('C’est en ligne ! La toute première ouverture de votre adresse peut prendre une minute, le temps de la sécuriser. Partagez ensuite votre lien.') : '';
         if (r.media && r.media.uploaded) st.info += ' ' + fr(r.media.uploaded + ' photo' + (r.media.uploaded > 1 ? 's' : '') + ' en haute définition.');
         if (st.histOpen) loadHistory(); else render();
         var link = document.getElementById(id + '-link');
