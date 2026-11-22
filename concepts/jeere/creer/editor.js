@@ -4276,8 +4276,8 @@
   const CUSTOM_MODELS = [
     { slug: 'seve', name: 'SÈVE', kind: 'Soins et cosmétiques', desc: 'Flacons sur fond crème, titres serif, filtres par catégorie.' },
     { slug: 'soyeuse', name: 'SOYEUSE', kind: 'Perruques et tissages', desc: 'Rose bonbon, logo à lettres ornées, mannequin en pied.' },
-    { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: `50${NB}000${NB}FCFA` },
-    { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: `150${NB}000${NB}FCFA`, note: ' installation assistée incluse' },
+    { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: `50${NB}000${NB}FCFA`, was: `100${NB}000${NB}FCFA` },
+    { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: `300${NB}000${NB}FCFA`, note: ' installation assistée incluse' },
     { slug: 'regard', name: 'REGARD', kind: 'Cils et sourcils · rendez-vous', desc: 'Vos clientes réservent en ligne : prestation, jour, heure, acompte.' },
     { slug: 'vernie', name: 'VERNIE', kind: 'Ongles · rendez-vous', desc: 'Carte des prestations, demandes à confirmer, rappel la veille.' },
     { slug: 'minuit', name: 'MINUIT', kind: 'Cils et ongles · rendez-vous', desc: 'Noir et champagne, tarifs, conditions, offre du mois.' },
@@ -4298,7 +4298,7 @@
           el('div', { class: 'b-tcard__head' }, el('h3', { class: 'b-tcard__name', text: m.name }), el('span', { class: 'b-chip', text: m.kind })),
           el('p', { class: 'b-tcard__desc', text: m.desc }),
           // a model with its own price (ANSE: no launch discount, set up with her) or the launch offer
-          m.price ? el('p', { class: 'b-tcard__price' }, el('b', { text: m.price }), el('span', { text: m.note || ' payé une seule fois' }))
+          m.price ? el('p', { class: 'b-tcard__price' }, el('b', { text: m.price }), m.was ? el('s', { 'aria-label': `au lieu de ${m.was}`, text: ` ${m.was}` }) : null, m.was ? el('em', { class: 'b-tcard__promo', text: `−50${NB}%` }) : null, el('span', { text: m.note || ' payé une seule fois' }))
             : el('p', { class: 'b-tcard__price' }, el('b', { text: MODEL_PRICE }), el('s', { 'aria-label': `au lieu de ${MODEL_PRICE_WAS}`, text: ` ${MODEL_PRICE_WAS}` }), el('em', { class: 'b-tcard__promo', text: `−50${NB}%` }), el('span', { text: ' payé une seule fois' })),
           el('a', { class: 'b-btn b-btn--ghost b-btn--sm b-tcard__btn', href: `../admin/#modele=${m.slug}`, 'aria-label': `Choisir le modèle ${m.name}` },
             el('span', { class: 'b-lbl-long', text: 'Choisir ce modèle' }), el('span', { class: 'b-lbl-short', text: 'Choisir' }), icon('i-arrow')),
