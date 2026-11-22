@@ -3982,6 +3982,7 @@
     { id: 'connecteurs', href: '#connecteurs', label: 'Connecteurs', icon: 'plug', hint: () => { const real = CONNECTORS().filter((c) => !c.soon); return real.filter((c) => isOn(c.id)).length + ' sur ' + real.length + ' connectés'; } }
   ];
   const SUBS = [
+    { id: 'compte', label: 'Mon compte', icon: 'user', hint: () => 'Prénom, e-mail, numéro, achats' },
     { id: 'boutique', label: 'Boutique', icon: 'store', hint: () => 'Nom, slogan, ville, WhatsApp, langue' },
     { id: 'domaine', label: 'Domaine', icon: 'globe', hint: () => S.admin.settings.customDomain || subdomain() },
     { id: 'equipe', label: 'Équipe', icon: 'users', hint: () => plural(S.admin.settings.team.length, 'personne', 'personnes') + (couriers().length ? ', dont ' + plural(couriers().length, 'livreur', 'livreurs') : '') },
@@ -3994,7 +3995,7 @@
   function viewParametres(r) {
     const sub = SUBS.some((s) => s.id === r.parts[0]) ? r.parts[0] : '';
     const shown = sub || 'boutique';
-    const content = { boutique: setBoutique, domaine: setDomaine, equipe: setEquipe, abonnement: setAbonnement, studio: setStudio, notifications: setNotifications, 'pages-legales': setLegal, donnees: setDonnees }[shown]();
+    const content = { compte: setCompte, boutique: setBoutique, domaine: setDomaine, equipe: setEquipe, abonnement: () => setAbonnement() + purchasesCard(), studio: setStudio, notifications: setNotifications, 'pages-legales': setLegal, donnees: setDonnees }[shown]();
     const s = SUBS.find((x) => x.id === shown);
     const navItem = (x, href, cur) => H`<li><a href="${href}"${cur ? ' aria-current="page"' : ''}>
           <span class="a-subnav__ico">${ico(x.icon)}</span><span class="a-subnav__txt"><span class="a-subnav__title">${esc(x.label)}</span><span class="a-subnav__hint">${esc(fr(x.hint()))}</span></span>${ico('chev', 'a-row__chev')}</a></li>`;
@@ -4122,6 +4123,45 @@
     toast((m.name || 'La personne') + ' a été retirée de l’équipe.', { action: 'Annuler', onAction: () => { S.admin.settings.team.splice(i, 0, m); syncCourierConnector(); saveAdmin(); refresh(); } });
   }
 
+  // « Mon compte »: who she is on Jehre (what she signed up with) and what she bought
+  function myEmail() {
+    if (S.me === undefined && S.account && S.account.userId) {
+      S.me = '';
+      const A = window.JeereAuth;
+      Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).catch(() => null).then((ses) => {
+        const e = ses && ses.user && ses.user.email ? String(ses.user.email) : '';
+        if (e) { S.me = e; if (S.route && S.route.name === 'parametres') refresh(); }
+      });
+    }
+    return S.me || '';
+  }
+  function purchasesCard() {
+    const JM = window.JeereModels;
+    myModel();
+    const list = (S.myModels && S.myModels.list) || [];
+    const day = (v) => { const d = v ? new Date(v) : null; return d && !isNaN(d) ? d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''; };
+    return H`<section class="a-card" aria-labelledby="h-buys"><div class="a-card__head"><div><h2 class="a-card__title" id="h-buys">Mes achats</h2><p class="a-card__sub">Les modèles de designer que vous avez payés.</p></div></div>
+      ${list.length ? H`<ul class="a-rows">${list.map((x) => { const m = JM && JM.bySlug(x.model); return H`<li class="a-buy">
+        ${m ? H`<img class="a-buy__img" src="${JM.thumb(m.slug)}" alt="" width="640" height="400" loading="lazy">` : ''}
+        <div class="a-buy__b"><p class="a-buy__t">Modèle ${esc(m ? m.name : String(x.model || '').toUpperCase())}${x.install ? ' + installation par Jehre' : ''}</p>
+          <p class="a-small">${esc(price(x.amount || 0))} · payé le ${esc(day(x.at))}</p></div>
+        <span class="a-chip ${x.installed_at ? 'a-chip--line' : 'a-chip--ink'}">${x.installed_at ? 'Installé' : 'Installation en cours'}</span></li>`; })}</ul>`
+        : H`<p class="a-small">${S.myModels && S.myModels.loading ? 'Chargement…' : 'Aucun achat pour l’instant.'} <a class="a-link" href="#boutique">Voir les modèles</a></p>`}</section>`;
+  }
+  function setCompte() {
+    const a = S.account || {};
+    const since = a.createdAt ? new Date(a.createdAt) : null;
+    const real = !!a.userId;
+    return H`<section class="a-card" aria-labelledby="h-me"><div class="a-card__head"><div><h2 class="a-card__title" id="h-me">Mes informations</h2><p class="a-card__sub">Ce avec quoi vous avez créé votre compte Jehre.</p></div></div>
+      <dl class="a-dl">
+        <div><dt>Prénom</dt><dd>${esc(a.firstName || '—')}</dd></div>
+        <div><dt>E-mail</dt><dd>${real ? esc(myEmail() || '…') : 'Compte de démonstration'}</dd></div>
+        <div><dt>Numéro WhatsApp</dt><dd>${esc(a.phone || 'Pas encore de numéro')}</dd></div>
+        <div><dt>Compte créé le</dt><dd>${since && !isNaN(since) ? esc(since.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })) : '—'}</dd></div>
+        <div><dt>Formule</dt><dd>${esc(plan().name)} · <a class="a-link" href="#parametres/abonnement">Voir mon abonnement</a></dd></div></dl>
+      <div class="a-card__foot"><a class="a-btn a-btn--ghost" href="../compte/">Modifier mes informations</a></div></section>
+      ${purchasesCard()}`;
+  }
   function setAbonnement() {
     const cur = plan();
     const b = S.admin.settings.billing;

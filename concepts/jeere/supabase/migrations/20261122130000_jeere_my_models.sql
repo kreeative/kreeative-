@@ -4,7 +4,7 @@
 -- by the anonymous role.
 create or replace function public.my_models()
 returns jsonb language sql stable security definer set search_path to '' as $$
-  select coalesce(jsonb_agg(jsonb_build_object('model', m.model, 'install', m.install, 'installed_at', m.installed_at, 'store_id', m.store_id, 'at', m.created_at) order by m.created_at desc), '[]'::jsonb)
+  select coalesce(jsonb_agg(jsonb_build_object('model', m.model, 'install', m.install, 'amount', m.amount, 'installed_at', m.installed_at, 'store_id', m.store_id, 'at', m.created_at) order by m.created_at desc), '[]'::jsonb)
   from public.model_purchases m where m.user_id = auth.uid();
 $$;
 revoke all on function public.my_models() from public, anon;

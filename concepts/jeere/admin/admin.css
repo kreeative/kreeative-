@@ -1746,3 +1746,10 @@ a:not([class]) { font-weight: 600; }
 @media (min-width: 760px) { .a-mymodel { grid-template-columns: 240px minmax(0, 1fr); align-items: center; } }
 
 .a-mymodel { margin-bottom: 16px; }
+
+/* « Mes achats » */
+.a-buy { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.a-buy:first-child { border-top: 0; }
+.a-buy__img { width: 96px; height: 60px; object-fit: cover; object-position: top center; border-radius: 8px; border: 1px solid var(--line); flex: none; }
+.a-buy__b { flex: 1 1 200px; min-width: 0; }
+.a-buy__t { margin: 0 0 2px; font-weight: 600; }
