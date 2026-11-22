@@ -658,3 +658,22 @@
   // the pass from Safari to the home-screen app
   try { if (!handoffIn()) setTimeout(handoffOut, 1200); } catch (e) { /* she signs in by hand */ }
 })();
+
+/* The cloud at the top of the account pages (sign-up, sign-in, the dashboard's gate, the start of the editor):
+ * she tapped « Gérer », « Se connecter » or « Créer un compte » and wants to go back to where she was, not to
+ * the home page. With a page of Jehre behind her, the cloud goes back; without one (a link opened directly), it
+ * still leads home. « Retour à Jehre », written out, always goes home. */
+(function () {
+  'use strict';
+  if (typeof document === 'undefined') return;
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target && e.target.closest ? e.target.closest('a.c-logo, .a-gate a.a-logo, a.b-logo') : null;
+    if (!a) return;
+    var from = '';
+    try { from = document.referrer ? new URL(document.referrer).origin : ''; } catch (err) { from = ''; }
+    if (from !== window.location.origin || window.history.length < 2) return;
+    e.preventDefault();
+    window.history.back();
+  });
+})();
