@@ -1702,3 +1702,15 @@ a:not([class]) { font-weight: 600; }
 /* « Pro » next to a menu entry that comes with the Pro plan */
 .a-navtag { margin-left: auto; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line-2); font-size: 10.5px; font-weight: 600; font-style: normal; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--white); }
 .a-navtag[hidden] { display: none; }
+
+/* the designer models, in « Boutique en ligne » */
+.a-models { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
+.a-model { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--white); }
+.a-model__shot { display: block; aspect-ratio: 16 / 10; background: var(--g1, #F4F4F2); }
+.a-model__shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.a-model__body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.a-model__name { margin: 0; font-weight: 600; font-size: 15px; }
+.a-model__kind { margin: 0; font-size: 13px; color: var(--muted); }
+.a-model__price { margin: 6px 0 0; font-size: 14px; }
+.a-model__price s { color: var(--muted); font-size: 13px; }
+.a-model__acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

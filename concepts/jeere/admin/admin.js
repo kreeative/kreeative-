@@ -2356,6 +2356,18 @@
     const panel = dlg ? $('#a-publish-panel', dlg) : null;
     if (panel && live) window.JeerePublish.mount(panel, { getConfig: () => S.config, showScore: false });
   }
+  // The designer models, shown in « Boutique en ligne »: she started with a simple theme and can move to one of them
+  function designerModels() {
+    const JM = window.JeereModels;
+    if (!JM || EXT()) return '';
+    return H`<section class="a-card" aria-labelledby="h-models"><div class="a-card__head"><div><h2 class="a-card__title" id="h-models">Modèles de designer</h2>
+      <p class="a-card__sub">Un site dessiné pour votre métier. Payé une seule fois, installé par notre équipe.</p></div></div>
+      <ul class="a-models">${JM.LIST.map((m) => H`<li class="a-model">
+        <a class="a-model__shot" href="${JM.demo(m.slug)}" target="_blank" rel="noopener" aria-label="${esc(fr('Voir la démo du modèle ' + m.name))}"><img src="${JM.thumb(m.slug)}" alt="" width="640" height="400" loading="lazy" decoding="async"></a>
+        <div class="a-model__body"><p class="a-model__name">${esc(m.name)}</p><p class="a-model__kind">${esc(m.kind)}</p>
+          <p class="a-model__price"><strong>${esc(JM.priceLabel(m))}</strong>${m.was ? H` <s>${esc(JM.fcfa(m.was))}</s>` : ''}</p>
+          <div class="a-model__acts"><button class="a-btn a-btn--primary a-btn--sm" type="button" data-model-buy="${m.slug}">Choisir</button><a class="a-btn a-btn--ghost a-btn--sm" href="${JM.demo(m.slug)}" target="_blank" rel="noopener">Voir la démo</a></div></div></li>`)}</ul></section>`;
+  }
   // The payment of a designer model. Without a real account she is sent to create one first (the model is remembered).
   function openModelBuy(slug) {
     const JM = window.JeereModels, m = JM && JM.bySlug(slug);
@@ -3023,6 +3035,7 @@
                 <div><dt>Logo</dt><dd>${storeLogo() ? H`<span class="a-logothumb"><img src="${esc(storeLogo())}" alt="${esc(fr('Logo de ' + (st.name || 'la boutique')))}"></span> ` : 'Le nom, écrit avec la police du thème · '}<a class="a-link" href="${EDITOR_URL}" data-act="open-editor" data-page="home" data-focus="logo">${storeLogo() ? 'Modifier' : 'Ajouter un logo'}</a></dd></div></dl>
                 <div class="a-card__foot"><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('palette')}Personnaliser le thème</button></div></div></div>
           </section>
+          ${designerModels()}
           <section class="a-card" aria-labelledby="h-nav"><div class="a-card__head"><div><h2 class="a-card__title" id="h-nav">Navigation</h2><p class="a-card__sub">Les pages affichées dans le menu et en bas de votre boutique. Sur ordinateur, le menu montre 5 liens au plus.</p></div></div>
             ${pages.length ? H`<table class="a-navtable"><thead><tr><th scope="col">Page</th><th scope="col">Menu</th><th scope="col">Bas de page</th></tr></thead><tbody>${pages.map((p) => H`<tr><td>${esc(p.title || 'Sans titre')}</td>
               <td><span class="a-switch"><input type="checkbox" role="switch" data-navpage="${esc(p.id)}" data-which="inMenu"${p.inMenu ? ' checked' : ''} aria-label="${esc(fr('« ' + (p.title || 'Sans titre') + ' » dans le menu'))}"><span class="a-switch__track"></span></span></td>
@@ -4970,6 +4983,7 @@
       // a payment the webhook has not brought yet
       Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && Array.isArray(j.stores)) { S.storePlans = S.storePlans || {}; j.stores.forEach((x) => { S.storePlans[x.id] = { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() }; }); } if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
     }
+    document.addEventListener('click', (e) => { const b = e.target && e.target.closest ? e.target.closest('[data-model-buy]') : null; if (b) { e.preventDefault(); openModelBuy(b.getAttribute('data-model-buy')); } });
     // A designer model: « Choisir ce modèle » (#modele=<slug>), the model she picked before creating her account
     // (creer/models.js remembers it), and the way back from its payment (?modele=ok|annule)
     const mBack = /[?&]modele=(ok|annule)(?:&nom=([a-z]+))?/.exec(window.location.search);
