@@ -3016,8 +3016,8 @@
     // Her changes to a designer model's page (the editor, clicking on the site): texts and pictures by place,
     // « <page>|t|<n> » / « <page>|i|<n> » (connect/jeere-connect.js numbers them the same way)
     if (isObj(srcStore.site)) {
-      var site = {}, SK = /^\/[a-z0-9\/-]{0,60}\|[tic]\|\d{1,4}$/;
-      ['t', 'i', 'c'].forEach(function (k) {
+      var site = {}, SK = /^\/[a-z0-9\/-]{0,60}\|[tich]\|\d{1,4}$/;
+      ['t', 'i', 'c', 'h'].forEach(function (k) {
         var src2 = isObj(srcStore.site[k]) ? srcStore.site[k] : null, out = {}, n = 0;
         if (!src2) return;
         Object.keys(src2).forEach(function (key) {

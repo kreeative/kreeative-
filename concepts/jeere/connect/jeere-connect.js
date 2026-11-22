@@ -466,6 +466,32 @@
     $$('[data-jeere-services]').forEach(function (el, n) { out.push({ el: el, kind: 's', key: base + '|s|' + n }); });
     return out;
   }
+  // the sections of the page, in order: the header, each <section>, the footer (as in the simple editor's list)
+  var SEC_SEL = 'header, footer, section, .strip';
+  function sections() { return $$(SEC_SEL).filter(function (el) { return !skip(el) && !(el.parentElement && el.parentElement.closest(SEC_SEL)); }); }
+  function secName(el, n, all) {
+    var tag = el.tagName;
+    if (tag === 'HEADER') return ['En-tête', 'header'];
+    if (tag === 'FOOTER') return ['Pied de page', 'footer'];
+    if (el.classList.contains('strip')) return ['Bandeau du haut', 'megaphone'];
+    var firstSection = all.filter(function (x) { return x.tagName === 'SECTION'; })[0] === el;
+    if (firstSection || /hero/.test(el.className)) return ['Grande bannière', 'image'];
+    var h = el.querySelector('h2, h3'), lab = el.getAttribute('aria-label') || '';
+    var t = ((h && h.textContent) || lab || '').replace(/\s+/g, ' ').trim();
+    if (el.querySelector('[data-jeere-services]')) return [t || 'La carte', 'grid'];
+    if (el.querySelector('[data-jeere-product]')) return [t || 'Produits', 'bag'];
+    return [t ? (t.length > 34 ? t.slice(0, 32) + '…' : t) : 'Section ' + (n + 1), /gal/.test(el.className) ? 'image' : /avis|review/.test(el.className) ? 'star' : 'info'];
+  }
+  function secOf(el, all) { for (var i = 0; i < all.length; i++) if (all[i].contains(el)) return i; return -1; }
+  function role(x) {
+    if (x.kind === 'i') return 'Photo';
+    if (x.kind === 'c') return 'Catégorie';
+    var t = x.el.tagName;
+    if (/^H[1-5]$/.test(t)) return 'Titre';
+    if (t === 'A' || t === 'BUTTON') return 'Bouton ou lien';
+    if (t === 'LI' || t === 'DT' || t === 'DD') return 'Ligne';
+    return (x.el.textContent || '').length > 70 ? 'Texte' : 'Petit texte';
+  }
   function label(x) {
     if (x.kind === 'i') return x.el.getAttribute('alt') || '';
     var t = (x.el.textContent || '').replace(/\s+/g, ' ').trim();
@@ -474,11 +500,13 @@
   // the editor's left panel lists all of it, before any click
   function sendMap() {
     if (!editing || !parentOrigin) return;
+    var all = sections(), base = pagePath();
     var items = keyed().map(function (x) {
-      return { key: x.key, kind: x.kind, ref: x.ref || '', label: label(x), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
+      return { key: x.key, kind: x.kind, ref: x.ref || '', label: label(x), text: x.kind === 't' || x.kind === 'c' ? (x.el.textContent || '').replace(/\s+/g, ' ').trim() : '', role: role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
         tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && (x.el.textContent || '').length > 70 };
     });
-    try { window.parent.postMessage({ jeereMap: { page: pagePath(), title: document.title, items: items } }, parentOrigin); } catch (e) { /* not in the editor */ }
+    var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER' }; });
+    try { window.parent.postMessage({ jeereMap: { page: base, title: document.title, items: items, sections: secs } }, parentOrigin); } catch (e) { /* not in the editor */ }
   }
   // her logo in place of the model's name, in the header and the footer
   function applyLogo(fiche) {
@@ -507,6 +535,13 @@
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
     var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {};
     try { applyLogo(fiche); } catch (e) { /* the model's name stays */ }
+    // the sections she hides (in the editor they stay, greyed, so she can bring them back)
+    var hh = isObj(site.h) ? site.h : {}, base0 = pagePath();
+    sections().forEach(function (el, n) {
+      var off = typeof hh[base0 + '|h|' + n] === 'string';
+      if (editing || preview) { el.style.opacity = off ? '.28' : ''; el.style.display = ''; }
+      else el.style.display = off ? 'none' : '';
+    });
     keyed().forEach(function (x) {
       if (x.kind === 'p' || x.kind === 's') return;
       if (x.kind === 'c') {
@@ -556,7 +591,7 @@
       if (!x) return;
       var big = x.el.getBoundingClientRect();
       try {
-        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : (x.el.textContent || '').trim(),
+        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', sec: secOf(x.el, sections()), value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : (x.el.textContent || '').trim(),
           tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && ((x.el.textContent || '').length > 70 || big.height > 60) } }, parentOrigin || '*');
       } catch (err) { /* not in the editor */ }
     }, true);
@@ -582,6 +617,11 @@
       window.addEventListener('message', function (e) {
         if (!/^https:\/\/(jehre\.com|jeere\.kreeative\.xyz)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
         // the panel asks to show one: scrolled into view, outlined a moment
+        if (isObj(e.data) && typeof e.data.jeereSection === 'number') {
+          var se = sections()[e.data.jeereSection];
+          if (se) { try { se.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (er) { se.scrollIntoView(); } se.classList.add('jeere-hl'); setTimeout(function () { se.classList.remove('jeere-hl'); }, 1400); }
+          return;
+        }
         if (isObj(e.data) && typeof e.data.jeereFocus === 'string') {
           var f = keyed().filter(function (k) { return k.key === e.data.jeereFocus; })[0];
           if (f) { try { f.el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (er) { f.el.scrollIntoView(); } f.el.classList.add('jeere-hl'); setTimeout(function () { f.el.classList.remove('jeere-hl'); }, 1600); }

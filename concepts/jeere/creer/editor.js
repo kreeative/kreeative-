@@ -573,14 +573,22 @@
     const c = customSite();
     if (c && e.data && e.data.jeerePick && typeof e.data.jeerePick.key === 'string') {
       try { if (e.origin !== new URL(c.url).origin) return; } catch (err) { return; }
-      S.sitePick = e.data.jeerePick;
-      if (S.sitePick.kind === 's' || S.sitePick.kind === 'p') { const pk = S.sitePick; S.sitePick = null; if (pk.kind === 's') { setTab('produits'); return; } S.openProduct = pk.ref; setTab('produits'); return; }
-      if (S.tab !== 'site') setTab('site'); else renderTab({ top: true });
+      const pk = e.data.jeerePick;
+      S.sitePick = null;
+      if (typeof pk.sec === 'number' && pk.sec >= 0) S.siteOpen = pk.sec;
+      S.siteFocus = pk.key;
+      if (S.tab !== 'site') setTab('site'); else renderTab();
+      setTimeout(() => {
+        const n = els.tp.site.querySelector('[data-site-key="' + CSS.escape(pk.key) + '"]') || els.tp.site.querySelector('[data-site-sec="' + pk.sec + '"]');
+        if (!n) return;
+        n.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        const f = n.querySelector('input:not([type=file]), textarea, select'); if (f) { try { f.focus({ preventScroll: true }); } catch (err) { /* fine */ } }
+      }, 60);
     }
     if (c && e.data && e.data.jeereMap && Array.isArray(e.data.jeereMap.items)) {
       try { if (e.origin !== new URL(c.url).origin) return; } catch (err) { return; }
       S.siteMap = e.data.jeereMap;
-      if (S.tab === 'site' && !S.sitePick) renderTab();
+      if (S.tab === 'site') { const ae = document.activeElement; if (!(ae && els.tp.site.contains(ae) && /INPUT|TEXTAREA|SELECT/.test(ae.tagName))) renderTab(); }
     }
   });
   // Her change to a text or a picture of the model (store.site), or back to the model's own (value null)
@@ -608,67 +616,121 @@
     if (!c || !fr || !fr.contentWindow) return;
     try { fr.contentWindow.postMessage({ jeereFocus: key }, new URL(c.url).origin); } catch (e) { /* the list still opens it */ }
   }
-  // « Site »: her model's pages, her logo, and every text and picture of the page shown, listed before any click
+  // « Sections » of her model, as in the simple editor: the parts of the page in order, each opens on what it
+  // holds (its texts, its pictures), changed right there; the eye hides it. A click on the site opens its section.
+  const SITE_ICONS = { header: 'i-header', footer: 'i-footer', megaphone: 'i-megaphone', image: 'i-image', grid: 'i-grid', bag: 'i-bag', star: 'i-star', info: 'i-info' };
+  function siteSection(n) {
+    const c = customSite(), fr = els.store && els.store.querySelector('iframe.b-custom');
+    if (!c || !fr || !fr.contentWindow) return;
+    try { fr.contentWindow.postMessage({ jeereSection: n }, new URL(c.url).origin); } catch (e) { /* the panel still opens */ }
+  }
   function renderSite(tp) {
     const c = customSite();
     if (!c) return;
-    if (S.sitePick) { renderSitePick(tp); return; }
     const m = window.JeereModels && window.JeereModels.bySlug(c.slug);
-    tp.append(tabHead('Votre site', 'Touchez un élément ci-dessous, ou directement sur le site, pour le changer.'));
-    // pages
+    tp.append(tabHead('Sections', 'Les parties de votre page, dans l’ordre. Touchez une section pour la modifier, l’œil pour la masquer.'));
     const pages = MODEL_PAGES[c.slug] || [['', 'Accueil']];
-    const pg = el('div', { class: 'b-sitepages', role: 'tablist', 'aria-label': 'Pages du site' });
-    pages.forEach((x) => {
-      const on = (S.sitePage || '') === x[0];
-      pg.append(el('button', { type: 'button', class: 'b-sitepage' + (on ? ' is-on' : ''), 'aria-pressed': String(on), on: { click: () => { S.sitePage = x[0]; S.siteMap = null; renderPreviewNow(); renderTab({ top: true }); } } }, x[1]));
-    });
-    tp.append(pg);
-    if (m && m.rdv) tp.append(el('p', { class: 'b-hint', text: 'Les pages « Réserver » et « Mes rendez-vous » se remplissent toutes seules avec vos prestations, vos prix et vos horaires.' }));
-    // logo
-    const logo = S.config.store.logo;
-    const lg = el('div', { class: 'b-siterow b-siterow--logo' },
-      logo ? el('img', { class: 'b-siterow__logo', src: logo, alt: '' }) : el('span', { class: 'b-siterow__ph', text: storeName() }),
-      el('span', { class: 'b-siterow__t' }, el('strong', { text: 'Logo' }), el('span', { text: logo ? 'Il remplace le nom en haut et en bas du site.' : 'Sans logo, votre nom s’affiche.' })));
-    const lf = el('input', { type: 'file', accept: 'image/*', class: 'b-vh', id: 'b-site-logo' });
-    lf.addEventListener('change', () => { const f = lf.files && lf.files[0]; if (!f) return; toast('Envoi du logo…', 1400); readImage(f).then((src) => { S.config.store.logo = src; change({ now: true }); renderTab(); }, () => toast('Ce fichier n’a pas pu être lu.', 2400)); });
-    lg.append(lf, el('label', { class: 'b-btn b-btn--ghost b-btn--sm', for: 'b-site-logo', text: logo ? 'Changer' : 'Ajouter' }));
-    if (logo) lg.append(el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', on: { click: () => { S.config.store.logo = null; change({ now: true }); renderTab(); } } }, 'Retirer'));
-    tp.append(lg);
+    if (pages.length > 1) {
+      const pg = el('div', { class: 'b-sitepages', role: 'group', 'aria-label': 'Pages du site' });
+      pages.forEach((x) => {
+        const on = (S.sitePage || '') === x[0];
+        pg.append(el('button', { type: 'button', class: 'b-sitepage' + (on ? ' is-on' : ''), 'aria-pressed': String(on), on: { click: () => { S.sitePage = x[0]; S.siteMap = null; S.siteOpen = null; renderPreviewNow(); renderTab({ top: true }); } } }, x[1]));
+      });
+      tp.append(pg);
+    }
     const map = S.siteMap && S.siteMap.page === '/' + (S.sitePage || '') ? S.siteMap : null;
-    if (!map) { tp.append(el('p', { class: 'b-hint', text: 'Chargement de la page…' })); return; }
+    if (!map || !Array.isArray(map.sections)) { tp.append(el('p', { class: 'b-hint', text: 'Chargement de votre page…' })); return; }
     const site = S.config.store.site || {};
     const changed = (x) => !!(site[x.kind] && typeof site[x.kind][x.key] === 'string');
-    const open = (x) => { S.sitePick = { key: x.key, kind: x.kind, ref: x.ref, value: x.kind === 'i' ? (changed(x) ? site.i[x.key] : x.src) : x.label, long: x.long }; focusOnSite(x.key); renderTab({ top: true }); };
+    const ol = el('ol', { class: 'b-list', 'aria-label': 'Sections de la page' });
+    map.sections.forEach((sec) => {
+      const items = map.items.filter((x) => x.sec === sec.n);
+      const texts = items.filter((x) => x.kind === 't' || x.kind === 'c'), imgs = items.filter((x) => x.kind === 'i');
+      const linked = items.filter((x) => x.kind === 'p' || x.kind === 's');
+      const off = !!(site.h && typeof site.h[sec.key] === 'string');
+      const open = S.siteOpen === sec.n;
+      const bits = [];
+      if (imgs.length) bits.push(count(imgs.length, 'photo'));
+      if (texts.length) bits.push(count(texts.length, 'texte'));
+      if (linked.length) bits.push(m && m.rdv ? 'vos prestations' : 'vos produits');
+      const li = el('li', { class: 'b-item' + (open ? ' is-open' : '') + (off ? ' is-off' : ''), 'data-site-sec': String(sec.n) });
+      const main = el('button', { type: 'button', class: 'b-item__main', 'aria-expanded': String(open), 'data-fk': 'ss-' + sec.n,
+        on: { click: () => { S.siteOpen = open ? null : sec.n; S.siteFocus = null; if (!open) siteSection(sec.n); renderTab(); } } },
+        el('span', { class: 'b-item__ico' }, icon(SITE_ICONS[sec.icon] || 'i-layers')),
+        el('span', { class: 'b-item__txt' },
+          el('span', { class: 'b-item__name' }, el('span', { class: 'b-item__name-t', text: sec.name }), off ? el('span', { class: 'b-tag', text: 'Masquée' }) : null),
+          el('span', { class: 'b-item__sum', text: bits.join(' · ') || 'Rien à modifier ici' })),
+        icon('i-down', 'b-chev'));
+      const row = el('div', { class: 'b-item__row' }, main);
+      if (!sec.fixed) row.append(iconBtn(off ? 'i-eye-off' : 'i-eye', `Afficher la section ${guil(sec.name)}`, () => { setSiteEdit('h', sec.key, off ? null : '1'); renderTab(); },
+        { pressed: !off, fk: 'se-' + sec.n, cls: 'b-eye', title: off ? 'Afficher la section' : 'Masquer la section' }));
+      li.append(row);
+      if (open) li.append(siteSectionForm(sec, texts, imgs, linked, m, changed, site));
+      ol.append(li);
+    });
+    tp.append(ol);
+  }
+  function siteSectionForm(sec, texts, imgs, linked, m, changed, site) {
+    const body = el('div', { class: 'b-item__body' });
+    // the logo lives in the header
+    if (sec.icon === 'header') {
+      const logo = S.config.store.logo;
+      const lg = el('div', { class: 'b-siterow' },
+        logo ? el('img', { class: 'b-siterow__logo', src: logo, alt: '' }) : el('span', { class: 'b-siterow__ph', text: storeName() }),
+        el('span', { class: 'b-siterow__t' }, el('strong', { text: 'Logo' }), el('span', { text: logo ? 'Il remplace le nom en haut et en bas du site.' : 'Sans logo, votre nom s’affiche.' })));
+      const lf = el('input', { type: 'file', accept: 'image/*', class: 'b-vh', id: 'b-site-logo' });
+      lf.addEventListener('change', () => { const f = lf.files && lf.files[0]; if (!f) return; toast('Envoi du logo…', 1400); readImage(f).then((src) => { S.config.store.logo = src; change({ now: true }); renderTab(); }, () => toast('Ce fichier n’a pas pu être lu.', 2400)); });
+      lg.append(lf, el('label', { class: 'b-btn b-btn--ghost b-btn--sm', for: 'b-site-logo', text: logo ? 'Changer' : 'Ajouter mon logo' }));
+      if (logo) lg.append(el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', on: { click: () => { S.config.store.logo = null; change({ now: true }); renderTab(); } } }, 'Retirer'));
+      body.append(lg);
+    }
     // photos
-    const imgs = map.items.filter((x) => x.kind === 'i');
-    if (imgs.length) {
-      tp.append(el('h3', { class: 'b-sitesub', text: 'Photos · ' + imgs.length }));
-      const g = el('div', { class: 'b-sitegrid' });
-      imgs.forEach((x) => g.append(el('button', { type: 'button', class: 'b-siteimg' + (changed(x) ? ' is-changed' : ''), 'aria-label': 'Changer cette photo', on: { click: () => open(x) } }, el('img', { src: changed(x) ? site.i[x.key] : x.src, alt: '', loading: 'lazy' }))));
-      tp.append(g);
-    }
+    imgs.forEach((x, i) => {
+      const id = 'b-sf-' + sec.n + '-i' + i, own = changed(x);
+      const file = el('input', { type: 'file', accept: 'image/*', class: 'b-vh', id });
+      file.addEventListener('change', () => { const f = file.files && file.files[0]; if (!f) return; toast('Envoi de la photo…', 1400); readImage(f).then((src) => { setSiteEdit('i', x.key, src); renderTab(); }, () => toast('Cette photo n’a pas pu être lue. Essayez une autre.', 2600)); });
+      const r = el('div', { class: 'b-sitephoto' + (S.siteFocus === x.key ? ' is-focus' : ''), 'data-site-key': x.key },
+        el('img', { src: own ? site.i[x.key] : x.src, alt: '', loading: 'lazy' }),
+        el('span', { class: 'b-sitephoto__t' }, el('strong', { text: 'Photo' + (imgs.length > 1 ? ' ' + (i + 1) : '') }), own ? el('span', { text: 'La vôtre' }) : el('span', { text: 'Celle du modèle' })),
+        file, el('label', { class: 'b-btn b-btn--ghost b-btn--sm', for: id, text: 'Changer' }));
+      if (own) r.append(el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', title: 'Remettre la photo du modèle', on: { click: () => { setSiteEdit('i', x.key, null); renderTab(); } } }, 'Remettre'));
+      r.addEventListener('mouseenter', () => focusOnSite(x.key));
+      body.append(r);
+    });
     // texts
-    const texts = map.items.filter((x) => x.kind === 't' || x.kind === 'c');
-    if (texts.length) {
-      tp.append(el('h3', { class: 'b-sitesub', text: 'Textes · ' + texts.length }));
-      const ul = el('div', { class: 'b-sitetexts' });
-      texts.forEach((x) => {
-        const v = changed(x) ? site[x.kind][x.key] : x.label;
-        ul.append(el('button', { type: 'button', class: 'b-sitetext' + (changed(x) ? ' is-changed' : ''), on: { click: () => open(x) } },
-          x.kind === 'c' ? el('span', { class: 'b-sitetext__tag', text: 'Catégorie' }) : null, el('span', { text: v })));
-      });
-      tp.append(ul);
-    }
-    // what comes from elsewhere
-    const prods = map.items.filter((x) => x.kind === 'p'), svc = map.items.filter((x) => x.kind === 's');
-    if (prods.length || svc.length || (m && m.rdv)) {
-      tp.append(el('h3', { class: 'b-sitesub', text: m && m.rdv ? 'Vos prestations' : 'Vos produits' }));
-      tp.append(el('div', { class: 'b-sitefrom' }, icon('i-info'), el('span', { text: m && m.rdv
-        ? 'Les noms, les prix, les durées et les catégories de vos prestations ne se tapent pas ici : ils viennent de vos réglages de rendez-vous, et le site les affiche tout seul.'
-        : 'Les noms, les prix et les photos de vos produits viennent de votre liste de produits : le site les affiche tout seul.' })));
-      tp.append(m && m.rdv ? el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations')
+    texts.forEach((x, i) => {
+      const id = 'b-sf-' + sec.n + '-t' + i, own = changed(x);
+      const f = el('div', { class: 'b-field' + (S.siteFocus === x.key ? ' is-focus' : ''), 'data-site-key': x.key });
+      f.append(el('div', { class: 'b-label-row' }, el('label', { class: 'b-label', for: id, text: x.role || 'Texte' }),
+        own ? el('button', { type: 'button', class: 'b-linkbtn', title: 'Remettre le texte du modèle', on: { click: () => { setSiteEdit(x.kind, x.key, null); renderTab(); } } }, 'Remettre') : null));
+      if (x.kind === 'c') {
+        loadCategories();
+        const cur = own ? site.c[x.key] : (x.text || x.label);
+        const sel = el('select', { class: 'b-input', id, 'data-fk': 'sf-' + x.key });
+        const opts = (S.cats || []).slice();
+        if (opts.indexOf(cur) === -1) opts.unshift(cur);
+        opts.forEach((o) => { const op = el('option', { value: o, text: o }); if (o === cur) op.selected = true; sel.append(op); });
+        sel.addEventListener('change', () => { setSiteEdit('c', x.key, sel.value); });
+        f.append(sel, el('p', { class: 'b-hint', text: (S.cats && S.cats.length) ? 'À choisir parmi les catégories de vos prestations.' : 'Vos catégories viennent de vos prestations : ajoutez-les dans « Rendez-vous ».' }));
+      } else {
+        const inp = el(x.long ? 'textarea' : 'input', { class: 'b-input' + (x.long ? ' b-input--area' : ''), id, 'data-fk': 'sf-' + x.key, rows: x.long ? 4 : null, maxlength: 800, type: x.long ? null : 'text' });
+        inp.value = own ? site.t[x.key] : (x.text || x.label);
+        inp.addEventListener('focus', () => focusOnSite(x.key));
+        inp.addEventListener('input', () => setSiteEdit('t', x.key, inp.value.trim() ? inp.value : null, true));
+        f.append(inp);
+      }
+      body.append(f);
+    });
+    // what comes from her services or her products
+    if (linked.length) {
+      body.append(el('div', { class: 'b-sitefrom' }, icon('i-info'), el('span', { text: m && m.rdv
+        ? 'Les prestations affichées ici (noms, prix, durées, catégories) viennent de vos réglages de rendez-vous : le site les affiche tout seul.'
+        : 'Les produits affichés ici (noms, prix, photos) viennent de votre liste de produits : le site les affiche tout seul.' })));
+      body.append(m && m.rdv ? el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations')
         : el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', on: { click: () => setTab('produits') } }, icon('i-tag'), 'Gérer mes produits'));
     }
+    if (!imgs.length && !texts.length && !linked.length && sec.icon !== 'header') body.append(el('p', { class: 'b-hint', text: 'Cette section n’a rien à modifier.' }));
+    return body;
   }
   // her categories (Rendez-vous), for a service card's category: she chooses, she does not type
   function loadCategories() {
@@ -679,7 +741,7 @@
     if (!slug) { S.cats = []; return; }
     fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w' }, body: JSON.stringify({ action: 'config', slug }) })
       .then((r) => r.json()).then((j) => { const cs = []; (j && Array.isArray(j.services) ? j.services : []).forEach((x) => { if (x.category && cs.indexOf(x.category) === -1) cs.push(x.category); }); S.cats = cs; }, () => { S.cats = []; })
-      .then(() => { if (S.sitePick && S.sitePick.kind === 'c') renderTab(); });
+      .then(() => { if (S.tab === 'site') renderTab(); });
   }
   function renderSitePick(tp) {
     const p = S.sitePick, st = S.config.store;
@@ -4645,7 +4707,7 @@
   const NOPAY_HINT = [`Aucun moyen de paiement activé${NB}: vos clients ne peuvent commander que sur WhatsApp. Activez-en un dans Boutique › Moyens de paiement.`, `Activez un moyen de paiement dans Boutique.`];
   function updateHint() {
     if (!els.stageHint) return;
-    { const cb = customSite(); if (cb && cb.bought) { const t0 = 'Touchez un texte ou une photo pour le changer. Pour changer de page, utilisez « Site » à gauche.'; els.stageHint.__text = t0; els.stageHint.textContent = t0; return; } }
+    { const cb = customSite(); if (cb && cb.bought) { const t0 = 'Aperçu en direct. Cliquez sur un texte ou une photo pour ouvrir sa section.'; els.stageHint.__text = t0; els.stageHint.textContent = t0; return; } }
     const page = rendererHasPages() ? S.page : 'home';
     const noPay = page === 'checkout' && S.config && S.config.payments && !Object.keys(S.config.payments).some((k) => S.config.payments[k] === true);
     const h = noPay ? NOPAY_HINT : (PAGE_HINTS[page] || PAGE_HINTS.home);
