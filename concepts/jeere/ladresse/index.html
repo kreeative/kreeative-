@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L’ADRESSE · L’immobilier, autrement</title>
+  <meta name="description" content="L’ADRESSE vous aide à trouver un logement, à le rendre agréable et fonctionnel, puis à le gérer. Côte d’Ivoire, Ghana, Sénégal, Bénin.">
+  <!-- First version, prepared from the client's own layout: not indexed until she validates it -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#FBF7EE">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top__in">
+    <a class="logo" href="#accueil">L’ADRESSE</a>
+    <nav class="nav" aria-label="Menu">
+      <a href="#biens">Nos biens</a><a href="#expertises">Expertises</a><a href="#amenagement">Aménagement</a><a href="#gestion">Gestion</a>
+      <a class="btn btn--dark btn--sm" href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="accueil">
+  <section class="hero wrap">
+    <div>
+      <p class="eyebrow">Côte d’Ivoire · Ghana · Sénégal · Bénin</p>
+      <h1>L’immobilier,<br><em>autrement.</em></h1>
+      <p class="lead">L’ADRESSE vous aide à trouver un logement, à le rendre agréable et fonctionnel, puis à le gérer pour qu’il vous rapporte. Nous vous accompagnons de la recherche du bien jusqu’à sa gestion au quotidien.</p>
+      <p class="btns"><a class="btn btn--dark" href="#biens">Voir nos biens</a><a class="btn btn--line" href="#amenagement">Aménagement &amp; valorisation</a></p>
+    </div>
+    <div class="hero__art" aria-hidden="true">
+      <svg viewBox="0 0 320 400" role="presentation"><defs><clipPath id="house"><path d="M0 110 160 0l160 110v290H0z"/></clipPath></defs>
+        <g clip-path="url(#house)"><rect width="320" height="400" fill="#D9BE94"/><g fill="none" stroke="#8C6A3F" stroke-width="1" opacity=".55" id="rings"></g></g></svg>
+    </div>
+  </section>
+
+  <section class="band" id="expertises">
+    <div class="wrap">
+      <p class="eyebrow">Nos expertises</p>
+      <h2>De la recherche à la gestion,<br>un seul interlocuteur.</h2>
+      <div class="cols3">
+        <article><h3>Recherche immobilière</h3><p>Nous identifions et sélectionnons des biens adaptés à vos besoins : résidence principale, investissement locatif ou projet professionnel.</p>
+          <ul class="rules"><li>Analyse de vos besoins</li><li>Sélection de biens pertinents</li><li>Organisation des visites</li><li>Accompagnement jusqu’à la finalisation</li></ul><a class="more" href="#biens">Voir les biens disponibles</a></article>
+        <article><h3>Aménagement &amp; valorisation</h3><p>Nous concevons des espaces fonctionnels, esthétiques et adaptés à vos objectifs : résidence, location longue ou courte durée.</p>
+          <ul class="rules"><li>Conception &amp; décoration d’intérieur</li><li>Ameublement sur mesure</li><li>Optimisation des espaces</li><li>Valorisation du bien</li></ul><a class="more" href="#amenagement">Demander un devis</a></article>
+        <article><h3>Gestion immobilière</h3><p>Nous assurons la gestion complète de votre bien pour vous offrir sérénité, performance et rentabilité.</p>
+          <ul class="rules"><li>Mise en location et suivi</li><li>Entretien et maintenance</li><li>Gestion des prestataires</li><li>Suivi de la rentabilité</li></ul><a class="more" href="#gestion">Confier la gestion de mon bien</a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="biens">
+    <div class="sec__head">
+      <div><p class="eyebrow">Nos biens</p><h2>Sélection du moment</h2></div>
+      <div class="filters" role="group" aria-label="Filtrer les biens">
+        <button type="button" class="pill" data-filter="tous" aria-pressed="true">Tous</button>
+        <button type="button" class="pill" data-filter="louer" aria-pressed="false">À louer</button>
+        <button type="button" class="pill" data-filter="vendre" aria-pressed="false">À vendre</button>
+      </div>
+    </div>
+    <div class="grid" id="grid" aria-live="polite"></div>
+    <p class="none" id="none" hidden>Aucun bien dans cette catégorie pour le moment.</p>
+    <div class="ask"><p>Vous cherchez autre chose ? Dites-nous votre projet, nous cherchons pour vous.</p><a class="btn btn--dark btn--sm" href="#contact">Nous écrire</a></div>
+  </section>
+
+  <section class="band" id="amenagement">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Aménagement &amp; valorisation</p>
+        <h2>Un logement agréable, fonctionnel, qui prend de la valeur.</h2>
+        <p>Vous venez d’acquérir un bien, ou vous voulez le mettre en location ? Nous concevons l’espace, choisissons le mobilier et suivons le chantier, pour une résidence où l’on se sent bien ou une location qui se remplit.</p>
+        <ul class="rules"><li>Conception &amp; décoration d’intérieur</li><li>Ameublement sur mesure</li><li>Optimisation des espaces</li><li>Valorisation du bien</li></ul>
+      </div>
+      <form class="card form" data-form="Aménagement et valorisation" novalidate>
+        <h3>Parlez-nous de votre projet</h3>
+        <div class="two"><label>Nom complet<input name="Nom" autocomplete="name" required></label><label>Téléphone ou WhatsApp<input name="Téléphone" type="tel" autocomplete="tel" required></label></div>
+        <div class="two"><label>Ville<select name="Ville"><option>Abidjan</option><option>Accra</option><option>Dakar</option><option>Cotonou</option><option>Autre</option></select></label>
+          <label>Service souhaité<select name="Service"><option>Conception &amp; décoration d’intérieur</option><option>Ameublement sur mesure</option><option>Optimisation des espaces</option><option>Valorisation du bien</option></select></label></div>
+        <label>Votre projet<textarea name="Projet" rows="3"></textarea></label>
+        <p class="err" hidden>Écrivez votre nom et un numéro où vous joindre.</p>
+        <button class="btn btn--dark" type="submit">Envoyer ma demande</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="dark" id="gestion">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Gestion immobilière</p>
+        <h2>Votre bien travaille pour vous, nous nous occupons du reste.</h2>
+        <p>Nous assurons le suivi, l’entretien et la rentabilité de votre patrimoine en toute sérénité : location, maintenance, gestion des prestataires. Vous suivez les résultats, nous gérons le quotidien.</p>
+        <ul class="rules"><li>Mise en location et suivi</li><li>Entretien et maintenance</li><li>Gestion des prestataires</li><li>Suivi de la rentabilité</li></ul>
+      </div>
+      <form class="card form" data-form="Gestion locative" novalidate>
+        <h3>Demande de gestion locative</h3>
+        <div class="two"><label>Nom complet<input name="Nom" autocomplete="name" required></label><label>Téléphone ou WhatsApp<input name="Téléphone" type="tel" autocomplete="tel" required></label></div>
+        <div class="two"><label>Ville du bien<select name="Ville du bien"><option>Abidjan</option><option>Accra</option><option>Dakar</option><option>Cotonou</option><option>Autre</option></select></label>
+          <label>Type de bien<select name="Type de bien"><option>Appartement</option><option>Villa</option><option>Studio</option><option>Immeuble</option><option>Local professionnel</option></select></label></div>
+        <label>Situation du bien<select name="Situation"><option>Déjà loué</option><option>Libre</option><option>En travaux</option></select></label>
+        <label>Message<textarea name="Message" rows="3"></textarea></label>
+        <p class="err" hidden>Écrivez votre nom et un numéro où vous joindre.</p>
+        <button class="btn btn--gold" type="submit">Demander une gestion locative</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="wrap sec">
+    <h2>Présents dans quatre pays.</h2>
+    <ul class="countries"><li><span>Côte d’Ivoire</span>Abidjan</li><li><span>Ghana</span>Accra</li><li><span>Sénégal</span>Dakar</li><li><span>Bénin</span>Cotonou</li></ul>
+  </section>
+</main>
+
+<footer class="foot" id="contact">
+  <div class="wrap foot__in">
+    <div class="foot__brand"><p class="logo logo--lg">L’ADRESSE</p><p class="tag"><em>L’immobilier, autrement.</em></p></div>
+    <div><h2 class="foot__t">Parlons de votre projet</h2>
+      <ul class="foot__list">
+        <li>E-mail : <a href="mailto:contact@ladresse-premium.com">contact@ladresse-premium.com</a></li>
+        <li>Instagram : <a href="https://www.instagram.com/ladresse.premium/" target="_blank" rel="noopener">@ladresse.premium</a></li>
+      </ul></div>
+  </div>
+  <p class="wrap legal">© 2026 L’ADRESSE · L’immobilier, autrement.</p>
+</footer>
+
+<!-- Enlarged view of a property -->
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-t"><div class="sheet__in"><button class="sheet__x" type="button" data-close aria-label="Fermer">×</button><div id="sheet-body"></div></div></dialog>
+
+<script src="biens.js"></script>
+<script src="site.js"></script>
+</body>
+</html>
