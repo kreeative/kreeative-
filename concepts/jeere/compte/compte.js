@@ -1217,11 +1217,13 @@
       : 'La boutique enregistrée dans ce navigateur, ' + q(fromFiche) + ', prendra ce nouveau nom.';
   }
   function submitName(e) {
-    if (e) e.preventDefault();
+    // « Pas de boutique pour l’instant »: the account alone, no store name asked, straight to the dashboard
+    var skip = e === 'skip';
+    if (e && e.preventDefault) e.preventDefault();
     if (busy) return;
-    var name = clip(el.store.value, 40);
-    el.store.value = name;
-    if (!name) {
+    var name = skip ? '' : clip(el.store.value, 40);
+    if (!skip) el.store.value = name;
+    if (!name && !skip) {
       var msg = 'Donnez un nom à votre boutique. Vous pourrez le changer plus tard.';
       setError(el.store, 'c-store-err', msg);
       return reportAt(el.store, msg);
@@ -1255,7 +1257,13 @@
     }
     var ok = saveAccount(acc);
     if (flow.real && A) A.syncNow();
-    fillFiche(name, acc.phone, true);
+    if (!skip) fillFiche(name, acc.phone, true);
+    if (skip) {
+      flow.created = true; flow.saved = ok; saveFlow();
+      var sk = doc.getElementById('c-name-skip');
+      busyButton(sk || el.nameBtn, 'Création du compte…', 500, function () { try { root.location.assign(DASHBOARD); } catch (x) { root.location.href = DASHBOARD; } });
+      return;
+    }
     flow.created = true;
     flow.storeName = name;
     flow.saved = ok;
@@ -1467,6 +1475,8 @@
     el.other.addEventListener('click', otherMethod);
 
     el.formName.addEventListener('submit', submitName);
+    var skipBtn = doc.getElementById('c-name-skip');
+    if (skipBtn) skipBtn.addEventListener('click', function () { submitName('skip'); });
     el.store.addEventListener('input', function () { clearError(el.store, 'c-store-err'); drawAddress(); });
 
     el.logout.addEventListener('click', logout);

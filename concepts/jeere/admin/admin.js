@@ -933,8 +933,8 @@
   function noStoreCard() {
     return H`<section class="a-card"><div class="a-empty">
       <span class="a-empty__ico">${ico('store')}</span>
-      <h2 class="a-empty__title">Créez d’abord votre boutique</h2>
-      <p class="a-empty__text">Choisissez un modèle ou décrivez votre boutique à l’assistant : vos produits, vos pages et vos réglages apparaîtront ici.</p>
+      <h2 class="a-empty__title">Pas encore de boutique</h2>
+      <p class="a-empty__text">Quand vous êtes prête, choisissez un modèle ou décrivez votre boutique à l’assistant : vos produits, vos pages et vos réglages apparaîtront ici.</p>
       <div class="a-btnrow">
         <a class="a-btn a-btn--primary" href="${EDITOR_URL}">${ico('grid')}Choisir un modèle</a>
         <a class="a-btn a-btn--ghost" href="${EDITOR_URL}#assistant">${ico('sparkle')}Discuter avec l’assistant</a>
