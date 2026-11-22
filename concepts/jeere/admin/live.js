@@ -189,8 +189,8 @@
       '</div>';
   }
 
-  // For a plan without « En direct »: the same page with example visitors, blurred, under a card that says how to
-  // get it (admin.js writes the card). Nothing is read from the server here.
+  // For a plan without « En direct »: the same page, alive, with example visitors (the globe turns, she can drag
+  // it), under a card that says how to get it (admin.js writes the card). Nothing is read from the server here.
   function sample() {
     var now = Date.now(), at = function (min) { return new Date(now - min * 60000).toISOString(); };
     var P = [[5.35, -4.0, 'Abidjan', 'CI', 1], [14.7, -17.45, 'Dakar', 'SN', 2], [6.13, 1.22, 'Lomé', 'TG', 3], [48.85, 2.35, 'Paris', 'FR', 14], [12.64, -8.0, 'Bamako', 'ML', 31],
@@ -205,7 +205,8 @@
     setTimeout(function () { if (!L.raf) L.raf = requestAnimationFrame(draw); paint(); }, 0);
     return '<div class="a-page lv">' + head('Qui regarde votre boutique, et d’où.') +
       '<p class="a-error" id="lv-err" hidden></p>' +
-      '<div class="lv-lock"><div class="lv-lock__blur" aria-hidden="true" inert>' + stage() + '</div><div class="lv-lock__card">' + card + '</div></div></div>';
+      '<section class="a-card lv-up">' + card + '</section>' +
+      '<div class="lv-demo"><p class="lv-demo__tag">Aperçu · visiteurs d’exemple</p>' + stage() + '</div></div>';
   }
 
   function view() {

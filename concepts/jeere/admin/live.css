@@ -37,3 +37,13 @@
   background: var(--white); border: 1px solid var(--line-2); border-radius: 20px; box-shadow: 0 1px 2px rgba(17, 17, 17, .05), 0 24px 60px -24px rgba(17, 17, 17, .4); }
 .lv-lock__card .a-empty__ico { margin: 0 auto 12px; }
 .lv-lock__card .a-btnrow { margin-top: 16px; }
+
+/* without the Pro plan (second version): the page alive with example visitors, the way to get it above */
+.lv-up { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; margin-bottom: 16px; }
+.lv-up__txt { flex: 1 1 320px; min-width: 0; }
+.lv-up__t { margin: 0; font-size: 17px; font-weight: 600; }
+.lv-up__d { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.lv-demo { position: relative; }
+.lv-demo__tag { position: absolute; z-index: 2; left: 14px; top: 14px; margin: 0; padding: 4px 11px; border-radius: 99px; background: var(--ink); color: var(--white); font-size: 12px; font-weight: 500; }
+/* a light veil: she sees the globe, the numbers and the lists, but it stays a preview */
+.lv-demo > .lv-grid { filter: blur(2px); pointer-events: none; user-select: none; }
