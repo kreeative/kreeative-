@@ -82,7 +82,7 @@
     announcement: { chip: 'Bandeau d’annonce', low: 'bandeau d’annonce' }
   };
   const FIELD_LABEL = { name: 'Le nom', niche: 'Ce que je vends', template: 'Le style', palette: 'Les couleurs', needs: 'Les options', contact: 'La ville et le numéro' };
-  const CITY_CHIPS = ['Abidjan', 'Bouaké', 'Yamoussoukro', 'San-Pédro'];
+  const CITY_CHIPS = ['Abidjan', 'Dakar', 'Bamako', 'Lomé', 'Cotonou', 'Ouagadougou'];
 
   /* ================================================================== text helpers */
 
@@ -319,8 +319,27 @@
     ['tiassale', 'Tiassalé'], ['oume', 'Oumé'], ['touba', 'Touba'], ['boundiali', 'Boundiali'], ['lakota', 'Lakota'], ['daoukro', 'Daoukro'], ['bouafle', 'Bouaflé'],
     ['tengrela', 'Tengréla'], ['grand[ -]lahou', 'Grand-Lahou'], ['dakar', 'Dakar'], ['bamako', 'Bamako'], ['ouagadougou|ouaga', 'Ouagadougou'], ['lome', 'Lomé'],
     ['cotonou', 'Cotonou'], ['accra', 'Accra'], ['conakry', 'Conakry'], ['douala', 'Douala'], ['yaounde', 'Yaoundé'], ['niamey', 'Niamey'], ['lagos', 'Lagos'],
-    ['paris', 'Paris'], ['lyon', 'Lyon'], ['marseille', 'Marseille'], ['bruxelles', 'Bruxelles'], ['montreal', 'Montréal']
+    ['paris', 'Paris'], ['lyon', 'Lyon'], ['marseille', 'Marseille'], ['bruxelles', 'Bruxelles'], ['montreal', 'Montréal'],
+    ['thies', 'Thiès'], ['saint[ -]louis', 'Saint-Louis'], ['mbour', 'Mbour'], ['ziguinchor', 'Ziguinchor'], ['kaolack', 'Kaolack'],
+    ['sikasso', 'Sikasso'], ['segou', 'Ségou'], ['kayes', 'Kayes'], ['mopti', 'Mopti'], ['bobo[ -]?dioulasso|bobo', 'Bobo-Dioulasso'], ['koudougou', 'Koudougou'],
+    ['kara', 'Kara'], ['sokode', 'Sokodé'], ['kpalime', 'Kpalimé'], ['porto[ -]novo', 'Porto-Novo'], ['abomey[ -]calavi|calavi', 'Abomey-Calavi'], ['parakou', 'Parakou'],
+    ['zinder', 'Zinder'], ['maradi', 'Maradi'], ['kumasi', 'Kumasi'], ['kankan', 'Kankan'], ['bafoussam', 'Bafoussam'], ['libreville', 'Libreville'],
+    ['port[ -]gentil', 'Port-Gentil'], ['brazzaville|brazza', 'Brazzaville'], ['pointe[ -]noire', 'Pointe-Noire'], ['kinshasa', 'Kinshasa'], ['lubumbashi', 'Lubumbashi'],
+    ['nouakchott', 'Nouakchott'], ['ndjamena|n\'djamena', 'N’Djamena'], ['bangui', 'Bangui'], ['abuja', 'Abuja'], ['casablanca|casa', 'Casablanca'], ['rabat', 'Rabat'],
+    ['tunis', 'Tunis'], ['alger', 'Alger'], ['toulouse', 'Toulouse'], ['lille', 'Lille'], ['bordeaux', 'Bordeaux'], ['nantes', 'Nantes'], ['geneve', 'Genève'],
+    ['londres|london', 'Londres'], ['toronto', 'Toronto'], ['ottawa', 'Ottawa'], ['quebec', 'Québec'], ['new york', 'New York'], ['washington', 'Washington'], ['dubai', 'Dubaï']
   ].forEach((p) => place(p[0], p[1], 'city'));
+  // The country code of a city: a number written without « + » is a local number of the seller's own country
+  const DIAL = {};
+  [['221', 'Dakar Thiès Saint-Louis Mbour Ziguinchor Kaolack'], ['223', 'Bamako Sikasso Ségou Kayes Mopti'], ['226', 'Ouagadougou Bobo-Dioulasso Koudougou'],
+    ['228', 'Lomé Kara Sokodé Kpalimé'], ['229', 'Cotonou Porto-Novo Abomey-Calavi Parakou'], ['227', 'Niamey Zinder Maradi'], ['233', 'Accra Kumasi'],
+    ['224', 'Conakry Kankan'], ['237', 'Douala Yaoundé Bafoussam'], ['241', 'Libreville Port-Gentil'], ['242', 'Brazzaville Pointe-Noire'], ['243', 'Kinshasa Lubumbashi'],
+    ['222', 'Nouakchott'], ['235', 'N’Djamena'], ['236', 'Bangui'], ['234', 'Lagos Abuja'], ['212', 'Casablanca Rabat'], ['216', 'Tunis'], ['213', 'Alger'],
+    ['33', 'Paris Lyon Marseille Toulouse Lille Bordeaux Nantes'], ['32', 'Bruxelles'], ['41', 'Genève'], ['44', 'Londres'], ['971', 'Dubaï'],
+    ['1', 'Montréal Toronto Ottawa Québec Washington']
+  ].forEach((r) => r[1].split(' ').forEach((c) => { DIAL[c] = r[0]; }));
+  DIAL['New York'] = '1';
+  function dialOf(city) { return DIAL[String(city || '').split(',')[0].trim()] || null; }
   const PLACE_TYPE = {};
   PLACES.forEach((p) => { PLACE_TYPE[p[1]] = p[2]; });
   const PLACE_LEX = lex([].concat(PLACES.map((p) => [p[1], 1, [p[0]]])));
@@ -934,6 +953,19 @@
       const cp = detectCity(rest, t, words <= 3);
       if (cp && cp.city && (cp.gaz || words <= 3)) { res.values.city = cp.city; res.strong.city = true; res.explicit.city = true; }
     }
+    // Outside Côte d’Ivoire, a number without « + » is a local number of her own country (« Dakar, 77 123 45 67 » → +221…)
+    if (phone && !/^\s*(?:\+|00)/.test(phone.match)) {
+      const dc = dialOf(res.values.city !== undefined ? res.values.city : (ctx && ctx.city));
+      if (dc && dc !== '225') {
+        const dg = phone.match.replace(/\D/g, '').replace(/^0+/, '');
+        phone.number = '+' + dc + dg;
+        phone.display = phone.number;
+        phone.issue = /^\+\d{8,15}$/.test(phone.number) ? null : 'length';
+        res.values.whatsapp = phone.number;
+        res.info.phone = phone.display;
+        if (phone.issue) res.info.phoneIssue = phone.issue; else delete res.info.phoneIssue;
+      }
+    }
     // A colour alone while another question is asked (« vert » at the style question): note it for later
     if (t && !summary && (step === 'template' || step === 'needs' || step === 'contact') && res.values.palette === undefined &&
       !res.values.template && !res.values.niche && !res.values.needs && res.values.city === undefined && !phone && t.split(' ').length <= 3) {
@@ -1217,8 +1249,8 @@
       'Une couleur préférée ? Choisissez une palette, ou écrivez une couleur : « vert », « rose »…', 'Passons aux couleurs : laquelle vous plaît ?'],
     needs: ['De quoi avez-vous besoin ? J’ai tout coché : décochez ce qui ne vous sert pas, puis touchez « C’est bon ».',
       'Voici ce que je mets dans votre boutique. Enlevez ce qui ne vous sert pas, ou dites-le-moi, par exemple « pas d’avis ».'],
-    contact: ['Dernière question : dans quelle ville êtes-vous, et sur quel numéro WhatsApp recevez-vous les commandes ?',
-      'Pour finir : votre ville et votre numéro WhatsApp ? Par exemple « Yopougon, 07 07 12 34 56 ».']
+    contact: ['Dernière question : dans quelle ville et quel pays êtes-vous, et sur quel numéro WhatsApp recevez-vous les commandes ?',
+      'Pour finir : votre ville et votre numéro WhatsApp ? Par exemple « Abidjan, 07 07 12 34 56 » ou « Dakar, +221 77 123 45 67 ».']
   };
   const AGAIN = {
     name: 'Et comment s’appelle votre boutique ?',
@@ -1244,14 +1276,14 @@
     palette: ['Je ne connais pas cette couleur. Choisissez une palette, ou laissez-moi faire.', 'Pardon, je n’ai pas reconnu de couleur. Touchez la palette qui vous plaît.'],
     needs: ['Je n’ai pas compris ce qu’il faut enlever. Touchez les options pour les cocher ou les décocher, puis « C’est bon ».',
       'Pardon, je n’ai pas saisi. Décochez ce qui ne vous sert pas, puis touchez « C’est bon ».'],
-    contact: ['Je n’ai trouvé ni ville ni numéro. Écrivez par exemple « Cocody, 07 07 12 34 56 », ou touchez votre ville.',
+    contact: ['Je n’ai trouvé ni ville ni numéro. Écrivez par exemple « Abidjan, 07 07 12 34 56 » ou « Dakar, +221 77 123 45 67 », ou touchez votre ville.',
       'Pardon, je n’ai pas compris. Dans quelle ville êtes-vous ? Vous pouvez aussi ajouter votre numéro WhatsApp.']
   };
   const HELP = {
     name: 'C’est le nom que vos clients verront en haut de votre boutique. Si vous n’en avez pas encore, touchez « Je n’ai pas encore de nom » : on le trouvera plus tard.',
     niche: 'Dites-moi ce que vous vendez avec vos mots : « des robes en wax », « des perruques », « attiéké et garba »… Je prépare des produits d’exemple que vous remplacerez par les vôtres.',
     needs: 'Ce sont les blocs de votre page : la commande sur WhatsApp, les frais de livraison par commune, le paiement à la livraison, les avis de vos clients, les catégories et le bandeau d’annonce tout en haut. Décochez ceux qui ne vous servent pas.',
-    contact: 'La ville sert à préparer vos frais de livraison. Le numéro WhatsApp reçoit les commandes de vos clients. Écrivez par exemple « Cocody, 07 07 12 34 56 ».'
+    contact: 'La ville sert à préparer vos frais de livraison. Le numéro WhatsApp reçoit les commandes de vos clients. Écrivez par exemple « Abidjan, 07 07 12 34 56 » ou, dans un autre pays, « Dakar, +221 77 123 45 67 ».'
   };
 
   function start(again) {
@@ -1504,7 +1536,7 @@
         S.pendingPhone = v.whatsapp;
         out.push(u.info.phoneIssue === 'old'
           ? 'Votre numéro semble n’avoir que 8 chiffres. Depuis 2021, les numéros ivoiriens en ont 10 : ajoutez 07, 05 ou 01 devant, selon votre opérateur. Pouvez-vous me le redonner ?'
-          : 'Ce numéro me semble incomplet. Pouvez-vous le vérifier ? Par exemple 07 07 12 34 56.');
+          : 'Ce numéro me semble incomplet. Pouvez-vous le vérifier ? Hors de Côte d’Ivoire, écrivez-le avec l’indicatif de votre pays, par exemple +221 77 123 45 67.');
         post(() => setQuick(phoneFixChips()));
         post(() => setPlaceholder('phone'));
         return 'wait';
@@ -1532,7 +1564,7 @@
     S.answers.whatsapp = phone || '';
     S.filled.contact = true;
     S.contactCity = c; S.contactPhone = phone || null;
-    let s = defaulted ? 'Je mets Abidjan comme ville : dites-le-moi si vous êtes ailleurs.' : (S.cityNoted === c ? '' : 'Noté : ' + cityPhrase(c) + '.');
+    let s = defaulted ? 'Je mets Abidjan pour l’instant : dites-moi votre ville si vous êtes ailleurs, dans un autre pays aussi.' : (S.cityNoted === c ? '' : 'Noté : ' + cityPhrase(c) + '.');
     s += phone ? ' Les commandes arriveront sur le ' + displayPhone(phone) + '.' : (S.cityNoted === c ? 'D’accord, pas de numéro pour l’instant : vous l’ajouterez dans l’éditeur.' : ' Pas de numéro pour l’instant : vous l’ajouterez dans l’éditeur.');
     s = s.trim();
     s += deliveryNote(c);
@@ -1953,7 +1985,7 @@
     S.hash = hashStr(S.hash + '|' + text);
     S.said = (String(S.said || '') + ' ' + text).slice(-900);
     const step = S.step === 'fix' ? 'summary' : S.step;
-    const u = understand(text, step, { niche: S.answers.niche });
+    const u = understand(text, step, { niche: S.answers.niche, city: S.contactCity || S.answers.city });
     u.raw = text;
     try { respond(u); } catch (e) { say('Oups, je me suis emmêlé. Pouvez-vous reformuler ?'); then(() => setQuick(chipsFor(S.step))); }
     run();
