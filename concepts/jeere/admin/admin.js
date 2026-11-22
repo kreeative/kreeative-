@@ -161,6 +161,17 @@
   }
   // Which fiche the example orders were made for: another template or niche brings other products
   const demoSig = () => (S.config ? str(S.config.template) + '/' + str(S.config.store.niche) : '');
+  // The example orders are for the demo only. A real account (it has a user id) starts with an empty, calm
+  // dashboard: no invented orders, sales or customers. Only the orders she writes down herself are hers.
+  const realAccount = () => !!(S.account && S.account.userId) && !S.forClient;
+  function dropExamples(a) {
+    if (!realAccount() || !a || !Array.isArray(a.orders)) return false;
+    const before = a.orders.length;
+    a.orders = a.orders.filter((o) => o && o.manual === true);
+    const changed = a.orders.length !== before || a.demoSeeded !== true;
+    a.demoSeeded = true;       // never made again
+    return changed;
+  }
   function freshAdmin() {
     let a = null;
     try { if (typeof D.adminDefaults === 'function') a = D.adminDefaults(S.config, S.forClient ? null : S.account, S.now); } catch (e) { a = null; }
@@ -170,6 +181,7 @@
     }
     if (S.config) a.demoFor = demoSig();
     if (S.account && S.account.phone) a.ownerPhone = S.account.phone;
+    dropExamples(a);
     return a;
   }
   function readAdmin() {
@@ -209,6 +221,7 @@
       a.demoFor = sig;
       changed = true;
     }
+    if (dropExamples(a)) changed = true;
     if (!isObj(a.prefs)) a.prefs = {};
     if (!isObj(a.notify)) a.notify = {};
     if (!isObj(a.stock)) a.stock = {};
@@ -387,7 +400,39 @@
     if (EXT()) return null;
     let slug = '';
     try { slug = (JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {}).slug || ''; } catch (e) { slug = ''; }
-    return CUSTOM[slug] || null;
+    if (CUSTOM[slug]) return CUSTOM[slug];
+    // the designer model she bought (public.my_models): her dashboard shows it, the model's own demo until it is installed
+    const mm = myModel();
+    return mm && CUSTOM[mm.model] ? { site: CUSTOM[mm.model].site, live: CUSTOM[mm.model].live, bought: true, model: mm.model } : null;
+  }
+  // The model she paid for, the latest one: { model, install, installed_at }. Asked once per session to the server.
+  function myModel() {
+    if (!S.myModels && S.account && S.account.userId) {
+      S.myModels = { loading: true, list: [] };
+      const A = window.JeereAuth;
+      Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then((ses) => {
+        if (!ses || !ses.access_token) return null;
+        return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/rpc/my_models', { method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + ses.access_token },
+          body: '{}' }).then((r) => (r.ok ? r.json() : null));
+      }).catch(() => null).then((j) => {
+        S.myModels = { loading: false, list: Array.isArray(j) ? j : [] };
+        if (S.myModels.list.length && S.inApp) refresh();
+      });
+    }
+    return S.myModels && S.myModels.list.length ? S.myModels.list[0] : null;
+  }
+  // On the home page: where her model stands, and what she has to send
+  function modelCard() {
+    const mm = myModel(), JM = window.JeereModels, m = mm && JM ? JM.bySlug(mm.model) : null;
+    if (!m || mm.installed_at) return '';
+    const mail = 'mailto:contact@jehre.com?subject=' + encodeURIComponent('Mon modèle ' + m.name + ' : ' + (mm.install ? 'mes contenus' : 'mon logo'));
+    return H`<section class="a-card a-mymodel" aria-labelledby="h-mymodel"><img class="a-mymodel__img" src="${JM.thumb(m.slug)}" alt="" width="640" height="400">
+      <div class="a-mymodel__b"><p class="a-chip a-chip--ink">Installation en cours</p><h2 class="a-card__title" id="h-mymodel">Votre modèle ${esc(m.name)} est payé</h2>
+      <p class="a-card__sub">${mm.install
+        ? 'Notre équipe installe votre boutique dans ce modèle. Envoyez-nous votre logo, vos photos, vos prestations ou produits avec les prix, votre texte de présentation et votre numéro WhatsApp. L’aperçu montre le modèle tel qu’il est : votre nom et vos contenus le remplacent à l’installation.'
+        : 'Envoyez-nous votre logo : nous mettons votre boutique sur ce modèle et nous vous écrivons. En attendant, ajoutez vos produits et vos prix dans « Produits ». L’aperçu montre le modèle tel qu’il est, avant l’installation.'}</p>
+      <div class="a-btnrow"><a class="a-btn a-btn--primary" href="${mail}">${mm.install ? 'Envoyer mes contenus' : 'Envoyer mon logo'}</a><a class="a-btn a-btn--ghost" href="${JM.demo(m.slug)}" target="_blank" rel="noopener">Voir le modèle</a></div></div></section>`;
   }
   // The founder's own boutiques (MY_SHOPS, The Ivory Sukundu) are shown to HER account only: the `sites-publish`
   // function says who she is (public.site_editors), the answer kept per account for this tab.
@@ -1649,6 +1694,7 @@
     const checkHidden = onboarding().checklistHidden === true;
     const sample = hasDemoOrders() ? sampleChip() : '';
     const todayTxt = (todo ? plural(todo, 'commande à préparer', 'commandes à préparer') : 'Rien à préparer') + (dueAll.dueN ? ' · ' + number(dueAll.dueN) + ' à encaisser' : '');
+    html += modelCard();
     html += H`<div class="a-home">
       <section class="a-today a-home__today" aria-labelledby="h-today">
         <a class="a-today__main" href="#commandes?statut=a-preparer"><span class="a-today__k" id="h-today">Aujourd’hui</span><span class="a-today__v">${esc(fr(todayTxt))}</span>${ico('chev', 'a-today__go')}</a>
@@ -1687,7 +1733,7 @@
       </section>
       <div class="a-home__side">
         <section class="a-card a-preview a-home__preview" aria-labelledby="h-prev">
-          <div class="a-card__head" style="margin-bottom:0"><div style="min-width:0"><h2 class="a-card__title" id="h-prev">Votre boutique</h2><p class="a-preview__url">${ico('globe')}<span>${esc(subdomain())}</span></p></div>${isPublished() || customSite() ? H`<span class="a-chip a-tone--ok">En ligne</span>` : H`<button class="a-chip a-chip--sample a-chip--btn" type="button" data-act="publish" aria-label="Pas en ligne : publier ma boutique">Pas en ligne</button>`}</div>
+          <div class="a-card__head" style="margin-bottom:0"><div style="min-width:0"><h2 class="a-card__title" id="h-prev">Votre boutique</h2><p class="a-preview__url">${ico('globe')}<span>${esc(subdomain())}</span></p></div>${isPublished() || (customSite() && !customSite().bought) ? H`<span class="a-chip a-tone--ok">En ligne</span>` : H`<button class="a-chip a-chip--sample a-chip--btn" type="button" data-act="publish" aria-label="Pas en ligne : publier ma boutique">Pas en ligne</button>`}</div>
           ${miniStage('Aperçu de la page d’accueil de votre boutique')}
           <div class="a-card__foot a-preview__foot"><button class="a-btn a-btn--primary" type="button" data-act="open-editor" data-page="home">${ico('edit')}Personnaliser</button><button class="a-btn a-btn--ghost" type="button" data-act="view-store">${ico('eye')}Voir</button><button class="a-btn a-btn--ghost" type="button" data-act="share-store">${ico('share')}Partager</button></div>
         </section>
@@ -3072,7 +3118,7 @@
           <section class="a-card" aria-labelledby="h-theme"><div class="a-card__head"><div><h2 class="a-card__title" id="h-theme">Thème</h2><p class="a-card__sub">Le modèle, les couleurs et les polices de votre boutique.</p></div></div>
             <div class="a-theme">${miniStage('Aperçu de votre boutique')}
               <div><dl class="a-dl">
-                <div><dt>Modèle</dt><dd>${esc(tpl ? tpl.name + ' · ' + tpl.style : cfg.template)}</dd></div>
+                <div><dt>Modèle</dt><dd>${myModel() && window.JeereModels && window.JeereModels.bySlug(myModel().model) ? H`<strong>${esc(window.JeereModels.bySlug(myModel().model).name)}</strong>${myModel().installed_at ? '' : ' · installation en cours'}` : esc(tpl ? tpl.name + ' · ' + tpl.style : cfg.template)}</dd></div>
                 <div><dt>Palette</dt><dd>${shown ? H`<span class="a-pal" aria-hidden="true">${sw(shown.bg)}${sw(shown.surface)}${sw(shown.accent)}${sw(shown.text)}</span> ` : ''}${esc(pal ? pal.name : cfg.theme.palette)}${ownColors ? ', avec vos couleurs' : ''}</dd></div>
                 <div><dt>Polices</dt><dd>${esc(fontsName)}</dd></div>
                 <div><dt>Logo</dt><dd>${storeLogo() ? H`<span class="a-logothumb"><img src="${esc(storeLogo())}" alt="${esc(fr('Logo de ' + (st.name || 'la boutique')))}"></span> ` : 'Le nom, écrit avec la police du thème · '}<a class="a-link" href="${EDITOR_URL}" data-act="open-editor" data-page="home" data-focus="logo">${storeLogo() ? 'Modifier' : 'Ajouter un logo'}</a></dd></div></dl>
@@ -4661,7 +4707,7 @@
     if (!saveConfig(cfg)) return;
     const r = readAdmin();
     S.admin = r.admin;
-    if (!S.admin.orders.length) { try { S.admin.orders = D.demoOrders(S.config, 14, new Date()); S.admin.demoSeeded = true; S.admin.demoFor = demoSig(); } catch (e) { /* ignore */ } }
+    if (!S.admin.orders.length && !realAccount()) { try { S.admin.orders = D.demoOrders(S.config, 14, new Date()); S.admin.demoSeeded = true; S.admin.demoFor = demoSig(); } catch (e) { /* ignore */ } }
     if (!S.admin.subdomainChosen && D.subdomainFor) S.admin.settings.subdomain = D.subdomainFor(S.config.store.name);
     saveAdmin();
     refresh();
@@ -4686,7 +4732,7 @@
     'view-store': () => (EXT() ? window.open(EXT().site, '_blank', 'noopener') : customSite() ? window.open(customSite().live, '_blank', 'noopener') : openEditor({ page: 'home', view: 'preview' })),
     'open-editor': (el, e) => { e.preventDefault();
       // her own design: the simple editor (her site as the preview) on any screen, the Studio on a wide one
-      if (customSite() && window.innerWidth >= 700 && !el.hasAttribute('data-product-id')) {
+      if (customSite() && !customSite().bought && window.innerWidth >= 700 && !el.hasAttribute('data-product-id')) {
         const cs = customSite();
         actionSheet('Modifier ' + storeName(), [
           { id: 'simple', icon: 'phone', label: 'Éditeur simple', run: () => openEditor({ page: 'home' }) },

@@ -1737,3 +1737,12 @@ a:not([class]) { font-weight: 600; }
 .a-accts__t tr[hidden] { display: none; }
 .a-accts__m { color: var(--muted); font-size: 13px; }
 .a-home > .a-accts { grid-column: 1; min-width: 0; }
+
+/* the designer model she bought, on the home page */
+.a-mymodel { display: grid; gap: 16px; }
+.a-mymodel__img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top center; border-radius: 12px; border: 1px solid var(--line); }
+.a-mymodel__b .a-chip { margin: 0 0 8px; }
+.a-mymodel__b .a-btnrow { margin-top: 14px; }
+@media (min-width: 760px) { .a-mymodel { grid-template-columns: 240px minmax(0, 1fr); align-items: center; } }
+
+.a-mymodel { margin-bottom: 16px; }
