@@ -172,14 +172,9 @@
     return '<section class="a-card"><div class="a-empty"><span class="a-empty__ico">' + ico(icon) + '</span><p class="a-empty__title">' + title + '</p><p class="a-empty__text">' + text + '</p></div></section>';
   }
 
-  function view() {
-    var tg = target();
-    if (!tg) return '<div class="a-page">' + head('Qui regarde votre boutique, et d’où.') + note('globe', 'Mettez d’abord votre boutique en ligne', 'Dès qu’elle est publiée, chaque visite apparaît ici, sur le globe.') + '</div>';
-    if (tg.key !== L.storeId) { L.storeId = tg.key; L.data = null; L.error = ''; L.at = 0; }
-    setTimeout(start, 0);
-    return '<div class="a-page lv">' + head('Qui regarde votre boutique, et d’où. Mis à jour toutes les 20' + NB + 'secondes.') +
-      '<p class="a-error" id="lv-err" hidden></p>' +
-      '<div class="lv-grid">' +
+  // the page itself: the globe, the numbers, the lists
+  function stage() {
+    return '<div class="lv-grid">' +
         '<section class="a-card lv-stage"><div class="lv-globe"><canvas id="lv-globe" aria-label="Globe des visiteurs de votre boutique" role="img"></canvas></div>' +
           '<p class="lv-legend"><span><i class="lv-dot is-on"></i>En ce moment</span><span><i class="lv-dot"></i>Ces dernières 24' + NB + 'heures</span></p></section>' +
         '<div class="lv-side">' +
@@ -191,10 +186,39 @@
           '<section class="a-card"><div class="a-card__head"><h2 class="a-card__title">Par pays</h2></div><ul class="lv-countries" id="lv-countries"></ul></section>' +
           '<section class="a-card"><div class="a-card__head"><h2 class="a-card__title">Dernières visites</h2></div><ul class="lv-last" id="lv-last"></ul></section>' +
         '</div>' +
-      '</div>' +
+      '</div>';
+  }
+
+  // For a plan without « En direct »: the same page with example visitors, blurred, under a card that says how to
+  // get it (admin.js writes the card). Nothing is read from the server here.
+  function sample() {
+    var now = Date.now(), at = function (min) { return new Date(now - min * 60000).toISOString(); };
+    var P = [[5.35, -4.0, 'Abidjan', 'CI', 1], [14.7, -17.45, 'Dakar', 'SN', 2], [6.13, 1.22, 'Lomé', 'TG', 3], [48.85, 2.35, 'Paris', 'FR', 14], [12.64, -8.0, 'Bamako', 'ML', 31],
+      [6.37, 2.43, 'Cotonou', 'BJ', 52], [45.5, -73.57, 'Montréal', 'CA', 95], [12.37, -1.52, 'Ouagadougou', 'BF', 140], [50.85, 4.35, 'Bruxelles', 'BE', 210], [40.71, -74.0, 'New York', 'US', 380]];
+    return { ok: true, now: 3, today: 64, week: 312,
+      points: P.map(function (x) { return { lat: x[0], lon: x[1], city: x[2], country: x[3], at: at(x[4]), live: x[4] < 5 }; }),
+      countries: [['CI', 31], ['SN', 12], ['FR', 8], ['ML', 5], ['TG', 4], ['CA', 2]].map(function (x) { return { country: x[0], n: x[1] }; }) };
+  }
+  function preview(card) {
+    stop();
+    L.storeId = 'preview'; L.data = sample(); L.error = ''; L.at = Date.now();
+    setTimeout(function () { if (!L.raf) L.raf = requestAnimationFrame(draw); paint(); }, 0);
+    return '<div class="a-page lv">' + head('Qui regarde votre boutique, et d’où.') +
+      '<p class="a-error" id="lv-err" hidden></p>' +
+      '<div class="lv-lock"><div class="lv-lock__blur" aria-hidden="true" inert>' + stage() + '</div><div class="lv-lock__card">' + card + '</div></div></div>';
+  }
+
+  function view() {
+    var tg = target();
+    if (!tg) return '<div class="a-page">' + head('Qui regarde votre boutique, et d’où.') + note('globe', 'Mettez d’abord votre boutique en ligne', 'Dès qu’elle est publiée, chaque visite apparaît ici, sur le globe.') + '</div>';
+    if (tg.key !== L.storeId) { L.storeId = tg.key; L.data = null; L.error = ''; L.at = 0; }
+    setTimeout(start, 0);
+    return '<div class="a-page lv">' + head('Qui regarde votre boutique, et d’où. Mis à jour toutes les 20' + NB + 'secondes.') +
+      '<p class="a-error" id="lv-err" hidden></p>' +
+      stage() +
       '<p class="a-small lv-foot">' + ico('info') + 'Jehre garde la ville d’où vient une visite, jamais l’adresse de l’appareil. Les visites de plus de 30' + NB + 'jours sont effacées.</p>' +
     '</div>';
   }
 
-  window.JeereAdminLive = { view: view, state: function () { return L; } };
+  window.JeereAdminLive = { view: view, preview: preview, state: function () { return L; } };
 })();

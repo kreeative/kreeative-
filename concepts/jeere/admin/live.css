@@ -29,3 +29,11 @@
 .lv-none { display: block !important; color: var(--muted); font-size: 14px; }
 .lv-foot { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px; color: var(--muted); }
 .lv-foot .a-ico { flex: none; margin-top: 1px; }
+
+/* without the Pro plan: the page with example visitors, blurred, under the card that says how to get it */
+.lv-lock { position: relative; }
+.lv-lock__blur { filter: blur(4.5px); opacity: .92; pointer-events: none; user-select: none; }
+.lv-lock__card { position: absolute; left: 50%; top: min(50%, 300px); transform: translate(-50%, -50%); width: min(440px, calc(100% - 32px)); padding: 28px 26px; text-align: center;
+  background: var(--white); border: 1px solid var(--line-2); border-radius: 20px; box-shadow: 0 1px 2px rgba(17, 17, 17, .05), 0 24px 60px -24px rgba(17, 17, 17, .4); }
+.lv-lock__card .a-empty__ico { margin: 0 auto 12px; }
+.lv-lock__card .a-btnrow { margin-top: 16px; }

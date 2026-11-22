@@ -351,11 +351,11 @@
   const liveAllowed = () => !!EXT() || ['pro', 'business'].indexOf(planId()) !== -1;
   function liveLocked() {
     const pro = PLANS().find((x) => x.id === 'pro');
-    return H`<div class="a-page"><header class="a-ph"><div class="a-ph__txt"><h1 class="a-h1" tabindex="-1">En direct</h1><p class="a-sub">Qui regarde votre boutique, et d’où.</p></div></header>
-      <section class="a-card"><div class="a-empty"><span class="a-empty__ico">${ico('globe')}</span>
-        <p class="a-empty__title">Inclus dans la formule Pro</p>
-        <p class="a-empty__text">Voyez vos visiteurs en direct sur un globe : combien sont là maintenant, depuis quel pays et quelle ville.${pro && pro.priceLabel ? ' Formule Pro : ' + esc(pro.priceLabel) + '.' : ''}</p>
-        <div class="a-btnrow" style="justify-content:center"><a class="a-btn a-btn--primary" href="#parametres/abonnement">Passer à la formule Pro</a></div></div></section></div>`;
+    // the page is there for everyone: without the plan she sees it blurred, with example visitors, and how to get it
+    return window.JeereAdminLive.preview(H`<span class="a-empty__ico">${ico('globe')}</span>
+      <p class="a-empty__title">Passez à la formule Pro pour voir vos visiteurs</p>
+      <p class="a-empty__text">Combien sont là maintenant, depuis quel pays et quelle ville, en direct sur le globe.${pro && pro.priceLabel ? ' Formule Pro : ' + esc(pro.priceLabel) + '.' : ''}</p>
+      <div class="a-btnrow" style="justify-content:center"><a class="a-btn a-btn--primary" href="#parametres/abonnement">Passer à la formule Pro</a></div>`);
   }
   const CONNECTORS = () => arr(D && D.CONNECTORS);
   const connector = (id) => CONNECTORS().find((c) => c.id === id) || null;
