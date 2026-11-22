@@ -1,5 +1,5 @@
 -- Applied with the Supabase MCP (jeere_signup_welcomes): one welcome e-mail per new account, sent by the `relances`
--- function once the e-mail is confirmed. Accounts confirmed before this migration do not receive it.
+-- function once the e-mail is confirmed. Every confirmed account receives it once (the accounts created before it were sent it on 22 Nov 2026).
 create table if not exists public.signup_welcomes (
   user_id uuid primary key references auth.users(id) on delete cascade,
   sent_at timestamptz not null default now(),
@@ -14,8 +14,6 @@ language sql stable security definer set search_path to '' as $$
   from auth.users u left join public.profiles p on p.id = u.id
   where u.confirmed_at is not null
     and coalesce(u.email, '') <> ''
-    and u.confirmed_at > timestamptz '2026-11-22 18:50:00+00'
-    and u.confirmed_at > now() - interval '3 days'
     and split_part(lower(u.email), '@', 2) not in ('mailinator.com', 'example.com', 'yopmail.com', 'guerrillamail.com', 'tempmail.com', '10minutemail.com')
     and not exists (select 1 from public.signup_welcomes w where w.user_id = u.id)
   limit 200
