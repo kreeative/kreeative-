@@ -419,6 +419,7 @@
         S.myModels = { loading: false, list: Array.isArray(j) ? j : [] };
         if (Array.isArray(j) && window.JeereModels && window.JeereModels.setMine) { const mm0 = myModel(); window.JeereModels.setMine(mm0 ? mm0.model : ''); }
         if (S.myModels.list.length && S.inApp) refresh();
+        adoptModelProducts();
       });
     }
     if (!(S.myModels && S.myModels.list.length)) return null;
@@ -891,6 +892,7 @@
     // who she is for the stores that live elsewhere (the founder, a partner of The Ivory Sukundu): asked once, early,
     // so the store list is right the first time she opens it
     checkFounder(); checkExt();
+    myModel();   // the model she bought (asked once): her product list follows it, whatever page she opens first
     // The dashboard tour is on the home page: going elsewhere ends it
     if (r.name !== 'accueil' && window.JeereTour && window.JeereTour.isOpen() && (window.JeereTour.current() || {}).id === 'admin') window.JeereTour.stop('outside');
     S.now = new Date();
@@ -1443,7 +1445,7 @@
   }
   // A product's picture: its photo, else its demo photo, else its illustration (drawn by the renderer, on its colour)
   function visual(p) {
-    if (p && typeof p.image === 'string' && /^data:image\//.test(p.image)) return '<img src="' + esc(p.image) + '" alt="">';
+    if (p && typeof p.image === 'string' && /^(?:data:image\/|https:\/\/)/.test(p.image)) return '<img src="' + esc(p.image) + '" alt="">';
     const ph = demoPhoto(p);
     // data-art / data-color: the illustration that replaces a demo photo whose file does not load (onImgError)
     if (ph) return '<img src="' + esc(ph.src) + '" alt="" data-art="' + esc(str(p.art)) + '" data-color="' + esc(str(p.color)) + '"' + (ph.focus ? ' style="object-position:' + esc(ph.focus) + '"' : '') + '>';
@@ -2564,6 +2566,21 @@
           <div class="a-model__acts">${cur === m.slug ? H`<span class="a-chip a-chip--ink">Modèle utilisé</span>` : owned.indexOf(m.slug) !== -1 ? H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-model-use="${m.slug}">Utiliser ce modèle</button>` : H`<button class="a-btn a-btn--primary a-btn--sm" type="button" data-model-buy="${m.slug}">Choisir</button>`}<a class="a-btn a-btn--ghost a-btn--sm" href="${JM.demo(m.slug)}" target="_blank" rel="noopener">Voir la démo</a></div>
           ${owned.indexOf(m.slug) !== -1 ? H`<p class="a-small" style="margin-top:8px">Acheté · il est à vous</p>` : ''}</div></li>`)}</ul></section>`;
   }
+  // Her product list follows the model in use while it is still an example list (a jewellery example in a clothes
+  // shop makes no sense): the model's own products take its place, hers to replace. See JeereModels.productsFor.
+  function adoptModelProducts() {
+    const JM = window.JeereModels, mm = myModel();
+    if (!JM || !JM.productsFor || !mm || !S.config) return;
+    JM.productsFor(mm.model, S.config).then((prods) => {
+      if (!prods || !S.config) return;
+      S.config.products = prods;
+      if (!saveConfig(S.config)) return;
+      try { S.config = D.normalizeConfig(S.config); } catch (e) { /* keep */ }
+      if (S.inApp) refresh();
+      const m = JM.bySlug(mm.model);
+      toast('Vos produits d’exemple sont remplacés par ceux du modèle ' + (m ? m.name : '') + '. Changez-les pour les vôtres' + (isPublished() ? ', puis publiez.' : '.'), { ms: 9000 });
+    });
+  }
   // She owns several models: this one becomes her site's. What she changed in the one she leaves is kept
   // (store.siteBy) and comes back the day she returns to it.
   function useModel(slug) {
@@ -2581,6 +2598,7 @@
     if (!saveConfig(S.config)) return;
     JM.setMine(slug);
     refresh();
+    adoptModelProducts();
     toast(isPublished() ? 'Modèle ' + m.name + ' choisi. Publiez pour le mettre en ligne.' : 'Modèle ' + m.name + ' choisi.', { ms: 6000 });
   }
   // The payment of a designer model. Without a real account she is sent to create one first (the model is remembered).
@@ -2837,9 +2855,11 @@
     if (st) bits.push('<span class="a-stock' + (stockOf(p.id) === 0 ? ' is-out' : '') + (tone ? ' a-tone--' + tone : '') + '">' + (tone ? '<span class="a-dot" aria-hidden="true"></span>' : '') + esc(st) + '</span>');
     return bits.join(' · ');
   }
-  const hasPhoto = (p) => typeof p.image === 'string' && /^data:image\//.test(p.image);
+  // the photo of a designer model (her list starts as the model's own products): shown, but not HER photo yet
+  const modelPhoto = (p) => !!p && typeof p.image === 'string' && /^https:\/\/kreeative\.xyz\/concepts\//.test(p.image);
+  const hasPhoto = (p) => typeof p.image === 'string' && /^(?:data:image\/|https:\/\/)/.test(p.image) && !modelPhoto(p);
   // A demo photo is not the seller's photo yet: those products stay « sans vraie photo »
-  const noPhotoChip = (p) => (demoPhoto(p)
+  const noPhotoChip = (p) => (demoPhoto(p) || modelPhoto(p)
     ? H`<span class="a-chip a-chip--line a-chip--nophoto">${ico('camera')}Photo d’exemple</span>`
     : H`<span class="a-chip a-chip--line a-chip--nophoto">${ico('camera')}Sans photo</span>`);
   // A thumbnail, with a small camera badge while the product has no real photo

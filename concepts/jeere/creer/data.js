@@ -2525,7 +2525,10 @@
   var MEDIA_RE = /^https:\/\/aezchxfvzfoqlvzchqyk\.supabase\.co\/storage\/v1\/object\/public\/store-media\/[0-9a-f-]{36}\/[a-z0-9]{8,64}-\d{2,4}\.(webp|jpg|png)$/;
   function isMediaUrl(v) { return typeof v === 'string' && v.length < 300 && MEDIA_RE.test(v); }
 
-  function isImage(v) { return typeof v === 'string' && ((v.length < 12000000 && IMAGE_RE.test(v)) || isMediaUrl(v)); }
+  // the photos of the designer models (kreeative.xyz/concepts/<model>/img/…): a seller who takes a model starts with
+  // the model's own products, photos included, and replaces them with hers
+  var MODEL_IMG_RE = /^https:\/\/kreeative\.xyz\/concepts\/(?:michou|seve|soyeuse|anse)\/img\/[a-z0-9-]{1,60}\.(?:webp|jpg|png)$/;
+  function isImage(v) { return typeof v === 'string' && ((v.length < 12000000 && IMAGE_RE.test(v)) || isMediaUrl(v) || (v.length < 200 && MODEL_IMG_RE.test(v))); }
 
   function str(v, def) {
     if (typeof v === 'string') return v;

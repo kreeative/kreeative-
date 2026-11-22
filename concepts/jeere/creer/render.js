@@ -161,7 +161,9 @@
   const IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=\s]+$/i;
   // A seller's photo in Supabase Storage (JEERE_DATA.MEDIA_RE, wave 2): '<hash>-<largest width>.webp'
   const MEDIA_RE = /^https:\/\/aezchxfvzfoqlvzchqyk\.supabase\.co\/storage\/v1\/object\/public\/store-media\/[0-9a-f-]{36}\/[a-z0-9]{8,64}-(\d{2,4})\.(webp|jpg|png)$/;
-  const validImage = (v) => (typeof v === 'string' && v.length < 300 && MEDIA_RE.test(v) ? v : (typeof v === 'string' && v.length < 16000000 && IMAGE_RE.test(v) ? v.replace(/\s+/g, '') : null));
+  // the photos of the designer models (her products start as the model's own, see models.js productsFor)
+  const MODEL_IMG_RE = /^https:\/\/kreeative\.xyz\/concepts\/(?:michou|seve|soyeuse|anse)\/img\/[a-z0-9-]{1,60}\.(?:webp|jpg|png)$/;
+  const validImage = (v) => (typeof v === 'string' && v.length < 300 && (MEDIA_RE.test(v) || MODEL_IMG_RE.test(v)) ? v : (typeof v === 'string' && v.length < 16000000 && IMAGE_RE.test(v) ? v.replace(/\s+/g, '') : null));
   const MEDIA_WIDTHS = [640, 1280, 2048];
   // srcset / sizes of a hosted photo (the widths creer/media.js made, up to the one in its name); '' otherwise
   function srcsetAttr(src, sizes) {

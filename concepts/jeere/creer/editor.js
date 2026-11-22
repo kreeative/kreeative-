@@ -560,7 +560,17 @@
     if (mineAsked || !window.JeereModels || !window.JeereModels.refreshMine) return;
     mineAsked = true;
     const before = window.JeereModels.mine();
-    window.JeereModels.refreshMine().then((now) => { if (now !== before && S.config) { try { setTab(S.tab); renderPreviewNow(); } catch (e) { /* next change redraws */ } } });
+    window.JeereModels.refreshMine().then((now) => {
+      if (now !== before && S.config) { try { setTab(S.tab); renderPreviewNow(); } catch (e) { /* next change redraws */ } }
+      // an example list (jewellery…) in a model for clothes: the model's own products take its place, hers to replace
+      if (now && S.config && window.JeereModels.productsFor) window.JeereModels.productsFor(now, S.config).then((prods) => {
+        if (!prods || !S.config) return;
+        S.config.products = prods;
+        try { S.config = D.normalizeConfig(S.config); } catch (e) { /* keep */ }
+        S.openProduct = null; S.pending = true;
+        try { commit(); saveNow(); setTab(S.tab); renderPreviewNow(); } catch (e) { /* next change redraws */ }
+      });
+    });
   }
   function sendCustom() {
     const c = customSite(), fr = els.store && els.store.querySelector('iframe.b-custom');

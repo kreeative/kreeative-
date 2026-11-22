@@ -92,7 +92,46 @@
     }).catch(function () { return mine(); });
   }
 
+  /* The products of a shop model. A seller who takes MICHOU while her list is still the example of a base template
+   * (jewellery, say) would see those in a clothes shop: her list becomes the model's own products (names, prices,
+   * photos), which she then replaces with hers. Never done once she has changed a product herself.
+   * productsFor(slug, cfg) → Promise<products | null> (null: nothing to change). */
+  var PHOTOS = {"michou": {"p1": "tshirt-levres.webp", "p2": "tshirt-masque.webp", "p3": "tshirt-console.webp", "p4": "tshirt-racing.webp", "p5": "tshirt-croix.webp", "p6": "jort-noir.webp", "p7": "jort-brun.webp", "p8": "casquette-etoile.webp"}, "seve": {"p1": "gel-vanille.webp", "p2": "gel-santal.webp", "p3": "gel-musc.webp", "p4": "gel-bergamote.webp", "p5": "creme-corps-santal.webp", "p6": "creme-corps-bergamote.webp", "p7": "creme-mains.webp", "p8": "deodorant.webp", "p9": "huile-parfum-santal.webp", "p10": "gel-lune.webp", "p11": "deodorant-vanille.webp", "p12": "huile-corps-vanille.webp"}, "soyeuse": {"p1": "tissage-ondule.webp", "p2": "tissage-lisse.webp", "p3": "tissage-loose.webp", "p4": "perruque-ondulee.webp", "p5": "peigne.webp"}, "anse": {"p1": "sac-citrine.webp", "p2": "sac-dragee.webp", "p3": "sac-brume.webp", "p4": "sac-ruban.webp", "p5": "sac-olivier.webp", "p6": "sac-anneau.webp", "p7": "sac-cacao.webp", "p8": "sac-menthe.webp"}};
+  var ADOPT = 'jeere-model-products';
+  function names(list) { return (list || []).map(function (p) { return String(p && p.name || '').trim().toLowerCase(); }).sort().join('|'); }
+  function exampleNames() {
+    var D = root.JEERE_DATA || {}, set = {};
+    try { D.niches.forEach(function (t) { (t.products || []).forEach(function (p) { set[String(p.name || '').trim().toLowerCase()] = true; }); }); } catch (e) { /* none */ }
+    return set;
+  }
+  function productsFor(slug, cfg) {
+    var m = bySlug(slug);
+    if (!m || m.rdv || !PHOTOS[slug] || !cfg || !Array.isArray(cfg.products)) return Promise.resolve(null);
+    var last = null;
+    try { last = JSON.parse(root.localStorage.getItem(ADOPT) || 'null'); } catch (e) { last = null; }
+    var mine = names(cfg.products);
+    if (last && last.slug === slug) return Promise.resolve(null);   // already done for this model
+    var ex = exampleNames();
+    var untouched = cfg.products.length > 0 && (cfg.products.every(function (p) { return ex[String(p.name || '').trim().toLowerCase()]; }) || (last && last.names && last.names === mine));
+    if (!untouched) return Promise.resolve(null);                    // her own products: never replaced
+    return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/stores?slug=eq.' + encodeURIComponent(slug) + '&published=is.true&select=fiche',
+      { headers: { apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (rows) {
+        var src = rows && rows[0] && rows[0].fiche && Array.isArray(rows[0].fiche.products) ? rows[0].fiche.products : null;
+        if (!src || !src.length) return null;
+        var out = src.map(function (p) {
+          var file = PHOTOS[slug][p.id];
+          return { id: p.id, name: p.name, price: p.price, category: p.category || '', badge: p.badge || null, art: p.art || 'box', color: p.color || '#E9D8BD',
+            description: p.description || '', image: file ? 'https://kreeative.xyz/concepts/' + slug + '/img/' + file : null, photo: null };
+        });
+        try { root.localStorage.setItem(ADOPT, JSON.stringify({ slug: slug, names: names(out) })); } catch (e) { /* no storage */ }
+        return out;
+      }).catch(function () { return null; });
+  }
+
   root.JeereModels = {
+    productsFor: productsFor,
     LIST: LIST, INSTALL: INSTALL, installPrice: installPrice, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
     thumb: function (slug, base) { return (base || '../') + 'studio/sites/thumbs/concepts--' + slug + '.webp'; },
     demo: function (slug) { return 'https://kreeative.xyz/concepts/' + slug + '/'; },
