@@ -43,8 +43,8 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
     'Kelly, Jehre'
   ].filter(Boolean);
   const subject = active ? 'Finalisez votre inscription : il reste ' + left + ' place' + (left > 1 ? 's' : '') + ' à plus de 10 000 F offerts' : (trial ? 'Finalisez votre inscription : votre 1er mois est offert' : 'Finalisez votre inscription à Jehre');
-  const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
-  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
+  const font = "Poppins,'Helvetica Neue',Helvetica,Arial,sans-serif";
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"><title>' + esc(subject) + '</title></head>' +
     '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;">' +
     '<tr><td style="padding:26px 28px 6px 28px;font:700 20px/26px ' + font + ';color:#111111;">Jehre</td></tr>' +
@@ -80,9 +80,9 @@ async function inviteMail(id: string) {
     'Une question ? Répondez simplement à cet e-mail.',
     'Kelly, Jehre'
   ];
-  const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+  const font = "Poppins,'Helvetica Neue',Helvetica,Arial,sans-serif";
   const para = (t: string) => '<p style="margin:0 0 14px 0;">' + esc(t) + '</p>';
-  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"><title>' + esc(subject) + '</title></head>' +
     '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;">' +
     '<tr><td style="padding:26px 28px 6px 28px;font:700 20px/26px ' + font + ';color:#111111;">Jehre</td></tr>' +
@@ -117,7 +117,7 @@ function welcome(firstName: string, trial: boolean) {
     trial ? ['Votre 1er mois est offert', 'Le pack Essentiel est gratuit le premier mois. Ensuite 3 500 FCFA par mois, sans engagement.'] : null,
     ['Besoin d’aide ?', 'Répondez simplement à cet e-mail. Une vraie personne vous répond.']
   ].filter(Boolean) as string[][];
-  const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+  const font = "Poppins,'Helvetica Neue',Helvetica,Arial,sans-serif";
   const IMG = SITE + '/img/email/';
   // the logo's colours, in order: the full rainbow
   const RB = ['#E8467C', '#F08A3C', '#F0C414', '#22C97E', '#1E9BE0', '#6A4CFF', '#C13CE0'];
@@ -128,7 +128,7 @@ function welcome(firstName: string, trial: boolean) {
   const note = (c: string, x: string[]) => '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px 0;"><tr>' +
     '<td width="18" valign="top"><div style="width:8px;height:8px;border-radius:4px;background:' + c + ';margin-top:7px;"></div></td>' +
     '<td valign="top" style="font:400 14.5px/1.5 ' + font + ';color:#111111;"><b>' + esc(x[0]) + '</b><br><span style="color:#444444;">' + esc(x[1]) + '</span></td></tr></table>';
-  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"><title>' + esc(subject) + '</title></head>' +
     '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;overflow:hidden;">' +
     '<tr><td style="padding:0;line-height:0;"><a href="' + SITE + '/"><img src="' + IMG + 'entete.png" width="520" alt="Jehre" style="display:block;width:100%;height:auto;border:0;border-radius:18px 18px 0 0;"></a></td></tr>' +
