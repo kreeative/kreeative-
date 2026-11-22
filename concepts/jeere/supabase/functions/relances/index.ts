@@ -2,8 +2,11 @@
 // someone who started creating an account (code sent) and did not finish, 1 hour to 7 days later. The number of
 // launch-offer spots left in the e-mail is the real one (public.launch_spots).
 //
+// Also ONE welcome e-mail to each new account, once its e-mail is confirmed (public.pending_welcomes, recorded in
+// public.signup_welcomes): where the dashboard is, the first steps, how to log in again, how to get help.
+//
 //   Called every hour by pg_cron (job « jeere-relances ») with the header x-jeere-cron = public.jeere_cron.secret.
-//   body: { action: 'run' } → { ok, sent }      { action: 'dry' } → { ok, pending } (nothing sent)
+//   body: { action: 'run' } → { ok, sent }      { action: 'dry' } → { ok, pending, welcomes } (nothing sent)
 // E-mails through Resend (RESEND_API_KEY, the same secret as `orders`). Deployed with verify_jwt = false.
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? 'https://aezchxfvzfoqlvzchqyk.supabase.co';
@@ -52,6 +55,46 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
   return { subject, html, text: lines.join('\n\n') };
 }
 
+// The welcome: short, the few things a new seller needs to know.
+function welcome(firstName: string, trial: boolean) {
+  const hi = firstName ? 'Bonjour ' + firstName + ',' : 'Bonjour,';
+  const link = SITE + '/admin/';
+  const subject = 'Bienvenue sur Jehre : vos premiers pas';
+  const intro = 'Bienvenue sur Jehre. Votre compte est créé. Voici l’essentiel pour bien démarrer.';
+  const steps = [
+    ['Remplissez votre boutique', 'Ajoutez vos produits ou vos prestations, avec les prix et de belles photos.'],
+    ['Mettez vos contacts', 'Votre numéro WhatsApp et vos moyens de paiement (Wave, Orange Money, carte).'],
+    ['Publiez', 'Un bouton, et votre boutique a sa propre adresse à partager à vos clients.']
+  ];
+  const notes = [
+    ['Pour vous reconnecter', 'Pas de mot de passe. Entrez votre e-mail sur jehre.com, vous recevez un code à 6 chiffres.'],
+    ['Les modèles de designer', 'Des sites déjà dessinés pour votre métier, dans « Boutique en ligne ». Payés une seule fois.'],
+    trial ? ['Votre 1er mois est offert', 'Le pack Essentiel est gratuit le premier mois. Ensuite 3 500 FCFA par mois, sans engagement.'] : null,
+    ['Besoin d’aide ?', 'Répondez simplement à cet e-mail. Une vraie personne vous répond.']
+  ].filter(Boolean) as string[][];
+  const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+  const para = (t: string) => '<p style="margin:0 0 14px 0;">' + esc(t) + '</p>';
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
+    '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;">' +
+    '<tr><td style="padding:26px 28px 6px 28px;font:700 20px/26px ' + font + ';color:#111111;">Jehre</td></tr>' +
+    '<tr><td style="padding:12px 28px 6px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' +
+    para(hi) + para(intro) +
+    '<p style="margin:18px 0 10px 0;font-weight:700;">Vos 3 premiers pas</p>' +
+    steps.map((x, i) => '<p style="margin:0 0 12px 0;"><b>' + (i + 1) + '. ' + esc(x[0]) + '.</b> ' + esc(x[1]) + '</p>').join('') +
+    '<p style="margin:14px 0 22px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:12px 22px;border-radius:12px;">Ouvrir mon tableau de bord</a></p>' +
+    '<p style="margin:0 0 10px 0;font-weight:700;">Bon à savoir</p>' +
+    notes.map((x) => '<p style="margin:0 0 12px 0;"><b>' + esc(x[0]) + '.</b> ' + esc(x[1]) + '</p>').join('') +
+    para('À très vite,') + para('Kelly, Jehre') +
+    '</td></tr><tr><td style="padding:6px 28px 24px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">Vous recevez ce message parce que vous venez de créer un compte sur jehre.com.</td></tr>' +
+    '</table></td></tr></table></body></html>';
+  const text = [hi, intro, 'Vos 3 premiers pas',
+    ...steps.map((x, i) => (i + 1) + '. ' + x[0] + '. ' + x[1]),
+    'Votre tableau de bord : ' + link, 'Bon à savoir',
+    ...notes.map((x) => x[0] + '. ' + x[1]), 'À très vite,', 'Kelly, Jehre'].join('\n\n');
+  return { subject, html, text };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ ok: false, code: 'method' }, 405);
   if (!SECRET) return json({ ok: false, code: 'config' }, 500);
@@ -63,7 +106,8 @@ Deno.serve(async (req: Request) => {
 
   const pending = (await rpc('pending_signups')) as { id: string; email: string; first_name: string }[] | null;
   if (!Array.isArray(pending)) return json({ ok: false, code: 'db' }, 500);
-  if (b.action === 'dry') return json({ ok: true, pending: pending.length });
+  const fresh = ((await rpc('pending_welcomes')) as { id: string; email: string; first_name: string }[] | null) ?? [];
+  if (b.action === 'dry') return json({ ok: true, pending: pending.length, welcomes: fresh.length });
   if (!RESEND_KEY) return json({ ok: false, code: 'no_resend', pending: pending.length }, 503);
 
   const spots = (await rpc('launch_spots')) as Obj | null;
@@ -80,5 +124,17 @@ Deno.serve(async (req: Request) => {
     await db('signup_reminders', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({ user_id: p.id, ok }) });
     if (ok) sent++;
   }
-  return json({ ok: true, sent, pending: pending.length });
+  let welcomed = 0;
+  for (const p of fresh) {
+    const m = welcome(String(p.first_name || '').split(' ')[0].slice(0, 40), !!(spots && spots.trial));
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: [p.email], subject: m.subject, html: m.html, text: m.text, reply_to: 'contact@jehre.com' })
+    }).catch(() => null);
+    const ok = !!(r && r.ok);
+    // recorded either way: never two welcomes to the same person
+    await db('signup_welcomes', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({ user_id: p.id, ok }) });
+    if (ok) welcomed++;
+  }
+  return json({ ok: true, sent, pending: pending.length, welcomed, welcomes: fresh.length });
 });
