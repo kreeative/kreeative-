@@ -548,7 +548,18 @@
   function customSite() {
     let slug = '';
     try { slug = (JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {}).slug || ''; } catch (e) { slug = ''; }
-    return CUSTOM_SITES[slug] ? { slug, url: CUSTOM_SITES[slug] } : null;
+    if (CUSTOM_SITES[slug]) return { slug, url: CUSTOM_SITES[slug] };
+    // the designer model she bought: the editor shows it, with her products in it
+    const m = window.JeereModels && window.JeereModels.mine ? window.JeereModels.mine() : null;
+    return m && CUSTOM_SITES[m] ? { slug: m, url: CUSTOM_SITES[m], bought: true } : null;
+  }
+  // asked once to the server when the editor opens: a model bought on another device shows here too
+  let mineAsked = false;
+  function askMine() {
+    if (mineAsked || !window.JeereModels || !window.JeereModels.refreshMine) return;
+    mineAsked = true;
+    const before = window.JeereModels.mine();
+    window.JeereModels.refreshMine().then((now) => { if (now !== before && S.config) { try { setTab(S.tab); renderPreviewNow(); } catch (e) { /* next change redraws */ } } });
   }
   function sendCustom() {
     const c = customSite(), fr = els.store && els.store.querySelector('iframe.b-custom');
@@ -3979,6 +3990,7 @@
     init();
     const o = opts && typeof opts === 'object' ? opts : {};
     S.config = D.normalizeConfig(config);
+    askMine();
     resetHistory();
     S.openSection = null; S.openProduct = null; S.openItem = {};
     S.reorder = { sections: false, produits: false };

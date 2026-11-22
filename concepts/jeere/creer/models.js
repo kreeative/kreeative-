@@ -71,11 +71,27 @@
       .then(function (r) { if (r && r.ok) forget(); return r; });
   }
 
+  // The model this account bought, kept on the device so every page (the dashboard, the editor) shows it at once;
+  // refreshMine() asks the server (public.my_models) and corrects it.
+  var MINE = 'jeere-my-model';
+  function mine() { try { var s = root.localStorage.getItem(MINE); return bySlug(s) ? s : null; } catch (e) { return null; } }
+  function setMine(slug) { try { if (bySlug(slug)) root.localStorage.setItem(MINE, slug); else root.localStorage.removeItem(MINE); } catch (e) { /* no storage */ } }
+  function refreshMine() {
+    var A = root.JeereAuth;
+    return Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then(function (ses) {
+      if (!ses || !ses.access_token) return mine();
+      return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/rpc/my_models', { method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + ses.access_token }, body: '{}' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (Array.isArray(j)) setMine(j[0] ? j[0].model : ''); return mine(); });
+    }).catch(function () { return mine(); });
+  }
+
   root.JeereModels = {
     LIST: LIST, INSTALL: INSTALL, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
     thumb: function (slug, base) { return (base || '../') + 'studio/sites/thumbs/concepts--' + slug + '.webp'; },
     demo: function (slug) { return 'https://kreeative.xyz/concepts/' + slug + '/'; },
-    want: want, wanted: wanted, forget: forget, buy: buy,
+    want: want, wanted: wanted, forget: forget, buy: buy, mine: mine, setMine: setMine, refreshMine: refreshMine,
     // once, on the way back from the payment: did she pay for the installation?
     paidInstall: function () { var v = null; try { v = root.localStorage.getItem(KEY + '-install'); root.localStorage.removeItem(KEY + '-install'); } catch (e) { /* no storage */ } return v === '1'; }
   };

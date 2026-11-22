@@ -417,6 +417,7 @@
           body: '{}' }).then((r) => (r.ok ? r.json() : null));
       }).catch(() => null).then((j) => {
         S.myModels = { loading: false, list: Array.isArray(j) ? j : [] };
+        if (Array.isArray(j) && window.JeereModels && window.JeereModels.setMine) window.JeereModels.setMine(j[0] ? j[0].model : '');
         if (S.myModels.list.length && S.inApp) refresh();
       });
     }
