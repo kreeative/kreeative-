@@ -494,7 +494,7 @@
     const stores = list.reduce((n, a) => n + arr(a.stores).length, 0);
     const paying = list.filter((a) => arr(a.stores).some((x) => x.plan && x.plan !== 'gratuit' && !x.plan_promo)).length;
     const models = list.reduce((n, a) => n + arr(a.models).length, 0);
-    return H`<section class="a-card a-accts" aria-labelledby="h-accts"><div class="a-card__head"><div><h2 class="a-card__title" id="h-accts">Comptes Jehre</h2><p class="a-card__sub">Visible par vous seule.</p></div></div>
+    return H`<section class="a-card a-accts" aria-labelledby="h-accts"><div class="a-card__head"><div><h2 class="a-card__title" id="h-accts">Comptes Jehre</h2><p class="a-card__sub">Visible par vous seule.</p></div><a class="a-btn a-btn--ghost a-btn--sm" href="../atlas/">Ouvrir Atlas</a></div>
       <dl class="a-growth__tot">
         <div><dt>Comptes</dt><dd>${esc(String(list.length))}</dd></div>
         <div><dt>E-mail confirmé</dt><dd>${esc(String(list.filter((a) => a.confirmed).length))}</dd></div>
@@ -1059,7 +1059,7 @@
   /* ---------- client projects: the switcher (../creer/projects.js) ---------- */
 
   const PJ = () => window.JeereProjects || null;
-  const ROLE_LABEL = { owner: 'Propriétaire', agency: 'Agence', editor: 'Éditeur' };
+  const ROLE_LABEL = { owner: 'Propriétaire', agency: 'Agence', editor: 'Associé' };
   const STATUS_LABEL = { proposition: 'Proposition', en_cours: 'En cours', livre: 'Livré' };
   const MODE_LABEL = { entretien: 'Avec pack entretien', remis: 'Remise complète', editor: 'Modification seule' };
   const projName = (e) => (e && (e.clientName || e.storeName || e.slug)) || 'Ma boutique';
@@ -4172,12 +4172,79 @@
     toast('Domaine ajouté. Faites le réglage DNS, puis vérifiez.');
   }
 
+  // Partners: the friends she runs the business with. Each one logs in to Jehre with her own e-mail and gets the
+  // dashboard of this store; the owner alone invites, removes, pays the subscription and receives the money.
+  const SB = 'https://aezchxfvzfoqlvzchqyk.supabase.co', SBK = 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w';
+  function sbCall(path, init) {
+    const A = window.JeereAuth;
+    return Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then((ses) => {
+      if (!ses || !ses.access_token) return null;
+      return fetch(SB + path, Object.assign({}, init, { headers: { 'Content-Type': 'application/json', apikey: SBK, Authorization: 'Bearer ' + ses.access_token } }));
+    }).catch(() => null);
+  }
+  function partners(e) {
+    if (!S.partners || S.partners.id !== e.id) {
+      S.partners = { id: e.id, loading: true, list: [] };
+      sbCall('/rest/v1/rpc/store_team', { method: 'POST', body: JSON.stringify({ p_store: e.id }) })
+        .then((r) => (r && r.ok ? r.json() : null)).catch(() => null)
+        .then((j) => { if (S.partners && S.partners.id === e.id) { S.partners = { id: e.id, loading: false, list: Array.isArray(j) ? j : [] }; if (S.inApp && S.partners.list.length) refresh(); } });
+    }
+    return S.partners.list;
+  }
+  function partnersCard() {
+    const e = projCurrent();
+    if (!(S.account && S.account.userId)) return '';
+    if (e && e.role !== 'owner') return H`<section class="a-card"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title">Vous êtes associée</h3><p class="a-card__sub">Cette boutique appartient à ${esc(e.owner || 'sa propriétaire')}. Vous pouvez la gérer avec elle. L’abonnement, les paiements et les accès restent chez elle.</p></div></div></section>`;
+    if (!e || !e.remote) return H`<section class="a-card"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title">Vos associés</h3><p class="a-card__sub">Vous tenez la boutique à plusieurs ? Publiez-la d’abord, puis invitez vos associés ici.</p></div></div></section>`;
+    const list = partners(e), inv = (e.invites || []).filter((i) => i.mode === 'editor');
+    return H`<section class="a-card" aria-labelledby="h-partners"><div class="a-card__head"><div><h3 class="a-card__title" id="h-partners">Vos associés</h3><p class="a-card__sub">Vous tenez la boutique à plusieurs ? Chacun se connecte avec son propre e-mail et voit le même tableau de bord.</p></div></div>
+        <div class="a-member"><span class="a-avatar">${esc(initials(S.account.firstName || 'Vous'))}</span><span class="a-member__main"><span class="a-member__name">${esc(S.account.firstName || 'Vous')} <span class="a-chip">Vous</span></span><span class="a-member__meta">Propriétaire · vous seule gérez l’abonnement, les paiements et les accès</span></span></div>
+        ${list.filter((m) => m.role === 'editor').map((m) => H`<div class="a-member"><span class="a-avatar">${esc(initials(m.first_name || m.email || '?'))}</span><span class="a-member__main"><span class="a-member__name">${esc(m.first_name || m.email)}</span><span class="a-member__meta">${esc(m.email)} · Associé</span></span>
+          <button class="a-btn a-btn--quiet a-btn--sm" type="button" data-act="partner-remove" data-user="${esc(m.user_id)}" data-name="${esc(m.first_name || m.email)}">Retirer</button></div>`)}
+        ${inv.map((i) => H`<div class="a-member"><span class="a-avatar">${esc(initials(i.email))}</span><span class="a-member__main"><span class="a-member__name">${esc(i.email)}</span><span class="a-member__meta">Invitation envoyée · en attente</span></span>
+          <button class="a-btn a-btn--quiet a-btn--sm" type="button" data-act="partner-cancel" data-invite="${esc(i.id)}">Annuler</button></div>`)}
+        <form class="a-form" data-form="partner" data-light novalidate style="margin-top:14px">
+          <div class="a-field"><label class="a-label" for="pt-email">E-mail de votre associé</label><input class="a-input" id="pt-email" name="email" type="email" inputmode="email" autocomplete="off" maxlength="254" placeholder="son adresse e-mail"></div>
+          <div class="a-formfoot"><button class="a-btn a-btn--primary" type="submit">${ico('plus')}Inviter</button></div>
+          <p class="a-small" style="margin-top:8px">Il reçoit un e-mail. Il se connecte à Jehre avec cette adresse, et la boutique apparaît chez lui.</p>
+        </form></section>`;
+  }
+  async function savePartnerForm(form) {
+    clearErrors(form);
+    const e = projCurrent();
+    if (!e) return;
+    const email = str(form.elements.email.value).trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { invalid(form.elements.email, 'Écrivez son adresse e-mail.'); focusFirstError(form); return; }
+    if (S.partners && S.partners.list.some((m) => m.email === email)) { invalid(form.elements.email, 'Cette personne gère déjà la boutique.'); focusFirstError(form); return; }
+    const r = await PJ().invite(e.id, email, 'editor');
+    if (!r.ok) { refresh('#pt-email'); const f = $('form[data-form="partner"]'); if (f) { f.elements.email.value = email; invalid(f.elements.email, r.message || 'L’invitation n’a pas pu être envoyée.'); } return; }
+    clearDirty();
+    refresh('#pt-email');
+    toast('Invitation envoyée à ' + email + '.', { tone: 'ok' });
+  }
+  function cancelPartner(el) {
+    const e = projCurrent();
+    if (!e) return;
+    PJ().cancelInvite(e.id, el.getAttribute('data-invite')).then((r) => { if (r.ok) { refresh(); toast('Invitation annulée.', { tone: 'ok' }); } else toast(r.message || 'L’invitation n’a pas pu être annulée.'); });
+  }
+  async function removePartner(el) {
+    const e = projCurrent(), uid = el.getAttribute('data-user'), name = el.getAttribute('data-name') || 'cette personne';
+    if (!e || !uid) return;
+    const ok = await confirmBox({ title: 'Retirer ' + name + ' ?', text: 'Cette personne ne verra plus la boutique et ne pourra plus la gérer.', ok: 'Retirer', danger: true });
+    if (!ok) { focusMain(); return; }
+    const r = await sbCall('/rest/v1/store_members?store_id=eq.' + encodeURIComponent(e.id) + '&user_id=eq.' + encodeURIComponent(uid), { method: 'DELETE' });
+    if (!r || !r.ok) { toast('L’accès n’a pas pu être retiré. Réessayez.'); return; }
+    S.partners = null;
+    refresh();
+    toast(name + ' n’a plus accès à la boutique.', { tone: 'ok' });
+  }
+
   function setEquipe() {
     const team = S.admin.settings.team;
     const roles = arr(D.TEAM_ROLES).length ? D.TEAM_ROLES : [{ id: 'proprietaire', label: 'Propriétaire' }, { id: 'gestion', label: 'Gestion' }, { id: 'livraison', label: 'Livraison' }];
     const owners = team.filter((m) => m.role === 'proprietaire').length;
     const roleLabel = (id) => (roles.find((r) => r.id === id) || {}).label || id;
-    return H`<section class="a-card" aria-labelledby="h-team"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title" id="h-team">Qui gère la boutique</h3><p class="a-card__sub">Chacun se connecte avec son propre numéro.</p></div></div>
+    return partnersCard() + H`<section class="a-card" aria-labelledby="h-team"><div class="a-card__head" style="margin-bottom:0"><div><h3 class="a-card__title" id="h-team">Qui gère la boutique</h3><p class="a-card__sub">Chacun se connecte avec son propre numéro.</p></div></div>
         ${team.length ? team.map((m, i) => H`<div class="a-member"><span class="a-avatar">${esc(initials(m.name || '?'))}</span><span class="a-member__main"><span class="a-member__name">${esc(m.name || 'Sans nom')}${S.account && m.phone === S.account.phone ? H` <span class="a-chip">Vous</span>` : ''}</span><span class="a-member__meta">${esc(phoneFmt(m.phone))} · ${esc(roleLabel(m.role))}</span></span>
           ${canRemove(m, owners) ? H`<button class="a-ibtn" type="button" data-act="team-remove" data-i="${i}" aria-label="${esc('Retirer ' + (m.name || 'cette personne'))}">${ico('trash')}</button>` : ''}</div>`) : H`<p class="a-small" style="margin-top:10px">Personne pour l’instant.</p>`}
         <p class="a-small" style="margin-top:10px">Les personnes au rôle Livraison sont vos livreurs : vous leur confiez les commandes depuis la commande. <button class="a-link" type="button" data-act="couriers">Gérer mes livreurs</button></p>
@@ -5002,6 +5069,8 @@
       if (isOn('domain')) S.admin.connectors.domain.status = 'off';
       saveAdmin(); refresh('#d-cust'); toast('Domaine retiré.');
     },
+    'partner-remove': (el) => removePartner(el),
+    'partner-cancel': (el) => cancelPartner(el),
     'team-remove': (el) => removeMember(parseInt(el.getAttribute('data-i'), 10)),
     'plan': (el) => choosePlan(el.getAttribute('data-v')),
     'billing-portal': () => { Promise.resolve(window.JeereBilling && window.JeereBilling.portal()).then((x) => { if (x && !x.ok) toast(x.message || 'Votre espace de paiement n’a pas pu s’ouvrir.'); }); },
@@ -5024,7 +5093,7 @@
     'delete-account': () => deleteAccount()
   };
 
-  const FORMS = { product: saveProductForm, prefs: savePrefsForm, page: savePageForm, zones: saveZonesForm, subdomain: saveSubdomainForm, domain: saveDomainForm, invite: saveInviteForm, promo: savePromoForm, studiomember: saveStudioMember };
+  const FORMS = { product: saveProductForm, prefs: savePrefsForm, page: savePageForm, zones: saveZonesForm, subdomain: saveSubdomainForm, domain: saveDomainForm, invite: saveInviteForm, partner: savePartnerForm, promo: savePromoForm, studiomember: saveStudioMember };
   const DFORMS = { newproject: saveNewProject, projinvite: saveProjInvite, connector: saveConnectorForm, paymm: savePayForm, delete: doDeleteAccount, neworder: saveNewOrderForm, courier: saveCourierForm, fail: saveFailForm, deposit: saveDepositForm };
 
   function onClick(e) {

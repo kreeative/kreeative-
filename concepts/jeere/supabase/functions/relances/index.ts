@@ -5,6 +5,8 @@
 // Also ONE welcome e-mail to each new account, once its e-mail is confirmed (public.pending_welcomes, recorded in
 // public.signup_welcomes): where the dashboard is, the first steps, how to log in again, how to get help.
 //
+// And the invitation e-mail of a partner or a client: { action: 'invite', id } sent by the trigger on public.store_invites.
+//
 //   Called every hour by pg_cron (job « jeere-relances ») with the header x-jeere-cron = public.jeere_cron.secret.
 //   body: { action: 'run' } → { ok, sent }      { action: 'dry' } → { ok, pending, welcomes } (nothing sent)
 // E-mails through Resend (RESEND_API_KEY, the same secret as `orders`). Deployed with verify_jwt = false.
@@ -55,6 +57,50 @@ function mail(firstName: string, left: number, months: number, active: boolean, 
   return { subject, html, text: lines.join('\n\n') };
 }
 
+// The invitation: « X vous invite à gérer la boutique Y ». One e-mail per row of public.store_invites (notified_at).
+async function inviteMail(id: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return json({ ok: false, code: 'id' }, 400);
+  const inv = (await db('store_invites?select=id,email,mode,store_id,invited_by,notified_at,accepted_at&id=eq.' + id).then((r) => (r.ok ? r.json() : [])).catch(() => []) as Obj[])[0];
+  if (!inv || inv.notified_at || inv.accepted_at) return json({ ok: true, sent: 0 });
+  if (!RESEND_KEY) return json({ ok: false, code: 'no_resend' }, 503);
+  const st = (await db('stores?select=slug,client_name,fiche->store->>name&id=eq.' + inv.store_id).then((r) => (r.ok ? r.json() : [])).catch(() => []) as Obj[])[0] ?? {};
+  const shop = String(st.name || st.client_name || st.slug || 'une boutique').slice(0, 80);
+  const who = inv.invited_by ? (await db('profiles?select=first_name&id=eq.' + inv.invited_by).then((r) => (r.ok ? r.json() : [])).catch(() => []) as Obj[])[0] : null;
+  const by = String((who && who.first_name) || '').split(' ')[0].slice(0, 40);
+  const to = String(inv.email);
+  const link = SITE + '/compte/#connexion';
+  const partner = inv.mode === 'editor';
+  const subject = partner ? (by ? by + ' vous invite à gérer ' + shop + ' sur Jehre' : 'Vous êtes invité à gérer ' + shop + ' sur Jehre') : 'Votre boutique ' + shop + ' vous attend sur Jehre';
+  const lines = [
+    'Bonjour,',
+    partner
+      ? (by ? by + ' vous invite' : 'Vous êtes invité') + ' à gérer la boutique « ' + shop + ' » sur Jehre : les commandes, les produits, les rendez-vous, le site.'
+      : 'La boutique « ' + shop + ' » a été préparée pour vous sur Jehre. Elle vous attend.',
+    'Pour y accéder, connectez-vous à Jehre avec cette adresse e-mail (' + to + '). Pas de mot de passe : vous recevez un code à 6 chiffres. La boutique apparaît ensuite dans votre tableau de bord.',
+    'Une question ? Répondez simplement à cet e-mail.',
+    'Kelly, Jehre'
+  ];
+  const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+  const para = (t: string) => '<p style="margin:0 0 14px 0;">' + esc(t) + '</p>';
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
+    '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;">' +
+    '<tr><td style="padding:26px 28px 6px 28px;font:700 20px/26px ' + font + ';color:#111111;">Jehre</td></tr>' +
+    '<tr><td style="padding:12px 28px 6px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' +
+    lines.slice(0, 3).map(para).join('') +
+    '<p style="margin:6px 0 18px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:12px 22px;border-radius:12px;">Me connecter à Jehre</a></p>' +
+    lines.slice(3).map(para).join('') +
+    '</td></tr><tr><td style="padding:6px 28px 24px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">Vous recevez ce message parce qu’une personne vous a invité sur jehre.com. Si ce n’est pas attendu, ignorez-le.</td></tr>' +
+    '</table></td></tr></table></body></html>';
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: FROM, to: [to], subject, html, text: lines.slice(0, 3).concat([link], lines.slice(3)).join('\n\n'), reply_to: 'contact@jehre.com' })
+  }).catch(() => null);
+  const ok = !!(r && r.ok);
+  if (ok) await db('store_invites?id=eq.' + id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ notified_at: new Date().toISOString() }) });
+  return json({ ok, sent: ok ? 1 : 0 });
+}
+
 // The welcome: short, the few things a new seller needs to know.
 function welcome(firstName: string, trial: boolean) {
   const hi = firstName ? 'Bonjour ' + firstName + ',' : 'Bonjour,';
@@ -84,14 +130,14 @@ function welcome(firstName: string, trial: boolean) {
     steps.map((x, i) => '<p style="margin:0 0 12px 0;"><b>' + (i + 1) + '. ' + esc(x[0]) + '.</b> ' + esc(x[1]) + '</p>').join('') +
     '<p style="margin:14px 0 22px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:12px 22px;border-radius:12px;">Ouvrir mon tableau de bord</a></p>' +
     '<p style="margin:0 0 10px 0;font-weight:700;">Bon à savoir</p>' +
-    notes.map((x) => '<p style="margin:0 0 12px 0;"><b>' + esc(x[0]) + '.</b> ' + esc(x[1]) + '</p>').join('') +
+    notes.map((x) => '<p style="margin:0 0 12px 0;"><b>' + esc(x[0]) + (/[?!]$/.test(x[0]) ? '' : '.') + '</b> ' + esc(x[1]) + '</p>').join('') +
     para('À très vite,') + para('Kelly, Jehre') +
     '</td></tr><tr><td style="padding:6px 28px 24px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">Vous recevez ce message parce que vous venez de créer un compte sur jehre.com.</td></tr>' +
     '</table></td></tr></table></body></html>';
   const text = [hi, intro, 'Vos 3 premiers pas',
     ...steps.map((x, i) => (i + 1) + '. ' + x[0] + '. ' + x[1]),
     'Votre tableau de bord : ' + link, 'Bon à savoir',
-    ...notes.map((x) => x[0] + '. ' + x[1]), 'À très vite,', 'Kelly, Jehre'].join('\n\n');
+    ...notes.map((x) => x[0] + (/[?!]$/.test(x[0]) ? ' ' : '. ') + x[1]), 'À très vite,', 'Kelly, Jehre'].join('\n\n');
   return { subject, html, text };
 }
 
@@ -103,6 +149,8 @@ Deno.serve(async (req: Request) => {
   if (!want || req.headers.get('x-jeere-cron') !== want) return json({ ok: false, code: 'forbidden' }, 403);
   let b: Obj = {};
   try { const x = await req.json(); if (x && typeof x === 'object') b = x as Obj; } catch { /* empty */ }
+
+  if (b.action === 'invite') return inviteMail(String(b.id ?? ''));
 
   const pending = (await rpc('pending_signups')) as { id: string; email: string; first_name: string }[] | null;
   if (!Array.isArray(pending)) return json({ ok: false, code: 'db' }, 500);
