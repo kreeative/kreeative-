@@ -1728,3 +1728,12 @@ a:not([class]) { font-weight: 600; }
 /* what comes next, after a payment */
 .a-nextsteps { margin: 10px 0 0; padding-left: 24px; list-style: decimal; display: grid; gap: 6px; font-size: 15px; line-height: 1.5; }
 .a-nextsteps li { list-style: decimal; }
+
+/* the founder's list of accounts */
+.a-accts__wrap { overflow-x: auto; margin-top: 12px; }
+.a-accts__t { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 14px; }
+.a-accts__t th { text-align: left; font-weight: 500; font-size: 12.5px; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.a-accts__t td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+.a-accts__t tr[hidden] { display: none; }
+.a-accts__m { color: var(--muted); font-size: 13px; }
+.a-home > .a-accts { grid-column: 1; min-width: 0; }

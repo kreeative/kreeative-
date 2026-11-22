@@ -407,6 +407,46 @@
       if (S.route && S.route.name === 'accueil') refresh();
     });
   }
+  /* The founder's list of accounts (Accueil): who signed up, their stores and plans, the models they bought.
+   * Read from public.jeere_accounts (site_editors only). */
+  function loadAccounts() {
+    if (S.accts && (S.accts.loading || Date.now() - S.accts.at < 60000)) return;
+    S.accts = Object.assign({}, S.accts || {}, { loading: true });
+    const A = window.JeereAuth;
+    Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then((ses) => {
+      if (!ses || !ses.access_token) return null;
+      return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/rpc/jeere_accounts', { method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + ses.access_token },
+        body: '{}' }).then((r) => (r.ok ? r.json() : null));
+    }).catch(() => null).then((j) => {
+      S.accts = { at: Date.now(), data: Array.isArray(j) ? j : null };
+      if (S.route && S.route.name === 'accueil') refresh();
+    });
+  }
+  function accountsCard() {
+    loadAccounts();
+    const list = S.accts && S.accts.data;
+    if (!list) return H`<section class="a-card a-accts"><h2 class="a-card__title">Comptes Jehre</h2><p class="a-card__sub">${S.accts && !S.accts.loading ? 'La liste n’a pas pu se charger.' : 'Chargement…'}</p></section>`;
+    const PLAN = { gratuit: 'Gratuit', essentiel: 'Essentiel', pro: 'Pro', business: 'Business' };
+    const day = (v) => { const d = v ? new Date(v) : null; return d && !isNaN(d) ? d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; };
+    const stores = list.reduce((n, a) => n + arr(a.stores).length, 0);
+    const paying = list.filter((a) => arr(a.stores).some((x) => x.plan && x.plan !== 'gratuit' && !x.plan_promo)).length;
+    const models = list.reduce((n, a) => n + arr(a.models).length, 0);
+    return H`<section class="a-card a-accts" aria-labelledby="h-accts"><div class="a-card__head"><div><h2 class="a-card__title" id="h-accts">Comptes Jehre</h2><p class="a-card__sub">Visible par vous seule.</p></div></div>
+      <dl class="a-growth__tot">
+        <div><dt>Comptes</dt><dd>${esc(String(list.length))}</dd></div>
+        <div><dt>E-mail confirmé</dt><dd>${esc(String(list.filter((a) => a.confirmed).length))}</dd></div>
+        <div><dt>Boutiques</dt><dd>${esc(String(stores))}</dd></div>
+        <div><dt>Formule payée</dt><dd>${esc(String(paying))}</dd></div>
+        <div><dt>Modèles achetés</dt><dd>${esc(String(models))}</dd></div></dl>
+      <input class="a-input" type="search" data-accts-q placeholder="Chercher un nom, un e-mail, une boutique" aria-label="Chercher un compte" autocomplete="off" style="margin-top:14px">
+      <div class="a-accts__wrap"><table class="a-accts__t"><thead><tr><th>Compte</th><th>Inscrit le</th><th>Dernière visite</th><th>Boutiques et formules</th><th>Modèles</th></tr></thead>
+        <tbody>${list.map((a) => H`<tr data-accts-row="${esc(([a.first_name, a.email, a.phone].concat(arr(a.stores).map((x) => x.name + ' ' + x.slug))).join(' ').toLowerCase())}">
+          <td><strong>${esc(a.first_name || '—')}</strong>${a.confirmed ? '' : H` <span class="a-chip a-chip--line">non confirmé</span>`}<br><span class="a-accts__m">${esc(a.email || '')}${a.phone ? ' · ' + esc(a.phone) : ''}${a.source ? ' · via ' + esc(a.source) : ''}</span></td>
+          <td>${esc(day(a.created_at))}</td><td>${esc(day(a.last_sign_in_at))}</td>
+          <td>${arr(a.stores).length ? arr(a.stores).map((x) => H`<div><a class="a-link" href="https://jehre.com/b/${esc(x.slug)}" target="_blank" rel="noopener">${esc(x.name)}</a> · <strong>${esc(PLAN[x.plan] || x.plan || 'Gratuit')}</strong>${x.plan_promo ? ' (offert)' : ''}${x.plan_until ? H` <span class="a-accts__m">jusqu’au ${esc(day(x.plan_until))}</span>` : ''}${x.published ? '' : H` <span class="a-accts__m">· pas en ligne</span>`}</div>`) : H`<span class="a-accts__m">Aucune boutique</span>`}</td>
+          <td>${arr(a.models).length ? arr(a.models).map((m) => H`<div><strong>${esc(String(m.model || '').toUpperCase())}</strong>${m.install ? ' + installation' : ''} <span class="a-accts__m">${esc(price(m.amount || 0))} · ${esc(day(m.at))}</span></div>`) : '—'}</td></tr>`)}</tbody></table></div></section>`;
+  }
   function growthCard() {
     loadGrowth();
     const g = S.growth && S.growth.data;
@@ -1614,7 +1654,7 @@
         <a class="a-today__main" href="#commandes?statut=a-preparer"><span class="a-today__k" id="h-today">Aujourd’hui</span><span class="a-today__v">${esc(fr(todayTxt))}</span>${ico('chev', 'a-today__go')}</a>
         <button class="a-btn a-btn--inv a-today__btn" type="button" data-act="order-new">${ico('plus')}Nouvelle commande</button>
       </section>
-      ${founder() ? growthCard() : ''}
+      ${founder() ? growthCard() + accountsCard() : ''}
       ${checkHidden ? '' : H`<section class="a-card a-home__check${allDone ? ' is-ready' : ''}" aria-labelledby="h-check">
         <div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-check">${allDone ? 'Votre boutique est prête' : 'Premiers pas'}</h2>
 </div>
@@ -4987,6 +5027,11 @@
       Promise.resolve(window.JeereBilling.sync()).then((j) => { if (j && Array.isArray(j.stores)) { S.storePlans = S.storePlans || {}; j.stores.forEach((x) => { S.storePlans[x.id] = { plan: x.plan, until: x.plan_until, promo: x.plan_promo, at: Date.now() }; }); } if (j && j.applied) { try { S.account = readAccount(); } catch (e) { /* keep */ } refresh(); } }, () => {});
     }
     document.addEventListener('click', (e) => { const b = e.target && e.target.closest ? e.target.closest('[data-model-buy]') : null; if (b) { e.preventDefault(); openModelBuy(b.getAttribute('data-model-buy')); } });
+    document.addEventListener('input', (e) => {
+      const q = e.target && e.target.matches && e.target.matches('[data-accts-q]') ? e.target.value.trim().toLowerCase() : null;
+      if (q === null) return;
+      $$('[data-accts-row]').forEach((tr) => { tr.hidden = !!q && tr.getAttribute('data-accts-row').indexOf(q) === -1; });
+    });
     // A designer model: « Choisir ce modèle » (#modele=<slug>), the model she picked before creating her account
     // (creer/models.js remembers it), and the way back from its payment (?modele=ok|annule)
     const mBack = /[?&]modele=(ok|annule)(?:&nom=([a-z]+))?/.exec(window.location.search);

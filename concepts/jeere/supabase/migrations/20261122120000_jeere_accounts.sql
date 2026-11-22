@@ -1,0 +1,5 @@
+-- Applied with the Supabase MCP (jeere_accounts): public.jeere_accounts(), the founder's list of accounts in her
+-- dashboard (Accueil › « Comptes Jehre »): each account (e-mail, first name, phone, sign-up and last sign-in dates,
+-- source), its stores with their plan, and the designer models it bought. Like public.jeere_stats, it answers only
+-- to an e-mail listed in public.site_editors (anyone else gets 42501), and the anonymous role cannot call it.
+-- The definition is in the database (security definer, search_path '').
