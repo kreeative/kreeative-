@@ -53,7 +53,8 @@ async function handler(req, res) {
       body: JSON.stringify({
         p_slug: slug, p_visitor: visitor, p_country: head(req, 'x-vercel-ip-country') || null, p_city: city || null,
         p_lat: num(head(req, 'x-vercel-ip-latitude')), p_lon: num(head(req, 'x-vercel-ip-longitude')),
-        p_path: String((b && b.path) || '').slice(0, 200) || null
+        // the page only: never what follows « ? » or « # » (a sign-in link carries its key there)
+        p_path: String((b && b.path) || '').split('?')[0].split('#')[0].slice(0, 80) || null
       })
     }).catch(() => null);
   } catch (e) { /* a visit that is not counted never breaks a store */ }

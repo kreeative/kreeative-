@@ -106,8 +106,8 @@
   // a page of jehre.com, as she would call it
   function pageName(p) {
     var m = { '/': 'Accueil', '/creer/': 'Créer une boutique', '/compte/': 'Compte', '/admin/': 'Tableau de bord', '/abonnements/': 'Tarifs du Studio', '/studio/': 'Studio', '/a-propos/': 'À propos', '/pitch/': 'Pitch' };
-    var k = String(p || '/').replace(/index\.html$/, ''); if (k.charAt(k.length - 1) !== '/') k += '/';
-    return m[k] || k;
+    var k = String(p || '/').split('?')[0].split('#')[0].replace(/index\.html$/, ''); if (k.charAt(k.length - 1) !== '/') k += '/';
+    return m[k] || (k.length > 40 ? k.slice(0, 40) + '…' : k);
   }
   function draw(now) {
     var cv = document.getElementById('lv-globe');
