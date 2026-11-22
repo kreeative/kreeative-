@@ -3900,7 +3900,12 @@
   // Elsewhere (demo, a store of this browser only) the connector stays the prototype's form.
   const PAY_FN = 'https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/payments';
   const STRIPE_COUNTRIES = [['CA', 'Canada'], ['US', 'États-Unis'], ['FR', 'France'], ['BE', 'Belgique'], ['CH', 'Suisse'], ['GB', 'Royaume-Uni'], ['DE', 'Allemagne'], ['ES', 'Espagne'], ['IT', 'Italie'], ['NL', 'Pays-Bas'], ['PT', 'Portugal'], ['IE', 'Irlande'], ['LU', 'Luxembourg']];
-  function remoteStoreId() { try { const r = window.JeerePublish && window.JeerePublish.local(); return r && r.storeId ? r.storeId : ''; } catch (e) { return ''; } }
+  // the store on Jehre's server: the one published from this device, else (another phone, a new browser) the store
+  // in view in her list, when it is hers
+  function remoteStoreId() {
+    try { const r = window.JeerePublish && window.JeerePublish.local(); if (r && r.storeId) return r.storeId; } catch (e) { /* next */ }
+    try { const e = projCurrent(); return e && e.remote && e.role === 'owner' && /^[0-9a-f-]{36}$/i.test(String(e.id)) ? e.id : ''; } catch (e) { return ''; }
+  }
   async function payCall(body) {
     const A = window.JeereAuth;
     const s = A && typeof A.session === 'function' ? await Promise.resolve(A.session()).catch(() => null) : null;
@@ -4034,6 +4039,13 @@
   function openConnector(id) {
     if (id === 'livreurs') { openCouriers(); return; }
     if (id === 'card' && remoteStoreId()) { openStripe(); return; }
+    // a real account never gets the old demo form for the card: Stripe needs the store to be online first
+    if (id === 'card' && S.account && S.account.userId) {
+      openDialog(H`<div class="a-dialog__card">${dlgHead('spp-t', 'Accepter les cartes avec Stripe')}
+        <div class="a-dialog__body"><p class="a-dialog__lead">Publiez d’abord votre boutique. Ensuite, revenez ici : vous créez votre compte Stripe en quelques minutes, et vos clients paient par carte.</p></div>
+        <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close>Plus tard</button><button class="a-btn a-btn--primary" type="button" data-act="publish" data-close>Publier ma boutique</button></div></div>`, { labelledby: 'spp-t' });
+      return;
+    }
     const c = connector(id);
     if (!c || c.soon) return;
     const cur = conn(id);
