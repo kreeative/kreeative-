@@ -1072,6 +1072,7 @@
     m.innerHTML = H`<div class="a-acct__head"><span class="a-avatar">${esc(initials(acc.firstName || storeName()).charAt(0))}</span>
         <span class="a-acct__who"><strong>${esc(acc.firstName || 'Mon compte')}</strong><span>${esc(phoneFmt(acc.phone) || 'Numéro non renseigné')}</span></span></div>
       <div class="a-acct__plan"><span>Formule <strong>${esc(p.name)}</strong>${S.admin && S.admin.settings.billing.paused ? ' · en pause' : ''}</span><a class="a-link" href="#parametres/abonnement">Changer</a></div>
+      ${acctsAllowed() || founder() ? H`<a class="a-menu-item" href="../atlas/"><strong>${ico('chart')}Atlas · mon espace administrateur</strong></a>` : ''}
       <a class="a-menu-item" href="#parametres">${ico('gear')}Paramètres</a>
       <button class="a-menu-item" type="button" data-act="view-store">${ico('eye')}Voir la boutique</button>
       <button class="a-menu-item" type="button" data-act="share-store">${ico('share')}Partager ma boutique</button>
