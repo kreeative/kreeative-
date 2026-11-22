@@ -773,7 +773,7 @@
     useProvider: function (id) { if (id === 'demo' || providers[id]) activeProvider = id; return activeProvider; },
     startCheckout: startCheckout,
     // a designer model, paid once by card (creer/models.js): the server knows the price
-    buyModel: function (slug, o) { o = o || {}; return billingCall({ action: 'model', model: slug, storeId: o.storeId || '', shopName: o.shopName || '', sells: o.sells || '', returnUrl: o.returnUrl || here() }); },
+    buyModel: function (slug, o) { o = o || {}; return billingCall({ action: 'model', model: slug, install: o.install === true, storeId: o.storeId || '', shopName: o.shopName || '', sells: o.sells || '', returnUrl: o.returnUrl || here() }); },
     PRODUCT_TYPES: PRODUCT_TYPES,
     startProductCheckout: startProductCheckout
   };

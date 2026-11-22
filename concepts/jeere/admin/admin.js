@@ -2360,7 +2360,7 @@
     const JM = window.JeereModels;
     if (!JM || EXT()) return '';
     return H`<section class="a-card" aria-labelledby="h-models"><div class="a-card__head"><div><h2 class="a-card__title" id="h-models">Modèles de designer</h2>
-      <p class="a-card__sub">Un site dessiné pour votre métier. Payé une seule fois, installé par notre équipe.</p></div></div>
+      <p class="a-card__sub">Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.</p></div></div>
       <ul class="a-models">${JM.LIST.map((m) => H`<li class="a-model">
         <a class="a-model__shot" href="${JM.demo(m.slug)}" target="_blank" rel="noopener" aria-label="${esc(fr('Voir la démo du modèle ' + m.name))}"><img src="${JM.thumb(m.slug)}" alt="" width="640" height="400" loading="lazy" decoding="async"></a>
         <div class="a-model__body"><p class="a-model__name">${esc(m.name)}</p><p class="a-model__kind">${esc(m.kind)}</p>
@@ -2376,8 +2376,11 @@
     const dlg = openDialog(H`<div class="a-dialog__card">${dlgHead('mdb-t', 'Modèle ' + m.name)}
       <div class="a-dialog__body">
         <img src="${JM.thumb(slug)}" alt="" width="640" height="400" style="display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)">
-        <p class="a-dialog__lead" style="margin-top:12px"><strong>${JM.priceLabel(m)}</strong>, payé une seule fois.</p>
-        <p class="a-dialog__lead" style="margin-top:6px">${m.kind}. Après le paiement, notre équipe installe votre boutique dans ce modèle et vous écrit.</p>
+        <p class="a-dialog__lead" style="margin-top:12px">${m.kind}. Les photos et les textes du modèle sont remplacés par les vôtres.</p>
+        ${m.installIncluded ? H`<p class="a-dialog__lead" style="margin-top:8px"><strong>${JM.priceLabel(m)}</strong>, payé une seule fois, installation par notre équipe incluse.</p>` : H`<div class="a-mopts" role="radiogroup" aria-label="Qui installe votre boutique">
+          <label class="a-mopt"><input type="radio" name="mdb-opt" value="self" checked><span class="a-mopt__b"><span class="a-mopt__t">Je remplis moi-même<b>${JM.priceLabel(m)}</b></span><span class="a-mopt__d">Nous mettons votre nom et votre logo. Vous ajoutez vos produits, vos prix et vos photos.</span></span></label>
+          <label class="a-mopt"><input type="radio" name="mdb-opt" value="install"><span class="a-mopt__b"><span class="a-mopt__t">Jehre installe tout pour moi<b>${JM.fcfa(m.price + JM.INSTALL)}</b></span><span class="a-mopt__d">Vous nous envoyez votre logo, vos photos, vos textes et vos prix. Nous mettons tout en place. 2 séries de corrections incluses.</span></span></label></div>
+          <p class="a-small" style="margin-top:8px">Payé une seule fois. L’abonnement de la boutique est à part.</p>`}
         <p class="a-error" id="mdb-err" hidden style="margin-top:10px"></p></div>
       <div class="a-dialog__foot"><button class="a-btn a-btn--ghost" type="button" data-close data-mdb-later>Plus tard</button><button class="a-btn a-btn--primary" type="button" data-mdb-pay data-autofocus>Payer par carte</button></div></div>`, { labelledby: 'mdb-t' });
     if (!dlg) return;
@@ -2387,7 +2390,8 @@
       pay.disabled = true; pay.textContent = 'Ouverture du paiement…';
       let storeId = ''; try { const r = window.JeerePublish && window.JeerePublish.local(); storeId = (r && r.storeId) || ''; } catch (e) { /* none */ }
       const st = (S.config && S.config.store) || {};
-      JM.buy(slug, { storeId, shopName: st.name || '', sells: st.tagline || '' }).then((r) => {
+      const opt = $('input[name="mdb-opt"]:checked', dlg);
+      JM.buy(slug, { install: !!(opt && opt.value === 'install'), storeId, shopName: st.name || '', sells: st.tagline || '' }).then((r) => {
         if (r && r.ok) return;
         pay.disabled = false; pay.textContent = 'Payer par carte';
         if (err) { err.hidden = false; err.textContent = (r && r.message) || 'Le paiement n’a pas pu s’ouvrir. Réessayez.'; }
@@ -4993,7 +4997,7 @@
       if (JM) JM.forget();
       const mm = JM && JM.bySlug(mBack[2] || '');
       if (mBack[1] === 'ok') setTimeout(() => openDialog(H`<div class="a-dialog__card">${dlgHead('mdl-t', 'Paiement reçu, merci !')}
-        <div class="a-dialog__body"><p class="a-dialog__lead">Votre modèle <strong>${mm ? mm.name : ''}</strong> est payé. Notre équipe installe votre boutique dans ce modèle et vous écrit par e-mail dès qu’elle est prête.</p>
+        <div class="a-dialog__body"><p class="a-dialog__lead">Votre modèle <strong>${mm ? mm.name : ''}</strong> est payé. Vous recevez un e-mail avec la suite : répondez-y avec votre logo, et avec vos photos et vos textes si vous avez pris l’installation.</p>
         <p class="a-dialog__lead" style="margin-top:10px">En attendant, ajoutez déjà vos produits ici.</p></div>
         <div class="a-dialog__foot"><button class="a-btn a-btn--primary" type="button" data-close>D’accord</button></div></div>`, { labelledby: 'mdl-t' }), 700);
       else setTimeout(() => toast('Paiement annulé : rien n’a été prélevé.', { ms: 7000 }), 600);

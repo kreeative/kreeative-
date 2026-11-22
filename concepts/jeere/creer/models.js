@@ -14,11 +14,13 @@
   'use strict';
   var NB = ' ';
   var KEY = 'jeere-model-wanted';
+  // the installation by the team, an option paid once on top of the model (the server has the same price)
+  var INSTALL = 50000;
   var LIST = [
     { slug: 'seve', name: 'SÈVE', kind: 'Soins et cosmétiques', desc: 'Flacons sur fond crème, titres serif, filtres par catégorie.', price: 25000, was: 50000 },
     { slug: 'soyeuse', name: 'SOYEUSE', kind: 'Perruques et tissages', desc: 'Rose bonbon, logo à lettres ornées, mannequin en pied.', price: 25000, was: 50000 },
     { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: 50000 },
-    { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: 150000, note: 'installation assistée incluse' },
+    { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: 150000, note: 'installation assistée incluse', installIncluded: true },
     { slug: 'regard', name: 'REGARD', kind: 'Cils et sourcils · rendez-vous', desc: 'Vos clientes réservent en ligne : prestation, jour, heure, acompte.', price: 25000, was: 50000, rdv: true },
     { slug: 'vernie', name: 'VERNIE', kind: 'Ongles · rendez-vous', desc: 'Carte des prestations, demandes à confirmer, rappel la veille.', price: 25000, was: 50000, rdv: true },
     { slug: 'minuit', name: 'MINUIT', kind: 'Cils et ongles · rendez-vous', desc: 'Noir et champagne, tarifs, conditions, offre du mois.', price: 25000, was: 50000, rdv: true }
@@ -64,12 +66,12 @@
       try { root.location.assign(new URL('../compte/', root.location.href).href.replace(/[?#].*$/, '') + '#inscription'); } catch (e) { /* stay */ }
       return Promise.resolve({ ok: false, reason: 'account', message: 'Créez votre compte Jehre (gratuit), puis payez votre modèle.' });
     }
-    return Promise.resolve(B.buyModel(slug, { storeId: c.storeId || '', shopName: c.shopName || '', sells: c.sells || '', returnUrl: adminUrl() }))
+    return Promise.resolve(B.buyModel(slug, { install: c.install === true, storeId: c.storeId || '', shopName: c.shopName || '', sells: c.sells || '', returnUrl: adminUrl() }))
       .then(function (r) { if (r && r.ok) forget(); return r; });
   }
 
   root.JeereModels = {
-    LIST: LIST, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
+    LIST: LIST, INSTALL: INSTALL, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
     thumb: function (slug, base) { return (base || '../') + 'studio/sites/thumbs/concepts--' + slug + '.webp'; },
     demo: function (slug) { return 'https://kreeative.xyz/concepts/' + slug + '/'; },
     want: want, wanted: wanted, forget: forget, buy: buy
