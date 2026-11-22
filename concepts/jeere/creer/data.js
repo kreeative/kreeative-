@@ -4278,6 +4278,7 @@
     bpForWidth: bpForWidth,
     MEDIA_RE: MEDIA_RE,
     isMediaUrl: isMediaUrl,
+    isImage: isImage,
     subdomainFor: subdomainFor,
     PLANS: PLANS,
     PLAN_FEATURES: PLAN_FEATURES,

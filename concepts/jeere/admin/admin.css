@@ -1765,3 +1765,9 @@ a:not([class]) { font-weight: 600; }
 .a-mpage__img img { display: block; width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); }
 .a-mpage__opts .a-field { margin-top: 10px; }
 @media (max-width: 900px) { .a-mpage { grid-template-columns: 1fr; } }
+
+/* a product without a photo: an empty box, no drawing */
+.a-photo__pic--empty { display: grid; place-items: center; align-content: center; gap: 8px; background: var(--g1, #F4F4F2); color: var(--muted); font-size: 13.5px; border: 1.5px dashed var(--line-2, #D9D7D2); }
+.a-photo__pic--empty .a-ico { width: 28px; height: 28px; }
+.a-nophoto { display: grid; place-items: center; width: 100%; height: 100%; background: var(--g1, #F4F4F2); color: #B5B2AB; }
+.a-nophoto .a-ico { width: 40%; height: 40%; max-width: 28px; max-height: 28px; }

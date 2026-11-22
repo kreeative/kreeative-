@@ -1449,7 +1449,7 @@
     const ph = demoPhoto(p);
     // data-art / data-color: the illustration that replaces a demo photo whose file does not load (onImgError)
     if (ph) return '<img src="' + esc(ph.src) + '" alt="" data-art="' + esc(str(p.art)) + '" data-color="' + esc(str(p.color)) + '"' + (ph.focus ? ' style="object-position:' + esc(ph.focus) + '"' : '') + '>';
-    try { const R = window.JeereRender; return R && R.artSVG ? R.artSVG(p && p.art, p && p.color) : ''; } catch (e) { return ''; }
+    return '<span class="a-nophoto" aria-hidden="true">' + ico('camera') + '</span>';
   }
   function onImgError(e) {
     const t = e.target;
@@ -2972,15 +2972,19 @@
   // replaces it. « Retirer » on her photo brings back a demo photo still set; « Retirer la photo »
   // on the demo photo leaves the illustration.
   function photoHTML(p) {
-    const has = typeof p.image === 'string' && /^data:image\//.test(p.image);
-    const ph = has ? null : demoPhoto(p);
+    const any = typeof p.image === 'string' && /^(?:data:image\/|https:\/\/)/.test(p.image);
+    const has = any && !modelPhoto(p);
+    const ph = any ? null : demoPhoto(p);
     const c = ph && ph.credit ? ph.credit : {};
     const link = (url, text) => (url ? H`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
     const credit = ph ? H`<p class="a-photo__credit">Photo : ${c.name ? link(c.profileUrl, c.name) + ' / ' : ''}${link(c.photoUrl, 'Unsplash')}</p>` : '';
-    return H`<div class="a-photo__pic" style="background:${safeColor(p.color)}">${visual(p)}${has ? '' : H`<span class="a-chip a-chip--line a-photo__tag">${ph ? 'Photo d’exemple' : 'Illustration'}</span>`}</div>${credit}
+    const pic = any || ph
+      ? H`<div class="a-photo__pic">${visual(p)}${has ? '' : H`<span class="a-chip a-chip--line a-photo__tag">Photo d’exemple</span>`}</div>`
+      : H`<div class="a-photo__pic a-photo__pic--empty">${ico('camera')}<span>Pas encore de photo</span></div>`;
+    return H`${pic}${credit}
       <div class="a-photo__btns"><label class="a-btn a-btn--primary a-btn--lg a-filebtn a-filebtn--cam">${ico('camera')}<span>${has ? 'Reprendre une photo' : 'Prendre une photo'}</span><input type="file" accept="image/*" capture="environment" data-photo aria-label="${has ? 'Reprendre une photo avec l’appareil photo' : 'Prendre une photo avec l’appareil photo'}"></label>
       <label class="a-btn a-btn--ghost a-filebtn a-filebtn--pick">${ico('image')}<span class="a-filebtn__touch">Choisir dans la galerie</span><span class="a-filebtn__mouse">${has ? 'Changer la photo' : 'Choisir une photo'}</span><input type="file" accept="image/*" data-photo aria-label="${has ? 'Changer la photo' : 'Choisir une photo'}"></label>
-      ${has || ph ? H`<button class="a-btn a-btn--quiet" type="button" data-act="photo-remove">${ico('trash')}${ph ? 'Retirer la photo' : 'Retirer'}</button>` : ''}</div>`;
+      ${any || ph ? H`<button class="a-btn a-btn--quiet" type="button" data-act="photo-remove">${ico('trash')}${ph ? 'Retirer la photo' : 'Retirer'}</button>` : ''}</div>`;
   }
   function viewProduct(pid) {
     const isNew = pid === 'nouveau';
@@ -3004,6 +3008,7 @@
       ${pageHead(title, isNew ? 'Il apparaît dans votre boutique dès que vous l’enregistrez.' : 'Modifiez-le ici ou dans le Studio : c’est le même produit.', '', { href: '#produits', label: 'Produits' })}
       <form class="a-form" data-form="product" data-id="${esc(p0.id)}" data-dirty-label="${isNew ? 'Nouveau produit non enregistré' : 'Modifications non enregistrées'}" novalidate>
         <input type="hidden" name="image" value="${esc(p.image || '')}"><input type="hidden" name="photo" value="${esc(p.photo || '')}">
+        <input type="hidden" name="art" value="${esc(p.art || 'box')}"><input type="hidden" name="color" value="${esc(p.color || '')}">
         <div class="a-cols">
           <div class="a-stack">
             <section class="a-card" aria-labelledby="h-pphoto"><div class="a-card__head"><div><h2 class="a-card__title" id="h-pphoto">Photo</h2><p class="a-card__sub">Une photo nette, à la lumière du jour. Nous la réduisons à 800 px de large pour qu’elle charge vite.</p></div></div>
@@ -3027,10 +3032,6 @@
             </section>
           </div>
           <div class="a-stack">
-            <section class="a-card" aria-labelledby="h-part"><div class="a-card__head"><div><h2 class="a-card__title" id="h-part">Illustration</h2><p class="a-card__sub">Affichée tant qu’il n’y a pas de photo.</p></div></div>
-              <fieldset class="a-fieldset" style="margin-top:0"><legend>Couleur du fond</legend><div class="a-swatches">${COLORS().map((c, i) => H`<label class="a-swatch"><input type="radio" name="color" value="${esc(c)}"${String(c).toLowerCase() === String(p.color).toLowerCase() ? ' checked' : ''} aria-label="${esc('Couleur ' + (i + 1))}"><span style="background:${safeColor(c)}"></span></label>`)}</div></fieldset>
-              <fieldset class="a-fieldset"><legend>Dessin</legend><div class="a-arts" id="p-arts">${artsHTML(p.art, p.color)}</div></fieldset>
-            </section>
             ${isNew ? '' : H`<section class="a-card" aria-labelledby="h-pmore"><div class="a-card__head"><h2 class="a-card__title" id="h-pmore">Plus d’actions</h2></div>
               <div class="a-danger-zone"><button class="a-btn a-btn--ghost" type="button" data-act="product-view-store" data-id="${esc(p0.id)}">${ico('eye')}Voir dans la boutique</button>
               <button class="a-btn a-btn--ghost" type="button" data-act="share-product" data-id="${esc(p0.id)}">${ico('chat')}Partager sur WhatsApp</button>
@@ -3123,7 +3124,7 @@
     const prod = {
       name, price: pr, category: clip(v.category, 40), badge: BADGES()[v.badge] ? v.badge : null,
       art: ART_KINDS().indexOf(v.art) >= 0 ? v.art : 'box', color: safeColor(v.color),
-      description: str(v.description).trim().slice(0, 600), image: /^data:image\//.test(str(v.image)) ? v.image : null,
+      description: str(v.description).trim().slice(0, 600), image: /^data:image\//.test(str(v.image)) || (D && typeof D.isImage === 'function' && D.isImage(str(v.image))) ? v.image : null,
       photo: D && typeof D.photoId === 'function' ? D.photoId(str(v.photo)) : null
     };
     let savedId = id;
