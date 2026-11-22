@@ -238,7 +238,7 @@ async function storeModel(slug) {
 }
 const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function textEsc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-async function modelPage(model, rest, row, cfg) {
+async function modelPage(model, rest, row, cfg, canonical) {
   const clean = String(rest || '').replace(/^\/+/, '').replace(/\.\.+/g, '');
   if (clean && !/^[a-z0-9-]+(?:\/[a-z0-9-]+)*\/?$/i.test(clean)) return null;
   const pageUrl = MODEL_ORIGIN + model + '/' + (clean && !clean.endsWith('/') ? clean + '/' : clean);
@@ -256,6 +256,11 @@ async function modelPage(model, rest, row, cfg) {
   html = html.replace(/<p class="concept">[\s\S]*?<\/p>/g, '').replace(/<div class="concept-bar"[\s\S]*?<\/div>/g, '');
   html = html.replace(/\s*(?:—|-)\s*(?:boutique|site) de démonstration\.?/gi, '').replace(/<p class="avis__note-exemple">[\s\S]*?<\/p>/g, '');
   html = html.replace(/,? ?(?:studio|boutique|site) de démonstration ?:?/gi, ' :').replace(/ : :/g, ' :');
+  // the address search engines keep: her own domain once verified, else her free address
+  if (canonical && !/rel="canonical"/.test(html)) {
+    const u = canonical + (clean ? '/' + clean.replace(/\/?$/, '/') : '/');
+    html = html.replace('</head>', '<link rel="canonical" href="' + textEsc(u) + '">\n<meta property="og:url" content="' + textEsc(u) + '">\n<meta property="og:type" content="website">\n</head>');
+  }
   html = html.replace(/<meta name="robots" content="noindex, nofollow">/, '<meta name="robots" content="index, follow">');
   // her name and city in place of the model's
   const name = String((cfg.store && cfg.store.name) || '').trim().slice(0, 40);
@@ -294,7 +299,11 @@ async function handler(req, res) {
     const model = await storeModel(got.row.slug);
     if (model) {
       let page = null;
-      try { const { D } = lib(); page = await modelPage(model, rest, got.row, D.normalizeConfig(got.row.fiche)); } catch (e) { page = null; }
+      try {
+        const own = got.row.custom_domain && got.row.domain_status === 'verified' ? got.row.custom_domain : '';
+        const { D } = lib();
+        page = await modelPage(model, rest, got.row, D.normalizeConfig(got.row.fiche), 'https://' + (own || got.row.slug + '.store.jehre.com'));
+      } catch (e) { page = null; }
       if (page) { send(res, 200, page, 'public, max-age=0, s-maxage=60, stale-while-revalidate=600'); return; }
     }
   }
