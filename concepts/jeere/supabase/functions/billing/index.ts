@@ -324,7 +324,7 @@ async function webhook(req: Request) {
     await buyDomain(obj);
     return json({ ok: true });
   }
-  if (type === 'checkout.session.completed' && isObj(obj.metadata) && (obj.metadata as Obj).kind === 'model' && obj.payment_status === 'paid') {
+  if (type === 'checkout.session.completed' && isObj(obj.metadata) && (obj.metadata as Obj).kind === 'model' && (obj.payment_status === 'paid' || obj.payment_status === 'no_payment_required')) {
     await recordModel(obj);
     return json({ ok: true });
   }
