@@ -312,7 +312,7 @@
     var html = '<h2 class="jb-title" tabindex="-1">Vos coordonnées</h2><form class="jb-form" data-jb-form novalidate>' +
       field('name', 'Prénom et nom', 'text', f.name, 'autocomplete="name" maxlength="80" required') +
       field('phone', 'Téléphone (WhatsApp de préférence)', 'tel', f.phone, 'autocomplete="tel" inputmode="tel" maxlength="30" required') +
-      field('email', 'E-mail <small>facultatif</small>', 'email', f.email, 'autocomplete="email" maxlength="120"', 'Pour recevoir la confirmation, le rappel la veille, et le lien pour déplacer votre rendez-vous.') +
+      field('email', 'E-mail', 'email', f.email, 'autocomplete="email" maxlength="120" required', 'Vous y recevez la confirmation, le rappel la veille, et un message si votre rendez-vous est déplacé ou annulé.') +
       field('note', 'Un mot pour nous <small>facultatif</small>', 'textarea', f.note, '', '');
     if (t.deposit > 0 && c.payments.length) {
       html += '<fieldset class="jb-field jb-pay"><legend class="jb-label">Régler l’acompte de ' + money(t.deposit) + ' par</legend><div class="jb-pay__list">' + c.payments.map(function (p, i) {
@@ -467,7 +467,8 @@
     var f = S.form;
     if (!f.name) S.error = 'Indiquez votre prénom et votre nom.';
     else if (f.phone.replace(/\D/g, '').length < 8) S.error = 'Indiquez un numéro de téléphone complet.';
-    else if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) S.error = 'Cette adresse e-mail n’est pas valide.';
+    else if (!f.email) S.error = 'Indiquez votre adresse e-mail : c’est là que vous serez prévenu(e) si votre rendez-vous change.';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) S.error = 'Cette adresse e-mail n’est pas valide.';
     else if (!f.agree) S.error = 'Cochez la case pour accepter les conditions.';
     else S.error = '';
     if (S.error) { draw(); var al = document.querySelector('.jb .jb-alert'); if (al) { try { al.scrollIntoView({ block: 'center' }); } catch (e) { /* ignore */ } } return; }

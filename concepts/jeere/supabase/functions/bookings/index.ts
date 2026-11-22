@@ -319,7 +319,7 @@ const MAILS: Record<Kind, { to: 'client' | 'boutique'; subject: string; body: st
   rdv_deplace: { to: 'client', subject: 'Votre rendez-vous est déplacé au {{rdv.date}} à {{rdv.heure}}',
     body: 'Bonjour {{client.prenom}},\n\nVotre rendez-vous a changé d’horaire.\n\n{{rdv.resume}}\n\nGérer votre rendez-vous : {{rdv.lien}}\n\n{{boutique.nom}}' },
   rdv_annule: { to: 'client', subject: 'Votre rendez-vous du {{rdv.date}} est annulé',
-    body: 'Bonjour {{client.prenom}},\n\nVotre rendez-vous n° {{rdv.numero}} du {{rdv.date}} à {{rdv.heure}} est annulé. Pour en prendre un autre, répondez à cet e-mail ou retournez sur notre site.\n\n{{boutique.nom}}' }
+    body: 'Bonjour {{client.prenom}},\n\nVotre rendez-vous n° {{rdv.numero}} du {{rdv.date}} à {{rdv.heure}} est annulé.\n\nPour savoir pourquoi, ou pour en prendre un autre, contactez {{boutique.nom}}{{boutique.contact}} : vous pouvez aussi répondre à cet e-mail, ou retourner sur notre site.\n\n{{boutique.nom}}' }
 };
 function mailVars(st: Obj, S: Settings, a: Obj) {
   const info = storeInfo(st);
@@ -337,7 +337,7 @@ function mailVars(st: Obj, S: Settings, a: Obj) {
     '• ' + (svc.from ? 'À partir de ' : '') + money(Number(a.total) || 0, a.currency)
   ].filter(Boolean).join('\n');
   return {
-    'boutique.nom': info.name, 'boutique.whatsapp': info.whatsapp,
+    'boutique.nom': info.name, 'boutique.whatsapp': info.whatsapp, 'boutique.contact': info.whatsapp ? ' sur WhatsApp au ' + info.whatsapp : '',
     'client.nom': name, 'client.prenom': name.split(' ')[0] || name, 'client.telephone': str(c.phone, 30), 'client.email': str(c.email, 120),
     'rdv.numero': '#' + a.number, 'rdv.prestation': str(svc.name, 80), 'rdv.date': frDate(S.timezone, start),
     'rdv.date_courte': new Intl.DateTimeFormat('fr-FR', { timeZone: S.timezone, weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(start)),
@@ -496,7 +496,8 @@ Deno.serve(async (req: Request) => {
     const c = isObj(b.customer) ? b.customer : {};
     const customer = { name: str(c.name, 80), phone: str(c.phone, 30), email: str(c.email, 120).toLowerCase() };
     if (!customer.name || customer.phone.replace(/\D/g, '').length < 8) return json({ ok: false, code: 'customer', message: 'Votre nom et un numéro de téléphone sont nécessaires.' }, 400);
-    if (customer.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) return json({ ok: false, code: 'email', message: 'Cette adresse e-mail n’est pas valide.' }, 400);
+    // required: it is how she is told that her appointment is confirmed, moved or cancelled
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) return json({ ok: false, code: 'email', message: customer.email ? 'Cette adresse e-mail n’est pas valide.' : 'Indiquez votre adresse e-mail : c’est là que vous serez prévenu(e) si votre rendez-vous change.' }, 400);
     const day = localDate(S.timezone, startMs).date;
     const busy = await busyOf(st.id, startMs - DAY, startMs + 2 * DAY);
     const slot = daySlots(S, who, day, p.duration, busy, now).find((x) => x.start === startMs);
