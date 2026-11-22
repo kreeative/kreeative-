@@ -60,7 +60,7 @@ const DAY = 86400000;
 const INSTALL_PRICE = 50000;
 const MODELS: Record<string, { name: string; price: number; install?: number; installIncluded?: boolean }> = {
   seve: { name: 'SÈVE', price: 25000 }, soyeuse: { name: 'SOYEUSE', price: 25000 }, michou: { name: 'MICHOU', price: 50000, install: 100000 },
-  anse: { name: 'ANSE', price: 150000, installIncluded: true }, regard: { name: 'REGARD', price: 25000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 }
+  anse: { name: 'ANSE', price: 300000, installIncluded: true }, regard: { name: 'REGARD', price: 25000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 }
 };
 
 const CORS = {
