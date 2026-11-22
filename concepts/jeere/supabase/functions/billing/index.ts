@@ -58,7 +58,7 @@ const DAY = 86400000;
 // The designer models, paid once (FCFA). The same prices as on the cards of the home page and of the editor.
 const MODELS: Record<string, { name: string; price: number }> = {
   seve: { name: 'SÈVE', price: 25000 }, soyeuse: { name: 'SOYEUSE', price: 25000 }, michou: { name: 'MICHOU', price: 50000 },
-  anse: { name: 'ANSE', price: 150000 }, regard: { name: 'REGARD', price: 50000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 }
+  anse: { name: 'ANSE', price: 150000 }, regard: { name: 'REGARD', price: 25000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 }
 };
 
 const CORS = {
