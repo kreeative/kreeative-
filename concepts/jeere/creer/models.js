@@ -19,7 +19,7 @@
   var LIST = [
     { slug: 'seve', name: 'SÈVE', kind: 'Soins et cosmétiques', desc: 'Flacons sur fond crème, titres serif, filtres par catégorie.', price: 25000, was: 50000 },
     { slug: 'soyeuse', name: 'SOYEUSE', kind: 'Perruques et tissages', desc: 'Rose bonbon, logo à lettres ornées, mannequin en pied.', price: 25000, was: 50000 },
-    { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: 50000 },
+    { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: 50000, install: 100000 },
     { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: 150000, note: 'installation assistée incluse', installIncluded: true },
     { slug: 'regard', name: 'REGARD', kind: 'Cils et sourcils · rendez-vous', desc: 'Vos clientes réservent en ligne : prestation, jour, heure, acompte.', price: 25000, was: 50000, rdv: true },
     { slug: 'vernie', name: 'VERNIE', kind: 'Ongles · rendez-vous', desc: 'Carte des prestations, demandes à confirmer, rappel la veille.', price: 25000, was: 50000, rdv: true },
@@ -27,6 +27,8 @@
   ];
   function bySlug(slug) { for (var i = 0; i < LIST.length; i++) if (LIST[i].slug === slug) return LIST[i]; return null; }
   function fcfa(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NB) + NB + 'FCFA'; }
+  // the installation by the team: 50 000, except a clothes shop (sizes, colours, many photos): 100 000
+  function installPrice(m) { return (m && m.install) || INSTALL; }
   function priceLabel(m) { return m ? fcfa(m.price) : ''; }
   function plain(s) { try { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { return String(s || '').toLowerCase(); } }
 
@@ -91,7 +93,7 @@
   }
 
   root.JeereModels = {
-    LIST: LIST, INSTALL: INSTALL, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
+    LIST: LIST, INSTALL: INSTALL, installPrice: installPrice, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
     thumb: function (slug, base) { return (base || '../') + 'studio/sites/thumbs/concepts--' + slug + '.webp'; },
     demo: function (slug) { return 'https://kreeative.xyz/concepts/' + slug + '/'; },
     want: want, wanted: wanted, forget: forget, buy: buy, mine: mine, setMine: setMine, refreshMine: refreshMine,

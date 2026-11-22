@@ -2113,7 +2113,7 @@
       if (mdl.was) { const was = el('s', '', M.fcfa(mdl.was)); was.setAttribute('aria-label', 'au lieu de ' + M.fcfa(mdl.was)); pr.appendChild(document.createTextNode(' ')); pr.appendChild(was); }
       pr.appendChild(el('span', '', fr(' · ' + (mdl.note || 'payé une seule fois'))));
       body.appendChild(pr);
-      body.appendChild(el('p', 'jwz-card__next', fr('Vous ajoutez vos produits vous-même, ou notre équipe installe tout pour vous (+ ' + M.fcfa(M.INSTALL) + ').')));
+      body.appendChild(el('p', 'jwz-card__next', fr('Vous ajoutez vos produits vous-même, ou notre équipe installe tout pour vous (+ ' + M.fcfa(M.installPrice(mdl)) + ').')));
     }
     const dl = el('dl', 'jwz-facts');
     const fact = (k, val, pre) => {

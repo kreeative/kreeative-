@@ -58,8 +58,8 @@ const DAY = 86400000;
 // The designer models, paid once (FCFA). The same prices as on the cards of the home page and of the editor.
 // The installation by the team (her texts, photos, products and settings put in place, 2 rounds of changes): an option, paid once
 const INSTALL_PRICE = 50000;
-const MODELS: Record<string, { name: string; price: number; installIncluded?: boolean }> = {
-  seve: { name: 'SÈVE', price: 25000 }, soyeuse: { name: 'SOYEUSE', price: 25000 }, michou: { name: 'MICHOU', price: 50000 },
+const MODELS: Record<string, { name: string; price: number; install?: number; installIncluded?: boolean }> = {
+  seve: { name: 'SÈVE', price: 25000 }, soyeuse: { name: 'SOYEUSE', price: 25000 }, michou: { name: 'MICHOU', price: 50000, install: 100000 },
   anse: { name: 'ANSE', price: 150000, installIncluded: true }, regard: { name: 'REGARD', price: 25000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 }
 };
 
@@ -443,7 +443,7 @@ Deno.serve(async (req: Request) => {
     const back = backUrl(b.returnUrl, SITE + '/admin/');
     const install = m.installIncluded === true || b.install === true;
     const items: Obj[] = [{ quantity: 1, price_data: { currency: 'xof', unit_amount: m.price, product_data: { name: 'Modèle ' + m.name + ' · boutique Jehre', description: m.installIncluded ? 'Payé une seule fois. Installation par notre équipe incluse.' : 'Payé une seule fois.' } } }];
-    if (install && !m.installIncluded) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: INSTALL_PRICE, product_data: { name: 'Installation par l’équipe Jehre', description: 'Vos textes, vos photos, vos produits et vos réglages mis en place. 2 séries de corrections incluses.' } } });
+    if (install && !m.installIncluded) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: Number(m.install ?? INSTALL_PRICE), product_data: { name: 'Installation par l’équipe Jehre', description: 'Vos textes, vos photos, vos produits et vos réglages mis en place. 2 séries de corrections incluses.' } } });
     const session = await stripe('POST', 'checkout/sessions', {
       mode: 'payment', locale: 'fr', client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
       line_items: items,
@@ -453,7 +453,7 @@ Deno.serve(async (req: Request) => {
       success_url: withParam(back, 'modele=ok&nom=' + slug), cancel_url: withParam(back, 'modele=annule')
     });
     if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
-    return json({ ok: true, url: session.data.url, price: m.price + (install && !m.installIncluded ? INSTALL_PRICE : 0), model: slug, install });
+    return json({ ok: true, url: session.data.url, price: m.price + (install && !m.installIncluded ? Number(m.install ?? INSTALL_PRICE) : 0), model: slug, install });
   }
 
   if (action === 'domain') {
