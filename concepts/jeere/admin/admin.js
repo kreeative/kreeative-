@@ -466,8 +466,14 @@
         body: '{}' }).then((r) => (r.ok ? r.json() : null));
     }).catch(() => null).then((j) => {
       S.accts = { at: Date.now(), data: Array.isArray(j) ? j : null };
-      if (S.route && S.route.name === 'accueil') refresh();
+      if (Array.isArray(j) && S.route && S.route.name === 'accueil') refresh();
     });
+  }
+  // the server decides (public.jeere_accounts answers only the founder's e-mail): asked once for any real account
+  function acctsAllowed() {
+    if (!(S.account && S.account.userId)) return false;
+    if (!S.accts) loadAccounts();
+    return !!(S.accts && Array.isArray(S.accts.data));
   }
   function accountsCard() {
     loadAccounts();
@@ -1702,7 +1708,7 @@
         <a class="a-today__main" href="#commandes?statut=a-preparer"><span class="a-today__k" id="h-today">Aujourd’hui</span><span class="a-today__v">${esc(fr(todayTxt))}</span>${ico('chev', 'a-today__go')}</a>
         <button class="a-btn a-btn--inv a-today__btn" type="button" data-act="order-new">${ico('plus')}Nouvelle commande</button>
       </section>
-      ${founder() ? growthCard() + accountsCard() : ''}
+      ${founder() ? growthCard() : ''}${acctsAllowed() ? accountsCard() : ''}
       ${checkHidden ? '' : H`<section class="a-card a-home__check${allDone ? ' is-ready' : ''}" aria-labelledby="h-check">
         <div class="a-card__head" style="margin-bottom:0"><div><h2 class="a-card__title" id="h-check">${allDone ? 'Votre boutique est prête' : 'Premiers pas'}</h2>
 </div>

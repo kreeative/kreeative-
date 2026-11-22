@@ -1359,3 +1359,26 @@ html.qs-open .jst img.qs-target, html.qs-open .jst .qs-target img { touch-action
 .b-sitepick__img { display: block; width: 100%; max-height: 320px; object-fit: contain; background: var(--grey-2, #F4F4F2); border-radius: 12px; border: 1px solid var(--line); margin: 4px 0 12px; }
 .b-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .b-tp textarea.b-input { min-height: 120px; resize: vertical; }
+
+/* « Site »: her model, everything listed */
+.b-tab[data-tab="site"] { display: none; }
+.b-is-custom .b-tab[data-tab="site"] { display: grid; }
+.b-sitepages, .b-sitecats { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; }
+.b-sitepage { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line-2, #DDD); background: var(--white, #fff); font: inherit; font-size: 13.5px; cursor: pointer; }
+.b-sitepage.is-on { background: var(--ink, #111); color: #fff; border-color: var(--ink, #111); }
+.b-siterow { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; margin: 0 0 18px; flex-wrap: wrap; }
+.b-siterow__logo { width: 56px; height: 40px; object-fit: contain; }
+.b-siterow__ph { display: grid; place-items: center; min-width: 56px; height: 40px; padding: 0 6px; border-radius: 8px; background: var(--grey-2, #F4F4F2); font-weight: 700; font-size: 12px; }
+.b-siterow__t { flex: 1 1 140px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted, #6B6B6B); }
+.b-siterow__t strong { color: var(--ink, #111); font-size: 14px; }
+.b-sitesub { margin: 18px 0 8px; font-size: 13px; font-weight: 600; color: var(--muted, #6B6B6B); letter-spacing: .02em; }
+.b-sitegrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.b-siteimg { position: relative; padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: var(--grey-2, #F4F4F2); cursor: pointer; }
+.b-siteimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.b-siteimg:hover, .b-sitetext:hover { outline: 2px solid #3657FF; outline-offset: 1px; }
+.b-siteimg.is-changed::after, .b-sitetext.is-changed::after { content: 'Modifié'; position: absolute; right: 6px; top: 6px; padding: 1px 6px; border-radius: 99px; background: #3657FF; color: #fff; font-size: 10.5px; font-weight: 600; }
+.b-sitetexts { display: grid; gap: 6px; }
+.b-sitetext { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; text-align: left; padding: 10px 12px; padding-right: 64px; border: 1px solid var(--line); border-radius: 10px; background: var(--white, #fff); font: inherit; font-size: 13.5px; line-height: 1.4; cursor: pointer; }
+.b-sitetext__tag { font-size: 11px; font-weight: 600; color: #3657FF; }
+.b-sitefrom { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: #FFF6E5; color: #6B4A00; font-size: 13.5px; line-height: 1.45; }
+.b-sitefrom .b-ico { width: 18px; height: 18px; flex: none; margin-top: 1px; }

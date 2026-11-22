@@ -250,6 +250,8 @@ async function modelPage(model, rest, row, cfg, canonical) {
   // pictures, styles and scripts from the Kreeative site; page links stay relative (her address)
   html = html.replace(/\b(src|href|poster)=("|')([^"']+)\2/g, (all, a, q, v) => (/^(?:[a-z]+:|\/\/|#|data:)/i.test(v) || !ASSET.test(v) ? all : a + '=' + q + abs(v) + q));
   html = html.replace(/\bsrcset=("|')([^"']+)\1/g, (all, q, v) => 'srcset=' + q + v.split(',').map((part) => { const t = part.trim().split(/\s+/); return /^(?:[a-z]+:|\/\/|data:)/i.test(t[0]) ? part : [abs(t[0])].concat(t.slice(1)).join(' '); }).join(', ') + q);
+  // every page of her site reads her store (the booking pages of a model do not carry the script)
+  if (!/jeere-connect\.js/.test(html)) html = html.replace('</head>', '<script src="https://jehre.com/connect/jeere-connect.js" data-store="' + row.slug + '" defer></script>\n</head>');
   // her store, not the model's
   html = html.replace(/data-store="[a-z0-9-]+"/g, 'data-store="' + row.slug + '"');
   // the demo band and the demo words

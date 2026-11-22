@@ -64,7 +64,7 @@
   const guil = (t) => `«${NB}${t}${NB}»`;
   const inColl = (coll, id) => typeof id === 'string' && !!coll && Object.prototype.propertyIsEnumerable.call(coll, id);
 
-  const TABS = ['sections', 'produits', 'theme', 'boutique', 'qualite'];
+  const TABS = ['sections', 'site', 'produits', 'theme', 'boutique', 'qualite'];
   // JEERE_DATA.PAGES and INTENSITY_OPTIONS are the contract; these are their fallbacks (older data.js)
   const PAGES_FALLBACK = [
     { id: 'home', label: 'Accueil' }, { id: 'product', label: 'Fiche produit' }, { id: 'cart', label: 'Panier' },
@@ -544,7 +544,7 @@
     'minuit': 'https://kreeative.xyz/concepts/minuit/', 'joshua-cooker': 'https://kreeative.xyz/concepts/joshua-cooker/',
     'sonia-luxury-hair': 'https://kreeative.xyz/concepts/sonia-luxury-hair/'
   };
-  const CUSTOM_TABS = ['produits', 'boutique'];
+  const CUSTOM_TABS = ['site', 'produits', 'boutique'];
   function customSite() {
     let slug = '';
     try { slug = (JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {}).slug || ''; } catch (e) { slug = ''; }
@@ -574,7 +574,13 @@
     if (c && e.data && e.data.jeerePick && typeof e.data.jeerePick.key === 'string') {
       try { if (e.origin !== new URL(c.url).origin) return; } catch (err) { return; }
       S.sitePick = e.data.jeerePick;
-      if (S.tab !== 'produits') setTab('produits'); else renderTab({ top: true });
+      if (S.sitePick.kind === 's' || S.sitePick.kind === 'p') { const pk = S.sitePick; S.sitePick = null; if (pk.kind === 's') { setTab('produits'); return; } S.openProduct = pk.ref; setTab('produits'); return; }
+      if (S.tab !== 'site') setTab('site'); else renderTab({ top: true });
+    }
+    if (c && e.data && e.data.jeereMap && Array.isArray(e.data.jeereMap.items)) {
+      try { if (e.origin !== new URL(c.url).origin) return; } catch (err) { return; }
+      S.siteMap = e.data.jeereMap;
+      if (S.tab === 'site' && !S.sitePick) renderTab();
     }
   });
   // Her change to a text or a picture of the model (store.site), or back to the model's own (value null)
@@ -587,12 +593,113 @@
     if (!Object.keys(st.site).length) delete st.site;
     change(typing ? {} : { now: true });
   }
+  // The pages of each model (its folders), shown as tabs above the list
+  const MODEL_PAGES = {
+    regard: [['', 'Accueil']],
+    vernie: [['', 'Accueil']],
+    minuit: [['', 'Accueil']],
+    seve: [['', 'Accueil'], ['catalogue/', 'Catalogue'], ['commande/', 'Commande'], ['mentions-legales/', 'Mentions légales']],
+    soyeuse: [['', 'Accueil'], ['boutique/', 'Boutique'], ['commande/', 'Commande'], ['mentions-legales/', 'Mentions légales']],
+    michou: [['', 'Accueil'], ['boutique/', 'Boutique'], ['commande/', 'Commande'], ['mentions-legales/', 'Mentions légales']],
+    anse: [['', 'Accueil'], ['commande/', 'Commande'], ['mentions-legales/', 'Mentions légales']]
+  };
+  function focusOnSite(key) {
+    const c = customSite(), fr = els.store && els.store.querySelector('iframe.b-custom');
+    if (!c || !fr || !fr.contentWindow) return;
+    try { fr.contentWindow.postMessage({ jeereFocus: key }, new URL(c.url).origin); } catch (e) { /* the list still opens it */ }
+  }
+  // « Site »: her model's pages, her logo, and every text and picture of the page shown, listed before any click
+  function renderSite(tp) {
+    const c = customSite();
+    if (!c) return;
+    if (S.sitePick) { renderSitePick(tp); return; }
+    const m = window.JeereModels && window.JeereModels.bySlug(c.slug);
+    tp.append(tabHead('Votre site', 'Touchez un élément ci-dessous, ou directement sur le site, pour le changer.'));
+    // pages
+    const pages = MODEL_PAGES[c.slug] || [['', 'Accueil']];
+    const pg = el('div', { class: 'b-sitepages', role: 'tablist', 'aria-label': 'Pages du site' });
+    pages.forEach((x) => {
+      const on = (S.sitePage || '') === x[0];
+      pg.append(el('button', { type: 'button', class: 'b-sitepage' + (on ? ' is-on' : ''), 'aria-pressed': String(on), on: { click: () => { S.sitePage = x[0]; S.siteMap = null; renderPreviewNow(); renderTab({ top: true }); } } }, x[1]));
+    });
+    tp.append(pg);
+    if (m && m.rdv) tp.append(el('p', { class: 'b-hint', text: 'Les pages « Réserver » et « Mes rendez-vous » se remplissent toutes seules avec vos prestations, vos prix et vos horaires.' }));
+    // logo
+    const logo = S.config.store.logo;
+    const lg = el('div', { class: 'b-siterow b-siterow--logo' },
+      logo ? el('img', { class: 'b-siterow__logo', src: logo, alt: '' }) : el('span', { class: 'b-siterow__ph', text: storeName() }),
+      el('span', { class: 'b-siterow__t' }, el('strong', { text: 'Logo' }), el('span', { text: logo ? 'Il remplace le nom en haut et en bas du site.' : 'Sans logo, votre nom s’affiche.' })));
+    const lf = el('input', { type: 'file', accept: 'image/*', class: 'b-vh', id: 'b-site-logo' });
+    lf.addEventListener('change', () => { const f = lf.files && lf.files[0]; if (!f) return; toast('Envoi du logo…', 1400); readImage(f).then((src) => { S.config.store.logo = src; change({ now: true }); renderTab(); }, () => toast('Ce fichier n’a pas pu être lu.', 2400)); });
+    lg.append(lf, el('label', { class: 'b-btn b-btn--ghost b-btn--sm', for: 'b-site-logo', text: logo ? 'Changer' : 'Ajouter' }));
+    if (logo) lg.append(el('button', { type: 'button', class: 'b-btn b-btn--quiet b-btn--sm', on: { click: () => { S.config.store.logo = null; change({ now: true }); renderTab(); } } }, 'Retirer'));
+    tp.append(lg);
+    const map = S.siteMap && S.siteMap.page === '/' + (S.sitePage || '') ? S.siteMap : null;
+    if (!map) { tp.append(el('p', { class: 'b-hint', text: 'Chargement de la page…' })); return; }
+    const site = S.config.store.site || {};
+    const changed = (x) => !!(site[x.kind] && typeof site[x.kind][x.key] === 'string');
+    const open = (x) => { S.sitePick = { key: x.key, kind: x.kind, ref: x.ref, value: x.kind === 'i' ? (changed(x) ? site.i[x.key] : x.src) : x.label, long: x.long }; focusOnSite(x.key); renderTab({ top: true }); };
+    // photos
+    const imgs = map.items.filter((x) => x.kind === 'i');
+    if (imgs.length) {
+      tp.append(el('h3', { class: 'b-sitesub', text: 'Photos · ' + imgs.length }));
+      const g = el('div', { class: 'b-sitegrid' });
+      imgs.forEach((x) => g.append(el('button', { type: 'button', class: 'b-siteimg' + (changed(x) ? ' is-changed' : ''), 'aria-label': 'Changer cette photo', on: { click: () => open(x) } }, el('img', { src: changed(x) ? site.i[x.key] : x.src, alt: '', loading: 'lazy' }))));
+      tp.append(g);
+    }
+    // texts
+    const texts = map.items.filter((x) => x.kind === 't' || x.kind === 'c');
+    if (texts.length) {
+      tp.append(el('h3', { class: 'b-sitesub', text: 'Textes · ' + texts.length }));
+      const ul = el('div', { class: 'b-sitetexts' });
+      texts.forEach((x) => {
+        const v = changed(x) ? site[x.kind][x.key] : x.label;
+        ul.append(el('button', { type: 'button', class: 'b-sitetext' + (changed(x) ? ' is-changed' : ''), on: { click: () => open(x) } },
+          x.kind === 'c' ? el('span', { class: 'b-sitetext__tag', text: 'Catégorie' }) : null, el('span', { text: v })));
+      });
+      tp.append(ul);
+    }
+    // what comes from elsewhere
+    const prods = map.items.filter((x) => x.kind === 'p'), svc = map.items.filter((x) => x.kind === 's');
+    if (prods.length || svc.length || (m && m.rdv)) {
+      tp.append(el('h3', { class: 'b-sitesub', text: m && m.rdv ? 'Vos prestations' : 'Vos produits' }));
+      tp.append(el('div', { class: 'b-sitefrom' }, icon('i-info'), el('span', { text: m && m.rdv
+        ? 'Les noms, les prix, les durées et les catégories de vos prestations ne se tapent pas ici : ils viennent de vos réglages de rendez-vous, et le site les affiche tout seul.'
+        : 'Les noms, les prix et les photos de vos produits viennent de votre liste de produits : le site les affiche tout seul.' })));
+      tp.append(m && m.rdv ? el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations')
+        : el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', on: { click: () => setTab('produits') } }, icon('i-tag'), 'Gérer mes produits'));
+    }
+  }
+  // her categories (Rendez-vous), for a service card's category: she chooses, she does not type
+  function loadCategories() {
+    if (S.cats !== undefined) return;
+    S.cats = null;
+    let slug = '';
+    try { slug = (JSON.parse(localStorage.getItem('jeere-publish') || '{}') || {}).slug || ''; } catch (e) { slug = ''; }
+    if (!slug) { S.cats = []; return; }
+    fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/functions/v1/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w' }, body: JSON.stringify({ action: 'config', slug }) })
+      .then((r) => r.json()).then((j) => { const cs = []; (j && Array.isArray(j.services) ? j.services : []).forEach((x) => { if (x.category && cs.indexOf(x.category) === -1) cs.push(x.category); }); S.cats = cs; }, () => { S.cats = []; })
+      .then(() => { if (S.sitePick && S.sitePick.kind === 'c') renderTab(); });
+  }
   function renderSitePick(tp) {
     const p = S.sitePick, st = S.config.store;
     const own = st.site && st.site[p.kind] && typeof st.site[p.kind][p.key] === 'string';
+    const kindName = p.kind === 'i' ? 'photo' : p.kind === 'c' ? 'catégorie' : 'texte';
     const back = el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--sm', on: { click: () => { S.sitePick = null; renderTab({ top: true }); } } }, icon('i-back'), 'Retour');
-    tp.append(tabHead(p.kind === 'i' ? 'Modifier la photo' : 'Modifier le texte', p.kind === 'i' ? 'Choisissez une photo à vous : elle remplace celle du modèle, ici et sur votre site.' : 'Votre texte remplace celui du modèle, ici et sur votre site.', back));
-    if (p.kind === 't') {
+    tp.append(tabHead(p.kind === 'i' ? 'Modifier la photo' : p.kind === 'c' ? 'Choisir la catégorie' : 'Modifier le texte', p.kind === 'c' ? 'Elle s’affiche sur cette carte de prestation.' : p.kind === 'i' ? 'Choisissez une photo à vous : elle remplace celle du modèle, ici et sur votre site.' : 'Votre texte remplace celui du modèle, ici et sur votre site.', back));
+    if (p.kind === 'c') {
+      loadCategories();
+      tp.append(el('div', { class: 'b-sitefrom' }, icon('i-info'), el('span', { text: 'C’est une catégorie de vos prestations : choisissez-la parmi celles que vous avez créées dans vos réglages de rendez-vous.' })));
+      if (S.cats === null) tp.append(el('p', { class: 'b-hint', text: 'Chargement de vos catégories…' }));
+      else if (!S.cats.length) tp.append(el('p', { class: 'b-hint', text: 'Vous n’avez pas encore de prestations. Ajoutez-les dans vos réglages de rendez-vous : leurs catégories apparaîtront ici.' }));
+      else {
+        const cur = st.site && st.site.c && st.site.c[p.key];
+        const box = el('div', { class: 'b-sitecats' });
+        S.cats.forEach((cat) => box.append(el('button', { type: 'button', class: 'b-sitepage' + (cur === cat ? ' is-on' : ''), 'aria-pressed': String(cur === cat), on: { click: () => { setSiteEdit('c', p.key, cat); S.sitePick.value = cat; renderTab(); } } }, cat)));
+        tp.append(box);
+      }
+      tp.append(el('a', { class: 'b-btn b-btn--ghost b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '', style: 'margin-top:12px' }, icon('i-dash'), 'Gérer mes prestations'));
+    } else if (p.kind === 't') {
       const ta = el(p.long ? 'textarea' : 'input', { class: 'b-input', 'data-fk': 'site-text', rows: p.long ? 6 : undefined, maxlength: 800, value: undefined });
       ta.value = own ? st.site.t[p.key] : p.value;
       ta.addEventListener('input', () => { setSiteEdit('t', p.key, ta.value.trim() ? ta.value : null, true); S.sitePick.value = ta.value; });
@@ -608,12 +715,13 @@
       });
       tp.append(img, file, el('label', { class: 'b-btn b-btn--primary b-btn--block', for: 'b-site-file' }, icon('i-image'), 'Changer la photo'));
     }
-    if (own) tp.append(el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--block', style: 'margin-top:10px', on: { click: () => { setSiteEdit(p.kind, p.key, null); S.sitePick = null; renderTab({ top: true }); toast('Le modèle d’origine est remis.', 1600); } } }, icon('i-undo'), p.kind === 'i' ? 'Remettre la photo du modèle' : 'Remettre le texte du modèle'));
+    if (own) tp.append(el('button', { type: 'button', class: 'b-btn b-btn--ghost b-btn--block', style: 'margin-top:10px', on: { click: () => { setSiteEdit(p.kind, p.key, null); S.sitePick = null; renderTab({ top: true }); toast('Le modèle d’origine est remis.', 1600); } } }, icon('i-undo'), 'Remettre ' + (p.kind === 'i' ? 'la photo' : p.kind === 'c' ? 'la catégorie' : 'le texte') + ' du modèle'));
     tp.append(el('p', { class: 'b-note', text: 'Cliquez sur un autre texte ou une autre photo du site pour le modifier. Publiez pour mettre vos changements en ligne.' }));
   }
   function renderCustomInto(root, c) {
     let fr = root.querySelector('iframe.b-custom');
-    if (!fr || fr.getAttribute('data-slug') !== c.slug) {
+    const want = c.url + (c.bought && S.sitePage ? S.sitePage : '');
+    if (!fr || fr.getAttribute('data-slug') !== c.slug || fr.getAttribute('data-src') !== want) {
       root.className = 'b-customwrap';
       root.textContent = '';
       fr = document.createElement('iframe');
@@ -621,11 +729,12 @@
       fr.title = 'Votre site';
       fr.setAttribute('data-slug', c.slug);
       fr.addEventListener('load', sendCustom);
-      fr.src = c.url;
+      fr.src = want; fr.setAttribute('data-src', want);
       root.appendChild(fr);
     } else sendCustom();
     if (els.screen) els.screen.style.background = '#FFFFFF';
     iphone(S.device === 'phone');
+    if (c.bought) updateHint();
   }
   // the phone preview of her model: the real iPhone, its status bar on top of her site
   function iphone(on) {
@@ -997,7 +1106,8 @@
     if (TABS.indexOf(tab) === -1) tab = 'sections';
     const custom = !!customSite();
     document.documentElement.classList.toggle('b-is-custom', custom);
-    if (custom && CUSTOM_TABS.indexOf(tab) === -1) tab = 'produits';
+    if (custom && CUSTOM_TABS.indexOf(tab) === -1) tab = customSite().bought ? 'site' : 'produits';
+    if (!custom && tab === 'site') tab = 'sections';
     // the « Produits » tab is « Prestations » for a booking model
     const pt = document.querySelector('#b-tab-produits span');
     if (pt) pt.textContent = custom && customSite().rdv ? 'Prestations' : 'Produits';
@@ -1615,7 +1725,6 @@
 
   function renderProducts(tp) {
     const cs0 = customSite();
-    if (cs0 && cs0.bought && S.sitePick) { renderSitePick(tp); return; }
     if (cs0 && cs0.rdv) { renderServicesInfo(tp, cs0); return; }
     const ps = S.config.products;
     const lim = productLimit();
@@ -1624,7 +1733,6 @@
     tp.append(tabHead('Produits', sorting
       ? 'Changez l’ordre avec les flèches, puis touchez Terminé.'
       : `${count(ps.length, 'produit')}. L’ordre de cette liste est celui de votre boutique.`, reorderToggle('produits', ps.length)));
-    if (cs0 && cs0.bought) tp.append(el('p', { class: 'b-sitehint' }, icon('i-edit'), el('span', { text: 'Cliquez sur une photo ou un texte du site pour le changer.' })));
     if (!sorting) {
       tp.append(el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', id: 'b-p-add', 'data-fk': 'p-add', on: { click: addProduct } },
         icon('i-plus'), 'Ajouter un produit'));
@@ -3644,7 +3752,6 @@
   // the dashboard (Rendez-vous). The panel says so and takes her there.
   function renderServicesInfo(tp, cs) {
     const m = window.JeereModels && window.JeereModels.bySlug(cs.slug);
-    tp.append(el('p', { class: 'b-sitehint' }, icon('i-edit'), el('span', { text: 'Cliquez sur une photo ou un texte du site pour le changer.' })));
     tp.append(tabHead('Prestations', 'Votre site affiche vos prestations, vos prix et vos créneaux libres. Vos clientes réservent directement.'));
     const list = el('ul', { class: 'b-svcinfo' });
     [['Vos prestations et leurs prix', 'Pose de cils, remplissage, rehaussement…'], ['Leur durée', 'Pour calculer les créneaux libres'],
@@ -3655,7 +3762,7 @@
     tp.append(el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations'));
     tp.append(el('p', { class: 'b-note', text: 'Le nom de votre salon, votre ville et votre WhatsApp se changent dans l’onglet Boutique.' }));
   }
-  const RENDER = { sections: renderSections, produits: renderProducts, theme: renderTheme, boutique: renderBoutique, qualite: renderQuality };
+  const RENDER = { site: renderSite, sections: renderSections, produits: renderProducts, theme: renderTheme, boutique: renderBoutique, qualite: renderQuality };
 
   /* ------------------------------------------------------------------ meta (top bar, title, score) */
 
@@ -4538,6 +4645,7 @@
   const NOPAY_HINT = [`Aucun moyen de paiement activé${NB}: vos clients ne peuvent commander que sur WhatsApp. Activez-en un dans Boutique › Moyens de paiement.`, `Activez un moyen de paiement dans Boutique.`];
   function updateHint() {
     if (!els.stageHint) return;
+    { const cb = customSite(); if (cb && cb.bought) { const t0 = 'Touchez un texte ou une photo pour le changer. Pour changer de page, utilisez « Site » à gauche.'; els.stageHint.__text = t0; els.stageHint.textContent = t0; return; } }
     const page = rendererHasPages() ? S.page : 'home';
     const noPay = page === 'checkout' && S.config && S.config.payments && !Object.keys(S.config.payments).some((k) => S.config.payments[k] === true);
     const h = noPay ? NOPAY_HINT : (PAGE_HINTS[page] || PAGE_HINTS.home);

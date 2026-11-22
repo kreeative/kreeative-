@@ -3016,14 +3016,14 @@
     // Her changes to a designer model's page (the editor, clicking on the site): texts and pictures by place,
     // « <page>|t|<n> » / « <page>|i|<n> » (connect/jeere-connect.js numbers them the same way)
     if (isObj(srcStore.site)) {
-      var site = {}, SK = /^\/[a-z0-9\/-]{0,60}\|[ti]\|\d{1,4}$/;
-      ['t', 'i'].forEach(function (k) {
+      var site = {}, SK = /^\/[a-z0-9\/-]{0,60}\|[tic]\|\d{1,4}$/;
+      ['t', 'i', 'c'].forEach(function (k) {
         var src2 = isObj(srcStore.site[k]) ? srcStore.site[k] : null, out = {}, n = 0;
         if (!src2) return;
         Object.keys(src2).forEach(function (key) {
           if (n >= 400 || !SK.test(key)) return;
           var v = typeof src2[key] === 'string' ? src2[key] : '';
-          if (k === 't') { v = v.replace(/[\u0000-\u0008\u000B-\u001F]/g, '').slice(0, 800); if (!v.trim()) return; }
+          if (k !== 'i') { v = v.replace(/[\u0000-\u0008\u000B-\u001F]/g, '').slice(0, 800); if (!v.trim()) return; }
           else if (!/^https:\/\/[^\s"'<>]{8,600}$/i.test(v) && !(/^data:image\/(?:png|jpe?g|webp|gif);base64,/.test(v) && v.length < 2200000)) return;
           out[key] = v; n++;
         });

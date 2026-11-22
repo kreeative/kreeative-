@@ -446,15 +446,53 @@
   function editableText(el) {
     var t = (el.textContent || '').trim();
     if (!t || t.length > 800) return false;
-    for (var i = 0; i < el.children.length; i++) if (!INLINE[el.children[i].tagName] || el.children[i].children.length) return false;
+    // a child with a class of its own is a piece of the design (a logo's name and its line): edited apart
+    for (var i = 0; i < el.children.length; i++) if (!INLINE[el.children[i].tagName] || el.children[i].children.length || (el.children[i].tagName !== 'BR' && el.children[i].className)) return false;
     return true;
   }
   function editImgs() { return $$('img').filter(function (el) { return !skip(el); }); }
+  // what she can change on this page, numbered in page order: texts (t), pictures (i), the category of a
+  // service card (c); and what comes from elsewhere: a product card (p), the list of her services (s)
+  function cardOf(el) { return el.closest ? el.closest('a[data-jeere-book]:not([data-jeere-book=""]), [data-jeere-service]') : null; }
   function keyed() {
-    var base = pagePath(), out = [];
-    editTexts().forEach(function (el, n) { out.push({ el: el, kind: 't', key: base + '|t|' + n }); });
+    var base = pagePath(), out = [], nt = 0, nc = 0;
+    editTexts().forEach(function (el) {
+      var card = cardOf(el), cat = card && /pill|cat|tag|badge/.test(String(el.className || ''));
+      if (cat) out.push({ el: el, kind: 'c', key: base + '|c|' + (nc++), ref: card.getAttribute('data-jeere-book') || card.getAttribute('data-jeere-service') || '' });
+      else out.push({ el: el, kind: 't', key: base + '|t|' + (nt++) });
+    });
     editImgs().forEach(function (el, n) { out.push({ el: el, kind: 'i', key: base + '|i|' + n }); });
+    $$('[data-jeere-product]').forEach(function (el) { if (!skip(el.parentElement || el)) out.push({ el: el, kind: 'p', key: base + '|p|' + el.getAttribute('data-jeere-product'), ref: el.getAttribute('data-jeere-product') }); });
+    $$('[data-jeere-services]').forEach(function (el, n) { out.push({ el: el, kind: 's', key: base + '|s|' + n }); });
     return out;
+  }
+  function label(x) {
+    if (x.kind === 'i') return x.el.getAttribute('alt') || '';
+    var t = (x.el.textContent || '').replace(/\s+/g, ' ').trim();
+    return t.length > 90 ? t.slice(0, 88) + '…' : t;
+  }
+  // the editor's left panel lists all of it, before any click
+  function sendMap() {
+    if (!editing || !parentOrigin) return;
+    var items = keyed().map(function (x) {
+      return { key: x.key, kind: x.kind, ref: x.ref || '', label: label(x), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
+        tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && (x.el.textContent || '').length > 70 };
+    });
+    try { window.parent.postMessage({ jeereMap: { page: pagePath(), title: document.title, items: items } }, parentOrigin); } catch (e) { /* not in the editor */ }
+  }
+  // her logo in place of the model's name, in the header and the footer
+  function applyLogo(fiche) {
+    var logo = isObj(fiche.store) ? httpsImg(fiche.store.logo) || (/^data:image\//.test(str(fiche.store.logo)) ? str(fiche.store.logo) : '') : '';
+    var name = isObj(fiche.store) ? str(fiche.store.name).trim() : '';
+    $$('.logo__mark, a.logo:not(:has(.logo__mark)), .brand').forEach(function (el) {
+      if (!el.getAttribute('data-jeere-logo')) el.setAttribute('data-jeere-logo', el.innerHTML);
+      if (logo) {
+        el.innerHTML = '';
+        var im = document.createElement('img');
+        im.src = logo; im.alt = name; im.setAttribute('style', 'display:block;height:42px;width:auto;max-width:190px;object-fit:contain');
+        el.appendChild(im);
+      } else if (preview && el.querySelector('img[style]')) el.innerHTML = el.getAttribute('data-jeere-logo');
+    });
   }
   function brand(fiche) {
     var name = isObj(fiche.store) ? str(fiche.store.name).trim() : '', model = MODEL_NAMES[slug];
@@ -467,8 +505,15 @@
   }
   function applySite(fiche) {
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
-    var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {};
+    var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {};
+    try { applyLogo(fiche); } catch (e) { /* the model's name stays */ }
     keyed().forEach(function (x) {
+      if (x.kind === 'p' || x.kind === 's') return;
+      if (x.kind === 'c') {
+        if (!original[x.key]) original[x.key] = x.el.innerHTML;
+        if (typeof cc[x.key] === 'string') x.el.textContent = cc[x.key]; else if (preview) x.el.innerHTML = original[x.key];
+        return;
+      }
       if (!original[x.key]) original[x.key] = x.kind === 't' ? x.el.innerHTML : { src: x.el.getAttribute('src'), srcset: x.el.getAttribute('srcset') };
       if (x.kind === 't') {
         if (typeof t[x.key] === 'string') x.el.textContent = t[x.key];
@@ -511,7 +556,7 @@
       if (!x) return;
       var big = x.el.getBoundingClientRect();
       try {
-        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, value: x.kind === 't' ? (x.el.textContent || '').trim() : (x.el.currentSrc || x.el.src),
+        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : (x.el.textContent || '').trim(),
           tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && ((x.el.textContent || '').length > 70 || big.height > 60) } }, parentOrigin || '*');
       } catch (err) { /* not in the editor */ }
     }, true);
@@ -536,11 +581,17 @@
     if (window.parent !== window) {
       window.addEventListener('message', function (e) {
         if (!/^https:\/\/(jehre\.com|jeere\.kreeative\.xyz)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
+        // the panel asks to show one: scrolled into view, outlined a moment
+        if (isObj(e.data) && typeof e.data.jeereFocus === 'string') {
+          var f = keyed().filter(function (k) { return k.key === e.data.jeereFocus; })[0];
+          if (f) { try { f.el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (er) { f.el.scrollIntoView(); } f.el.classList.add('jeere-hl'); setTimeout(function () { f.el.classList.remove('jeere-hl'); }, 1600); }
+          return;
+        }
         if (!isObj(e.data) || e.data.jeerePreview !== slug || !isObj(e.data.fiche)) return;
         preview = true;
         parentOrigin = e.origin;
         try { S.products = readFiche(e.data.fiche); S.status = 'ready'; drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
-        try { brand(e.data.fiche); applySite(e.data.fiche); if (e.data.edit) pickOn(); } catch (err) { /* the page keeps what it had */ }
+        try { brand(e.data.fiche); applySite(e.data.fiche); if (e.data.edit) pickOn(); sendMap(); } catch (err) { /* the page keeps what it had */ }
         emit('jeere:update', { status: S.status, products: list() });
       });
       try { window.parent.postMessage({ jeereConnect: 'ready', store: slug }, '*'); } catch (e) { /* not framed by the editor */ }
