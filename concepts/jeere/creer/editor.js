@@ -584,6 +584,8 @@
     if (c && e.data && e.data.jeerePick && typeof e.data.jeerePick.key === 'string') {
       try { if (e.origin !== new URL(c.url).origin) return; } catch (err) { return; }
       const pk = e.data.jeerePick;
+      // a product touched on her site: its own form opens, right here (name, price, photo, description)
+      if (pk.kind === 'p' && pk.ref && findProduct(pk.ref)) { openProductHere(pk.ref); return; }
       S.sitePick = null;
       if (typeof pk.sec === 'number' && pk.sec >= 0) S.siteOpen = pk.sec;
       S.siteFocus = pk.key;
@@ -601,6 +603,17 @@
       if (S.tab === 'site') { const ae = document.activeElement; if (!(ae && els.tp.site.contains(ae) && /INPUT|TEXTAREA|SELECT/.test(ae.tagName))) renderTab(); }
     }
   });
+  // A product of her site, opened in the « Produits » tab with its form ready
+  function openProductHere(id) {
+    S.openProduct = id;
+    if (S.tab !== 'produits') setTab('produits'); else renderTab();
+    setTimeout(() => {
+      const row = els.tp.produits ? els.tp.produits.querySelector('[data-pid="' + CSS.escape(id) + '"]') : null;
+      if (!row) return;
+      row.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      const f = row.querySelector('input:not([type=file]):not([type=hidden]), textarea'); if (f) { try { f.focus({ preventScroll: true }); } catch (err) { /* fine */ } }
+    }, 80);
+  }
   // Her change to a text or a picture of the model (store.site), or back to the model's own (value null)
   function setSiteEdit(kind, key, value, typing) {
     const st = S.config.store;
@@ -733,11 +746,23 @@
     });
     // what comes from her services or her products
     if (linked.length) {
-      body.append(el('div', { class: 'b-sitefrom' }, icon('i-info'), el('span', { text: m && m.rdv
-        ? 'Les prestations affichées ici (noms, prix, durées, catégories) viennent de vos réglages de rendez-vous : le site les affiche tout seul.'
-        : 'Les produits affichés ici (noms, prix, photos) viennent de votre liste de produits : le site les affiche tout seul.' })));
+      if (m && m.rdv) body.append(el('div', { class: 'b-sitefrom' }, icon('i-info'), el('span', { text: 'Les prestations affichées ici (noms, prix, durées, catégories) viennent de vos réglages de rendez-vous : le site les affiche tout seul.' })));
+      else {
+        // the products of this section, each one a touch away from its form
+        const seen = {}, list = el('ul', { class: 'b-siteprods', 'aria-label': 'Produits de cette section' });
+        linked.forEach((x) => {
+          const pr = x.kind === 'p' && x.ref && !seen[x.ref] ? findProduct(x.ref) : null;
+          if (!pr) return;
+          seen[x.ref] = true;
+          list.append(el('li', {}, el('button', { type: 'button', class: 'b-siteprod', on: { click: () => openProductHere(pr.id) } },
+            pr.image ? el('img', { src: pr.image, alt: '', loading: 'lazy' }) : el('span', { class: 'b-siteprod__no' }, icon('i-tag')),
+            el('span', { class: 'b-siteprod__t' }, el('span', { class: 'b-siteprod__n', text: pr.name || 'Produit sans nom' }), el('span', { class: 'b-siteprod__p', text: D.formatPrice(pr.price) })),
+            el('span', { class: 'b-siteprod__go', text: 'Modifier' }))));
+        });
+        if (list.children.length) body.append(el('p', { class: 'b-label', text: 'Produits de cette section' }), list);
+      }
       body.append(m && m.rdv ? el('a', { class: 'b-btn b-btn--primary b-btn--block', href: '../admin/#rendez-vous', 'data-leave': '' }, icon('i-dash'), 'Gérer mes prestations')
-        : el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', on: { click: () => setTab('produits') } }, icon('i-tag'), 'Gérer mes produits'));
+        : el('button', { type: 'button', class: 'b-btn b-btn--primary b-btn--block', on: { click: () => setTab('produits') } }, icon('i-tag'), 'Tous mes produits'));
     }
     if (!imgs.length && !texts.length && !linked.length && sec.icon !== 'header') body.append(el('p', { class: 'b-hint', text: 'Cette section n’a rien à modifier.' }));
     return body;
