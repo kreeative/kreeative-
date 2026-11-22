@@ -122,8 +122,8 @@ function welcome(firstName: string, trial: boolean) {
   // the logo's colours, in order: the full rainbow
   const RB = ['#E8467C', '#F08A3C', '#F0C414', '#22C97E', '#1E9BE0', '#6A4CFF', '#C13CE0'];
   const para = (t: string) => '<p style="margin:0 0 14px 0;">' + esc(t) + '</p>';
-  const step = (n: number, c: string, x: string[]) => '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px 0;"><tr>' +
-    '<td width="46" valign="top"><div style="width:34px;height:34px;border-radius:17px;background:' + c + ';color:#FFFFFF;font:700 16px/34px ' + font + ';text-align:center;">' + n + '</div></td>' +
+  const step = (n: number, x: string[]) => '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px 0;"><tr>' +
+    '<td width="30" valign="top" style="font:700 20px/1.2 ' + font + ';color:#111111;">' + n + '</td>' +
     '<td valign="top" style="font:400 15px/1.5 ' + font + ';color:#111111;"><b>' + esc(x[0]) + '</b><br><span style="color:#444444;">' + esc(x[1]) + '</span></td></tr></table>';
   const note = (c: string, x: string[]) => '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px 0;"><tr>' +
     '<td width="18" valign="top"><div style="width:8px;height:8px;border-radius:4px;background:' + c + ';margin-top:7px;"></div></td>' +
@@ -136,7 +136,7 @@ function welcome(firstName: string, trial: boolean) {
     '<p style="margin:0 0 10px 0;font:700 26px/1.2 ' + font + ';letter-spacing:-.01em;">' + esc(firstName ? 'Bienvenue, ' + firstName + '.' : 'Bienvenue.') + '</p>' +
     para('Votre compte Jehre est créé. Voici l’essentiel pour mettre votre boutique en ligne.') +
     '<p style="margin:22px 0 14px 0;font:700 17px/1.3 ' + font + ';">Vos 3 premiers pas</p>' +
-    steps.map((x, i) => step(i + 1, [RB[0], RB[1], RB[3]][i], x)).join('') +
+    steps.map((x, i) => step(i + 1, x)).join('') +
     '<p style="margin:10px 0 26px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:13px 24px;border-radius:999px;">Ouvrir mon tableau de bord</a></p>' +
     '</td></tr>' +
     '<tr><td style="padding:0 28px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border:1px solid #ECEAE6;border-radius:16px;"><tr><td style="padding:20px 20px 0 20px;font:400 14.5px/1.5 ' + font + ';color:#111111;">' +
