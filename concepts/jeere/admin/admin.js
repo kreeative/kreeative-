@@ -552,16 +552,42 @@
       if (j.editor) refresh();
     }, () => {});
   }
-  const EXT = () => (founder() && window.JeereTishe && window.JeereTishe.on() ? window.JeereTishe : null);
+  // A partner of The Ivory Sukundu (public.ext_store_access, asked once per session through public.my_ext_stores):
+  // she sees that store in her own Jehre dashboard, and nothing else of the founder's.
+  const extMember = () => {
+    const uid = S.account && S.account.userId ? String(S.account.userId) : '';
+    if (!uid) return false;
+    try { return sessionStorage.getItem('jeere-ext-stores') === '1:' + uid; } catch (e) { return false; }
+  };
+  let extAsked = '';
+  function checkExt() {
+    const uid = S.account && S.account.userId ? String(S.account.userId) : '';
+    let cached = null;
+    try { cached = sessionStorage.getItem('jeere-ext-stores'); } catch (e) { cached = null; }
+    if (!uid || extAsked === uid || cached === '1:' + uid || cached === '0:' + uid) return;
+    extAsked = uid;
+    const A = window.JeereAuth;
+    Promise.resolve(A && typeof A.session === 'function' ? A.session() : null).then((s) => {
+      if (!s || !s.access_token) return null;
+      return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/rpc/my_ext_stores', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + s.access_token }, body: '{}' }).then((r) => (r.ok ? r.json() : null));
+    }).then((j) => {
+      if (!Array.isArray(j)) { extAsked = ''; return; }
+      const yes = j.indexOf('tishe') !== -1;
+      try { sessionStorage.setItem('jeere-ext-stores', (yes ? '1:' : '0:') + uid); } catch (e) { /* ok */ }
+      if (yes) { updateShell(); refresh(); }
+    }, () => { extAsked = ''; });
+  }
+  const extOk = () => founder() || extMember();
+  const EXT = () => (extOk() && window.JeereTishe && window.JeereTishe.on() ? window.JeereTishe : null);
   // The Ivory Sukundu is the store in view, but we do not know yet that this account manages it (the account
   // arrives a moment after the page): wait, instead of showing another store's numbers. Six seconds at most.
   const BOOT = Date.now();
   const extPending = () => {
-    if (founder() || !(window.JeereTishe && window.JeereTishe.on()) || Date.now() - BOOT > 6000) return false;
+    if (extOk() || !(window.JeereTishe && window.JeereTishe.on()) || Date.now() - BOOT > 6000) return false;
     const uid = S.account && S.account.userId ? String(S.account.userId) : '';
-    let cached = null;
-    try { cached = sessionStorage.getItem('jeere-sites-editor'); } catch (e) { cached = null; }
-    return !uid || cached !== '0:' + uid;
+    let cached = null, cachedExt = null;
+    try { cached = sessionStorage.getItem('jeere-sites-editor'); cachedExt = sessionStorage.getItem('jeere-ext-stores'); } catch (e) { cached = null; }
+    return !uid || cached !== '0:' + uid || cachedExt !== '0:' + uid;
   };
   const storeName = () => (EXT() ? EXT().name : (S.config && S.config.store.name) || (S.account && S.account.storeName) || 'Ma boutique');
   const subdomain = () => EXT() ? EXT().url : (S.admin && S.admin.settings.subdomain) || (D && D.subdomainFor ? D.subdomainFor(storeName()) : 'jehre.com/b/ma-boutique');
@@ -862,6 +888,9 @@
 
   function render(r, focus) {
     if (!S.inApp) return;
+    // who she is for the stores that live elsewhere (the founder, a partner of The Ivory Sukundu): asked once, early,
+    // so the store list is right the first time she opens it
+    checkFounder(); checkExt();
     // The dashboard tour is on the home page: going elsewhere ends it
     if (r.name !== 'accueil' && window.JeereTour && window.JeereTour.isOpen() && (window.JeereTour.current() || {}).id === 'admin') window.JeereTour.stop('outside');
     S.now = new Date();
@@ -887,7 +916,7 @@
       setTimeout(() => {
         if (S.viewExt !== null) return;
         try { const a = readAccount(); if (a) S.account = a; } catch (e) { /* keep the one we have */ }
-        checkFounder();
+        checkFounder(); checkExt();
         refresh();
       }, 350);
     } else {
@@ -1115,8 +1144,8 @@
     // her boutiques: always in the list. The Ivory Sukundu has its own dashboard (its own site); the others open here
     const norm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
     const have = new Set(items.map((e) => norm(projName(e))));
-    checkFounder();
-    const mine = founder() ? MY_SHOPS : [];
+    checkFounder(); checkExt();
+    const mine = founder() ? MY_SHOPS : extMember() ? MY_SHOPS.filter((x) => x.ext) : [];
     const shops = mine.filter((x) => x.ext || x.slug || !have.has(norm(x.name)));
     const shopNames = new Set(mine.map((x) => norm(x.name)));
     return H`${shops.length ? H`<p class="a-proj__title" id="pj-sh">Mes boutiques</p>` : ''}

@@ -25,6 +25,8 @@
   function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* blocked */ } }
   // the Jehre account signed in on this device (the TISHE session belongs to ONE account)
   function uid() { try { var a = JSON.parse(lsGet('jeere-account') || 'null'); return a && a.userId ? String(a.userId) : ''; } catch (e) { return ''; } }
+  // her own address (the store knows who may sign in): a partner asks for the link at HER address
+  function myMail() { try { var a = JSON.parse(lsGet('jeere-account') || 'null'); return a && a.email ? String(a.email) : ''; } catch (e) { return ''; } }
   function auth() {
     try {
       var a = JSON.parse(lsGet(K_AUTH) || 'null');
@@ -140,8 +142,8 @@
         '<p class="a-card__sub" style="margin-bottom:16px">' + (T.linkSent
           ? 'Le lien est parti. Ouvrez l’e-mail <strong>« Your dashboard sign-in link »</strong> sur cet appareil : le bouton vous ramène ici, connectée pour 30 jours.'
           : 'La boutique vous envoie un lien de connexion par e-mail, à l’adresse qui la gère. Il marche 24 heures.') + '</p>' +
-        '<div class="a-field"><label class="a-label" for="tx-mail">Adresse e-mail de la boutique</label>' +
-        '<input class="a-input" id="tx-mail" name="email" type="email" autocomplete="email" value="' + esc(OWNER) + '"></div>' +
+        '<div class="a-field"><label class="a-label" for="tx-mail">Votre adresse e-mail</label>' +
+        '<input class="a-input" id="tx-mail" name="email" type="email" autocomplete="email" value="' + esc(myMail() || OWNER) + '"></div>' +
         (T.error ? '<p class="a-error">' + ico('alert') + esc(T.error) + '</p>' : '') +
         '<div class="a-btnrow"><button class="a-btn a-btn--primary" type="submit">' + ico('message') + (T.linkSent ? 'Renvoyer le lien' : 'Recevoir le lien de connexion') + '</button>' +
         '<a class="a-btn a-btn--ghost" href="' + SITE + '" target="_blank" rel="noopener">' + ico('external') + 'Voir la boutique</a></div>' +
