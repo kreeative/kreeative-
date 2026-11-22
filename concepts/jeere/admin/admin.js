@@ -3683,7 +3683,7 @@
             ${blocked ? H`<div class="a-note a-note--strong" style="margin-top:12px">${ico('alert')}<div><p>${esc(fr('Vos clients voient ' + listFr(mm.map(payLabel)) + ', mais vous ne pouvez pas encore encaisser.'))}</p>
               <div class="a-btnrow" style="margin-top:10px"><button class="a-btn a-btn--primary" type="button" data-act="connector-open" data-id="mobile-money">${ico('phone')}Connecter le paiement mobile money</button></div></div></div>` : ''}
             ${connRow('mobile-money', blocked)}${connRow('card')}${stripeLine()}
-            <p class="a-small" style="margin-top:6px">Démo : aucune connexion réelle n’est faite.</p>
+            ${S.account && S.account.userId ? '' : H`<p class="a-small" style="margin-top:6px">Démo : aucune connexion réelle n’est faite.</p>`}
           </section>
           <section class="a-card" aria-labelledby="h-methods"><div class="a-card__head" style="margin-bottom:4px"><div><h2 class="a-card__title" id="h-methods">Moyens de paiement</h2><p class="a-card__sub">Ceux que vos clients voient au moment de payer, dans cet ordre.</p></div></div>
             ${!any ? H`<div class="a-note a-note--strong" style="margin:8px 0">${ico('alert')}<p>Aucun moyen de paiement : vos clients ne peuvent commander que sur WhatsApp.</p></div>` : ''}
