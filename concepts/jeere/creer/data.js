@@ -3653,12 +3653,11 @@
     },
     {
       id: 'whatsapp', category: 'messagerie', name: 'WhatsApp Business', icon: 'chat',
-      description: 'Recevez chaque commande sur WhatsApp et envoyez automatiquement à vos clients la confirmation, le lien de paiement et le suivi de livraison.',
+      description: 'Vos clients vous envoient leur commande sur WhatsApp, déjà rédigée. Vous leur répondez en un geste : la confirmation, le lien de paiement et le suivi de livraison sont prêts à envoyer.',
       fields: [
-        { key: 'number', label: 'Numéro WhatsApp Business', type: 'tel', placeholder: '07 07 12 34 56' },
-        { key: 'autoMessages', label: 'Messages automatiques de commande', type: 'toggle', default: 'true' }
+        { key: 'number', label: 'Votre numéro WhatsApp', type: 'tel', placeholder: '+225 07 07 12 34 56' }
       ],
-      note: 'C’est aussi le numéro affiché sur votre boutique.'
+      note: 'Commencez par l’indicatif de votre pays : +225 Côte d’Ivoire, +221 Sénégal, +223 Mali, +228 Togo, +229 Bénin, +226 Burkina Faso. C’est aussi le numéro affiché sur votre boutique.'
     },
     {
       id: 'sms', category: 'messagerie', name: 'SMS', icon: 'message', soon: true,
