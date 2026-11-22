@@ -427,6 +427,96 @@
       .catch(function () { clearTimeout(timer); return { ok: false, code: 'offline' }; });
   }
 
+  /* ---------------------------------------------------------------- her changes to the page
+   * The texts and pictures of a designer model, numbered in page order (the demo band left out), changed in the
+   * Jehre editor and kept in her fiche (store.site.t / store.site.i). Inside the editor, a click picks one. */
+  var MODEL_NAMES = { seve: 'SÈVE', soyeuse: 'SOYEUSE', michou: 'MICHOU', anse: 'ANSE', regard: 'REGARD', vernie: 'VERNIE', minuit: 'MINUIT' };
+  var TEXT_SEL = 'h1,h2,h3,h4,h5,p,li,blockquote,figcaption,dt,dd,small,a,button,span,strong,em,b,label';
+  var INLINE = { B: 1, I: 1, EM: 1, STRONG: 1, BR: 1, SMALL: 1, U: 1, SPAN: 1 };
+  var original = {}, editing = false, parentOrigin = '';
+  function pagePath() { var p = location.pathname.replace(/^\/concepts\/[a-z0-9-]+/, '').replace(/index\.html$/, ''); return p ? (p.charAt(p.length - 1) === '/' ? p : p + '/') : '/'; }
+  function skip(el) { return !!(el.closest && el.closest('.concept, .concept-bar, .avis__note-exemple, script, style, noscript, [data-jeere-lines], [data-jeere-price], [data-jeere-name], [data-jeere-count], [data-jeere-total], [data-jeere-services], [data-jeere-social], .jb, [hidden]')); }
+  function editTexts() {
+    return $$(TEXT_SEL).filter(function (el) {
+      if (skip(el)) return false;
+      if (el.parentElement && el.parentElement.closest && el.parentElement.closest(TEXT_SEL) && editableText(el.parentElement.closest(TEXT_SEL))) return false;
+      return editableText(el);
+    });
+  }
+  function editableText(el) {
+    var t = (el.textContent || '').trim();
+    if (!t || t.length > 800) return false;
+    for (var i = 0; i < el.children.length; i++) if (!INLINE[el.children[i].tagName] || el.children[i].children.length) return false;
+    return true;
+  }
+  function editImgs() { return $$('img').filter(function (el) { return !skip(el); }); }
+  function keyed() {
+    var base = pagePath(), out = [];
+    editTexts().forEach(function (el, n) { out.push({ el: el, kind: 't', key: base + '|t|' + n }); });
+    editImgs().forEach(function (el, n) { out.push({ el: el, kind: 'i', key: base + '|i|' + n }); });
+    return out;
+  }
+  function brand(fiche) {
+    var name = isObj(fiche.store) ? str(fiche.store.name).trim() : '', model = MODEL_NAMES[slug];
+    if (!name || !model) return;
+    $$('.concept, .concept-bar').forEach(function (n) { n.remove(); });
+    var re = new RegExp('(^|[^\\wÀ-ÿ])' + model + '(?![\\wÀ-ÿ])', 'g');
+    var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), node;
+    while ((node = w.nextNode())) if (node.nodeValue.indexOf(model) !== -1) node.nodeValue = node.nodeValue.replace(re, '$1' + name);
+    if (document.title.indexOf(model) !== -1) document.title = document.title.replace(re, '$1' + name);
+  }
+  function applySite(fiche) {
+    var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
+    var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {};
+    keyed().forEach(function (x) {
+      if (!original[x.key]) original[x.key] = x.kind === 't' ? x.el.innerHTML : { src: x.el.getAttribute('src'), srcset: x.el.getAttribute('srcset') };
+      if (x.kind === 't') {
+        if (typeof t[x.key] === 'string') x.el.textContent = t[x.key];
+        else if (preview) x.el.innerHTML = original[x.key];
+      } else {
+        var v = typeof im[x.key] === 'string' ? im[x.key] : '';
+        if (v) { x.el.removeAttribute('srcset'); x.el.src = v; }
+        else if (preview && original[x.key].src) { x.el.src = original[x.key].src; if (original[x.key].srcset) x.el.setAttribute('srcset', original[x.key].srcset); }
+      }
+    });
+  }
+  function pickOn() {
+    if (editing) return;
+    editing = true;
+    var st = document.createElement('style');
+    st.textContent = '[data-jeere-pickable]{cursor:pointer!important}.jeere-hl{outline:2px solid #3657FF!important;outline-offset:3px}img.jeere-hl{outline-offset:-2px}';
+    document.head.appendChild(st);
+    var mark = function () { keyed().forEach(function (x) { x.el.setAttribute('data-jeere-pickable', x.kind); }); };
+    mark();
+    // what is under the pointer, even under a decorative layer (a gradient, a title over a photo)
+    var under = function (e) {
+      var el = e.target && e.target.closest ? e.target.closest('[data-jeere-pickable]') : null;
+      if (el) return el;
+      var all = document.elementsFromPoint ? document.elementsFromPoint(e.clientX, e.clientY) : [];
+      for (var i = 0; i < all.length; i++) { var c = all[i].closest ? all[i].closest('[data-jeere-pickable]') : null; if (c) return c; }
+      return null;
+    };
+    var hl = null;
+    document.addEventListener('pointermove', function (e) {
+      var el = under(e);
+      if (el === hl) return;
+      if (hl) hl.classList.remove('jeere-hl');
+      hl = el; if (hl) hl.classList.add('jeere-hl');
+    }, true);
+    document.addEventListener('click', function (e) {
+      var el = under(e);
+      if (!el) { var a = e.target && e.target.closest ? e.target.closest('a') : null; if (a) e.preventDefault(); return; }
+      e.preventDefault(); e.stopPropagation();
+      var x = keyed().filter(function (k) { return k.el === el; })[0];
+      if (!x) return;
+      var big = x.el.getBoundingClientRect();
+      try {
+        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, value: x.kind === 't' ? (x.el.textContent || '').trim() : (x.el.currentSrc || x.el.src),
+          tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && ((x.el.textContent || '').length > 70 || big.height > 60) } }, parentOrigin || '*');
+      } catch (err) { /* not in the editor */ }
+    }, true);
+  }
+
   var resolveReady;
   var ready = new Promise(function (res) { resolveReady = res; });
 
@@ -448,7 +538,9 @@
         if (!/^https:\/\/(jehre\.com|jeere\.kreeative\.xyz)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
         if (!isObj(e.data) || e.data.jeerePreview !== slug || !isObj(e.data.fiche)) return;
         preview = true;
+        parentOrigin = e.origin;
         try { S.products = readFiche(e.data.fiche); S.status = 'ready'; drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
+        try { brand(e.data.fiche); applySite(e.data.fiche); if (e.data.edit) pickOn(); } catch (err) { /* the page keeps what it had */ }
         emit('jeere:update', { status: S.status, products: list() });
       });
       try { window.parent.postMessage({ jeereConnect: 'ready', store: slug }, '*'); } catch (e) { /* not framed by the editor */ }
@@ -467,6 +559,7 @@
       if (r.ok) {
         try { S.products = readFiche(r.fiche); S.status = 'ready'; } catch (e) { S.products = null; S.status = 'offline'; }
         try { drawSocial(r.fiche); } catch (e) { /* the page keeps its own */ }
+        try { applySite(r.fiche); } catch (e) { /* the page keeps its own */ }
       } else S.status = r.code;
       try {
         if (prune()) saveCart();
