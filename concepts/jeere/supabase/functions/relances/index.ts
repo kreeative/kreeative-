@@ -114,29 +114,46 @@ function welcome(firstName: string, trial: boolean) {
   ];
   const notes = [
     ['Pour vous reconnecter', 'Pas de mot de passe. Entrez votre e-mail sur jehre.com, vous recevez un code à 6 chiffres.'],
-    ['Les modèles de designer', 'Des sites déjà dessinés pour votre métier, dans « Boutique en ligne ». Payés une seule fois.'],
     trial ? ['Votre 1er mois est offert', 'Le pack Essentiel est gratuit le premier mois. Ensuite 3 500 FCFA par mois, sans engagement.'] : null,
     ['Besoin d’aide ?', 'Répondez simplement à cet e-mail. Une vraie personne vous répond.']
   ].filter(Boolean) as string[][];
   const font = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+  const IMG = SITE + '/img/email/';
+  // the logo's colours, in order: the full rainbow
+  const RB = ['#E8467C', '#F08A3C', '#F0C414', '#22C97E', '#1E9BE0', '#6A4CFF', '#C13CE0'];
   const para = (t: string) => '<p style="margin:0 0 14px 0;">' + esc(t) + '</p>';
+  const step = (n: number, c: string, x: string[]) => '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px 0;"><tr>' +
+    '<td width="46" valign="top"><div style="width:34px;height:34px;border-radius:17px;background:' + c + ';color:#FFFFFF;font:700 16px/34px ' + font + ';text-align:center;">' + n + '</div></td>' +
+    '<td valign="top" style="font:400 15px/1.5 ' + font + ';color:#111111;"><b>' + esc(x[0]) + '</b><br><span style="color:#444444;">' + esc(x[1]) + '</span></td></tr></table>';
+  const note = (c: string, x: string[]) => '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px 0;"><tr>' +
+    '<td width="18" valign="top"><div style="width:8px;height:8px;border-radius:4px;background:' + c + ';margin-top:7px;"></div></td>' +
+    '<td valign="top" style="font:400 14.5px/1.5 ' + font + ';color:#111111;"><b>' + esc(x[0]) + '</b><br><span style="color:#444444;">' + esc(x[1]) + '</span></td></tr></table>';
   const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(subject) + '</title></head>' +
     '<body style="margin:0;padding:0;background:#F4F4F2;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F2;"><tr><td align="center" style="padding:28px 14px;">' +
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;">' +
-    '<tr><td style="padding:26px 28px 6px 28px;font:700 20px/26px ' + font + ';color:#111111;">Jehre</td></tr>' +
-    '<tr><td style="padding:12px 28px 6px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' +
-    para(hi) + para(intro) +
-    '<p style="margin:18px 0 10px 0;font-weight:700;">Vos 3 premiers pas</p>' +
-    steps.map((x, i) => '<p style="margin:0 0 12px 0;"><b>' + (i + 1) + '. ' + esc(x[0]) + '.</b> ' + esc(x[1]) + '</p>').join('') +
-    '<p style="margin:14px 0 22px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:12px 22px;border-radius:12px;">Ouvrir mon tableau de bord</a></p>' +
-    '<p style="margin:0 0 10px 0;font-weight:700;">Bon à savoir</p>' +
-    notes.map((x) => '<p style="margin:0 0 12px 0;"><b>' + esc(x[0]) + (/[?!]$/.test(x[0]) ? '' : '.') + '</b> ' + esc(x[1]) + '</p>').join('') +
-    para('À très vite,') + para('Kelly, Jehre') +
-    '</td></tr><tr><td style="padding:6px 28px 24px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">Vous recevez ce message parce que vous venez de créer un compte sur jehre.com.</td></tr>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:18px;overflow:hidden;">' +
+    '<tr><td style="padding:0;line-height:0;"><a href="' + SITE + '/"><img src="' + IMG + 'entete.png" width="520" alt="Jehre" style="display:block;width:100%;height:auto;border:0;border-radius:18px 18px 0 0;"></a></td></tr>' +
+    '<tr><td style="padding:6px 28px 4px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' +
+    '<p style="margin:0 0 10px 0;font:700 26px/1.2 ' + font + ';letter-spacing:-.01em;">' + esc(firstName ? 'Bienvenue, ' + firstName + '.' : 'Bienvenue.') + '</p>' +
+    para('Votre compte Jehre est créé. Voici l’essentiel pour mettre votre boutique en ligne.') +
+    '<p style="margin:22px 0 14px 0;font:700 17px/1.3 ' + font + ';">Vos 3 premiers pas</p>' +
+    steps.map((x, i) => step(i + 1, [RB[0], RB[1], RB[3]][i], x)).join('') +
+    '<p style="margin:10px 0 26px 0;"><a href="' + link + '" style="display:inline-block;background:#111111;color:#FFFFFF;text-decoration:none;font:600 15px ' + font + ';padding:13px 24px;border-radius:999px;">Ouvrir mon tableau de bord</a></p>' +
+    '</td></tr>' +
+    '<tr><td style="padding:0 28px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border:1px solid #ECEAE6;border-radius:16px;"><tr><td style="padding:20px 20px 0 20px;font:400 14.5px/1.5 ' + font + ';color:#111111;">' +
+    '<p style="margin:0 0 4px 0;font:700 17px/1.3 ' + font + ';">Un site déjà dessiné pour votre métier</p>' +
+    '<p style="margin:0 0 6px 0;color:#444444;">Mode, perruques, cils, ongles, soins, sacs : choisissez un modèle de designer dans « Boutique en ligne ». Payé une seule fois.</p></td></tr>' +
+    '<tr><td style="padding:0;line-height:0;"><a href="' + link + '#boutique"><img src="' + IMG + 'modeles.jpg" width="464" alt="Trois modèles de designer Jehre sur téléphone" style="display:block;width:100%;height:auto;border:0;border-radius:0 0 16px 16px;"></a></td></tr></table></td></tr>' +
+    '<tr><td style="padding:26px 28px 6px 28px;font:400 15px/1.55 ' + font + ';color:#111111;">' +
+    '<p style="margin:0 0 14px 0;font:700 17px/1.3 ' + font + ';">Bon à savoir</p>' +
+    notes.map((x, i) => note([RB[4], RB[5], RB[6], RB[0]][i % 4], x)).join('') +
+    '<p style="margin:20px 0 4px 0;">À très vite,</p><p style="margin:0 0 18px 0;font-weight:700;">Kelly, Jehre</p>' +
+    '</td></tr>' +
+    '<tr><td style="padding:0 28px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>' + RB.map((c) => '<td height="4" style="background:' + c + ';font-size:0;line-height:0;">&nbsp;</td>').join('') + '</tr></table></td></tr>' +
+    '<tr><td style="padding:14px 28px 24px 28px;font:400 12px/1.5 ' + font + ';color:#6E6E6E;">Vous recevez ce message parce que vous venez de créer un compte sur jehre.com.<br>© 2026 Jehre™. Tous droits réservés.</td></tr>' +
     '</table></td></tr></table></body></html>';
   const text = [hi, intro, 'Vos 3 premiers pas',
     ...steps.map((x, i) => (i + 1) + '. ' + x[0] + '. ' + x[1]),
-    'Votre tableau de bord : ' + link, 'Bon à savoir',
+    'Votre tableau de bord : ' + link, 'Les modèles de designer : des sites déjà dessinés pour votre métier, dans « Boutique en ligne ». Payés une seule fois.', 'Bon à savoir',
     ...notes.map((x) => x[0] + (/[?!]$/.test(x[0]) ? ' ' : '. ') + x[1]), 'À très vite,', 'Kelly, Jehre'].join('\n\n');
   return { subject, html, text };
 }

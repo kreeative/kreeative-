@@ -15,8 +15,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .at-foot { text-align: center; color: #5E5B55; font-size: 12.5px; padding: 0 0 28px; }
 
 .at-top { display: flex; align-items: center; gap: 16px; padding: 22px 0 18px; flex-wrap: wrap; }
-.at-brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
-.at-brand__j { font-weight: 700; font-size: 24px; letter-spacing: -.02em; color: var(--ink); }
+.at-brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+/* the Jehre logo (black strokes on transparent), turned to gold */
+.at-brand__j { height: 46px; width: auto; display: block; filter: brightness(0) invert(79%) sepia(38%) saturate(560%) hue-rotate(2deg) brightness(96%); }
 .at-brand__a { font-weight: 600; font-size: 13px; letter-spacing: .22em; text-transform: uppercase;
   background: linear-gradient(90deg, var(--gold-deep), var(--gold2), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .at-me { color: var(--muted); font-size: 13.5px; }
@@ -79,5 +80,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .at-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold2)); }
 
 .at-gate { max-width: 420px; margin: 16vh auto 0; text-align: center; }
+.at-gate .at-brand__j { height: 64px; }
 .at-gate h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -.02em; }
 .at-gate p { color: var(--muted); margin: 0 0 22px; }

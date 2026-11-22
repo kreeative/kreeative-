@@ -39,11 +39,11 @@
   function allBuys() { var out = []; arr(S.accounts).forEach(function (a) { arr(a.models).forEach(function (m) { out.push({ m: m, a: a }); }); }); return out.sort(function (x, y) { return String(y.m.at).localeCompare(String(x.m.at)); }); }
 
   function gate(title, text, btn) {
-    root.innerHTML = '<div class="at-gate"><p class="at-brand" style="justify-content:center;margin:0 0 26px"><span class="at-brand__j">Jehre</span><span class="at-brand__a">Atlas</span></p><h1>' + esc(title) + '</h1><p>' + esc(text) + '</p>' + (btn || '') + '</div>';
+    root.innerHTML = '<div class="at-gate"><p class="at-brand" style="justify-content:center;margin:0 0 26px"><img class="at-brand__j" src="../img/brand/jehre-wordmark.png" alt="Jehre"><span class="at-brand__a">Atlas</span></p><h1>' + esc(title) + '</h1><p>' + esc(text) + '</p>' + (btn || '') + '</div>';
   }
 
   function shell(inner) {
-    return '<header class="at-top"><p class="at-brand" style="margin:0 auto 0 0"><span class="at-brand__j">Jehre</span><span class="at-brand__a">Atlas</span></p>' +
+    return '<header class="at-top"><p class="at-brand" style="margin:0 auto 0 0"><img class="at-brand__j" src="../img/brand/jehre-wordmark.png" alt="Jehre"><span class="at-brand__a">Atlas</span></p>' +
       '<span class="at-me">' + esc(S.email) + '</span><a class="at-btn" href="../admin/">Ma boutique</a><button class="at-btn" type="button" data-refresh>Actualiser</button></header>' +
       '<nav class="at-tabs" role="tablist">' + TABS.map(function (t) { return '<button class="at-tab" role="tab" type="button" data-tab="' + t[0] + '" aria-selected="' + (S.tab === t[0]) + '">' + esc(t[1]) + '</button>'; }).join('') + '</nav>' + inner;
   }
