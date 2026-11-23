@@ -62,7 +62,7 @@
     try { q = root.location.search || ''; } catch (e) { q = ''; }
     // « ?suite=modele&m=michou » (../modeles/, a model's demo asks for an account): back to that model
     var md = /[?&]suite=modele&m=(anse|seve|soyeuse|michou|regard|vernie|minuit)(?:&|$)/.exec(q);
-    if (md) return { id: 'modele&m=' + md[1], url: '../modeles/' + md[1] + '/', title: 'Voir le modèle', text: 'Retour au modèle que vous regardiez.', cta: 'Voir le modèle' };
+    if (md) return { id: 'modele&m=' + md[1], model: md[1], url: '../modeles/' + md[1] + '/', title: 'Voir le modèle', text: 'Retour au modèle que vous regardiez.', cta: 'Voir le modèle' };
     var m = /[?&]suite=(studio-publier|publier|studio|abonnements)(?:&|$)/.exec(q);
     if (!m) return null;
     // « Se connecter pour publier » (creer/publish.js): back to the editor or the Studio, the publish dialog open
@@ -74,6 +74,25 @@
     var url = '../abonnements/?' + (plan ? 'plan=' + plan[1] + '&' : '') + 'periode=' + (per ? per[1] : 'an') + '#paiement';
     return { id: 'abonnements', url: url, title: 'Reprendre mon abonnement Studio', text: 'Votre formule et votre période sont gardées : il reste le paiement.', cta: 'Reprendre mon abonnement Studio' };
   })();
+  // She followed a link to a model (one sent to her, or the demo's own address): the page says why it asks for an
+  // account, instead of a bare form.
+  (function () {
+    if (!SUITE || !SUITE.model) return;
+    var NAMES = { anse: 'ANSE', seve: 'SÈVE', soyeuse: 'SOYEUSE', michou: 'MICHOU', regard: 'REGARD', vernie: 'VERNIE', minuit: 'MINUIT' };
+    var say = function () {
+      [['c-signup-lead', 'Créez votre compte pour voir le modèle '], ['c-login-lead', 'Connectez-vous pour voir le modèle ']].forEach(function (x) {
+        var el = root.document.getElementById(x[0]);
+        if (!el || el.getAttribute('data-model')) return;
+        el.setAttribute('data-model', SUITE.model);
+        var b = root.document.createElement('strong');
+        b.textContent = x[1] + NAMES[SUITE.model] + '.';
+        el.insertBefore(root.document.createTextNode(' '), el.firstChild);
+        el.insertBefore(b, el.firstChild);
+      });
+    };
+    if (root.document.readyState === 'loading') root.document.addEventListener('DOMContentLoaded', say); else say();
+  })();
+
   // An e-mail link (the template sends a link as well as, or instead of, the code) lands here with
   // #access_token=… or #error=…: remembered before anything rewrites the URL
   var LINK = (function () {
@@ -516,7 +535,7 @@
   function drawChannelTexts() {
     var one = !demo() && !providers.sms && !providers.whatsapp;
     var lead = doc.getElementById('c-signup-lead');
-    if (lead) lead.innerHTML = 'Pas de mot de passe.';
+    if (lead) lead.innerHTML = (SUITE && SUITE.model ? '<strong>Créez votre compte pour voir le modèle ' + SUITE.model.toUpperCase().replace('SEVE', 'SÈVE') + '.</strong> ' : '') + 'Pas de mot de passe.';
     // with e-mail alone, the line under the (hidden) choice repeats the e-mail field's hint: hidden too
     ['c-method-hint', 'c-l-method-hint'].forEach(function (id) { var h = doc.getElementById(id); if (h) h.hidden = one; });
   }
