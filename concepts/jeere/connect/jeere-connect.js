@@ -677,6 +677,31 @@
     kids.forEach(function (k, idx) { k.style.order = String(idx); });
     want.forEach(function (n, pos) { all[n].style.order = String(slots[pos]); });
   }
+  /* Her look for a section (store.site.s[<page>|h|<n>] = { pt, pb, align, bg, line, radius }): the space above and
+   * under it, the alignment of its texts, its background, a thin line on top, the corners of its pictures. Written
+   * as inline styles over the model's own, which come back as soon as she removes a value. Only safe values pass
+   * (numbers within bounds, three alignments, a #hex colour): nothing she types can reach the page as code. */
+  function styleSections(all, base) {
+    var num = function (v, max) { return typeof v === 'number' && isFinite(v) && v >= 0 && v <= max ? Math.round(v) : null; };
+    sections().forEach(function (el, n) {
+      var o = isObj(all[base + '|h|' + n]) ? all[base + '|h|' + n] : null;
+      if (!o && !el.hasAttribute('data-jeere-look')) return;
+      if (!el.hasAttribute('data-jeere-look')) el.setAttribute('data-jeere-look', JSON.stringify([el.style.paddingTop, el.style.paddingBottom, el.style.textAlign, el.style.backgroundColor, el.style.borderTop]));
+      var was = []; try { was = JSON.parse(el.getAttribute('data-jeere-look')) || []; } catch (e) { was = []; }
+      o = o || {};
+      var pt = num(o.pt, 400), pb = num(o.pb, 400), rad = num(o.radius, 200);
+      el.style.paddingTop = pt === null ? (was[0] || '') : pt + 'px';
+      el.style.paddingBottom = pb === null ? (was[1] || '') : pb + 'px';
+      el.style.textAlign = o.align === 'left' || o.align === 'center' || o.align === 'right' ? o.align : (was[2] || '');
+      el.style.backgroundColor = typeof o.bg === 'string' && /^#[0-9a-fA-F]{6}$/.test(o.bg) ? o.bg : (was[3] || '');
+      el.style.borderTop = o.line === true ? '1px solid rgba(17, 17, 17, .14)' : (was[4] || '');
+      var imgs = el.querySelectorAll('img'), i;
+      for (i = 0; i < imgs.length; i++) {
+        if (rad === null) { if (imgs[i].hasAttribute('data-jeere-radius')) { imgs[i].style.borderRadius = imgs[i].getAttribute('data-jeere-radius'); imgs[i].removeAttribute('data-jeere-radius'); } }
+        else { if (!imgs[i].hasAttribute('data-jeere-radius')) imgs[i].setAttribute('data-jeere-radius', imgs[i].style.borderRadius || ''); imgs[i].style.borderRadius = rad + 'px'; }
+      }
+    });
+  }
   function applySite(fiche) {
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
     var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {}, ll = isObj(site.l) ? site.l : {};
@@ -685,6 +710,7 @@
     // the sections she hides (in the editor they stay, greyed, so she can bring them back)
     var hh = isObj(site.h) ? site.h : {}, base0 = pagePath();
     try { orderSections(isObj(site.o) && Array.isArray(site.o[base0]) ? site.o[base0] : null); } catch (e) { /* the model's own order stays */ }
+    try { styleSections(isObj(site.s) ? site.s : {}, base0); } catch (e) { /* the model's own look stays */ }
     sections().forEach(function (el, n) {
       var off = typeof hh[base0 + '|h|' + n] === 'string';
       if (editing || preview) { el.style.opacity = off ? '.28' : ''; el.style.display = ''; }
@@ -765,6 +791,11 @@
   }
 
   function init() {
+    // Shown inside Jehre (the model viewer, the editor): the demo band « Boutique de démonstration » is not shown.
+    // The page keeps it for whoever reads its source and its legal page; a direct visit is sent to Jehre anyway.
+    if (window.top !== window.self) {
+      try { var hide = document.createElement('style'); hide.textContent = '.concept,.concept-bar{display:none!important}'; document.head.appendChild(hide); } catch (e) { /* the band stays */ }
+    }
     loadCart();
     document.addEventListener('click', onClick);
     // Another tab of the same site changed the cart
