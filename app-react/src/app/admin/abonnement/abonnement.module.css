@@ -44,3 +44,7 @@
 .offers li[data-taken] { opacity: .5; }
 .offers li > :last-child { flex: none; min-height: 40px; }
 @media (max-width: 480px) { .line { flex-direction: column; align-items: stretch; } }
+
+/* motion */
+.plan { transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+@media (hover: hover) { .plan:hover { transform: translateY(-2px); } }

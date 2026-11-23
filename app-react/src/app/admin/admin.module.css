@@ -93,3 +93,8 @@
 @media (max-width: 480px) { .zones li { grid-template-columns: minmax(0, 1fr) 120px 36px; } }
 
 
+
+/* motion: lines and pills answer the pointer and a press */
+.row, .filter { transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.filter:active { transform: scale(.97); }
+.switch, .switch::after { transition: background-color var(--dur) var(--ease), transform var(--dur) var(--ease); }

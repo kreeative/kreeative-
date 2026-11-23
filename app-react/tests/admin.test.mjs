@@ -172,7 +172,7 @@ await test('orders: filters, the detail of an order, and its status saved', asyn
   const patch = w.calls.find((c) => c.path === '/rest/v1/orders' && c.method === 'PATCH');
   assert.deepEqual(patch.body, { status: 'confirmee' }); assert.match(patch.query, /id=eq\.o3/);
   await page.keyboard.press('Escape');
-  assert.equal(await page.getByRole('dialog').count(), 0);
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -192,7 +192,7 @@ await test('products: add, edit and delete write only the products; everything e
   await page.screenshot({ path: `${SHOTS}16-produit-nouveau.png` });
   await sheet.getByRole('button', { name: 'Ajouter le produit' }).click();
   await page.getByText('Sérum éclat au baobab').waitFor();
-  assert.equal(await page.getByRole('dialog').count(), 0);
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
   let f = w.stores[0].fiche;
   assert.equal(f.products.length, 4); assert.deepEqual(f.products[3], { id: 'p4', name: 'Sérum éclat au baobab', price: 9500, category: 'Visage', description: '', badge: 'new', image: null, photo: null });
   assert.equal(f.template, 'douce'); assert.equal(f.sections.length, 2); assert.deepEqual(f.sections[0], { id: 's1', type: 'hero' }); assert.equal(f.store.name, 'Boutique Test'); assert.deepEqual(f.theme, { accent: '#C2410C' });
@@ -334,7 +334,7 @@ await test('the product panel opens full page and comes back; on a phone it is a
   await page.screenshot({ path: `${SHOTS}31-produit-pleine-page.png` });
   await sheet.getByRole('button', { name: 'Revenir au panneau' }).click(); await page.waitForTimeout(400);
   assert.equal(await width(), 480); assert.equal(await sheet.getByLabel('Prix (FCFA)').inputValue(), '6 900');
-  await page.keyboard.press('Escape'); assert.equal(await page.getByRole('dialog').count(), 0);
+  await page.keyboard.press('Escape'); await page.getByRole('dialog').waitFor({ state: 'detached' });
   // a phone
   await page.setViewportSize(PHONE);
   await page.getByText('Beurre de karité brut').click(); await page.waitForTimeout(500);
@@ -348,7 +348,7 @@ await test('the product panel opens full page and comes back; on a phone it is a
   assert.equal(Math.round(menu.width), 390); assert.equal(Math.round(menu.y + menu.height), 844);
   await page.screenshot({ path: `${SHOTS}33-plus-tiroir.png` });
   await page.mouse.click(195, 120);                                          // a tap on the dimmed page closes it
-  assert.equal(await page.getByRole('menu').count(), 0);
+  await page.getByRole('menu').waitFor({ state: 'detached' });
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -376,7 +376,7 @@ await test('models: the seven designer models, with their price, « Choisir » a
   }
   // the two buttons sit side by side, and the pictures are really loaded
   const one = cards.nth(2), b1 = await one.getByRole('button').boundingBox(), b2 = await one.getByRole('link', { name: 'Voir la démo', exact: true }).boundingBox();
-  assert.equal(Math.round(b1.y), Math.round(b2.y)); assert.ok(b2.x > b1.x + b1.width - 1);
+  assert.ok(Math.abs(b1.y - b2.y) <= 4, 'side by side (a card may be lifting under the pointer)'); assert.ok(b2.x > b1.x + b1.width - 1);
   await page.waitForFunction(() => [...document.querySelectorAll('main ul img')].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30000 });
   const body = await page.locator('main').innerText();
   for (const old of ['Plateau', 'Cocody', 'Treichville']) assert.equal(body.includes(old), false, `${old} is no longer a model`);
@@ -412,7 +412,7 @@ await test('models: the seven designer models, with their price, « Choisir » a
   const ask = w.calls.find((c) => c.path === '/functions/v1/appel');
   assert.equal(ask.body.source, 'devis-installation'); assert.equal(ask.body.firstName, 'Kady'); assert.equal(ask.body.whatsapp, '+225 07 07 12 34 56');
   assert.ok(ask.body.need.startsWith('DEVIS INSTALLATION. Modèle : MICHOU. Produits : 11 à 30. Photos prêtes : Oui. Logo : Non.'));
-  assert.equal(await page.getByRole('dialog').count(), 0);
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
   // ANSE: one price, the installation is part of it
   await page.getByRole('button', { name: 'Choisir le modèle ANSE' }).click();
   await page.getByRole('dialog').getByText('payé une seule fois, installation par notre équipe incluse.').waitFor();
@@ -718,9 +718,10 @@ await test('a model is seen inside Jehre by anyone, without an account; only « 
   await page.waitForTimeout(600);
   await page.screenshot({ path: `${SHOTS}49-modele-apercu-telephone.png` });
   await page.getByRole('button', { name: 'Plein écran' }).click();
+  await page.waitForTimeout(450);
   assert.equal(await page.getByRole('link', { name: 'Choisir ce modèle' }).count(), 0);
   const box = await page.locator('iframe').boundingBox();
-  assert.equal(Math.round(box.width), 1280); assert.equal(Math.round(box.height), 860);
+  assert.equal(Math.round(box.width), 1280, 'the frame takes the whole screen once its size has settled'); assert.equal(Math.round(box.height), 860);
   await page.getByRole('button', { name: 'Quitter le plein écran' }).click();
   // « Choisir ce modèle » leads to the three ways to get it
   await page.getByRole('link', { name: 'Choisir ce modèle' }).click();
@@ -876,7 +877,7 @@ await test('services: add, edit and delete write only the services; her other bo
   await sheet.getByLabel('Nom de l’option').fill('Dépose');
   await sheet.getByLabel('Durée en plus (minutes)').fill('15'); await sheet.getByLabel('Prix (FCFA)').fill('2000');
   await sheet.getByRole('button', { name: 'Ajouter l’option' }).click();
-  await page.getByRole('region', { name: 'Options' }).getByText('Dépose').waitFor();
+  await page.getByRole('region', { name: 'Options' }).getByText('Dépose', { exact: true }).waitFor();
   await page.getByRole('region', { name: 'Options' }).getByText(/\+ 2.000.FCFA/).waitFor();
   assert.deepEqual(S().addons.map((x) => [x.name, x.duration, x.price, x.active]), [['Dépose', 15, 2000, true]]);
   assert.equal(S().services.length, 1, 'adding an option leaves the services as they were');
@@ -965,7 +966,7 @@ await test('subscription: the plan of this store, the four plans with their pric
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/abonnement/`); await h1(page, 'Abonnement');
   await page.getByText('Boutique Test · formule Essentiel').waitFor();
-  const plans = await page.locator('main > ul > li').evaluateAll((els) => els.map((li) => [li.querySelector('h2').textContent, li.querySelector('p b').textContent.replace(/\s/g, ' '), [...li.querySelectorAll('button')].map((b) => b.textContent)]));
+  const plans = await page.locator('main > div > ul > li').evaluateAll((els) => els.map((li) => [li.querySelector('h2').textContent, li.querySelector('p b').textContent.replace(/\s/g, ' '), [...li.querySelectorAll('button')].map((b) => b.textContent)]));
   assert.deepEqual(plans, [['Gratuit', '0 FCFA', []], ['Essentiel', '3 500 FCFA', []], ['Pro', '10 000 FCFA', ['Choisir Pro']], ['Business', '25 000 FCFA', ['Choisir Business']]]);
   assert.equal(await page.getByText('Votre formule').count(), 1);
   await page.screenshot({ path: `${SHOTS}80-abonnement.png`, fullPage: true });
@@ -1042,6 +1043,64 @@ await test('domain name: a domain she already owns is connected (DNS lines shown
   await page.getByText('Paiement reçu. Nous achetons maboutique.com et le relions à votre boutique').waitFor();
   await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('floating menu and motion: the menu closes on a choice, Échap and a click outside; pages fade in; nothing moves the bottom bar; reduced motion is respected', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady');
+  const me = page.getByRole('button', { name: /Kady/ });
+  // Échap closes it and gives the focus back; a click outside closes it; the button itself closes it
+  await me.click(); await page.getByRole('menu').waitFor();
+  assert.equal(await me.getAttribute('aria-expanded'), 'true');
+  await page.keyboard.press('Escape'); await page.getByRole('menu').waitFor({ state: 'detached' });
+  assert.equal(await me.evaluate((b) => b === document.activeElement), true);
+  await me.click(); await page.getByRole('menu').waitFor();
+  await page.mouse.click(1272, 6); await page.getByRole('menu').waitFor({ state: 'detached' });
+  await me.click(); await page.getByRole('menu').waitFor();
+  await me.click(); await page.getByRole('menu').waitFor({ state: 'detached' });
+  assert.equal(await me.getAttribute('aria-expanded'), 'false');
+  // one easing and one short duration for a press, as asked
+  const press = await page.locator('aside nav a').first().evaluate((a) => { const c = getComputedStyle(a); return [c.transitionTimingFunction.split('),')[0] + ')', c.transitionDuration.split(',')[0]]; });
+  assert.deepEqual(press, ['cubic-bezier(0.22, 1, 0.36, 1)', '0.16s']);
+  // a page comes in with a fade and a 6 px move, which ends on nothing (no transform left behind)
+  await page.getByRole('link', { name: 'Produits', exact: true }).click(); await h1(page, 'Produits');
+  assert.match(await page.locator('main > div').evaluate((d) => getComputedStyle(d).animationName), /pageIn/);
+  await page.waitForTimeout(400);
+  assert.equal(await page.locator('main > div').evaluate((d) => getComputedStyle(d).transform), 'none');
+  await ctx.close();
+
+  // a phone: « Plus » opens as a sheet; a choice goes to the page and closes it; the bar never moves meanwhile
+  const o = await open(browser, PHONE, world());
+  await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
+  const bar = () => o.page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.bottom), Math.round(r.width)]; });
+  assert.deepEqual(await bar(), [12, 832, 366]);
+  await o.page.getByRole('button', { name: /Plus/ }).click(); await o.page.getByRole('menu').waitFor();
+  await o.page.getByRole('menuitem', { name: 'Paiements' }).click();
+  const seen = [];
+  for (let i = 0; i < 12; i++) { seen.push((await bar()).join()); await o.page.waitForTimeout(30); }      // while the page changes and fades in
+  assert.deepEqual([...new Set(seen)], ['12,832,366'], 'the bottom bar stayed where it is during the transition');
+  await h1(o.page, 'Paiements'); await o.page.getByRole('menu').waitFor({ state: 'detached' });
+  await noOverflow(o.page);
+  // a drawer leaves softly and is gone; opened while the page is still coming in, it is already in its place
+  await o.page.goto(`${BASE}/admin/modeles/?choisir=michou`);
+  const sheet = o.page.getByRole('dialog'); await sheet.waitFor();
+  const b0 = await sheet.boundingBox();
+  assert.equal(Math.round(b0.x), 0); assert.equal(Math.round(b0.width), 390, 'the drawer is drawn on the screen, not inside the page that is fading in');
+  await o.page.waitForTimeout(500);
+  assert.equal(Math.round((await sheet.boundingBox()).y + (await sheet.boundingBox()).height), 844);
+  await o.page.keyboard.press('Escape'); await sheet.waitFor({ state: 'detached' });
+  await noOverflow(o.page);
+  await o.ctx.close();
+
+  // « reduce motion »: nothing animates, everything still works
+  const r = await open(browser, DESK, world());
+  await r.page.emulateMedia({ reducedMotion: 'reduce' });
+  await r.page.goto(`${BASE}/admin/produits/`); await h1(r.page, 'Produits');
+  assert.ok(parseFloat(await r.page.locator('main > div').evaluate((d) => getComputedStyle(d).animationDuration)) < 0.001);
+  assert.ok(parseFloat(await r.page.locator('aside nav a').first().evaluate((a) => getComputedStyle(a).transitionDuration)) < 0.001);
+  await r.page.getByRole('button', { name: /Kady/ }).click(); await r.page.getByRole('menu').waitFor();
+  await r.page.keyboard.press('Escape'); await r.page.getByRole('menu').waitFor({ state: 'detached' });
+  assert.deepEqual([...errors, ...o.errors, ...r.errors], []); await r.ctx.close();
 });
 
 await browser.close();

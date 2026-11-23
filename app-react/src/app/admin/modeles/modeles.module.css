@@ -38,3 +38,11 @@
 @media (max-width: 420px) {
   .two { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* motion: a card lifts a little under the pointer */
+.card { transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+@media (hover: hover) { .card:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -18px rgba(17, 17, 17, .3); } }
+.shot img { transition: transform .5s var(--ease); }
+@media (hover: hover) { .card:hover .shot img { transform: scale(1.02); } }
+.shot { overflow: hidden; }
+.opt { transition: box-shadow var(--dur) var(--ease), background-color var(--dur) var(--ease); }

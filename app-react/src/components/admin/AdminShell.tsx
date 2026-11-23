@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon, Logo, type IconName } from '@/components/ui/Icon';
 import { signOut } from '@/lib/account';
 import { modelBySlug } from '@/lib/models';
@@ -38,7 +38,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const NAV = useMemo(() => (modelBySlug(model)?.rdv ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP), [model]);
   const path = usePathname();
   const [menu, setMenu] = useState(false);
-  useEffect(() => { setMenu(false); }, [path]);
+  const [leaving, setLeaving] = useState(false);
+  const me = useRef<HTMLDivElement>(null);
+  // the menu closes by itself: a choice, Échap, a click outside, another page; it leaves with a short fade
+  const closeMenu = useCallback(() => {
+    setLeaving((was) => { if (!was) window.setTimeout(() => { setMenu(false); setLeaving(false); }, 160); return true; });
+  }, []);
+  useEffect(() => { setMenu(false); setLeaving(false); }, [path]);
   // links written for the current dashboard (« Choisir ce modèle » on a model's demo: /admin/#boutique/modele/<nom>)
   useEffect(() => {
     const m = /^#boutique(?:\/modele\/([a-z]+))?/.exec(window.location.hash);
@@ -46,10 +52,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }, []);
   useEffect(() => {
     if (!menu) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [menu]);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { closeMenu(); me.current?.querySelector('button')?.focus(); } };
+    const away = (e: MouseEvent) => { if (!me.current?.contains(e.target as Node)) closeMenu(); };
+    window.addEventListener('keydown', onKey); document.addEventListener('mousedown', away);
+    return () => { window.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', away); };
+  }, [menu, closeMenu]);
 
   const isOn = (href: string) => (href === '/admin/' ? path === '/admin' || path === '/admin/' : path.startsWith(href.slice(0, -1)));
   const logout = async () => { await signOut(); window.location.assign('/compte/#connexion'); };
@@ -85,16 +92,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className={styles.me}>
-          <button type="button" className={styles.meBtn} aria-expanded={menu} aria-haspopup="menu" onClick={() => setMenu((v) => !v)}>
+        <div className={styles.me} ref={me}>
+          <button type="button" className={styles.meBtn} aria-expanded={menu && !leaving} aria-haspopup="menu" onClick={() => (menu ? closeMenu() : setMenu(true))}>
             <span className={styles.avatar} aria-hidden="true">{initial}</span>
             <span className={styles.plus}><Icon name="menu" size={20} /><span>Plus</span></span>
             <span className={styles.meName}>{account.firstName || 'Mon compte'}</span>
             <Icon name="down" size={14} />
           </button>
           {menu ? (<>
-            <div className={styles.menuScrim} onClick={() => setMenu(false)} aria-hidden="true" />
-            <div className={styles.menu} role="menu">
+            <div className={styles.menuScrim} data-leaving={leaving || undefined} onClick={closeMenu} aria-hidden="true" />
+            <div className={styles.menu} role="menu" data-leaving={leaving || undefined} onClick={(e) => { if ((e.target as Element).closest('a, button')) closeMenu(); }}>
               <span className={styles.menuHandle} aria-hidden="true" />
               {NAV.filter((n) => n.more).map((n) => <Link key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</Link>)}
               <a role="menuitem" href="/compte/"><Icon name="user" size={18} />Mon compte</a>
@@ -104,7 +111,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className={styles.main}>{children}</main>
+      {/* each page comes in with a soft fade. The editor and the model viewer cover the screen (position: fixed):
+          they are not wrapped in anything that moves */}
+      <main className={styles.main}>{/^\/admin\/(editeur|modeles\/apercu)\/?$/.test(path) ? children : <div key={path} className={styles.page}>{children}</div>}</main>
     </div>
   );
 }

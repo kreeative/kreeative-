@@ -19,3 +19,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* Motion. A press answers at once (a slight scale), drawers and menus fade and slide in and out, a page comes in
+   with a soft fade. Nothing here moves the layout: only `opacity` and `transform` are animated, never on an
+   element that holds a fixed bar or a drawer (those are drawn outside the animated page). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

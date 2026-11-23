@@ -121,3 +121,12 @@ span.fold { cursor: default; }
   .pvBar { padding: var(--sp-2) var(--sp-3); }
   .pvStage { padding: var(--sp-2) var(--sp-3) 0; }
 }
+
+/* motion: the editor and the viewer fade in (opacity only: they are fixed, nothing may shift them) */
+.editor, .preview { animation: fadeIn var(--dur-in) var(--ease); }
+.icon, .pvIcon, .row, .leaf, .grip, .eye { transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.icon:active:not(:disabled), .pvIcon:active { transform: scale(.94); }
+.right { animation: inspectorIn var(--dur-in) var(--ease); }
+@keyframes inspectorIn { from { opacity: 0; transform: translateX(8px); } }
+.frameBox { transition: width var(--dur-in) var(--ease), border-radius var(--dur-in) var(--ease); }
+@keyframes fadeIn { from { opacity: 0; } }

@@ -88,3 +88,9 @@
   .side h2 { margin-top: 16px; max-width: 13em; font: 500 40px/1.1 var(--font); letter-spacing: -.025em; }
 }
 @media (min-width: 1280px) { .side h2 { font-size: 46px; } }
+
+/* motion: each step of the account page comes in softly */
+.card > * { animation: pageIn var(--dur-in) var(--ease); }
+.choice { transition: box-shadow var(--dur) var(--ease), background-color var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.choice:active { transform: scale(.985); }
+@keyframes pageIn { from { opacity: 0; transform: translateY(6px); } }

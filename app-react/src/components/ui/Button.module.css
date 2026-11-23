@@ -2,9 +2,9 @@
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   min-height: var(--ctl); padding: 0 var(--sp-5); border: 0; border-radius: var(--r);
   font: 600 var(--fs)/1.2 var(--font); text-align: center; cursor: pointer; user-select: none;
-  transition: background-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
-.btn:active:not(:disabled) { transform: scale(.985); }
+.btn:active:not(:disabled) { transform: scale(.97); }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .block { display: flex; width: 100%; }
 

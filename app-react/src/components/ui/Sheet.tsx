@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 import styles from './Sheet.module.css';
 
@@ -20,17 +21,27 @@ interface SheetProps {
  *  Échap or a tap outside closes it. */
 export function Sheet({ title, sub, label, onClose, expandable, children }: SheetProps) {
   const [full, setFull] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const done = useRef(onClose);
+  done.current = onClose;
+  useEffect(() => { setMounted(true); }, []);
+  // closing plays the way out first (a short fade and slide), then tells the page
+  const leave = useCallback(() => {
+    setLeaving((was) => { if (!was) window.setTimeout(() => done.current(), 170); return true; });
+  }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') leave(); };
     window.addEventListener('keydown', onKey);
     const before = document.body.style.overflow;
     document.body.style.overflow = 'hidden';            // the page behind does not scroll
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = before; };
-  }, [onClose]);
+  }, [leave]);
 
-  return (
-    <div className={styles.scrim} data-full={full || undefined} onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+  if (!mounted) return null;
+  return createPortal(
+    <div className={styles.scrim} data-full={full || undefined} data-leaving={leaving || undefined} onMouseDown={(e) => { if (e.target === e.currentTarget) leave(); }}>
       <aside className={styles.sheet} role="dialog" aria-modal="true" aria-label={label ?? title}>
         <span className={styles.handle} aria-hidden="true" />
         <div className={styles.inner}>
@@ -42,12 +53,13 @@ export function Sheet({ title, sub, label, onClose, expandable, children }: Shee
                   <Icon name={full ? 'shrink' : 'expand'} size={18} />
                 </button>
               ) : null}
-              <button type="button" className={styles.tool} aria-label="Fermer" title="Fermer" onClick={onClose}><Icon name="close" size={18} /></button>
+              <button type="button" className={styles.tool} aria-label="Fermer" title="Fermer" onClick={leave}><Icon name="close" size={18} /></button>
             </div>
           </header>
           {children}
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }
