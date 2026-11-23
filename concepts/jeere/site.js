@@ -135,29 +135,6 @@
   }
   $$('input[name="commune"]').forEach(function (r) { r.addEventListener('change', function () { updateReceipt(true); }); });
 
-  /* ---------- Template preview tabs ---------- */
-  var tabs = $$('[role="tab"]');
-  function selectTab(tab, focus) {
-    tabs.forEach(function (t) {
-      var on = t === tab;
-      t.setAttribute('aria-selected', on ? 'true' : 'false');
-      t.tabIndex = on ? 0 : -1;
-      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
-    });
-    var name = tab.getAttribute('aria-controls').replace('tpl-', '');
-    $$('[data-tpl-desc]').forEach(function (p) { p.hidden = p.getAttribute('data-tpl-desc') !== name; });
-    if (focus) tab.focus();
-  }
-  tabs.forEach(function (t, i) {
-    t.addEventListener('click', function () { selectTab(t); });
-    t.addEventListener('keydown', function (e) {
-      var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-      if (e.key === 'Home') { e.preventDefault(); selectTab(tabs[0], true); }
-      else if (e.key === 'End') { e.preventDefault(); selectTab(tabs[tabs.length - 1], true); }
-      else if (d) { e.preventDefault(); selectTab(tabs[(i + d + tabs.length) % tabs.length], true); }
-    });
-  });
-
   /* ---------- Waitlist form ---------- */
   var form = $('#waitlist');
   var errBox = $('[data-form-error]');

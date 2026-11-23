@@ -237,7 +237,7 @@
   var templates = collection([
     {
       id: 'plateau',
-      name: 'Plateau',
+      name: 'Élégant',
       style: 'Éditorial',
       description: 'Une mise en page de magazine : grandes images, titres élégants et beaucoup d’espace.',
       bestFor: 'Mode, bijoux, maison et marques haut de gamme',
@@ -250,7 +250,7 @@
     },
     {
       id: 'cocody',
-      name: 'Cocody',
+      name: 'Doux',
       style: 'Doux',
       description: 'Des cartes arrondies, des couleurs tendres et des catégories faciles à parcourir.',
       bestFor: 'Beauté, perruques, artisanat et petits créateurs',
@@ -263,7 +263,7 @@
     },
     {
       id: 'treichville',
-      name: 'Treichville',
+      name: 'Audacieux',
       style: 'Audacieux',
       description: 'De grands titres en capitales, des blocs de couleur et un contraste fort qui attire l’œil.',
       bestFor: 'Sneakers, streetwear, restauration et promotions',
