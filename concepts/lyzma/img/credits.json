@@ -1,0 +1,92 @@
+{
+ "hero": {
+  "file": "hero.webp",
+  "size": [
+   1400,
+   1960
+  ],
+  "alt": "Femme de profil, longue queue de tresses, sur fond jaune or",
+  "by": "Jessica Felicio",
+  "page": "https://unsplash.com/photos/woman-profile-with-braided-ponytail-QS9ZX5UnS14"
+ },
+ "locks": {
+  "file": "locks.webp",
+  "size": [
+   1100,
+   1650
+  ],
+  "alt": "Locks fraîchement resserrées, vues du dessus",
+  "by": "Larry George II",
+  "page": "https://unsplash.com/photos/person-in-gray-and-black-hoodie-7Lb9KCfvA1w"
+ },
+ "tresses": {
+  "file": "tresses.webp",
+  "size": [
+   1100,
+   1650
+  ],
+  "alt": "Femme aux longues box braids miel",
+  "by": "Jabari Timothy",
+  "page": "https://unsplash.com/photos/a-person-with-long-hair-gbN5g9ifbqs"
+ },
+ "meches": {
+  "file": "meches.webp",
+  "size": [
+   1100,
+   1651
+  ],
+  "alt": "Femme aux très longues vanilles bordeaux",
+  "by": "Good Faces",
+  "page": "https://unsplash.com/photos/a-woman-with-long-hair-wearing-a-jean-shirt-3yvAe5gJ-SI"
+ },
+ "fauxlocks": {
+  "file": "fauxlocks.webp",
+  "size": [
+   1100,
+   1650
+  ],
+  "alt": "Femme aux longues faux locks, chemise blanche",
+  "by": "Jabari Timothy",
+  "page": "https://unsplash.com/photos/a-woman-sitting-on-the-ground-wearing-a-white-shirt-xDgL1iT2kQY"
+ },
+ "mains": {
+  "file": "mains.webp",
+  "size": [
+   1200,
+   1500
+  ],
+  "alt": "Mains qui tressent une natte, raies nettes",
+  "by": "Mohamed B.",
+  "page": "https://unsplash.com/photos/hands-braiding-dark-hair-with-red-nails-WgMOZWSi2g8"
+ },
+ "raies": {
+  "file": "raies.webp",
+  "size": [
+   1400,
+   933
+  ],
+  "alt": "Tresses sans nœud vues de près : des raies nettes",
+  "by": "Alex Robinson",
+  "page": "https://unsplash.com/photos/black-and-gray-round-ornament-3IhcN94zWwk"
+ },
+ "sourire": {
+  "file": "sourire.webp",
+  "size": [
+   1100,
+   1650
+  ],
+  "alt": "Femme souriante, box braids relevées en chignon",
+  "by": "Gustavo Spindula",
+  "page": "https://unsplash.com/photos/woman-wearing-multicolored-blouse-and-braided-hair-K2D7muBun1A"
+ },
+ "salon": {
+  "file": "salon.webp",
+  "size": [
+   1400,
+   933
+  ],
+  "alt": "Une coiffeuse tresse des nattes collées, en noir et blanc",
+  "by": "Tosan Dudun",
+  "page": "https://unsplash.com/photos/two-women-braiding-hair-in-a-salon-C__JUIT_76E"
+ }
+}
