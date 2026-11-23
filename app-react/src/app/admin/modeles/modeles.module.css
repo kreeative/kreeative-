@@ -13,7 +13,7 @@
 .price s { color: var(--muted); font-size: 13px; }
 .acts { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
 .acts > * { flex: 1 1 0; min-width: 0; height: 40px; padding: 0 10px; font-size: 13px; white-space: nowrap; }
-.chip { display: inline-grid; place-items: center; border-radius: var(--r-pill); background: var(--ink); color: var(--white); font-weight: 600; }
+.chip { display: inline-grid; place-items: center; border-radius: var(--r-pill); background: var(--ink); color: var(--white); font-weight: 500; }
 .small { margin-top: 8px; font-size: var(--fs-xs); line-height: 1.5; color: var(--muted); }
 
 /* the panel « Comment voulez-vous l’installer ? » */
@@ -26,7 +26,7 @@
 .opt:has(input:checked) { box-shadow: inset 0 0 0 1.5px var(--ink); background: var(--grey-1); }
 .opt input { flex: none; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--ink); }
 .optBody { display: block; flex: 1; min-width: 0; }
-.optTitle { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; font-weight: 600; font-size: 15px; }
+.optTitle { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; font-weight: 500; font-size: 15px; }
 .optTitle b { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .optText { display: block; margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--muted); }
 .form { display: grid; gap: var(--sp-3); }

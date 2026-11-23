@@ -21,7 +21,7 @@
 .row { display: flex; align-items: center; gap: var(--sp-3); width: 100%; padding: var(--sp-3) 0; border: 0; background: none; font-weight: 400; text-align: left; cursor: pointer; }
 .row:hover .rowMain b { opacity: .7; }
 .rowMain { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.rowMain b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rowMain b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rowMain small { color: var(--muted); font-size: var(--fs-sm); }
 .amount { flex: none; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .row > svg { flex: none; color: var(--faint); }
@@ -31,7 +31,7 @@
 .filter { flex: none; height: var(--ctl-sm); padding: 0 var(--sp-4); border: 0; border-radius: var(--r-pill); background: var(--white); box-shadow: inset 0 0 0 1px var(--line); font: 500 var(--fs-sm)/1 var(--font); color: var(--ink-2); cursor: pointer; }
 .filter[aria-pressed="true"] { background: var(--ink); color: var(--white); box-shadow: none; }
 
-.status { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: var(--r-pill); background: var(--grey-1); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; }
+.status { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: var(--r-pill); background: var(--grey-1); font-size: var(--fs-xs); font-weight: 500; white-space: nowrap; }
 .status[data-s="nouvelle"] { background: var(--info-bg); color: var(--info-ink); }
 .status[data-s="livree"] { background: var(--ok-bg); color: var(--ok-ink); }
 .status[data-s="annulee"] { background: var(--err-bg); color: var(--err-ink); }
@@ -45,7 +45,7 @@
 .close { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: var(--r-sm); background: none; cursor: pointer; color: var(--muted); }
 .close:hover { background: var(--grey-1); color: var(--ink); }
 .block { display: grid; gap: var(--sp-2); }
-.block h3 { font: 600 var(--fs-sm)/1.3 var(--font); color: var(--muted); }
+.block h3 { font: 500 var(--fs-sm)/1.3 var(--font); color: var(--muted); }
 .lines { display: grid; }
 .lines li { display: flex; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) 0; font-size: var(--fs-sm); }
 .lines li + li { border-top: 1px solid var(--line); }

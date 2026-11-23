@@ -1,7 +1,7 @@
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
-  min-height: var(--ctl); padding: 0 var(--sp-5); border: 0; border-radius: var(--r);
-  font: 600 var(--fs)/1.2 var(--font); text-align: center; cursor: pointer; user-select: none;
+  min-height: var(--ctl); padding: 0 var(--ctl-pad); border: 0; border-radius: var(--r);
+  font: var(--w-ui) var(--fs)/var(--lh) var(--font); text-align: center; cursor: pointer; user-select: none;
   transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
 .btn:active:not(:disabled) { transform: scale(.97); }
@@ -14,7 +14,7 @@
 .secondary { background: var(--white); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
 .secondary:hover:not(:disabled) { background: var(--grey-1); }
 
-.quiet { background: transparent; color: var(--muted); min-height: var(--ctl-sm); padding: 0 var(--sp-3); font-weight: 500; }
+.quiet { background: transparent; color: var(--muted); min-height: var(--ctl-sm); padding: 0 var(--ctl-sm-pad); }
 .quiet:hover:not(:disabled) { background: var(--grey-1); color: var(--ink); }
 
 /* white, its edge and its words in the logo's full rainbow (the same button as on the current site, rainbow.css) */
@@ -32,3 +32,5 @@
 
 .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.btn svg { flex: none; width: var(--ic); height: var(--ic); }

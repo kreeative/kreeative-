@@ -188,3 +188,19 @@ export function withSectionOrder(fiche: Fiche, page: string, order: number[] | n
   if (Object.keys(site).length) st.site = site; else delete st.site;
   return { ...fiche, store: st };
 }
+
+/** Her look for one section: the space above and under it, the alignment of its texts, its background, a thin
+ *  line on top, the corners of its pictures. Every value is optional; none = the model's own look. */
+export interface SectionLook { pt?: number; pb?: number; align?: 'left' | 'center' | 'right'; bg?: string; line?: boolean; radius?: number }
+export function sectionLook(fiche: Fiche, key: string): SectionLook {
+  return bag(bag(bag(bag(fiche.store).site).s)[key]) as SectionLook;
+}
+/** The store with a change to the look of a section; `undefined` for a value gives back the model's own. */
+export function withSectionLook(fiche: Fiche, key: string, patch: SectionLook): Fiche {
+  const st = bag(fiche.store), site = bag(st.site), all = bag(site.s), one = { ...bag(all[key]), ...patch } as Record<string, unknown>;
+  for (const k of Object.keys(one)) if (one[k] === undefined || one[k] === '' || one[k] === false || (typeof one[k] === 'number' && !Number.isFinite(one[k]))) delete one[k];
+  if (Object.keys(one).length) all[key] = one; else delete all[key];
+  if (Object.keys(all).length) site.s = all; else delete site.s;
+  if (Object.keys(site).length) st.site = site; else delete st.site;
+  return { ...fiche, store: st };
+}

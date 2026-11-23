@@ -594,6 +594,91 @@ await test('editor: a bar, the sections, HER model in the middle, the inspector;
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('editor, studio level: floating light panels, search, zoom, layout and appearance of a section applied on the site; a tablet in landscape and portrait', async () => {
+  const w = withModel(world(), 'michou');
+  const { page, ctx, errors } = await open(browser, { width: 1440, height: 900 }, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('list').first().waitFor({ timeout: 60000 });
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('h1, h2').first().waitFor({ timeout: 30000 });
+  // the panels float: 12 px from the edges, rounded 16 px, white, over a light canvas (never a dark theme)
+  const card = (el) => { const r = el.getBoundingClientRect(), c = getComputedStyle(el); return { x: Math.round(r.left), top: Math.round(r.top), w: Math.round(r.width), gapBottom: Math.round(innerHeight - r.bottom), radius: c.borderTopLeftRadius, bg: c.backgroundColor, shadow: c.boxShadow !== 'none' }; };
+  assert.deepEqual(await left.evaluate(card), { x: 12, top: 68, w: 260, gapBottom: 12, radius: '16px', bg: 'rgb(255, 255, 255)', shadow: true });
+  assert.equal(await page.locator('header').evaluate((h) => getComputedStyle(h).backgroundColor), 'rgb(255, 255, 255)');
+  assert.equal(await page.locator('header').evaluate((h) => getComputedStyle(h.parentElement).backgroundColor), 'rgb(245, 245, 247)');
+  // the site keeps clear of the left panel on a wide screen
+  assert.ok((await page.locator('iframe[title="Votre site"]').boundingBox()).x >= 284);
+  // quick search: by the name of a section, or by a word it holds
+  await left.getByRole('searchbox').fill('lookbook');
+  const found = () => left.locator('ol > li > div > button:not([aria-label])').allInnerTexts();
+  let hits = await found();
+  assert.ok(hits.includes('Lookbook') && !hits.includes('Nouveautés') && hits.length <= 3, hits.join(' | '));
+  await left.getByRole('searchbox').fill('harmattan');
+  hits = await found();
+  assert.ok(hits.includes('Grande bannière') && !hits.includes('Lookbook'), hits.join(' | '));
+  assert.ok((await left.locator('ol > li ul button').allInnerTexts()).some((x) => x.includes('Harmattan')), 'the matching element is shown under its section');
+  await left.getByRole('searchbox').fill('zzzz'); await left.getByText('Aucune section ne correspond.').waitFor();
+  await left.getByRole('searchbox').fill('');
+  // the inspector: three blocks, dense controls (32 px)
+  await left.getByRole('button', { name: 'Nouveautés', exact: true }).click();
+  const right = page.getByRole('complementary', { name: 'Contenu : Nouveautés' });
+  await right.waitFor(); await page.waitForTimeout(400);      // it slides in
+  assert.deepEqual(await right.evaluate(card), { x: 1440 - 12 - 300, top: 68, w: 300, gapBottom: 12, radius: '16px', bg: 'rgb(255, 255, 255)', shadow: true });
+  assert.deepEqual(await right.locator('h3').evaluateAll((els) => els.filter((e) => e.parentElement.tagName !== 'SECTION').map((e) => e.textContent)), ['Contenu', 'Mise en page', 'Apparence']);
+  assert.equal(Math.round((await right.getByLabel('Espace au-dessus (px)').boundingBox()).height), 32);
+  // layout and appearance: written in her store, drawn on the site at once, and undone in one click
+  const sec = () => site.locator('body').evaluate(() => { const all = [...document.querySelectorAll('header, footer, section, .strip')].filter((el) => !el.closest('.concept, .concept-bar') && !(el.parentElement && el.parentElement.closest('header, footer, section, .strip'))); const el = all.find((x) => /nouveaut/i.test(x.textContent.slice(0, 200)) && x.tagName === 'SECTION'); const c = getComputedStyle(el); const img = el.querySelector('img'); return { pt: c.paddingTop, pb: c.paddingBottom, align: c.textAlign, bg: c.backgroundColor, line: c.borderTopWidth, radius: img ? getComputedStyle(img).borderTopLeftRadius : '' }; });
+  const model = await sec();
+  await right.getByLabel('Espace au-dessus (px)').fill('120');
+  await right.getByLabel('Espace en dessous (px)').fill('64');
+  await right.getByRole('button', { name: 'Centre' }).click();
+  await right.getByRole('button', { name: 'Crème' }).click();
+  await right.getByLabel('Coins des images (px)').fill('24');
+  await right.getByRole('switch', { name: 'Filet au-dessus de la section' }).click();
+  await page.waitForFunction(() => true); await page.waitForTimeout(500);
+  assert.deepEqual(await sec(), { pt: '120px', pb: '64px', align: 'center', bg: 'rgb(250, 246, 239)', line: '1px', radius: '24px' });
+  assert.equal(w.calls.some((c) => c.method === 'PATCH' && c.path === '/rest/v1/stores'), false);
+  await page.screenshot({ path: `${SHOTS}55-editeur-studio-ordinateur.png` });
+  // the zoom bar floats over the site and changes its scale only
+  const zoom = page.getByRole('group', { name: 'Zoom' });
+  const z0 = await zoom.boundingBox();
+  await zoom.getByRole('button', { name: 'Agrandir' }).click(); await zoom.getByRole('button', { name: 'Agrandir' }).click();
+  await zoom.getByText('120 %').waitFor();
+  await page.waitForTimeout(400);
+  assert.deepEqual(await zoom.boundingBox(), z0, 'the bar did not move');
+  assert.deepEqual(await left.evaluate(card), { x: 12, top: 68, w: 260, gapBottom: 12, radius: '16px', bg: 'rgb(255, 255, 255)', shadow: true });
+  await zoom.getByRole('button', { name: /revenir à 100 %/ }).click(); await zoom.getByText('100 %').waitFor();
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await page.getByRole('status').filter({ hasText: 'Votre site est en ligne' }).waitFor();
+  assert.deepEqual(Object.values(w.stores[0].fiche.store.site.s), [{ pt: 120, pb: 64, align: 'center', bg: '#FAF6EF', radius: 24, line: true }]);
+  // « Remettre l’apparence du modèle » gives the section back as the designer drew it
+  await right.getByRole('button', { name: 'Remettre l’apparence du modèle' }).click();
+  await page.waitForTimeout(500);
+  assert.deepEqual(await sec(), model);
+
+  // a tablet, landscape then portrait: the same floating panels, over the site, nothing overflows
+  for (const vp of [{ width: 1024, height: 768, shot: '56-editeur-tablette-paysage' }, { width: 768, height: 1024, shot: '57-editeur-tablette-portrait' }]) {
+    await page.setViewportSize({ width: vp.width, height: vp.height }); await page.waitForTimeout(700);
+    await noOverflow(page);
+    // one panel beside the site: the section's settings; the list is put away, one tap brings it back
+    const r = await right.evaluate(card);
+    assert.equal(r.x, vp.width - 312); assert.equal(r.w, 300); assert.equal(r.radius, '16px'); assert.equal(r.bg, 'rgb(255, 255, 255)');
+    assert.equal(await left.count(), 0, 'the list is away while a section is open');
+    assert.equal(Math.round((await page.locator('header').boundingBox()).height), 56, 'one line of bar on a tablet');
+    assert.ok((await page.locator('iframe[title="Votre site"]').boundingBox()).x <= 24, 'on a tablet the site takes the whole width, under the panels');
+    await page.screenshot({ path: `${SHOTS}${vp.shot}.png` });
+    await page.getByRole('button', { name: 'Afficher les sections' }).click();
+    await left.getByRole('list').first().waitFor();
+    const l = await left.evaluate(card);
+    assert.equal(l.x, 12); assert.equal(l.w, 260); assert.equal(l.radius, '16px'); assert.equal(l.bg, 'rgb(255, 255, 255)');
+    await page.getByRole('button', { name: 'Masquer les sections' }).click();
+    await left.waitFor({ state: 'detached' });
+    await noOverflow(page);
+  }
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await test('editor on a phone: her site on top, the sections under it, the content in a bottom sheet; a booking model works the same', async () => {
   const w = withModel(world(), 'regard'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);

@@ -13,7 +13,7 @@ import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { editorSite, readSiteMap, sectionOrder, siteValue, withSectionOrder, withSiteEdit, withSlot, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
+import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSectionLook, withSectionOrder, withSiteEdit, withSlot, type SectionLook, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
 import styles from './editeur.module.css';
 
@@ -41,6 +41,10 @@ export default function EditorPage() {
   const [toast, setToast] = useState<'live' | 'saved' | null>(null);
   const [dragged, setDragged] = useState<number | null>(null);
   const [unfolded, setUnfolded] = useState<number[]>([]);
+  const [query, setQuery] = useState('');
+  const [zoom, setZoom] = useState(1);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [narrow, setNarrow] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const latest = useRef<Fiche | null>(null);
@@ -97,11 +101,14 @@ export default function EditorPage() {
   }, [focus, picked]);
 
   useEffect(() => {
-    const q = window.matchMedia('(max-width: 820px)');
-    const on = () => { setPhone(q.matches); if (q.matches) setDevice('phone'); };
-    on(); q.addEventListener('change', on);
-    return () => q.removeEventListener('change', on);
+    const q = window.matchMedia('(max-width: 700px)'), t = window.matchMedia('(max-width: 1100px)');
+    const on = () => { setPhone(q.matches); if (q.matches) setDevice('phone'); setNarrow(t.matches); };
+    on(); q.addEventListener('change', on); t.addEventListener('change', on);
+    return () => { q.removeEventListener('change', on); t.removeEventListener('change', on); };
   }, []);
+  // a tablet has room for one panel beside the site: opening a section puts the list away (one tap brings it back)
+  useEffect(() => { if (narrow && picked !== null) setLeftOpen(false); }, [narrow, picked]);
+  useEffect(() => { if (!narrow) setLeftOpen(true); }, [narrow]);
   const ready = !!draft && !!model;
   useEffect(() => {
     const el = stage.current;
@@ -184,11 +191,16 @@ export default function EditorPage() {
   const pageName = pages.find((p) => p.path === path)?.name ?? 'Accueil';
   const wide = device === 'desktop';
   const frameW = wide ? Math.max(1280, room.w) : 390;
-  const scale = Math.min(1, room.w / frameW);
-  const frameH = wide ? room.h : Math.min(room.h, 844);
+  const fit = Math.min(1, room.w / frameW);
+  const scale = fit * zoom;
+  const frameH = wide ? Math.max(room.h, Math.round(room.h * zoom)) : Math.min(room.h, 844) * zoom;
+  // the sections that answer the quick search (by their name, or by a word of what they hold)
+  const needle = query.trim().toLowerCase();
+  const shown = needle ? sections.filter((x) => x.name.toLowerCase().includes(needle) || (map?.items ?? []).some((i) => i.sec === x.n && `${i.role} ${i.text}`.toLowerCase().includes(needle))) : sections;
   const url = storeUrl(store, modelSlug);
   const inspector = current ? (
     <Inspector section={current} items={items} fiche={draft} userId={account.userId}
+      onLook={(patch) => change((d) => withSectionLook(d, current.key, patch), `look:${current.key}:${Object.keys(patch).join()}`)}
       onEdit={(kind, key, value) => change((d) => withSiteEdit(d, kind, key, value), `${kind}:${key}`)} onSlot={(slot, value) => change((d) => withSlot(d, slot, value))} />
   ) : null;
 
@@ -196,7 +208,8 @@ export default function EditorPage() {
     <div className={styles.editor}>
       <header className={styles.top}>
         <div className={styles.topLeft}>
-          <Link className={styles.icon} href="/admin/" aria-label="Retour au tableau de bord"><Icon name="back" size={18} /></Link>
+          <Link className={styles.icon} href="/admin/" aria-label="Retour au tableau de bord"><Icon name="back" size={16} /></Link>
+          {phone ? null : <button type="button" className={styles.icon} aria-pressed={leftOpen} onClick={() => setLeftOpen((v) => !v)} aria-label={leftOpen ? 'Masquer les sections' : 'Afficher les sections'}><Icon name="menu" size={16} /></button>}
           <b className={styles.name}>{storeName(store)}</b>
           <span className={styles.badge} data-live={store.published ? '' : undefined}>{store.published ? 'En ligne' : 'Brouillon'}</span>
         </div>
@@ -217,15 +230,17 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <div className={styles.cols} data-open={current && !phone ? '' : undefined}>
+      <div className={styles.cols} data-open={current && !phone ? '' : undefined} data-left={leftOpen || phone ? '' : undefined} data-narrow={narrow ? '' : undefined}>
+        {leftOpen || phone ? (
         <aside className={styles.left} aria-label="Sections de la page">
           <h2 className={styles.title}>{path === '' ? 'Page d’accueil' : `Page ${pageName}`}</h2>
+          {sections.length > 5 ? <input className={styles.search} type="search" placeholder="Rechercher une section, un texte" aria-label="Rechercher une section ou un texte" value={query} onChange={(e) => setQuery(e.target.value)} /> : null}
           {map ? (
             <ol className={styles.list}>
-              {sections.map((s) => {
+              {shown.map((s) => {
                 const off = siteValue(draft, 'h', s.key) !== undefined;
                 const inside = (map.items ?? []).filter((x) => x.sec === s.n && x.kind !== 's');
-                const open = unfolded.includes(s.n);
+                const open = unfolded.includes(s.n) || (!!needle && !s.name.toLowerCase().includes(needle));
                 let nImg = 0;
                 return (
                  <li key={s.key} className={styles.node}>
@@ -253,14 +268,25 @@ export default function EditorPage() {
               })}
             </ol>
           ) : <p className={styles.hint}>Chargement de votre modèle…</p>}
+          {map && needle && !shown.length ? <p className={styles.hint}>Aucune section ne correspond.</p> : null}
           <p className={styles.hint}>Cliquez sur un texte ou une photo de votre site pour le changer. Vos produits se gèrent dans <Link href="/admin/produits/"><b>Produits</b></Link>.</p>
         </aside>
+        ) : null}
 
-        <div className={styles.stage} ref={stage} data-device={device}>
-          <div className={styles.frameBox} style={{ width: Math.round(frameW * scale), height: frameH }} data-device={device}>
+        <div className={styles.stage} ref={stage} data-device={device} data-zoomed={zoom > 1 ? '' : undefined}>
+          <div className={styles.frameBox} style={{ width: Math.round(frameW * scale), height: Math.round(frameH) }} data-device={device}>
             <iframe ref={frame} key={path} title="Votre site" src={site + path} width={frameW} height={Math.round(frameH / scale)} style={{ transform: `scale(${scale})` }} />
           </div>
         </div>
+
+        {/* the view: a small bar that floats over the site and never moves with it */}
+        {phone ? null : (
+          <div className={styles.viewBar} role="group" aria-label="Zoom">
+            <button type="button" className={styles.icon} disabled={zoom <= 0.5} onClick={() => setZoom((z) => Math.max(0.5, Math.round((z - 0.1) * 10) / 10))} aria-label="Réduire"><span aria-hidden="true">−</span></button>
+            <button type="button" className={styles.zoom} onClick={() => setZoom(1)} aria-label={`Zoom ${Math.round(zoom * 100)} %, revenir à 100 %`}>{Math.round(zoom * 100)} %</button>
+            <button type="button" className={styles.icon} disabled={zoom >= 2} onClick={() => setZoom((z) => Math.min(2, Math.round((z + 0.1) * 10) / 10))} aria-label="Agrandir"><span aria-hidden="true">+</span></button>
+          </div>
+        )}
 
         {current && !phone ? (
           <aside className={styles.right} aria-label={`Contenu : ${current.name}`}>
@@ -283,16 +309,22 @@ export default function EditorPage() {
 }
 
 /** What one section of the model holds, in two calm groups: its texts, then its pictures (and its product cases). */
-function Inspector({ section, items, fiche, userId, onEdit, onSlot }: {
-  section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string;
+const BACKGROUNDS: [string, string][] = [['', 'Modèle'], ['#FFFFFF', 'Blanc'], ['#F5F5F3', 'Gris clair'], ['#FAF6EF', 'Crème'], ['#111111', 'Noir']];
+const ALIGN: [SectionLook['align'] | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
+const px = (v: string, max: number): number | undefined => (v.trim() === '' ? undefined : Math.min(max, Number(v.replace(/\D/g, '')) || 0));
+
+function Inspector({ section, items, fiche, userId, onEdit, onSlot, onLook }: {
+  section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string; onLook: (patch: SectionLook) => void;
   onEdit: (kind: 't' | 'i' | 'c', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
 }) {
   const products = Array.isArray(fiche.products) ? fiche.products : [];
   const slots = ((fiche.store?.slots ?? {}) as Record<string, string>);
   const texts = items.filter((x) => x.kind === 't' || x.kind === 'c'), images = items.filter((x) => x.kind === 'i'), cases = items.filter((x) => x.kind === 'p');
-  if (!items.length) return <p className={styles.hint}>{section.fixed ? 'Rien à changer ici : votre nom et votre logo viennent de vos paramètres.' : 'Cette section n’a rien à changer.'}</p>;
+  const look = sectionLook(fiche, section.key);
   return (
     <div className={styles.inspector}>
+      <h3 className={styles.group3}>Contenu</h3>
+      {!items.length ? <p className={styles.hint}>{section.fixed ? 'Votre nom et votre logo viennent de vos paramètres.' : 'Cette section n’a pas de texte ni de photo à changer.'}</p> : null}
       {texts.length ? (
         <section className={styles.block} aria-label="Textes">
           <h3>Textes</h3>
@@ -321,13 +353,15 @@ function Inspector({ section, items, fiche, userId, onEdit, onSlot }: {
         <section className={styles.block} aria-label="Produits">
           <h3>Produits</h3>
           {cases.map((x, i) => {
-            const none = 'Masquer cette case';
+            // a case shows the product of the same number; when she has fewer products, it keeps the model's own
+            const none = 'Masquer cette case', keep = 'Produit du modèle';
             const now = slots[x.ref] ?? x.ref;
             const names = products.map((p) => p.name || p.id);
-            const label = now === '-' ? none : products.find((p) => p.id === now)?.name ?? names[0] ?? none;
+            const mine = products.find((p) => p.id === now);
+            const label = now === '-' ? none : mine ? mine.name || mine.id : keep;
             return (
               <div key={x.key} data-site-key={x.key}>
-                <Select label={`Case ${i + 1}`} options={[...names, none]} value={label}
+                <Select label={`Case ${i + 1}`} options={[...names, ...(mine || now === '-' ? [] : [keep]), none]} value={label}
                   onChange={(e) => onSlot(x.ref, e.target.value === none ? '-' : products.find((p) => (p.name || p.id) === e.target.value)?.id ?? x.ref)} />
               </div>
             );
@@ -335,6 +369,38 @@ function Inspector({ section, items, fiche, userId, onEdit, onSlot }: {
         </section>
       ) : null}
       {items.some((x) => x.kind === 's') ? <p className={styles.hint}>Vos prestations s’affichent ici. Elles se gèrent dans <Link href="/admin/prestations/"><b>Prestations</b></Link>.</p> : null}
+
+      <h3 className={styles.group3}>Mise en page</h3>
+      <section className={styles.block} aria-label="Mise en page">
+        <div className={styles.pair}>
+          <Field label="Espace au-dessus (px)" inputMode="numeric" placeholder="Modèle" value={look.pt === undefined ? '' : String(look.pt)} onChange={(e) => onLook({ pt: px(e.target.value, 400) })} />
+          <Field label="Espace en dessous (px)" inputMode="numeric" placeholder="Modèle" value={look.pb === undefined ? '' : String(look.pb)} onChange={(e) => onLook({ pb: px(e.target.value, 400) })} />
+        </div>
+        <div className={styles.control}>
+          <span className={styles.caption} id="look-align">Alignement des textes</span>
+          <div className={styles.segments} role="group" aria-labelledby="look-align">
+            {ALIGN.map(([v, label]) => <button key={label} type="button" aria-pressed={look.align === v} onClick={() => onLook({ align: v })}>{label}</button>)}
+          </div>
+        </div>
+      </section>
+
+      <h3 className={styles.group3}>Apparence</h3>
+      <section className={styles.block} aria-label="Apparence">
+        <div className={styles.control}>
+          <span className={styles.caption} id="look-bg">Fond de la section</span>
+          <div className={styles.swatches} role="group" aria-labelledby="look-bg">
+            {BACKGROUNDS.map(([v, label]) => <button key={label} type="button" aria-pressed={(look.bg ?? '') === v} onClick={() => onLook({ bg: v || undefined })} aria-label={label} title={label}><i style={v ? { background: v } : undefined} data-none={v ? undefined : ''} /></button>)}
+          </div>
+        </div>
+        <div className={styles.pair}>
+          <Field label="Coins des images (px)" inputMode="numeric" placeholder="Modèle" value={look.radius === undefined ? '' : String(look.radius)} onChange={(e) => onLook({ radius: px(e.target.value, 200) })} />
+          <div className={styles.control}>
+            <span className={styles.caption}>Filet au-dessus</span>
+            <button type="button" role="switch" aria-checked={look.line === true} aria-label="Filet au-dessus de la section" className={styles.toggle} onClick={() => onLook({ line: look.line ? undefined : true })} />
+          </div>
+        </div>
+        {Object.keys(look).length ? <button type="button" className={styles.reset} onClick={() => onLook({ pt: undefined, pb: undefined, align: undefined, bg: undefined, line: undefined, radius: undefined })}>Remettre l’apparence du modèle</button> : null}
+      </section>
     </div>
   );
 }

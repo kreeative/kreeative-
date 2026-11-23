@@ -86,7 +86,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             return (
               <Fragment key={n.href}>
                 {n.group ? <p className={styles.group}>{n.group}</p> : null}
-                <Link href={n.href} className={[styles.item, on ? styles.on : '', n.more ? styles.more : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name={n.icon} size={20} /><span>{n.label}</span></Link>
+                <Link href={n.href} className={[styles.item, on ? styles.on : '', n.more ? styles.more : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name={n.icon} size={18} /><span>{n.label}</span></Link>
               </Fragment>
             );
           })}
