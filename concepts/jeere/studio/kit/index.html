@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Le kit du Studio · Jehre</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../studio-shell.css">
+  <link rel="stylesheet" href="../studio-kit.css">
+  <style>
+    /* this page only: the controls of studio-kit.css, laid out as they sit in a panel of the Studio */
+    body { margin: 0; background: var(--st-canvas); color: var(--st-ink); font: 400 13px/1.5 var(--st-font); }
+    .kp { max-width: 1120px; margin: 0 auto; padding: 40px 24px 64px; }
+    .kp h1 { margin: 0 0 4px; font: 600 24px/1.2 var(--st-brand-font); }
+    .kp > p { margin: 0 0 28px; color: var(--st-ink-dim); }
+    .kp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(304px, 304px)); gap: 24px; align-items: start; }
+    .kp-panel { background: var(--st-chrome); border-radius: 14px; box-shadow: 0 0 0 var(--jk-hair) var(--st-edge), 0 8px 24px rgba(0, 0, 0, .05); overflow: hidden; }
+    .kp-title { margin: 0 0 8px; color: var(--st-ink-dim); font: 500 12px/1 var(--st-font); }
+  </style>
+</head>
+<body>
+  <main class="kp">
+    <h1>Le kit du Studio</h1>
+    <p>Les contrôles communs aux deux éditeurs. Un panneau se compose avec ces pièces, sans dessiner ses propres champs.</p>
+    <div class="kp-grid">
+
+      <div>
+        <p class="kp-title">Typographie</p>
+        <div class="kp-panel">
+          <section class="jk-group">
+            <button class="jk-group__head" type="button" aria-expanded="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Typographie</button>
+            <div class="jk-row"><span class="jk-label">Police</span><select class="jk-select"><option>Fraunces</option><option>Inter</option><option>Poppins</option></select></div>
+            <div class="jk-row"><span class="jk-label">Taille</span><div class="jk-num"><input type="number" value="44"><span class="jk-num__unit">px</span></div></div>
+            <div class="jk-row"><span class="jk-label">Graisse</span><select class="jk-select"><option>Fine</option><option>Normale</option><option>Grasse</option></select></div>
+            <div class="jk-row jk-row--2"><span class="jk-label">Lignes</span><div class="jk-cols">
+              <div class="jk-num"><span class="jk-num__pre">↕</span><input type="number" value="51"><span class="jk-num__unit">px</span></div>
+              <div class="jk-num"><span class="jk-num__pre">↔</span><input type="number" value="-2.6"><span class="jk-num__unit">px</span></div></div></div>
+            <div class="jk-row"><span class="jk-label">Aligner</span><div class="jk-seg">
+              <button type="button" aria-pressed="false" aria-label="À gauche"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h6M3 12h8"/></svg></button>
+              <button type="button" aria-pressed="true" aria-label="Au centre"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M5 8h6M4 12h8"/></svg></button>
+              <button type="button" aria-pressed="false" aria-label="À droite"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M7 8h6M5 12h8"/></svg></button>
+              <button type="button" aria-pressed="false" aria-label="Justifié"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg></button></div></div>
+            <div class="jk-row"><span class="jk-label">Couleur</span><label class="jk-color"><button class="jk-swatch" type="button" style="--c:#0F0F0F" aria-label="Choisir la couleur"></button><input value="#0F0F0F" aria-label="Code de la couleur"></label></div>
+          </section>
+          <section class="jk-group">
+            <button class="jk-group__head" type="button" aria-expanded="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Remplissage</button>
+            <div class="jk-row"><span class="jk-label">Fond</span><label class="jk-color"><button class="jk-swatch jk-swatch--none" type="button" aria-label="Choisir la couleur"></button><input value="" placeholder="Transparent" aria-label="Code de la couleur"></label></div>
+          </section>
+          <section class="jk-group">
+            <button class="jk-group__head" type="button" aria-expanded="false"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Effets</button>
+            <div class="jk-row"><span class="jk-label">Opacité</span><input class="jk-input" value="100"></div>
+          </section>
+        </div>
+      </div>
+
+      <div>
+        <p class="kp-title">Mise en page</p>
+        <div class="kp-panel">
+          <section class="jk-group">
+            <button class="jk-group__head" type="button" aria-expanded="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Dimensions</button>
+            <div class="jk-row jk-row--2"><span class="jk-label">Taille</span><div class="jk-cols">
+              <div class="jk-num"><span class="jk-num__pre">L</span><input type="number" value="1040"></div>
+              <div class="jk-num"><span class="jk-num__pre">H</span><input type="number" value="585"></div></div></div>
+            <div class="jk-row jk-row--2"><span class="jk-label">Position</span><div class="jk-cols">
+              <div class="jk-num"><span class="jk-num__pre">X</span><input type="number" value="220"></div>
+              <div class="jk-num"><span class="jk-num__pre">Y</span><input type="number" value="0"></div></div></div>
+            <div class="jk-row"><span class="jk-label">Rayon</span><div class="jk-num"><input type="number" value="16"><span class="jk-num__unit">px</span></div></div>
+          </section>
+          <section class="jk-group">
+            <button class="jk-group__head" type="button" aria-expanded="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Disposition</button>
+            <div class="jk-row"><span class="jk-label">Sens</span><div class="jk-seg"><button type="button" aria-pressed="true">Ligne</button><button type="button" aria-pressed="false">Colonne</button><button type="button" aria-pressed="false">Grille</button></div></div>
+            <div class="jk-row"><span class="jk-label">Écart</span><div class="jk-num"><input type="number" value="24"><span class="jk-num__unit">px</span></div></div>
+            <div class="jk-toggle"><span>Passer à la ligne</span><button class="jk-switch" type="button" role="switch" aria-checked="true" aria-label="Passer à la ligne"></button></div>
+            <div class="jk-toggle"><span>Masquer sur téléphone</span><button class="jk-switch" type="button" role="switch" aria-checked="false" aria-label="Masquer sur téléphone"></button></div>
+          </section>
+        </div>
+      </div>
+
+      <div>
+        <p class="kp-title">Réglages et boutons</p>
+        <div class="kp-panel">
+          <section class="jk-group">
+            <button class="jk-group__head" type="button" aria-expanded="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Lien</button>
+            <div class="jk-row jk-row--stack"><span class="jk-label">Adresse du lien</span><input class="jk-input" value="/contact" ></div>
+            <div class="jk-row jk-row--stack"><span class="jk-label">Ouvrir dans</span><div class="jk-seg"><button type="button" aria-pressed="true">Même onglet</button><button type="button" aria-pressed="false">Nouvel onglet</button></div></div>
+            <div class="jk-row jk-row--stack"><span class="jk-label">Description</span><textarea class="jk-textarea">Le sac rose de la boulangerie, posé sur le comptoir.</textarea></div>
+            <p class="jk-hint">Lue par Google et par les personnes qui ne voient pas l’image.</p>
+          </section>
+          <section class="jk-group">
+            <button class="jk-group__head" type="button" aria-expanded="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Élément</button>
+            <div class="jk-btns"><button class="jk-btn" type="button">Dupliquer <span class="jk-kbd">Ctrl D</span></button><button class="jk-btn" type="button">Masquer</button><button class="jk-btn jk-btn--danger" type="button">Supprimer</button></div>
+            <div class="jk-btns"><button class="jk-btn jk-btn--primary" type="button">Appliquer</button><button class="jk-btn jk-btn--ghost" type="button">Annuler</button><span class="jk-tag">Du site</span></div>
+          </section>
+        </div>
+      </div>
+
+    </div>
+  </main>
+  <script>
+    // this page only: the pieces answer, so the states can be seen
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest('button'); if (!t) return;
+      if (t.classList.contains('jk-group__head')) t.setAttribute('aria-expanded', t.getAttribute('aria-expanded') === 'false' ? 'true' : 'false');
+      else if (t.classList.contains('jk-switch')) t.setAttribute('aria-checked', t.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+      else if (t.parentNode.classList.contains('jk-seg')) [].forEach.call(t.parentNode.children, function (b) { b.setAttribute('aria-pressed', b === t ? 'true' : 'false'); });
+    });
+    if (/[?&]theme=dark\b/.test(location.search)) document.documentElement.setAttribute('data-theme', 'dark');
+  </script>
+</body>
+</html>
