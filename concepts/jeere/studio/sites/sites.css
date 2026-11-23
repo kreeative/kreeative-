@@ -544,3 +544,24 @@ a:not([class]) { font-weight: 600; }
 .sk-panel .dz-num.is-word .dz-num__u { visibility: hidden; }
 /* the keyboard focus of the three tabs: a neat inner ring, not a black box around the word */
 .st-right__tabs button:focus-visible { outline: 2px solid var(--sel); outline-offset: -4px; border-radius: 8px; }
+
+/* ---------- the canvas, like a design tool: resize handles, the size under the selection, snapping guides (blue: the canvas only) */
+.sk-h { display: none; position: absolute; width: calc(8px * var(--inv)); height: calc(8px * var(--inv)); border-radius: calc(2px * var(--inv)); background: #FFFFFF;
+  box-shadow: 0 0 0 calc(1.5px * var(--inv)) var(--sel), 0 1px 2px rgba(0, 0, 0, .18); pointer-events: auto; touch-action: none; }
+.sk-h::before { content: ''; position: absolute; inset: calc(-6px * var(--inv)); }   /* a bigger target than the square */
+.sk-h[data-h="e"] { right: 0; top: 50%; transform: translate(50%, -50%); cursor: ew-resize; }
+.sk-h[data-h="s"] { left: 50%; bottom: 0; transform: translate(-50%, 50%); cursor: ns-resize; }
+.sk-h[data-h="se"] { right: 0; bottom: 0; transform: translate(50%, 50%); cursor: nwse-resize; }
+.sk-box--resize .sk-h { display: block; }
+.sk-box__size { display: none; position: absolute; left: 50%; top: 100%; transform: translateX(-50%) scale(var(--inv)); transform-origin: 50% 0; margin-top: calc(10px * var(--inv));
+  padding: 3px 6px; border-radius: 4px; background: var(--sel); color: #FFFFFF; font: 500 11px/1 var(--st-font, 'Poppins', sans-serif); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; }
+.sk-box--resize .sk-box__size { display: block; }
+.sk-box__tag--below ~ .sk-box__size { margin-top: calc(34px * var(--inv)); }
+.sk-guides { position: absolute; inset: 0; pointer-events: none; }
+.sk-guide { position: absolute; left: 0; top: 0; background: var(--sel); }
+.sk-guide--v { width: calc(1px * var(--inv)); height: 100%; }
+.sk-guide--h { height: calc(1px * var(--inv)); width: 100%; }
+html.sk-resizing-e, html.sk-resizing-e * { cursor: ew-resize !important; user-select: none !important; }
+html.sk-resizing-s, html.sk-resizing-s * { cursor: ns-resize !important; user-select: none !important; }
+html.sk-resizing-se, html.sk-resizing-se * { cursor: nwse-resize !important; user-select: none !important; }
+html[class*="sk-resizing-"] iframe { pointer-events: none; }

@@ -618,7 +618,7 @@
       var ab = ce('div', 'sk-ab is-loading');
       ab.setAttribute('data-w', w.w);
       ab.innerHTML = '<div class="st-ab__name">' + w.name + ' <span>' + w.w + '</span></div>' +
-        '<div class="sk-ab__frame" style="width:' + w.w + 'px;height:' + w.h + 'px"><iframe title="Aperçu ' + w.name + '" width="' + w.w + '" height="' + w.h + '" style="width:' + w.w + 'px;height:' + w.h + 'px"></iframe><div class="sk-ov"><div class="sk-box sk-box--hover" hidden></div><div class="sk-box sk-box--sel" hidden><span class="sk-box__tag"></span></div></div></div>';
+        '<div class="sk-ab__frame" style="width:' + w.w + 'px;height:' + w.h + 'px"><iframe title="Aperçu ' + w.name + '" width="' + w.w + '" height="' + w.h + '" style="width:' + w.w + 'px;height:' + w.h + 'px"></iframe><div class="sk-ov"><div class="sk-box sk-box--hover" hidden></div><div class="sk-box sk-box--sel" hidden><span class="sk-box__tag"></span><span class="sk-h" data-h="e" title="Largeur"></span><span class="sk-h" data-h="s" title="Hauteur"></span><span class="sk-h" data-h="se" title="Largeur et hauteur"></span><span class="sk-box__size"></span></div><div class="sk-guides"></div></div></div>';
       world.appendChild(ab);
       var f = { key: String(w.w), w: w.w, h: w.h, el: ab, iframe: ab.querySelector('iframe'), ov: ab.querySelector('.sk-ov'), hbox: ab.querySelector('.sk-box--hover'), sbox: ab.querySelector('.sk-box--sel'), map: null, ready: false, vh: w.h };
       frames.push(f);
@@ -807,6 +807,12 @@
   }
   function installFrame(f) {
     var w = f.win;
+    w.addEventListener('wheel', function (e) {
+      if (!(e.ctrlKey || e.metaKey) || SIMPLE) return;
+      e.preventDefault();
+      var r = f.iframe.getBoundingClientRect(), z = $('skWorld')._z || 1;
+      wheelZoom(e.deltaY, e.deltaMode, r.left + e.clientX * z, r.top + e.clientY * z);
+    }, { passive: false });
     var block = function (e) {
       if (mode !== 'edit') return;
       if (editing && editing.frame === f && editing.el.contains(e.target)) return;
@@ -919,6 +925,7 @@
         var s = sel ? (sel.frame === f ? sel.el : counterpart(f, src)) : null;
         placeBox(f.sbox, f, s);
         f.sbox.classList.toggle('sk-box--editing', !!editing && editing.frame === f);
+        decorate(f, s);
         var tag = f.sbox.querySelector('.sk-box__tag');
         if (tag && s) { tag.textContent = nameOf(s); tag.title = describe(s); }
       });
@@ -2159,6 +2166,10 @@
     if (k === 'h') { setMode('hand'); return; }
     if (k === 't') { toolText(); return; }
     if (k === 'i') { toolImage(); return; }
+    if (k === '+' || k === '=') { e.preventDefault(); zoomStep(1); return; }
+    if (k === '-' || k === '_') { e.preventDefault(); zoomStep(-1); return; }
+    if (e.code === 'Digit0' && !e.shiftKey) { e.preventDefault(); zoomAt(1); return; }
+    if (e.code === 'Digit1' && e.shiftKey) { e.preventDefault(); zoom = null; layout(); return; }
     if (k === ' ' && mode !== 'hand' && !e.repeat) { e.preventDefault(); spaceHand = mode; setMode('hand'); return; }
   }
   var spaceHand = null;
@@ -2206,6 +2217,160 @@
     function end() { drag = null; $('sk').classList.remove('is-grabbing'); }
     sc.addEventListener('pointerup', end); sc.addEventListener('pointercancel', end);
   })();
+
+  /* ================================================================ the canvas, like a design tool
+     Zoom: a pinch on the trackpad, Ctrl / ⌘ + wheel (on the canvas or over a page), + / − / 0 (100 %) /
+     Maj 1 (fit), always around the pointer or the middle of the screen, so what she looks at stays put.
+     Resize: the selection has three handles (right, bottom, corner) that write « width » / « height » into the
+     element's own style, like the Design tab, as ONE step of the history. Edges snap to the edges of the
+     block around it and of its neighbours (a blue guide shows it; Ctrl / ⌘ while dragging: no snapping); a
+     photo keeps its proportions (Maj: free); dragging to the full width of the block around it writes 100 %.
+     The size of the selection shows under it. */
+  var Z_MIN = 0.1, Z_MAX = 3;
+  function zoomAt(z1, cx, cy) {
+    var sc = $('skScroll'), z0 = $('skWorld')._z || 1, b = sc.getBoundingClientRect();
+    z1 = clamp(z1, Z_MIN, Z_MAX);
+    if (Math.abs(z1 - z0) < 0.0005) return;
+    var px = (cx == null ? b.left + b.width / 2 : cx) - b.left, py = (cy == null ? b.top + b.height / 2 : cy) - b.top;
+    var wx = (sc.scrollLeft + px) / z0, wy = (sc.scrollTop + py) / z0;
+    zoom = z1;
+    layout();
+    sc.scrollLeft = wx * z1 - px;
+    sc.scrollTop = wy * z1 - py;
+  }
+  function zoomStep(dir) {
+    var z = $('skWorld')._z || 1, steps = [0.1, 0.15, 0.2, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
+    zoomAt(dir > 0 ? (steps.find(function (s2) { return s2 > z + 0.001; }) || Z_MAX) : (steps.slice().reverse().find(function (s2) { return s2 < z - 0.001; }) || Z_MIN));
+  }
+  function wheelZoom(dy, dm, cx, cy) {
+    var d = dy * (dm === 1 ? 16 : dm === 2 ? 400 : 1);
+    var z = $('skWorld')._z || 1;
+    zoomAt(z * Math.exp(-clamp(d, -60, 60) * 0.01), cx, cy);
+  }
+  $('skScroll').addEventListener('wheel', function (e) {
+    if (!(e.ctrlKey || e.metaKey) || SIMPLE) return;
+    e.preventDefault();
+    wheelZoom(e.deltaY, e.deltaMode, e.clientX, e.clientY);
+  }, { passive: false });
+  // Safari's own pinch
+  ['gesturestart', 'gesturechange'].forEach(function (t) {
+    $('skScroll').addEventListener(t, function (e) {
+      e.preventDefault();
+      if (t === 'gesturestart') { $('skScroll')._gz = $('skWorld')._z || 1; return; }
+      zoomAt(($('skScroll')._gz || 1) * e.scale, e.clientX, e.clientY);
+    });
+  });
+
+  function resizable(el) {
+    if (!el || el.nodeType !== 1 || /^(html|body|head|br|wbr|option|script|style)$/i.test(el.localName)) return false;
+    var d = el.ownerDocument.defaultView.getComputedStyle(el).display;
+    return d !== 'inline' && d !== 'contents' && d !== 'none';
+  }
+  var resizing = null;
+  function decorate(f, s) {
+    var on = !!(s && sel && sel.frame === f && !editing && mode === 'edit' && !SIMPLE && resizable(s));
+    f.sbox.classList.toggle('sk-box--resize', on);
+    var size = f.sbox.querySelector('.sk-box__size');
+    if (on && size && !resizing) { var r = s.getBoundingClientRect(); size.textContent = Math.round(r.width) + ' × ' + Math.round(r.height); }
+  }
+  function guides(f, xs, ys) {
+    var g = f.ov.querySelector('.sk-guides');
+    if (!g) return;
+    g.innerHTML = '';
+    (xs || []).forEach(function (x) { var l = ce('i', 'sk-guide sk-guide--v'); l.style.transform = 'translateX(' + x + 'px)'; g.appendChild(l); });
+    (ys || []).forEach(function (y) { var l = ce('i', 'sk-guide sk-guide--h'); l.style.transform = 'translateY(' + y + 'px)'; g.appendChild(l); });
+  }
+  function boxSize(cs, axis) {
+    if (cs.boxSizing === 'border-box') return 0;
+    return axis === 'x' ? (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) + (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.borderRightWidth) || 0)
+      : (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0) + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+  }
+  $('skWorld').addEventListener('pointerdown', function (e) {
+    var h = e.target.closest && e.target.closest('.sk-h');
+    if (!h || !sel || e.button !== 0) return;
+    var f = frames.find(function (x) { return x.sbox.contains(h); });
+    var src = srcOf();
+    if (!f || f !== sel.frame || !src) return;
+    e.preventDefault(); e.stopPropagation();
+    var el = sel.el, win = f.win, cs = win.getComputedStyle(el), r0 = el.getBoundingClientRect();
+    var media = /^(img|video|picture|canvas|svg)$/i.test(el.localName) && r0.height > 0;
+    var par = el.parentElement, pr = par ? par.getBoundingClientRect() : null, pcs = par ? win.getComputedStyle(par) : null;
+    var xs = [], ys = [], full = null;
+    if (pr) {
+      full = pr.right - (parseFloat(pcs.paddingRight) || 0) - (parseFloat(pcs.borderRightWidth) || 0);
+      xs.push(full);
+      ys.push(pr.bottom - (parseFloat(pcs.paddingBottom) || 0) - (parseFloat(pcs.borderBottomWidth) || 0));
+      [].forEach.call(par.children, function (c) {
+        if (c === el) return;
+        var r = c.getBoundingClientRect();
+        if (!r.width && !r.height) return;
+        xs.push(r.left, r.right); ys.push(r.top, r.bottom);
+      });
+    }
+    resizing = { f: f, el: el, src: src, h: h.getAttribute('data-h'), x0: e.clientX, y0: e.clientY, r0: r0, cs: cs, media: media, ratio: r0.width / Math.max(1, r0.height),
+      style0: el.getAttribute('style'), xs: xs, ys: ys, full: full, w: null, hgt: null, pct: false, moved: false };
+    h.setPointerCapture(e.pointerId);
+    doc.documentElement.classList.add('sk-resizing-' + resizing.h);
+  }, true);
+  doc.addEventListener('pointermove', function (e) {
+    var R = resizing;
+    if (!R) return;
+    var z = $('skWorld')._z || 1, dx = (e.clientX - R.x0) / z, dy = (e.clientY - R.y0) / z;
+    if (!R.moved && Math.abs(dx) * z < 2 && Math.abs(dy) * z < 2) return;
+    R.moved = true;
+    var free = e.ctrlKey || e.metaKey, tol = 6 / z, gx = [], gy = [];
+    var w = R.h !== 's' ? Math.max(4, R.r0.width + dx) : null, hgt = R.h !== 'e' ? Math.max(4, R.r0.height + dy) : null;
+    R.pct = false;
+    if (w != null && !free) {
+      var right = R.r0.left + w, best = null;
+      R.xs.forEach(function (x) { if (Math.abs(x - right) <= tol && (best == null || Math.abs(x - right) < Math.abs(best - right))) best = x; });
+      if (best != null && best - R.r0.left >= 4) { w = best - R.r0.left; gx.push(best); R.pct = R.full != null && Math.abs(best - R.full) < 0.5; }
+    }
+    if (hgt != null && !free) {
+      var bottom = R.r0.top + hgt, bb = null;
+      R.ys.forEach(function (y) { if (Math.abs(y - bottom) <= tol && (bb == null || Math.abs(y - bottom) < Math.abs(bb - bottom))) bb = y; });
+      if (bb != null && bb - R.r0.top >= 4) { hgt = bb - R.r0.top; gy.push(bb); }
+    }
+    if (R.media && !e.shiftKey) {                 // a photo keeps its proportions
+      if (R.h === 's') { w = hgt * R.ratio; hgt = null; R.pct = false; R.byH = true; }
+      else { hgt = null; R.byH = false; }
+    }
+    R.w = w; R.hgt = hgt;
+    if (w != null) R.el.style.width = R.pct ? '100%' : Math.round(w - boxSize(R.cs, 'x')) + 'px';
+    if (hgt != null) R.el.style.height = Math.round(hgt - boxSize(R.cs, 'y')) + 'px';
+    if (R.media && !e.shiftKey) R.el.style.height = 'auto';
+    guides(R.f, gx, gy);
+    var r = R.el.getBoundingClientRect(), size = R.f.sbox.querySelector('.sk-box__size');
+    if (size) size.textContent = (R.pct ? '100 %' : Math.round(r.width)) + ' × ' + Math.round(r.height);
+    paintBoxes();
+  });
+  function endResize(cancel) {
+    var R = resizing;
+    if (!R) return;
+    resizing = null;
+    doc.documentElement.classList.remove('sk-resizing-e', 'sk-resizing-s', 'sk-resizing-se');
+    guides(R.f, [], []);
+    var wv = R.el.style.width, hv = R.el.style.height;
+    if (R.style0 == null) R.el.removeAttribute('style'); else R.el.setAttribute('style', R.style0);   // the history writes it for good
+    if (cancel || !R.moved) { paintBoxes(); return; }
+    var tmp = doc.createElement('div');
+    tmp.setAttribute('style', C.attrValue(cur.text, R.src, 'style') || '');
+    if (R.w != null || R.media) tmp.style.width = wv;
+    if (R.hgt != null || R.media) tmp.style.height = hv;
+    var css = tmp.getAttribute('style') || '';
+    var text = C.setAttr(cur.text, R.src, 'style', css || null);
+    var olds = [];
+    eachLive(R.src, function (l) { olds.push([l, l.getAttribute('style')]); });
+    var apply = function () { olds.forEach(function (o) { if (css) o[0].setAttribute('style', css); else o[0].removeAttribute('style'); }); };
+    var revert = function () { olds.forEach(function (o) { if (o[1] == null) o[0].removeAttribute('style'); else o[0].setAttribute('style', o[1]); }); };
+    commit('Redimensionner', text, apply, revert);
+    refreshPanel(true);
+    paintBoxes();
+  }
+  doc.addEventListener('pointerup', function () { endResize(false); });
+  doc.addEventListener('pointercancel', function () { endResize(true); });
+  doc.addEventListener('keydown', function (e) { if (resizing && e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); endResize(true); } }, true);
+
   doc.addEventListener('keydown', function (e) { onKey(e, null); });
   function setMode(m) {
     mode = m;
@@ -2363,7 +2528,7 @@
     var G = [
       ['Outils', [['V', 'Déplacer : choisir un élément'], ['H', 'Main : déplacer la vue'], ['Espace', 'Main, le temps de glisser'], ['T', 'Texte : réécrire le texte choisi'], ['I', 'Image : changer la photo choisie'], ['P', 'Aperçu : le site réagit comme en ligne']]],
       ['Sélection', [['Entrée', 'Modifier le texte'], ['Échap', 'Choisir le parent'], ['Ctrl D', 'Dupliquer'], ['Ctrl ⇧ H', 'Masquer / afficher'], ['Suppr', 'Supprimer']]],
-      ['Affichage', [['Ctrl \\', 'Masquer / afficher les panneaux'], ['Ctrl Alt [', 'Replier le panneau de gauche'], ['Ctrl Alt ]', 'Replier le panneau de droite'], ['+ / −', 'Zoom (le pourcentage : ajuster)']]],
+      ['Affichage', [['Ctrl \\', 'Masquer / afficher les panneaux'], ['Ctrl Alt [', 'Replier le panneau de gauche'], ['Ctrl Alt ]', 'Replier le panneau de droite'], ['+ / −', 'Zoom'], ['Ctrl molette', 'Zoom sous la souris'], ['0', 'Zoom 100 %'], ['⇧ 1', 'Ajuster à l’écran']]],
       ['Fichiers', [['Ctrl Z', 'Annuler'], ['Ctrl ⇧ Z', 'Rétablir'], ['Ctrl S', 'Les fichiers modifiés'], ['?', 'Cette aide']]]
     ];
     var box = ce('div', 'sk-help');
