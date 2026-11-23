@@ -355,11 +355,10 @@
       if (!checkSlug(s).ok) return Promise.resolve({ ok: false, code: 'notfound' });
       path = '/rest/v1/stores?select=' + PUBLIC_COLS + '&published=is.true&slug=eq.' + encodeURIComponent(s) + '&limit=1';
     }
-    // `badge`: the owner's plan decides, on the server (migration jeere_wave2); before it, show_badge alone
-    return request(path.replace('select=' + PUBLIC_COLS, 'select=' + PUBLIC_COLS + ',badge')).then(function (r) {
-      // refused (400 before the migration, 401/403 when anon may not read the whole row): ask again without it
-      return r.status >= 400 && r.status < 500 ? request(path) : r;
-    }).then(function (r) {
+    // The badge « Fait avec Jehre » follows the row's show_badge (a trigger on the server keeps it true without
+    // a plan that allows hiding it). The database has no computed `badge` column: asking for it failed on every
+    // visit (a 400, then this same request again), so it is not asked.
+    return request(path).then(function (r) {
       if (r.status === 0 || r.status >= 500) return { ok: false, code: 'network' };
       if (!r.ok || !Array.isArray(r.body) || !r.body.length) return { ok: false, code: 'notfound' };
       var row = r.body[0];

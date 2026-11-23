@@ -126,14 +126,12 @@ async function fetchRow(q) {
     qs = 'custom_domain=in.(' + encodeURIComponent('"' + h + '","' + alt + '"') + ')&limit=2';
   }
   try {
-    // `badge` (the owner's plan decides, migration jeere_wave2) when the server has it, else without
     const get = (cols) => fetch(SB_URL + '/rest/v1/stores?select=' + cols + '&published=is.true&' + qs, {
       headers: { apikey: SB_KEY, Accept: 'application/json' },
       signal: AbortSignal.timeout(3500)
     });
-    let r = await get(COLS + ',badge');
-    // refused (400 before the migration, 401/403 when anon may not read the whole row): ask again without it
-    if (r.status >= 400 && r.status < 500) r = await get(COLS);
+    // no computed `badge` column in the database: asking for it failed on every visit, then asked again without
+    const r = await get(COLS);
     if (r.status >= 500) return { ok: false, code: 'network' };
     const rows = r.ok ? await r.json() : null;
     if (!Array.isArray(rows) || !rows.length) return { ok: false, code: r.ok ? 'notfound' : 'network' };
