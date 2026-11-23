@@ -89,7 +89,18 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       if (body.action === 'deposit') { a.deposit_status = body.depositStatus; return json(route, 200, { ok: true, appointment: a }); }
       return json(route, 400, { ok: false });
     }
-    if (p === '/rest/v1/store_members') return json(route, 200, []);
+    if (p === '/rest/v1/rpc/store_team') return json(route, 200, world.team ?? []);
+    if (p === '/rest/v1/rpc/store_visits_live') return json(route, 200, world.live ?? { ok: false, reason: 'plan' });
+    if (p === '/rest/v1/store_invites') {
+      world.invites ??= [];
+      if (method === 'GET') return json(route, 200, world.invites);
+      if (method === 'POST') { const inv = { id: `inv${world.invites.length + 1}`, email: body.email, mode: body.mode, store_id: body.store_id, created_at: new Date().toISOString() }; world.invites.unshift(inv); return json(route, 201, [inv]); }
+      if (method === 'DELETE') { world.invites = world.invites.filter((x) => !url.search.includes(`id=eq.${x.id}`)); return json(route, 204); }
+    }
+    if (p === '/rest/v1/store_members') {
+      if (method === 'DELETE') { world.team = (world.team ?? []).filter((x) => !url.search.includes(`user_id=eq.${x.user_id}`)); return json(route, 204); }
+      return json(route, 200, []);
+    }
     if (p.startsWith('/storage/v1/object/store-media/')) { world.uploads.push(p.replace('/storage/v1/object/store-media/', '')); return json(route, 200, { Key: p }); }
     if (p === '/rest/v1/stores') {
       // the dashboard must ask for HER stores only: a query without the owner filter would return every public store
@@ -1186,6 +1197,50 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await r.page.getByRole('button', { name: /Kady/ }).click(); await r.page.getByRole('menu').waitFor();
   await r.page.keyboard.press('Escape'); await r.page.getByRole('menu').waitFor({ state: 'detached' });
   assert.deepEqual([...errors, ...o.errors, ...r.errors], []); await r.ctx.close();
+});
+
+await test('partners: invite by e-mail, cancel an invitation, remove a partner; live visits come with the Pro plan', async () => {
+  const w = world(); w.team = [{ user_id: 'u-2', email: 'mariam@exemple.com', first_name: 'Mariam', role: 'editor', added_at: ago(48) }];
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/equipe/`); await h1(page, 'Associés');
+  const list = page.getByRole('region', { name: 'Associés et invitations' });
+  await list.getByText('Mariam').first().waitFor();
+  await list.getByText('Propriétaire').waitFor();
+  // a wrong address, her own address, someone already there: refused before anything is sent
+  for (const [typed, said] of [['pas une adresse', 'Vérifiez l’adresse e-mail.'], ['kady@exemple.com', 'C’est votre propre adresse.'], ['Mariam@Exemple.com', 'Cette personne est déjà invitée ou associée.']]) {
+    await page.getByLabel('Son adresse e-mail').fill(typed); await page.getByRole('button', { name: 'Inviter' }).click();
+    await page.getByText(said).waitFor();
+  }
+  assert.equal((w.invites ?? []).length, 0);
+  await page.getByLabel('Son adresse e-mail').fill(' Fatou@Exemple.com '); await page.getByRole('button', { name: 'Inviter' }).click();
+  await page.getByText('fatou@exemple.com est invitée.').waitFor();
+  assert.deepEqual(w.invites.map((x) => [x.email, x.mode, x.store_id]), [['fatou@exemple.com', 'editor', w.stores[0].id]]);
+  await list.getByText('En attente').waitFor();
+  await page.screenshot({ path: `${SHOTS}82-associes.png` });
+  await page.getByRole('button', { name: 'Annuler l’invitation de fatou@exemple.com' }).click();
+  await page.waitForFunction(() => !document.querySelector('main').innerText.includes('En attente'));
+  assert.equal(w.invites.length, 0);
+  // removing a partner asks to confirm
+  await page.getByRole('button', { name: 'Retirer Mariam' }).click();
+  assert.equal(w.team.length, 1);
+  await page.getByRole('button', { name: 'Oui, retirer' }).click();
+  await page.waitForFunction(() => !document.querySelector('main').innerText.includes('mariam@exemple.com'));
+  assert.equal(w.team.length, 0);
+  await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
+  // live visits: not in this plan → the page says which plans have it; with it, the three figures and the countries
+  await page.setViewportSize(DESK);
+  await page.goto(`${BASE}/admin/en-direct/`); await h1(page, 'En direct');
+  await page.getByText('Avec les formules Pro et Business').waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Voir les formules' }).getAttribute('href'), '/admin/abonnement/');
+  w.live = { ok: true, now: 3, today: 41, week: 212, countries: [{ country: 'CI', n: 30 }, { country: 'SN', n: 8 }, { country: 'CA', n: 3 }], points: [{ city: 'Abidjan', country: 'CI', live: true }, { city: 'Dakar', country: 'SN', live: true }, { city: 'Paris', country: 'FR', live: false }] };
+  await page.reload(); await h1(page, 'En direct');
+  await page.getByText('Cette semaine').waitFor();
+  assert.deepEqual(await page.locator('main dl dd').allInnerTexts(), ['3', '41', '212']);
+  await page.getByText('Abidjan, Côte d’Ivoire · Dakar, Sénégal').waitFor();
+  assert.deepEqual((await page.getByRole('region', { name: 'Pays' }).locator('li').allInnerTexts()).map((x) => x.replace(/\s+/g, ' ')), ['Côte d’Ivoire 30', 'Sénégal 8', 'Canada 3']);
+  await page.screenshot({ path: `${SHOTS}83-en-direct.png` });
+  await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
+  assert.deepEqual(errors, []); await ctx.close();
 });
 
 await browser.close();
