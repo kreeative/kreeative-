@@ -49,7 +49,20 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
     if (p === '/rest/v1/rpc/my_models') { if (world.modelsLate > 0) { world.modelsLate--; return json(route, 200, []); } return json(route, 200, world.models ?? []); }
     if (p === '/rest/v1/rpc/slug_available') return json(route, 200, { available: !(world.taken ?? []).includes(body.p_slug), reason: 'ok' });
-    if (p === '/functions/v1/billing') return json(route, 200, world.billing ?? { ok: false, message: 'Paiement simulé : rien n’est prélevé.' });
+    if (p === '/functions/v1/billing') {
+      if (body.action === 'sync') { if (world.planAfter) Object.assign(world.stores[0], world.planAfter, { updated_at: new Date().toISOString() }); return json(route, 200, { ok: true, applied: world.planAfter ? 1 : 0 }); }
+      return json(route, 200, world.billing ?? { ok: false, message: 'Paiement simulé : rien n’est prélevé.' });
+    }
+    if (p === '/functions/v1/domains') {
+      const st = world.stores.find((x) => x.id === body.storeId);
+      const recs = (d) => [{ type: 'A', name: '@', value: '76.76.21.21', host: d }, { type: 'CNAME', name: 'www', value: 'cname.vercel-dns.com', host: 'www.' + d }];
+      if (body.action === 'search') return json(route, 200, { ok: true, configured: true, label: body.name, results: [{ domain: body.name + '.com', available: true, purchaseFcfa: 12500, renewalFcfa: 14000 }, { domain: body.name + '.shop', available: false, purchaseFcfa: null, renewalFcfa: null }, { domain: body.name + '.store', available: true, purchaseFcfa: 4500, renewalFcfa: 38000 }] });
+      if (!st) return json(route, 403, { ok: false, message: 'Cette boutique n’est pas à vous.' });
+      if (body.action === 'attach') { if (body.domain === 'pris.com') return json(route, 409, { ok: false, code: 'taken', message: 'Ce domaine est déjà relié à une autre boutique Jehre. Si c’est le vôtre, écrivez-nous sur WhatsApp.' }); Object.assign(st, { custom_domain: body.domain, domain_status: 'attached', updated_at: new Date().toISOString() }); return json(route, 200, { ok: true, configured: true, domain: body.domain, status: 'attached', records: recs(body.domain) }); }
+      if (body.action === 'verify') { const status = world.dnsReady ? 'verified' : 'attached'; Object.assign(st, { domain_status: status, updated_at: new Date().toISOString() }); return json(route, 200, { ok: true, configured: true, domain: st.custom_domain, status, records: recs(st.custom_domain) }); }
+      if (body.action === 'detach') { Object.assign(st, { custom_domain: null, domain_status: 'none', updated_at: new Date().toISOString() }); return json(route, 200, { ok: true, configured: true }); }
+      return json(route, 400, { ok: false });
+    }
     if (p === '/functions/v1/appel') return json(route, 200, { ok: true });
     if (p === '/functions/v1/bookings') {
       const B = world.booking ?? (world.booking = { settings: bookingSettings(), appts: [] });
@@ -777,6 +790,89 @@ await test('booking hours and rules: one day closed, a break, the deposit and th
   assert.deepEqual(S.payments, ['Sur place', 'Wave']); assert.equal(S.address, 'Riviera 2, Abidjan'); assert.equal(S.policies.late, 'Dix minutes de retard au plus.');
   assert.deepEqual(S.services.map((x) => x.name), ['Pose classique']); assert.deepEqual(S.staff, before.staff); assert.equal(S.timezone, 'Africa/Abidjan'); assert.equal(S.lead, 120);
   assert.equal(await save.isDisabled(), true);
+  await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('subscription: the plan of this store, the four plans with their prices; choosing one asks Stripe for THIS store; back from Stripe the plan is active', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/abonnement/`); await h1(page, 'Abonnement');
+  await page.getByText('Boutique Test · formule Essentiel').waitFor();
+  const plans = await page.locator('main > ul > li').evaluateAll((els) => els.map((li) => [li.querySelector('h2').textContent, li.querySelector('p b').textContent.replace(/\s/g, ' '), [...li.querySelectorAll('button')].map((b) => b.textContent)]));
+  assert.deepEqual(plans, [['Gratuit', '0 FCFA', []], ['Essentiel', '3 500 FCFA', []], ['Pro', '10 000 FCFA', ['Choisir Pro']], ['Business', '25 000 FCFA', ['Choisir Business']]]);
+  assert.equal(await page.getByText('Votre formule').count(), 1);
+  await page.screenshot({ path: `${SHOTS}80-abonnement.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Choisir Pro au mois' }).click();
+  await page.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
+  const sub = w.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'subscribe');
+  assert.deepEqual({ kind: sub.body.kind, plan: sub.body.plan, period: sub.body.period, storeId: sub.body.storeId }, { kind: 'boutique', plan: 'pro', period: 'mois', storeId: w.stores[0].id });
+  assert.ok(sub.body.returnUrl.endsWith('/admin/abonnement/'));
+  await page.getByRole('button', { name: 'Gérer mon abonnement' }).click();
+  await page.waitForFunction(() => true); assert.ok(w.calls.some((c) => c.path === '/functions/v1/billing' && c.body.action === 'portal'));
+  // back from Stripe: the plan is read from Stripe at once
+  w.planAfter = { plan: 'pro', plan_until: '2026-12-23T10:00:00.000Z' };
+  await page.goto(`${BASE}/admin/abonnement/?abonnement=ok`);
+  await page.getByText('Votre formule est active.').waitFor();
+  await page.getByText(/Boutique Test · formule Pro jusqu’au 23 décembre 2026/).waitFor();
+  assert.equal(new URL(page.url()).search, '');
+  await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
+  // the weekly price exists for Essentiel only, from the free plan
+  const w2 = world(); w2.stores[0].plan = 'gratuit'; const o = await open(browser, PHONE, w2);
+  await o.page.goto(`${BASE}/admin/abonnement/`); await h1(o.page, 'Abonnement');
+  await o.page.getByRole('button', { name: 'Choisir Essentiel à la semaine' }).click();
+  await o.page.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
+  assert.equal(w2.calls.find((c) => c.body.action === 'subscribe').body.period, 'semaine');
+  assert.equal(await o.page.getByRole('button', { name: 'Gérer mon abonnement' }).count(), 0);
+  assert.deepEqual([...errors, ...o.errors], []); await ctx.close(); await o.ctx.close();
+});
+
+await test('domain name: a domain she already owns is connected (DNS lines shown, then verified, then removed); one can be searched and bought by card', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/domaine/`); await h1(page, 'Nom de domaine');
+  await page.getByText('boutique-test.store.jehre.com').waitFor();
+  // a wrong name is refused before any call; a name used by another store is refused by the server
+  await page.getByLabel('Votre domaine').fill('pas un domaine');
+  await page.getByRole('button', { name: 'Relier' }).click();
+  await page.getByText('Écrivez le domaine sans espace ni « https », par exemple maboutique.com.').waitFor();
+  assert.equal(w.calls.some((c) => c.path === '/functions/v1/domains'), false);
+  await page.getByLabel('Votre domaine').fill('pris.com'); await page.getByRole('button', { name: 'Relier' }).click();
+  await page.getByText('Ce domaine est déjà relié à une autre boutique Jehre.').waitFor();
+  assert.equal(w.stores[0].custom_domain, null);
+  // hers: saved, the two DNS lines to write, not active yet
+  await page.getByLabel('Votre domaine').fill('https://MaBoutique.com/'); await page.getByRole('button', { name: 'Relier' }).click();
+  await page.getByText('maboutique.com est enregistré.').waitFor();
+  assert.equal(w.stores[0].custom_domain, 'maboutique.com');
+  const dns = await page.getByRole('region', { name: 'Réglages DNS' }).locator('tbody tr').allInnerTexts();
+  assert.deepEqual(dns.map((x) => x.replace(/\s+/g, ' ')), ['A @ 76.76.21.21', 'CNAME www cname.vercel-dns.com']);
+  await page.getByText('En attente de vos réglages DNS').waitFor();
+  await page.screenshot({ path: `${SHOTS}81-domaine.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Vérifier maintenant' }).click();
+  await page.getByText('Pas encore : les réglages peuvent mettre jusqu’à 24 h').waitFor();
+  w.dnsReady = true;
+  await page.getByRole('button', { name: 'Vérifier maintenant' }).click();
+  await page.getByText('maboutique.com est actif. Votre boutique répond à cette adresse.').waitFor();
+  await page.getByText('Actif', { exact: true }).waitFor();
+  assert.equal(w.stores[0].domain_status, 'verified');
+  assert.equal(await page.getByRole('link', { name: 'Voir la boutique' }).getAttribute('href'), 'https://maboutique.com');
+  assert.equal(await page.getByRole('region', { name: 'Réglages DNS' }).count(), 0);
+  // removed, with a confirmation
+  await page.getByRole('button', { name: 'Retirer ce domaine' }).click();
+  assert.equal(w.stores[0].custom_domain, 'maboutique.com');
+  await page.getByRole('button', { name: 'Oui, retirer' }).click();
+  await page.getByText('Le domaine est retiré.').waitFor();
+  assert.equal(w.stores[0].custom_domain, null);
+  // buying one: the price shown is the server's, the payment is asked for this store
+  await page.getByLabel('Le nom que vous voulez').fill('maboutique'); await page.getByRole('button', { name: 'Chercher' }).click();
+  await page.getByRole('button', { name: 'Acheter maboutique.com' }).waitFor();
+  const offers = (await page.locator('main ul li').allInnerTexts()).map((x) => x.replace(/\s+/g, ' '));
+  assert.match(offers[0], /maboutique\.com 12.500.FCFA la première année, puis 14.000.FCFA par an Acheter/);
+  assert.match(offers[1], /maboutique\.shop Déjà pris/);
+  await page.getByRole('button', { name: 'Acheter maboutique.com' }).click();
+  await page.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
+  const buy = w.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'domain');
+  assert.equal(buy.body.domain, 'maboutique.com'); assert.equal(buy.body.storeId, w.stores[0].id); assert.ok(buy.body.returnUrl.endsWith('/admin/domaine/'));
+  await page.goto(`${BASE}/admin/domaine/?domaine=ok&nom=maboutique.com`);
+  await page.getByText('Paiement reçu. Nous achetons maboutique.com et le relions à votre boutique').waitFor();
   await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
   assert.deepEqual(errors, []); await ctx.close();
 });

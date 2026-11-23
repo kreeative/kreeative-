@@ -54,6 +54,7 @@ export interface Store {
   custom_domain: string | null;
   domain_status: string | null;
   plan: string | null;
+  plan_until?: string | null;
   updated_at: string;
   /** 'owner' for her own stores, otherwise her role in a store shared with her */
   role: string;
@@ -90,7 +91,7 @@ export interface Order {
   created_at: string;
 }
 
-const STORE_COLS = 'id, slug, fiche, published, published_at, custom_domain, domain_status, plan, updated_at';
+const STORE_COLS = 'id, slug, fiche, published, published_at, custom_domain, domain_status, plan, plan_until, updated_at';
 
 /** Her own stores, then the ones shared with her (a partner, an agency). Never the other sellers' public stores. */
 export async function listStores(userId: string): Promise<Store[]> {

@@ -27,6 +27,8 @@ const SHOP: NavItem[] = [
   { href: '/admin/modeles/', label: 'Modèles', icon: 'template', more: true },
   { href: '/admin/paiements/', label: 'Paiements', icon: 'wallet', group: 'Réglages', more: true },
   { href: '/admin/livraison/', label: 'Livraison', icon: 'truck', more: true },
+  { href: '/admin/abonnement/', label: 'Abonnement', icon: 'sparkle', more: true },
+  { href: '/admin/domaine/', label: 'Nom de domaine', icon: 'external', more: true },
   { href: '/admin/parametres/', label: 'Paramètres', icon: 'gear', more: true },
 ];
 
