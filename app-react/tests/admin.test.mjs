@@ -445,7 +445,7 @@ await test('models: a model she bought is hers; she switches model and her texts
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-await test('phone: the bottom bar stays glued to the bottom of the screen while the page scrolls', async () => {
+await test('phone: the floating bottom bar stays in place while the page scrolls', async () => {
   const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
   for (const path of ['/admin/modeles/', '/admin/', '/admin/produits/']) {
     await page.goto(`${BASE}${path}`); await page.locator('aside nav').waitFor();
@@ -453,11 +453,11 @@ await test('phone: the bottom bar stays glued to the bottom of the screen while 
     await page.evaluate(() => { const d = document.createElement('div'); d.style.height = '2400px'; document.querySelector('main').appendChild(d); });
     const where = () => page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), width: Math.round(r.width), y: Math.round(window.scrollY), h: window.innerHeight }; });
     const start = await where();
-    assert.equal(start.bottom, 844, `${path}: the bar sits on the bottom edge`); assert.equal(start.left, 0); assert.equal(start.width, 390);
+    assert.equal(start.bottom, 832, `${path}: the bar floats 12 px above the bottom edge`); assert.equal(start.left, 12); assert.equal(start.width, 366);
     for (const dy of [300, 500, 700, -400, 900]) {
       await page.mouse.wheel(0, dy); await page.waitForTimeout(120);
       const now = await where();
-      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 844);
+      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 832);
     }
     const end = await where(); assert.ok(end.y > 1200, 'the page really scrolled');
     // nothing around the bar can detach it: no ancestor transforms, filters, clips or scrolls
