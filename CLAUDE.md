@@ -41,6 +41,7 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 - Pages légales : pas de droit ivoirien cité, pas de texte entre crochets à compléter.
 
 ## Le nouveau front (`app-react/`)
+- **Migrer, ce n'est pas redessiner.** Chaque page reprend l'aspect de la page actuelle : mêmes éléments, mêmes mots, mêmes dessins (bouton principal en arc-en-ciel, logo arc-en-ciel du tableau de bord, carte de l'offre de lancement, panneau noir aux dessins de la page du compte). Avant de coder une page, faire une capture de l'actuelle et comparer à la fin.
 - Les pages gardent les adresses du site actuel (`/compte/`, `/admin/`, `/b/<boutique>/`), avec la barre finale.
 - La connexion se fait par code reçu par e-mail. Il n'y a pas de mot de passe sur Jehre, donc pas de « mot de passe oublié ».
 - Après une connexion, `src/lib/account.ts` écrit la copie locale `jeere-account` que lisent encore les pages non migrées. Ne pas changer sa forme.

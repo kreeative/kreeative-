@@ -9,10 +9,12 @@ interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   optional?: boolean;
   hint?: ReactNode;
   error?: string;
+  /** a control placed before the field on the same line (a country code) */
+  before?: ReactNode;
 }
 
 /** A labelled text field with its hint and its error, tied together for screen readers. */
-export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field({ label, optional, hint, error, id, className, ...rest }, ref) {
+export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field({ label, optional, hint, error, before, id, className, ...rest }, ref) {
   const auto = useId();
   const fid = id ?? auto;
   const describedBy = [error ? `${fid}-err` : '', hint ? `${fid}-hint` : ''].filter(Boolean).join(' ') || undefined;
@@ -21,7 +23,10 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field({ l
       <label className={styles.label} htmlFor={fid}>
         {label}{optional ? <span className={styles.optional}> (facultatif)</span> : null}
       </label>
-      <input ref={ref} id={fid} className={styles.input} aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...rest} />
+      <div className={styles.line}>
+        {before}
+        <input ref={ref} id={fid} className={styles.input} aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...rest} />
+      </div>
       {error ? <p className={styles.error} id={`${fid}-err`} role="alert">{error}</p> : null}
       {hint ? <p className={styles.hint} id={`${fid}-hint`}>{hint}</p> : null}
     </div>

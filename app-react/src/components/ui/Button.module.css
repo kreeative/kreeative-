@@ -17,14 +17,18 @@
 .quiet { background: transparent; color: var(--muted); min-height: var(--ctl-sm); padding: 0 var(--sp-3); font-weight: 500; }
 .quiet:hover:not(:disabled) { background: var(--grey-1); color: var(--ink); }
 
-/* white, the logo's full rainbow around it and in its words */
-.rainbow { position: relative; background: var(--white); color: var(--ink); }
-.rainbow::before {
-  content: ''; position: absolute; inset: 0; padding: 1.5px; border-radius: inherit; background: var(--rainbow);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+/* white, its edge and its words in the logo's full rainbow (the same button as on the current site, rainbow.css) */
+.rainbow {
+  border: 1.5px solid transparent; color: #5B3EF0;          /* an icon inside takes one colour of the rainbow */
+  background-color: var(--white);
+  background-image: linear-gradient(100deg, #D63A6E, #DD6A1F, #B98500, #10955A, #1479BA, #5B3EF0, #A62BC8, #D63A6E), linear-gradient(var(--white), var(--white)), linear-gradient(100deg, #E8467C, #F08A3C, #F0C414, #22C97E, #1E9BE0, #6A4CFF, #C13CE0);
+  /* the words' rainbow repeats every 90 px, so even a short word shows every colour */
+  background-size: 90px 100%, 100% 100%, 100% 100%; background-repeat: repeat-x, no-repeat, no-repeat; background-position: center, 0 0, 0 0; background-origin: border-box;
+  -webkit-background-clip: text, padding-box, border-box; background-clip: text, padding-box, border-box; -webkit-text-fill-color: transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
 }
-.rainbow > span { background: var(--rainbow); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.rainbow:hover:not(:disabled) { background: var(--grey-1); }
+.rainbow:hover:not(:disabled) { box-shadow: 0 2px 10px -2px rgba(106, 76, 255, .28), 0 2px 10px -4px rgba(232, 70, 124, .28); }
+.rainbow .spinner { border-color: #5B3EF0; border-right-color: transparent; }
 
 .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

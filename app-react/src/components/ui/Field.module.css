@@ -25,3 +25,6 @@
   box-shadow: none;
 }
 .box[aria-invalid="true"] { box-shadow: inset 0 0 0 1.5px var(--err); }
+
+.line { display: flex; gap: var(--sp-2); }
+.line > .input { flex: 1; min-width: 0; }

@@ -43,6 +43,7 @@ async function open(browser, viewport, world) {
       if (method === 'PATCH') { Object.assign(world.profile, body); return json(route, 204); }
     }
     if (url.pathname === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
+    if (url.pathname === '/rest/v1/rpc/launch_spots') return json(route, 200, { active: true, trial: true, spots: 10, left: 6, months: 3, trialMonths: 1 });
     return json(route, 404, { message: 'not mocked' });
   });
   return { ctx, page, errors };

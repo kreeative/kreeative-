@@ -2,14 +2,15 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'reac
 import { Icon, type IconName } from './Icon';
 import styles from './Button.module.css';
 
-type Variant = 'primary' | 'secondary' | 'quiet' | 'rainbow';
+type Variant = 'primary' | 'secondary' | 'quiet' | 'rainbow' | 'ink';
 
 interface Common { variant?: Variant; block?: boolean; icon?: IconName; iconEnd?: IconName; busy?: boolean; children: ReactNode }
 
 const cls = (variant: Variant, block?: boolean, extra?: string) =>
-  [styles.btn, styles[variant], block ? styles.block : '', extra ?? ''].filter(Boolean).join(' ');
+  [styles.btn, styles[variant === 'primary' ? 'rainbow' : variant === 'ink' ? 'primary' : variant], block ? styles.block : '', extra ?? ''].filter(Boolean).join(' ');
 
-/** A button. « primary » is black, « rainbow » is white with the logo's rainbow around it (one per screen at most). */
+/** A button. The main action of a screen (« primary ») wears the logo's full rainbow on white, as everywhere on Jehre;
+ *  « ink » is the plain black one. */
 export function Button({ variant = 'primary', block, icon, iconEnd, busy, children, className, disabled, ...rest }: Common & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button type="button" {...rest} className={cls(variant, block, className)} disabled={disabled || busy} aria-busy={busy || undefined}>

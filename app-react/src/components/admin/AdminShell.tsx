@@ -28,7 +28,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.shell}>
       <aside className={styles.side}>
-        <Link className={styles.logo} href="/admin/" aria-label="Jehre, accueil du tableau de bord"><Logo height={34} /></Link>
+        <Link className={styles.logo} href="/admin/" aria-label="Jehre, accueil du tableau de bord"><Logo height={38} rainbow /></Link>
 
         {stores.length > 0 && store ? (
           <div className={styles.store}>

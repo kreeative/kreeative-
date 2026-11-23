@@ -22,9 +22,10 @@ export function Icon({ name, size = 20, className, title }: IconProps) {
   );
 }
 
-/** The Jehre mark: the founder's hand-drawn cloud, in ink. */
-export function Logo({ height = 36, className }: { height?: number; className?: string }) {
+/** The Jehre mark: the founder's hand-drawn cloud. In ink, or in the logo's full rainbow (`rainbow`). */
+export function Logo({ height = 36, className, rainbow }: { height?: number; className?: string; rainbow?: boolean }) {
   const icon = ICONS.cloud;
+  const grad = '<defs><linearGradient id="jehre-rainbow" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#E8467C"/><stop offset=".17" stop-color="#F08A3C"/><stop offset=".34" stop-color="#F0C414"/><stop offset=".5" stop-color="#22C97E"/><stop offset=".67" stop-color="#1E9BE0"/><stop offset=".84" stop-color="#6A4CFF"/><stop offset="1" stop-color="#C13CE0"/></linearGradient></defs>';
   return (
     <svg
       className={className}
@@ -34,8 +35,8 @@ export function Logo({ height = 36, className }: { height?: number; className?: 
       role="img"
       aria-label="Jehre"
       focusable="false"
-      fill="currentColor"
-      dangerouslySetInnerHTML={{ __html: icon.body }}
+      fill={rainbow ? 'url(#jehre-rainbow)' : 'currentColor'}
+      dangerouslySetInnerHTML={{ __html: (rainbow ? grad : '') + icon.body }}
     />
   );
 }

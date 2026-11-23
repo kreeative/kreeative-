@@ -7,6 +7,8 @@ import { Check, Field } from '@/components/ui/Field';
 import { Icon, Logo } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { clip, completeLogin, readAccount, rememberSource, saveStoreName, signOut, slugify, type Account } from '@/lib/account';
+import { mountDoodles } from '@/lib/doodles';
+import { COUNTRIES, launchOffer, type LaunchOffer } from '@/lib/launch';
 import { currentUser, maskEmail, normEmail, normPhone, sendCode, validEmail, verifyCode, type AuthFailure } from '@/lib/auth';
 import styles from './auth.module.css';
 
@@ -27,6 +29,9 @@ export function AuthFlow() {
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [dial, setDial] = useState<string>('225');
+  const [offer, setOffer] = useState<LaunchOffer | null>(null);
+  const aside = useRef<HTMLElement>(null);
   const [consent, setConsent] = useState(false);
   const [code, setCode] = useState('');
   const [storeName, setStoreName] = useState('');
@@ -57,6 +62,10 @@ export function AuthFlow() {
     return () => { alive = false; };
   }, []);
 
+  // the launch offer with its real number of spots, and the brush drawings of the black panel
+  useEffect(() => { void launchOffer().then(setOffer); }, []);
+  useEffect(() => (aside.current ? mountDoodles(aside.current) : undefined), []);
+
   // each screen starts at its title (keyboard and screen readers follow)
   useEffect(() => { if (step !== 'loading') title.current?.focus(); }, [step]);
 
@@ -74,7 +83,7 @@ export function AuthFlow() {
     const name = clip(firstName, 40);
     if (mode === 'signup' && !name) errs.firstName = 'Indiquez votre prénom.';
     if (!validEmail(email)) errs.email = 'Indiquez une adresse e-mail valide, comme vous@exemple.com.';
-    if (mode === 'signup' && phone.trim() && !normPhone(phone)) errs.phone = 'Ce numéro ne semble pas complet. Vous pouvez aussi laisser ce champ vide.';
+    if (mode === 'signup' && phone.trim() && !normPhone(phone, `+${dial}`)) errs.phone = 'Ce numéro ne semble pas complet. Vous pouvez aussi laisser ce champ vide.';
     if (mode === 'signup' && !consent) errs.consent = 'Cochez la case pour continuer.';
     setErrors(errs);
     setFailure(null);
@@ -97,7 +106,7 @@ export function AuthFlow() {
     const r = await verifyCode(email, value);
     if (!r.ok) { setBusy(false); setFailure(r); setCode(''); setCodeKey((k) => k + 1); return; }   // a refused code: empty boxes, ready for the right one
     try {
-      const acc = await completeLogin(r.user, mode === 'signup' ? { firstName: clip(firstName, 40), phone: normPhone(phone) } : {});
+      const acc = await completeLogin(r.user, mode === 'signup' ? { firstName: clip(firstName, 40), phone: normPhone(phone, `+${dial}`) } : {});
       setAccount(acc);
       setStoreName(acc.storeName);
       setBusy(false);
@@ -166,26 +175,30 @@ export function AuthFlow() {
 
           {step === 'signup' && (
             <form className={styles.form} onSubmit={askCode} noValidate>
+              <Progress label="Créer un compte" at={1} of={4} />
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Créez votre compte</h1>
-                <p>Pas de mot de passe : vous recevez un code par e-mail.</p>
+                <p>Pas de mot de passe.</p>
               </div>
+              {offer ? <p className={styles.launch}><span className={styles.launchText}><b>{offer.title}</b> {offer.detail}</span>{offer.left ? <span className={styles.launchLeft}>{offer.left}</span> : null}</p> : null}
               <Field label="Votre prénom" name="firstName" autoComplete="given-name" autoCapitalize="words" maxLength={40} value={firstName} onChange={(e) => { setFirstName(e.target.value); clearError('firstName'); }} error={errors.firstName} />
               <Field label="Adresse e-mail" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="vous@exemple.com" value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }} error={errors.email}
                 hint="Le code arrive en quelques secondes. Regardez aussi dans les courriers indésirables." />
-              <Field label="Numéro WhatsApp" optional name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="07 07 12 34 56" value={phone} onChange={(e) => { setPhone(e.target.value); clearError('phone'); }} error={errors.phone}
+              <Field label="Numéro WhatsApp" optional name="phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="07 07 12 34 56" value={phone}
+                before={<span className={styles.dial}><select aria-label="Indicatif du pays" value={dial} onChange={(e) => setDial(e.target.value)}>{COUNTRIES.map(([code, flag, name]) => <option key={code} value={code}>{`${flag} +${code} ${name}`}</option>)}</select><span aria-hidden="true">{COUNTRIES.find((c) => c[0] === dial)?.[1]} +{dial}</span><Icon name="down" size={14} /></span>} onChange={(e) => { setPhone(e.target.value); clearError('phone'); }} error={errors.phone}
                 hint="Celui où vous recevez vos commandes. Vous pourrez l’ajouter plus tard." />
               <Check checked={consent} onChange={(e) => { setConsent(e.target.checked); clearError('consent'); }} error={errors.consent}>
                 J’ai lu et j’accepte la <a href={LINKS.privacy} target="_blank" rel="noopener">politique de confidentialité</a> et les <a href={LINKS.terms} target="_blank" rel="noopener">conditions d’utilisation</a> de Jehre.
               </Check>
               {failure && <Notice tone="error">{failure.text}</Notice>}
-              <Button type="submit" block busy={busy} iconEnd="arrow">Recevoir mon code</Button>
+              <Button type="submit" variant="rainbow" block busy={busy} iconEnd="arrow">Recevoir mon code</Button>
               <p className={styles.switch}>Déjà un compte ? <button type="button" className={styles.link} onClick={() => switchTo('login')}>Se connecter</button></p>
             </form>
           )}
 
           {step === 'login' && (
             <form className={styles.form} onSubmit={askCode} noValidate>
+              <Progress label="Connexion" at={1} of={2} />
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Connectez-vous</h1>
                 <p>Recevez un code par e-mail pour entrer, sans mot de passe.</p>
@@ -194,13 +207,14 @@ export function AuthFlow() {
               {failure?.kind === 'no-account'
                 ? <Notice tone="warn" title="Aucun compte avec cette adresse" action={<Button variant="secondary" onClick={() => switchTo('signup')}>Créer un compte</Button>}>Vérifiez l’adresse, ou créez votre compte : c’est gratuit.</Notice>
                 : failure && <Notice tone="error">{failure.text}</Notice>}
-              <Button type="submit" block busy={busy} iconEnd="arrow">Recevoir mon code</Button>
+              <Button type="submit" variant="rainbow" block busy={busy} iconEnd="arrow">Recevoir mon code</Button>
               <p className={styles.switch}>Pas encore de compte ? <button type="button" className={styles.link} onClick={() => switchTo('signup')}>Créer un compte</button></p>
             </form>
           )}
 
           {step === 'code' && (
             <form className={styles.form} onSubmit={(e) => { e.preventDefault(); void checkCode(); }} noValidate>
+              <Progress label={mode === 'signup' ? 'Créer un compte' : 'Connexion'} at={2} of={mode === 'signup' ? 4 : 2} />
               <button type="button" className={styles.backBtn} onClick={() => go(mode)}><Icon name="back" size={16} />Changer d’adresse</button>
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Entrez le code</h1>
@@ -209,7 +223,7 @@ export function AuthFlow() {
               <CodeInput label="Code reçu par e-mail" value={code} onChange={setCode} onComplete={(c) => void checkCode(c)} invalid={!!errors.code || failure?.kind === 'code'} disabled={busy} focusKey={codeKey} />
               {errors.code && <Notice tone="error">{errors.code}</Notice>}
               {failure && <Notice tone="error">{failure.text}</Notice>}
-              <Button type="submit" block busy={busy}>Valider</Button>
+              <Button type="submit" variant="rainbow" block busy={busy}>Valider</Button>
               <p className={styles.switch}>
                 {wait > 0
                   ? <>Renvoyer dans <span className={styles.timer}>{Math.floor(wait / 60)}:{String(wait % 60).padStart(2, '0')}</span></>
@@ -220,6 +234,7 @@ export function AuthFlow() {
 
           {step === 'store' && (
             <form className={styles.form} onSubmit={saveStore} noValidate>
+              <Progress label="Créer un compte" at={3} of={4} />
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Le nom de votre boutique</h1>
                 <p>Modifiable à tout moment.</p>
@@ -230,13 +245,14 @@ export function AuthFlow() {
                 <b>jehre.com/b/{slug}</b>
               </div>
               {failure && <Notice tone="error">{failure.text}</Notice>}
-              <Button type="submit" block busy={busy}>Créer mon compte</Button>
+              <Button type="submit" variant="rainbow" block busy={busy}>Créer mon compte</Button>
               <Button variant="quiet" block disabled={busy} onClick={() => void saveStore('skip')}>Je ne veux pas de boutique</Button>
             </form>
           )}
 
           {step === 'done' && account && (
             <div className={styles.form}>
+              <Progress label="Créer un compte" at={4} of={4} />
               <div className={styles.head}>
                 <span className={styles.badge}><Icon name="check" size={22} /></span>
                 <h1 ref={title} tabIndex={-1}>Compte créé</h1>
@@ -268,18 +284,31 @@ export function AuthFlow() {
           )}
         </section>
 
-        <aside className={styles.side} aria-label="Jehre pour les vendeurs">
-          <h2>Tout votre commerce, au même endroit.</h2>
-          <p>Une boutique en ligne, les commandes WhatsApp, le paiement mobile money et la livraison. Depuis votre téléphone.</p>
-          <ul>
-            <li><Icon name="check" size={18} />Gratuit pour démarrer, sans carte bancaire</li>
-            <li><Icon name="shield" size={18} />Jehre ne garde jamais votre argent</li>
-            <li><Icon name="lock" size={18} />Pas de mot de passe à retenir</li>
+        <aside ref={aside} className={`${styles.side} c-aside`} aria-label="Jehre pour les vendeurs">
+          <div className="c-aside__top">
+            <p className={styles.sideKicker}>Jehre pour les vendeurs</p>
+            <h2>Tout votre commerce, au même endroit.</h2>
+            <p className={styles.sideText}>Une boutique en ligne, les commandes WhatsApp, le paiement mobile money et la livraison par commune. Depuis votre téléphone.</p>
+          </div>
+          <ul className={`${styles.perks} c-perks`}>
+            <li><span><Icon name="check" size={16} /></span>Gratuit pour démarrer, sans carte bancaire</li>
+            <li><span><Icon name="check" size={16} /></span>Jehre ne garde jamais votre argent</li>
+            <li><span><Icon name="check" size={16} /></span>Une vraie personne vous répond sur WhatsApp, en français</li>
           </ul>
         </aside>
       </main>
 
       <footer className={styles.foot}>© 2026 Jehre™. Tous droits réservés.</footer>
+    </div>
+  );
+}
+
+/** Where she is in the flow: « Créer un compte · Étape 1 sur 4 ». */
+function Progress({ label, at, of }: { label: string; at: number; of: number }) {
+  return (
+    <div className={styles.progress}>
+      <div className={styles.progressBar} aria-hidden="true">{Array.from({ length: of }, (_, i) => <span key={i} data-on={i < at || undefined} />)}</div>
+      <p>{label} · Étape {at} sur {of}</p>
     </div>
   );
 }
