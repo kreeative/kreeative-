@@ -47,7 +47,7 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 - Après une connexion, `src/lib/account.ts` écrit la copie locale `jeere-account` que lisent encore les pages non migrées. Ne pas changer sa forme.
 - Composants dans `src/components/ui/` (Button, Field, CodeInput, Notice, Icon). Une page se compose avec eux ; pas de champ ni de bouton dessiné dans une page.
 - Icônes : `Icon` (Iconly), reprises du site actuel dans `icons.ts`.
-- **Une boutique = un seul format (la fiche) et un seul moteur de rendu**, celui du site actuel (`creer/data.js`, `render.js`, `store.css`), utilisé tel quel par `StorePreview`. Les huit sections sont les mêmes pour tous les modèles ; un modèle ne change que la mise en page, la palette, les polices et les coins (`src/lib/engine.ts`). Ne pas écrire un second rendu de boutique.
+- **Une boutique = un seul format (la fiche) et un seul moteur de rendu**, celui du site actuel (`creer/data.js`, `render.js`, `store.css`), utilisé tel quel par `StorePreview`. Les huit sections sont les mêmes pour toutes les boutiques (`src/lib/engine.ts`). Les modèles proposés sont les 7 modèles de designer (`src/lib/models.ts`) : Plateau, Cocody et Treichville ne sont plus des modèles, ne jamais les proposer ni les nommer. Ne pas écrire un second rendu de boutique.
 - Panneaux : `Sheet` (à droite sur ordinateur avec « Ouvrir en grand », tiroir du bas sur téléphone).
 - Avant chaque envoi : `npm run typecheck`, `npm run build`, puis `npm test` (navigateur réel, Supabase simulé : aucun courriel envoyé, aucun compte créé).
 
