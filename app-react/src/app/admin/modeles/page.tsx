@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { PageHead } from '@/components/admin/AdminShell';
 import { useSave } from '@/components/admin/useSave';
@@ -9,7 +9,8 @@ import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { money } from '@/lib/format';
-import { CUSTOM_FROM, MODELS, askTeam, buyModel, currentModel, installPrice, modelBySlug, modelDemo, modelThumb, myModels, withModel, type Model } from '@/lib/models';
+import { CUSTOM_FROM, MODELS, askTeam, buyModel, installPrice, modelBySlug, modelDemo, modelThumb, withModel, type Model } from '@/lib/models';
+import { createStore, saveFiche } from '@/lib/stores';
 import styles from './modeles.module.css';
 
 type Way = 'self' | 'install' | 'custom';
@@ -22,29 +23,52 @@ const ACTION: Record<Way, string> = { self: 'Payer par carte', install: 'Recevoi
 
 /** The designer models: a site drawn for one trade, paid once. Same cards and same words as the current dashboard. */
 export default function ModelsPage() {
-  const { account, store } = useAdmin();
+  const { account, store, reload, models: owned, model: current } = useAdmin();
   const { busy, problem, write } = useSave();
-  const [owned, setOwned] = useState<string[]>([]);
   const [open, setOpen] = useState<Model | null>(null);
-  const [message, setMessage] = useState<{ tone: 'ok' | 'info'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ tone: 'ok' | 'info'; text: string; edit?: boolean } | null>(null);
+  const [arriving, setArriving] = useState('');
+  const now = useRef({ owned, store, current });
+  now.current = { owned, store, current };
 
-  useEffect(() => { let on = true; void myModels().then((l) => { if (on) setOwned(l); }); return () => { on = false; }; }, []);
+  // Back from the card payment. The payment server writes the purchase a moment after the card is accepted: the
+  // account is read again until the model is in it, then it is put on her store (made for her if she has none yet),
+  // so the site she just bought is in her account at once, ready to edit.
+  useEffect(() => {
+    if (!arriving) return;
+    let on = true;
+    const m = modelBySlug(arriving)!;
+    void (async () => {
+      for (let i = 0; on && i < 10 && !now.current.owned.includes(arriving); i++) { await new Promise((r) => setTimeout(r, i ? 2500 : 0)); if (on) { await reload(); await new Promise((r) => setTimeout(r, 60)); } }
+      if (!on) return;
+      if (!now.current.owned.includes(arriving)) { setArriving(''); setMessage({ tone: 'info', text: `Paiement reçu. Le modèle ${m.name} arrive dans votre compte dans un instant : rechargez la page.` }); return; }
+      // a buyer without a store got one when her account was read again (AdminContext); here the model is only
+      // put on a store she already had, when it is not the one in use
+      await new Promise((r) => setTimeout(r, 60));
+      const st = now.current.store;
+      if (st && now.current.current !== arriving) { await saveFiche(st, withModel(st.fiche, arriving, now.current.current)); await reload(); }
+      if (!on) return;
+      setArriving(''); setMessage({ tone: 'ok', text: `Paiement reçu. Le modèle ${m.name} est à vous, il est dans votre compte.`, edit: true });
+    })();
+    return () => { on = false; };
+  }, [arriving]);   // eslint-disable-line react-hooks/exhaustive-deps
   // back from the card payment (?modele=ok&nom=…), or sent here to choose one model (?choisir=…)
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     const paid = q.get('modele'), m = modelBySlug(q.get('nom') ?? q.get('choisir') ?? '');
-    if (paid === 'ok') setMessage({ tone: 'ok', text: m ? `Paiement reçu. Le modèle ${m.name} est à vous.` : 'Paiement reçu. Votre modèle est à vous.' });
+    if (paid === 'ok') { if (m) { setMessage({ tone: 'info', text: `Paiement reçu. Nous mettons le modèle ${m.name} dans votre compte…` }); setArriving(m.slug); } else setMessage({ tone: 'ok', text: 'Paiement reçu. Votre modèle est à vous.' }); }
     else if (paid === 'annule') setMessage({ tone: 'info', text: 'Paiement annulé. Rien n’a été prélevé.' });
     else if (m) setOpen(m);
     if (paid || q.has('choisir')) window.history.replaceState(null, '', window.location.pathname);
   }, []);
 
-  const current = currentModel(store?.fiche, owned);
   const close = useCallback(() => setOpen(null), []);
 
   async function use(m: Model) {
-    if (!store || busy || !owned.includes(m.slug) || current === m.slug) return;
-    if (await write(withModel(store.fiche, m.slug, current))) setMessage({ tone: 'ok', text: `Votre boutique utilise maintenant le modèle ${m.name}.` });
+    if (busy || !owned.includes(m.slug) || current === m.slug) return;
+    // she bought it before having a store: her store is made now, with this model
+    if (!store) { if (await createStore(account.storeName || 'Ma boutique', m.slug)) { await reload(); setMessage({ tone: 'ok', text: `Votre boutique utilise maintenant le modèle ${m.name}.`, edit: true }); } return; }
+    if (await write(withModel(store.fiche, m.slug, current))) setMessage({ tone: 'ok', text: `Votre boutique utilise maintenant le modèle ${m.name}.`, edit: true });
   }
 
   return (
@@ -52,7 +76,7 @@ export default function ModelsPage() {
       <PageHead title="Modèles de designer" sub={owned.length > 1
         ? 'Les modèles achetés sont à vous : passez de l’un à l’autre quand vous voulez, vos textes et vos photos sont gardés pour chacun.'
         : 'Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.'} />
-      {message ? <div className={styles.notice}><Notice tone={message.tone}>{message.text}</Notice></div> : null}
+      {message ? <div className={styles.notice}><Notice tone={message.tone} action={message.edit ? <ButtonLink href="/admin/editeur/" icon="edit">Modifier mon site</ButtonLink> : undefined}>{message.text}</Notice></div> : null}
       {problem ? <div className={styles.notice}><Notice tone="error">{problem === 'conflict' ? 'Votre boutique a été modifiée ailleurs. Rechargez la page, puis réessayez.' : 'Le modèle n’a pas pu être enregistré. Vérifiez votre connexion, puis réessayez.'}</Notice></div> : null}
 
       <ul className={styles.grid}>
@@ -69,12 +93,12 @@ export default function ModelsPage() {
                 <p className={styles.kind}>{m.kind}</p>
                 <p className={styles.price}><strong>{money(m.price)}</strong>{m.was ? <> <s>{money(m.was)}</s></> : null}</p>
                 <div className={styles.acts}>
-                  {current === m.slug ? <span className={styles.chip}>Modèle utilisé</span>
+                  {current === m.slug ? <ButtonLink href={store ? `/admin/editeur/?b=${store.id}` : '/admin/editeur/'} icon="edit" aria-label={`Modifier mon site ${m.name}`}>Modifier</ButtonLink>
                     : mine ? <Button busy={busy} onClick={() => void use(m)}>Utiliser ce modèle</Button>
                       : <Button onClick={() => setOpen(m)} aria-label={`Choisir le modèle ${m.name}`}>Choisir</Button>}
                   <ButtonLink variant="secondary" href={modelDemo(m.slug)} target="_blank" rel="noopener">Voir la démo</ButtonLink>
                 </div>
-                {mine ? <p className={styles.small}>Acheté · il est à vous</p> : null}
+                {mine ? <p className={styles.small}>{current === m.slug ? <b>Modèle utilisé</b> : null}{current === m.slug ? ' · ' : ''}Acheté · il est à vous</p> : null}
               </div>
             </li>
           );

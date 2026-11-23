@@ -109,15 +109,18 @@ export async function listStores(userId: string): Promise<Store[]> {
 }
 
 export const storeName = (s: Store): string => (typeof s.fiche?.store?.name === 'string' && s.fiche.store.name.trim()) || s.slug;
-export const storeUrl = (s: Store): string => (s.custom_domain && s.domain_status === 'verified' ? `https://${s.custom_domain}` : `https://jehre.com/b/${s.slug}`);
+/** Where the public sees the store: her own domain once verified; a designer model lives at <name>.store.jehre.com
+ *  (the model's site with her store in it), a store without a model at jehre.com/b/<name>. */
+export const storeUrl = (s: Store, model = ''): string => (s.custom_domain && s.domain_status === 'verified' ? `https://${s.custom_domain}` : model ? `https://${s.slug}.store.jehre.com` : `https://jehre.com/b/${s.slug}`);
 export const productsOf = (s: Store): Product[] => (Array.isArray(s.fiche?.products) ? s.fiche.products : []);
 
 export type SaveResult = { ok: true; store: Store } | { ok: false; conflict: boolean };
 
 /** Write a store's fiche. The row's `updated_at` guards against overwriting a change made elsewhere meanwhile
  *  (another tab, a partner): then nothing is written and `conflict` is true. */
-export async function saveFiche(store: Store, fiche: Fiche): Promise<SaveResult> {
-  const { data, error } = await supabase().from('stores').update({ fiche }).eq('id', store.id).eq('updated_at', store.updated_at).select(STORE_COLS);
+export async function saveFiche(store: Store, fiche: Fiche, publish = false): Promise<SaveResult> {
+  // « Publier »: the same write, and the store goes (or stays) online. Without it, `published` is left as it is.
+  const { data, error } = await supabase().from('stores').update(publish ? { fiche, published: true } : { fiche }).eq('id', store.id).eq('updated_at', store.updated_at).select(STORE_COLS);
   if (error) return { ok: false, conflict: false };
   const row = (data ?? [])[0] as Omit<Store, 'role'> | undefined;
   if (!row) return { ok: false, conflict: true };
@@ -172,4 +175,20 @@ export async function listOrders(storeId: string): Promise<Order[]> {
 export async function setOrderStatus(order: Order, status: OrderStatus): Promise<boolean> {
   const { data, error } = await supabase().from('orders').update({ status }).eq('id', order.id).select('id');
   return !error && (data ?? []).length === 1;
+}
+
+/** Her first store, made for her when she buys a model before having one: a free address from its name, the
+ *  model noted in it, not online yet (she publishes from the editor). Null when it could not be created. */
+export async function createStore(name: string, model: string): Promise<Store | null> {
+  const sb = supabase();
+  const base = (name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 34).replace(/-+$/g, '')) || 'ma-boutique';
+  const tries = [base.length >= 3 ? base : `${base}-boutique`, ...[2, 3, 4, 5].map((n) => `${base}-${n}`), `${base}-${Math.random().toString(36).slice(2, 6)}`];
+  for (const slug of tries) {
+    const free = await sb.rpc('slug_available', { p_slug: slug });
+    if (free.error || (free.data as { available?: boolean } | null)?.available === false) continue;
+    const { data, error } = await sb.from('stores').insert({ slug, fiche: { version: 1, store: { name: name.trim() || 'Ma boutique', model } } }).select(STORE_COLS);
+    const row = (data ?? [])[0] as Omit<Store, 'role'> | undefined;
+    if (!error && row) return { ...row, role: 'owner' };
+  }
+  return null;
 }

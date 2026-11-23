@@ -14,10 +14,10 @@ export function useSave() {
   const [problem, setProblem] = useState<SaveProblem>('');
   const [saved, setSaved] = useState(false);
 
-  const write = useCallback(async (next: Fiche): Promise<boolean> => {
+  const write = useCallback(async (next: Fiche, publish = false): Promise<boolean> => {
     if (!store) return false;
     setBusy(true); setProblem(''); setSaved(false);
-    const r = await saveFiche(store, next);
+    const r = await saveFiche(store, next, publish);
     setBusy(false);
     if (r.ok) { replaceStore(r.store); setSaved(true); return true; }
     setProblem(r.conflict ? 'conflict' : 'network');

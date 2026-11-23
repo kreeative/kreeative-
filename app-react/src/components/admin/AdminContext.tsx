@@ -1,10 +1,10 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { currentModel, myModels } from '@/lib/models';
 import { completeLogin, readAccount, type Account } from '@/lib/account';
 import { currentUser } from '@/lib/auth';
-import { listStores, type Store } from '@/lib/stores';
+import { createStore, listStores, type Store } from '@/lib/stores';
 
 /* What every page of the dashboard needs: who is logged in, her stores, the one she is looking at. A visitor
    without a session is sent to the account page and comes back here after logging in. */
@@ -38,12 +38,19 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
   const [models, setModels] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
 
+  const made = useRef(false);
   const load = useCallback(async () => {
     const user = await currentUser();
     if (!user) { window.location.replace('/compte/#connexion'); return; }
     const acc = await completeLogin(user).catch(() => readAccount());
     if (!acc) { window.location.replace('/compte/#connexion'); return; }
-    const [list, owned] = await Promise.all([listStores(user.id), myModels()]);
+    let [list, owned] = await Promise.all([listStores(user.id), myModels()]);
+    // she paid for a model and has no store yet: her site is made now (not online), so it is in her account,
+    // ready to edit, instead of a dashboard that says « pas encore de boutique »
+    if (!list.length && owned.length && !made.current) {
+      made.current = true;
+      if (await createStore(acc.storeName || 'Ma boutique', owned[0]!)) list = await listStores(user.id);
+    }
     let wanted: string | null = null;
     try { wanted = window.localStorage.getItem(CURRENT_KEY); } catch { /* storage blocked */ }
     setAccount(acc);

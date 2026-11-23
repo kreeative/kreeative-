@@ -11,8 +11,8 @@ import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { MODEL_PAGES, currentModel, modelBySlug, modelSite, myModels, readSiteMap, siteValue, withSiteEdit, withSlot, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
-import { storeName, type Fiche } from '@/lib/stores';
+import { editorSite, readSiteMap, siteValue, withSiteEdit, withSlot, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
+import { storeName, storeUrl, type Fiche } from '@/lib/stores';
 import styles from './editeur.module.css';
 
 type Device = 'phone' | 'desktop';
@@ -23,9 +23,9 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  *  products in it. On the left the sections of the page; a click on the site, or on a section, opens what it
  *  holds (its texts, its pictures, its product cases). Nothing is live until « Enregistrer ». */
 export default function EditorPage() {
-  const { account, store, reload } = useAdmin();
+  const { account, store, stores, selectStore, reload, model: modelSlug } = useAdmin();
   const { busy, problem, saved, write, clear } = useSave();
-  const [owned, setOwned] = useState<string[] | null>(null);
+  const [live, setLive] = useState(false);
   const [draft, setDraft] = useState<Fiche | null>(null);
   const [origin, setOrigin] = useState<Fiche | null>(null);
   const [path, setPath] = useState('');
@@ -40,21 +40,25 @@ export default function EditorPage() {
   const latest = useRef<Fiche | null>(null);
   latest.current = draft;
 
-  useEffect(() => { let on = true; void myModels().then((l) => { if (on) setOwned(l); }); return () => { on = false; }; }, []);
+  // « Modifier » on a site of her account opens THAT site: /admin/editeur/?b=<its id>
+  useEffect(() => {
+    const want = new URLSearchParams(window.location.search).get('b');
+    if (want && want !== store?.id && stores.some((x) => x.id === want)) selectStore(want);
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   const storeId = store?.id, stamp = store?.updated_at;
   useEffect(() => { if (store) { setDraft(store.fiche); setOrigin(store.fiche); } }, [storeId, stamp]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  const slug = owned ? currentModel(store?.fiche, owned) : '';
-  const model = modelBySlug(slug);
-  const site = model ? modelSite(model.slug) : '';
+  // what this store is made with: a client's own site, else the designer model in use
+  const model = useMemo(() => (store ? editorSite(store.slug, modelSlug) : null), [store?.slug, modelSlug]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const site = model?.url ?? '';
   const siteOrigin = site ? new URL(site).origin : '';
-  const pages = model ? MODEL_PAGES[model.slug] ?? [{ path: '', name: 'Accueil' }] : [];
+  const pages = model?.pages ?? [];
 
   // the conversation with the model's page: it says it is ready, the editor sends the store being edited
   const send = useCallback(() => {
     const w = frame.current?.contentWindow;
     if (!w || !model || !latest.current) return;
-    try { w.postMessage({ jeerePreview: model.slug, fiche: latest.current, edit: true }, siteOrigin); } catch { /* the page keeps the published store */ }
+    try { w.postMessage({ jeerePreview: model.key, fiche: latest.current, edit: true }, siteOrigin); } catch { /* the page keeps the published store */ }
   }, [model, siteOrigin]);
   useEffect(() => {
     if (!model) return;
@@ -113,9 +117,10 @@ export default function EditorPage() {
     try { frame.current?.contentWindow?.postMessage({ jeereSection: s.n }, siteOrigin); } catch { /* the list still opens it */ }
   };
   const goPage = (p: string) => { if (p !== path) { setPath(p); setMap(null); setPicked(null); setFocus(''); } };
-  async function save() {
-    if (!draft || !dirty || busy) return;
-    if (await write(draft)) setOrigin(draft);
+  async function save(publish: boolean) {
+    if (!draft || busy || (!dirty && !(publish && !store?.published))) return;
+    setLive(false);
+    if (await write(draft, publish)) { setOrigin(draft); if (publish) setLive(true); }
   }
 
   const sections = map?.sections ?? [];
@@ -123,7 +128,7 @@ export default function EditorPage() {
   const items = useMemo(() => (map && picked !== null ? map.items.filter((x) => x.sec === picked) : []), [map, picked]);
 
   if (!store) return <Empty icon="store" title="Pas encore de boutique" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>Choisissez un modèle pour créer votre boutique.</Empty>;
-  if (owned === null || !draft) return <div className={styles.wait}><p>Chargement de l’éditeur…</p></div>;
+  if (!draft) return <div className={styles.wait}><p>Chargement de l’éditeur…</p></div>;
   if (!model) return <Empty icon="template" title="Choisissez d’abord un modèle" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>L’éditeur s’ouvre sur votre modèle : MICHOU, SÈVE, ANSE, REGARD… Choisissez le vôtre, puis revenez ici.</Empty>;
 
   const scale = Math.min(1, room.w / WIDTH[device]);
@@ -136,17 +141,20 @@ export default function EditorPage() {
     <div className={styles.editor}>
       <header className={styles.top}>
         <Link className={styles.back} href="/admin/" aria-label="Retour au tableau de bord"><Icon name="back" size={20} /></Link>
-        <div className={styles.what}><b>{storeName(store)}</b><span>{dirty ? 'Modifications non enregistrées' : saved ? 'Enregistré' : `Modèle ${model.name}`}</span></div>
+        <div className={styles.what}><b>{storeName(store)}</b><span>{dirty ? 'Modifications non enregistrées' : saved ? (store.published ? 'En ligne' : 'Enregistré') : `${model.name} · ${store.published ? 'en ligne' : 'pas encore en ligne'}`}</span></div>
         <div className={styles.devices} role="group" aria-label="Taille de l’aperçu">
           <button type="button" aria-pressed={device === 'phone'} onClick={() => setDevice('phone')}>Téléphone</button>
           <button type="button" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>Ordinateur</button>
         </div>
-        <Button className={styles.save} busy={busy} disabled={!dirty} onClick={() => void save()}>Enregistrer</Button>
+        {store.published ? null : <Button className={styles.save} variant="secondary" disabled={!dirty || busy} onClick={() => void save(false)}>Enregistrer</Button>}
+        <Button className={styles.save} busy={busy} disabled={store.published && !dirty} onClick={() => void save(true)}>Publier</Button>
       </header>
 
       {problem ? <div className={styles.problem}>{problem === 'conflict'
         ? <Notice tone="warn" title="Votre boutique a changé entre-temps" action={<Button variant="secondary" onClick={() => void reload()}>Recharger</Button>}>Elle a été modifiée ailleurs. Rien n’a été écrasé : rechargez, puis refaites vos changements.</Notice>
         : <Notice tone="error">Rien n’a été enregistré. Vérifiez votre connexion, puis réessayez.</Notice>}</div> : null}
+
+      {live && !problem ? <div className={styles.problem}><Notice tone="ok" title="Votre site est en ligne" action={<ButtonLink variant="secondary" icon="external" href={storeUrl(store, modelSlug)} target="_blank" rel="noopener">Voir mon site</ButtonLink>}>{storeUrl(store, modelSlug).replace(/^https:\/\//, '')}</Notice></div> : null}
 
       <div className={styles.cols} data-open={current && !phone ? '' : undefined}>
         <aside className={styles.left} aria-label="Sections de la page">

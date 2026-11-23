@@ -157,3 +157,18 @@ export function readSiteMap(data: unknown): SiteMap | null {
       .map((x) => ({ n: x.n as number, key: s(x.key), name: s(x.name) || 'Section', fixed: x.fixed === true })),
   };
 }
+
+/** Sites drawn for one client (not a model on sale): edited the same way, found by the store's own address. */
+export const CLIENT_SITES: Record<string, { name: string; url: string }> = {
+  'joshua-cooker': { name: 'Joshua Cooker', url: 'https://kreeative.xyz/concepts/joshua-cooker/' },
+  'sonia-luxury-hair': { name: 'Sonia Luxury Hair', url: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' },
+};
+
+/** What the editor opens for a store: the client's own site, else the model in use; null when she has neither.
+ *  `key` is the name the site answers to in the conversation with the editor. */
+export function editorSite(storeSlug: string, model: string): { key: string; name: string; url: string; pages: { path: string; name: string }[] } | null {
+  const own = CLIENT_SITES[storeSlug];
+  if (own) return { key: storeSlug, name: own.name, url: own.url, pages: [{ path: '', name: 'Accueil' }] };
+  const m = modelBySlug(model);
+  return m ? { key: m.slug, name: `Modèle ${m.name}`, url: modelSite(m.slug), pages: MODEL_PAGES[m.slug] ?? [{ path: '', name: 'Accueil' }] } : null;
+}

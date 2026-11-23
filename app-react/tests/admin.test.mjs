@@ -47,7 +47,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/auth/v1/logout') return json(route, 204);
     if (p === '/rest/v1/profiles') return method === 'GET' ? json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]) : json(route, 204);
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
-    if (p === '/rest/v1/rpc/my_models') return json(route, 200, world.models ?? []);
+    if (p === '/rest/v1/rpc/my_models') { if (world.modelsLate > 0) { world.modelsLate--; return json(route, 200, []); } return json(route, 200, world.models ?? []); }
+    if (p === '/rest/v1/rpc/slug_available') return json(route, 200, { available: !(world.taken ?? []).includes(body.p_slug), reason: 'ok' });
     if (p === '/functions/v1/billing') return json(route, 200, world.billing ?? { ok: false, message: 'Paiement simulé : rien n’est prélevé.' });
     if (p === '/functions/v1/appel') return json(route, 200, { ok: true });
     if (p === '/functions/v1/bookings') {
@@ -74,6 +75,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/stores') {
       // the dashboard must ask for HER stores only: a query without the owner filter would return every public store
       if (method === 'GET') { if (!/owner=eq\./.test(url.search) && !/id=in\./.test(url.search)) return json(route, 200, [{ id: 'someone-else', slug: 'autre', fiche: {}, published: true }]); return json(route, 200, world.stores); }
+      if (method === 'POST') { const row = { id: `bbbbbbbb-0000-4000-8000-00000000000${world.stores.length + 1}`, owner: USER.id, published: false, published_at: null, custom_domain: null, domain_status: 'none', plan: 'gratuit', updated_at: new Date().toISOString(), ...body }; world.stores.push(row); return json(route, 201, [row]); }
       if (method === 'PATCH') {
         const s = world.stores.find((x) => url.search.includes(`id=eq.${x.id}`));
         const guard = /updated_at=eq\.([^&]+)/.exec(url.search);
@@ -100,7 +102,7 @@ const h1 = (page, text) => page.waitForFunction((t) => document.querySelector('h
 const results = [];
 async function test(name, fn) {
   try { await fn(); results.push(['ok', name]); console.log('  ✓', name); }
-  catch (e) { results.push(['FAIL', name]); console.log('  ✗', name, '\n   ', String(e.message).split('\n')[0]); }
+  catch (e) { results.push(['FAIL', name]); console.log('  ✗', name, '\n   ', String(e.message).split('\n').slice(0, 6).join(' / ')); }
 }
 const browser = await chromium.launch();
 const PHONE = { width: 390, height: 844 }, DESK = { width: 1280, height: 860 };
@@ -487,8 +489,9 @@ await test('editor: it opens on HER model (the designer’s real site), nothing 
   const ui = await page.locator('body').innerText();
   for (const old of ['Menthe', 'Sable', 'Hibiscus', 'Karité', 'Plateau', 'Treichville', 'Style', 'Ajouter une section']) assert.equal(ui.includes(old), false, `« ${old} » belongs to the old editor`);
   const site = page.frameLocator('iframe[title="Votre site"]');
-  const save = page.getByRole('button', { name: 'Enregistrer' });
-  assert.equal(await save.isDisabled(), true);
+  const save = page.getByRole('button', { name: 'Publier' });
+  assert.equal(await save.isDisabled(), true, 'nothing to publish yet');
+  assert.equal(await page.getByRole('button', { name: 'Enregistrer' }).count(), 0, 'a store already online has no draft: « Publier » is the only way to write');
 
   // a section opens on what it holds; a text changes on the site as she types
   await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
@@ -522,7 +525,8 @@ await test('editor: it opens on HER model (the designer’s real site), nothing 
   // nothing was written yet
   assert.equal(w.calls.some((c) => c.method === 'PATCH' && c.path === '/rest/v1/stores'), false);
   await save.click();
-  await page.getByText('Enregistré', { exact: true }).waitFor();
+  await page.getByText('Votre site est en ligne').waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Voir mon site' }).getAttribute('href'), 'https://boutique-test.store.jehre.com');
   const f = w.stores[0].fiche;
   assert.deepEqual(Object.values(f.store.site.t), ['Collection Test 2027']);
   assert.match(Object.keys(f.store.site.t)[0], /^\/\|t\|\d+$/);
@@ -551,10 +555,72 @@ await test('editor on a phone: her site on top, the sections under it, the conte
   await page.screenshot({ path: `${SHOTS}53-editeur-telephone-contenu.png` });
   await page.keyboard.press('Escape');
   w.conflict = true;
-  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByRole('button', { name: 'Publier' }).click();
   await page.getByText('Votre boutique a changé entre-temps').waitFor();
   assert.equal(w.stores[0].fiche.store.site, undefined);
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('from payment to a live site: the model bought is in the account at once (her store is made for her), « Modifier » opens it, « Publier » puts it online', async () => {
+  // she has no store yet, and the payment server writes the purchase a few seconds after the card is accepted
+  const w = world({ stores: [], orders: [] }); w.models = [{ model: 'michou', install: false }]; w.modelsLate = 2;
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/modeles/?modele=ok&nom=michou`); await h1(page, 'Modèles de designer');
+  await page.getByText('Nous mettons le modèle MICHOU dans votre compte…').waitFor();
+  await page.getByText('Paiement reçu. Le modèle MICHOU est à vous, il est dans votre compte.').waitFor({ timeout: 30000 });
+  assert.equal(new URL(page.url()).search, '', 'the payment answer leaves the address: a reload does not replay it');
+  // her store exists, with the model on it, not online yet
+  assert.equal(w.stores.length, 1);
+  const st = w.stores[0];
+  assert.equal(st.slug, 'boutique-test'); assert.equal(st.published, false); assert.deepEqual(st.fiche.store, { name: 'Boutique Test', model: 'michou' });
+  await page.getByText('Modèle utilisé').waitFor();
+  assert.equal(await page.getByText('Acheté · il est à vous').count(), 1);
+  await page.screenshot({ path: `${SHOTS}45-modele-achete.png` });
+  // « Modifier » carries the site's own id to the editor, which loads that site
+  const edit = page.getByRole('link', { name: 'Modifier mon site MICHOU' });
+  assert.equal(await edit.getAttribute('href'), `/admin/editeur/?b=${st.id}`);
+  await edit.click();
+  await page.getByText('Modèle MICHOU · pas encore en ligne').waitFor({ timeout: 30000 });
+  assert.equal(await page.locator('iframe[title="Votre site"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('list').waitFor({ timeout: 60000 });
+  // a draft: « Enregistrer » keeps it without putting anything online
+  await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
+  await page.getByRole('complementary', { name: 'Contenu : Grande bannière' }).getByRole('textbox').first().fill('Ma première collection');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Enregistré', { exact: true }).waitFor();
+  assert.equal(st.published, false); assert.deepEqual(Object.values(st.fiche.store.site.t), ['Ma première collection']);
+  // « Publier »: online, at her address, with what she wrote
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await page.getByText('Votre site est en ligne').waitFor();
+  await page.getByText('boutique-test.store.jehre.com', { exact: true }).waitFor();
+  assert.equal(st.published, true); assert.equal(st.fiche.store.model, 'michou'); assert.deepEqual(Object.values(st.fiche.store.site.t), ['Ma première collection']);
+  assert.equal(await page.getByRole('link', { name: 'Voir mon site' }).getAttribute('href'), 'https://boutique-test.store.jehre.com');
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${SHOTS}54-editeur-publie.png` });
+  assert.equal(await page.getByRole('button', { name: 'Enregistrer' }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Publier' }).isDisabled(), true);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('a model bought for a store she already has is put on that store; a taken address gets another one', async () => {
+  const w = world(); w.models = [{ model: 'seve', install: false }]; w.modelsLate = 1;
+  const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/modeles/?modele=ok&nom=seve`); await h1(page, 'Modèles de designer');
+  await page.getByText('Paiement reçu. Le modèle SÈVE est à vous, il est dans votre compte.').waitFor({ timeout: 30000 });
+  // her only model is the one in use (the server reads it the same way): nothing of her store is rewritten
+  assert.equal(w.stores.length, 1, 'no second store is made'); assert.equal(w.stores[0].fiche.products.length, 3);
+  assert.equal(await page.getByRole('link', { name: 'Modifier mon site SÈVE' }).getAttribute('href'), `/admin/editeur/?b=${w.stores[0].id}`);
+  await noOverflow(page);
+  await ctx.close();
+  const w2 = world({ stores: [], orders: [] }); w2.models = [{ model: 'vernie', install: false }]; w2.taken = ['boutique-test'];
+  const o = await open(browser, DESK, w2);
+  await o.page.goto(`${BASE}/admin/modeles/`); await h1(o.page, 'Modèles de designer');
+  // she paid some time ago and never had a store: opening her dashboard makes her site, once
+  await o.page.getByRole('link', { name: 'Modifier mon site VERNIE' }).waitFor();
+  await o.page.reload(); await o.page.getByRole('link', { name: 'Modifier mon site VERNIE' }).waitFor();
+  assert.equal(w2.stores.length, 1); assert.equal(w2.stores[0].slug, 'boutique-test-2'); assert.equal(w2.stores[0].fiche.store.model, 'vernie'); assert.equal(w2.stores[0].published, false);
+  assert.deepEqual([...errors, ...o.errors], []); await o.ctx.close();
 });
 
 await test('editor: without a model there is nothing to edit, and no example store is shown', async () => {

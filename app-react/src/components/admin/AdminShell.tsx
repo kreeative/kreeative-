@@ -67,7 +67,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </select>
               {stores.length > 1 ? <Icon name="down" size={14} /> : null}
             </div>
-            <a className={styles.storeLink} href={storeUrl(store)} target="_blank" rel="noopener"><Icon name="eye" size={16} />Voir la boutique</a>
+            <a className={styles.storeLink} href={storeUrl(store, model)} target="_blank" rel="noopener"><Icon name="eye" size={16} />Voir la boutique</a>
           </div>
         ) : null}
 
