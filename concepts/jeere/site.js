@@ -135,27 +135,6 @@
   }
   $$('input[name="commune"]').forEach(function (r) { r.addEventListener('change', function () { updateReceipt(true); }); });
 
-  /* ---------- The hero's phones lean towards the pointer ---------- */
-  (function () {
-    var box = document.querySelector('.hero__visual--phones');
-    if (!box || !window.matchMedia) return;
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var raf = 0, tx = 0, ty = 0;
-    var paint = function () { raf = 0; box.style.setProperty('--tx', tx.toFixed(3)); box.style.setProperty('--ty', ty.toFixed(3)); };
-    box.addEventListener('pointermove', function (e) {
-      var r = box.getBoundingClientRect();
-      if (!r.width || !r.height) return;
-      tx = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
-      ty = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
-      box.classList.add('is-live'); box.style.setProperty('--ts', '1.02');
-      if (!raf) raf = window.requestAnimationFrame(paint);
-    });
-    box.addEventListener('pointerleave', function () {
-      tx = 0; ty = 0; box.classList.remove('is-live'); box.style.setProperty('--ts', '1');
-      if (!raf) raf = window.requestAnimationFrame(paint);
-    });
-  })();
-
   /* ---------- Waitlist form ---------- */
   var form = $('#waitlist');
   var errBox = $('[data-form-error]');
