@@ -165,13 +165,6 @@ window.JEERE_EN = {
   'ship.total': 'Total',
   'ship.caption': 'Example: fees set by the Awa Beauté store. Every seller sets their own.',
 
-  'tpl.eyebrow': 'Store templates',
-  'tpl.title': 'Beautiful by default. Hard to make ugly.',
-  'tpl.lead': 'Each template is named after a part of Abidjan and tested before release: real seller photos, long French text, a 360 px screen, 3G, bright sunlight.',
-  'tpl.tabs': 'Templates',
-  'tpl.plateau': '<b>Editorial</b>, big photos and lots of space. For fashion, luxury and wigs.',
-  'tpl.cocody': '<b>Soft and minimal</b>, with a clean product grid. For beauty, skincare and cosmetics.',
-  'tpl.treichville': '<b>Colour blocks</b>, big type, full of energy. For streetwear, sneakers and accessories.',
   'tpl.r1': 'Palettes and fonts chosen for you, never raw colour codes.',
   'tpl.r2': 'Photos cropped to the same shape, so the grid always lines up.',
   'tpl.r3': 'Light and background fixed. The product itself is never retouched.',

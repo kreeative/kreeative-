@@ -46,11 +46,11 @@
   /* ================================================================== copy */
 
   const STYLE = {
-    plateau: { label: 'Élégant', low: 'élégant', sub: 'Plateau · façon magazine, raffiné', fonts: 'editorial',
+    plateau: { label: 'Élégant', low: 'élégant', sub: 'Façon magazine, raffiné', fonts: 'editorial',
       help: 'grandes images, titres raffinés et beaucoup d’espace, comme un magazine.' },
-    cocody: { label: 'Doux', low: 'doux', sub: 'Cocody · arrondi et tendre', fonts: 'doux',
+    cocody: { label: 'Doux', low: 'doux', sub: 'Arrondi et tendre', fonts: 'doux',
       help: 'cartes arrondies, couleurs tendres et catégories faciles à parcourir.' },
-    treichville: { label: 'Audacieux', low: 'audacieux', sub: 'Treichville · grands titres, contrasté', fonts: 'audacieux',
+    treichville: { label: 'Audacieux', low: 'audacieux', sub: 'Grands titres, contrasté', fonts: 'audacieux',
       help: 'grands titres en capitales, blocs de couleur et contraste fort.' }
   };
   const PALETTE_DESC = {
@@ -250,10 +250,7 @@
       'qui pete', 'ca pete', 'bling(?:[ -]bling)?', 'osee?s?', 'percutante?s?', 'gros titres', 'hype', 'swag', 'funky', 'pop', 'qui se voit',
       'qu\'on remarque', 'qui se remarque', 'attire(?:r)? l\'?o?e?il', 'attire(?:r)? le regard', 'energiques?'], { strong: true }],
     ['treichville', 1, ['colore(?:e|es|s)?', 'couleurs? vives?', 'fun', 'jeunes?', 'jeunesse', 'dynamiques?', 'fort', 'forte', 'vifs?', 'vives?', 'vivante?s?',
-      'originale?s?', 'originaux', 'voyante?s?', 'urbain(?:e|s|es)?', 'cool', 'branchee?s?', 'energie', 'choc', 'modernes?', 'sport(?:if|ive|s)?', 'rock', 'impact']],
-    ['plateau', 2, ['plateau'], { name: true }],
-    ['cocody', 2, ['cocody'], { name: true }],
-    ['treichville', 2, ['treichville', 'treich'], { name: true }]
+      'originale?s?', 'originaux', 'voyante?s?', 'urbain(?:e|s|es)?', 'cool', 'branchee?s?', 'energie', 'choc', 'modernes?', 'sport(?:if|ive|s)?', 'rock', 'impact']]
   ]);
 
   // Plain colour words; AMB = colours that are also products (« du karité », « jus de mangue », « thé à la menthe »)
