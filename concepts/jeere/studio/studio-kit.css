@@ -38,23 +38,23 @@
 .jk-group { padding: 12px var(--jk-pad) 14px; border-top: var(--jk-hair) solid var(--jk-line); display: grid; gap: var(--jk-gap); }
 .jk-group:first-child { border-top: 0; }
 .jk-group__head { display: flex; align-items: center; gap: 6px; height: 24px; margin: 0 -4px 2px; padding: 0 4px; border: 0; background: none; border-radius: var(--jk-r);
-  color: var(--jk-ink); font: 600 var(--jk-fs-title)/1 var(--st-font, 'Inter', system-ui, sans-serif); text-align: left; cursor: pointer; user-select: none; }
+  color: var(--jk-ink); font: 600 var(--jk-fs-title)/1 var(--st-font, 'Poppins', system-ui, sans-serif); text-align: left; cursor: pointer; user-select: none; }
 .jk-group__head:hover { background: var(--jk-bg); }
 .jk-group__head svg { width: 12px; height: 12px; color: var(--jk-ink-3); transition: transform var(--jk-dur) var(--jk-ease); }
 .jk-group__head[aria-expanded="false"] svg { transform: rotate(-90deg); }
 .jk-group__head[aria-expanded="false"] ~ * { display: none; }
-.jk-hint { margin: 0; color: var(--jk-ink-2); font: 400 var(--jk-fs-label)/1.45 var(--st-font, 'Inter', system-ui, sans-serif); }
+.jk-hint { margin: 0; color: var(--jk-ink-2); font: 400 var(--jk-fs-label)/1.45 var(--st-font, 'Poppins', system-ui, sans-serif); }
 
 /* ------------------------------------------------------------------ a row: its label, its control */
 .jk-row { display: grid; grid-template-columns: var(--jk-label-w) minmax(0, 1fr); align-items: center; gap: var(--jk-gap); min-height: var(--jk-h); }
 .jk-row--stack { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 .jk-row--2 > .jk-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; min-width: 0; }
-.jk-label { color: var(--jk-ink-2); font: 400 var(--jk-fs-label)/1.3 var(--st-font, 'Inter', system-ui, sans-serif); user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jk-label { color: var(--jk-ink-2); font: 400 var(--jk-fs-label)/1.3 var(--st-font, 'Poppins', system-ui, sans-serif); user-select: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ------------------------------------------------------------------ a field */
 .jk-input, .jk-select, .jk-textarea {
   width: 100%; min-width: 0; height: var(--jk-h); padding: 0 8px; border: 0; border-radius: var(--jk-r); background-color: var(--jk-bg); color: var(--jk-ink);
-  font: 400 var(--jk-fs)/1 var(--st-font, 'Inter', system-ui, sans-serif); font-variant-numeric: tabular-nums; outline: 0;
+  font: 400 var(--jk-fs)/1 var(--st-font, 'Poppins', system-ui, sans-serif); font-variant-numeric: tabular-nums; outline: 0;
   box-shadow: inset 0 0 0 var(--jk-hair) transparent; transition: background-color var(--jk-dur) var(--jk-ease), box-shadow var(--jk-dur) var(--jk-ease);
 }
 .jk-textarea { height: auto; min-height: 64px; padding: 7px 8px; line-height: 1.45; resize: vertical; }
@@ -70,9 +70,9 @@
 .jk-num:hover { background: var(--jk-bg-h); }
 .jk-num:focus-within { background: var(--jk-bg-on); box-shadow: inset 0 0 0 1.5px var(--jk-focus); }
 .jk-num > input { flex: 1; width: 0; min-width: 0; height: 100%; padding: 0 2px 0 8px; border: 0; background: none; color: var(--jk-ink); outline: 0;
-  font: 400 var(--jk-fs)/1 var(--st-font, 'Inter', system-ui, sans-serif); font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
+  font: 400 var(--jk-fs)/1 var(--st-font, 'Poppins', system-ui, sans-serif); font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
 .jk-num > input::-webkit-outer-spin-button, .jk-num > input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.jk-num__pre, .jk-num__unit { flex: none; color: var(--jk-ink-3); font: 400 var(--jk-fs-label)/1 var(--st-font, 'Inter', system-ui, sans-serif); user-select: none; }
+.jk-num__pre, .jk-num__unit { flex: none; color: var(--jk-ink-3); font: 400 var(--jk-fs-label)/1 var(--st-font, 'Poppins', system-ui, sans-serif); user-select: none; }
 .jk-num__pre { padding-left: 8px; cursor: ew-resize; }   /* drag it to change the figure */
 .jk-num__pre + input { padding-left: 6px; }
 .jk-num__unit { padding-right: 8px; }
@@ -85,7 +85,7 @@
 /* ------------------------------------------------------------------ a choice among a few (alignment) */
 .jk-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; height: var(--jk-h); padding: 2px; border-radius: var(--jk-r); background: var(--jk-bg); }
 .jk-seg > button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; padding: 0 6px; border: 0; border-radius: 5px; background: none; color: var(--jk-ink-2);
-  font: 500 var(--jk-fs)/1 var(--st-font, 'Inter', system-ui, sans-serif); cursor: pointer; user-select: none; transition: background-color var(--jk-dur) var(--jk-ease), color var(--jk-dur) var(--jk-ease); }
+  font: 500 var(--jk-fs)/1 var(--st-font, 'Poppins', system-ui, sans-serif); cursor: pointer; user-select: none; transition: background-color var(--jk-dur) var(--jk-ease), color var(--jk-dur) var(--jk-ease); }
 .jk-seg > button:hover { color: var(--jk-ink); }
 .jk-seg > button[aria-pressed="true"], .jk-seg > button.is-on { background: var(--jk-bg-on); color: var(--jk-ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12), 0 0 0 var(--jk-hair) rgba(0, 0, 0, .06); }
 .jk-seg svg { width: 14px; height: 14px; }
@@ -97,13 +97,13 @@
 .jk-swatch { flex: none; width: 18px; height: 18px; border: 0; padding: 0; border-radius: 5px; background: var(--c, #FFFFFF); box-shadow: inset 0 0 0 var(--jk-hair) var(--st-ring-sw, rgba(0, 0, 0, .14)); cursor: pointer; }
 .jk-swatch--none { background: repeating-conic-gradient(#E4E4E4 0 25%, #FFFFFF 0 50%) 50% / 8px 8px; }
 .jk-color > input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; color: var(--jk-ink); outline: 0; text-transform: uppercase;
-  font: 400 var(--jk-fs)/1 var(--st-font, 'Inter', system-ui, sans-serif); font-variant-numeric: tabular-nums; }
+  font: 400 var(--jk-fs)/1 var(--st-font, 'Poppins', system-ui, sans-serif); font-variant-numeric: tabular-nums; }
 
 .jk-color > input::placeholder { color: var(--jk-ink-3); text-transform: none; }
 
 /* ------------------------------------------------------------------ buttons */
 .jk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: var(--jk-h); padding: 0 12px; border: 0; border-radius: var(--jk-r); background: var(--jk-bg); color: var(--jk-ink);
-  font: 500 var(--jk-fs)/1 var(--st-font, 'Inter', system-ui, sans-serif); text-decoration: none; white-space: nowrap; cursor: pointer; user-select: none;
+  font: 500 var(--jk-fs)/1 var(--st-font, 'Poppins', system-ui, sans-serif); text-decoration: none; white-space: nowrap; cursor: pointer; user-select: none;
   box-shadow: inset 0 0 0 var(--jk-hair) var(--jk-line); transition: background-color var(--jk-dur) var(--jk-ease), box-shadow var(--jk-dur) var(--jk-ease), color var(--jk-dur) var(--jk-ease); }
 .jk-btn:hover { background: var(--jk-bg-h); }
 .jk-btn:focus-visible, .jk-iconbtn:focus-visible, .jk-seg > button:focus-visible, .jk-switch:focus-visible, .jk-swatch:focus-visible, .jk-group__head:focus-visible { outline: 1.5px solid var(--jk-focus); outline-offset: 1px; }
@@ -127,12 +127,12 @@
 .jk-switch::after { content: ''; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform var(--jk-dur) var(--jk-ease); }
 .jk-switch[aria-checked="true"] { background: var(--jk-ink); }
 .jk-switch[aria-checked="true"]::after { transform: translateX(12px); }
-.jk-toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--jk-gap); min-height: var(--jk-h); color: var(--jk-ink); font: 400 var(--jk-fs)/1.3 var(--st-font, 'Inter', system-ui, sans-serif); user-select: none; }
+.jk-toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--jk-gap); min-height: var(--jk-h); color: var(--jk-ink); font: 400 var(--jk-fs)/1.3 var(--st-font, 'Poppins', system-ui, sans-serif); user-select: none; }
 
 /* ------------------------------------------------------------------ small words: a key, a state */
 .jk-kbd { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border-radius: 4px; background: var(--jk-bg); color: var(--jk-ink-2); box-shadow: inset 0 0 0 var(--jk-hair) var(--jk-line);
-  font: 500 10.5px/1 var(--st-font, 'Inter', system-ui, sans-serif); font-variant-numeric: tabular-nums; }
-.jk-tag { display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 999px; background: var(--jk-bg); color: var(--jk-ink-2); font: 500 10.5px/1 var(--st-font, 'Inter', system-ui, sans-serif); }
+  font: 500 10.5px/1 var(--st-font, 'Poppins', system-ui, sans-serif); font-variant-numeric: tabular-nums; }
+.jk-tag { display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 999px; background: var(--jk-bg); color: var(--jk-ink-2); font: 500 10.5px/1 var(--st-font, 'Poppins', system-ui, sans-serif); }
 
 /* ------------------------------------------------------------------ the list's own menu (studio-kit.js) */
 .jk-select--native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0; pointer-events: none; }
@@ -140,7 +140,7 @@
 .jk-select__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .jk-select--btn[aria-expanded="true"] { background-color: var(--jk-bg-on); box-shadow: inset 0 0 0 1.5px var(--jk-focus); }
 .jk-menu { position: fixed; z-index: 2147483000; box-sizing: border-box; padding: 4px; overflow-y: auto; overscroll-behavior: contain; border-radius: var(--jk-r-lg); background: var(--st-pop, #FFFFFF); color: var(--jk-ink);
-  box-shadow: var(--st-shadow-menu, 0 12px 32px rgba(0, 0, 0, .14), 0 0 0 .5px rgba(0, 0, 0, .06)); font: 400 var(--jk-fs)/1 var(--st-font, 'Inter', system-ui, sans-serif); user-select: none;
+  box-shadow: var(--st-shadow-menu, 0 12px 32px rgba(0, 0, 0, .14), 0 0 0 .5px rgba(0, 0, 0, .06)); font: 400 var(--jk-fs)/1 var(--st-font, 'Poppins', system-ui, sans-serif); user-select: none;
   animation: jk-menu-in 110ms var(--jk-ease); }
 @keyframes jk-menu-in { from { opacity: 0; transform: translateY(-3px); } }
 .jk-menu__item { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 6px; border-radius: 6px; cursor: pointer; white-space: nowrap; }

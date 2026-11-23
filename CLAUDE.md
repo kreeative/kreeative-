@@ -27,6 +27,7 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 
 ## Design : règles générales
 - Thème **clair** uniquement, partout (fond blanc ou gris très clair, encre noire). Pas de thème sombre, pas de bouton pour y passer, pas de noir et or.
+- Police : **Poppins** partout (site, inscription, tableau de bord, Atlas, Studio, courriels), en 400, 500, 600 ou 700. Ni Inter ni Outfit dans l'interface. Les polices proposées aux boutiques des vendeuses ne sont pas concernées.
 - L'arc-en-ciel est toujours l'arc-en-ciel complet du logo.
 - Aucun texte souligné : le gras sert à insister.
 - Textes courts : les gens ne lisent pas.

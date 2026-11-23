@@ -4008,8 +4008,8 @@
       publishableKey: j.publishableKey,
       fetchClientSecret: async () => { if (secret) { const s0 = secret; secret = ''; return s0; } const k = await payCall({ action: 'session', storeId: sid }); return k && k.clientSecret ? k.clientSecret : ''; },
       locale: 'fr-FR',
-      appearance: { overlays: 'drawer', variables: { fontFamily: 'Outfit, system-ui, sans-serif', colorPrimary: '#141414', colorText: '#141414', colorBackground: '#FFFFFF', buttonPrimaryColorBackground: '#141414', buttonPrimaryColorText: '#FFFFFF', borderRadius: '12px', spacingUnit: '10px' } },
-      fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap' }]
+      appearance: { overlays: 'drawer', variables: { fontFamily: 'Poppins, system-ui, sans-serif', colorPrimary: '#141414', colorText: '#141414', colorBackground: '#FFFFFF', buttonPrimaryColorBackground: '#141414', buttonPrimaryColorText: '#FFFFFF', borderRadius: '12px', spacingUnit: '10px' } },
+      fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap' }]
     });
     S.stripeInstStore = sid;
     S.stripe = Object.assign({}, S.stripe || {}, { connected: true, storeId: sid });

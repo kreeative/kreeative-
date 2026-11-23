@@ -7,10 +7,10 @@
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
   --ctl-xs: 20px; --ctl-sm: 24px; --ctl-md: 28px; --ctl-lg: 32px; --ctl-xl: 40px;
   --r-xs: 4px; --r-sm: 6px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px; --r-pill: 999px;
-  --font-ui: 'Inter', 'Inter var', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-brand: 'Poppins', 'Inter', system-ui, sans-serif;
+  --font-ui: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-brand: 'Poppins', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --fw-regular: 450; --fw-medium: 550; --fw-semibold: 620;
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dur-instant: 80ms; --dur-fast: 120ms; --dur-base: 160ms; --dur-panel: 200ms; --dur-slow: 280ms;
 
@@ -165,10 +165,10 @@ kbd { font: var(--fw-medium) 11px/16px var(--font-ui); color: var(--fg-3); backg
   position: absolute; left: 50%; bottom: 20px; top: auto; transform: translateX(-50%); z-index: 30;
   display: flex; align-items: center; gap: 14px; width: max-content; max-width: min(560px, calc(100% - 32px));
   padding: 12px 12px 12px 18px; border-radius: 16px; background: #FFFFFF; color: #8A8A86; border: 1px solid #ECEAE6;
-  font: 400 14px/1.4 'Outfit', system-ui, sans-serif; box-shadow: 0 10px 28px rgba(17, 17, 17, .10);
+  font: 400 14px/1.4 'Poppins', system-ui, sans-serif; box-shadow: 0 10px 28px rgba(17, 17, 17, .10);
 }
 .sk-banner[hidden] { display: none; }
-.sk-banner .sk-linkbtn { flex: none; display: inline-flex; align-items: center; height: 32px; border: 1px solid #E3E1DC; border-radius: 999px; padding: 0 14px; background: #FFFFFF; color: #111111; font: 600 13px/1 'Outfit', system-ui, sans-serif; cursor: pointer; text-decoration: none; }
+.sk-banner .sk-linkbtn { flex: none; display: inline-flex; align-items: center; height: 32px; border: 1px solid #E3E1DC; border-radius: 999px; padding: 0 14px; background: #FFFFFF; color: #111111; font: 600 13px/1 'Poppins', system-ui, sans-serif; cursor: pointer; text-decoration: none; }
 .sk-banner--warn { background: #FFFFFF; }
 
 .sk-selbar {
@@ -511,7 +511,7 @@ a:not([class]) { font-weight: 600; }
 /* the font field looks like every other field of the Design tab */
 .sk-panel .dz-text {
   flex: 1 1 0; min-width: 0; width: 100%; height: 24px; border: 0; border-radius: 6px; padding: 0 8px; outline: none;
-  background: var(--dz-bg-input); color: var(--dz-fg-1); font: 450 11px/16px var(--st-font);
+  background: var(--dz-bg-input); color: var(--dz-fg-1); font: 400 11px/16px var(--st-font);
   box-shadow: inset 0 0 0 1px transparent; transition: box-shadow 120ms var(--dz-ease);
 }
 .sk-panel .dz-text:hover { box-shadow: inset 0 0 0 1px var(--dz-line-2); }
@@ -535,10 +535,10 @@ a:not([class]) { font-weight: 600; }
 .sk-img--og { aspect-ratio: 1200 / 630; background: var(--bg-input); }
 .sk-img--og img { object-fit: cover; }
 .sk-img--og:empty { display: grid; place-items: center; }
-.sk-img--og:empty::after { content: 'Aucune image de partage'; color: var(--fg-3); font: 450 12px/16px var(--st-font, inherit); }
+.sk-img--og:empty::after { content: 'Aucune image de partage'; color: var(--fg-3); font: 400 12px/16px var(--st-font, inherit); }
 /* how the page shows in Google: a small card of its own, so its blue link does not read as a stray link of the panel */
 .sk-seo-prev { margin-top: var(--sp-3); padding: 12px 14px; border-radius: var(--r-md); background: #fff; box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.10); }
-.sk-seo-prev::before { content: 'Aperçu dans Google'; display: block; margin-bottom: 6px; color: #70757a; font: 550 10px/14px var(--st-font, inherit); letter-spacing: .06em; text-transform: uppercase; }
+.sk-seo-prev::before { content: 'Aperçu dans Google'; display: block; margin-bottom: 6px; color: #70757a; font: 500 10px/14px var(--st-font, inherit); letter-spacing: .06em; text-transform: uppercase; }
 /* a danger button that cannot be used looks it */
 .sk-danger:disabled, .sk-ghost:disabled { opacity: .45; cursor: default; }
 .sk-panel .dz-num.is-word .dz-num__u { visibility: hidden; }
