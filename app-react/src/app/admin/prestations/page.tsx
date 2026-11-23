@@ -8,13 +8,14 @@ import { Field, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
-import { bookingHome, durationLabel, saveBookingSettings, type BookingHome, type Service } from '@/lib/bookings';
+import { bookingHome, durationLabel, saveBookingSettings, type Addon, type BookingHome, type BookingSettings, type Service } from '@/lib/bookings';
 import { plural, price } from '@/lib/format';
 import shared from '../admin.module.css';
 import styles from '../rendez-vous/rdv.module.css';
 
-interface Draft { id: string | null; name: string; category: string; duration: string; price: string; deposit: string; desc: string; active: boolean }
-const draftOf = (s?: Service): Draft => ({ id: s?.id ?? null, name: s?.name ?? '', category: s?.category ?? '', duration: String(s?.duration ?? 60), price: s ? String(s.price) : '', deposit: s?.deposit === null || s?.deposit === undefined ? '' : String(s.deposit), desc: s?.desc ?? '', active: s?.active !== false });
+interface Draft { id: string | null; name: string; category: string; duration: string; price: string; deposit: string; desc: string; active: boolean; from: boolean }
+interface Extra { index: number | null; name: string; duration: string; price: string; active: boolean }
+const draftOf = (s?: Service): Draft => ({ id: s?.id ?? null, name: s?.name ?? '', category: s?.category ?? '', duration: String(s?.duration ?? 60), price: s ? String(s.price) : '', deposit: s?.deposit === null || s?.deposit === undefined ? '' : String(s.deposit), desc: s?.desc ?? '', active: s?.active !== false, from: s?.from === true });
 const num = (v: string) => Number(v.replace(/\D/g, ''));
 
 /** Her services (a booking store's products): name, category, duration, price, deposit. Saved on the server with
@@ -28,6 +29,7 @@ export default function ServicesPage() {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [extra, setExtra] = useState<Extra | null>(null);
   const storeId = store?.id ?? '';
 
   const load = useCallback(async () => {
@@ -40,10 +42,11 @@ export default function ServicesPage() {
   const services = home?.settings.services ?? [];
   const close = () => { setDraft(null); setErrors({}); setFailed(''); setConfirmDelete(false); };
 
-  async function write(next: Service[]) {
+  const addons = home?.settings.addons ?? [];
+  async function write(next: Service[], patch: Partial<BookingSettings> = {}) {
     if (!home) return false;
     setBusy(true); setFailed('');
-    const r = await saveBookingSettings(storeId, { ...home.settings, services: next });
+    const r = await saveBookingSettings(storeId, { ...home.settings, services: next, ...patch });
     setBusy(false);
     if (!r.ok) { setFailed(r.message); return false; }
     setHome({ ...home, settings: r.settings, configured: true });
@@ -61,10 +64,22 @@ export default function ServicesPage() {
     if (Object.keys(err).length) return;
     const old = services.find((s) => s.id === draft.id);
     const one: Service = {
-      id: old?.id ?? '', name: draft.name.trim(), category: draft.category.trim(), duration: d, price: num(draft.price), from: old?.from ?? false,
+      id: old?.id ?? '', name: draft.name.trim(), category: draft.category.trim(), duration: d, price: num(draft.price), from: draft.from,
       deposit: draft.deposit.trim() === '' ? null : num(draft.deposit), desc: draft.desc.trim(), photo: old?.photo ?? '', active: draft.active, staff: old?.staff ?? [],
     };
     if (await write(old ? services.map((s) => (s.id === old.id ? one : s)) : [...services, one])) close();
+  }
+  async function saveExtra(e: FormEvent) {
+    e.preventDefault();
+    if (!extra || busy) return;
+    if (!extra.name.trim()) { setFailed('Donnez un nom à l’option.'); return; }
+    const old = extra.index === null ? undefined : addons[extra.index];
+    const one: Addon = { id: old?.id ?? '', name: extra.name.trim(), duration: Math.min(240, num(extra.duration)), price: num(extra.price), active: extra.active };
+    if (await write(services, { addons: old ? addons.map((a, i) => (i === extra.index ? one : a)) : [...addons, one] })) { setExtra(null); setFailed(''); }
+  }
+  async function removeExtra() {
+    if (!extra || extra.index === null || busy) return;
+    if (await write(services, { addons: addons.filter((_, i) => i !== extra.index) })) { setExtra(null); setFailed(''); }
   }
   async function remove() {
     if (!draft?.id || busy) return;
@@ -96,6 +111,48 @@ export default function ServicesPage() {
             </ul>
           </section>) : null}
 
+      {home ? (
+        <section aria-label="Options" style={{ maxWidth: 760 }}>
+          <h2 className={styles.sectionTitle}>Options</h2>
+          <p className={shared.muted} style={{ marginBottom: 'var(--sp-3)' }}>Ce que la cliente peut ajouter à une prestation : une dépose, un soin, un nail art.</p>
+          {addons.length ? (
+            <div className={shared.card} style={{ marginBottom: 'var(--sp-3)' }}>
+              <ul className={shared.rows}>
+                {addons.map((a, i) => (
+                  <li key={a.id || i} className={a.active ? undefined : styles.off}>
+                    <button type="button" className={shared.row} onClick={() => { setFailed(''); setExtra({ index: i, name: a.name, duration: String(a.duration), price: String(a.price), active: a.active }); }} aria-label={`Modifier l’option ${a.name}`}>
+                      <span className={shared.rowMain}><b>{a.name}</b><small>{[a.duration ? `+ ${durationLabel(a.duration)}` : '', a.active ? '' : 'Masquée'].filter(Boolean).join(' · ') || 'Sans durée en plus'}</small></span>
+                      <span className={styles.price}>+ {price(a.price, home.currency)}</span>
+                      <Icon name="chevron" size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <Button variant="secondary" icon="plus" onClick={() => { setFailed(''); setExtra({ index: null, name: '', duration: '0', price: '', active: true }); }}>Ajouter une option</Button>
+        </section>
+      ) : null}
+
+      {extra && home ? (
+        <Sheet title={extra.index === null ? 'Nouvelle option' : 'Modifier l’option'} onClose={() => { setExtra(null); setFailed(''); }}>
+          <form className={shared.block} style={{ gap: 'var(--sp-4)' }} onSubmit={saveExtra} noValidate>
+            <Field label="Nom de l’option" maxLength={80} autoFocus placeholder="Dépose" value={extra.name} onChange={(e) => setExtra({ ...extra, name: e.target.value })} />
+            <div className={styles.two}>
+              <Field label="Durée en plus (minutes)" inputMode="numeric" value={extra.duration} onChange={(e) => setExtra({ ...extra, duration: e.target.value })} />
+              <Field label={`Prix (${home.currency === 'XOF' ? 'FCFA' : home.currency})`} inputMode="numeric" placeholder="2 000" value={extra.price} onChange={(e) => setExtra({ ...extra, price: e.target.value })} />
+            </div>
+            <div className={styles.switchLine}>
+              <span><b>Proposée à la réservation</b></span>
+              <button type="button" role="switch" aria-checked={extra.active} aria-label="Option proposée à la réservation" className={shared.switch} onClick={() => setExtra({ ...extra, active: !extra.active })} />
+            </div>
+            {failed ? <Notice tone="error">{failed}</Notice> : null}
+            <Button type="submit" block busy={busy}>{extra.index === null ? 'Ajouter l’option' : 'Enregistrer'}</Button>
+            {extra.index !== null ? <Button variant="quiet" block icon="trash" disabled={busy} onClick={() => void removeExtra()}>Supprimer cette option</Button> : null}
+          </form>
+        </Sheet>
+      ) : null}
+
       {draft && home ? (
         <Sheet title={draft.id ? 'Modifier la prestation' : 'Nouvelle prestation'} sub="Visible sur votre page de réservation dès l’enregistrement." onClose={close} expandable>
           <form className={shared.block} style={{ gap: 'var(--sp-4)' }} onSubmit={save} noValidate>
@@ -107,6 +164,10 @@ export default function ServicesPage() {
             </div>
             <Field label="Acompte" optional inputMode="numeric" placeholder="5 000" value={draft.deposit} onChange={(e) => setDraft({ ...draft, deposit: e.target.value })} hint="Laissez vide pour suivre votre règle générale." />
             <TextArea label="Description" optional rows={3} maxLength={400} value={draft.desc} onChange={(e) => setDraft({ ...draft, desc: e.target.value })} />
+            <div className={styles.switchLine}>
+              <span><b>Prix « à partir de »</b><small>Le prix final dépend de la cliente (longueur, volume…).</small></span>
+              <button type="button" role="switch" aria-checked={draft.from} aria-label="Prix à partir de" className={shared.switch} onClick={() => setDraft({ ...draft, from: !draft.from })} />
+            </div>
             <div className={styles.switchLine}>
               <span><b>Proposée à la réservation</b></span>
               <button type="button" role="switch" aria-checked={draft.active} aria-label="Proposée à la réservation" className={shared.switch} onClick={() => setDraft({ ...draft, active: !draft.active })} />

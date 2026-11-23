@@ -31,11 +31,18 @@ export interface BookingSettings {
   autoConfirm: boolean; cancelWindow: number;
   deposit: { mode: 'none' | 'fixed' | 'percent'; value: number };
   payments: string[]; address: string; intro: string;
+  addons: Addon[]; staff: Staff[]; special: SpecialDay[];
   policies: { deposit: string; late: string; cancel: string; payment: string; prep: string };
   [key: string]: unknown;
 }
 export interface BookingHome { settings: BookingSettings; configured: boolean; bookingUrl: string; currency: string; payments: string[] }
-export interface Agenda { appointments: Appointment[]; pending: Appointment[]; timezone: string; today: string }
+export interface Block { id: string; starts_at: string; ends_at: string; reason: string }
+export interface Agenda { appointments: Appointment[]; pending: Appointment[]; blocks: Block[]; timezone: string; today: string }
+export interface Addon { id: string; name: string; duration: number; price: number; active: boolean }
+export interface Staff { id: string; name: string; role: string; photo: string; active: boolean; hours: DayHours[] | null }
+export interface SpecialDay { date: string; open: boolean; from: string; to: string }
+/** The cities offered for the store's clock, as in the current dashboard. */
+export const ZONES: [string, string][] = [['Africa/Abidjan', 'Abidjan, Dakar, Bamako (GMT)'], ['Africa/Lagos', 'Cotonou, Lagos, Douala'], ['Europe/Paris', 'Paris, Bruxelles'], ['Europe/London', 'Londres'], ['America/Toronto', 'Montréal, Toronto'], ['America/New_York', 'New York'], ['America/Chicago', 'Chicago, Houston'], ['America/Los_Angeles', 'Los Angeles']];
 
 export type Reply<T> = ({ ok: true } & T) | { ok: false; message: string };
 
@@ -59,6 +66,13 @@ export async function bookingHome(storeId: string): Promise<Reply<BookingHome>> 
 }
 export const saveBookingSettings = (storeId: string, settings: BookingSettings) => call<{ settings: BookingSettings }>('save', { storeId, settings });
 export const agenda = (storeId: string, from: Date, to: Date) => call<Agenda>('list', { storeId, from: from.toISOString(), to: to.toISOString() });
+/** Another day or hour for an appointment; the client is told by e-mail, as today. A taken slot is refused. */
+export const moveAppt = (id: string, start: string) => call<{ appointment: Appointment }>('move', { id, start });
+/** Her own note on an appointment; the client never sees it. */
+export const setMemo = (id: string, memo: string) => call<{ appointment: Appointment }>('memo', { id, memo });
+/** Hours nobody can book (a break, a day off, a trip). */
+export const blockSlot = (storeId: string, from: string, to: string, reason: string) => call<{ block: Block }>('block', { storeId, from, to, reason });
+export const unblockSlot = (id: string) => call<Record<string, never>>('unblock', { id });
 export const setApptStatus = (id: string, status: ApptStatus) => call<{ appointment: Appointment }>('status', { id, status });
 /** An appointment she writes herself (a call, a walk-in). The server refuses a slot that is already taken. */
 export const createAppt = (storeId: string, o: { serviceId: string; start: string; customer: { name: string; phone: string }; note: string }) => call<{ appointment: Appointment }>('create', { storeId, ...o });

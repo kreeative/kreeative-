@@ -6,7 +6,8 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Check, Field, Select, TextArea } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Notice';
-import { bookingHome, saveBookingSettings, type BookingHome, type BookingSettings, type DayHours } from '@/lib/bookings';
+import { Icon } from '@/components/ui/Icon';
+import { ZONES, bookingHome, dayLabel, saveBookingSettings, type BookingHome, type BookingSettings, type DayHours, type SpecialDay, type Staff } from '@/lib/bookings';
 import shared from '../../admin.module.css';
 import styles from '../rdv.module.css';
 
@@ -43,6 +44,8 @@ export default function BookingSettingsPage() {
   const [failed, setFailed] = useState('');
   const [saved, setSaved] = useState(false);
   const [bad, setBad] = useState('');
+  const [day, setDayDraft] = useState<SpecialDay>({ date: '', open: true, from: '10:00', to: '16:00' });
+  const [person, setPerson] = useState({ name: '', role: '' });
   const storeId = store?.id ?? '';
 
   const load = useCallback(async () => {
@@ -125,9 +128,60 @@ export default function BookingSettingsPage() {
               <Pick label="Un créneau toutes les" options={STEP} value={s.step} onChange={(v) => set({ step: Number(v) })} />
               <Pick label="Pause entre deux clientes" options={BUFFER} value={s.buffer} onChange={(v) => set({ buffer: Number(v) })} />
               <Pick label="Réserver au plus tard" options={LEAD} value={s.lead} onChange={(v) => set({ lead: Number(v) })} />
-              {s.openUntil ? null : <Pick label="Réserver jusqu’à" options={HORIZON} value={s.horizon} onChange={(v) => set({ horizon: Number(v) })} />}
+              <Pick label="Réserver jusqu’à" options={[...HORIZON, ['date', 'Une date précise (j’ouvre mon agenda)']]} value={s.openUntil ? 'date' : s.horizon}
+                onChange={(v) => set(v === 'date' ? { openUntil: s.openUntil || new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10) } : { openUntil: '', horizon: Number(v) })} />
+              {s.openUntil ? <Field label="Réservations ouvertes jusqu’au" type="date" value={s.openUntil} onChange={(e) => set({ openUntil: e.target.value })} hint="Changez cette date quand vous ouvrez le mois suivant." /> : null}
+              <Pick label="Fuseau horaire" options={ZONES} value={s.timezone} onChange={(v) => set({ timezone: String(v) })} />
             </div>
-            {s.openUntil ? <p className={shared.muted}>Vos réservations sont ouvertes jusqu’au {new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${s.openUntil}T12:00:00Z`))}.</p> : null}
+          </section>
+
+          <section className={shared.card} aria-label="Jours particuliers">
+            <div className={shared.cardHead}><h2>Jours particuliers</h2></div>
+            <p className={shared.muted}>Un dimanche ouvert exceptionnellement, un jour férié : ce jour-là, ces horaires remplacent ceux de la semaine.</p>
+            <div className={styles.stack}>
+              {(s.special ?? []).length ? (
+                <ul className={shared.rows}>
+                  {(s.special ?? []).map((x) => (
+                    <li key={x.date}><div className={shared.row} style={{ cursor: 'default' }}>
+                      <span className={shared.rowMain}><b>{dayLabel(x.date, { weekday: 'long', day: 'numeric', month: 'long' })}</b><small>{x.open ? `Ouvert de ${x.from} à ${x.to}` : 'Fermé'}</small></span>
+                      <button type="button" className={styles.iconBtn} onClick={() => set({ special: s.special.filter((y) => y.date !== x.date) })} aria-label={`Retirer le ${dayLabel(x.date, { day: 'numeric', month: 'long' })}`}><Icon name="trash" size={16} /></button>
+                    </div></li>
+                  ))}
+                </ul>
+              ) : null}
+              <div className={styles.times}>
+                <Field label="Date" type="date" value={day.date} onChange={(e) => setDayDraft({ ...day, date: e.target.value })} />
+                {day.open ? <Field label="De" type="time" step={300} value={day.from} onChange={(e) => setDayDraft({ ...day, from: e.target.value })} /> : <span />}
+                {day.open ? <Field label="Jusqu’à" type="time" step={300} value={day.to} onChange={(e) => setDayDraft({ ...day, to: e.target.value })} /> : <span />}
+              </div>
+              <Check checked={day.open} onChange={() => setDayDraft({ ...day, open: !day.open })}>Ouvert ce jour-là</Check>
+              <div><Button variant="secondary" icon="plus" disabled={!/^\d{4}-\d{2}-\d{2}$/.test(day.date) || (day.open && day.to <= day.from)}
+                onClick={() => { set({ special: [...(s.special ?? []).filter((y) => y.date !== day.date), day].sort((a, b) => (a.date < b.date ? -1 : 1)) }); setDayDraft({ date: '', open: true, from: '10:00', to: '16:00' }); }}>Ajouter ce jour</Button></div>
+            </div>
+          </section>
+
+          <section className={shared.card} aria-label="Équipe">
+            <div className={shared.cardHead}><h2>Équipe</h2></div>
+            <p className={shared.muted}>Seule ? Laissez vide. À plusieurs, chaque personne a son agenda et la cliente choisit avec qui.</p>
+            <div className={styles.stack}>
+              {(s.staff ?? []).length ? (
+                <ul className={shared.rows}>
+                  {(s.staff ?? []).map((x) => (
+                    <li key={x.id || x.name}><div className={shared.row} style={{ cursor: 'default' }}>
+                      <span className={shared.rowMain}><b>{x.name}</b><small>{[x.role, x.active ? '' : 'Ne prend pas de rendez-vous'].filter(Boolean).join(' · ') || 'Prend des rendez-vous'}</small></span>
+                      <button type="button" role="switch" aria-checked={x.active} aria-label={`${x.name} prend des rendez-vous`} className={shared.switch} onClick={() => set({ staff: s.staff.map((y) => (y === x ? { ...y, active: !y.active } : y)) })} />
+                      <button type="button" className={styles.iconBtn} onClick={() => set({ staff: s.staff.filter((y) => y !== x) })} aria-label={`Retirer ${x.name}`}><Icon name="trash" size={16} /></button>
+                    </div></li>
+                  ))}
+                </ul>
+              ) : null}
+              <div className={styles.two}>
+                <Field label="Prénom" maxLength={40} value={person.name} onChange={(e) => setPerson({ ...person, name: e.target.value })} />
+                <Field label="Spécialité" optional maxLength={60} placeholder="Sourcils et rehaussement" value={person.role} onChange={(e) => setPerson({ ...person, role: e.target.value })} />
+              </div>
+              <div><Button variant="secondary" icon="plus" disabled={!person.name.trim()}
+                onClick={() => { const one: Staff = { id: '', name: person.name.trim(), role: person.role.trim(), photo: '', active: true, hours: null }; set({ staff: [...(s.staff ?? []), one] }); setPerson({ name: '', role: '' }); }}>Ajouter cette personne</Button></div>
+            </div>
           </section>
 
           <section className={shared.card}>
