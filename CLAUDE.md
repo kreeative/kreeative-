@@ -43,7 +43,8 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 - Bordures fines (`--jk-hair`), jamais de bordure épaisse ni grise par défaut.
 - Tailles compactes : contrôles de 28 px, libellés de 11 px, valeurs de 12 px, chiffres alignés (`tabular-nums`).
 - Le **bleu** (`--st-blue`) ne sert que sur la page en cours d'édition : cadre de sélection, poignées, guides. Tout le reste de l'interface est noir et blanc, y compris le contour d'un champ actif.
-- Jamais de liste ou de sélecteur de couleur à l'apparence brute du navigateur.
+- Jamais de liste ou de sélecteur de couleur à l'apparence brute du navigateur. `studio-kit.js` donne automatiquement le menu maison à toute liste (`<select>`) des éditeurs ; `data-jk-native` pour s'en passer.
+- Les fenêtres des deux éditeurs (`.sk-modal`, `.st-modal`) ont un seul style, dans `studio-kit.css`.
 - La zone centrale reste gris clair (`--st-canvas`) pour que les pages blanches, les cadres et les guides s'en détachent.
 - « Modèle par Kreeative » n'est jamais modifiable dans un éditeur.
 - Les produits se gèrent dans le tableau de bord ; l'éditeur choisit seulement quel produit va dans quelle case.

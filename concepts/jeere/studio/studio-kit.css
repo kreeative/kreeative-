@@ -136,7 +136,8 @@
 
 /* ------------------------------------------------------------------ the list's own menu (studio-kit.js) */
 .jk-select--native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0; pointer-events: none; }
-.jk-select--btn { display: flex; align-items: center; text-align: left; }
+.jk-select--btn { display: flex; align-items: center; text-align: left; -webkit-appearance: none; appearance: none; }
+.jk-select--btn:disabled { color: var(--jk-ink-3); cursor: not-allowed; }
 .jk-select__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .jk-select--btn[aria-expanded="true"] { background-color: var(--jk-bg-on); box-shadow: inset 0 0 0 1.5px var(--jk-focus); }
 .jk-menu { position: fixed; z-index: 2147483000; box-sizing: border-box; padding: 4px; overflow-y: auto; overscroll-behavior: contain; border-radius: var(--jk-r-lg); background: var(--st-pop, #FFFFFF); color: var(--jk-ink);
@@ -152,3 +153,16 @@
 .jk-menu__text { font-size: 12.5px; line-height: 1.2; }
 .jk-scrubbing, .jk-scrubbing * { cursor: ew-resize !important; user-select: none !important; }
 @media (prefers-reduced-motion: reduce) { .jk-menu { animation: none; } }
+
+/* ------------------------------------------------------------------ dialogs: one look in both editors (.sk-modal: websites, .st-modal: boutiques) */
+.sk-modal, .st-modal { background: rgba(24, 24, 24, .24); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.sk-modal .sk-modal__card, .st-modal .st-modal__card { border: 0; border-radius: 16px; padding: 24px; background: var(--st-pop, #FFFFFF); color: var(--jk-ink);
+  box-shadow: 0 0 0 var(--jk-hair) rgba(0, 0, 0, .08), 0 24px 64px rgba(0, 0, 0, .18), 0 2px 6px rgba(0, 0, 0, .06); }
+.sk-modal .sk-modal__card h2, .st-modal .st-modal__card h2 { margin: 0 0 14px; padding-right: 36px; font: 600 17px/1.3 var(--st-font, 'Poppins', system-ui, sans-serif); letter-spacing: -.01em; }
+.sk-modal .sk-modal__card p, .st-modal .st-modal__card p { font-size: 13px; line-height: 1.55; color: var(--jk-ink-2); }
+.sk-modal .sk-modal__close, .st-modal .st-modal__close, .st-drawer .st-modal__close { top: 16px; right: 16px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--jk-r); background: none; color: var(--jk-ink-2);
+  transition: background-color var(--jk-dur) var(--jk-ease), color var(--jk-dur) var(--jk-ease); }
+.sk-modal .sk-modal__close:hover, .st-modal .st-modal__close:hover, .st-drawer .st-modal__close:hover { background: var(--jk-bg); color: var(--jk-ink); }
+.st-drawer .st-drawer__head .st-modal__close { position: static; }
+/* the dialog's buttons at the kit's size */
+.sk-modal .sk-ghost, .sk-modal .sk-primary, .sk-modal .sk-danger, .st-modal .st-ghostbtn, .st-modal .st-primary { height: 32px; padding: 0 14px; border-radius: var(--jk-r); font: 500 12.5px/1 var(--st-font, 'Poppins', system-ui, sans-serif); }

@@ -99,7 +99,7 @@
   }
   function select(sel) {
     if (!sel || sel._jkBtn || sel.multiple) return sel && sel._jkBtn;
-    var btn = ce('button', sel.className.replace(/\bjk-select\b/, 'jk-select jk-select--btn'));
+    var btn = ce('button', ('jk-select jk-select--btn ' + sel.className.replace(/\bjk-select\b/, '')).replace(/\s+/g, ' ').trim());
     btn.type = 'button';
     btn.appendChild(ce('span', 'jk-select__text', label(sel)));
     btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
@@ -111,6 +111,11 @@
     btn.addEventListener('click', function () { show(sel); });
     btn.addEventListener('keydown', function (e) { keys(e, sel); });
     sel.addEventListener('change', function () { sync(sel); });
+    ['value', 'selectedIndex'].forEach(function (k) {
+      var d = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, k);
+      if (d && d.set) Object.defineProperty(sel, k, { configurable: true, get: function () { return d.get.call(sel); }, set: function (v) { d.set.call(sel, v); sync(sel); } });
+    });
+    new MutationObserver(function () { sync(sel); }).observe(sel, { childList: true, subtree: true, attributes: true, attributeFilter: ['selected', 'disabled'] });
     sync(sel);
     return btn;
   }
@@ -199,7 +204,16 @@
     e.preventDefault(); n.focus(); n.click();
   });
 
-  function init(root) { [].forEach.call((root || D).querySelectorAll('select.jk-select'), select); }
+  // every list of the editors gets the kit's menu: the ones already there and the ones a panel draws later
+  // (a list that must stay the browser's own carries data-jk-native)
+  function want(el) { return el.tagName === 'SELECT' && !el.multiple && !el._jkBtn && !el.hasAttribute('data-jk-native') && !(el.size > 1); }
+  function init(root) { [].forEach.call((root || D).querySelectorAll('select'), function (el) { if (want(el) && el.parentNode) select(el); }); }
+  var queued = false;
+  new MutationObserver(function (list) {
+    if (queued) return;
+    for (var i = 0; i < list.length; i++) if (list[i].addedNodes.length) { queued = true; break; }
+    if (queued) (W.queueMicrotask || setTimeout)(function () { queued = false; init(D); });
+  }).observe(D.documentElement, { childList: true, subtree: true });
   W.JeereKit = { init: init, select: select, close: function () { close(false); } };
   if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', function () { init(D); }); else init(D);
 })();
