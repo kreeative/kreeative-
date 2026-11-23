@@ -1,35 +1,36 @@
-/* Jehre — Atlas: the founder's space. Black, with gold. */
+/* Jehre — Atlas: the founder's space, in Jehre's own light look (white cards, black ink, the logo's rainbow). */
 :root {
-  --bg: #0B0B0C; --card: #141416; --card2: #1A1A1D; --line: #2A2A2E;
-  --ink: #F5F2EA; --muted: #9A968C;
-  --gold: #D9B45A; --gold2: #F1D99A; --gold-deep: #A8862F;
-  --ok: #7FCF9A; --warn: #E8A15A;
+  --bg: #F4F4F2; --card: #FFFFFF; --card2: #FFFFFF; --line: #E3E1DC;
+  --ink: #111111; --muted: #6E6E6E;
+  --gold: #111111; --gold2: #111111; --gold-deep: #111111;
+  --ok: #10955A; --warn: #B4610C;
+  --rb: linear-gradient(100deg, #D63A6E, #DD6A1F, #B98500, #10955A, #1479BA, #5B3EF0, #A62BC8);
 }
 * { box-sizing: border-box; }
 html { background: var(--bg); }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.5 'Outfit', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-a { color: var(--gold2); text-decoration: none; font-weight: 600; }
+a { color: #111; text-decoration: none; font-weight: 600; }
 button { font: inherit; color: inherit; cursor: pointer; }
 .at { max-width: 1240px; margin: 0 auto; padding: 0 20px 40px; }
 .at-wait { color: var(--muted); padding: 80px 0; text-align: center; }
-.at-foot { text-align: center; color: #5E5B55; font-size: 12.5px; padding: 0 0 28px; }
+.at-foot { text-align: center; color: #8A8780; font-size: 12.5px; padding: 0 0 28px; }
 
 .at-top { display: flex; align-items: center; gap: 16px; padding: 22px 0 18px; flex-wrap: wrap; }
 .at-brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
-/* the Jehre logo (black strokes on transparent), turned to gold */
-.at-brand__j { height: 46px; width: auto; display: block; filter: brightness(0) invert(79%) sepia(38%) saturate(560%) hue-rotate(2deg) brightness(96%); }
+/* the Jehre logo, as it is */
+.at-brand__j { height: 46px; width: auto; display: block; }
 .at-brand__a { font-weight: 600; font-size: 13px; letter-spacing: .22em; text-transform: uppercase;
-  background: linear-gradient(90deg, var(--gold-deep), var(--gold2), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  background: var(--rb); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .at-me { color: var(--muted); font-size: 13.5px; }
 .at-btn { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 16px; font-weight: 600; font-size: 14px; }
-.at-btn:hover { border-color: var(--gold); color: var(--gold2); }
-.at-btn--gold { border: 0; color: #1A1408; background: linear-gradient(135deg, var(--gold2), var(--gold) 55%, var(--gold-deep)); }
-.at-btn--gold:hover { color: #1A1408; filter: brightness(1.06); }
+.at-btn:hover { border-color: #111; }
+.at-btn--gold { border: 0; color: #fff; background: #111; }
+.at-btn--gold:hover { color: #fff; background: #2a2a2a; }
 
 .at-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 22px; scrollbar-width: none; }
 .at-tab { border: 0; background: transparent; color: var(--muted); padding: 9px 16px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
 .at-tab:hover { color: var(--ink); }
-.at-tab[aria-selected="true"] { color: #1A1408; background: linear-gradient(135deg, var(--gold2), var(--gold) 60%, var(--gold-deep)); }
+.at-tab[aria-selected="true"] { color: #fff; background: #111; }
 
 .at-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
 .at-kpi { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; }
@@ -45,7 +46,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .at-bars { display: flex; align-items: flex-end; gap: 6px; height: 140px; }
 .at-bars div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; min-width: 0; }
-.at-bars i { display: block; width: 100%; max-width: 34px; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, var(--gold2), var(--gold-deep)); min-height: 2px; }
+.at-bars i { display: block; width: 100%; max-width: 34px; border-radius: 6px 6px 2px 2px; background: #111; min-height: 2px; }
 .at-bars b { font-size: 12px; font-weight: 600; color: var(--ink); }
 .at-bars span { font-size: 11px; color: var(--muted); }
 
@@ -59,7 +60,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .at-tools { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .at-input { flex: 1; min-width: 220px; background: var(--card2); border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 11px 14px; font: inherit; }
 .at-input:focus { outline: 0; border-color: var(--gold); }
-.at-input::placeholder { color: #6F6B63; }
+.at-input::placeholder { color: #9A978F; }
 .at-chipbtn { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 13.5px; }
 .at-chipbtn[aria-pressed="true"] { border-color: var(--gold); color: var(--gold2); }
 
@@ -69,17 +70,30 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .at-t td { padding: 12px 12px 12px 0; border-top: 1px solid var(--line); vertical-align: top; }
 .at-t small { color: var(--muted); font-size: 12.5px; display: block; }
 .at-pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); color: var(--muted); }
-.at-pill--gold { border-color: var(--gold-deep); color: var(--gold2); }
-.at-pill--ok { border-color: #2F5A40; color: var(--ok); }
-.at-pill--warn { border-color: #6A4622; color: var(--warn); }
+.at-pill--gold { border-color: #111; background: #111; color: #fff; }
+.at-pill--ok { border-color: #BFE3CF; color: var(--ok); }
+.at-pill--warn { border-color: #F0D2B0; color: var(--warn); }
 
 .at-live { display: flex; align-items: center; gap: 10px; }
-.at-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 0 rgba(217, 180, 90, .6); animation: at-pulse 1.8s infinite; }
-@keyframes at-pulse { 70% { box-shadow: 0 0 0 12px rgba(217, 180, 90, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 180, 90, 0); } }
-.at-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--card2); margin: 8px 12px 0; overflow: hidden; min-width: 40px; }
-.at-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold2)); }
+.at-dot { width: 10px; height: 10px; border-radius: 50%; background: #14C46C; box-shadow: 0 0 0 0 rgba(20, 196, 108, .5); animation: at-pulse 1.8s infinite; }
+@keyframes at-pulse { 70% { box-shadow: 0 0 0 12px rgba(20, 196, 108, 0); } 100% { box-shadow: 0 0 0 0 rgba(20, 196, 108, 0); } }
+.at-bar { flex: 1; height: 6px; border-radius: 3px; background: #ECEAE6; margin: 8px 12px 0; overflow: hidden; min-width: 40px; }
+.at-bar i { display: block; height: 100%; background: #111; }
 
 .at-gate { max-width: 420px; margin: 16vh auto 0; text-align: center; }
 .at-gate .at-brand__j { height: 64px; }
 .at-gate h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -.02em; }
 .at-gate p { color: var(--muted); margin: 0 0 22px; }
+
+/* « En direct »: the dashboard's globe (admin/live.js, live.css) in this page: the few names it expects */
+:root { --white: #FFFFFF; --grey-1: #F5F5F3; --line-2: rgba(17, 17, 17, .22); }
+.a-page { display: grid; gap: 16px; }
+.a-ph { margin-bottom: 2px; }
+.a-h1 { margin: 0; font: 600 22px/1.2 'Outfit', sans-serif; }
+.a-sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.a-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; min-width: 0; }
+.a-card__head { margin-bottom: 10px; }
+.a-card__title { margin: 0; font: 600 16px/1.3 'Outfit', sans-serif; }
+.a-error { color: #B3261E; }
+.a-small { color: var(--muted); font-size: 13px; }
+.a-ico { width: 16px; height: 16px; display: none; }

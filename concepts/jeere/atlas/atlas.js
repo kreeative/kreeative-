@@ -1,5 +1,5 @@
 /*
- * Jehre — atlas.js: « Atlas », the founder's own space (jehre.com/atlas/). Black and gold, apart from the sellers'
+ * Jehre — atlas.js: « Atlas », the founder's own space (jehre.com/atlas/). In Jehre's own light look, apart from the sellers'
  * dashboard: who signed up, their stores and plans, what was bought, who is on jehre.com right now.
  * Read-only. The server decides who may see it: public.jeere_accounts() and public.site_visits_live() answer only an
  * account listed in public.site_editors; anyone else gets the « réservé » screen.
@@ -34,7 +34,10 @@
         .then(function (r) { return r.json().catch(function () { return null; }).then(function (j) { return { status: r.status, ok: r.ok, data: j }; }); });
     }).catch(function () { return { status: -1 }; });
   }
-  function paying(x) { return !!(x.plan && x.plan !== 'gratuit' && !x.plan_promo); }
+  // the founder's own stores (the demos, the models) are set to Business for free: they are not customers
+  function mine(a) { return !!(a && S.email && String(a.email || '').toLowerCase() === S.email.toLowerCase()); }
+  function paying(x, a) { return !!(x.plan && x.plan !== 'gratuit' && !x.plan_promo && !mine(a)); }
+  function offered(x, a) { return !!(x.plan && x.plan !== 'gratuit' && x.plan_promo && !mine(a)); }
   function allStores() { var out = []; arr(S.accounts).forEach(function (a) { arr(a.stores).forEach(function (x) { out.push({ s: x, a: a }); }); }); return out; }
   function allBuys() { var out = []; arr(S.accounts).forEach(function (a) { arr(a.models).forEach(function (m) { out.push({ m: m, a: a }); }); }); return out.sort(function (x, y) { return String(y.m.at).localeCompare(String(x.m.at)); }); }
 
@@ -51,7 +54,7 @@
 
   function vue() {
     var A = arr(S.accounts), st = allStores(), buys = allBuys();
-    var pay = st.filter(function (x) { return paying(x.s); });
+    var pay = st.filter(function (x) { return paying(x.s, x.a); }), off = st.filter(function (x) { return offered(x.s, x.a); });
     var mrr = pay.reduce(function (n, x) { return n + (PRICE[x.s.plan] || 0); }, 0);
     var sold = buys.reduce(function (n, x) { return n + (Number(x.m.amount) || 0); }, 0);
     var since = function (h) { var t = Date.now() - h * 3600000; return A.filter(function (a) { return new Date(a.created_at).getTime() > t; }).length; };
@@ -67,6 +70,7 @@
       kpi('E-mail confirmé', num(A.filter(function (a) { return a.confirmed; }).length)) +
       kpi('Boutiques', num(st.length), num(st.filter(function (x) { return x.s.published; }).length) + ' en ligne') +
       kpi('Formules payées', num(pay.length), fcfa(mrr) + ' / mois') +
+      kpi('En offre de lancement', num(off.length), 'gratuit pour l’instant') +
       kpi('Modèles vendus', num(buys.length), fcfa(sold)) +
       kpi('Installations à faire', num(todo.length)) + '</dl>' +
       '<div class="at-grid"><div><section class="at-card"><h2>Inscriptions<span>14 derniers jours</span></h2><div class="at-bars">' +
@@ -85,14 +89,14 @@
     var st = arr(a.stores);
     if (S.filter === 'boutique' && !st.length) return false;
     if (S.filter === 'sans' && st.length) return false;
-    if (S.filter === 'payant' && !st.some(paying)) return false;
+    if (S.filter === 'payant' && !st.some(function (x) { return paying(x, a); })) return false;
     if (S.filter === 'nonconf' && a.confirmed) return false;
     if (!S.q) return true;
     var hay = [a.first_name, a.email, a.phone, a.source].concat(st.map(function (x) { return x.name + ' ' + x.slug; })).join(' ').toLowerCase();
     return hay.indexOf(S.q) !== -1;
   }
-  function planCell(x) {
-    return '<span class="at-pill' + (paying(x) ? ' at-pill--gold' : '') + '">' + esc(PLAN[x.plan] || x.plan || 'Gratuit') + (x.plan_promo ? ' · offert' : '') + '</span>' + (x.plan_until && x.plan && x.plan !== 'gratuit' ? '<small>jusqu’au ' + esc(day(x.plan_until)) + '</small>' : '');
+  function planCell(x, a) {
+    return '<span class="at-pill' + (paying(x, a) ? ' at-pill--gold' : '') + '">' + esc(PLAN[x.plan] || x.plan || 'Gratuit') + (x.plan_promo ? ' · offert' : mine(a) && x.plan !== 'gratuit' ? ' · à vous' : '') + '</span>' + (x.plan_until && x.plan && x.plan !== 'gratuit' ? '<small>jusqu’au ' + esc(day(x.plan_until)) + '</small>' : '');
   }
   function tools() {
     return '<div class="at-tools"><input class="at-input" type="search" data-q value="' + esc(S.q) + '" placeholder="Chercher un nom, un e-mail, une boutique" aria-label="Chercher" autocomplete="off">' +
@@ -104,7 +108,7 @@
       list.map(function (a) {
         return '<tr><td><strong>' + esc(a.first_name || '—') + '</strong> ' + (a.confirmed ? '' : '<span class="at-pill at-pill--warn">non confirmé</span>') + '<small>' + esc(a.email || '') + (a.phone ? ' · ' + esc(a.phone) : '') + (a.source ? ' · via ' + esc(a.source) : '') + '</small></td>' +
           '<td>' + esc(day(a.created_at)) + '</td><td>' + esc(ago(a.last_sign_in_at)) + '</td>' +
-          '<td>' + (arr(a.stores).length ? arr(a.stores).map(function (x) { return '<div style="margin-bottom:6px"><a href="https://jehre.com/b/' + esc(x.slug) + '" target="_blank" rel="noopener">' + esc(x.name) + '</a> ' + planCell(x) + '</div>'; }).join('') : '<span class="at-none">—</span>') + '</td>' +
+          '<td>' + (arr(a.stores).length ? arr(a.stores).map(function (x) { return '<div style="margin-bottom:6px"><a href="https://jehre.com/b/' + esc(x.slug) + '" target="_blank" rel="noopener">' + esc(x.name) + '</a> ' + planCell(x, a) + '</div>'; }).join('') : '<span class="at-none">—</span>') + '</td>' +
           '<td>' + (arr(a.models).length ? arr(a.models).map(function (m) { return '<div><strong>' + esc(String(m.model).toUpperCase()) + '</strong>' + (m.install ? ' + installation' : '') + '</div>'; }).join('') : '<span class="at-none">—</span>') + '</td></tr>';
       }).join('') + '</tbody></table></div>' + (list.length ? '' : '<p class="at-none">Personne ne correspond.</p>') + '</section>';
   }
@@ -116,7 +120,7 @@
       list.map(function (x) {
         var s = x.s;
         return '<tr><td><a href="https://jehre.com/b/' + esc(s.slug) + '" target="_blank" rel="noopener">' + esc(s.name) + '</a><small>' + esc(s.domain || s.slug + '.store.jehre.com') + '</small></td>' +
-          '<td>' + esc(x.a.first_name || '—') + '<small>' + esc(x.a.email || '') + '</small></td><td>' + planCell(s) + '</td>' +
+          '<td>' + esc(x.a.first_name || '—') + '<small>' + esc(x.a.email || '') + '</small></td><td>' + planCell(s, x.a) + '</td>' +
           '<td>' + (s.published ? '<span class="at-pill at-pill--ok">en ligne</span>' : '<span class="at-pill">brouillon</span>') + '</td><td>' + esc(day(s.created_at)) + '</td></tr>';
       }).join('') + '</tbody></table></div></section>';
   }
@@ -136,19 +140,10 @@
     return m[k] || (k.length > 40 ? k.slice(0, 40) + '…' : k);
   }
   function direct() {
-    var L = S.live;
-    if (!L) return '<p class="at-wait">Chargement…</p>';
-    if (!L.ok) return '<section class="at-card"><p class="at-none">Les visites n’ont pas pu se charger.</p></section>';
-    var bars = function (rows, name) {
-      var mx = rows.length ? rows[0].n : 1;
-      return rows.length ? '<ul class="at-list">' + rows.map(function (x) { return '<li><span style="min-width:120px">' + esc(name(x)) + '</span><span class="at-bar"><i style="width:' + Math.max(6, Math.round(100 * x.n / mx)) + '%"></i></span><span class="r">' + x.n + '</span></li>'; }).join('') + '</ul>' : '<p class="at-none">Pas encore de visite.</p>';
-    };
-    return '<dl class="at-kpis"><div class="at-kpi"><dt><span class="at-live"><span class="at-dot"></span>Sur jehre.com maintenant</span></dt><dd>' + num(L.now) + '</dd></div>' + kpi('24 dernières heures', num(L.today)) + kpi('7 derniers jours', num(L.week)) + '</dl>' +
-      '<div class="at-grid"><section class="at-card"><h2>Derniers visiteurs</h2>' + (arr(L.points).length ? '<ul class="at-list">' + arr(L.points).slice(0, 14).map(function (x) {
-        return '<li><span><strong>' + esc([x.city, x.country].filter(Boolean).join(', ') || 'Lieu inconnu') + '</strong><small>' + esc(pageName(x.path)) + '</small></span><span class="r">' + (x.live ? '<span class="at-pill at-pill--gold">en ligne</span>' : esc(ago(x.at))) + '</span></li>';
-      }).join('') + '</ul>' : '<p class="at-none">Pas encore de visite.</p>') + '</section>' +
-      '<div><section class="at-card"><h2>Pages regardées<span>24 h</span></h2>' + bars(arr(L.pages), function (x) { return pageName(x.path); }) + '</section>' +
-      '<section class="at-card"><h2>Par pays<span>24 h</span></h2>' + bars(arr(L.countries), function (x) { return x.country || '—'; }) + '</section></div></div>';
+    var LV = window.JeereAdminLive;
+    if (!LV) return '<section class="at-card"><p class="at-none">Le globe n’a pas pu se charger.</p></section>';
+    LV.site('jehre-com');
+    return LV.view();
   }
 
   function draw(keepFocus) {
@@ -156,26 +151,23 @@
     root.innerHTML = shell(view());
     if (keepFocus) { var q = root.querySelector('[data-q]'); if (q) { q.focus(); try { q.setSelectionRange(q.value.length, q.value.length); } catch (e) { /* fine */ } } }
   }
-  function loadLive() { return rpc('site_visits_live', { p_site: 'jehre-com' }).then(function (r) { S.live = r.data && typeof r.data === 'object' ? r.data : { ok: false }; if (S.tab === 'direct') draw(); }); }
   function load() {
     return rpc('jeere_accounts').then(function (r) {
       if (r.status === 0) return gate('Espace réservé', 'Connectez-vous avec votre compte Jehre pour ouvrir Atlas.', '<a class="at-btn at-btn--gold" href="../compte/#connexion">Me connecter</a>');
       if (!r.ok || !Array.isArray(r.data)) return gate('Espace réservé', r.status === 403 || r.status === 401 ? 'Atlas est réservé à la fondatrice de Jehre.' : 'Atlas n’a pas pu se charger. Réessayez dans un instant.', '<a class="at-btn" href="../admin/">Retour au tableau de bord</a>');
       S.accounts = r.data;
       draw();
-      loadLive();
     });
   }
 
   root.addEventListener('click', function (e) {
     var t = e.target.closest ? e.target.closest('[data-tab],[data-filter],[data-refresh]') : null;
     if (!t) return;
-    if (t.hasAttribute('data-tab')) { S.tab = t.getAttribute('data-tab'); S.q = ''; S.filter = 'tous'; try { history.replaceState(null, '', '#' + S.tab); } catch (x) { /* fine */ } draw(); if (S.tab === 'direct') loadLive(); }
+    if (t.hasAttribute('data-tab')) { S.tab = t.getAttribute('data-tab'); S.q = ''; S.filter = 'tous'; try { history.replaceState(null, '', '#' + S.tab); } catch (x) { /* fine */ } draw(); }
     else if (t.hasAttribute('data-filter')) { S.filter = t.getAttribute('data-filter'); draw(); }
     else { t.textContent = 'Actualisation…'; load(); }
   });
   root.addEventListener('input', function (e) { if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-q')) { S.q = String(e.target.value || '').trim().toLowerCase(); draw(true); } });
-  setInterval(function () { if (S.accounts && S.tab === 'direct' && !document.hidden) loadLive(); }, 20000);
   setInterval(function () { if (S.accounts && S.tab !== 'direct' && !document.hidden && !S.q) load(); }, 120000);
 
   var h = (location.hash || '').slice(1);
