@@ -174,3 +174,17 @@ export function editorSite(storeSlug: string, model: string): { key: string; nam
   const m = modelBySlug(model);
   return m ? { key: m.slug, name: `Modèle ${m.name}`, url: modelSite(m.slug), pages: MODEL_PAGES[m.slug] ?? [{ path: '', name: 'Accueil' }] } : null;
 }
+
+/** The order she gave to the sections of one page of the model (their numbers); null: the model's own order. */
+export function sectionOrder(fiche: Fiche, page: string): number[] | null {
+  const o = bag(bag(bag(fiche.store).site).o)[page];
+  return Array.isArray(o) && o.every((n) => typeof n === 'number') ? (o as number[]) : null;
+}
+/** The store with another order for the sections of a page (`null` gives back the model's own order). */
+export function withSectionOrder(fiche: Fiche, page: string, order: number[] | null): Fiche {
+  const st = bag(fiche.store), site = bag(st.site), o = bag(site.o);
+  if (order) o[page] = order; else delete o[page];
+  if (Object.keys(o).length) site.o = o; else delete site.o;
+  if (Object.keys(site).length) st.site = site; else delete st.site;
+  return { ...fiche, store: st };
+}

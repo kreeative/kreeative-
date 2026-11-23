@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const BASE = process.env.BASE ?? 'http://localhost:3100';
 const SHOTS = new URL('./shots/', import.meta.url).pathname;
+const CONNECT = (await import('node:fs')).readFileSync(new URL('../../concepts/jeere/connect/jeere-connect.js', import.meta.url), 'utf8');
 mkdirSync(SHOTS, { recursive: true });
 
 const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'kady@exemple.com', created_at: '2026-11-01T10:00:00Z', user_metadata: { first_name: 'Kady' }, app_metadata: {} };
@@ -37,6 +38,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const json = (route, status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*', 'access-control-expose-headers': '*' }, body: body === undefined ? '' : JSON.stringify(body) });
+  await ctx.route('**/connect/jeere-connect.js', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' }, body: CONNECT }));
   await page.route('https://aezchxfvzfoqlvzchqyk.supabase.co/**', async (route) => {
     const req = route.request(), url = new URL(req.url()), method = req.method();
     if (method === 'OPTIONS') return json(route, 204);
@@ -490,38 +492,62 @@ await test('no figure ever leaves its card, even a very long amount on a very na
 
 const withModel = (w, slug) => { w.models = [{ model: slug, install: false }]; w.stores[0].fiche.store.model = slug; return w; };
 
-await test('editor: it opens on HER model (the designer’s real site), nothing of the old engine; texts change on the site, nothing is live before « Enregistrer »', async () => {
+await test('editor: a bar, the sections, HER model in the middle, the inspector; texts, order, hidden sections, undo; nothing is live before « Publier »', async () => {
   const w = withModel(world(), 'michou');
   const before = JSON.parse(JSON.stringify(w.stores[0].fiche));
   const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/editeur/`);
-  await page.getByText('Modèle MICHOU').waitFor({ timeout: 30000 });
+  await page.getByText('En ligne', { exact: true }).waitFor({ timeout: 30000 });
   assert.equal(await page.locator('iframe[title="Votre site"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');
-  const left = page.getByRole('complementary', { name: 'Sections de la page' });
-  await left.getByRole('list').waitFor({ timeout: 60000 });            // the model's page described itself
-  const names = await left.locator('ol li b').allInnerTexts();
-  assert.equal(names[0], 'En-tête'); assert.equal(names.at(-1), 'Pied de page'); assert.ok(names.length >= 4, names.join(' | '));
-  assert.deepEqual(await left.getByRole('tab').allInnerTexts(), ['Accueil', 'Boutique', 'Commande', 'Mentions légales']);
-  // none of the old engine's presets
-  const ui = await page.locator('body').innerText();
-  for (const old of ['Menthe', 'Sable', 'Hibiscus', 'Karité', 'Plateau', 'Treichville', 'Style', 'Ajouter une section']) assert.equal(ui.includes(old), false, `« ${old} » belongs to the old editor`);
-  const site = page.frameLocator('iframe[title="Votre site"]');
+  // the bar: 56 px, the page in a drop-down, the sizes as icons, undo and redo, one main button
+  assert.equal(Math.round((await page.locator('header').boundingBox()).height), 56);
+  await page.getByRole('button', { name: 'Page : Accueil' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Ordinateur' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.getByRole('button', { name: 'Annuler' }).isDisabled(), true);
   const save = page.getByRole('button', { name: 'Publier' });
   assert.equal(await save.isDisabled(), true, 'nothing to publish yet');
-  assert.equal(await page.getByRole('button', { name: 'Enregistrer' }).count(), 0, 'a store already online has no draft: « Publier » is the only way to write');
+  assert.equal(await page.getByRole('button', { name: 'Enregistrer' }).count(), 0);
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('list').first().waitFor({ timeout: 60000 });            // the model's page described itself
+  assert.equal(Math.round((await left.boundingBox()).width), 260);
+  await left.getByText('Page d’accueil').waitFor();
+  const rows = () => left.locator('ol > li > div > button:not([aria-label])').allInnerTexts();
+  const names = await rows();
+  assert.equal(names[0], 'En-tête'); assert.equal(names.at(-1), 'Pied de page'); assert.ok(names.length >= 5, names.join(' | '));
+  // none of the old engine's presets, none of the old controls
+  const ui = await page.locator('body').innerText();
+  for (const old of ['Menthe', 'Sable', 'Hibiscus', 'Karité', 'Plateau', 'Treichville', 'Style', 'Ajouter une section', 'image Pinterest', 'Cold Culture']) assert.equal(ui.includes(old), false, `« ${old} » must not show`);
+  assert.equal(await left.getByRole('switch').count(), 0, 'an eye, not a big switch');
+  assert.equal(await page.getByRole('tab').count(), 0, 'the pages are in the drop-down, not a row of pills');
+  const site = page.frameLocator('iframe[title="Votre site"]');
 
-  // a section opens on what it holds; a text changes on the site as she types
+  // a section opens on what it holds, in a 300 px inspector; a text changes on the site as she types
   await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
   const right = page.getByRole('complementary', { name: 'Contenu : Grande bannière' });
+  assert.equal(Math.round((await right.boundingBox()).width), 300);
   const title = right.getByRole('textbox').first();
-  const was = await title.inputValue();
-  assert.ok(was.length > 0, 'the field starts with the model’s own text');
+  assert.ok((await title.inputValue()).length > 0, 'the field starts with the model’s own text');
   await title.fill('Collection Test 2027');
   await site.getByText('Collection Test 2027').first().waitFor({ timeout: 15000 });
-  await page.getByText('Modifications non enregistrées').waitFor();
   await right.getByRole('button', { name: 'Remettre le texte du modèle' }).waitFor();
-  await page.waitForTimeout(800);
+  assert.equal(await right.getByLabel('Titre', { exact: true }).inputValue(), 'Collection Harmattan', 'two lines of a title read as two words');
+  // pictures: a clean card (miniature, plain name, « Remplacer »), never the model's own notes
+  const media = right.getByRole('region', { name: 'Images' });
+  assert.deepEqual(await media.locator('b').allInnerTexts(), ['Image principale', 'Image secondaire']);
+  assert.equal(await media.getByRole('button', { name: /^Remplacer/ }).count(), 2);
+  assert.equal((await right.innerText()).match(/Pinterest|mannequin|Cold Culture/i), null);
+  await page.waitForTimeout(900);
   await page.screenshot({ path: `${SHOTS}50-editeur-ordinateur.png` });
+  // undo, redo
+  await page.getByRole('button', { name: 'Annuler' }).click();
+  await page.waitForFunction(() => !document.querySelector('iframe[title="Votre site"]').contentDocument || true);
+  assert.equal(await save.isDisabled(), true, 'undone: nothing left to publish');
+  await page.getByRole('button', { name: 'Rétablir' }).click();
+  await site.getByText('Collection Test 2027').first().waitFor({ timeout: 15000 });
+  // the tree: a section unfolds on its elements; one of them opens its field
+  await left.getByRole('button', { name: 'Déplier Grande bannière' }).click();
+  const leaves = await left.locator('ol > li ul button').allInnerTexts();
+  assert.ok(leaves.some((x) => x.startsWith('Titre – Collection Harmattan')), leaves.join(' | ')); assert.ok(leaves.includes('Image principale'));
   // a click on the site opens the field of what was clicked
   const target = site.locator('footer [data-jeere-pickable="t"]').first();
   const clicked = (await target.innerText()).replace(/\s+/g, ' ').trim();
@@ -530,24 +556,38 @@ await test('editor: it opens on HER model (the designer’s real site), nothing 
   await page.waitForFunction(() => !!document.activeElement?.closest('[data-site-key]'), null, { timeout: 10000 });
   const focused = await page.evaluate(() => document.activeElement.value.replace(/\s+/g, ' ').trim());
   assert.ok(clicked.toLowerCase().includes(focused.toLowerCase()) || focused.toLowerCase().includes(clicked.toLowerCase()), `clicked « ${clicked} », field « ${focused} »`);
-  // a section can be hidden (not the header, not the footer)
-  const sw = left.getByRole('switch');
-  assert.equal(await sw.count(), names.length - 2);
-  await sw.nth(1).click();
-  await left.getByText('Masquée').waitFor();
-  // another page of the model
-  await left.getByRole('tab', { name: 'Boutique' }).click();
+  // a section is hidden with its eye (not the header, not the footer)
+  assert.equal(await left.getByRole('button', { name: /^Masquer / }).count(), names.length - 2);
+  await left.getByRole('button', { name: `Masquer ${names[3]}` }).click();
+  await left.getByRole('button', { name: `Afficher ${names[3]}` }).waitFor();
+  // the order: a section is moved down with its handle; the site follows, her text stays on its section
+  await left.getByRole('button', { name: `Déplacer ${names[1]} (flèches haut et bas)` }).focus();
+  await page.keyboard.press('ArrowDown');
+  const moved = await rows();
+  assert.deepEqual(moved.slice(0, 4), [names[0], names[2], names[1], names[3]]);
+  await page.waitForFunction(() => { const d = document.querySelector('iframe[title="Votre site"]'); return true && !!d; });
+  const orders = await site.locator('body').evaluate(() => { const secs = [...document.querySelectorAll('header, footer, section, .strip')].filter((el) => !el.closest('.concept, .concept-bar') && !(el.parentElement && el.parentElement.closest('header, footer, section, .strip'))); return secs.map((el) => Number(getComputedStyle(el).order)); });
+  assert.ok(orders[1] > orders[2], `the first section now comes after the second (${orders.join(',')})`);
+  await site.getByText('Collection Test 2027').first().waitFor();
+  // another page of the model, from the drop-down
+  await page.getByRole('button', { name: 'Page : Accueil' }).click();
+  assert.deepEqual(await page.getByRole('listbox', { name: 'Page' }).getByRole('option').allInnerTexts(), ['Accueil', 'Boutique', 'Commande', 'Mentions légales']);
+  await page.getByRole('listbox', { name: 'Page' }).getByRole('option', { name: 'Boutique' }).click();
   await page.waitForFunction(() => document.querySelector('iframe[title="Votre site"]').getAttribute('src') === 'https://kreeative.xyz/concepts/michou/boutique/');
-  await left.getByRole('list').waitFor({ timeout: 60000 });
-  // nothing was written yet
+  await left.getByText('Page Boutique').waitFor();
+  await left.getByRole('list').first().waitFor({ timeout: 60000 });
+  // nothing was written yet; « Publier » writes, and says so in a small toast (no banner pushing the page down)
   assert.equal(w.calls.some((c) => c.method === 'PATCH' && c.path === '/rest/v1/stores'), false);
+  const top = (await page.locator('iframe[title="Votre site"]').boundingBox()).y;
   await save.click();
-  await page.getByText('Votre site est en ligne').waitFor();
+  await page.getByRole('status').filter({ hasText: 'Votre site est en ligne · boutique-test.store.jehre.com' }).waitFor();
   assert.equal(await page.getByRole('link', { name: 'Voir mon site' }).getAttribute('href'), 'https://boutique-test.store.jehre.com');
+  assert.equal((await page.locator('iframe[title="Votre site"]').boundingBox()).y, top, 'the page did not move');
   const f = w.stores[0].fiche;
   assert.deepEqual(Object.values(f.store.site.t), ['Collection Test 2027']);
   assert.match(Object.keys(f.store.site.t)[0], /^\/\|t\|\d+$/);
   assert.deepEqual(Object.values(f.store.site.h), ['1']);
+  assert.equal(f.store.site.o['/'].length, names.length - 2); assert.notDeepEqual(f.store.site.o['/'], [...f.store.site.o['/']].sort((x, y) => x - y));
   assert.equal(f.store.model, 'michou');
   // her store is otherwise untouched: no preset section, palette or product was added
   assert.deepEqual({ ...f, store: { ...f.store, site: undefined } }, { ...before, store: { ...before.store, site: undefined } });
@@ -557,10 +597,11 @@ await test('editor: it opens on HER model (the designer’s real site), nothing 
 await test('editor on a phone: her site on top, the sections under it, the content in a bottom sheet; a booking model works the same', async () => {
   const w = withModel(world(), 'regard'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);
-  await page.getByText('Modèle REGARD').waitFor({ timeout: 30000 });
+  await page.getByText('En ligne', { exact: true }).waitFor({ timeout: 30000 });
   const left = page.getByRole('complementary', { name: 'Sections de la page' });
-  await left.getByRole('list').waitFor({ timeout: 60000 });
-  assert.equal(await left.getByRole('tab').count(), 0, 'a one-page model has no page tabs');
+  await left.getByRole('list').first().waitFor({ timeout: 60000 });
+  assert.equal(await page.getByRole('button', { name: /^Page :/ }).count(), 0, 'a one-page model has no page menu');
+  assert.equal(await page.locator('iframe[title="Votre site"]').getAttribute('width'), '390', 'on a phone the site is shown as a phone');
   await noOverflow(page);
   await page.waitForTimeout(1500);
   await page.screenshot({ path: `${SHOTS}52-editeur-telephone.png` });
@@ -597,20 +638,20 @@ await test('from payment to a live site: the model bought is in the account at o
   const edit = page.getByRole('link', { name: 'Modifier mon site MICHOU' });
   assert.equal(await edit.getAttribute('href'), `/admin/editeur/?b=${st.id}`);
   await edit.click();
-  await page.getByText('Modèle MICHOU · pas encore en ligne').waitFor({ timeout: 30000 });
+  await page.getByText('Brouillon', { exact: true }).waitFor({ timeout: 30000 });
   assert.equal(await page.locator('iframe[title="Votre site"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');
   const left = page.getByRole('complementary', { name: 'Sections de la page' });
-  await left.getByRole('list').waitFor({ timeout: 60000 });
+  await left.getByRole('list').first().waitFor({ timeout: 60000 });
   // a draft: « Enregistrer » keeps it without putting anything online
   await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
   await page.getByRole('complementary', { name: 'Contenu : Grande bannière' }).getByRole('textbox').first().fill('Ma première collection');
   await page.getByRole('button', { name: 'Enregistrer' }).click();
-  await page.getByText('Enregistré', { exact: true }).waitFor();
+  await page.getByText('Brouillon enregistré. Votre site n’est pas encore en ligne.').waitFor();
   assert.equal(st.published, false); assert.deepEqual(Object.values(st.fiche.store.site.t), ['Ma première collection']);
   // « Publier »: online, at her address, with what she wrote
   await page.getByRole('button', { name: 'Publier' }).click();
-  await page.getByText('Votre site est en ligne').waitFor();
-  await page.getByText('boutique-test.store.jehre.com', { exact: true }).waitFor();
+  await page.getByText('Votre site est en ligne · boutique-test.store.jehre.com').waitFor();
+  await page.getByText('En ligne', { exact: true }).waitFor();
   assert.equal(st.published, true); assert.equal(st.fiche.store.model, 'michou'); assert.deepEqual(Object.values(st.fiche.store.site.t), ['Ma première collection']);
   assert.equal(await page.getByRole('link', { name: 'Voir mon site' }).getAttribute('href'), 'https://boutique-test.store.jehre.com');
   await page.waitForTimeout(600);
