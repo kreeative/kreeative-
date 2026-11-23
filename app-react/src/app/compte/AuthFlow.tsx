@@ -146,6 +146,8 @@ export function AuthFlow() {
     go('login');
   }
 
+  // a message goes away as soon as she corrects its field
+  const clearError = (key: string) => setErrors((all) => { if (!(key in all)) return all; const next = { ...all }; delete next[key]; return next; });
   const switchTo = (m: Mode) => { setMode(m); go(m); };
   const slug = slugify(storeName) || 'ma-boutique';
 
@@ -168,12 +170,12 @@ export function AuthFlow() {
                 <h1 ref={title} tabIndex={-1}>Créez votre compte</h1>
                 <p>Pas de mot de passe : vous recevez un code par e-mail.</p>
               </div>
-              <Field label="Votre prénom" name="firstName" autoComplete="given-name" autoCapitalize="words" maxLength={40} value={firstName} onChange={(e) => setFirstName(e.target.value)} error={errors.firstName} />
-              <Field label="Adresse e-mail" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="vous@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email}
+              <Field label="Votre prénom" name="firstName" autoComplete="given-name" autoCapitalize="words" maxLength={40} value={firstName} onChange={(e) => { setFirstName(e.target.value); clearError('firstName'); }} error={errors.firstName} />
+              <Field label="Adresse e-mail" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="vous@exemple.com" value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }} error={errors.email}
                 hint="Le code arrive en quelques secondes. Regardez aussi dans les courriers indésirables." />
-              <Field label="Numéro WhatsApp" optional name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="07 07 12 34 56" value={phone} onChange={(e) => setPhone(e.target.value)} error={errors.phone}
+              <Field label="Numéro WhatsApp" optional name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="07 07 12 34 56" value={phone} onChange={(e) => { setPhone(e.target.value); clearError('phone'); }} error={errors.phone}
                 hint="Celui où vous recevez vos commandes. Vous pourrez l’ajouter plus tard." />
-              <Check checked={consent} onChange={(e) => setConsent(e.target.checked)} error={errors.consent}>
+              <Check checked={consent} onChange={(e) => { setConsent(e.target.checked); clearError('consent'); }} error={errors.consent}>
                 J’ai lu et j’accepte la <a href={LINKS.privacy} target="_blank" rel="noopener">politique de confidentialité</a> et les <a href={LINKS.terms} target="_blank" rel="noopener">conditions d’utilisation</a> de Jehre.
               </Check>
               {failure && <Notice tone="error">{failure.text}</Notice>}
@@ -188,7 +190,7 @@ export function AuthFlow() {
                 <h1 ref={title} tabIndex={-1}>Connectez-vous</h1>
                 <p>Recevez un code par e-mail pour entrer, sans mot de passe.</p>
               </div>
-              <Field label="Adresse e-mail" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="vous@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} />
+              <Field label="Adresse e-mail" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="vous@exemple.com" value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }} error={errors.email} />
               {failure?.kind === 'no-account'
                 ? <Notice tone="warn" title="Aucun compte avec cette adresse" action={<Button variant="secondary" onClick={() => switchTo('signup')}>Créer un compte</Button>}>Vérifiez l’adresse, ou créez votre compte : c’est gratuit.</Notice>
                 : failure && <Notice tone="error">{failure.text}</Notice>}
@@ -222,7 +224,7 @@ export function AuthFlow() {
                 <h1 ref={title} tabIndex={-1}>Le nom de votre boutique</h1>
                 <p>Modifiable à tout moment.</p>
               </div>
-              <Field label="Nom de la boutique" name="store" autoComplete="organization" autoCapitalize="words" maxLength={40} value={storeName} onChange={(e) => setStoreName(e.target.value)} error={errors.store} />
+              <Field label="Nom de la boutique" name="store" autoComplete="organization" autoCapitalize="words" maxLength={40} value={storeName} onChange={(e) => { setStoreName(e.target.value); clearError('store'); }} error={errors.store} />
               <div className={styles.addr}>
                 <span>Votre adresse gratuite</span>
                 <b>jehre.com/b/{slug}</b>

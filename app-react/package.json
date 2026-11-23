@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3100",
     "typecheck": "tsc --noEmit",
-    "test": "node tests/auth.test.mjs"
+    "test": "node tests/auth.test.mjs && node tests/admin.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
