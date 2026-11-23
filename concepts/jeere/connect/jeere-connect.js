@@ -606,6 +606,11 @@
     if (t === 'LI' || t === 'DT' || t === 'DD') return 'Ligne';
     return (x.el.textContent || '').length > 70 ? 'Texte' : 'Petit texte';
   }
+  function words(el) {
+    var c = el.cloneNode(true), br = c.querySelectorAll ? c.querySelectorAll('br') : [], i;
+    for (i = 0; i < br.length; i++) br[i].parentNode.replaceChild(document.createTextNode(' '), br[i]);
+    return (c.textContent || '').replace(/\s+/g, ' ').trim();
+  }
   function label(x) {
     if (x.kind === 'i') return x.el.getAttribute('alt') || '';
     var t = (x.el.textContent || '').replace(/\s+/g, ' ').trim();
@@ -616,7 +621,7 @@
     if (!editing || !parentOrigin) return;
     var all = sections(), base = pagePath();
     var items = keyed().map(function (x) {
-      return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: label(x), text: x.kind === 't' || x.kind === 'c' ? (x.el.textContent || '').replace(/\s+/g, ' ').trim() : '', role: role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
+      return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: label(x), text: x.kind === 't' || x.kind === 'c' ? words(x.el) : '', role: role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
         tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && (x.el.textContent || '').length > 70 };
     });
     var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER' }; });
@@ -645,6 +650,33 @@
     while ((node = w.nextNode())) if (node.nodeValue.indexOf(model) !== -1) node.nodeValue = node.nodeValue.replace(re, '$1' + name);
     if (document.title.indexOf(model) !== -1) document.title = document.title.replace(re, '$1' + name);
   }
+  /* Her order of the sections of a page (store.site.o[<page>] = their numbers, in the order she wants). The page
+   * itself is not moved: the order is drawn with CSS, so every text and picture keeps its number and her changes
+   * stay on the right ones. The header and the footer never move. A list that does not match the page (a model
+   * that changed since) is ignored: the model's own order shows. */
+  function orderSections(want) {
+    var all = sections(), mov = [], i;
+    for (i = 0; i < all.length; i++) if (all[i].tagName !== 'HEADER' && all[i].tagName !== 'FOOTER') mov.push(i);
+    var P = mov.length ? all[mov[0]].parentElement : null;
+    if (!P) return;
+    mov = mov.filter(function (n) { return all[n].parentElement === P; });
+    var kids = Array.prototype.slice.call(P.children);
+    var num = function (a, b) { return a - b; };
+    var ok = !!want && want.length === mov.length && want.slice().sort(num).join() === mov.slice().sort(num).join() && want.join() !== mov.join();
+    if (!ok) {
+      if (P.hasAttribute('data-jeere-order')) {
+        P.style.display = P.getAttribute('data-jeere-order'); P.style.flexDirection = '';
+        P.removeAttribute('data-jeere-order');
+        kids.forEach(function (k) { k.style.order = ''; });
+      }
+      return;
+    }
+    if (!P.hasAttribute('data-jeere-order')) P.setAttribute('data-jeere-order', P.style.display || '');
+    P.style.display = 'flex'; P.style.flexDirection = 'column';
+    var slots = mov.map(function (n) { return kids.indexOf(all[n]); });
+    kids.forEach(function (k, idx) { k.style.order = String(idx); });
+    want.forEach(function (n, pos) { all[n].style.order = String(slots[pos]); });
+  }
   function applySite(fiche) {
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
     var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {}, ll = isObj(site.l) ? site.l : {};
@@ -652,6 +684,7 @@
     try { applyLogo(fiche); } catch (e) { /* the model's name stays */ }
     // the sections she hides (in the editor they stay, greyed, so she can bring them back)
     var hh = isObj(site.h) ? site.h : {}, base0 = pagePath();
+    try { orderSections(isObj(site.o) && Array.isArray(site.o[base0]) ? site.o[base0] : null); } catch (e) { /* the model's own order stays */ }
     sections().forEach(function (el, n) {
       var off = typeof hh[base0 + '|h|' + n] === 'string';
       if (editing || preview) { el.style.opacity = off ? '.28' : ''; el.style.display = ''; }
