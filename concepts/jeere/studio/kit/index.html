@@ -8,6 +8,7 @@
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
   <link rel="stylesheet" href="../studio-shell.css">
+  <link rel="stylesheet" href="../../creer/jcolor.css">
   <link rel="stylesheet" href="../studio-kit.css">
   <style>
     /* this page only: the controls of studio-kit.css, laid out as they sit in a panel of the Studio */
@@ -31,9 +32,9 @@
         <div class="kp-panel">
           <section class="jk-group">
             <button class="jk-group__head" type="button" aria-expanded="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>Typographie</button>
-            <div class="jk-row"><span class="jk-label">Police</span><select class="jk-select"><option>Fraunces</option><option>Inter</option><option>Poppins</option></select></div>
+            <div class="jk-row"><span class="jk-label">Police</span><select class="jk-select" aria-label="Police" data-jk-fonts><option value="Fraunces, serif">Fraunces</option><option value="Inter, sans-serif">Inter</option><option value="Poppins, sans-serif">Poppins</option><option value="Georgia, serif">Georgia</option></select></div>
             <div class="jk-row"><span class="jk-label">Taille</span><div class="jk-num"><input type="number" value="44"><span class="jk-num__unit">px</span></div></div>
-            <div class="jk-row"><span class="jk-label">Graisse</span><select class="jk-select"><option>Fine</option><option>Normale</option><option>Grasse</option></select></div>
+            <div class="jk-row"><span class="jk-label">Graisse</span><select class="jk-select" aria-label="Graisse"><option>Fine</option><option>Normale</option><option>Moyenne</option><option>Demi-grasse</option><option>Grasse</option></select></div>
             <div class="jk-row jk-row--2"><span class="jk-label">Lignes</span><div class="jk-cols">
               <div class="jk-num"><span class="jk-num__pre">↕</span><input type="number" value="51"><span class="jk-num__unit">px</span></div>
               <div class="jk-num"><span class="jk-num__pre">↔</span><input type="number" value="-2.6"><span class="jk-num__unit">px</span></div></div></div>
@@ -98,14 +99,7 @@
 
     </div>
   </main>
-  <script>
-    // this page only: the pieces answer, so the states can be seen
-    document.addEventListener('click', function (e) {
-      var t = e.target.closest('button'); if (!t) return;
-      if (t.classList.contains('jk-group__head')) t.setAttribute('aria-expanded', t.getAttribute('aria-expanded') === 'false' ? 'true' : 'false');
-      else if (t.classList.contains('jk-switch')) t.setAttribute('aria-checked', t.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
-      else if (t.parentNode.classList.contains('jk-seg')) [].forEach.call(t.parentNode.children, function (b) { b.setAttribute('aria-pressed', b === t ? 'true' : 'false'); });
-    });
-  </script>
+  <script src="../../creer/jcolor.js"></script>
+  <script src="../studio-kit.js"></script>
 </body>
 </html>

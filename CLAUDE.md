@@ -37,7 +37,7 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 - Pages légales : pas de droit ivoirien cité, pas de texte entre crochets à compléter.
 
 ## Design : le Studio (éditeurs)
-- Les couleurs viennent de `studio/studio-shell.css` (variables `--st-*`). Les contrôles viennent de `studio/studio-kit.css` (classes `jk-*`) ; la page `studio/kit/` les montre tous.
+- Les couleurs viennent de `studio/studio-shell.css` (variables `--st-*`). Les contrôles viennent de `studio/studio-kit.css` (classes `jk-*`) et leur comportement de `studio/studio-kit.js` (`JeereKit` : menu maison des listes, chiffres à glisser, couleur) ; la page `studio/kit/` les montre tous.
 - Un panneau se compose avec le kit. Ne pas dessiner un nouveau champ, une nouvelle liste ou un nouveau bouton dans un fichier à part.
 - Bordures fines (`--jk-hair`), jamais de bordure épaisse ni grise par défaut.
 - Tailles compactes : contrôles de 28 px, libellés de 11 px, valeurs de 12 px, chiffres alignés (`tabular-nums`).
