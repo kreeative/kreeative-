@@ -69,7 +69,22 @@
   .left { grid-row: 2; border-right: 0; border-top: 1px solid var(--line); padding-bottom: calc(var(--sp-6) + env(safe-area-inset-bottom)); }
 }
 
-/* a model previewed inside Jehre: the pages of the model as a row of tabs above the frame */
-.previewPages { display: flex; gap: 6px; padding: 8px var(--sp-4); overflow-x: auto; background: var(--white); border-bottom: 1px solid var(--line); scrollbar-width: none; }
-.previewPages button { flex: none; height: 34px; padding: 0 var(--sp-3); border: 0; border-radius: var(--r-pill); background: var(--white); box-shadow: inset 0 0 0 1px var(--line); font: 500 var(--fs-sm)/1 var(--font); color: var(--ink); cursor: pointer; }
-.previewPages button[aria-selected="true"] { background: var(--ink); color: var(--white); box-shadow: none; }
+/* a model previewed inside Jehre, the way a theme is shown inside Shopify: a quiet bar, then the site, centred */
+.preview { position: fixed; inset: 0; z-index: 35; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--grey-1); }
+.preview[data-full] { grid-template-rows: minmax(0, 1fr); background: var(--white); }
+.pvBar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--sp-3); width: min(1280px, 100%); margin: 0 auto; padding: var(--sp-3) var(--sp-4) var(--sp-2); }
+.pvBar > :first-child { justify-self: start; }
+.pvBar > :last-child { justify-self: end; }
+.pvSizes { display: flex; gap: 4px; }
+.pvIcon { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; color: var(--ink); cursor: pointer; }
+.pvIcon:hover { background: var(--grey-2); }
+.pvIcon[aria-pressed="true"] { background: var(--white); box-shadow: 0 0 0 1px var(--line); }
+.pvAction { min-height: 36px; padding: 0 var(--sp-4); border-radius: var(--r-pill); font-size: var(--fs-sm); white-space: nowrap; }
+.pvStage { min-width: 0; min-height: 0; width: min(1280px, 100%); margin: 0 auto; padding: var(--sp-2) var(--sp-4) 0; display: grid; place-items: start center; overflow: hidden; }
+.pvStage .frameBox { border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.preview[data-full] .pvStage { width: 100%; padding: 0; }
+.pvLeave { position: fixed; z-index: 2; top: 12px; right: 12px; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--white); color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 6px 18px rgba(17, 17, 17, .16); cursor: pointer; }
+@media (max-width: 820px) {
+  .pvBar { padding: var(--sp-2) var(--sp-3); }
+  .pvStage { padding: var(--sp-2) var(--sp-3) 0; }
+}

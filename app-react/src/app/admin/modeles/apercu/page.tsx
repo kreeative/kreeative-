@@ -6,8 +6,7 @@ import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty } from '@/components/admin/AdminShell';
 import { ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
-import { money } from '@/lib/format';
-import { MODEL_PAGES, modelBySlug, modelSite, type Model } from '@/lib/models';
+import { modelBySlug, modelSite, type Model } from '@/lib/models';
 import styles from '../../editeur/editeur.module.css';
 
 type Device = 'phone' | 'desktop';
@@ -19,7 +18,7 @@ const WIDTH: Record<Device, number> = { phone: 390, desktop: 1280 };
 export default function ModelPreviewPage() {
   const { models, model: current, store } = useAdmin();
   const [m, setM] = useState<Model | null | undefined>(undefined);
-  const [path, setPath] = useState('');
+  const [full, setFull] = useState(false);
   const [device, setDevice] = useState<Device>('desktop');
   const [room, setRoom] = useState({ w: 1000, h: 700 });
   const stage = useRef<HTMLDivElement>(null);
@@ -28,38 +27,38 @@ export default function ModelPreviewPage() {
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setRoom({ w: Math.max(240, el.clientWidth - 32), h: Math.max(320, el.clientHeight - 32) }));
+    const ro = new ResizeObserver(() => { const c = getComputedStyle(el); setRoom({ w: Math.max(240, el.clientWidth - parseFloat(c.paddingLeft) - parseFloat(c.paddingRight)), h: Math.max(320, el.clientHeight - parseFloat(c.paddingTop)) }); });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [m]);
+  }, [m, full]);
 
   if (m === undefined) return null;
   if (!m) return <Empty icon="template" title="Ce modèle n’existe pas" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>Choisissez un modèle dans la liste.</Empty>;
 
-  const pages = MODEL_PAGES[m.slug] ?? [{ path: '', name: 'Accueil' }];
   const scale = Math.min(1, room.w / WIDTH[device]);
   const mine = models.includes(m.slug);
+  const action = mine
+    ? <ButtonLink variant="secondary" className={styles.pvAction} href={current === m.slug && store ? `/admin/editeur/?b=${store.id}` : '/admin/modeles/'}>{current === m.slug ? 'Modifier mon site' : 'Utiliser ce modèle'}</ButtonLink>
+    : <ButtonLink variant="secondary" className={styles.pvAction} href={`/admin/modeles/?choisir=${m.slug}`}>Choisir ce modèle</ButtonLink>;
+  // the way a theme is shown inside Shopify: a quiet bar (back, the sizes, the button), then the site itself
   return (
-    <div className={styles.editor}>
-      <header className={styles.top}>
-        <Link className={styles.back} href="/admin/modeles/" aria-label="Retour aux modèles"><Icon name="back" size={20} /></Link>
-        <div className={styles.what}><b>Modèle {m.name}</b><span>{m.kind} · {mine ? 'il est à vous' : money(m.price)}</span></div>
-        <div className={styles.devices} role="group" aria-label="Taille de l’aperçu">
-          <button type="button" aria-pressed={device === 'phone'} onClick={() => setDevice('phone')}>Téléphone</button>
-          <button type="button" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>Ordinateur</button>
-        </div>
-        {mine
-          ? <ButtonLink className={styles.save} icon="edit" href={current === m.slug && store ? `/admin/editeur/?b=${store.id}` : '/admin/modeles/'}>{current === m.slug ? 'Modifier mon site' : 'Utiliser ce modèle'}</ButtonLink>
-          : <ButtonLink className={styles.save} href={`/admin/modeles/?choisir=${m.slug}`}>Choisir ce modèle</ButtonLink>}
-      </header>
-      {pages.length > 1 ? (
-        <div className={styles.previewPages} role="tablist" aria-label="Pages du modèle">
-          {pages.map((p) => <button key={p.path} type="button" role="tab" aria-selected={p.path === path} onClick={() => setPath(p.path)}>{p.name}</button>)}
-        </div>
-      ) : <span />}
-      <div className={styles.stage} ref={stage}>
-        <div className={styles.frameBox} style={{ width: Math.round(WIDTH[device] * scale), height: room.h }} data-device={device}>
-          <iframe key={path} title={`Modèle ${m.name}`} src={modelSite(m.slug) + path} width={WIDTH[device]} height={Math.round(room.h / scale)} style={{ transform: `scale(${scale})` }} />
+    <div className={styles.preview} data-full={full ? '' : undefined}>
+      {full ? (
+        <button type="button" className={styles.pvLeave} onClick={() => setFull(false)} aria-label="Quitter le plein écran"><Icon name="shrink" size={18} /></button>
+      ) : (
+        <header className={styles.pvBar}>
+          <Link className={styles.pvIcon} href="/admin/modeles/" aria-label="Retour aux modèles"><Icon name="back" size={18} /></Link>
+          <div className={styles.pvSizes} role="group" aria-label={`Modèle ${m.name} · ${m.kind}`}>
+            <button type="button" className={styles.pvIcon} aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')} aria-label="Ordinateur"><Icon name="desktop" size={18} /></button>
+            <button type="button" className={styles.pvIcon} aria-pressed={device === 'phone'} onClick={() => setDevice('phone')} aria-label="Téléphone"><Icon name="phone" size={18} /></button>
+            <button type="button" className={styles.pvIcon} onClick={() => setFull(true)} aria-label="Plein écran"><Icon name="expand" size={18} /></button>
+          </div>
+          {action}
+        </header>
+      )}
+      <div className={styles.pvStage} ref={stage}>
+        <div className={styles.frameBox} style={full ? { width: '100%', height: '100%', borderRadius: 0 } : { width: Math.round(WIDTH[device] * scale), height: room.h }} data-device={device}>
+          <iframe title={`Modèle ${m.name}`} src={modelSite(m.slug)} width={full ? '100%' : WIDTH[device]} height={full ? '100%' : Math.round(room.h / scale)} style={full ? undefined : { transform: `scale(${scale})` }} />
         </div>
       </div>
     </div>

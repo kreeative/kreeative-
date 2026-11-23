@@ -659,17 +659,23 @@ await test('a model is seen inside Jehre only: its link asks for an account and 
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/modeles/michou/`);
   await page.waitForURL(/\/admin\/modeles\/apercu\/\?m=michou$/);
-  await page.getByText('Modèle MICHOU', { exact: true }).waitFor();
-  await page.getByText(/Streetwear · 50.000.FCFA/).waitFor();
+  // as a theme inside Shopify: back, the sizes, full screen, one button; then the site itself
+  await page.getByRole('group', { name: 'Modèle MICHOU · Streetwear' }).waitFor();
   assert.equal(await page.locator('iframe[title="Modèle MICHOU"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');
   await page.frameLocator('iframe[title="Modèle MICHOU"]').locator('h1, h2').first().waitFor({ timeout: 30000 });
-  assert.deepEqual(await page.getByRole('tab').allInnerTexts(), ['Accueil', 'Boutique', 'Commande', 'Mentions légales']);
+  assert.equal(await page.getByRole('button', { name: 'Ordinateur' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('iframe').getAttribute('width'), '1280');
   await page.waitForTimeout(1500);
   await page.screenshot({ path: `${SHOTS}47-modele-apercu-dans-jehre.png` });
-  await page.getByRole('tab', { name: 'Boutique' }).click();
-  await page.waitForFunction(() => document.querySelector('iframe').getAttribute('src') === 'https://kreeative.xyz/concepts/michou/boutique/');
   await page.getByRole('button', { name: 'Téléphone' }).click();
   assert.equal(await page.locator('iframe').getAttribute('width'), '390');
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${SHOTS}49-modele-apercu-telephone.png` });
+  await page.getByRole('button', { name: 'Plein écran' }).click();
+  assert.equal(await page.getByRole('link', { name: 'Choisir ce modèle' }).count(), 0);
+  const box = await page.locator('iframe').boundingBox();
+  assert.equal(Math.round(box.width), 1280); assert.equal(Math.round(box.height), 860);
+  await page.getByRole('button', { name: 'Quitter le plein écran' }).click();
   // « Choisir ce modèle » leads to the three ways to get it
   await page.getByRole('link', { name: 'Choisir ce modèle' }).click();
   await page.getByRole('dialog').getByText('Comment voulez-vous l’installer ?').waitFor();
@@ -677,7 +683,6 @@ await test('a model is seen inside Jehre only: its link asks for an account and 
   // a model she owns: the preview offers to edit her site, not to buy it again
   const w2 = withModel(world(), 'seve'); const o = await open(browser, DESK, w2);
   await o.page.goto(`${BASE}/admin/modeles/apercu/?m=seve`);
-  await o.page.getByText(/Soins et cosmétiques · il est à vous/).waitFor();
   assert.equal(await o.page.getByRole('link', { name: 'Modifier mon site' }).getAttribute('href'), `/admin/editeur/?b=${w2.stores[0].id}`);
   await o.page.goto(`${BASE}/admin/modeles/apercu/?m=inconnu`);
   await o.page.getByText('Ce modèle n’existe pas').waitFor();

@@ -42,5 +42,8 @@ export const ICONS = {
   // drawn for the new front end, in the same curved stroke
   expand: { viewBox: "0 0 24 24", body: "<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\"><path d=\"M14 4h6v6\"/><path d=\"M20 4l-7 7\"/><path d=\"M10 20H4v-6\"/><path d=\"M4 20l7-7\"/></g>" },
   shrink: { viewBox: "0 0 24 24", body: "<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\"><path d=\"M19 11h-6V5\"/><path d=\"M13 11l7-7\"/><path d=\"M5 13h6v6\"/><path d=\"M11 13l-7 7\"/></g>" },
+  // from the current site's Studio set (Iconly Curved)
+  desktop: { viewBox: "0 0 24 24", body: "<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"stroke-width:calc(var(--ic-sw,1.5)*1px)\"><path d=\"M2.5 10C2.5 5.12 4.88 3.5 12 3.5C19.12 3.5 21.5 5.12 21.5 10C21.5 14.88 19.12 16.5 12 16.5C4.88 16.5 2.5 14.88 2.5 10Z\"/><path d=\"M12 16.5V20M8 20.5h8\"/></g>" },
+  phone: { viewBox: "0 0 24 24", body: "<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"stroke-width:calc(var(--ic-sw,1.5)*1px)\"><path d=\"M6 12C6 4.88 7.5 2.5 12 2.5C16.5 2.5 18 4.88 18 12C18 19.12 16.5 21.5 12 21.5C7.5 21.5 6 19.12 6 12Z\"/><path d=\"M11 18.5h2\"/></g>" },
 } as const;
 export type IconName = keyof typeof ICONS;
