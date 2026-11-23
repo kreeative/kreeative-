@@ -17,7 +17,7 @@ const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString();
 
 const store = () => ({
   id: 'aaaaaaaa-0000-4000-8000-000000000001', slug: 'awa-beaute', published: true, published_at: ago(200), custom_domain: null, domain_status: 'none', plan: 'essentiel', updated_at: '2026-11-22T10:00:00.000Z', owner: USER.id,
-  fiche: { version: 3, template: 'douce', theme: { accent: '#C2410C' }, sections: [{ id: 's1', type: 'hero' }], store: { name: 'Awa Beauté', city: 'Abidjan', whatsapp: '+2250707123456' },
+  fiche: { version: 3, template: 'douce', theme: { accent: '#C2410C' }, sections: [{ id: 's1', type: 'hero' }, { id: 's7', type: 'delivery', enabled: true, settings: { title: 'Nos frais de livraison', text: 'Texte.', zones: [{ name: 'Cocody', fee: 1500 }, { name: 'Abobo', fee: 2500 }] } }], payments: { wave: true, orange: false, cod: true }, store: { name: 'Awa Beauté', city: 'Abidjan', whatsapp: '+2250707123456' },
     products: [
       { id: 'p1', name: 'Beurre de karité brut', price: 6500, category: 'Corps', description: 'Pot de 250 g.', badge: 'best', art: 'jar', color: '#EFEEE5', image: null, photo: null },
       { id: 'p2', name: 'Savon noir au karité', price: 3000, category: 'Corps', description: '', badge: '', art: 'soap', color: '#DDD', image: null, photo: null },
@@ -48,6 +48,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/profiles') return method === 'GET' ? json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]) : json(route, 204);
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
     if (p === '/rest/v1/store_members') return json(route, 200, []);
+    if (p.startsWith('/storage/v1/object/store-media/')) { world.uploads.push(p.replace('/storage/v1/object/store-media/', '')); return json(route, 200, { Key: p }); }
     if (p === '/rest/v1/stores') {
       // the dashboard must ask for HER stores only: a query without the owner filter would return every public store
       if (method === 'GET') { if (!/owner=eq\./.test(url.search) && !/id=in\./.test(url.search)) return json(route, 200, [{ id: 'someone-else', slug: 'autre', fiche: {}, published: true }]); return json(route, 200, world.stores); }
@@ -67,7 +68,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   });
   return { ctx, page, errors };
 }
-const world = (over = {}) => { const s = store(); return { calls: [], conflict: false, profile: { id: USER.id, first_name: 'Awa', phone: '+2250707123456', store_name: 'Awa Beauté', plan: 'gratuit', studio: null, created_at: '2026-11-01T10:00:00Z' }, stores: [s], orders: orders(s.id), ...over }; };
+const world = (over = {}) => { const s = store(); return { calls: [], uploads: [], conflict: false, profile: { id: USER.id, first_name: 'Awa', phone: '+2250707123456', store_name: 'Awa Beauté', plan: 'gratuit', studio: null, created_at: '2026-11-01T10:00:00Z' }, stores: [s], orders: orders(s.id), ...over }; };
 const noOverflow = async (page) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), false, 'the page must not scroll sideways');
 const h1 = (page, text) => page.waitForFunction((t) => document.querySelector('h1')?.textContent === t, text);
 
@@ -148,7 +149,7 @@ await test('products: add, edit and delete write only the products; everything e
   assert.equal(await page.getByRole('dialog').count(), 0);
   let f = w.stores[0].fiche;
   assert.equal(f.products.length, 4); assert.deepEqual(f.products[3], { id: 'p4', name: 'Sérum éclat au baobab', price: 9500, category: 'Visage', description: '', badge: 'new', image: null, photo: null });
-  assert.equal(f.template, 'douce'); assert.deepEqual(f.sections, [{ id: 's1', type: 'hero' }]); assert.equal(f.store.name, 'Awa Beauté'); assert.deepEqual(f.theme, { accent: '#C2410C' });
+  assert.equal(f.template, 'douce'); assert.equal(f.sections.length, 2); assert.deepEqual(f.sections[0], { id: 's1', type: 'hero' }); assert.equal(f.store.name, 'Awa Beauté'); assert.deepEqual(f.theme, { accent: '#C2410C' });
   const first = w.calls.find((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH');
   assert.deepEqual(Object.keys(first.body), ['fiche']); assert.match(first.query, /updated_at=eq\./);
   // edit: the price changes, the drawing and the colour of the product stay
@@ -183,6 +184,93 @@ await test('products: a store changed elsewhere meanwhile is not overwritten', a
   await sheet.getByRole('button', { name: 'Recharger' }).click();
   await page.getByText('Beurre de karité (nouveau nom)').waitFor();
   await ctx.close();
+});
+
+await test('products: a photo is shrunk, sent to her own folder, and saved on the product', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/produits/`); await h1(page, 'Produits');
+  await page.getByText('Savon noir au karité').click();
+  const sheet = page.getByRole('dialog');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  await sheet.getByLabel('Choisir une photo').setInputFiles({ name: 'savon.png', mimeType: 'image/png', buffer: png });
+  await sheet.getByRole('button', { name: 'Changer la photo' }).waitFor();
+  assert.equal(w.uploads.length, 1); assert.match(w.uploads[0], new RegExp(`^${USER.id}/[0-9a-f]{20}-1\\.webp$`), 'under her own folder, named by its content');
+  await page.screenshot({ path: `${SHOTS}18-produit-photo.png` });
+  await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.waitForFunction(() => !document.querySelector('[role=dialog]'));
+  const saved = w.stores[0].fiche.products[1];
+  assert.match(saved.image, new RegExp(`/storage/v1/object/public/store-media/${USER.id}/[0-9a-f]{20}-1\\.webp$`)); assert.equal(saved.art, 'soap', 'the rest of the product is kept');
+  // a file that is not an image is refused, and nothing is sent
+  await page.getByText('Huile de coco vierge').click();
+  await sheet.getByLabel('Choisir une photo').setInputFiles({ name: 'liste.pdf', mimeType: 'application/pdf', buffer: Buffer.from('x') });
+  await sheet.getByText('Choisissez une image').waitFor();
+  assert.equal(w.uploads.length, 1);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('customers: one line per customer, made from her orders', async () => {
+  const w = world(); w.orders.push({ ...w.orders[0], id: 'o4', number: 4, total: 5000, created_at: ago(50) });
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/clients/`); await h1(page, 'Clients');
+  await page.getByText('Mariam K.').waitFor();
+  assert.equal(await page.locator('main ul li').count(), 3);
+  assert.match(await page.locator('main ul li').first().innerText(), /Mariam K\.[\s\S]*19\s500\sFCFA[\s\S]*2\scommandes/);
+  await page.screenshot({ path: `${SHOTS}19-clients.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('payments: the means offered and the numbers are saved; a wrong number is refused', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/paiements/`); await h1(page, 'Paiements');
+  assert.equal(await page.getByRole('switch', { name: 'Wave' }).getAttribute('aria-checked'), 'true');
+  await page.getByRole('switch', { name: 'Orange Money' }).click();
+  await page.getByLabel('Numéro qui reçoit Orange Money').fill('0707');
+  await page.getByLabel('Numéro qui reçoit Wave').fill('+225 07 79 01 16 40');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Ce numéro ne semble pas complet').waitFor();
+  assert.equal(w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').length, 0);
+  await page.getByLabel('Numéro qui reçoit Orange Money').fill('+225 05 05 12 34 56');
+  await page.screenshot({ path: `${SHOTS}21-paiements.png` });
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Enregistré.').waitFor();
+  const f = w.stores[0].fiche;
+  assert.deepEqual(f.payments, { wave: true, orange: true, cod: true }); assert.deepEqual(f.store.pay, { wavePhone: '+2250779011640', orange: '+2250505123456' });
+  assert.equal(f.store.name, 'Awa Beauté'); assert.equal(f.products.length, 3);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('delivery: zones are edited in the store\u2019s « Livraison » section, its other words kept', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/livraison/`); await h1(page, 'Livraison');
+  await page.getByLabel('Zone 1 : commune ou zone').waitFor();
+  assert.equal(await page.getByLabel('Zone 2 : frais de livraison en FCFA').inputValue(), '2500');
+  await page.getByRole('button', { name: 'Ajouter une zone' }).click();
+  await page.getByLabel('Zone 3 : commune ou zone').fill('Marcory');
+  await page.getByLabel('Zone 3 : frais de livraison en FCFA').fill('2 000');
+  await page.getByRole('button', { name: /Retirer la zone Abobo/ }).click();
+  await page.screenshot({ path: `${SHOTS}22-livraison-telephone.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Enregistré.').waitFor();
+  const sec = w.stores[0].fiche.sections[1];
+  assert.deepEqual(sec.settings.zones, [{ name: 'Cocody', fee: 1500 }, { name: 'Marcory', fee: 2000 }]); assert.equal(sec.settings.title, 'Nos frais de livraison'); assert.equal(sec.id, 's7');
+  await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('settings: the store\u2019s name and WhatsApp are saved; the menu reaches every page on a phone', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Awa');
+  await page.getByRole('button', { name: /Plus/ }).click();
+  await page.screenshot({ path: `${SHOTS}23-menu-plus.png` });
+  await page.getByRole('menuitem', { name: 'Paramètres' }).click();
+  await h1(page, 'Paramètres');
+  await page.getByLabel('Nom de la boutique').fill('Awa Beauté Naturelle');
+  await page.getByLabel(/Numéro WhatsApp/).fill('+221 77 123 45 67');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Enregistré.').waitFor();
+  const st = w.stores[0].fiche.store;
+  assert.equal(st.name, 'Awa Beauté Naturelle'); assert.equal(st.whatsapp, '+221771234567'); assert.equal(st.city, 'Abidjan');
+  await page.screenshot({ path: `${SHOTS}24-parametres-telephone.png`, fullPage: true });
+  await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
 });
 
 await browser.close();

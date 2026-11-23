@@ -2,17 +2,23 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { Icon, Logo, type IconName } from '@/components/ui/Icon';
 import { signOut } from '@/lib/account';
 import { storeName, storeUrl } from '@/lib/stores';
 import { useAdmin } from './AdminContext';
 import styles from './AdminShell.module.css';
 
-const NAV: { href: string; label: string; icon: IconName }[] = [
+interface NavItem { href: string; label: string; icon: IconName; group?: string; more?: boolean }
+// `more`: on a phone the bar shows the first three; the others are behind « Plus »
+const NAV: NavItem[] = [
   { href: '/admin/', label: 'Accueil', icon: 'home' },
   { href: '/admin/commandes/', label: 'Commandes', icon: 'receipt' },
   { href: '/admin/produits/', label: 'Produits', icon: 'tag' },
+  { href: '/admin/clients/', label: 'Clients', icon: 'users', more: true },
+  { href: '/admin/paiements/', label: 'Paiements', icon: 'wallet', group: 'Réglages', more: true },
+  { href: '/admin/livraison/', label: 'Livraison', icon: 'truck', more: true },
+  { href: '/admin/parametres/', label: 'Paramètres', icon: 'gear', more: true },
 ];
 
 /** The frame of the dashboard: the store and the menu on the left (a bar at the bottom on a phone), the page on the right. */
@@ -22,6 +28,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [menu, setMenu] = useState(false);
   useEffect(() => { setMenu(false); }, [path]);
 
+  const isOn = (href: string) => (href === '/admin/' ? path === '/admin' || path === '/admin/' : path.startsWith(href.slice(0, -1)));
   const logout = async () => { await signOut(); window.location.assign('/compte/#connexion'); };
   const initial = (account.firstName || account.email || 'J').slice(0, 1).toUpperCase();
 
@@ -45,19 +52,26 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
         <nav className={styles.nav} aria-label="Tableau de bord">
           {NAV.map((n) => {
-            const on = n.href === '/admin/' ? path === '/admin' || path === '/admin/' : path.startsWith(n.href.slice(0, -1));
-            return <Link key={n.href} href={n.href} className={on ? `${styles.item} ${styles.on}` : styles.item} aria-current={on ? 'page' : undefined}><Icon name={n.icon} size={20} /><span>{n.label}</span></Link>;
+            const on = isOn(n.href);
+            return (
+              <Fragment key={n.href}>
+                {n.group ? <p className={styles.group}>{n.group}</p> : null}
+                <Link href={n.href} className={[styles.item, on ? styles.on : '', n.more ? styles.more : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name={n.icon} size={20} /><span>{n.label}</span></Link>
+              </Fragment>
+            );
           })}
         </nav>
 
         <div className={styles.me}>
           <button type="button" className={styles.meBtn} aria-expanded={menu} aria-haspopup="menu" onClick={() => setMenu((v) => !v)}>
             <span className={styles.avatar} aria-hidden="true">{initial}</span>
+            <span className={styles.plus}><Icon name="menu" size={20} /><span>Plus</span></span>
             <span className={styles.meName}>{account.firstName || 'Mon compte'}</span>
             <Icon name="down" size={14} />
           </button>
           {menu ? (
             <div className={styles.menu} role="menu">
+              {NAV.filter((n) => n.more).map((n) => <Link key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</Link>)}
               <a role="menuitem" href="/compte/"><Icon name="user" size={18} />Mon compte</a>
               <button role="menuitem" type="button" onClick={() => void logout()}><Icon name="logout" size={18} />Se déconnecter</button>
             </div>

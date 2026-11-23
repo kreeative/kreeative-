@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button } from '@/components/ui/Button';
@@ -9,17 +9,21 @@ import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { clip } from '@/lib/account';
 import { money, plural } from '@/lib/format';
-import { newProductId, productsOf, saveProducts, type Product } from '@/lib/stores';
+import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
+import { newProductId, productPhoto, productsOf, saveProducts, type Product } from '@/lib/stores';
 import styles from '../admin.module.css';
 
 const BADGES: { id: string; label: string }[] = [{ id: '', label: 'Aucune' }, { id: 'best', label: 'Meilleure vente' }, { id: 'new', label: 'Nouveau' }, { id: 'promo', label: 'Promo' }];
-const photoOf = (p: Product): string | null => [p.photo, p.image].find((u): u is string => typeof u === 'string' && /^https:\/\//.test(u)) ?? null;
 
-interface Draft { id: string | null; name: string; price: string; category: string; description: string; badge: string }
-const draftOf = (p?: Product): Draft => ({ id: p?.id ?? null, name: p?.name ?? '', price: p ? String(p.price ?? '') : '', category: p?.category ?? '', description: p?.description ?? '', badge: typeof p?.badge === 'string' ? p.badge : '' });
+/** `photo`: what the sheet shows; `image`: her own photo to save (undefined = unchanged, null = removed) */
+interface Draft { id: string | null; name: string; price: string; category: string; description: string; badge: string; photo: string | null; image?: string | null }
+const draftOf = (p?: Product): Draft => ({ id: p?.id ?? null, name: p?.name ?? '', price: p ? String(p.price ?? '') : '', category: p?.category ?? '', description: p?.description ?? '', badge: typeof p?.badge === 'string' ? p.badge : '', photo: p ? productPhoto(p) : null });
 
 export default function ProductsPage() {
-  const { store, replaceStore, reload } = useAdmin();
+  const { account, store, replaceStore, reload } = useAdmin();
+  const file = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState('');
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -34,7 +38,7 @@ export default function ProductsPage() {
     return q ? products.filter((p) => `${p.name} ${p.category}`.toLowerCase().includes(q)) : products;
   }, [products, query]);
 
-  const close = () => { setDraft(null); setErrors({}); setProblem(''); setConfirmDelete(false); };
+  const close = () => { setDraft(null); setErrors({}); setProblem(''); setConfirmDelete(false); setPhotoError(''); };
   useEffect(() => {
     if (!draft) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
@@ -55,9 +59,20 @@ export default function ProductsPage() {
     return false;
   }
 
+  async function pickPhoto(e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f || !draft) return;
+    setUploading(true); setPhotoError('');
+    const r = await uploadPhoto(f, account.userId);
+    setUploading(false);
+    if (!r.ok) { setPhotoError(UPLOAD_ERROR[r.error]); return; }
+    setDraft((d) => (d ? { ...d, photo: r.url, image: r.url } : d));
+  }
+
   async function save(e: FormEvent) {
     e.preventDefault();
-    if (!draft || busy) return;
+    if (!draft || busy || uploading) return;
     const name = clip(draft.name, 80);
     const price = Number(draft.price.replace(/[^\d]/g, ''));
     const errs: Record<string, string> = {};
@@ -65,10 +80,10 @@ export default function ProductsPage() {
     if (!draft.price.trim() || !Number.isFinite(price) || price < 0) errs.price = 'Indiquez un prix, en chiffres.';
     setErrors(errs);
     if (Object.keys(errs).length) return;
-    const fields = { name, price, category: clip(draft.category, 40), description: draft.description.trim().slice(0, 2000), badge: draft.badge };
+    const fields = { name, price, category: clip(draft.category, 40), description: draft.description.trim().slice(0, 2000), badge: draft.badge, ...(draft.image !== undefined ? { image: draft.image, ...(draft.image === null ? { photo: null } : {}) } : {}) };
     const next = draft.id
       ? products.map((p) => (p.id === draft.id ? { ...p, ...fields } : p))          // every other field of the product is kept
-      : [...products, { id: newProductId(products), ...fields, image: null, photo: null }];
+      : [...products, { id: newProductId(products), image: null, photo: null, ...fields }];
     if (await write(next)) close();
   }
 
@@ -89,7 +104,7 @@ export default function ProductsPage() {
             {shown.length === 0 ? <p className={styles.muted}>Aucun produit ne correspond.</p>
               : <ul className={styles.products}>
                   {shown.map((p) => {
-                    const photo = photoOf(p);
+                    const photo = productPhoto(p);
                     return (
                       <li key={p.id}>
                         <button type="button" className={styles.product} onClick={() => canEdit && setDraft(draftOf(p))} disabled={!canEdit}>
@@ -113,6 +128,19 @@ export default function ProductsPage() {
               <button type="button" className={styles.close} aria-label="Fermer" onClick={close}><Icon name="close" size={18} /></button>
             </div>
             <form className={styles.block} style={{ gap: 'var(--sp-4)' }} onSubmit={save} noValidate>
+              <div className={styles.photoRow}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <span className={styles.photoBig}>{draft.photo ? <img src={draft.photo} alt="" /> : <Icon name="image" size={28} />}</span>
+                <div className={styles.block}>
+                  <span className={styles.label}>Photo</span>
+                  <div className={styles.sheetActions}>
+                    <Button variant="secondary" icon="image" busy={uploading} onClick={() => file.current?.click()}>{draft.photo ? 'Changer la photo' : 'Ajouter une photo'}</Button>
+                    {draft.photo && !uploading ? <Button variant="quiet" onClick={() => setDraft({ ...draft, photo: null, image: null })}>Retirer</Button> : null}
+                  </div>
+                  <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => void pickPhoto(e)} aria-label="Choisir une photo" />
+                </div>
+              </div>
+              {photoError ? <Notice tone="error">{photoError}</Notice> : null}
               <Field label="Nom du produit" name="name" maxLength={80} autoFocus value={draft.name} onChange={(e) => { setDraft({ ...draft, name: e.target.value }); setErrors(({ name: _n, ...rest }) => rest); }} error={errors.name} />
               <Field label="Prix (FCFA)" name="price" inputMode="numeric" placeholder="15 000" value={draft.price} onChange={(e) => { setDraft({ ...draft, price: e.target.value }); setErrors(({ price: _p, ...rest }) => rest); }} error={errors.price} />
               <Field label="Catégorie" optional name="category" maxLength={40} list="product-categories" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} hint={categories.length ? `Vos catégories : ${categories.slice(0, 5).join(', ')}` : undefined} />

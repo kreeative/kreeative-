@@ -1,3 +1,4 @@
+import demoPhotos from './demoPhotos.json';
 import { supabase } from './supabase';
 
 /* The seller's stores, products and orders, read from and written to the database (the server is the truth:
@@ -22,10 +23,25 @@ export interface Product {
   [key: string]: unknown;
 }
 
+/** How buyers pay her by mobile money: her Wave payment link and the numbers that receive each service. */
+export interface PayNumbers { wave?: string; wavePhone?: string; orange?: string; mtn?: string; moov?: string }
+export type PaymentKey = 'wave' | 'orange' | 'mtn' | 'moov' | 'cod' | 'card';
+export const PAYMENT_METHODS: { key: PaymentKey; label: string; number?: keyof PayNumbers }[] = [
+  { key: 'wave', label: 'Wave', number: 'wavePhone' },
+  { key: 'orange', label: 'Orange Money', number: 'orange' },
+  { key: 'mtn', label: 'MTN MoMo', number: 'mtn' },
+  { key: 'moov', label: 'Moov Money', number: 'moov' },
+  { key: 'cod', label: 'Paiement à la livraison' },
+];
+export interface Zone { name: string; fee: number }
+export interface Section { id: string; type: string; enabled?: boolean; settings?: Record<string, unknown>; [key: string]: unknown }
+
 export interface Fiche {
   version?: number;
-  store?: { name?: string; city?: string; tagline?: string; whatsapp?: string; niche?: string; [key: string]: unknown };
+  store?: { name?: string; city?: string; tagline?: string; whatsapp?: string; niche?: string; pay?: PayNumbers; [key: string]: unknown };
   products?: Product[];
+  payments?: Partial<Record<PaymentKey, boolean>>;
+  sections?: Section[];
   [key: string]: unknown;
 }
 
@@ -96,15 +112,48 @@ export const storeName = (s: Store): string => (typeof s.fiche?.store?.name === 
 export const storeUrl = (s: Store): string => (s.custom_domain && s.domain_status === 'verified' ? `https://${s.custom_domain}` : `https://jehre.com/b/${s.slug}`);
 export const productsOf = (s: Store): Product[] => (Array.isArray(s.fiche?.products) ? s.fiche.products : []);
 
-/** Write the products of a store. Only `products` changes in the fiche; the row's `updated_at` guards against
- *  overwriting a change made elsewhere meanwhile (another tab, a partner). */
-export async function saveProducts(store: Store, products: Product[]): Promise<{ ok: true; store: Store } | { ok: false; conflict: boolean }> {
-  const fiche: Fiche = { ...store.fiche, products };
+export type SaveResult = { ok: true; store: Store } | { ok: false; conflict: boolean };
+
+/** Write a store's fiche. The row's `updated_at` guards against overwriting a change made elsewhere meanwhile
+ *  (another tab, a partner): then nothing is written and `conflict` is true. */
+export async function saveFiche(store: Store, fiche: Fiche): Promise<SaveResult> {
   const { data, error } = await supabase().from('stores').update({ fiche }).eq('id', store.id).eq('updated_at', store.updated_at).select(STORE_COLS);
   if (error) return { ok: false, conflict: false };
   const row = (data ?? [])[0] as Omit<Store, 'role'> | undefined;
   if (!row) return { ok: false, conflict: true };
   return { ok: true, store: { ...row, role: store.role } };
+}
+
+/** Write the products of a store: only `products` changes in the fiche. */
+export const saveProducts = (store: Store, products: Product[]): Promise<SaveResult> => saveFiche(store, { ...store.fiche, products });
+
+/** The photo a product shows: her own first, then the example photo it came with, else none. */
+export function productPhoto(p: Product): string | null {
+  for (const v of [p.image, p.photo]) {
+    if (typeof v !== 'string' || !v) continue;
+    if (/^(https:\/\/|data:image\/)/.test(v)) return v;
+    const file = (demoPhotos as Record<string, string>)[v];
+    if (file) return `https://jehre.com/creer/img/demo/${file}`;
+  }
+  return null;
+}
+
+/** The delivery zones live in the « Livraison » section of the store's page. */
+export function zonesOf(s: Store): Zone[] {
+  const sec = (s.fiche.sections ?? []).find((x) => x.type === 'delivery');
+  const z = sec?.settings?.zones;
+  return Array.isArray(z) ? (z as Zone[]).filter((x) => x && typeof x.name === 'string').map((x) => ({ name: x.name, fee: Number(x.fee) || 0 })) : [];
+}
+export function withZones(fiche: Fiche, zones: Zone[]): Fiche {
+  const sections = [...(fiche.sections ?? [])];
+  const i = sections.findIndex((x) => x.type === 'delivery');
+  if (i >= 0) { const cur = sections[i]!; sections[i] = { ...cur, settings: { ...(cur.settings ?? {}), zones } }; }
+  else {
+    let n = sections.length + 1;
+    while (sections.some((x) => x.id === `s${n}`)) n++;
+    sections.push({ id: `s${n}`, type: 'delivery', enabled: true, settings: { title: 'Nos frais de livraison', text: 'Les frais de livraison de votre commune s’ajoutent à la commande.', zones } });
+  }
+  return { ...fiche, sections };
 }
 
 export function newProductId(products: Product[]): string {
