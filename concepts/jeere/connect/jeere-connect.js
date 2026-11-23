@@ -41,6 +41,23 @@
 (function () {
   'use strict';
 
+  /* A model's demo is seen inside Jehre, by a seller who has an account (jehre.com/modeles/<modèle>/). Opened on
+     its own — at its address on kreeative.xyz, or at the address Jehre's frame loads — it goes to that page,
+     which asks for the account. Only the seven demos, and only as the top page: inside Jehre's frame, in the
+     dashboard, in the editors, and on a seller's own store (another address) nothing changes. */
+  try {
+    var jmHost = location.hostname, jmSlug = null;
+    var jmA = /^\/concepts\/(anse|seve|soyeuse|michou|regard|vernie|minuit)(?:\/|$)/.exec(location.pathname);
+    var jmB = /^\/modeles\/voir\/(anse|seve|soyeuse|michou|regard|vernie|minuit)(?:\/|$)/.exec(location.pathname);
+    if (jmA && /^(www\.)?kreeative\.xyz$/.test(jmHost)) jmSlug = jmA[1];
+    else if (jmB && /^(jehre\.com|jeere\.kreeative\.xyz)$/.test(jmHost)) jmSlug = jmB[1];
+    if (jmSlug && window.top === window.self) {
+      document.documentElement.style.visibility = 'hidden';
+      location.replace('https://jehre.com/modeles/' + jmSlug + '/');
+      return;
+    }
+  } catch (e) { /* a frame we may not look out of: we are inside one, nothing to do */ }
+
   if (window.JeereConnect && window.JeereConnect.version) return; // the script twice on one page
 
   var SB_URL = 'https://aezchxfvzfoqlvzchqyk.supabase.co';
