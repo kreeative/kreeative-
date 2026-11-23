@@ -1,0 +1,67 @@
+import { SUPABASE_KEY, SUPABASE_URL, supabase } from './supabase';
+
+/* Appointments (the booking models: REGARD, VERNIE, MINUIT). Nothing is kept in the browser: services, hours,
+   rules and every appointment live on the server, behind the `bookings` function, exactly as today. */
+
+export type ApptStatus = 'en_attente' | 'confirme' | 'termine' | 'absent' | 'annule';
+export const APPT_STATUS: Record<ApptStatus, { label: string; tone: 'warn' | 'ok' | 'info' | 'err' }> = {
+  en_attente: { label: 'À confirmer', tone: 'warn' }, confirme: { label: 'Confirmé', tone: 'ok' }, termine: { label: 'Terminé', tone: 'info' },
+  absent: { label: 'Absente', tone: 'err' }, annule: { label: 'Annulé', tone: 'err' },
+};
+export const DEPOSIT_LABEL: Record<string, string> = { en_attente: 'Acompte à recevoir', recu: 'Acompte reçu', rembourse: 'Acompte remboursé', garde: 'Acompte conservé' };
+
+export interface Appointment {
+  id: string; number: number; status: ApptStatus; starts_at: string; ends_at: string;
+  service: { name?: string; duration?: number; price?: number; addons?: { name?: string }[] };
+  customer: { name?: string; phone?: string; email?: string };
+  total: number; deposit: number; deposit_status: string; currency: string; note?: string; memo?: string; source?: string;
+}
+export interface Service {
+  id: string; name: string; category: string; duration: number; price: number; from: boolean;
+  deposit: number | null; desc: string; photo: string; active: boolean; staff: string[];
+}
+/** The store's booking settings. Only the services are edited here so far; the rest travels untouched. */
+export interface BookingSettings { enabled: boolean; timezone: string; services: Service[]; [key: string]: unknown }
+export interface BookingHome { settings: BookingSettings; configured: boolean; bookingUrl: string; currency: string }
+export interface Agenda { appointments: Appointment[]; pending: Appointment[]; timezone: string; today: string }
+
+export type Reply<T> = ({ ok: true } & T) | { ok: false; message: string };
+
+async function call<T>(action: string, body: Record<string, unknown>): Promise<Reply<T>> {
+  try {
+    const { data } = await supabase().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false, message: 'Connectez-vous à votre compte Jehre.' };
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/bookings`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` }, body: JSON.stringify({ action, ...body }),
+    });
+    const j = (await r.json().catch(() => null)) as ({ ok?: boolean; message?: string } & T) | null;
+    if (j?.ok) return { ...j, ok: true };
+    return { ok: false, message: j?.message || 'Cela n’a pas fonctionné. Réessayez.' };
+  } catch { return { ok: false, message: 'La connexion a été coupée. Réessayez.' }; }
+}
+
+export async function bookingHome(storeId: string): Promise<Reply<BookingHome>> {
+  const r = await call<{ settings: BookingSettings; configured: boolean; bookingUrl: string; store: { currency?: string } }>('settings', { storeId });
+  return r.ok ? { ok: true, settings: r.settings, configured: r.configured, bookingUrl: r.bookingUrl, currency: r.store?.currency || 'XOF' } : r;
+}
+export const saveBookingSettings = (storeId: string, settings: BookingSettings) => call<{ settings: BookingSettings }>('save', { storeId, settings });
+export const agenda = (storeId: string, from: Date, to: Date) => call<Agenda>('list', { storeId, from: from.toISOString(), to: to.toISOString() });
+export const setApptStatus = (id: string, status: ApptStatus) => call<{ appointment: Appointment }>('status', { id, status });
+export const setDeposit = (id: string, depositStatus: string) => call<{ appointment: Appointment }>('deposit', { id, depositStatus });
+
+/* ---------------------------------------------------------------- dates, in the store's own time zone */
+const fmt = (tz: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('fr-FR', { timeZone: tz || 'Africa/Abidjan', ...o });
+/** « 2026-11-23 » for an instant, in the store's time zone. */
+export function dayKey(iso: string | Date, tz: string): string {
+  const p = fmt(tz, { year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(typeof iso === 'string' ? new Date(iso) : iso);
+  const g = (t: string) => p.find((x) => x.type === t)?.value ?? '';
+  return `${g('year')}-${g('month')}-${g('day')}`;
+}
+export const hour = (iso: string, tz: string): string => fmt(tz, { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+/** « lun. 23 nov. » for a day key. */
+export const dayLabel = (key: string, o: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' }): string =>
+  new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', ...o }).format(new Date(`${key}T12:00:00Z`));
+/** The day `n` days after a day key. */
+export function addDays(key: string, n: number): string { return new Date(Date.parse(`${key}T12:00:00Z`) + n * 864e5).toISOString().slice(0, 10); }
+export const durationLabel = (min: number): string => (min < 60 ? `${min} min` : `${Math.floor(min / 60)} h${min % 60 ? ` ${String(min % 60).padStart(2, '0')}` : ''}`);

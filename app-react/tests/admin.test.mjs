@@ -50,6 +50,18 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/rpc/my_models') return json(route, 200, world.models ?? []);
     if (p === '/functions/v1/billing') return json(route, 200, world.billing ?? { ok: false, message: 'Paiement simulé : rien n’est prélevé.' });
     if (p === '/functions/v1/appel') return json(route, 200, { ok: true });
+    if (p === '/functions/v1/bookings') {
+      const B = world.booking ?? (world.booking = { settings: { enabled: true, timezone: 'Africa/Abidjan', step: 30, hours: [{ day: 1, open: true }], staff: [], addons: [], payments: ['Sur place'], services: [] }, appts: [] });
+      const mine = world.stores.some((x) => x.id === body.storeId) || B.appts.some((a) => a.id === body.id);
+      if (!mine) return json(route, 403, { ok: false, message: 'Cette boutique n’est pas à vous.' });
+      if (body.action === 'settings') return json(route, 200, { ok: true, settings: B.settings, configured: B.settings.services.length > 0, store: { id: body.storeId, slug: 'boutique-test', currency: 'XOF' }, bookingUrl: 'https://jehre.com/rdv/?b=boutique-test' });
+      if (body.action === 'save') { let n = 0; B.settings = { ...body.settings, services: body.settings.services.map((x) => ({ ...x, id: x.id || `s${++n + 10}` })) }; return json(route, 200, { ok: true, settings: B.settings }); }
+      if (body.action === 'list') return json(route, 200, { ok: true, appointments: B.appts, blocks: [], pending: B.appts.filter((a) => a.status === 'en_attente'), timezone: 'Africa/Abidjan', today: new Date().toISOString().slice(0, 10) });
+      const a = B.appts.find((x) => x.id === body.id);
+      if (body.action === 'status') { if (world.bookingFails) return json(route, 409, { ok: false, message: 'Ce créneau a été repris par un autre rendez-vous.' }); a.status = body.status; return json(route, 200, { ok: true, appointment: a }); }
+      if (body.action === 'deposit') { a.deposit_status = body.depositStatus; return json(route, 200, { ok: true, appointment: a }); }
+      return json(route, 400, { ok: false });
+    }
     if (p === '/rest/v1/store_members') return json(route, 200, []);
     if (p.startsWith('/storage/v1/object/store-media/')) { world.uploads.push(p.replace('/storage/v1/object/store-media/', '')); return json(route, 200, { Key: p }); }
     if (p === '/rest/v1/stores') {
@@ -542,6 +554,90 @@ await test('editor: without a model there is nothing to edit, and no example sto
   assert.equal(await page.locator('iframe').count(), 0);
   await page.getByRole('link', { name: 'Voir les modèles' }).click();
   await h1(page, 'Modèles de designer');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+const at = (dayOffset, h, m = 0) => { const d = new Date(); d.setUTCHours(h, m, 0, 0); return new Date(d.getTime() + dayOffset * 864e5).toISOString(); };
+const appt = (id, number, status, start, name, service, extra = {}) => ({ id, number, status, starts_at: start, ends_at: new Date(Date.parse(start) + 90 * 60000).toISOString(), service: { name: service, duration: 90, price: 20000 }, customer: { name, phone: '+225 07 08 09 10 11' }, total: 20000, deposit: 0, deposit_status: '', currency: 'XOF', ...extra });
+
+await test('appointments: a booking model puts « Rendez-vous » first; requests are confirmed, the day is listed, the status is saved on the server', async () => {
+  const w = withModel(world(), 'regard');
+  w.booking = { settings: { enabled: true, timezone: 'Africa/Abidjan', step: 30, services: [{ id: 's1', name: 'Pose classique', category: 'Cils', duration: 90, price: 20000, from: false, deposit: null, desc: '', photo: '', active: true, staff: [] }], hours: [{ day: 1, open: true }], policies: { late: 'Dix minutes.' } },
+    appts: [appt('a1', 11, 'confirme', at(0, 10), 'Mariam K.', 'Pose classique', { deposit: 5000, deposit_status: 'en_attente' }), appt('a2', 12, 'en_attente', at(1, 14, 30), 'Fatou D.', 'Rehaussement'), appt('a3', 13, 'annule', at(0, 16), 'Annulée A.', 'Pose classique')] };
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/rendez-vous/`); await h1(page, 'Rendez-vous');
+  // the menu of a booking store
+  assert.deepEqual((await page.locator('aside nav a').allInnerTexts()).slice(0, 3), ['Accueil', 'Rendez-vous', 'Prestations']);
+  await page.getByText('1 demande à confirmer').waitFor();
+  await page.getByText('jehre.com/rdv/?b=boutique-test').waitFor();
+  // today: the confirmed appointment, not the cancelled one
+  const main = page.locator('main');
+  await main.getByText('Mariam K.').waitFor();
+  assert.equal(await main.getByText('Annulée A.').count(), 0);
+  assert.equal(await main.getByText('10:00').count(), 1, 'the hour is shown in the store’s time zone');
+  await page.screenshot({ path: `${SHOTS}70-rendez-vous.png`, fullPage: true });
+  // a request: confirmed from the list
+  await page.getByRole('button', { name: 'Confirmer le rendez-vous de Fatou D.' }).click();
+  await page.getByText('Aucune demande en attente').waitFor();
+  assert.equal(w.booking.appts[1].status, 'confirme');
+  assert.equal(await page.getByRole('region', { name: 'Demandes à confirmer' }).count(), 0);
+  // the detail: status and deposit
+  await main.getByText('Mariam K.').click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByText('Rendez-vous n° 11').waitFor();
+  await sheet.getByText(/5.000.FCFA · Acompte à recevoir/).waitFor();
+  await sheet.getByRole('button', { name: 'Acompte reçu' }).click();
+  await sheet.getByText(/Acompte reçu$/).waitFor();
+  assert.equal(w.booking.appts[0].deposit_status, 'recu');
+  w.bookingFails = true;
+  await sheet.getByRole('button', { name: 'Terminé' }).click();
+  await sheet.getByText('Ce créneau a été repris par un autre rendez-vous.').waitFor();
+  assert.equal(w.booking.appts[0].status, 'confirme');
+  w.bookingFails = false;
+  await sheet.getByRole('button', { name: 'Terminé' }).click();
+  await sheet.getByRole('button', { name: 'Remettre « Confirmé »' }).waitFor();
+  assert.equal(w.booking.appts[0].status, 'termine');
+  await page.keyboard.press('Escape');
+  // tomorrow
+  await page.getByRole('group', { name: 'Jours de la semaine' }).getByRole('button').nth(4).click();
+  await main.getByText('Fatou D.').waitFor();
+  await page.getByRole('button', { name: 'Revenir à aujourd’hui' }).click();
+  await main.getByText('Mariam K.').waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('services: add, edit and delete write only the services; her other booking settings travel untouched', async () => {
+  const w = withModel(world(), 'vernie'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/prestations/`); await h1(page, 'Prestations');
+  await page.getByText('Aucune prestation pour l’instant').waitFor();
+  await page.getByRole('button', { name: 'Ajouter une prestation' }).first().click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByRole('button', { name: 'Ajouter la prestation' }).click();
+  await sheet.getByText('Donnez un nom à la prestation.').waitFor();
+  assert.equal(w.calls.some((c) => c.path === '/functions/v1/bookings' && c.body.action === 'save'), false);
+  await sheet.getByLabel('Nom de la prestation').fill('Pose gel');
+  await sheet.getByLabel('Catégorie').fill('Ongles');
+  await sheet.getByLabel('Durée (minutes)').fill('75');
+  await sheet.getByLabel('Prix (FCFA)').fill('12 000');
+  await noOverflow(page);
+  await page.screenshot({ path: `${SHOTS}71-prestation-telephone.png` });
+  await sheet.getByRole('button', { name: 'Ajouter la prestation' }).click();
+  await page.locator('main').getByText('Pose gel').waitFor();
+  await page.locator('main').getByText(/Ongles · 1 h 15/).waitFor();
+  const S = () => w.booking.settings;
+  assert.deepEqual(S().services.map((x) => [x.name, x.category, x.duration, x.price, x.deposit, x.active]), [['Pose gel', 'Ongles', 75, 12000, null, true]]);
+  assert.equal(S().step, 30); assert.deepEqual(S().payments, ['Sur place']); assert.equal(S().timezone, 'Africa/Abidjan');
+  await page.getByRole('button', { name: 'Modifier Pose gel' }).click();
+  await sheet.getByLabel('Acompte').fill('3000');
+  await sheet.getByRole('switch', { name: 'Proposée à la réservation' }).click();
+  await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.locator('main').getByText(/Masquée/).waitFor();
+  assert.equal(S().services[0].deposit, 3000); assert.equal(S().services[0].active, false); assert.equal(S().services.length, 1);
+  await page.getByRole('button', { name: 'Modifier Pose gel' }).click();
+  await sheet.getByRole('button', { name: 'Supprimer cette prestation' }).click();
+  await sheet.getByRole('button', { name: 'Oui, supprimer' }).click();
+  await page.getByText('Aucune prestation pour l’instant').waitFor();
+  assert.deepEqual(S().services, []);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

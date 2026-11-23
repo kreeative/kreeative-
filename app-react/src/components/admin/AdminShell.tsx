@@ -2,16 +2,23 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Fragment, useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Icon, Logo, type IconName } from '@/components/ui/Icon';
 import { signOut } from '@/lib/account';
+import { modelBySlug } from '@/lib/models';
 import { storeName, storeUrl } from '@/lib/stores';
 import { useAdmin } from './AdminContext';
 import styles from './AdminShell.module.css';
 
 interface NavItem { href: string; label: string; icon: IconName; group?: string; more?: boolean }
+// a booking model (REGARD, VERNIE, MINUIT): appointments and services come first, as orders and products do for a shop
+const RDV: NavItem[] = [
+  { href: '/admin/', label: 'Accueil', icon: 'home' },
+  { href: '/admin/rendez-vous/', label: 'Rendez-vous', icon: 'receipt' },
+  { href: '/admin/prestations/', label: 'Prestations', icon: 'tag' },
+];
 // `more`: on a phone the bar shows the first three; the others are behind « Plus »
-const NAV: NavItem[] = [
+const SHOP: NavItem[] = [
   { href: '/admin/', label: 'Accueil', icon: 'home' },
   { href: '/admin/commandes/', label: 'Commandes', icon: 'receipt' },
   { href: '/admin/produits/', label: 'Produits', icon: 'tag' },
@@ -25,7 +32,8 @@ const NAV: NavItem[] = [
 
 /** The frame of the dashboard: the store and the menu on the left (a bar at the bottom on a phone), the page on the right. */
 export function AdminShell({ children }: { children: ReactNode }) {
-  const { account, stores, store, selectStore } = useAdmin();
+  const { account, stores, store, selectStore, model } = useAdmin();
+  const NAV = useMemo(() => (modelBySlug(model)?.rdv ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP), [model]);
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   useEffect(() => { setMenu(false); }, [path]);

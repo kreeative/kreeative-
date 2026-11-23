@@ -31,3 +31,6 @@ export function waLink(phone: string): string {
   const digits = phone.replace(/[^\d]/g, '');
   return digits ? `https://wa.me/${digits}` : '';
 }
+
+/** An amount already in the currency's own unit (18000 FCFA, 24.99 $): what the booking server sends. */
+export const price = (amount: number, currency = 'XOF'): string => money(CENTS.has((currency || 'XOF').toUpperCase()) ? Math.round(amount * 100) : amount, currency);

@@ -207,7 +207,7 @@ function SectionPanel({ section, items, fiche, userId, onEdit, onSlot }: {
   return (
     <div className={styles.form}>
       {items.map((x) => {
-        if (x.kind === 's') return <p key={x.key} className={styles.hint} data-site-key={x.key}>Vos prestations s’affichent ici. Elles se gèrent dans votre tableau de bord.</p>;
+        if (x.kind === 's') return <p key={x.key} className={styles.hint} data-site-key={x.key}>Vos prestations s’affichent ici. Elles se gèrent dans <Link href="/admin/prestations/"><b>Prestations</b></Link>.</p>;
         if (x.kind === 'p') {
           cases += 1;
           const none = 'Masquer cette case';
