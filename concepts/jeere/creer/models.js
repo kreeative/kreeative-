@@ -134,7 +134,7 @@
     productsFor: productsFor,
     LIST: LIST, INSTALL: INSTALL, installPrice: installPrice, bySlug: bySlug, match: match, priceLabel: priceLabel, fcfa: fcfa,
     thumb: function (slug, base) { return (base || '../') + 'studio/sites/thumbs/concepts--' + slug + '.webp'; },
-    demo: function (slug) { return 'https://kreeative.xyz/concepts/' + slug + '/'; },
+    demo: function (slug) { return 'https://jehre.com/modeles/' + slug + '/'; },
     want: want, wanted: wanted, forget: forget, buy: buy, mine: mine, setMine: setMine, refreshMine: refreshMine,
     // once, on the way back from the payment: did she pay for the installation?
     paidInstall: function () { var v = null; try { v = root.localStorage.getItem(KEY + '-install'); root.localStorage.removeItem(KEY + '-install'); } catch (e) { /* no storage */ } return v === '1'; }

@@ -99,6 +99,29 @@
       "dest": "/api/sitemap"
     },
     {
+      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "/modeles/$1/"
+      }
+    },
+    {
+      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit)/(.*)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
+        }
+      ],
+      "dest": "https://kreeative.xyz/concepts/$1/$2"
+    },
+    {
       "src": "^/b/([A-Za-z0-9-]+)((?:/(?:produits|pages)/[^/.?]+|/panier|/paiement)?)/?$",
       "has": [
         {

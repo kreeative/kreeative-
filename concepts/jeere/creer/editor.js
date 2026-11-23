@@ -4293,7 +4293,7 @@
     box.textContent = '';
     box.classList.add('b-tpls--custom');
     CUSTOM_MODELS.forEach((m) => {
-      const demo = `https://kreeative.xyz/concepts/${m.slug}/`;
+      const demo = `https://jehre.com/modeles/${m.slug}/`;
       const img = el('img', { src: `../studio/sites/thumbs/concepts--${m.slug}.webp`, width: '640', height: '400', alt: '', loading: 'lazy', decoding: 'async' });
       box.append(el('article', { class: 'b-tcard b-tcard--custom', 'data-model': m.slug },
         el('div', { class: 'b-tcard__shot b-tcard__shot--img', 'aria-hidden': 'true' }, img),

@@ -1108,13 +1108,13 @@
     { name: 'The Ivory Sukundu', meta: 'theivorysukundu.com · commandes, produits, codes', ext: true, thumb: '../studio/sites/thumbs/live--the-ivory-sukundu.webp' },
     { name: 'Sonia Luxury Hair', slug: 'sonia-luxury-hair', meta: 'Son site · kreeative.xyz/concepts/sonia-luxury-hair', thumb: '../studio/sites/thumbs/concepts--sonia-luxury-hair.webp' },
     { name: 'Joshua Cooker', slug: 'joshua-cooker', meta: 'Son site · kreeative.xyz/concepts/joshua-cooker', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' },
-    { name: 'ANSE', slug: 'anse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/anse', thumb: '../studio/sites/thumbs/concepts--anse.webp' },
-    { name: 'SÈVE', slug: 'seve', meta: 'Boutique de démonstration · kreeative.xyz/concepts/seve', thumb: '../studio/sites/thumbs/concepts--seve.webp' },
-    { name: 'SOYEUSE', slug: 'soyeuse', meta: 'Boutique de démonstration · kreeative.xyz/concepts/soyeuse', thumb: '../studio/sites/thumbs/concepts--soyeuse.webp' },
-    { name: 'MICHOU', slug: 'michou', meta: 'Boutique de démonstration · kreeative.xyz/concepts/michou', thumb: '../studio/sites/thumbs/concepts--michou.webp' },
-    { name: 'REGARD', slug: 'regard', meta: 'Studio de cils, rendez-vous · kreeative.xyz/concepts/regard', thumb: '../studio/sites/thumbs/concepts--regard.webp' },
-    { name: 'VERNIE', slug: 'vernie', meta: 'Studio d’ongles, rendez-vous · kreeative.xyz/concepts/vernie', thumb: '../studio/sites/thumbs/concepts--vernie.webp' },
-    { name: 'MINUIT', slug: 'minuit', meta: 'Studio cils et ongles, rendez-vous · kreeative.xyz/concepts/minuit', thumb: '../studio/sites/thumbs/concepts--minuit.webp' }
+    { name: 'ANSE', slug: 'anse', meta: 'Boutique de démonstration · jehre.com/modeles/anse', thumb: '../studio/sites/thumbs/concepts--anse.webp' },
+    { name: 'SÈVE', slug: 'seve', meta: 'Boutique de démonstration · jehre.com/modeles/seve', thumb: '../studio/sites/thumbs/concepts--seve.webp' },
+    { name: 'SOYEUSE', slug: 'soyeuse', meta: 'Boutique de démonstration · jehre.com/modeles/soyeuse', thumb: '../studio/sites/thumbs/concepts--soyeuse.webp' },
+    { name: 'MICHOU', slug: 'michou', meta: 'Boutique de démonstration · jehre.com/modeles/michou', thumb: '../studio/sites/thumbs/concepts--michou.webp' },
+    { name: 'REGARD', slug: 'regard', meta: 'Studio de cils, rendez-vous · jehre.com/modeles/regard', thumb: '../studio/sites/thumbs/concepts--regard.webp' },
+    { name: 'VERNIE', slug: 'vernie', meta: 'Studio d’ongles, rendez-vous · jehre.com/modeles/vernie', thumb: '../studio/sites/thumbs/concepts--vernie.webp' },
+    { name: 'MINUIT', slug: 'minuit', meta: 'Studio cils et ongles, rendez-vous · jehre.com/modeles/minuit', thumb: '../studio/sites/thumbs/concepts--minuit.webp' }
   ];
   // a boutique of hers not yet in the list: its project is made once (her name on it), then it is a project like the others
   function openShopProject(el) {
