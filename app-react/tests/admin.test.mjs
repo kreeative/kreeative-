@@ -47,6 +47,9 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/auth/v1/logout') return json(route, 204);
     if (p === '/rest/v1/profiles') return method === 'GET' ? json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]) : json(route, 204);
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
+    if (p === '/rest/v1/rpc/my_models') return json(route, 200, world.models ?? []);
+    if (p === '/functions/v1/billing') return json(route, 200, world.billing ?? { ok: false, message: 'Paiement simulé : rien n’est prélevé.' });
+    if (p === '/functions/v1/appel') return json(route, 200, { ok: true });
     if (p === '/rest/v1/store_members') return json(route, 200, []);
     if (p.startsWith('/storage/v1/object/store-media/')) { world.uploads.push(p.replace('/storage/v1/object/store-media/', '')); return json(route, 200, { Key: p }); }
     if (p === '/rest/v1/stores') {
@@ -306,33 +309,124 @@ await test('the product panel opens full page and comes back; on a phone it is a
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-await test('models: her store drawn in each of the three models; choosing one changes the layout only', async () => {
-  const w = world(); w.stores[0].fiche.template = 'cocody'; w.stores[0].fiche.theme = { palette: 'hibiscus', fonts: 'doux', radius: 'round', buttons: 'solid', colors: { accent: '#C2410C' } };
-  w.stores[0].fiche.sections.push({ id: 's3', type: 'products', enabled: true, settings: { title: 'Nos produits' } });
-  const { page, ctx, errors } = await open(browser, DESK, w);
-  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Modèles');
-  // the engine (the live site's renderer) draws her store, with her products, in each card
-  for (const name of ['Plateau', 'Cocody', 'Treichville']) {
-    const f = page.frameLocator(`iframe[title="Aperçu du modèle ${name}"]`);
-    await f.locator('.jst-wrap, [class*="jst"]').first().waitFor({ timeout: 30000 });
-    await f.getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
+await test('models: the seven designer models, with their price, « Choisir » and the real demo', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Modèles de designer');
+  await page.getByText('Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.').waitFor();
+  const cards = page.locator('main ul > li');
+  assert.equal(await cards.count(), 7);
+  const seen = await cards.evaluateAll((els) => els.map((li) => ({
+    name: li.querySelector('p')?.textContent, kind: li.querySelectorAll('p')[1]?.textContent,
+    price: li.querySelector('strong')?.textContent.replace(/\s/g, ' '), was: li.querySelector('s')?.textContent.replace(/\s/g, ' ') ?? '',
+    img: li.querySelector('img')?.getAttribute('src'), demo: [...li.querySelectorAll('a')].map((x) => x.getAttribute('href') + '|' + x.getAttribute('target')),
+    buttons: [...li.querySelectorAll('button, a:not(:has(img))')].map((x) => x.textContent),
+  })));
+  assert.deepEqual(seen.map((c) => [c.name, c.kind, c.price, c.was]), [
+    ['SÈVE', 'Soins et cosmétiques', '25 000 FCFA', '50 000 FCFA'], ['SOYEUSE', 'Perruques et tissages', '25 000 FCFA', '50 000 FCFA'],
+    ['MICHOU', 'Streetwear', '50 000 FCFA', '100 000 FCFA'], ['ANSE', 'Maroquinerie', '300 000 FCFA', ''],
+    ['REGARD', 'Cils et sourcils · rendez-vous', '25 000 FCFA', '50 000 FCFA'], ['VERNIE', 'Ongles · rendez-vous', '25 000 FCFA', '50 000 FCFA'],
+    ['MINUIT', 'Cils et ongles · rendez-vous', '25 000 FCFA', '50 000 FCFA']]);
+  for (const [i, slug] of ['seve', 'soyeuse', 'michou', 'anse', 'regard', 'vernie', 'minuit'].entries()) {
+    assert.equal(seen[i].img, `https://jehre.com/studio/sites/thumbs/concepts--${slug}.webp`);
+    assert.deepEqual(seen[i].demo, [`https://jehre.com/modeles/${slug}/|_blank`, `https://jehre.com/modeles/${slug}/|_blank`], 'the picture and « Voir la démo » open the real demo');
+    assert.deepEqual(seen[i].buttons, ['Choisir', 'Voir la démo']);
   }
-  assert.equal(await page.getByText('Modèle utilisé').count(), 1);
-  assert.equal(await page.locator('main ol li').count(), 8, 'the eight sections every model shares');
-  await page.waitForTimeout(1500);
-  await page.screenshot({ path: `${SHOTS}40-modeles.png`, fullPage: true });
-  await page.getByRole('button', { name: 'Voir le modèle Treichville en grand' }).click();
+  // the two buttons sit side by side, and the pictures are really loaded
+  const one = cards.nth(2), b1 = await one.getByRole('button').boundingBox(), b2 = await one.getByRole('link', { name: 'Voir la démo', exact: true }).boundingBox();
+  assert.equal(Math.round(b1.y), Math.round(b2.y)); assert.ok(b2.x > b1.x + b1.width - 1);
+  await page.waitForFunction(() => [...document.querySelectorAll('main ul img')].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30000 });
+  const body = await page.locator('main').innerText();
+  for (const old of ['Plateau', 'Cocody', 'Treichville']) assert.equal(body.includes(old), false, `${old} is no longer a model`);
+  assert.equal(await page.locator('main iframe').count(), 0);
+  await page.screenshot({ path: `${SHOTS}40-modeles-ordinateur.png`, fullPage: true });
+
+  // « Choisir »: the three ways to install it
+  await page.getByRole('button', { name: 'Choisir le modèle MICHOU' }).click();
   const sheet = page.getByRole('dialog');
-  await sheet.frameLocator('iframe').getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
-  await sheet.getByRole('button', { name: 'Ordinateur' }).click(); await page.waitForTimeout(1200);
-  await sheet.getByRole('button', { name: 'Ouvrir en grand' }).click(); await page.waitForTimeout(800);
-  await page.screenshot({ path: `${SHOTS}41-modele-apercu-ordinateur.png` });
-  await sheet.getByRole('button', { name: 'Utiliser ce modèle' }).click();
-  await page.getByText('Votre boutique utilise maintenant le modèle Treichville.').waitFor();
-  const f = w.stores[0].fiche;
-  assert.equal(f.template, 'treichville');
-  assert.deepEqual(f.theme, { palette: 'nuit', fonts: 'audacieux', radius: 'none', buttons: 'solid', colors: { accent: '#C2410C' } }, 'the colours she picked herself stay');
-  assert.equal(f.products.length, 3); assert.equal(f.sections.length, 3); assert.equal(f.store.name, 'Awa Beauté');
+  await sheet.getByText('Comment voulez-vous l’installer ?').waitFor();
+  const opts = (await sheet.getByRole('radiogroup').innerText()).replace(/\s/g, ' ');
+  for (const t of ['Je remplis moi-même', '50 000 FCFA', 'Jehre installe tout pour moi', 'Dès 150 000 FCFA', 'Un site 100 % sur mesure', 'À partir de 300 000 FCFA']) assert.ok(opts.includes(t), t);
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}41-modele-choisir.png` });
+  // she fills it herself: the card payment is asked from the server, for this model and this store
+  await sheet.getByRole('button', { name: 'Payer par carte' }).click();
+  await sheet.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
+  const bill = w.calls.find((c) => c.path === '/functions/v1/billing');
+  assert.equal(bill.body.action, 'model'); assert.equal(bill.body.model, 'michou'); assert.equal(bill.body.install, false);
+  assert.equal(bill.body.storeId, w.stores[0].id); assert.equal(bill.body.shopName, 'Awa Beauté'); assert.ok(bill.body.returnUrl.endsWith('/admin/modeles/'));
+  // the team installs it: three questions, no payment, a quote
+  await sheet.getByText('Jehre installe tout pour moi').click();
+  await sheet.getByLabel('Combien de produits ou prestations ?').selectOption('11 à 30');
+  await sheet.getByLabel('Vous avez un logo ?').selectOption('Non');
+  assert.equal(await sheet.getByLabel('Votre numéro WhatsApp').inputValue(), '+2250707123456');
+  await sheet.getByLabel('Votre numéro WhatsApp').fill('07');
+  await sheet.getByRole('button', { name: 'Recevoir mon devis' }).click();
+  await sheet.getByText('Écrivez un numéro WhatsApp complet, avec l’indicatif.').waitFor();
+  assert.equal(w.calls.some((c) => c.path === '/functions/v1/appel'), false);
+  await sheet.getByLabel('Votre numéro WhatsApp').fill('+225 07 07 12 34 56');
+  await sheet.getByRole('button', { name: 'Recevoir mon devis' }).click();
+  await page.getByText('C’est noté. Vous recevez votre devis sur WhatsApp très vite.').waitFor();
+  const ask = w.calls.find((c) => c.path === '/functions/v1/appel');
+  assert.equal(ask.body.source, 'devis-installation'); assert.equal(ask.body.firstName, 'Awa'); assert.equal(ask.body.whatsapp, '+225 07 07 12 34 56');
+  assert.ok(ask.body.need.startsWith('DEVIS INSTALLATION. Modèle : MICHOU. Produits : 11 à 30. Photos prêtes : Oui. Logo : Non.'));
+  assert.equal(await page.getByRole('dialog').count(), 0);
+  // ANSE: one price, the installation is part of it
+  await page.getByRole('button', { name: 'Choisir le modèle ANSE' }).click();
+  await page.getByRole('dialog').getByText('payé une seule fois, installation par notre équipe incluse.').waitFor();
+  assert.equal(await page.getByRole('dialog').getByRole('radio').count(), 0);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('models: a model she bought is hers; she switches model and her texts are kept for each', async () => {
+  const w = world(); w.models = [{ model: 'seve', install: false }, { model: 'soyeuse', install: false }];
+  w.stores[0].fiche.store.model = 'seve'; w.stores[0].fiche.store.site = { title: 'Mon texte SÈVE' };
+  const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Modèles de designer');
+  await page.getByText('Les modèles achetés sont à vous').waitFor();
+  assert.equal(await page.getByText('Modèle utilisé').count(), 1);
+  assert.equal(await page.getByText('Acheté · il est à vous').count(), 2);
+  await page.waitForFunction(() => [...document.querySelectorAll('main ul img')].slice(0, 2).every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30000 });
+  await noOverflow(page);
+  await page.screenshot({ path: `${SHOTS}42-modeles-telephone.png` });
+  await page.getByRole('button', { name: 'Utiliser ce modèle' }).click();
+  await page.getByText('Votre boutique utilise maintenant le modèle SOYEUSE.').waitFor();
+  const st = w.stores[0].fiche.store;
+  assert.equal(st.model, 'soyeuse'); assert.equal(st.site, undefined); assert.deepEqual(st.siteBy, { seve: { title: 'Mon texte SÈVE' } });
+  assert.equal(w.stores[0].fiche.products.length, 3); assert.equal(st.name, 'Awa Beauté');
+  // the way to choose, on a phone: a bottom sheet, the two buttons side by side
+  await page.getByRole('button', { name: 'Choisir le modèle MICHOU' }).scrollIntoViewIfNeeded();
+  await page.getByRole('button', { name: 'Choisir le modèle MICHOU' }).click();
+  await page.getByRole('dialog').getByText('Comment voulez-vous l’installer ?').waitFor(); await page.waitForTimeout(500);
+  await noOverflow(page);
+  await page.screenshot({ path: `${SHOTS}43-modele-choisir-telephone.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('phone: the bottom bar stays glued to the bottom of the screen while the page scrolls', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
+  for (const path of ['/admin/modeles/', '/admin/', '/admin/produits/']) {
+    await page.goto(`${BASE}${path}`); await page.locator('aside nav').waitFor();
+    // make sure the page is much taller than the screen, then scroll it step by step, as a thumb does
+    await page.evaluate(() => { const d = document.createElement('div'); d.style.height = '2400px'; document.querySelector('main').appendChild(d); });
+    const where = () => page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), width: Math.round(r.width), y: Math.round(window.scrollY), h: window.innerHeight }; });
+    const start = await where();
+    assert.equal(start.bottom, 844, `${path}: the bar sits on the bottom edge`); assert.equal(start.left, 0); assert.equal(start.width, 390);
+    for (const dy of [300, 500, 700, -400, 900]) {
+      await page.mouse.wheel(0, dy); await page.waitForTimeout(120);
+      const now = await where();
+      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 844);
+    }
+    const end = await where(); assert.ok(end.y > 1200, 'the page really scrolled');
+    // nothing around the bar can detach it: no ancestor transforms, filters, clips or scrolls
+    const bad = await page.evaluate(() => { const out = []; for (let e = document.querySelector('aside').parentElement; e; e = e.parentElement) { const c = getComputedStyle(e); if (c.transform !== 'none' || c.filter !== 'none' || /(hidden|auto|scroll)/.test(c.overflowX + c.overflowY) || c.contain !== 'none') out.push(e.tagName); } return out; });
+    assert.deepEqual(bad, []);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('aside')).position), 'fixed');
+    // the last thing on the page stops above the bar
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await page.waitForTimeout(150);
+    const gap = await page.evaluate(() => { const m = document.querySelector('main'); const last = m.lastElementChild.getBoundingClientRect().bottom; return document.querySelector('aside').getBoundingClientRect().top - last; });
+    assert.ok(gap >= 16, `${path}: the end of the page is hidden by the bar (${gap})`);
+    if (path === '/admin/modeles/') { await page.evaluate(() => window.scrollTo(0, 700)); await page.waitForTimeout(400); await page.screenshot({ path: `${SHOTS}44-barre-du-bas-apres-defilement.png` }); }
+  }
   assert.deepEqual(errors, []); await ctx.close();
 });
 

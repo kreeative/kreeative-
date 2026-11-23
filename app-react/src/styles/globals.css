@@ -9,7 +9,7 @@ body {
   font: 400 var(--fs)/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  overflow-x: clip;            /* clip, not hidden: « hidden » turns the page into a scroll box, and a fixed bar can then drift on a phone */
 }
 h1, h2, h3, p, ul, dl, dd, figure { margin: 0; }
 ul { padding: 0; list-style: none; }
