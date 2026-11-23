@@ -306,6 +306,36 @@ await test('the product panel opens full page and comes back; on a phone it is a
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('models: her store drawn in each of the three models; choosing one changes the layout only', async () => {
+  const w = world(); w.stores[0].fiche.template = 'cocody'; w.stores[0].fiche.theme = { palette: 'hibiscus', fonts: 'doux', radius: 'round', buttons: 'solid', colors: { accent: '#C2410C' } };
+  w.stores[0].fiche.sections.push({ id: 's3', type: 'products', enabled: true, settings: { title: 'Nos produits' } });
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Modèles');
+  // the engine (the live site's renderer) draws her store, with her products, in each card
+  for (const name of ['Plateau', 'Cocody', 'Treichville']) {
+    const f = page.frameLocator(`iframe[title="Aperçu du modèle ${name}"]`);
+    await f.locator('.jst-wrap, [class*="jst"]').first().waitFor({ timeout: 30000 });
+    await f.getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
+  }
+  assert.equal(await page.getByText('Modèle utilisé').count(), 1);
+  assert.equal(await page.locator('main ol li').count(), 8, 'the eight sections every model shares');
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${SHOTS}40-modeles.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Voir le modèle Treichville en grand' }).click();
+  const sheet = page.getByRole('dialog');
+  await sheet.frameLocator('iframe').getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
+  await sheet.getByRole('button', { name: 'Ordinateur' }).click(); await page.waitForTimeout(1200);
+  await sheet.getByRole('button', { name: 'Ouvrir en grand' }).click(); await page.waitForTimeout(800);
+  await page.screenshot({ path: `${SHOTS}41-modele-apercu-ordinateur.png` });
+  await sheet.getByRole('button', { name: 'Utiliser ce modèle' }).click();
+  await page.getByText('Votre boutique utilise maintenant le modèle Treichville.').waitFor();
+  const f = w.stores[0].fiche;
+  assert.equal(f.template, 'treichville');
+  assert.deepEqual(f.theme, { palette: 'nuit', fonts: 'audacieux', radius: 'none', buttons: 'solid', colors: { accent: '#C2410C' } }, 'the colours she picked herself stay');
+  assert.equal(f.products.length, 3); assert.equal(f.sections.length, 3); assert.equal(f.store.name, 'Awa Beauté');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await test('no figure ever leaves its card, even a very long amount on a very narrow phone', async () => {
   const w = world(); w.orders[0].total = 123456789; w.orders[1].total = 98765432;
   for (const vp of [{ width: 320, height: 640 }, PHONE, { width: 768, height: 900 }, DESK]) {

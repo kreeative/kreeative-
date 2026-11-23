@@ -16,6 +16,7 @@ const NAV: NavItem[] = [
   { href: '/admin/commandes/', label: 'Commandes', icon: 'receipt' },
   { href: '/admin/produits/', label: 'Produits', icon: 'tag' },
   { href: '/admin/clients/', label: 'Clients', icon: 'users', more: true },
+  { href: '/admin/modeles/', label: 'Modèles', icon: 'template', group: 'Boutique en ligne', more: true },
   { href: '/admin/paiements/', label: 'Paiements', icon: 'wallet', group: 'Réglages', more: true },
   { href: '/admin/livraison/', label: 'Livraison', icon: 'truck', more: true },
   { href: '/admin/parametres/', label: 'Paramètres', icon: 'gear', more: true },
