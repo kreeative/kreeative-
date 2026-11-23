@@ -447,6 +447,98 @@ await test('no figure ever leaves its card, even a very long amount on a very na
   }
 });
 
+await test('editor: sections on the left, the real store in the middle, settings on the right; nothing is live before « Enregistrer »', async () => {
+  const w = world(); w.stores[0].fiche.theme = { palette: 'hibiscus', fonts: 'doux', radius: 'round', buttons: 'solid', colors: { accent: '#C2410C' } };
+  w.stores[0].fiche.sections.push({ id: 's3', type: 'products', enabled: true, settings: { title: 'Nos produits' } });
+  const before = JSON.parse(JSON.stringify(w.stores[0].fiche));
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const left = page.getByRole('complementary', { name: 'Contenu de la boutique' });
+  await left.getByRole('list').waitFor({ timeout: 30000 });
+  assert.deepEqual(await left.locator('ol li b').allInnerTexts(), ['Grande bannière', 'Livraison', 'Produits']);
+  const shop = page.frameLocator('iframe[title="Aperçu de votre boutique"]');
+  await shop.getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
+  const save = page.getByRole('button', { name: 'Enregistrer' });
+  assert.equal(await save.isDisabled(), true);
+
+  // a section: its fields come from the engine, and the store changes as she types
+  await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
+  const right = page.getByRole('complementary', { name: 'Réglages : Grande bannière' });
+  await right.getByLabel('Titre', { exact: true }).fill('Le karité de Korhogo');
+  await right.getByLabel('Texte du bouton').fill('Voir les soins');
+  await shop.getByText('Le karité de Korhogo').first().waitFor();
+  await shop.getByText('Voir les soins').first().waitFor();
+  assert.equal(await shop.locator('[data-section-id="s1"]').evaluate((e) => getComputedStyle(e).outlineStyle), 'solid', 'the edited section is framed');
+  await page.getByText('Modifications non enregistrées').waitFor();
+  // a click in the store selects the section under it
+  await shop.locator('[data-section-id="s7"]').first().click({ position: { x: 20, y: 20 } });
+  const zones = page.getByRole('complementary', { name: 'Réglages : Livraison' });
+  assert.equal(await zones.getByLabel('Commune ou zone').first().inputValue(), 'Cocody');
+  await zones.getByLabel('Frais de livraison (FCFA)').first().fill('2000');
+  await zones.getByRole('button', { name: 'Ajouter' }).click();
+  await zones.getByLabel('Commune ou zone').nth(2).fill('Bingerville');
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${SHOTS}50-editeur-ordinateur.png` });
+  // order and visibility
+  await left.getByRole('button', { name: 'Monter Produits' }).click();
+  assert.deepEqual(await left.locator('ol li b').allInnerTexts(), ['Grande bannière', 'Produits', 'Livraison']);
+  await left.getByRole('switch', { name: 'Afficher Livraison' }).click();
+  await left.getByText('Masquée').waitFor();
+  await page.waitForFunction(() => !document.querySelector('iframe[title="Aperçu de votre boutique"]').contentDocument.querySelector('[data-section-id="s7"]'));
+  // a new section, among those the store does not have yet
+  await left.getByRole('button', { name: 'Ajouter une section' }).click();
+  const addable = await page.getByRole('dialog').locator('li b').allInnerTexts();
+  assert.deepEqual(addable, ['Bandeau d’annonce', 'Catégories', 'À propos', 'Avis clients', 'Commander sur WhatsApp']);
+  await page.getByRole('dialog').getByRole('button', { name: /Bandeau d’annonce/ }).click();
+  await page.getByRole('complementary', { name: 'Réglages : Bandeau d’annonce' }).getByLabel('Message').fill('Livraison offerte dès 20 000 FCFA');
+  await shop.getByText('Livraison offerte dès 20 000 FCFA').first().waitFor();
+  // style: a palette replaces her own colours, as in the current editor
+  await left.getByRole('tab', { name: 'Style' }).click();
+  await left.getByRole('button', { name: 'Menthe' }).click();
+  await left.getByRole('button', { name: 'Droit' }).click();
+  await left.getByRole('button', { name: 'Contour' }).click();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${SHOTS}51-editeur-style.png` });
+  // nothing was written yet
+  assert.equal(w.calls.some((c) => c.method === 'PATCH' && c.path === '/rest/v1/stores'), false);
+  assert.deepEqual(w.stores[0].fiche, before);
+  await save.click();
+  await page.getByText('Enregistré', { exact: true }).waitFor();
+  const f = w.stores[0].fiche;
+  assert.deepEqual(f.sections.map((x) => x.type), ['announcement', 'hero', 'products', 'delivery']);
+  assert.equal(f.sections[1].settings.title, 'Le karité de Korhogo'); assert.equal(f.sections[1].settings.button, 'Voir les soins');
+  assert.equal(f.sections[3].enabled, false);
+  assert.deepEqual(f.sections[3].settings.zones, [{ name: 'Cocody', fee: 2000 }, { name: 'Abobo', fee: 2500 }, { name: 'Bingerville', fee: 1500 }]);
+  assert.equal(f.sections[3].settings.title, 'Nos frais de livraison');
+  assert.equal(f.sections[0].settings.text, 'Livraison offerte dès 20 000 FCFA');
+  assert.deepEqual(f.theme, { palette: 'menthe', fonts: 'doux', radius: 'none', buttons: 'outline' });
+  assert.deepEqual(f.products, before.products); assert.deepEqual(f.store, before.store); assert.deepEqual(f.payments, before.payments);
+  assert.equal(await save.isDisabled(), true);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor on a phone: the store on top, the sections under it, the settings in a bottom sheet; a conflict overwrites nothing', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const left = page.getByRole('complementary', { name: 'Contenu de la boutique' });
+  await left.getByRole('list').waitFor({ timeout: 30000 });
+  await page.frameLocator('iframe[title="Aperçu de votre boutique"]').getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
+  await noOverflow(page);
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${SHOTS}52-editeur-telephone.png` });
+  await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByLabel('Titre', { exact: true }).fill('Bienvenue chez Awa');
+  await page.waitForTimeout(500); await noOverflow(page);
+  await page.screenshot({ path: `${SHOTS}53-editeur-telephone-reglages.png` });
+  await page.keyboard.press('Escape');
+  w.conflict = true;
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Votre boutique a changé entre-temps').waitFor();
+  assert.equal(w.stores[0].fiche.sections[0].settings, undefined);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);
