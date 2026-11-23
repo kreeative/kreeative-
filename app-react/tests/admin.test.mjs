@@ -10,14 +10,14 @@ const BASE = process.env.BASE ?? 'http://localhost:3100';
 const SHOTS = new URL('./shots/', import.meta.url).pathname;
 mkdirSync(SHOTS, { recursive: true });
 
-const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'awa@exemple.com', created_at: '2026-11-01T10:00:00Z', user_metadata: { first_name: 'Awa' }, app_metadata: {} };
+const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'kady@exemple.com', created_at: '2026-11-01T10:00:00Z', user_metadata: { first_name: 'Kady' }, app_metadata: {} };
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const session = () => ({ access_token: `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: USER.id, role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`, token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'refresh', user: USER });
 const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString();
 
 const store = () => ({
-  id: 'aaaaaaaa-0000-4000-8000-000000000001', slug: 'awa-beaute', published: true, published_at: ago(200), custom_domain: null, domain_status: 'none', plan: 'essentiel', updated_at: '2026-11-22T10:00:00.000Z', owner: USER.id,
-  fiche: { version: 3, template: 'douce', theme: { accent: '#C2410C' }, sections: [{ id: 's1', type: 'hero' }, { id: 's7', type: 'delivery', enabled: true, settings: { title: 'Nos frais de livraison', text: 'Texte.', zones: [{ name: 'Cocody', fee: 1500 }, { name: 'Abobo', fee: 2500 }] } }], payments: { wave: true, orange: false, cod: true }, store: { name: 'Awa Beauté', city: 'Abidjan', whatsapp: '+2250707123456' },
+  id: 'aaaaaaaa-0000-4000-8000-000000000001', slug: 'boutique-test', published: true, published_at: ago(200), custom_domain: null, domain_status: 'none', plan: 'essentiel', updated_at: '2026-11-22T10:00:00.000Z', owner: USER.id,
+  fiche: { version: 3, template: 'douce', theme: { accent: '#C2410C' }, sections: [{ id: 's1', type: 'hero' }, { id: 's7', type: 'delivery', enabled: true, settings: { title: 'Nos frais de livraison', text: 'Texte.', zones: [{ name: 'Cocody', fee: 1500 }, { name: 'Abobo', fee: 2500 }] } }], payments: { wave: true, orange: false, cod: true }, store: { name: 'Boutique Test', city: 'Abidjan', whatsapp: '+2250707123456' },
     products: [
       { id: 'p1', name: 'Beurre de karité brut', price: 6500, category: 'Corps', description: 'Pot de 250 g.', badge: 'best', art: 'jar', color: '#EFEEE5', image: null, photo: null },
       { id: 'p2', name: 'Savon noir au karité', price: 3000, category: 'Corps', description: '', badge: '', art: 'soap', color: '#DDD', image: null, photo: null },
@@ -71,7 +71,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   });
   return { ctx, page, errors };
 }
-const world = (over = {}) => { const s = store(); return { calls: [], uploads: [], conflict: false, profile: { id: USER.id, first_name: 'Awa', phone: '+2250707123456', store_name: 'Awa Beauté', plan: 'gratuit', studio: null, created_at: '2026-11-01T10:00:00Z' }, stores: [s], orders: orders(s.id), ...over }; };
+const world = (over = {}) => { const s = store(); return { calls: [], uploads: [], conflict: false, profile: { id: USER.id, first_name: 'Kady', phone: '+2250707123456', store_name: 'Boutique Test', plan: 'gratuit', studio: null, created_at: '2026-11-01T10:00:00Z' }, stores: [s], orders: orders(s.id), ...over }; };
 const noOverflow = async (page) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), false, 'the page must not scroll sideways');
 const h1 = (page, text) => page.waitForFunction((t) => document.querySelector('h1')?.textContent === t, text);
 
@@ -90,7 +90,7 @@ await test('without a session, the dashboard sends to the login page', async () 
 
 await test('a seller without a store sees how to create one, and no one else’s store', async () => {
   const w = world({ stores: [], orders: [] }); const { page, ctx, errors } = await open(browser, PHONE, w);
-  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Awa');
+  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady');
   await page.getByText('Pas encore de boutique').waitFor();
   assert.equal(await page.getByText('autre').count(), 0);
   assert.ok(w.calls.some((c) => c.path === '/rest/v1/stores' && /owner=eq\./.test(c.query)), 'her stores are asked by owner');
@@ -100,7 +100,7 @@ await test('a seller without a store sees how to create one, and no one else’s
 
 await test('home: sales, orders to handle, products and the last orders', async () => {
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
-  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Awa');
+  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady');
   await page.getByText('N° 3 · Mariam K.').waitFor();
   const text = await page.locator('main').innerText();
   assert.match(text, /Ventes aujourd’hui\s+14\s500\sFCFA/); assert.match(text, /Ventes sur 7 jours\s+20\s000\sFCFA/); assert.match(text, /À traiter\s+1/); assert.match(text, /Produits\s+3/);
@@ -152,7 +152,7 @@ await test('products: add, edit and delete write only the products; everything e
   assert.equal(await page.getByRole('dialog').count(), 0);
   let f = w.stores[0].fiche;
   assert.equal(f.products.length, 4); assert.deepEqual(f.products[3], { id: 'p4', name: 'Sérum éclat au baobab', price: 9500, category: 'Visage', description: '', badge: 'new', image: null, photo: null });
-  assert.equal(f.template, 'douce'); assert.equal(f.sections.length, 2); assert.deepEqual(f.sections[0], { id: 's1', type: 'hero' }); assert.equal(f.store.name, 'Awa Beauté'); assert.deepEqual(f.theme, { accent: '#C2410C' });
+  assert.equal(f.template, 'douce'); assert.equal(f.sections.length, 2); assert.deepEqual(f.sections[0], { id: 's1', type: 'hero' }); assert.equal(f.store.name, 'Boutique Test'); assert.deepEqual(f.theme, { accent: '#C2410C' });
   const first = w.calls.find((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH');
   assert.deepEqual(Object.keys(first.body), ['fiche']); assert.match(first.query, /updated_at=eq\./);
   // edit: the price changes, the drawing and the colour of the product stay
@@ -238,7 +238,7 @@ await test('payments: the means offered and the numbers are saved; a wrong numbe
   await page.getByText('Enregistré.').waitFor();
   const f = w.stores[0].fiche;
   assert.deepEqual(f.payments, { wave: true, orange: true, cod: true }); assert.deepEqual(f.store.pay, { wavePhone: '+2250779011640', orange: '+2250505123456' });
-  assert.equal(f.store.name, 'Awa Beauté'); assert.equal(f.products.length, 3);
+  assert.equal(f.store.name, 'Boutique Test'); assert.equal(f.products.length, 3);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -261,17 +261,17 @@ await test('delivery: zones are edited in the store\u2019s « Livraison » secti
 
 await test('settings: the store\u2019s name and WhatsApp are saved; the menu reaches every page on a phone', async () => {
   const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
-  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Awa');
+  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady');
   await page.getByRole('button', { name: /Plus/ }).click();
   await page.screenshot({ path: `${SHOTS}23-menu-plus.png` });
   await page.getByRole('menuitem', { name: 'Paramètres' }).click();
   await h1(page, 'Paramètres');
-  await page.getByLabel('Nom de la boutique').fill('Awa Beauté Naturelle');
+  await page.getByLabel('Nom de la boutique').fill('Boutique Test Naturelle');
   await page.getByLabel(/Numéro WhatsApp/).fill('+221 77 123 45 67');
   await page.getByRole('button', { name: 'Enregistrer' }).click();
   await page.getByText('Enregistré.').waitFor();
   const st = w.stores[0].fiche.store;
-  assert.equal(st.name, 'Awa Beauté Naturelle'); assert.equal(st.whatsapp, '+221771234567'); assert.equal(st.city, 'Abidjan');
+  assert.equal(st.name, 'Boutique Test Naturelle'); assert.equal(st.whatsapp, '+221771234567'); assert.equal(st.city, 'Abidjan');
   await page.screenshot({ path: `${SHOTS}24-parametres-telephone.png`, fullPage: true });
   await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
 });
@@ -353,7 +353,7 @@ await test('models: the seven designer models, with their price, « Choisir » a
   await sheet.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
   const bill = w.calls.find((c) => c.path === '/functions/v1/billing');
   assert.equal(bill.body.action, 'model'); assert.equal(bill.body.model, 'michou'); assert.equal(bill.body.install, false);
-  assert.equal(bill.body.storeId, w.stores[0].id); assert.equal(bill.body.shopName, 'Awa Beauté'); assert.ok(bill.body.returnUrl.endsWith('/admin/modeles/'));
+  assert.equal(bill.body.storeId, w.stores[0].id); assert.equal(bill.body.shopName, 'Boutique Test'); assert.ok(bill.body.returnUrl.endsWith('/admin/modeles/'));
   // the team installs it: three questions, no payment, a quote
   await sheet.getByText('Jehre installe tout pour moi').click();
   await sheet.getByLabel('Combien de produits ou prestations ?').selectOption('11 à 30');
@@ -367,7 +367,7 @@ await test('models: the seven designer models, with their price, « Choisir » a
   await sheet.getByRole('button', { name: 'Recevoir mon devis' }).click();
   await page.getByText('C’est noté. Vous recevez votre devis sur WhatsApp très vite.').waitFor();
   const ask = w.calls.find((c) => c.path === '/functions/v1/appel');
-  assert.equal(ask.body.source, 'devis-installation'); assert.equal(ask.body.firstName, 'Awa'); assert.equal(ask.body.whatsapp, '+225 07 07 12 34 56');
+  assert.equal(ask.body.source, 'devis-installation'); assert.equal(ask.body.firstName, 'Kady'); assert.equal(ask.body.whatsapp, '+225 07 07 12 34 56');
   assert.ok(ask.body.need.startsWith('DEVIS INSTALLATION. Modèle : MICHOU. Produits : 11 à 30. Photos prêtes : Oui. Logo : Non.'));
   assert.equal(await page.getByRole('dialog').count(), 0);
   // ANSE: one price, the installation is part of it
@@ -392,7 +392,7 @@ await test('models: a model she bought is hers; she switches model and her texts
   await page.getByText('Votre boutique utilise maintenant le modèle SOYEUSE.').waitFor();
   const st = w.stores[0].fiche.store;
   assert.equal(st.model, 'soyeuse'); assert.equal(st.site, undefined); assert.deepEqual(st.siteBy, { seve: { title: 'Mon texte SÈVE' } });
-  assert.equal(w.stores[0].fiche.products.length, 3); assert.equal(st.name, 'Awa Beauté');
+  assert.equal(w.stores[0].fiche.products.length, 3); assert.equal(st.name, 'Boutique Test');
   // the way to choose, on a phone: a bottom sheet, the two buttons side by side
   await page.getByRole('button', { name: 'Choisir le modèle MICHOU' }).scrollIntoViewIfNeeded();
   await page.getByRole('button', { name: 'Choisir le modèle MICHOU' }).click();
@@ -434,7 +434,7 @@ await test('no figure ever leaves its card, even a very long amount on a very na
   const w = world(); w.orders[0].total = 123456789; w.orders[1].total = 98765432;
   for (const vp of [{ width: 320, height: 640 }, PHONE, { width: 768, height: 900 }, DESK]) {
     const { page, ctx } = await open(browser, vp, w);
-    await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Awa'); await page.getByText('N° 3 · Mariam K.').waitFor();
+    await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady'); await page.getByText('N° 3 · Mariam K.').waitFor();
     const out = await page.evaluate(() => [...document.querySelectorAll('main dl > div')].flatMap((card) => {
       const c = card.getBoundingClientRect();
       return [...card.children].filter((el) => { const r = el.getBoundingClientRect(); return r.right > c.right + 0.5 || r.left < c.left - 0.5; }).map((el) => el.textContent);
@@ -447,95 +447,101 @@ await test('no figure ever leaves its card, even a very long amount on a very na
   }
 });
 
-await test('editor: sections on the left, the real store in the middle, settings on the right; nothing is live before « Enregistrer »', async () => {
-  const w = world(); w.stores[0].fiche.theme = { palette: 'hibiscus', fonts: 'doux', radius: 'round', buttons: 'solid', colors: { accent: '#C2410C' } };
-  w.stores[0].fiche.sections.push({ id: 's3', type: 'products', enabled: true, settings: { title: 'Nos produits' } });
+const withModel = (w, slug) => { w.models = [{ model: slug, install: false }]; w.stores[0].fiche.store.model = slug; return w; };
+
+await test('editor: it opens on HER model (the designer’s real site), nothing of the old engine; texts change on the site, nothing is live before « Enregistrer »', async () => {
+  const w = withModel(world(), 'michou');
   const before = JSON.parse(JSON.stringify(w.stores[0].fiche));
   const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/editeur/`);
-  const left = page.getByRole('complementary', { name: 'Contenu de la boutique' });
-  await left.getByRole('list').waitFor({ timeout: 30000 });
-  assert.deepEqual(await left.locator('ol li b').allInnerTexts(), ['Grande bannière', 'Livraison', 'Produits']);
-  const shop = page.frameLocator('iframe[title="Aperçu de votre boutique"]');
-  await shop.getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
+  await page.getByText('Modèle MICHOU').waitFor({ timeout: 30000 });
+  assert.equal(await page.locator('iframe[title="Votre site"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('list').waitFor({ timeout: 60000 });            // the model's page described itself
+  const names = await left.locator('ol li b').allInnerTexts();
+  assert.equal(names[0], 'En-tête'); assert.equal(names.at(-1), 'Pied de page'); assert.ok(names.length >= 4, names.join(' | '));
+  assert.deepEqual(await left.getByRole('tab').allInnerTexts(), ['Accueil', 'Boutique', 'Commande', 'Mentions légales']);
+  // none of the old engine's presets
+  const ui = await page.locator('body').innerText();
+  for (const old of ['Menthe', 'Sable', 'Hibiscus', 'Karité', 'Plateau', 'Treichville', 'Style', 'Ajouter une section']) assert.equal(ui.includes(old), false, `« ${old} » belongs to the old editor`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
   const save = page.getByRole('button', { name: 'Enregistrer' });
   assert.equal(await save.isDisabled(), true);
 
-  // a section: its fields come from the engine, and the store changes as she types
+  // a section opens on what it holds; a text changes on the site as she types
   await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
-  const right = page.getByRole('complementary', { name: 'Réglages : Grande bannière' });
-  await right.getByLabel('Titre', { exact: true }).fill('Le karité de Korhogo');
-  await right.getByLabel('Texte du bouton').fill('Voir les soins');
-  await shop.getByText('Le karité de Korhogo').first().waitFor();
-  await shop.getByText('Voir les soins').first().waitFor();
-  assert.equal(await shop.locator('[data-section-id="s1"]').evaluate((e) => getComputedStyle(e).outlineStyle), 'solid', 'the edited section is framed');
+  const right = page.getByRole('complementary', { name: 'Contenu : Grande bannière' });
+  const title = right.getByRole('textbox').first();
+  const was = await title.inputValue();
+  assert.ok(was.length > 0, 'the field starts with the model’s own text');
+  await title.fill('Collection Test 2027');
+  await site.getByText('Collection Test 2027').first().waitFor({ timeout: 15000 });
   await page.getByText('Modifications non enregistrées').waitFor();
-  // a click in the store selects the section under it
-  await shop.locator('[data-section-id="s7"]').first().click({ position: { x: 20, y: 20 } });
-  const zones = page.getByRole('complementary', { name: 'Réglages : Livraison' });
-  assert.equal(await zones.getByLabel('Commune ou zone').first().inputValue(), 'Cocody');
-  await zones.getByLabel('Frais de livraison (FCFA)').first().fill('2000');
-  await zones.getByRole('button', { name: 'Ajouter' }).click();
-  await zones.getByLabel('Commune ou zone').nth(2).fill('Bingerville');
-  await page.waitForTimeout(600);
+  await right.getByRole('button', { name: 'Remettre le texte du modèle' }).waitFor();
+  await page.waitForTimeout(800);
   await page.screenshot({ path: `${SHOTS}50-editeur-ordinateur.png` });
-  // order and visibility
-  await left.getByRole('button', { name: 'Monter Produits' }).click();
-  assert.deepEqual(await left.locator('ol li b').allInnerTexts(), ['Grande bannière', 'Produits', 'Livraison']);
-  await left.getByRole('switch', { name: 'Afficher Livraison' }).click();
+  // a click on the site opens the field of what was clicked
+  const target = site.locator('footer [data-jeere-pickable="t"]').first();
+  const clicked = (await target.innerText()).replace(/\s+/g, ' ').trim();
+  await target.click();
+  await page.getByRole('complementary', { name: 'Contenu : Pied de page' }).waitFor();
+  await page.waitForFunction(() => !!document.activeElement?.closest('[data-site-key]'), null, { timeout: 10000 });
+  const focused = await page.evaluate(() => document.activeElement.value.replace(/\s+/g, ' ').trim());
+  assert.ok(clicked.toLowerCase().includes(focused.toLowerCase()) || focused.toLowerCase().includes(clicked.toLowerCase()), `clicked « ${clicked} », field « ${focused} »`);
+  // a section can be hidden (not the header, not the footer)
+  const sw = left.getByRole('switch');
+  assert.equal(await sw.count(), names.length - 2);
+  await sw.nth(1).click();
   await left.getByText('Masquée').waitFor();
-  await page.waitForFunction(() => !document.querySelector('iframe[title="Aperçu de votre boutique"]').contentDocument.querySelector('[data-section-id="s7"]'));
-  // a new section, among those the store does not have yet
-  await left.getByRole('button', { name: 'Ajouter une section' }).click();
-  const addable = await page.getByRole('dialog').locator('li b').allInnerTexts();
-  assert.deepEqual(addable, ['Bandeau d’annonce', 'Catégories', 'À propos', 'Avis clients', 'Commander sur WhatsApp']);
-  await page.getByRole('dialog').getByRole('button', { name: /Bandeau d’annonce/ }).click();
-  await page.getByRole('complementary', { name: 'Réglages : Bandeau d’annonce' }).getByLabel('Message').fill('Livraison offerte dès 20 000 FCFA');
-  await shop.getByText('Livraison offerte dès 20 000 FCFA').first().waitFor();
-  // style: a palette replaces her own colours, as in the current editor
-  await left.getByRole('tab', { name: 'Style' }).click();
-  await left.getByRole('button', { name: 'Menthe' }).click();
-  await left.getByRole('button', { name: 'Droit' }).click();
-  await left.getByRole('button', { name: 'Contour' }).click();
-  await page.waitForTimeout(600);
-  await page.screenshot({ path: `${SHOTS}51-editeur-style.png` });
+  // another page of the model
+  await left.getByRole('tab', { name: 'Boutique' }).click();
+  await page.waitForFunction(() => document.querySelector('iframe[title="Votre site"]').getAttribute('src') === 'https://kreeative.xyz/concepts/michou/boutique/');
+  await left.getByRole('list').waitFor({ timeout: 60000 });
   // nothing was written yet
   assert.equal(w.calls.some((c) => c.method === 'PATCH' && c.path === '/rest/v1/stores'), false);
-  assert.deepEqual(w.stores[0].fiche, before);
   await save.click();
   await page.getByText('Enregistré', { exact: true }).waitFor();
   const f = w.stores[0].fiche;
-  assert.deepEqual(f.sections.map((x) => x.type), ['announcement', 'hero', 'products', 'delivery']);
-  assert.equal(f.sections[1].settings.title, 'Le karité de Korhogo'); assert.equal(f.sections[1].settings.button, 'Voir les soins');
-  assert.equal(f.sections[3].enabled, false);
-  assert.deepEqual(f.sections[3].settings.zones, [{ name: 'Cocody', fee: 2000 }, { name: 'Abobo', fee: 2500 }, { name: 'Bingerville', fee: 1500 }]);
-  assert.equal(f.sections[3].settings.title, 'Nos frais de livraison');
-  assert.equal(f.sections[0].settings.text, 'Livraison offerte dès 20 000 FCFA');
-  assert.deepEqual(f.theme, { palette: 'menthe', fonts: 'doux', radius: 'none', buttons: 'outline' });
-  assert.deepEqual(f.products, before.products); assert.deepEqual(f.store, before.store); assert.deepEqual(f.payments, before.payments);
-  assert.equal(await save.isDisabled(), true);
+  assert.deepEqual(Object.values(f.store.site.t), ['Collection Test 2027']);
+  assert.match(Object.keys(f.store.site.t)[0], /^\/\|t\|\d+$/);
+  assert.deepEqual(Object.values(f.store.site.h), ['1']);
+  assert.equal(f.store.model, 'michou');
+  // her store is otherwise untouched: no preset section, palette or product was added
+  assert.deepEqual({ ...f, store: { ...f.store, site: undefined } }, { ...before, store: { ...before.store, site: undefined } });
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-await test('editor on a phone: the store on top, the sections under it, the settings in a bottom sheet; a conflict overwrites nothing', async () => {
-  const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
+await test('editor on a phone: her site on top, the sections under it, the content in a bottom sheet; a booking model works the same', async () => {
+  const w = withModel(world(), 'regard'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);
-  const left = page.getByRole('complementary', { name: 'Contenu de la boutique' });
-  await left.getByRole('list').waitFor({ timeout: 30000 });
-  await page.frameLocator('iframe[title="Aperçu de votre boutique"]').getByText('Beurre de karité brut').first().waitFor({ timeout: 30000 });
+  await page.getByText('Modèle REGARD').waitFor({ timeout: 30000 });
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('list').waitFor({ timeout: 60000 });
+  assert.equal(await left.getByRole('tab').count(), 0, 'a one-page model has no page tabs');
   await noOverflow(page);
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(1500);
   await page.screenshot({ path: `${SHOTS}52-editeur-telephone.png` });
   await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
   const sheet = page.getByRole('dialog');
-  await sheet.getByLabel('Titre', { exact: true }).fill('Bienvenue chez Awa');
+  await sheet.getByRole('textbox').first().fill('Regard Test');
+  await page.frameLocator('iframe[title="Votre site"]').getByText('Regard Test').first().waitFor({ timeout: 15000 });
   await page.waitForTimeout(500); await noOverflow(page);
-  await page.screenshot({ path: `${SHOTS}53-editeur-telephone-reglages.png` });
+  await page.screenshot({ path: `${SHOTS}53-editeur-telephone-contenu.png` });
   await page.keyboard.press('Escape');
   w.conflict = true;
   await page.getByRole('button', { name: 'Enregistrer' }).click();
   await page.getByText('Votre boutique a changé entre-temps').waitFor();
-  assert.equal(w.stores[0].fiche.sections[0].settings, undefined);
+  assert.equal(w.stores[0].fiche.store.site, undefined);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor: without a model there is nothing to edit, and no example store is shown', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  await page.getByText('Choisissez d’abord un modèle').waitFor({ timeout: 30000 });
+  assert.equal(await page.locator('iframe').count(), 0);
+  await page.getByRole('link', { name: 'Voir les modèles' }).click();
+  await h1(page, 'Modèles de designer');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

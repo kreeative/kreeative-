@@ -11,7 +11,7 @@ const BASE = process.env.BASE ?? 'http://localhost:3100';
 const SHOTS = new URL('./shots/', import.meta.url).pathname;
 mkdirSync(SHOTS, { recursive: true });
 
-const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'awa@exemple.com', created_at: '2026-11-23T10:00:00Z', user_metadata: { first_name: 'Awa' }, app_metadata: {} };
+const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'kady@exemple.com', created_at: '2026-11-23T10:00:00Z', user_metadata: { first_name: 'Kady' }, app_metadata: {} };
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const jwt = () => `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: USER.id, email: USER.email, role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`;
 const session = () => ({ access_token: jwt(), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'refresh', user: USER });
@@ -77,28 +77,28 @@ await test('sign-up: an empty form says what is missing, and nothing is sent', a
 await test('sign-up: code, store name, « Compte créé »; the profile and the local copy are written', async () => {
   const w = newWorld(); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/compte/?ref=tiktok`); await page.waitForSelector('h1');
-  await page.getByLabel('Votre prénom').fill('Awa');
-  await page.getByLabel('Adresse e-mail').fill(' Awa@Exemple.com ');
+  await page.getByLabel('Votre prénom').fill('Kady');
+  await page.getByLabel('Adresse e-mail').fill(' Kady@Exemple.com ');
   await page.getByLabel(/Numéro WhatsApp/).fill('07 07 12 34 56');
   await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: 'Recevoir mon code' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
   const otp = w.calls.find((c) => c.path === '/auth/v1/otp');
-  assert.equal(otp.body.email, 'awa@exemple.com'); assert.equal(otp.body.create_user, true);
-  assert.deepEqual(otp.body.data, { first_name: 'Awa', source: 'tiktok' });
-  assert.match(await page.locator('main').innerText(), /a•+@exemple\.com/);
+  assert.equal(otp.body.email, 'kady@exemple.com'); assert.equal(otp.body.create_user, true);
+  assert.deepEqual(otp.body.data, { first_name: 'Kady', source: 'tiktok' });
+  assert.match(await page.locator('main').innerText(), /k•+@exemple\.com/);
   await page.screenshot({ path: `${SHOTS}03-code.png`, fullPage: true });
   await typeCode(page, '123456');                       // the sixth digit validates by itself
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Le nom de votre boutique');
-  assert.equal(w.profile.first_name, 'Awa'); assert.equal(w.profile.phone, '+2250707123456');
-  await page.getByLabel('Nom de la boutique').fill('Awa Beauté');
-  assert.match(await page.locator('main').innerText(), /jehre\.com\/b\/awa-beaute/);
+  assert.equal(w.profile.first_name, 'Kady'); assert.equal(w.profile.phone, '+2250707123456');
+  await page.getByLabel('Nom de la boutique').fill('Boutique Test');
+  assert.match(await page.locator('main').innerText(), /jehre\.com\/b\/boutique-test/);
   await page.screenshot({ path: `${SHOTS}04-boutique.png`, fullPage: true });
   await page.getByRole('button', { name: 'Créer mon compte' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Compte créé');
-  assert.equal(w.profile.store_name, 'Awa Beauté');
+  assert.equal(w.profile.store_name, 'Boutique Test');
   const acc = await page.evaluate(() => JSON.parse(localStorage.getItem('jeere-account')));
-  assert.equal(acc.userId, USER.id); assert.equal(acc.storeName, 'Awa Beauté'); assert.equal(acc.firstName, 'Awa'); assert.equal(acc.loggedIn, true); assert.equal(acc.version, 1);
+  assert.equal(acc.userId, USER.id); assert.equal(acc.storeName, 'Boutique Test'); assert.equal(acc.firstName, 'Kady'); assert.equal(acc.loggedIn, true); assert.equal(acc.version, 1);
   assert.ok(await page.evaluate(() => !!localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token')), 'the session is kept where the current site reads it');
   assert.equal(await page.getByRole('link', { name: /Aller au tableau de bord/ }).getAttribute('href'), '/admin/');
   await page.screenshot({ path: `${SHOTS}05-compte-cree.png`, fullPage: true });
@@ -108,7 +108,7 @@ await test('sign-up: code, store name, « Compte créé »; the profile and the 
 await test('sign-up: « Je ne veux pas de boutique » saves no name and goes to the dashboard', async () => {
   const w = newWorld(); const { page, ctx } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/compte/`); await page.waitForSelector('h1');
-  await page.getByLabel('Votre prénom').fill('Awa'); await page.getByLabel('Adresse e-mail').fill('awa@exemple.com'); await page.getByRole('checkbox').check();
+  await page.getByLabel('Votre prénom').fill('Kady'); await page.getByLabel('Adresse e-mail').fill('kady@exemple.com'); await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: 'Recevoir mon code' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
   await typeCode(page, '123456');
@@ -134,11 +134,11 @@ await test('login: an address without an account offers to create one, and no ac
 });
 
 await test('login: a wrong code is refused, the right one opens the account; logging out closes the session', async () => {
-  const w = newWorld({ known: ['awa@exemple.com'] }); Object.assign(w.profile, { first_name: 'Awa', store_name: 'Awa Beauté', phone: '+2250707123456' });
+  const w = newWorld({ known: ['kady@exemple.com'] }); Object.assign(w.profile, { first_name: 'Kady', store_name: 'Boutique Test', phone: '+2250707123456' });
   const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/compte/#connexion`); await page.waitForSelector('h1');
   await page.screenshot({ path: `${SHOTS}07-connexion-ordinateur.png` });
-  await page.getByLabel('Adresse e-mail').fill('awa@exemple.com');
+  await page.getByLabel('Adresse e-mail').fill('kady@exemple.com');
   await page.getByRole('button', { name: 'Recevoir mon code' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
   await typeCode(page, '000000');
@@ -147,10 +147,10 @@ await test('login: a wrong code is refused, the right one opens the account; log
   assert.equal(await page.evaluate(() => localStorage.getItem('jeere-account')), null);
   assert.equal(await page.locator('input[autocomplete="one-time-code"]').inputValue(), '', 'the boxes are emptied');
   await page.keyboard.type('123456');                    // the first box has the focus again
-  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Awa');
-  assert.match(await page.locator('main').innerText(), /Awa Beauté/);
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
+  assert.match(await page.locator('main').innerText(), /Boutique Test/);
   await page.screenshot({ path: `${SHOTS}09-mon-compte.png` });
-  await page.reload(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Awa');   // the session is found again
+  await page.reload(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');   // the session is found again
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');
   assert.equal(await page.evaluate(() => localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token')), null);
@@ -159,10 +159,10 @@ await test('login: a wrong code is refused, the right one opens the account; log
 });
 
 await test('a pasted code fills every box; the code can be asked again only after a minute', async () => {
-  const w = newWorld({ known: ['awa@exemple.com'] }); const { page, ctx } = await open(browser, PHONE, w);
+  const w = newWorld({ known: ['kady@exemple.com'] }); const { page, ctx } = await open(browser, PHONE, w);
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto(`${BASE}/compte/#connexion`); await page.waitForSelector('h1');
-  await page.getByLabel('Adresse e-mail').fill('awa@exemple.com');
+  await page.getByLabel('Adresse e-mail').fill('kady@exemple.com');
   await page.getByRole('button', { name: 'Recevoir mon code' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
   assert.match(await page.locator('main').innerText(), /Renvoyer dans 0:5\d|Renvoyer dans 1:00/);

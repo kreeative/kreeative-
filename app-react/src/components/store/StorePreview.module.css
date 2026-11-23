@@ -1,4 +1,0 @@
-.wrap { position: relative; overflow: hidden; background: var(--white); border-radius: var(--r-lg); box-shadow: 0 0 0 1px var(--line), 0 12px 32px -18px rgba(17, 17, 17, .3); }
-.wrap[data-device="desktop"] { border-radius: var(--r); }
-.frame { display: block; border: 0; background: var(--white); transform-origin: 0 0; }
-.note { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--sp-4); background: var(--white); color: var(--muted); font-size: var(--fs-sm); text-align: center; }

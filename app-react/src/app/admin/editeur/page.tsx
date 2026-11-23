@@ -5,49 +5,84 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty } from '@/components/admin/AdminShell';
 import { useSave } from '@/components/admin/useSave';
-import { StorePreview } from '@/components/store/StorePreview';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
-import { loadEngine, type EngineData, type EngineField, type EngineSectionType } from '@/lib/engineData';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { storeName, type Fiche, type Section } from '@/lib/stores';
+import { MODEL_PAGES, currentModel, modelBySlug, modelSite, myModels, readSiteMap, siteValue, withSiteEdit, withSlot, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
+import { storeName, type Fiche } from '@/lib/stores';
 import styles from './editeur.module.css';
 
 type Device = 'phone' | 'desktop';
-type Tab = 'sections' | 'style';
-type Values = Record<string, unknown>;
-
-const isOn = (s: Section) => s.enabled !== false;
+const WIDTH: Record<Device, number> = { phone: 390, desktop: 1280 };
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
-/** The editor of a store: its sections on the left, the real store in the middle, the settings of the chosen
- *  section on the right. Nothing is live until « Enregistrer ». The store is drawn by the engine, as in public. */
+/** The editor of a store. It opens on HER model (MICHOU, ANSE, REGARD…): the designer's real site, with her
+ *  products in it. On the left the sections of the page; a click on the site, or on a section, opens what it
+ *  holds (its texts, its pictures, its product cases). Nothing is live until « Enregistrer ». */
 export default function EditorPage() {
   const { account, store, reload } = useAdmin();
   const { busy, problem, saved, write, clear } = useSave();
-  const [engine, setEngine] = useState<EngineData | null>(null);
-  const [engineDown, setEngineDown] = useState(false);
+  const [owned, setOwned] = useState<string[] | null>(null);
   const [draft, setDraft] = useState<Fiche | null>(null);
   const [origin, setOrigin] = useState<Fiche | null>(null);
-  const [tab, setTab] = useState<Tab>('sections');
-  const [picked, setPicked] = useState('');
+  const [path, setPath] = useState('');
+  const [map, setMap] = useState<SiteMap | null>(null);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [focus, setFocus] = useState('');
   const [device, setDevice] = useState<Device>('phone');
-  const [adding, setAdding] = useState(false);
   const [phone, setPhone] = useState(false);
-  const stage = useRef<HTMLDivElement>(null);
   const [room, setRoom] = useState({ w: 390, h: 700 });
+  const frame = useRef<HTMLIFrameElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const latest = useRef<Fiche | null>(null);
+  latest.current = draft;
 
-  useEffect(() => { loadEngine().then(setEngine, () => setEngineDown(true)); }, []);
-  // the draft starts from the store as the engine reads it (every section it shows, in its order)
+  useEffect(() => { let on = true; void myModels().then((l) => { if (on) setOwned(l); }); return () => { on = false; }; }, []);
   const storeId = store?.id, stamp = store?.updated_at;
+  useEffect(() => { if (store) { setDraft(store.fiche); setOrigin(store.fiche); } }, [storeId, stamp]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const slug = owned ? currentModel(store?.fiche, owned) : '';
+  const model = modelBySlug(slug);
+  const site = model ? modelSite(model.slug) : '';
+  const siteOrigin = site ? new URL(site).origin : '';
+  const pages = model ? MODEL_PAGES[model.slug] ?? [{ path: '', name: 'Accueil' }] : [];
+
+  // the conversation with the model's page: it says it is ready, the editor sends the store being edited
+  const send = useCallback(() => {
+    const w = frame.current?.contentWindow;
+    if (!w || !model || !latest.current) return;
+    try { w.postMessage({ jeerePreview: model.slug, fiche: latest.current, edit: true }, siteOrigin); } catch { /* the page keeps the published store */ }
+  }, [model, siteOrigin]);
   useEffect(() => {
-    if (!store || !engine) return;
-    const f: Fiche = Array.isArray(store.fiche.sections) && store.fiche.sections.length ? store.fiche : { ...store.fiche, sections: engine.normalize(store.fiche).sections ?? [] };
-    setDraft(f); setOrigin(f);
-  }, [storeId, stamp, engine]);   // eslint-disable-line react-hooks/exhaustive-deps
+    if (!model) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== siteOrigin || e.source !== frame.current?.contentWindow) return;
+      const d = (e.data ?? {}) as { jeereConnect?: unknown; jeerePick?: { key?: unknown; sec?: unknown } };
+      if (d.jeereConnect === 'ready') { send(); return; }
+      const m = readSiteMap(e.data);
+      if (m) { setMap((old) => (same(old, m) ? old : m)); return; }
+      if (d.jeerePick && typeof d.jeerePick.key === 'string') {
+        if (typeof d.jeerePick.sec === 'number' && d.jeerePick.sec >= 0) setPicked(d.jeerePick.sec);
+        setFocus(d.jeerePick.key);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [model, siteOrigin, send]);
+  useEffect(() => { send(); }, [draft, send]);
+  // the field of what was clicked on the site, brought into view
+  useEffect(() => {
+    if (!focus) return;
+    const t = setTimeout(() => {
+      const n = document.querySelector(`[data-site-key="${CSS.escape(focus)}"]`);
+      n?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      (n?.querySelector('input:not([type=file]), textarea, select') as HTMLElement | null)?.focus({ preventScroll: true });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [focus, picked]);
 
   useEffect(() => {
     const q = window.matchMedia('(max-width: 820px)');
@@ -55,13 +90,14 @@ export default function EditorPage() {
     on(); q.addEventListener('change', on);
     return () => q.removeEventListener('change', on);
   }, []);
+  const ready = !!draft && !!model;
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
     const ro = new ResizeObserver(() => setRoom({ w: Math.max(240, el.clientWidth - 32), h: Math.max(320, el.clientHeight - 32) }));
     ro.observe(el);
     return () => ro.disconnect();
-  }, [draft === null]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   const dirty = !!draft && !!origin && !same(draft, origin);
   useEffect(() => {
@@ -71,54 +107,36 @@ export default function EditorPage() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  const types = useMemo(() => new Map((engine?.sectionTypes ?? []).map((t) => [t.type, t])), [engine]);
-  const sections = useMemo(() => (draft?.sections ?? []).filter((s) => types.has(s.type)), [draft, types]);
-  const current = sections.find((s) => s.id === picked);
-  const currentType = current ? types.get(current.type) : undefined;
-  const missing = (engine?.sectionTypes ?? []).filter((t) => !sections.some((s) => s.type === t.type));
-  const theme = (draft?.theme ?? {}) as Record<string, unknown>;
-
   const change = useCallback((f: (d: Fiche) => Fiche) => { clear(); setDraft((d) => (d ? f(d) : d)); }, [clear]);
-  const mapSections = (f: (list: Section[]) => Section[]) => change((d) => ({ ...d, sections: f([...(d.sections ?? [])]) }));
-  const toggle = (id: string) => mapSections((l) => l.map((s) => (s.id === id ? { ...s, enabled: !isOn(s) } : s)));
-  const move = (id: string, by: number) => mapSections((l) => {
-    const i = l.findIndex((s) => s.id === id), j = i + by;
-    if (i < 0 || j < 0 || j >= l.length) return l;
-    [l[i], l[j]] = [l[j]!, l[i]!];
-    return l;
-  });
-  const setValue = (id: string, key: string, value: unknown) => mapSections((l) => l.map((s) => (s.id === id ? { ...s, settings: { ...(s.settings ?? {}), [key]: value } } : s)));
-  const add = (t: EngineSectionType) => {
-    const id = `${t.type}-${Date.now().toString(36)}`;
-    const fresh: Section = { id, type: t.type, enabled: true, settings: {} };
-    mapSections((l) => (t.type === 'announcement' ? [fresh, ...l] : [...l, fresh]));   // the announcement bar belongs at the very top
-    setAdding(false); setPicked(id);
+  const openSection = (s: SiteSection) => {
+    setPicked(s.n); setFocus('');
+    try { frame.current?.contentWindow?.postMessage({ jeereSection: s.n }, siteOrigin); } catch { /* the list still opens it */ }
   };
-  const setTheme = (patch: Record<string, unknown>, drop: string[] = []) => change((d) => {
-    const t = { ...((d.theme as Record<string, unknown> | undefined) ?? {}), ...patch };
-    for (const k of drop) delete t[k];
-    return { ...d, theme: t };
-  });
-
+  const goPage = (p: string) => { if (p !== path) { setPath(p); setMap(null); setPicked(null); setFocus(''); } };
   async function save() {
     if (!draft || !dirty || busy) return;
     if (await write(draft)) setOrigin(draft);
   }
 
-  if (!store) return <Empty icon="store" title="Pas encore de boutique" action={<ButtonLink href="/creer/">Créer ma boutique</ButtonLink>}>Créez votre boutique pour la personnaliser ici.</Empty>;
-  if (engineDown) return <div className={styles.wait}><Notice tone="error" action={<Button variant="secondary" onClick={() => window.location.reload()}>Réessayer</Button>}>L’éditeur n’a pas pu se charger. Vérifiez votre connexion.</Notice></div>;
-  if (!engine || !draft) return <div className={styles.wait}><p>Chargement de l’éditeur…</p></div>;
+  const sections = map?.sections ?? [];
+  const current = picked === null ? undefined : sections.find((s) => s.n === picked);
+  const items = useMemo(() => (map && picked !== null ? map.items.filter((x) => x.sec === picked) : []), [map, picked]);
 
-  const settings = current && currentType ? (
-    <SectionForm key={current.id} type={currentType} values={(current.settings ?? {}) as Values} userId={account.userId}
-      onChange={(k, v) => setValue(current.id, k, v)} />
+  if (!store) return <Empty icon="store" title="Pas encore de boutique" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>Choisissez un modèle pour créer votre boutique.</Empty>;
+  if (owned === null || !draft) return <div className={styles.wait}><p>Chargement de l’éditeur…</p></div>;
+  if (!model) return <Empty icon="template" title="Choisissez d’abord un modèle" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>L’éditeur s’ouvre sur votre modèle : MICHOU, SÈVE, ANSE, REGARD… Choisissez le vôtre, puis revenez ici.</Empty>;
+
+  const scale = Math.min(1, room.w / WIDTH[device]);
+  const panel = current ? (
+    <SectionPanel section={current} items={items} fiche={draft} userId={account.userId}
+      onEdit={(kind, key, value) => change((d) => withSiteEdit(d, kind, key, value))} onSlot={(slot, value) => change((d) => withSlot(d, slot, value))} />
   ) : null;
 
   return (
     <div className={styles.editor}>
       <header className={styles.top}>
         <Link className={styles.back} href="/admin/" aria-label="Retour au tableau de bord"><Icon name="back" size={20} /></Link>
-        <div className={styles.what}><b>{storeName(store)}</b><span>{dirty ? 'Modifications non enregistrées' : saved ? 'Enregistré' : 'Éditeur'}</span></div>
+        <div className={styles.what}><b>{storeName(store)}</b><span>{dirty ? 'Modifications non enregistrées' : saved ? 'Enregistré' : `Modèle ${model.name}`}</span></div>
         <div className={styles.devices} role="group" aria-label="Taille de l’aperçu">
           <button type="button" aria-pressed={device === 'phone'} onClick={() => setDevice('phone')}>Téléphone</button>
           <button type="button" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>Ordinateur</button>
@@ -131,142 +149,96 @@ export default function EditorPage() {
         : <Notice tone="error">Rien n’a été enregistré. Vérifiez votre connexion, puis réessayez.</Notice>}</div> : null}
 
       <div className={styles.cols} data-open={current && !phone ? '' : undefined}>
-        <aside className={styles.left} aria-label="Contenu de la boutique">
-          <div className={styles.tabs} role="tablist">
-            <button type="button" role="tab" aria-selected={tab === 'sections'} onClick={() => setTab('sections')}>Sections</button>
-            <button type="button" role="tab" aria-selected={tab === 'style'} onClick={() => setTab('style')}>Style</button>
-          </div>
-
-          {tab === 'sections' ? (
-            <>
-              <ol className={styles.list}>
-                {sections.map((s, i) => (
-                  <li key={s.id} className={styles.row} data-on={picked === s.id ? '' : undefined} data-off={isOn(s) ? undefined : ''}>
-                    <button type="button" className={styles.rowMain} onClick={() => setPicked(s.id)} aria-current={picked === s.id ? 'true' : undefined}>
-                      <b>{types.get(s.type)!.name}</b>{isOn(s) ? null : <span>Masquée</span>}
-                    </button>
-                    <button type="button" className={styles.tool} disabled={i === 0} onClick={() => move(s.id, -1)} aria-label={`Monter ${types.get(s.type)!.name}`}><Icon name="chevron" size={16} className={styles.up} /></button>
-                    <button type="button" className={styles.tool} disabled={i === sections.length - 1} onClick={() => move(s.id, 1)} aria-label={`Descendre ${types.get(s.type)!.name}`}><Icon name="chevron" size={16} className={styles.down} /></button>
-                    <button type="button" role="switch" aria-checked={isOn(s)} aria-label={`Afficher ${types.get(s.type)!.name}`} className={styles.switch} onClick={() => toggle(s.id)} />
-                  </li>
-                ))}
-              </ol>
-              {missing.length ? <Button variant="secondary" icon="plus" block onClick={() => setAdding(true)}>Ajouter une section</Button> : null}
-              <p className={styles.hint}>Vos produits se gèrent dans <Link href="/admin/produits/"><b>Produits</b></Link>.</p>
-            </>
-          ) : (
-            <div className={styles.style}>
-              <fieldset><legend>Couleurs</legend>
-                <div className={styles.palettes}>
-                  {engine.palettes.map((p) => (
-                    <button key={p.id} type="button" aria-pressed={theme.palette === p.id && !theme.colors} onClick={() => setTheme({ palette: p.id }, ['colors'])} title={p.name}>
-                      <span className={styles.swatch} style={{ background: p.colors.bg }}><i style={{ background: p.colors.accent }} /><i style={{ background: p.colors.text }} /></span>
-                      <span>{p.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-              <fieldset><legend>Polices</legend>
-                <div className={styles.choices}>
-                  {engine.fontPairs.map((f) => <button key={f.id} type="button" aria-pressed={theme.fonts === f.id} onClick={() => change((d) => engine.withFonts(d, f.id))}>{f.name}</button>)}
-                </div>
-              </fieldset>
-              <fieldset><legend>Coins</legend>
-                <div className={styles.choices}>
-                  {engine.radius.map((o) => <button key={String(o.value)} type="button" aria-pressed={theme.radius === o.value} onClick={() => setTheme({ radius: o.value })}>{o.label}</button>)}
-                </div>
-              </fieldset>
-              <fieldset><legend>Boutons</legend>
-                <div className={styles.choices}>
-                  {engine.buttons.map((o) => <button key={String(o.value)} type="button" aria-pressed={theme.buttons === o.value} onClick={() => setTheme({ buttons: o.value })}>{o.label}</button>)}
-                </div>
-              </fieldset>
+        <aside className={styles.left} aria-label="Sections de la page">
+          {pages.length > 1 ? (
+            <div className={styles.pages} role="tablist" aria-label="Pages du modèle">
+              {pages.map((p) => <button key={p.path} type="button" role="tab" aria-selected={p.path === path} onClick={() => goPage(p.path)}>{p.name}</button>)}
             </div>
-          )}
+          ) : null}
+          {map ? (
+            <ol className={styles.list}>
+              {sections.map((s) => {
+                const off = siteValue(draft, 'h', s.key) !== undefined;
+                return (
+                  <li key={s.key} className={styles.row} data-on={picked === s.n ? '' : undefined} data-off={off ? '' : undefined}>
+                    <button type="button" className={styles.rowMain} onClick={() => openSection(s)} aria-current={picked === s.n ? 'true' : undefined}>
+                      <b>{s.name}</b>{off ? <span>Masquée</span> : null}
+                    </button>
+                    {s.fixed ? null : <button type="button" role="switch" aria-checked={!off} aria-label={`Afficher ${s.name}`} className={styles.switch} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, off ? null : '1'))} />}
+                  </li>
+                );
+              })}
+            </ol>
+          ) : <p className={styles.hint}>Chargement de votre modèle…</p>}
+          <p className={styles.hint}>Touchez un texte ou une photo sur votre site pour le changer. Vos produits se gèrent dans <Link href="/admin/produits/"><b>Produits</b></Link>.</p>
         </aside>
 
         <div className={styles.stage} ref={stage}>
-          <StorePreview fiche={draft} device={device} width={device === 'phone' ? Math.min(390, room.w) : room.w} height={room.h}
-            title="Aperçu de votre boutique" interactive focus={picked || undefined} onPick={(id) => { setTab('sections'); setPicked(id); }} />
+          <div className={styles.frameBox} style={{ width: Math.round(WIDTH[device] * scale), height: room.h }} data-device={device}>
+            <iframe ref={frame} key={path} title="Votre site" src={site + path} width={WIDTH[device]} height={Math.round(room.h / scale)} style={{ transform: `scale(${scale})` }} />
+          </div>
         </div>
 
-        {current && currentType && !phone ? (
-          <aside className={styles.right} aria-label={`Réglages : ${currentType.name}`}>
+        {current && !phone ? (
+          <aside className={styles.right} aria-label={`Contenu : ${current.name}`}>
             <div className={styles.rightHead}>
-              <div><h2>{currentType.name}</h2><p>{currentType.description}</p></div>
-              <button type="button" className={styles.tool} onClick={() => setPicked('')} aria-label="Fermer les réglages"><Icon name="close" size={18} /></button>
+              <h2>{current.name}</h2>
+              <button type="button" className={styles.tool} onClick={() => setPicked(null)} aria-label="Fermer"><Icon name="close" size={18} /></button>
             </div>
-            {settings}
+            {panel}
           </aside>
         ) : null}
       </div>
 
-      {current && currentType && phone ? <Sheet title={currentType.name} sub={currentType.description} onClose={() => setPicked('')}>{settings}</Sheet> : null}
-      {adding ? (
-        <Sheet title="Ajouter une section" onClose={() => setAdding(false)}>
-          <ul className={styles.addList}>
-            {missing.map((t) => <li key={t.type}><button type="button" onClick={() => add(t)}><b>{t.name}</b><span>{t.description}</span></button></li>)}
-          </ul>
-        </Sheet>
-      ) : null}
+      {current && phone ? <Sheet title={current.name} onClose={() => setPicked(null)}>{panel}</Sheet> : null}
     </div>
   );
 }
 
-/** The settings of one section, drawn from the engine's description of its fields. */
-function SectionForm({ type, values, onChange, userId }: { type: EngineSectionType; values: Values; onChange: (key: string, value: unknown) => void; userId: string }) {
-  const value = (f: EngineField) => (values[f.key] !== undefined ? values[f.key] : type.defaults[f.key]);
+/** What one section of the model holds: its texts, its pictures, its product cases. */
+function SectionPanel({ section, items, fiche, userId, onEdit, onSlot }: {
+  section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string;
+  onEdit: (kind: 't' | 'i' | 'c', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
+}) {
+  const products = Array.isArray(fiche.products) ? fiche.products : [];
+  const slots = ((fiche.store?.slots ?? {}) as Record<string, string>);
+  if (!items.length) return <p className={styles.hint}>{section.fixed ? 'Rien à changer ici : votre nom et votre logo viennent de vos paramètres.' : 'Cette section n’a rien à changer.'}</p>;
+  let cases = 0;
   return (
     <div className={styles.form}>
-      {type.fields.map((f) => {
-        if (f.type === 'photo') return null;                 // an example photo of the engine: hers replaces it (« Image »)
-        if (f.type === 'image') return <ImageField key={f.key} field={f} value={typeof value(f) === 'string' ? (value(f) as string) : ''} userId={userId} onChange={(v) => onChange(f.key, v)} />;
-        if (f.type === 'items') return <ItemsField key={f.key} field={f} items={Array.isArray(value(f)) ? (value(f) as Values[]) : []} onChange={(v) => onChange(f.key, v)} />;
-        return <Control key={f.key} field={f} value={value(f)} onChange={(v) => onChange(f.key, v)} />;
+      {items.map((x) => {
+        if (x.kind === 's') return <p key={x.key} className={styles.hint} data-site-key={x.key}>Vos prestations s’affichent ici. Elles se gèrent dans votre tableau de bord.</p>;
+        if (x.kind === 'p') {
+          cases += 1;
+          const none = 'Masquer cette case';
+          const now = slots[x.ref] ?? x.ref;
+          const names = products.map((p) => p.name || p.id);
+          const label = now === '-' ? none : products.find((p) => p.id === now)?.name ?? names[0] ?? none;
+          return (
+            <div key={x.key} data-site-key={x.key}>
+              <Select label={`Produit de la case ${cases}`} options={[...names, none]} value={label}
+                onChange={(e) => onSlot(x.ref, e.target.value === none ? '-' : products.find((p) => (p.name || p.id) === e.target.value)?.id ?? x.ref)} />
+            </div>
+          );
+        }
+        if (x.kind === 'i') return <PhotoField key={x.key} item={x} own={siteValue(fiche, 'i', x.key)} userId={userId} onChange={(v) => onEdit('i', x.key, v)} />;
+        const kind = x.kind === 'c' ? 'c' : 't';
+        const own = siteValue(fiche, kind, x.key);
+        const value = own ?? x.text;
+        return (
+          <div key={x.key} className={styles.text} data-site-key={x.key}>
+            {x.long ? <TextArea label={x.role} rows={4} maxLength={800} value={value} onChange={(e) => onEdit(kind, x.key, e.target.value.trim() ? e.target.value : null)} />
+              : <Field label={x.role} maxLength={200} value={value} onChange={(e) => onEdit(kind, x.key, e.target.value.trim() ? e.target.value : null)} />}
+            {own !== undefined ? <button type="button" className={styles.reset} onClick={() => onEdit(kind, x.key, null)}>Remettre le texte du modèle</button> : null}
+          </div>
+        );
       })}
     </div>
   );
 }
 
-/** One simple field: a line, several lines, a number or a list of choices. */
-function Control({ field: f, value, onChange }: { field: EngineField; value: unknown; onChange: (v: unknown) => void }) {
-  if (f.type === 'select' && f.options) {
-    const labels = f.options.map((o) => o.label);
-    const now = f.options.find((o) => String(o.value) === String(value))?.label ?? labels[0];
-    return <Select label={f.label} options={labels} value={now} onChange={(e) => onChange(f.options!.find((o) => o.label === e.target.value)?.value)} />;
-  }
-  if (f.type === 'textarea') return <TextArea label={f.label} rows={4} maxLength={f.max} placeholder={f.placeholder} value={typeof value === 'string' ? value : ''} onChange={(e) => onChange(e.target.value)} />;
-  if (f.type === 'number') {
-    const set = (e: ChangeEvent<HTMLInputElement>) => {
-      const n = Number(e.target.value.replace(/\D/g, ''));
-      onChange(e.target.value.trim() === '' ? (f.min ?? 0) : Math.min(f.max ?? n, n));
-    };
-    return <Field label={f.money ? `${f.label} (FCFA)` : f.label} inputMode="numeric" placeholder={f.placeholder} value={value === undefined || value === null ? '' : String(value)} onChange={set} />;
-  }
-  return <Field label={f.label} maxLength={f.max} placeholder={f.placeholder} value={typeof value === 'string' ? value : ''} onChange={(e) => onChange(e.target.value)} />;
-}
-
-/** A list inside a section: the reviews, the delivery zones. */
-function ItemsField({ field: f, items, onChange }: { field: EngineField; items: Values[]; onChange: (v: Values[]) => void }) {
-  const full = items.length >= (f.maxItems ?? 30);
-  return (
-    <fieldset className={styles.items}>
-      <legend>{f.label}</legend>
-      {items.map((it, i) => (
-        <div key={i} className={styles.item}>
-          <div className={styles.itemHead}><b>{f.itemLabel ?? 'Élément'} {i + 1}</b>
-            <button type="button" className={styles.tool} onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label={`Supprimer ${f.itemLabel ?? 'élément'} ${i + 1}`}><Icon name="trash" size={16} /></button>
-          </div>
-          {(f.itemFields ?? []).map((sf) => <Control key={sf.key} field={sf} value={it[sf.key]} onChange={(v) => onChange(items.map((x, j) => (j === i ? { ...x, [sf.key]: v } : x)))} />)}
-        </div>
-      ))}
-      {full ? null : <Button variant="secondary" icon="plus" block onClick={() => onChange([...items, { ...(f.itemDefaults ?? {}) }])}>Ajouter</Button>}
-    </fieldset>
-  );
-}
-
-/** The picture of a section: her own photo, shrunk and sent to her folder like a product's. */
-function ImageField({ field: f, value, onChange, userId }: { field: EngineField; value: string; onChange: (v: string | null) => void; userId: string }) {
+/** A picture of the model: her own photo, shrunk and sent to her folder like a product's. */
+function PhotoField({ item, own, onChange, userId }: { item: SiteItem; own: string | undefined; onChange: (v: string | null) => void; userId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const input = useRef<HTMLInputElement>(null);
@@ -279,17 +251,18 @@ function ImageField({ field: f, value, onChange, userId }: { field: EngineField;
     setBusy(false);
     if (r.ok) onChange(r.url); else setError(UPLOAD_ERROR[r.error]);
   }
+  const src = own ?? item.src;
   return (
-    <div className={styles.image}>
-      <p className={styles.imageLabel}>{f.label}</p>
+    <div className={styles.image} data-site-key={item.key}>
+      <p className={styles.imageLabel}>Photo{item.label ? ` · ${item.label}` : ''}</p>
       <div className={styles.imageRow}>
-        <span className={styles.thumb}>{value ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={value} alt="" /> : <Icon name="image" size={22} />}</span>
+        <span className={styles.thumb}>{src ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={src} alt="" /> : <Icon name="image" size={22} />}</span>
         <div className={styles.imageActs}>
-          <Button variant="secondary" busy={busy} onClick={() => input.current?.click()}>{value ? 'Changer la photo' : 'Choisir une photo'}</Button>
-          {value ? <Button variant="quiet" onClick={() => onChange(null)}>Retirer</Button> : null}
+          <Button variant="secondary" busy={busy} onClick={() => input.current?.click()}>Changer la photo</Button>
+          {own !== undefined ? <Button variant="quiet" onClick={() => onChange(null)}>Remettre</Button> : null}
         </div>
       </div>
-      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => void pick(e)} aria-label={f.label} />
+      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => void pick(e)} aria-label={`Photo ${item.label}`} />
       {error ? <Notice tone="error">{error}</Notice> : null}
     </div>
   );

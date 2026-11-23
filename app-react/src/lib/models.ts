@@ -90,3 +90,70 @@ export async function askTeam(o: { firstName: string; whatsapp: string; link: st
     return j?.ok ? { ok: true } : { ok: false, message: j?.message || 'La demande n’est pas partie. Réessayez.' };
   } catch { return { ok: false, message: 'La demande n’est pas partie. Réessayez.' }; }
 }
+
+/* ---------------------------------------------------------------- the editor
+   A model is a real site drawn by the designer. The editor frames that site and speaks with it (the script
+   connect/jeere-connect.js every model carries): the editor sends the store being edited, the site answers with
+   the list of what can be changed on the page (its sections, their texts and pictures, the product cases) and
+   tells which one was clicked. Her changes are kept in her store: `store.site` (t: texts, i: pictures,
+   c: categories, h: hidden sections) and `store.slots` (which product goes in which case). */
+
+/** Where each model's site lives. */
+export const modelSite = (slug: string): string => `https://kreeative.xyz/concepts/${slug}/`;
+
+/** The pages of each model, as tabs of the editor. */
+export const MODEL_PAGES: Record<string, { path: string; name: string }[]> = {
+  seve: [{ path: '', name: 'Accueil' }, { path: 'catalogue/', name: 'Catalogue' }, { path: 'commande/', name: 'Commande' }, { path: 'mentions-legales/', name: 'Mentions légales' }],
+  soyeuse: [{ path: '', name: 'Accueil' }, { path: 'boutique/', name: 'Boutique' }, { path: 'commande/', name: 'Commande' }, { path: 'mentions-legales/', name: 'Mentions légales' }],
+  michou: [{ path: '', name: 'Accueil' }, { path: 'boutique/', name: 'Boutique' }, { path: 'commande/', name: 'Commande' }, { path: 'mentions-legales/', name: 'Mentions légales' }],
+  anse: [{ path: '', name: 'Accueil' }, { path: 'commande/', name: 'Commande' }, { path: 'mentions-legales/', name: 'Mentions légales' }],
+  regard: [{ path: '', name: 'Accueil' }],
+  vernie: [{ path: '', name: 'Accueil' }],
+  minuit: [{ path: '', name: 'Accueil' }],
+};
+
+/** One thing of the page: a text (t), a picture (i), a category (c), a product case (p), the list of services (s). */
+export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean }
+export interface SiteSection { n: number; key: string; name: string; fixed: boolean }
+export interface SiteMap { page: string; items: SiteItem[]; sections: SiteSection[] }
+export type SiteKind = 't' | 'i' | 'c' | 'h';
+
+type Bag = Record<string, unknown>;
+const bag = (v: unknown): Bag => (v && typeof v === 'object' && !Array.isArray(v) ? { ...(v as Bag) } : {});
+
+/** Her value for one thing of the model, or undefined when it still shows the model's own. */
+export function siteValue(fiche: Fiche, kind: SiteKind, key: string): string | undefined {
+  const v = bag(bag(bag(fiche.store).site)[kind])[key];
+  return typeof v === 'string' ? v : undefined;
+}
+
+/** The store with her change to a text, a picture, a category or a hidden section; `null` gives back the model's own. */
+export function withSiteEdit(fiche: Fiche, kind: SiteKind, key: string, value: string | null): Fiche {
+  const st = bag(fiche.store), site = bag(st.site), part = bag(site[kind]);
+  if (value === null || value === '') delete part[key]; else part[key] = value;
+  if (Object.keys(part).length) site[kind] = part; else delete site[kind];
+  if (Object.keys(site).length) st.site = site; else delete st.site;
+  return { ...fiche, store: st };
+}
+
+/** The store with another product in a case of the model ('-' hides the case; the case's own product: no entry). */
+export function withSlot(fiche: Fiche, slot: string, value: string): Fiche {
+  const st = bag(fiche.store), slots = bag(st.slots);
+  if (!value || value === slot) delete slots[slot]; else slots[slot] = value;
+  if (Object.keys(slots).length) st.slots = slots; else delete st.slots;
+  return { ...fiche, store: st };
+}
+
+/** What the model's page says about itself, checked before it is trusted (it comes from another window). */
+export function readSiteMap(data: unknown): SiteMap | null {
+  const m = bag(bag(data).jeereMap);
+  if (!Array.isArray(m.items) || !Array.isArray(m.sections)) return null;
+  const s = (v: unknown) => (typeof v === 'string' ? v : '');
+  return {
+    page: s(m.page),
+    items: (m.items as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && /^[ticps]$/.test(s(x.kind)))
+      .map((x) => ({ key: s(x.key), kind: s(x.kind) as SiteItem['kind'], ref: s(x.ref), label: s(x.label), text: s(x.text), role: s(x.role), sec: typeof x.sec === 'number' ? x.sec : -1, src: s(x.src), long: x.long === true })),
+    sections: (m.sections as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && typeof x.n === 'number')
+      .map((x) => ({ n: x.n as number, key: s(x.key), name: s(x.name) || 'Section', fixed: x.fixed === true })),
+  };
+}
