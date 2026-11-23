@@ -27,6 +27,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   useEffect(() => { setMenu(false); }, [path]);
+  useEffect(() => {
+    if (!menu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menu]);
 
   const isOn = (href: string) => (href === '/admin/' ? path === '/admin' || path === '/admin/' : path.startsWith(href.slice(0, -1)));
   const logout = async () => { await signOut(); window.location.assign('/compte/#connexion'); };
@@ -69,13 +75,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <span className={styles.meName}>{account.firstName || 'Mon compte'}</span>
             <Icon name="down" size={14} />
           </button>
-          {menu ? (
+          {menu ? (<>
+            <div className={styles.menuScrim} onClick={() => setMenu(false)} aria-hidden="true" />
             <div className={styles.menu} role="menu">
+              <span className={styles.menuHandle} aria-hidden="true" />
               {NAV.filter((n) => n.more).map((n) => <Link key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</Link>)}
               <a role="menuitem" href="/compte/"><Icon name="user" size={18} />Mon compte</a>
               <button role="menuitem" type="button" onClick={() => void logout()}><Icon name="logout" size={18} />Se déconnecter</button>
             </div>
-          ) : null}
+          </>) : null}
         </div>
       </aside>
 

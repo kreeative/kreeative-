@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
+import { Sheet } from '@/components/ui/Sheet';
 import { clip } from '@/lib/account';
 import { money, plural } from '@/lib/format';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
@@ -38,13 +39,7 @@ export default function ProductsPage() {
     return q ? products.filter((p) => `${p.name} ${p.category}`.toLowerCase().includes(q)) : products;
   }, [products, query]);
 
-  const close = () => { setDraft(null); setErrors({}); setProblem(''); setConfirmDelete(false); setPhotoError(''); };
-  useEffect(() => {
-    if (!draft) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [draft]);
+  const close = useCallback(() => { setDraft(null); setErrors({}); setProblem(''); setConfirmDelete(false); setPhotoError(''); }, []);
 
   if (!store) return (<><PageHead title="Produits" /><Empty icon="tag" title="Pas encore de boutique">Créez votre boutique pour y ajouter vos produits.</Empty></>);
   const canEdit = store.role === 'owner' || store.role === 'agency' || store.role === 'editor';
@@ -121,12 +116,7 @@ export default function ProductsPage() {
           </>}
 
       {draft ? (
-        <div className={styles.scrim} onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
-          <aside className={styles.sheet} role="dialog" aria-modal="true" aria-label={draft.id ? 'Modifier le produit' : 'Nouveau produit'}>
-            <div className={styles.sheetHead}>
-              <div><h2>{draft.id ? 'Modifier le produit' : 'Nouveau produit'}</h2><p>{store.published ? 'Visible dans votre boutique dès l’enregistrement.' : 'Visible quand votre boutique sera en ligne.'}</p></div>
-              <button type="button" className={styles.close} aria-label="Fermer" onClick={close}><Icon name="close" size={18} /></button>
-            </div>
+        <Sheet title={draft.id ? 'Modifier le produit' : 'Nouveau produit'} sub={store.published ? 'Visible dans votre boutique dès l’enregistrement.' : 'Visible quand votre boutique sera en ligne.'} onClose={close} expandable>
             <form className={styles.block} style={{ gap: 'var(--sp-4)' }} onSubmit={save} noValidate>
               <div className={styles.photoRow}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -162,8 +152,7 @@ export default function ProductsPage() {
                 ? <div className={styles.sheetActions}><Button variant="secondary" icon="trash" disabled={busy} onClick={() => void remove()}>Oui, supprimer</Button><Button variant="quiet" onClick={() => setConfirmDelete(false)}>Annuler</Button></div>
                 : <Button variant="quiet" block icon="trash" disabled={busy} onClick={() => setConfirmDelete(true)}>Supprimer ce produit</Button>) : null}
             </form>
-          </aside>
-        </div>
+        </Sheet>
       ) : null}
     </>
   );

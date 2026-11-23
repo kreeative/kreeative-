@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { useOrders } from '@/components/admin/useOrders';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
+import { Sheet } from '@/components/ui/Sheet';
 import { money, plural, waLink, when } from '@/lib/format';
 import { ORDER_STATUSES, PAYMENT_LABEL, setOrderStatus, statusLabel, type Order, type OrderStatus } from '@/lib/stores';
 import styles from '../admin.module.css';
@@ -38,12 +39,7 @@ export default function OrdersPage() {
   const shown = useMemo(() => (orders ?? []).filter(FILTERS.find((f) => f.id === filter)!.match), [orders, filter]);
   const open = (orders ?? []).find((o) => o.id === openId) ?? null;
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenId(null); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  const closeSheet = useCallback(() => setOpenId(null), []);
 
   async function change(order: Order, status: OrderStatus) {
     if (saving || order.status === status) return;
@@ -82,12 +78,7 @@ export default function OrdersPage() {
           </section>}
 
       {open ? (
-        <div className={styles.scrim} onMouseDown={(e) => { if (e.target === e.currentTarget) setOpenId(null); }}>
-          <aside className={styles.sheet} role="dialog" aria-modal="true" aria-label={`Commande n° ${open.number}`}>
-            <div className={styles.sheetHead}>
-              <div><h2>Commande n° {open.number}</h2><p>{when(open.created_at)} · {PAYMENT_LABEL[open.payment_status] ?? open.payment_status}{open.payment ? ` · ${open.payment}` : ''}</p></div>
-              <button type="button" className={styles.close} aria-label="Fermer" onClick={() => setOpenId(null)}><Icon name="close" size={18} /></button>
-            </div>
+        <Sheet title={`Commande n° ${open.number}`} sub={`${when(open.created_at)} · ${PAYMENT_LABEL[open.payment_status] ?? open.payment_status}${open.payment ? ` · ${open.payment}` : ''}`} onClose={closeSheet}>
 
             <div className={styles.block}>
               <h3>Statut</h3>
@@ -118,8 +109,7 @@ export default function OrdersPage() {
 
             {open.note ? <div className={styles.block}><h3>Note de la cliente</h3><p>{open.note}</p></div> : null}
             <Button variant="quiet" onClick={() => setOpenId(null)}>Fermer</Button>
-          </aside>
-        </div>
+        </Sheet>
       ) : null}
     </>
   );

@@ -273,6 +273,56 @@ await test('settings: the store\u2019s name and WhatsApp are saved; the menu rea
   await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('the product panel opens full page and comes back; on a phone it is a bottom sheet, like « Plus »', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/produits/`); await h1(page, 'Produits');
+  await page.getByText('Beurre de karité brut').click();
+  const sheet = page.getByRole('dialog');
+  const width = async () => Math.round((await sheet.boundingBox()).width);
+  await page.waitForTimeout(400);
+  assert.equal(await width(), 480);
+  await page.screenshot({ path: `${SHOTS}30-produit-panneau.png` });
+  await sheet.getByRole('button', { name: 'Ouvrir en grand' }).click(); await page.waitForTimeout(400);
+  assert.equal(await width(), 1280, 'the panel takes the whole page');
+  await sheet.getByLabel('Prix (FCFA)').fill('6 900');                       // what she typed stays when the size changes
+  await page.screenshot({ path: `${SHOTS}31-produit-pleine-page.png` });
+  await sheet.getByRole('button', { name: 'Revenir au panneau' }).click(); await page.waitForTimeout(400);
+  assert.equal(await width(), 480); assert.equal(await sheet.getByLabel('Prix (FCFA)').inputValue(), '6 900');
+  await page.keyboard.press('Escape'); assert.equal(await page.getByRole('dialog').count(), 0);
+  // a phone
+  await page.setViewportSize(PHONE);
+  await page.getByText('Beurre de karité brut').click(); await page.waitForTimeout(500);
+  const box = await page.getByRole('dialog').boundingBox();
+  assert.equal(Math.round(box.width), 390); assert.equal(Math.round(box.y + box.height), 844, 'it sits at the bottom of the screen');
+  assert.equal(await page.getByRole('button', { name: 'Ouvrir en grand' }).isVisible(), false);
+  await page.screenshot({ path: `${SHOTS}32-produit-tiroir-telephone.png` });
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /Plus/ }).click(); await page.waitForTimeout(500);
+  const menu = await page.getByRole('menu').boundingBox();
+  assert.equal(Math.round(menu.width), 390); assert.equal(Math.round(menu.y + menu.height), 844);
+  await page.screenshot({ path: `${SHOTS}33-plus-tiroir.png` });
+  await page.mouse.click(195, 120);                                          // a tap on the dimmed page closes it
+  assert.equal(await page.getByRole('menu').count(), 0);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('no figure ever leaves its card, even a very long amount on a very narrow phone', async () => {
+  const w = world(); w.orders[0].total = 123456789; w.orders[1].total = 98765432;
+  for (const vp of [{ width: 320, height: 640 }, PHONE, { width: 768, height: 900 }, DESK]) {
+    const { page, ctx } = await open(browser, vp, w);
+    await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Awa'); await page.getByText('N° 3 · Mariam K.').waitFor();
+    const out = await page.evaluate(() => [...document.querySelectorAll('main dl > div')].flatMap((card) => {
+      const c = card.getBoundingClientRect();
+      return [...card.children].filter((el) => { const r = el.getBoundingClientRect(); return r.right > c.right + 0.5 || r.left < c.left - 0.5; }).map((el) => el.textContent);
+    }));
+    assert.deepEqual(out, [], `at ${vp.width} px`);
+    await noOverflow(page);
+    if (vp.width === 320) await page.screenshot({ path: `${SHOTS}34-cartes-320.png`, fullPage: true });
+    if (vp.width === 390) await page.screenshot({ path: `${SHOTS}35-cartes-390.png`, fullPage: true });
+    await ctx.close();
+  }
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);
