@@ -51,12 +51,18 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/functions/v1/billing') return json(route, 200, world.billing ?? { ok: false, message: 'Paiement simulé : rien n’est prélevé.' });
     if (p === '/functions/v1/appel') return json(route, 200, { ok: true });
     if (p === '/functions/v1/bookings') {
-      const B = world.booking ?? (world.booking = { settings: { enabled: true, timezone: 'Africa/Abidjan', step: 30, hours: [{ day: 1, open: true }], staff: [], addons: [], payments: ['Sur place'], services: [] }, appts: [] });
+      const B = world.booking ?? (world.booking = { settings: bookingSettings(), appts: [] });
       const mine = world.stores.some((x) => x.id === body.storeId) || B.appts.some((a) => a.id === body.id);
       if (!mine) return json(route, 403, { ok: false, message: 'Cette boutique n’est pas à vous.' });
-      if (body.action === 'settings') return json(route, 200, { ok: true, settings: B.settings, configured: B.settings.services.length > 0, store: { id: body.storeId, slug: 'boutique-test', currency: 'XOF' }, bookingUrl: 'https://jehre.com/rdv/?b=boutique-test' });
+      if (body.action === 'settings') return json(route, 200, { ok: true, settings: B.settings, configured: B.settings.services.length > 0, store: { id: body.storeId, slug: 'boutique-test', currency: 'XOF' }, bookingUrl: 'https://jehre.com/rdv/?b=boutique-test', payments: ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Sur place', 'Carte bancaire'] });
       if (body.action === 'save') { let n = 0; B.settings = { ...body.settings, services: body.settings.services.map((x) => ({ ...x, id: x.id || `s${++n + 10}` })) }; return json(route, 200, { ok: true, settings: B.settings }); }
       if (body.action === 'list') return json(route, 200, { ok: true, appointments: B.appts, blocks: [], pending: B.appts.filter((a) => a.status === 'en_attente'), timezone: 'Africa/Abidjan', today: new Date().toISOString().slice(0, 10) });
+      if (body.action === 'create') {
+        const sv = B.settings.services.find((x) => x.id === body.serviceId);
+        if (B.appts.some((x) => x.starts_at === body.start && x.status !== 'annule')) return json(route, 409, { ok: false, message: 'Ce créneau est déjà occupé (un autre rendez-vous ou un blocage).' });
+        const n = { id: `new${B.appts.length}`, number: 20 + B.appts.length, status: 'confirme', starts_at: body.start, ends_at: new Date(Date.parse(body.start) + sv.duration * 60000).toISOString(), service: { name: sv.name, duration: sv.duration, price: sv.price }, customer: body.customer, total: sv.price, deposit: 0, deposit_status: '', currency: 'XOF', memo: body.note, source: 'manuel' };
+        B.appts.push(n); return json(route, 200, { ok: true, appointment: n });
+      }
       const a = B.appts.find((x) => x.id === body.id);
       if (body.action === 'status') { if (world.bookingFails) return json(route, 409, { ok: false, message: 'Ce créneau a été repris par un autre rendez-vous.' }); a.status = body.status; return json(route, 200, { ok: true, appointment: a }); }
       if (body.action === 'deposit') { a.deposit_status = body.depositStatus; return json(route, 200, { ok: true, appointment: a }); }
@@ -83,6 +89,9 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   });
   return { ctx, page, errors };
 }
+const bookingSettings = (services = []) => ({ enabled: true, timezone: 'Africa/Abidjan', step: 30, buffer: 0, lead: 120, horizon: 60, openUntil: '', autoConfirm: true, cancelWindow: 24,
+  deposit: { mode: 'none', value: 0 }, payments: ['Sur place'], address: '', intro: '', mapUrl: '', policies: { deposit: '', late: '', cancel: '', payment: '', prep: '' },
+  hours: [0, 1, 2, 3, 4, 5, 6].map((d) => ({ open: d !== 0, from: d === 6 ? '10:00' : '09:00', to: '18:00', breaks: [] })), services, addons: [], staff: [{ id: 'e1', name: 'Kady', role: '', photo: '', active: true, hours: null }], special: [] });
 const world = (over = {}) => { const s = store(); return { calls: [], uploads: [], conflict: false, profile: { id: USER.id, first_name: 'Kady', phone: '+2250707123456', store_name: 'Boutique Test', plan: 'gratuit', studio: null, created_at: '2026-11-01T10:00:00Z' }, stores: [s], orders: orders(s.id), ...over }; };
 const noOverflow = async (page) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), false, 'the page must not scroll sideways');
 const h1 = (page, text) => page.waitForFunction((t) => document.querySelector('h1')?.textContent === t, text);
@@ -562,7 +571,7 @@ const appt = (id, number, status, start, name, service, extra = {}) => ({ id, nu
 
 await test('appointments: a booking model puts « Rendez-vous » first; requests are confirmed, the day is listed, the status is saved on the server', async () => {
   const w = withModel(world(), 'regard');
-  w.booking = { settings: { enabled: true, timezone: 'Africa/Abidjan', step: 30, services: [{ id: 's1', name: 'Pose classique', category: 'Cils', duration: 90, price: 20000, from: false, deposit: null, desc: '', photo: '', active: true, staff: [] }], hours: [{ day: 1, open: true }], policies: { late: 'Dix minutes.' } },
+  w.booking = { settings: bookingSettings([{ id: 's1', name: 'Pose classique', category: 'Cils', duration: 90, price: 20000, from: false, deposit: null, desc: '', photo: '', active: true, staff: [] }]),
     appts: [appt('a1', 11, 'confirme', at(0, 10), 'Mariam K.', 'Pose classique', { deposit: 5000, deposit_status: 'en_attente' }), appt('a2', 12, 'en_attente', at(1, 14, 30), 'Fatou D.', 'Rehaussement'), appt('a3', 13, 'annule', at(0, 16), 'Annulée A.', 'Pose classique')] };
   const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/rendez-vous/`); await h1(page, 'Rendez-vous');
@@ -603,6 +612,22 @@ await test('appointments: a booking model puts « Rendez-vous » first; requests
   await main.getByText('Fatou D.').waitFor();
   await page.getByRole('button', { name: 'Revenir à aujourd’hui' }).click();
   await main.getByText('Mariam K.').waitFor();
+  // an appointment she writes herself; a taken slot is refused by the server and said so
+  await page.getByRole('button', { name: 'Ajouter un rendez-vous' }).click();
+  const add = page.getByRole('dialog');
+  await add.getByRole('button', { name: 'Ajouter le rendez-vous' }).click();
+  await add.getByText('Le nom de la cliente est nécessaire.').waitFor();
+  await add.getByLabel('Nom de la cliente').fill('Aïcha B.');
+  await add.getByLabel('Heure').fill('10:00');
+  await add.getByRole('button', { name: 'Ajouter le rendez-vous' }).click();
+  await add.getByText('Ce créneau est déjà occupé').waitFor();
+  await add.getByLabel('Heure').fill('15:30');
+  await add.getByLabel('Téléphone').fill('+225 05 06 07 08 09');
+  await add.getByRole('button', { name: 'Ajouter le rendez-vous' }).click();
+  await main.getByText('Aïcha B.').waitFor();
+  assert.equal(await main.getByText('15:30').count(), 1);
+  const made = w.booking.appts.at(-1);
+  assert.equal(made.starts_at.slice(11, 16), '15:30', 'Abidjan is on UTC: 15:30 there is 15:30 UTC'); assert.equal(made.customer.phone, '+225 05 06 07 08 09'); assert.equal(made.service.name, 'Pose classique');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -638,6 +663,48 @@ await test('services: add, edit and delete write only the services; her other bo
   await sheet.getByRole('button', { name: 'Oui, supprimer' }).click();
   await page.getByText('Aucune prestation pour l’instant').waitFor();
   assert.deepEqual(S().services, []);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('booking hours and rules: one day closed, a break, the deposit and the policies are saved; services and team travel untouched', async () => {
+  const w = withModel(world(), 'minuit');
+  w.booking = { settings: bookingSettings([{ id: 's1', name: 'Pose classique', category: 'Cils', duration: 90, price: 20000, from: false, deposit: null, desc: '', photo: '', active: true, staff: [] }]), appts: [] };
+  const before = JSON.parse(JSON.stringify(w.booking.settings));
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/rendez-vous/`); await h1(page, 'Rendez-vous');
+  await page.getByRole('link', { name: 'Horaires et règles' }).click();
+  await h1(page, 'Horaires et réservation');
+  const save = page.getByRole('button', { name: 'Enregistrer' });
+  await save.waitFor(); assert.equal(await save.isDisabled(), true);
+  assert.equal(await page.getByRole('switch', { name: 'Ouvert le dimanche' }).getAttribute('aria-checked'), 'false');
+  await page.getByRole('switch', { name: 'Ouvert le lundi' }).click();
+  const tue = page.getByRole('group', { name: 'mardi' });
+  await tue.getByLabel('Fermeture').fill('08:00');
+  await save.click();
+  await page.getByText('Le mardi, la fermeture doit être après l’ouverture.').waitFor();
+  assert.equal(w.calls.some((c) => c.path === '/functions/v1/bookings' && c.body.action === 'save'), false);
+  await tue.getByLabel('Fermeture').fill('19:30');
+  await tue.getByLabel('Pause de').fill('13:00'); await tue.getByLabel('à', { exact: true }).fill('14:00');
+  await page.getByRole('switch', { name: 'Confirmer automatiquement' }).click();
+  await page.getByLabel('Un créneau toutes les').selectOption('45 minutes');
+  await page.getByLabel('Demander').selectOption('Un montant fixe');
+  await page.getByLabel('Montant (FCFA)').fill('5000');
+  await page.getByRole('checkbox', { name: 'Wave' }).check();
+  await page.getByLabel('Adresse du studio').fill('Riviera 2, Abidjan');
+  await page.getByLabel('Retard').fill('Dix minutes de retard au plus.');
+  await page.waitForTimeout(300);
+  await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: `${SHOTS}72-horaires-et-regles.png` });
+  await save.click();
+  await page.getByText('Enregistré.').waitFor();
+  const S = w.booking.settings;
+  assert.equal(S.hours[1].open, false);
+  assert.deepEqual(S.hours[2], { open: true, from: '09:00', to: '19:30', breaks: [{ from: '13:00', to: '14:00' }] });
+  assert.deepEqual(S.hours[3], before.hours[3]);
+  assert.equal(S.autoConfirm, false); assert.equal(S.step, 45); assert.deepEqual(S.deposit, { mode: 'fixed', value: 5000 });
+  assert.deepEqual(S.payments, ['Sur place', 'Wave']); assert.equal(S.address, 'Riviera 2, Abidjan'); assert.equal(S.policies.late, 'Dix minutes de retard au plus.');
+  assert.deepEqual(S.services.map((x) => x.name), ['Pose classique']); assert.deepEqual(S.staff, before.staff); assert.equal(S.timezone, 'Africa/Abidjan'); assert.equal(S.lead, 120);
+  assert.equal(await save.isDisabled(), true);
+  await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

@@ -1,13 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
-import { APPT_STATUS, DEPOSIT_LABEL, addDays, agenda, bookingHome, dayKey, dayLabel, durationLabel, hour, setApptStatus, setDeposit, type Agenda, type Appointment, type ApptStatus, type BookingHome } from '@/lib/bookings';
+import { APPT_STATUS, DEPOSIT_LABEL, addDays, agenda, bookingHome, createAppt, dayKey, dayLabel, durationLabel, hour, setApptStatus, setDeposit, zonedInstant, type Agenda, type Appointment, type ApptStatus, type BookingHome } from '@/lib/bookings';
 import { plural, price, waLink } from '@/lib/format';
 import shared from '../admin.module.css';
 import styles from './rdv.module.css';
@@ -23,6 +24,8 @@ export default function AgendaPage() {
   const [saving, setSaving] = useState('');
   const [failed, setFailed] = useState('');
   const [copied, setCopied] = useState(false);
+  const [adding, setAdding] = useState<{ serviceId: string; date: string; time: string; name: string; phone: string; note: string } | null>(null);
+  const [addError, setAddError] = useState('');
   const storeId = store?.id ?? '';
 
   const load = useCallback(async () => {
@@ -61,6 +64,19 @@ export default function AgendaPage() {
     setSaving('');
     if (r.ok) put(r.appointment); else setFailed(r.message);
   }
+  const bookable = (home?.settings.services ?? []).filter((x) => x.active);
+  async function create(e: FormEvent) {
+    e.preventDefault();
+    if (!adding || saving) return;
+    if (!adding.name.trim()) { setAddError('Le nom de la cliente est nécessaire.'); return; }
+    const start = zonedInstant(adding.date, adding.time, tz);
+    if (!start) { setAddError('Choisissez un jour et une heure.'); return; }
+    setSaving('create'); setAddError('');
+    const r = await createAppt(storeId, { serviceId: adding.serviceId, start, customer: { name: adding.name.trim(), phone: adding.phone.trim() }, note: adding.note.trim() });
+    setSaving('');
+    if (!r.ok) { setAddError(r.message); return; }
+    put(r.appointment); setDay(dayKey(r.appointment.starts_at, tz)); setAdding(null);
+  }
   async function copy() {
     if (!home) return;
     try { await navigator.clipboard.writeText(home.bookingUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* she can still select the link */ }
@@ -81,7 +97,11 @@ export default function AgendaPage() {
 
   return (
     <>
-      <PageHead title="Rendez-vous" sub={data ? (data.pending.length ? plural(data.pending.length, 'demande à confirmer', 'demandes à confirmer') : 'Aucune demande en attente') : undefined} />
+      <PageHead title="Rendez-vous" sub={data ? (data.pending.length ? plural(data.pending.length, 'demande à confirmer', 'demandes à confirmer') : 'Aucune demande en attente') : undefined}
+        action={data && home ? <div className={styles.headActs}>
+          <ButtonLink variant="secondary" icon="gear" href="/admin/rendez-vous/reglages/">Horaires et règles</ButtonLink>
+          {bookable.length ? <Button icon="plus" onClick={() => { setAddError(''); setAdding({ serviceId: bookable[0]!.id, date: day || data.today, time: '10:00', name: '', phone: '', note: '' }); }}>Ajouter un rendez-vous</Button> : null}
+        </div> : null} />
       {error ? <Notice tone="error" action={<Button variant="secondary" onClick={() => void load()}>Réessayer</Button>}>{error}</Notice> : null}
       {!data && !error ? <p className={shared.muted}>Chargement…</p> : null}
 
@@ -134,6 +154,23 @@ export default function AgendaPage() {
             {ofDay.length ? <ul className={shared.rows}>{ofDay.map(line)}</ul> : <p className={shared.muted}>Aucun rendez-vous ce jour-là.</p>}
           </section>
         </div>
+      ) : null}
+
+      {adding ? (
+        <Sheet title="Nouveau rendez-vous" sub="Pour une cliente qui vous a appelée ou écrit." onClose={() => setAdding(null)}>
+          <form className={shared.block} style={{ gap: 'var(--sp-4)' }} onSubmit={create} noValidate>
+            <Select label="Prestation" options={bookable.map((x) => x.name)} value={bookable.find((x) => x.id === adding.serviceId)?.name ?? ''} onChange={(e) => setAdding({ ...adding, serviceId: bookable.find((x) => x.name === e.target.value)?.id ?? adding.serviceId })} />
+            <div className={styles.two}>
+              <Field label="Jour" type="date" value={adding.date} onChange={(e) => setAdding({ ...adding, date: e.target.value })} />
+              <Field label="Heure" type="time" step={300} value={adding.time} onChange={(e) => setAdding({ ...adding, time: e.target.value })} />
+            </div>
+            <Field label="Nom de la cliente" maxLength={80} value={adding.name} onChange={(e) => setAdding({ ...adding, name: e.target.value })} />
+            <Field label="Téléphone" optional type="tel" inputMode="tel" maxLength={30} value={adding.phone} onChange={(e) => setAdding({ ...adding, phone: e.target.value })} />
+            <TextArea label="Note" optional rows={2} maxLength={1000} value={adding.note} onChange={(e) => setAdding({ ...adding, note: e.target.value })} />
+            {addError ? <Notice tone="error">{addError}</Notice> : null}
+            <Button type="submit" block busy={saving === 'create'}>Ajouter le rendez-vous</Button>
+          </form>
+        </Sheet>
       ) : null}
 
       {open ? (
