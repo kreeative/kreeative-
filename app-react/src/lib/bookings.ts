@@ -62,6 +62,8 @@ export const agenda = (storeId: string, from: Date, to: Date) => call<Agenda>('l
 export const setApptStatus = (id: string, status: ApptStatus) => call<{ appointment: Appointment }>('status', { id, status });
 /** An appointment she writes herself (a call, a walk-in). The server refuses a slot that is already taken. */
 export const createAppt = (storeId: string, o: { serviceId: string; start: string; customer: { name: string; phone: string }; note: string }) => call<{ appointment: Appointment }>('create', { storeId, ...o });
+export interface BookingClient { name: string; phone: string; email: string; visits: number; upcoming: number; noShows: number; cancelled: number; spent: number; last: string; next: string; lastService: string }
+export const bookingClients = (storeId: string) => call<{ clients: BookingClient[]; currency: string }>('clients', { storeId });
 export const setDeposit = (id: string, depositStatus: string) => call<{ appointment: Appointment }>('deposit', { id, depositStatus });
 
 /* ---------------------------------------------------------------- dates, in the store's own time zone */

@@ -57,6 +57,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       if (body.action === 'settings') return json(route, 200, { ok: true, settings: B.settings, configured: B.settings.services.length > 0, store: { id: body.storeId, slug: 'boutique-test', currency: 'XOF' }, bookingUrl: 'https://jehre.com/rdv/?b=boutique-test', payments: ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Sur place', 'Carte bancaire'] });
       if (body.action === 'save') { let n = 0; B.settings = { ...body.settings, services: body.settings.services.map((x) => ({ ...x, id: x.id || `s${++n + 10}` })) }; return json(route, 200, { ok: true, settings: B.settings }); }
       if (body.action === 'list') return json(route, 200, { ok: true, appointments: B.appts, blocks: [], pending: B.appts.filter((a) => a.status === 'en_attente'), timezone: 'Africa/Abidjan', today: new Date().toISOString().slice(0, 10) });
+      if (body.action === 'clients') return json(route, 200, { ok: true, currency: 'XOF', clients: [{ name: 'Mariam K.', phone: '+225 07 08 09 10 11', email: '', visits: 4, upcoming: 1, noShows: 0, cancelled: 0, spent: 80000, last: '', next: '', lastService: 'Pose classique' }, { name: 'Fatou D.', phone: '', email: 'fatou@exemple.com', visits: 1, upcoming: 0, noShows: 1, cancelled: 0, spent: 15000, last: '', next: '', lastService: 'Rehaussement' }] });
       if (body.action === 'create') {
         const sv = B.settings.services.find((x) => x.id === body.serviceId);
         if (B.appts.some((x) => x.starts_at === body.start && x.status !== 'annule')) return json(route, 409, { ok: false, message: 'Ce créneau est déjà occupé (un autre rendez-vous ou un blocage).' });
@@ -628,6 +629,12 @@ await test('appointments: a booking model puts « Rendez-vous » first; requests
   assert.equal(await main.getByText('15:30').count(), 1);
   const made = w.booking.appts.at(-1);
   assert.equal(made.starts_at.slice(11, 16), '15:30', 'Abidjan is on UTC: 15:30 there is 15:30 UTC'); assert.equal(made.customer.phone, '+225 05 06 07 08 09'); assert.equal(made.service.name, 'Pose classique');
+  // her clients come from her appointments, not from orders
+  await page.goto(`${BASE}/admin/clients/`); await h1(page, 'Clientes');
+  await page.getByText('2 clientes').waitFor();
+  const rows = await page.locator('main ul li').allInnerTexts();
+  assert.match(rows[0].replace(/\s+/g, ' '), /Mariam K\..*Pose classique.*80.000.FCFA.*4.visites · 1.à venir/);
+  assert.match(rows[1].replace(/\s+/g, ' '), /Fatou D\..*fatou@exemple\.com.*1.visite · 1.absence/);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

@@ -5,6 +5,8 @@ import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { useOrders } from '@/components/admin/useOrders';
 import { Icon } from '@/components/ui/Icon';
+import { modelBySlug } from '@/lib/models';
+import { BookingClients } from './BookingClients';
 import { money, plural, waLink, when } from '@/lib/format';
 import styles from '../admin.module.css';
 
@@ -12,7 +14,7 @@ interface Client { key: string; name: string; phone: string; commune: string; or
 
 /** Her customers, made from her orders: one line per phone number (or per name when there is no number). */
 export default function ClientsPage() {
-  const { store } = useAdmin();
+  const { store, model } = useAdmin();
   const { orders } = useOrders(store?.id ?? null);
 
   const clients = useMemo<Client[]>(() => {
@@ -31,6 +33,8 @@ export default function ClientsPage() {
     return [...map.values()].sort((a, b) => b.total - a.total);
   }, [orders]);
 
+  // a booking store: her clients come from her appointments
+  if (store && modelBySlug(model)?.rdv) return <BookingClients storeId={store.id} />;
   if (!store) return (<><PageHead title="Clients" /><Empty icon="users" title="Pas encore de boutique">Vos clientes apparaîtront ici après leurs premières commandes.</Empty></>);
 
   return (
