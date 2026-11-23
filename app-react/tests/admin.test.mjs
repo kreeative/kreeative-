@@ -365,7 +365,7 @@ await test('models: the seven designer models, with their price, « Choisir » a
     ['MINUIT', 'Cils et ongles · rendez-vous', '25 000 FCFA', '50 000 FCFA']]);
   for (const [i, slug] of ['seve', 'soyeuse', 'michou', 'anse', 'regard', 'vernie', 'minuit'].entries()) {
     assert.equal(seen[i].img, `https://jehre.com/studio/sites/thumbs/concepts--${slug}.webp`);
-    assert.deepEqual(seen[i].demo, [`https://jehre.com/modeles/${slug}/|_blank`, `https://jehre.com/modeles/${slug}/|_blank`], 'the picture and « Voir la démo » open the real demo');
+    assert.deepEqual(seen[i].demo, [`/admin/modeles/apercu/?m=${slug}|null`, `/admin/modeles/apercu/?m=${slug}|null`], 'the picture and « Voir la démo » open the model INSIDE Jehre, not a public page');
     assert.deepEqual(seen[i].buttons, ['Choisir', 'Voir la démo']);
   }
   // the two buttons sit side by side, and the pictures are really loaded
@@ -634,6 +634,50 @@ await test('a model bought for a store she already has is put on that store; a t
   await o.page.reload(); await o.page.getByRole('link', { name: 'Modifier mon site VERNIE' }).waitFor();
   assert.equal(w2.stores.length, 1); assert.equal(w2.stores[0].slug, 'boutique-test-2'); assert.equal(w2.stores[0].fiche.store.model, 'vernie'); assert.equal(w2.stores[0].published, false);
   assert.deepEqual([...errors, ...o.errors], []); await o.ctx.close();
+});
+
+await test('a model is seen inside Jehre only: its link asks for an account and says why, then opens the preview with « Choisir ce modèle »', async () => {
+  // someone who received a link, without an account
+  const out = await open(browser, PHONE, world(), { logged: false });
+  await out.page.goto(`${BASE}/modeles/michou/`);
+  await out.page.waitForURL(/\/compte\/\?suite=modele&m=michou#connexion$/);
+  await out.page.getByText('Connectez-vous pour voir le modèle MICHOU.').waitFor();
+  assert.equal(await out.page.locator('iframe').count(), 0, 'the model is not shown before the account');
+  await out.page.screenshot({ path: `${SHOTS}46-modele-connectez-vous.png` });
+  await out.page.getByRole('button', { name: 'Créer un compte' }).first().click();
+  await out.page.getByText('Créez votre compte pour voir le modèle MICHOU.').waitFor();
+  // the preview itself is behind the account too
+  await out.page.goto(`${BASE}/admin/modeles/apercu/?m=regard`);
+  await out.page.waitForURL(/\/compte\/\?suite=modele&m=regard#connexion$/);
+  await out.ctx.close();
+
+  // with an account: the same link opens the model inside Jehre
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/modeles/michou/`);
+  await page.waitForURL(/\/admin\/modeles\/apercu\/\?m=michou$/);
+  await page.getByText('Modèle MICHOU', { exact: true }).waitFor();
+  await page.getByText(/Streetwear · 50.000.FCFA/).waitFor();
+  assert.equal(await page.locator('iframe[title="Modèle MICHOU"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');
+  await page.frameLocator('iframe[title="Modèle MICHOU"]').locator('h1, h2').first().waitFor({ timeout: 30000 });
+  assert.deepEqual(await page.getByRole('tab').allInnerTexts(), ['Accueil', 'Boutique', 'Commande', 'Mentions légales']);
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${SHOTS}47-modele-apercu-dans-jehre.png` });
+  await page.getByRole('tab', { name: 'Boutique' }).click();
+  await page.waitForFunction(() => document.querySelector('iframe').getAttribute('src') === 'https://kreeative.xyz/concepts/michou/boutique/');
+  await page.getByRole('button', { name: 'Téléphone' }).click();
+  assert.equal(await page.locator('iframe').getAttribute('width'), '390');
+  // « Choisir ce modèle » leads to the three ways to get it
+  await page.getByRole('link', { name: 'Choisir ce modèle' }).click();
+  await page.getByRole('dialog').getByText('Comment voulez-vous l’installer ?').waitFor();
+  await page.getByRole('dialog').getByText('Modèle MICHOU').waitFor();
+  // a model she owns: the preview offers to edit her site, not to buy it again
+  const w2 = withModel(world(), 'seve'); const o = await open(browser, DESK, w2);
+  await o.page.goto(`${BASE}/admin/modeles/apercu/?m=seve`);
+  await o.page.getByText(/Soins et cosmétiques · il est à vous/).waitFor();
+  assert.equal(await o.page.getByRole('link', { name: 'Modifier mon site' }).getAttribute('href'), `/admin/editeur/?b=${w2.stores[0].id}`);
+  await o.page.goto(`${BASE}/admin/modeles/apercu/?m=inconnu`);
+  await o.page.getByText('Ce modèle n’existe pas').waitFor();
+  assert.deepEqual([...errors, ...o.errors], []); await ctx.close(); await o.ctx.close();
 });
 
 await test('editor: without a model there is nothing to edit, and no example store is shown', async () => {

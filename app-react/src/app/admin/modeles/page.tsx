@@ -9,7 +9,7 @@ import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { money } from '@/lib/format';
-import { CUSTOM_FROM, MODELS, askTeam, buyModel, installPrice, modelBySlug, modelDemo, modelThumb, withModel, type Model } from '@/lib/models';
+import { CUSTOM_FROM, MODELS, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
 import { createStore, saveFiche } from '@/lib/stores';
 import styles from './modeles.module.css';
 
@@ -84,7 +84,7 @@ export default function ModelsPage() {
           const mine = owned.includes(m.slug);
           return (
             <li key={m.slug} className={styles.card}>
-              <a className={styles.shot} href={modelDemo(m.slug)} target="_blank" rel="noopener" aria-label={`Voir la démo du modèle ${m.name}`}>
+              <a className={styles.shot} href={modelPreview(m.slug)} aria-label={`Voir la démo du modèle ${m.name}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={modelThumb(m.slug)} alt="" width={640} height={400} loading="lazy" decoding="async" />
               </a>
@@ -96,7 +96,7 @@ export default function ModelsPage() {
                   {current === m.slug ? <ButtonLink href={store ? `/admin/editeur/?b=${store.id}` : '/admin/editeur/'} icon="edit" aria-label={`Modifier mon site ${m.name}`}>Modifier</ButtonLink>
                     : mine ? <Button busy={busy} onClick={() => void use(m)}>Utiliser ce modèle</Button>
                       : <Button onClick={() => setOpen(m)} aria-label={`Choisir le modèle ${m.name}`}>Choisir</Button>}
-                  <ButtonLink variant="secondary" href={modelDemo(m.slug)} target="_blank" rel="noopener">Voir la démo</ButtonLink>
+                  <ButtonLink variant="secondary" href={modelPreview(m.slug)}>Voir la démo</ButtonLink>
                 </div>
                 {mine ? <p className={styles.small}>{current === m.slug ? <b>Modèle utilisé</b> : null}{current === m.slug ? ' · ' : ''}Acheté · il est à vous</p> : null}
               </div>
@@ -157,7 +157,7 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
 
   return (
     <Sheet title={`Modèle ${m.name}`} sub={`${m.kind}. Les photos et les textes du modèle sont remplacés par les vôtres.`} onClose={onClose} expandable>
-      <a className={styles.big} href={modelDemo(m.slug)} target="_blank" rel="noopener" aria-label={`Voir la démo du modèle ${m.name}`}>
+      <a className={styles.big} href={modelPreview(m.slug)} aria-label={`Voir la démo du modèle ${m.name}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={modelThumb(m.slug)} alt="" width={640} height={400} />
       </a>

@@ -24,6 +24,11 @@ interface AdminState {
 
 const Ctx = createContext<AdminState | null>(null);
 const CURRENT_KEY = 'jehre-admin-store';
+/** Without a session: the login page; when she was opening a model, it says so and brings her back to it. */
+function loginUrl(): string {
+  const m = /^\/admin\/modeles\/apercu\/?$/.test(window.location.pathname) ? new URLSearchParams(window.location.search).get('m') : null;
+  return m && /^[a-z]+$/.test(m) ? `/compte/?suite=modele&m=${m}#connexion` : '/compte/#connexion';
+}
 
 export function useAdmin(): AdminState {
   const v = useContext(Ctx);
@@ -41,9 +46,9 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
   const made = useRef(false);
   const load = useCallback(async () => {
     const user = await currentUser();
-    if (!user) { window.location.replace('/compte/#connexion'); return; }
+    if (!user) { window.location.replace(loginUrl()); return; }
     const acc = await completeLogin(user).catch(() => readAccount());
-    if (!acc) { window.location.replace('/compte/#connexion'); return; }
+    if (!acc) { window.location.replace(loginUrl()); return; }
     let [list, owned] = await Promise.all([listStores(user.id), myModels()]);
     // she paid for a model and has no store yet: her site is made now (not online), so it is in her account,
     // ready to edit, instead of a dashboard that says « pas encore de boutique »

@@ -34,6 +34,8 @@ export const installPrice = (m: Model): number => m.install ?? INSTALL_PRICE;
 /** The picture of a model (640 × 400) and its real demo, both served by the live site. */
 export const modelThumb = (slug: string): string => `https://jehre.com/studio/sites/thumbs/concepts--${slug}.webp`;
 export const modelDemo = (slug: string): string => `https://jehre.com/modeles/${slug}/`;
+/** A model seen inside Jehre, by a seller who is logged in (as a theme is previewed inside Shopify or Framer). */
+export const modelPreview = (slug: string): string => `/admin/modeles/apercu/?m=${slug}`;
 
 /** The models she already paid for, the latest first (public.my_models). */
 export async function myModels(): Promise<string[]> {
