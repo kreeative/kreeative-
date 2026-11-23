@@ -60,6 +60,9 @@
   var SUITE = (function () {
     var q = '';
     try { q = root.location.search || ''; } catch (e) { q = ''; }
+    // « ?suite=modele&m=michou » (../modeles/, a model's demo asks for an account): back to that model
+    var md = /[?&]suite=modele&m=(anse|seve|soyeuse|michou|regard|vernie|minuit)(?:&|$)/.exec(q);
+    if (md) return { id: 'modele&m=' + md[1], url: '../modeles/' + md[1] + '/', title: 'Voir le modèle', text: 'Retour au modèle que vous regardiez.', cta: 'Voir le modèle' };
     var m = /[?&]suite=(studio-publier|publier|studio|abonnements)(?:&|$)/.exec(q);
     if (!m) return null;
     // « Se connecter pour publier » (creer/publish.js): back to the editor or the Studio, the publish dialog open

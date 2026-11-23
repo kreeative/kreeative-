@@ -112,14 +112,40 @@
       }
     },
     {
-      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit)/(.*)$",
+      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit)/$",
       "has": [
         {
           "type": "host",
           "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
         }
       ],
+      "dest": "/concepts/jeere/modeles/index.html"
+    },
+    {
+      "src": "^/modeles/voir/(anse|seve|soyeuse|michou|regard|vernie|minuit)/(.*)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
+        }
+      ],
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow"
+      },
       "dest": "https://kreeative.xyz/concepts/$1/$2"
+    },
+    {
+      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit)/.+$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "/modeles/$1/"
+      }
     },
     {
       "src": "^/b/([A-Za-z0-9-]+)((?:/(?:produits|pages)/[^/.?]+|/panier|/paiement)?)/?$",
