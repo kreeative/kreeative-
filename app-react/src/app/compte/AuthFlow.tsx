@@ -281,13 +281,7 @@ export function AuthFlow() {
                 <h1 ref={title} tabIndex={-1}>{account.firstName ? `Bonjour ${account.firstName}` : 'Votre compte'}</h1>
                 <p>Votre compte est ouvert sur cet appareil.</p>
               </div>
-              <dl className={styles.summary}>
-                <div><dt>Boutique</dt><dd>{account.storeName || 'Pas encore de boutique'}</dd></div>
-                {account.email && <div><dt>E-mail</dt><dd>{account.email}</dd></div>}
-                {account.phone && <div><dt>Numéro WhatsApp</dt><dd>{account.phone}</dd></div>}
-              </dl>
-              <ButtonLink href={LINKS.dashboard} block icon="dashboard">Aller au tableau de bord</ButtonLink>
-              <ButtonLink href={LINKS.editor} variant="secondary" block icon="edit">Ouvrir l’éditeur</ButtonLink>
+              <ButtonLink href={LINKS.dashboard} block icon="dashboard">Ouvrir mon tableau de bord</ButtonLink>
               <Button variant="quiet" block icon="logout" busy={busy} onClick={() => void logout()}>Se déconnecter</Button>
             </div>
           )}

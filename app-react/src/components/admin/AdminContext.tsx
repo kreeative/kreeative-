@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { currentModel, myModels } from '@/lib/models';
+import { currentModel, modelBySlug, myModels } from '@/lib/models';
 import { completeLogin, readAccount, type Account } from '@/lib/account';
 import { currentUser } from '@/lib/auth';
 import { createStore, listStores, type Store } from '@/lib/stores';
@@ -57,6 +57,8 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
       made.current = true;
       if (await createStore(acc.storeName || 'Ma boutique', owned[0]!)) list = await listStores(user.id);
     }
+    // the stores that ARE the designer models (the founder's account: SÈVE, REGARD…) carry their own model, without a purchase
+    owned = [...new Set([...owned, ...list.filter((s) => s.role === 'owner' && modelBySlug(s.slug)).map((s) => s.slug)])];
     let wanted: string | null = null;
     try { wanted = window.localStorage.getItem(CURRENT_KEY); } catch { /* storage blocked */ }
     setAccount(acc);
@@ -76,7 +78,7 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
       stores,
       store,
       models,
-      model: currentModel(store?.fiche, models),
+      model: store && store.role === 'owner' && modelBySlug(store.slug) ? store.slug : currentModel(store?.fiche, models),
       selectStore: (id) => { setCurrentId(id); try { window.localStorage.setItem(CURRENT_KEY, id); } catch { /* not kept */ } },
       replaceStore: (next) => setStores((list) => list.map((s) => (s.id === next.id ? next : s))),
       reload: load,

@@ -50,6 +50,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/profiles') return method === 'GET' ? json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]) : json(route, 204);
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
     if (p === '/rest/v1/rpc/my_models') { if (world.modelsLate > 0) { world.modelsLate--; return json(route, 200, []); } return json(route, 200, world.models ?? []); }
+    if (p === '/rest/v1/rpc/my_stores') return json(route, 200, world.stores.map((x) => ({ id: x.id, slug: x.slug })));
     if (p === '/rest/v1/rpc/slug_available') return json(route, 200, { available: !(world.taken ?? []).includes(body.p_slug), reason: 'ok' });
     if (p === '/functions/v1/billing') {
       if (body.action === 'sync') { if (world.planAfter) Object.assign(world.stores[0], world.planAfter, { updated_at: new Date().toISOString() }); return json(route, 200, { ok: true, applied: world.planAfter ? 1 : 0 }); }
@@ -104,7 +105,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p.startsWith('/storage/v1/object/store-media/')) { world.uploads.push(p.replace('/storage/v1/object/store-media/', '')); return json(route, 200, { Key: p }); }
     if (p === '/rest/v1/stores') {
       // the dashboard must ask for HER stores only: a query without the owner filter would return every public store
-      if (method === 'GET') { if (!/owner=eq\./.test(url.search) && !/id=in\./.test(url.search)) return json(route, 200, [{ id: 'someone-else', slug: 'autre', fiche: {}, published: true }]); return json(route, 200, world.stores); }
+      if (method === 'GET' && /owner=/.test(url.search)) return json(route, 403, { code: '42501', message: 'permission denied for table stores' });   // as the real database answers
+      if (method === 'GET') { if (!/id=in\./.test(url.search)) return json(route, 200, [{ id: 'someone-else', slug: 'autre', fiche: {}, published: true }]); return json(route, 200, world.stores); }
       if (method === 'POST') { const row = { id: `bbbbbbbb-0000-4000-8000-00000000000${world.stores.length + 1}`, owner: USER.id, published: false, published_at: null, custom_domain: null, domain_status: 'none', plan: 'gratuit', updated_at: new Date().toISOString(), ...body }; world.stores.push(row); return json(route, 201, [row]); }
       if (method === 'PATCH') {
         const s = world.stores.find((x) => url.search.includes(`id=eq.${x.id}`));
@@ -147,7 +149,8 @@ await test('a seller without a store sees how to create one, and no one else’s
   await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady');
   await page.getByText('Pas encore de boutique').waitFor();
   assert.equal(await page.getByText('autre').count(), 0);
-  assert.ok(w.calls.some((c) => c.path === '/rest/v1/stores' && /owner=eq\./.test(c.query)), 'her stores are asked by owner');
+  assert.ok(w.calls.some((c) => c.path === '/rest/v1/rpc/my_stores'), 'her stores are named by the server');
+  assert.equal(w.calls.some((c) => c.path === '/rest/v1/stores' && /owner=/.test(c.query)), false, 'the owner column is never asked from the browser');
   await page.screenshot({ path: `${SHOTS}10-accueil-sans-boutique.png`, fullPage: true });
   await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
 });
@@ -842,6 +845,17 @@ await test('editor: without a model there is nothing to edit, and no example sto
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('the founder’s stores that ARE the models (REGARD, SÈVE…) open their model in the editor, without a purchase', async () => {
+  const s = { ...store(), slug: 'regard' }; s.fiche = { ...s.fiche, store: { ...s.fiche.store, name: 'REGARD' } };
+  const w = world({ stores: [s], models: [] }); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  await page.locator('iframe[src*="/concepts/regard/"]').waitFor({ timeout: 30000 });
+  assert.equal(await page.getByText('Choisissez d’abord un modèle').count(), 0);
+  await page.goto(`${BASE}/admin/`);
+  await page.getByRole('link', { name: /Rendez-vous/ }).first().waitFor({ timeout: 30000 });   // a booking model: its own menu
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 const at = (dayOffset, h, m = 0) => { const d = new Date(); d.setUTCHours(h, m, 0, 0); return new Date(d.getTime() + dayOffset * 864e5).toISOString(); };
 const appt = (id, number, status, start, name, service, extra = {}) => ({ id, number, status, starts_at: start, ends_at: new Date(Date.parse(start) + 90 * 60000).toISOString(), service: { name: service, duration: 90, price: 20000 }, customer: { name, phone: '+225 07 08 09 10 11' }, total: 20000, deposit: 0, deposit_status: '', currency: 'XOF', ...extra });
 
@@ -1144,17 +1158,10 @@ await test('domain name: a domain she already owns is connected (DNS lines shown
 await test('floating menu and motion: the menu closes on a choice, Échap and a click outside; pages fade in; nothing moves the bottom bar; reduced motion is respected', async () => {
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady');
-  const me = page.getByRole('button', { name: /Kady/ });
-  // Échap closes it and gives the focus back; a click outside closes it; the button itself closes it
-  await me.click(); await page.getByRole('menu').waitFor();
-  assert.equal(await me.getAttribute('aria-expanded'), 'true');
-  await page.keyboard.press('Escape'); await page.getByRole('menu').waitFor({ state: 'detached' });
-  assert.equal(await me.evaluate((b) => b === document.activeElement), true);
-  await me.click(); await page.getByRole('menu').waitFor();
-  await page.mouse.click(1272, 6); await page.getByRole('menu').waitFor({ state: 'detached' });
-  await me.click(); await page.getByRole('menu').waitFor();
-  await me.click(); await page.getByRole('menu').waitFor({ state: 'detached' });
-  assert.equal(await me.getAttribute('aria-expanded'), 'false');
+  // on a computer every page is already in the bar: her name opens no list, it goes straight to her account
+  await page.getByRole('button', { name: /Kady/ }).click();
+  await page.waitForURL(/\/compte\/$/); assert.equal(await page.getByRole('menu').count(), 0);
+  await page.goto(`${BASE}/admin/`); await h1(page, 'Bonjour Kady');
   // one easing and one short duration for a press, as asked
   const press = await page.locator('aside nav a').first().evaluate((a) => { const c = getComputedStyle(a); return [c.transitionTimingFunction.split('),')[0] + ')', c.transitionDuration.split(',')[0]]; });
   assert.deepEqual(press, ['cubic-bezier(0.22, 1, 0.36, 1)', '0.16s']);
@@ -1170,6 +1177,15 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
   const bar = () => o.page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.bottom), Math.round(r.width)]; });
   assert.deepEqual(await bar(), [12, 832, 366]);
+  // Échap closes it and gives the focus back; a touch outside closes it; the button itself closes it
+  const me = o.page.getByRole('button', { name: /Plus/ });
+  await me.click(); await o.page.getByRole('menu').waitFor();
+  assert.equal(await me.getAttribute('aria-expanded'), 'true');
+  await o.page.keyboard.press('Escape'); await o.page.getByRole('menu').waitFor({ state: 'detached' });
+  assert.equal(await me.evaluate((b) => b === document.activeElement), true);
+  await me.click(); await o.page.getByRole('menu').waitFor();
+  await o.page.mouse.click(195, 60); await o.page.getByRole('menu').waitFor({ state: 'detached' });
+  assert.equal(await me.getAttribute('aria-expanded'), 'false');
   await o.page.getByRole('button', { name: /Plus/ }).click(); await o.page.getByRole('menu').waitFor();
   await o.page.getByRole('menuitem', { name: 'Paiements' }).click();
   const seen = [];
@@ -1194,7 +1210,8 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await r.page.goto(`${BASE}/admin/produits/`); await h1(r.page, 'Produits');
   assert.ok(parseFloat(await r.page.locator('main > div').evaluate((d) => getComputedStyle(d).animationDuration)) < 0.001);
   assert.ok(parseFloat(await r.page.locator('aside nav a').first().evaluate((a) => getComputedStyle(a).transitionDuration)) < 0.001);
-  await r.page.getByRole('button', { name: /Kady/ }).click(); await r.page.getByRole('menu').waitFor();
+  await r.page.setViewportSize(PHONE);
+  await r.page.getByRole('button', { name: /Plus/ }).click(); await r.page.getByRole('menu').waitFor();
   await r.page.keyboard.press('Escape'); await r.page.getByRole('menu').waitFor({ state: 'detached' });
   assert.deepEqual([...errors, ...o.errors, ...r.errors], []); await r.ctx.close();
 });

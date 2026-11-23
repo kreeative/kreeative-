@@ -1,7 +1,7 @@
 .notice { margin-bottom: var(--sp-4); max-width: 640px; }
 
 /* the cards: the picture on top, then the name, the trade, the price and the two buttons side by side */
-.grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--sp-4); }
+.grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--sp-5, 20px); }
 .card { display: flex; flex-direction: column; min-width: 0; border-radius: 14px; background: var(--white); box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
 .shot { display: block; aspect-ratio: 16 / 10; background: var(--grey-1); }
 .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }

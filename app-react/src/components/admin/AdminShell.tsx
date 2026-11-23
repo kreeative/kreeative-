@@ -47,6 +47,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
     setLeaving((was) => { if (!was) window.setTimeout(() => { setMenu(false); setLeaving(false); }, 160); return true; });
   }, []);
   useEffect(() => { setMenu(false); setLeaving(false); }, [path]);
+  // on a computer every page is already in the bar: her name goes straight to her account. On a phone it is « Plus ».
+  const openAccount = () => { if (window.matchMedia('(min-width: 821px)').matches) { window.location.assign('/compte/'); return; } if (menu) closeMenu(); else setMenu(true); };
   // links written for the current dashboard (« Choisir ce modèle » on a model's demo: /admin/#boutique/modele/<nom>)
   useEffect(() => {
     const m = /^#boutique(?:\/modele\/([a-z]+))?/.exec(window.location.hash);
@@ -95,11 +97,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className={styles.me} ref={me}>
-          <button type="button" className={styles.meBtn} aria-expanded={menu && !leaving} aria-haspopup="menu" onClick={() => (menu ? closeMenu() : setMenu(true))}>
+          <button type="button" className={styles.meBtn} aria-expanded={menu && !leaving} aria-haspopup="menu" onClick={openAccount}>
             <span className={styles.avatar} aria-hidden="true">{initial}</span>
             <span className={styles.plus}><Icon name="menu" size={20} /><span>Plus</span></span>
             <span className={styles.meName}>{account.firstName || 'Mon compte'}</span>
-            <Icon name="down" size={14} />
+            <span className={styles.chev}><Icon name="down" size={14} /></span>
           </button>
           {menu ? (<>
             <div className={styles.menuScrim} data-leaving={leaving || undefined} onClick={closeMenu} aria-hidden="true" />

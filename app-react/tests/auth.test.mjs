@@ -148,7 +148,7 @@ await test('login: a wrong code is refused, the right one opens the account; log
   assert.equal(await page.locator('input[autocomplete="one-time-code"]').inputValue(), '', 'the boxes are emptied');
   await page.keyboard.type('123456');                    // the first box has the focus again
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
-  assert.match(await page.locator('main').innerText(), /Boutique Test/);
+  assert.doesNotMatch(await page.locator('main').innerText(), /Boutique Test|kady@exemple/, 'no list of her details: she may have several stores');
   await page.screenshot({ path: `${SHOTS}09-mon-compte.png` });
   await page.reload(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');   // the session is found again
   await page.getByRole('button', { name: 'Se déconnecter' }).click();

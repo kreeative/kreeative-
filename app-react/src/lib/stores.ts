@@ -96,10 +96,14 @@ const STORE_COLS = 'id, slug, fiche, published, published_at, custom_domain, dom
 /** Her own stores, then the ones shared with her (a partner, an agency). Never the other sellers' public stores. */
 export async function listStores(userId: string): Promise<Store[]> {
   const sb = supabase();
-  const [own, memberships] = await Promise.all([
-    sb.from('stores').select(STORE_COLS).eq('owner', userId).order('updated_at', { ascending: false }),
+  // HER stores are named by the server (`my_stores`): the browser may not read or filter the `owner` column, and
+  // reading the table without it would also bring every published store of every seller.
+  const [mine, memberships] = await Promise.all([
+    sb.rpc('my_stores'),
     sb.from('store_members').select('store_id, role').eq('user_id', userId),
   ]);
+  const ids = (Array.isArray(mine.data) ? (mine.data as { id?: unknown }[]) : []).map((x) => String(x.id ?? '')).filter(Boolean);
+  const own = ids.length ? await sb.from('stores').select(STORE_COLS).in('id', ids).order('updated_at', { ascending: false }) : { data: [] };
   const stores: Store[] = ((own.data ?? []) as Omit<Store, 'role'>[]).map((s) => ({ ...s, role: 'owner' }));
   const shared = ((memberships.data ?? []) as { store_id: string; role: string }[]).filter((m) => !stores.some((s) => s.id === m.store_id));
   if (shared.length) {
