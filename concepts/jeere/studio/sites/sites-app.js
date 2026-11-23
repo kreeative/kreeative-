@@ -593,7 +593,7 @@
       renderPages();
       buildFrames();
       refreshAll();
-      if (d.stale) banner('Cette copie de la page diffère de ' + branchLabel(pageSrc(p).branch) + ' enregistrée dans la liste : la publication vérifiera qu’elle n’a pas changé entre-temps.', 'warn');
+      if (d.stale) banner('Cette page a changé en ligne depuis votre copie. Jehre le vérifiera avant de publier.');
       else if (pageSrc(p).onlyOnBranch) banner((p.sub ? '« ' + p.sub + ' » n’est' : 'Ce site n’est') + ' pas encore sur kreeative.xyz : il vit dans une version de travail (« ' + branchLabel(pageSrc(p).branch) + ' »), et ses publications vont là, sans toucher au site en ligne.', 'info');
     }, function (e) {
       banner('La page « ' + path + ' » n’a pas pu être lue (' + (e && e.message) + ').', 'warn');
@@ -605,6 +605,7 @@
     b.innerHTML = '<span>' + esc(text) + '</span><button class="sk-linkbtn" type="button">OK</button>';
     b.hidden = false;
     b.querySelector('button').onclick = function () { b.hidden = true; };
+    clearTimeout(banner.t); banner.t = setTimeout(function () { b.hidden = true; }, tone === 'warn' ? 14000 : 9000);
   }
 
   /* ================================================================ artboards */

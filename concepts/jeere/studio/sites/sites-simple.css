@@ -29,7 +29,7 @@
   .sk-simple .sk-stage, .sk-simple .sk-scroll { touch-action: pan-y pinch-zoom; }
   .sk-simple .sk-world { padding: 0 0 96px; gap: 0; }
   .sk-simple .sk-ab__frame { border-radius: 0; box-shadow: none; }
-  .sk-simple .sk-banner { left: 8px; right: 8px; top: 8px; transform: none; max-width: none; align-items: flex-start; font-size: 12px; line-height: 17px; }
+  .sk-simple .sk-banner { left: 10px; right: 10px; bottom: 12px; top: auto; transform: none; width: auto; max-width: none; font-size: 13px; }
   .sk-simple .sk-box__tag { display: none; }
 
   /* the selection's actions: one bar at the bottom of the screen */
