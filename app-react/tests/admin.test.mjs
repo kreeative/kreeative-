@@ -681,25 +681,30 @@ await test('a model bought for a store she already has is put on that store; a t
   assert.deepEqual([...errors, ...o.errors], []); await o.ctx.close();
 });
 
-await test('a model is seen inside Jehre only: its link asks for an account and says why, then opens the preview with « Choisir ce modèle »', async () => {
-  // someone who received a link, without an account
+await test('a model is seen inside Jehre by anyone, without an account; only « Choisir ce modèle » asks for one', async () => {
+  // someone who received a link, without an account: the model shows, in Jehre's viewer
   const out = await open(browser, PHONE, world(), { logged: false });
   await out.page.goto(`${BASE}/modeles/michou/`);
-  await out.page.waitForURL(/\/compte\/\?suite=modele&m=michou#connexion$/);
-  await out.page.getByText('Connectez-vous pour voir le modèle MICHOU.').waitFor();
-  assert.equal(await out.page.locator('iframe').count(), 0, 'the model is not shown before the account');
-  await out.page.screenshot({ path: `${SHOTS}46-modele-connectez-vous.png` });
-  await out.page.getByRole('button', { name: 'Créer un compte' }).first().click();
-  await out.page.getByText('Créez votre compte pour voir le modèle MICHOU.').waitFor();
-  // the preview itself is behind the account too
+  await out.page.getByRole('group', { name: 'Modèle MICHOU · Streetwear' }).waitFor();
+  assert.equal(new URL(out.page.url()).pathname, '/modeles/michou/', 'no login wall');
+  assert.equal(await out.page.locator('iframe[title="Modèle MICHOU"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');
+  await out.page.frameLocator('iframe[title="Modèle MICHOU"]').locator('h1, h2').first().waitFor({ timeout: 30000 });
+  await out.page.waitForTimeout(1200);
+  await out.page.screenshot({ path: `${SHOTS}46-modele-public-telephone.png` });
+  // the dashboard's own preview address, without a session, leads to the public one
   await out.page.goto(`${BASE}/admin/modeles/apercu/?m=regard`);
-  await out.page.waitForURL(/\/compte\/\?suite=modele&m=regard#connexion$/);
+  await out.page.waitForURL(/\/modeles\/regard\/$/);
+  await out.page.getByRole('group', { name: /Modèle REGARD/ }).waitFor();
+  // choosing it is what needs the account, and the page says so
+  await out.page.getByRole('link', { name: 'Choisir ce modèle' }).click();
+  await out.page.waitForURL(/\/compte\/\?suite=modele&m=regard#inscription$/);
+  await out.page.getByText('Créez votre compte pour choisir le modèle REGARD.').waitFor();
   await out.ctx.close();
 
-  // with an account: the same link opens the model inside Jehre
+  // with an account: the same link, the same viewer
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/modeles/michou/`);
-  await page.waitForURL(/\/admin\/modeles\/apercu\/\?m=michou$/);
+  await page.waitForFunction(() => document.querySelector('a[href="/admin/modeles/?choisir=michou"]'));
   // as a theme inside Shopify: back, the sizes, full screen, one button; then the site itself
   await page.getByRole('group', { name: 'Modèle MICHOU · Streetwear' }).waitFor();
   assert.equal(await page.locator('iframe[title="Modèle MICHOU"]').getAttribute('src'), 'https://kreeative.xyz/concepts/michou/');

@@ -27,7 +27,8 @@ const CURRENT_KEY = 'jehre-admin-store';
 /** Without a session: the login page; when she was opening a model, it says so and brings her back to it. */
 function loginUrl(): string {
   const m = /^\/admin\/modeles\/apercu\/?$/.test(window.location.pathname) ? new URLSearchParams(window.location.search).get('m') : null;
-  return m && /^[a-z]+$/.test(m) ? `/compte/?suite=modele&m=${m}#connexion` : '/compte/#connexion';
+  // a model is public: the dashboard's own preview sends a visitor to the public one, never to a login wall
+  return m && /^[a-z]+$/.test(m) ? `/modeles/${m}/` : '/compte/#connexion';
 }
 
 export function useAdmin(): AdminState {

@@ -6,7 +6,7 @@ import { CodeInput } from '@/components/ui/CodeInput';
 import { Check, Field } from '@/components/ui/Field';
 import { Icon, Logo } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
-import { modelBySlug, modelPreview, type Model } from '@/lib/models';
+import { modelBySlug, type Model } from '@/lib/models';
 import { clip, completeLogin, readAccount, rememberSource, saveStoreName, signOut, slugify, type Account } from '@/lib/account';
 import { mountDoodles } from '@/lib/doodles';
 import { COUNTRIES, launchOffer, type LaunchOffer } from '@/lib/launch';
@@ -46,11 +46,11 @@ export function AuthFlow() {
 
   const go = useCallback((next: Step) => { setErrors({}); setFailure(null); setStep(next); }, []);
 
-  // A link to a model (jehre.com/modeles/<nom>/, or an old link sent to someone) asks for an account first:
-  // the page says why, and the model opens inside Jehre as soon as she is in.
+  // Anyone can look at a model; choosing one needs an account. She comes here from « Choisir ce modèle »: the page
+  // says why, and the choice opens as soon as she is in.
   const [wanted, setWanted] = useState<Model | null>(null);
   useEffect(() => { const q = new URLSearchParams(window.location.search); if (q.get('suite') === 'modele') setWanted(modelBySlug(q.get('m') ?? '') ?? null); }, []);
-  useEffect(() => { if (wanted && (step === 'account' || step === 'done')) window.location.replace(modelPreview(wanted.slug)); }, [wanted, step]);
+  useEffect(() => { if (wanted && (step === 'account' || step === 'done')) window.location.replace(`/admin/modeles/?choisir=${wanted.slug}`); }, [wanted, step]);
 
   // on arrival: remember where she comes from, and open her account if a session is already there
   useEffect(() => {
@@ -185,7 +185,7 @@ export function AuthFlow() {
               <Progress label="Créer un compte" at={1} of={4} />
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Créez votre compte</h1>
-                {wanted ? <p><b>Créez votre compte pour voir le modèle {wanted.name}.</b> C’est gratuit.</p> : null}
+                {wanted ? <p><b>Créez votre compte pour choisir le modèle {wanted.name}.</b> C’est gratuit.</p> : null}
                 <p>Pas de mot de passe.</p>
               </div>
               {offer ? <p className={styles.launch}><span className={styles.launchText}><b>{offer.title}</b> {offer.detail}</span>{offer.left ? <span className={styles.launchLeft}>{offer.left}</span> : null}</p> : null}
@@ -209,7 +209,7 @@ export function AuthFlow() {
               <Progress label="Connexion" at={1} of={2} />
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Connectez-vous</h1>
-                {wanted ? <p><b>Connectez-vous pour voir le modèle {wanted.name}.</b></p> : null}
+                {wanted ? <p><b>Connectez-vous pour choisir le modèle {wanted.name}.</b></p> : null}
                 <p>Recevez un code par e-mail pour entrer, sans mot de passe.</p>
               </div>
               <Field label="Adresse e-mail" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="vous@exemple.com" value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }} error={errors.email} />
