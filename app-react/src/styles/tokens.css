@@ -1,0 +1,36 @@
+/* Jehre — the design tokens of the new front end. One light theme (no dark one), Poppins, black ink on white;
+   colour only carries a meaning (red: error, green: done, orange: attention, blue: information). The rainbow is
+   always the logo's full rainbow. Same values as the current site (compte.css, studio-kit.css). */
+:root {
+  color-scheme: light;
+
+  --ink: #111111;
+  --ink-2: #3D3D3D;
+  --muted: #5E5E5E;
+  --faint: #8A8A8A;
+  --white: #FFFFFF;
+  --grey-1: #F5F5F3;
+  --grey-2: #EBEBE8;
+  --line: rgba(17, 17, 17, .12);
+  --line-2: rgba(17, 17, 17, .22);
+
+  --ok: #22C55E;   --ok-bg: #DCFCE7;   --ok-ink: #166534;
+  --warn: #F5B800; --warn-bg: #FEF6D3; --warn-ink: #7A5A00;
+  --err: #EF4444;  --err-bg: #FDE8E8;  --err-ink: #B91C1C;
+  --info: #3B82F6; --info-bg: #E6F0FF; --info-ink: #1D4ED8;
+
+  --rainbow: linear-gradient(100deg, #D63A6E, #DD6A1F, #B98500, #10955A, #1479BA, #5B3EF0, #A62BC8);
+
+  --font: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --fs-xs: 12px; --fs-sm: 13px; --fs: 15px; --fs-lg: 17px; --fs-h2: 22px; --fs-h1: 30px;
+
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --r-sm: 8px; --r: 12px; --r-lg: 18px; --r-pill: 999px;
+  --ctl: 48px;            /* a field or a button a finger can press */
+  --ctl-sm: 36px;
+
+  --shadow-card: 0 1px 2px rgba(17, 17, 17, .05), 0 24px 60px -32px rgba(17, 17, 17, .30);
+  --ring: 0 0 0 4px rgba(17, 17, 17, .10);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur: 140ms;
+}

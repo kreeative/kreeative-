@@ -1,0 +1,30 @@
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  min-height: var(--ctl); padding: 0 var(--sp-5); border: 0; border-radius: var(--r);
+  font: 600 var(--fs)/1.2 var(--font); text-align: center; cursor: pointer; user-select: none;
+  transition: background-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.btn:active:not(:disabled) { transform: scale(.985); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.block { display: flex; width: 100%; }
+
+.primary { background: var(--ink); color: var(--white); }
+.primary:hover:not(:disabled) { background: #2A2A2A; }
+
+.secondary { background: var(--white); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
+.secondary:hover:not(:disabled) { background: var(--grey-1); }
+
+.quiet { background: transparent; color: var(--muted); min-height: var(--ctl-sm); padding: 0 var(--sp-3); font-weight: 500; }
+.quiet:hover:not(:disabled) { background: var(--grey-1); color: var(--ink); }
+
+/* white, the logo's full rainbow around it and in its words */
+.rainbow { position: relative; background: var(--white); color: var(--ink); }
+.rainbow::before {
+  content: ''; position: absolute; inset: 0; padding: 1.5px; border-radius: inherit; background: var(--rainbow);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+}
+.rainbow > span { background: var(--rainbow); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.rainbow:hover:not(:disabled) { background: var(--grey-1); }
+
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

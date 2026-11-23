@@ -1,0 +1,59 @@
+/* The account page: one white card, the reasons to join beside it on a wide screen. Designed at 360 px first. */
+.page { min-height: 100dvh; display: flex; flex-direction: column; background: var(--white); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--line); }
+.logo { display: inline-flex; color: var(--ink); }
+.back { font-size: var(--fs-sm); font-weight: 500; color: var(--ink); }
+
+.main { flex: 1; display: grid; gap: var(--sp-8); align-content: start; width: 100%; max-width: 440px; margin: 0 auto; padding: var(--sp-8) var(--sp-5) var(--sp-10); }
+.card { min-height: 260px; }
+.form { display: grid; gap: var(--sp-5); }
+.head { display: grid; gap: var(--sp-2); }
+.head h1 { font: 600 var(--fs-h1)/1.15 var(--font); letter-spacing: -.02em; outline: 0; }
+.head p { color: var(--muted); }
+.head b { color: var(--ink); font-weight: 600; }
+
+.switch { text-align: center; font-size: var(--fs-sm); color: var(--muted); }
+.link { border: 0; padding: 0; background: none; color: var(--ink); font-weight: 600; cursor: pointer; }
+.link:hover { opacity: .7; }
+.timer { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+.backBtn { justify-self: start; display: inline-flex; align-items: center; gap: 6px; border: 0; padding: 0; background: none; color: var(--muted); font-size: var(--fs-sm); font-weight: 500; cursor: pointer; }
+.backBtn:hover { color: var(--ink); }
+
+.addr { display: grid; gap: 2px; padding: var(--sp-3) var(--sp-4); border-radius: var(--r); background: var(--grey-1); font-size: var(--fs-sm); }
+.addr span { color: var(--muted); font-size: var(--fs-xs); }
+.addr b { font-weight: 600; overflow-wrap: anywhere; }
+
+.badge { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--ok-bg); color: var(--ok-ink); }
+.choices { display: grid; gap: var(--sp-2); }
+.choice { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--line); font-weight: 400; transition: background-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.choice:hover { background: var(--grey-1); box-shadow: inset 0 0 0 1px var(--line-2); }
+.choice > span { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.choice b { font-weight: 600; }
+.choice small { color: var(--muted); font-size: var(--fs-sm); line-height: 1.4; }
+.choice > svg { flex: none; }
+
+.summary { display: grid; border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--line); }
+.summary > div { display: flex; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--line); font-size: var(--fs-sm); }
+.summary > div:first-child { border-top: 0; }
+.summary dt { color: var(--muted); }
+.summary dd { font-weight: 500; text-align: right; overflow-wrap: anywhere; }
+
+.loading { display: grid; place-items: center; gap: var(--sp-3); min-height: 260px; color: var(--muted); font-size: var(--fs-sm); }
+.spinner { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--ink); border-right-color: transparent; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.side { display: grid; gap: var(--sp-3); padding: var(--sp-6); border-radius: var(--r-lg); background: var(--grey-1); }
+.side h2 { font: 600 var(--fs-h2)/1.25 var(--font); letter-spacing: -.01em; }
+.side p { color: var(--muted); font-size: var(--fs-sm); }
+.side ul { display: grid; gap: var(--sp-2); margin-top: var(--sp-2); }
+.side li { display: flex; gap: var(--sp-3); align-items: flex-start; font-size: var(--fs-sm); font-weight: 500; }
+.side li svg { flex: none; margin-top: 1px; }
+
+.foot { padding: var(--sp-5); border-top: 1px solid var(--line); text-align: center; color: var(--muted); font-size: var(--fs-xs); }
+
+@media (min-width: 900px) {
+  .main { max-width: 1000px; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 72px; align-items: start; padding-top: 72px; }
+  .side { padding: var(--sp-10); }
+  .side h2 { font-size: 30px; line-height: 1.15; }
+  .side p { font-size: var(--fs); }
+}

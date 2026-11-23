@@ -4,7 +4,10 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 
 ## Le projet
 - La plateforme s'appelle **Jehre** (jamais « Jeere », « Gérer », « Jira »). Site : jehre.com.
-- L'application est dans `concepts/jeere/`. Pas d'outil de construction : HTML, CSS et JavaScript écrits à la main, servis tels quels par Vercel. Pas de React, pas de TypeScript, pas de Tailwind.
+- Le site en ligne est dans `concepts/jeere/` : HTML, CSS et JavaScript écrits à la main, servis tels quels par Vercel. **Il est gelé** : seulement des corrections critiques, plus de nouveautés.
+- Le nouveau front est dans `app-react/` (branche `migration-react`) : **Next.js, React et TypeScript**. Pas de Tailwind : une feuille de styles par composant (`*.module.css`) et les variables de `app-react/src/styles/tokens.css`.
+- La migration garde les mêmes services (Vercel, GitHub, Supabase, Stripe, Resend), les mêmes tables et les mêmes fonctions serveur. Aucune donnée n'est modifiée, aucun webhook n'est touché.
+- Ordre de migration : 1) socle et compte, 2) tableau de bord, produits, modèles, éditeur normal, 3) boutique publique et paiement. L'éditeur pro vient après.
 - Ne pas renommer les clés techniques existantes (`jeere-…` en localStorage, `window.Jeere*`, `JEERE_DATA`, noms de tables et de fonctions, en-tête `x-jeere-cron`).
 - Marché : l'Afrique de l'Ouest francophone, pas seulement la Côte d'Ivoire.
 
@@ -36,6 +39,14 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 - Notifications : carte blanche, texte gris clair, aucun bord coloré.
 - Affiches : fond blanc, vraies maquettes d'iPhone.
 - Pages légales : pas de droit ivoirien cité, pas de texte entre crochets à compléter.
+
+## Le nouveau front (`app-react/`)
+- Les pages gardent les adresses du site actuel (`/compte/`, `/admin/`, `/b/<boutique>/`), avec la barre finale.
+- La connexion se fait par code reçu par e-mail. Il n'y a pas de mot de passe sur Jehre, donc pas de « mot de passe oublié ».
+- Après une connexion, `src/lib/account.ts` écrit la copie locale `jeere-account` que lisent encore les pages non migrées. Ne pas changer sa forme.
+- Composants dans `src/components/ui/` (Button, Field, CodeInput, Notice, Icon). Une page se compose avec eux ; pas de champ ni de bouton dessiné dans une page.
+- Icônes : `Icon` (Iconly), reprises du site actuel dans `icons.ts`.
+- Avant chaque envoi : `npm run typecheck`, `npm run build`, puis `npm test` (navigateur réel, Supabase simulé : aucun courriel envoyé, aucun compte créé).
 
 ## Design : le Studio (éditeurs)
 - Les couleurs viennent de `studio/studio-shell.css` (variables `--st-*`). Les contrôles viennent de `studio/studio-kit.css` (classes `jk-*`) et leur comportement de `studio/studio-kit.js` (`JeereKit` : menu maison des listes, chiffres à glisser, couleur) ; la page `studio/kit/` les montre tous.
