@@ -26,7 +26,7 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 - Un courriel à une cliente ou à un prospect part d'une adresse Jehre (bonjour@ ou contact@jehre.com), jamais d'une boîte personnelle, et seulement après accord.
 
 ## Design : règles générales
-- Thème **clair** par défaut partout (fond blanc ou gris très clair, encre noire). Pas de thème noir et or.
+- Thème **clair** uniquement, partout (fond blanc ou gris très clair, encre noire). Pas de thème sombre, pas de bouton pour y passer, pas de noir et or.
 - L'arc-en-ciel est toujours l'arc-en-ciel complet du logo.
 - Aucun texte souligné : le gras sert à insister.
 - Textes courts : les gens ne lisent pas.

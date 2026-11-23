@@ -136,7 +136,6 @@
     var list = window.JeereStudioExtraCommands = window.JeereStudioExtraCommands || [];
     if (!list.__theme) {
       list.push(function (add) {
-        add('view:theme', 'Affichage', 'Thème : passer au ' + (T && T.get() === 'dark' ? 'clair' : 'sombre'), '', toggleTheme);
         add('nav:dashboard', 'Aller à', 'Tableau de bord', '', function () { location.href = '../admin/'; });
         add('nav:account', 'Aller à', 'Mon compte', '', function () { location.href = '../compte/'; });
       });

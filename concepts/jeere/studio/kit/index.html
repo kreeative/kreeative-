@@ -106,7 +106,6 @@
       else if (t.classList.contains('jk-switch')) t.setAttribute('aria-checked', t.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
       else if (t.parentNode.classList.contains('jk-seg')) [].forEach.call(t.parentNode.children, function (b) { b.setAttribute('aria-pressed', b === t ? 'true' : 'false'); });
     });
-    if (/[?&]theme=dark\b/.test(location.search)) document.documentElement.setAttribute('data-theme', 'dark');
   </script>
 </body>
 </html>
