@@ -866,7 +866,9 @@
       root.appendChild(fr);
     } else sendCustom();
     if (els.screen) els.screen.style.background = '#FFFFFF';
-    iphone(S.device === 'phone');
+    // on the phone view: her site flat, without a phone around it, as tall as the stage (she scrolls it)
+    iphone(false);
+    if (els.device) els.device.classList.toggle('b-device--flat', S.device === 'phone');
     if (c.bought) updateHint();
   }
   // the phone preview of her model: the real iPhone, its status bar on top of her site
@@ -909,6 +911,7 @@
     if (cs) { renderCustomInto(els.store, cs); hideHover(); fit(); return; }
     if (els.store.classList.contains('b-customwrap')) { els.store.className = ''; els.store.textContent = ''; }
     iphone(false);
+    if (els.device) els.device.classList.remove('b-device--flat');
     if (S.page === 'product' && !findProduct(S.productId)) S.productId = S.config.products[0] ? S.config.products[0].id : null;
     // The page shown was deleted (undo, import, the dashboard): the first of the seller's pages, else home
     if (S.page === 'page' && !findCustomPage(S.pageId)) {

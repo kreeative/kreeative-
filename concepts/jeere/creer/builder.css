@@ -1415,3 +1415,12 @@ html.qs-open .jst img.qs-target, html.qs-open .jst .qs-target img { touch-action
 .b-sitelink { margin: -4px 0 14px; }
 .b-sitelink .b-select { display: block; }
 .b-sitelink select { width: 100%; }
+
+/* A designer model on the phone view: flat, no phone drawn around it, as tall as the stage */
+.b-device--flat { width: 412px; padding: 0; border-radius: 16px; background: none; box-shadow: var(--b-shadow-2); border: 1px solid rgba(17, 17, 17, .12); overflow: hidden; }
+.b-device--flat .b-device__screen { width: 410px; min-height: 0; border-radius: 0; }
+.b-device--flat .b-custom { height: calc(100vh - 150px); min-height: 520px; }
+.b-slot { align-items: flex-end; }
+.b-slot__f { flex: 1 1 auto; min-width: 0; }
+.b-slot__f .b-select, .b-sitelink .b-select { display: block !important; width: 100% !important; max-width: none !important; }
+.b-slot__f select.b-input, .b-sitelink select.b-input { width: 100% !important; max-width: none !important; }
