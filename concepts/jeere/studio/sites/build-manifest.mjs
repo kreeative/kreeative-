@@ -61,6 +61,7 @@ const COMMERCE = {
   'concepts/minuit': true,
   'concepts/joshua-cooker': true,
   'concepts/sonia-luxury-hair': true,
+  'concepts/lyzma': true,
   'websites/the-ivory-sukundu': true,
 };
 function sellsOnJeere(branch, pages) {

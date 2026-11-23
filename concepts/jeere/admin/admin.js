@@ -394,7 +394,8 @@
     'vernie': { site: 'concepts--vernie', live: 'https://kreeative.xyz/concepts/vernie/' },
     'minuit': { site: 'concepts--minuit', live: 'https://kreeative.xyz/concepts/minuit/' },
     'joshua-cooker': { site: 'concepts--joshua-cooker', live: 'https://kreeative.xyz/concepts/joshua-cooker/' },
-    'sonia-luxury-hair': { site: 'concepts--sonia-luxury-hair', live: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' }
+    'sonia-luxury-hair': { site: 'concepts--sonia-luxury-hair', live: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' },
+    'lyzma': { site: 'concepts--lyzma', live: 'https://kreeative.xyz/concepts/lyzma/' }
   };
   function customSite() {
     if (EXT()) return null;
@@ -1108,6 +1109,7 @@
     { name: 'The Ivory Sukundu', meta: 'theivorysukundu.com · commandes, produits, codes', ext: true, thumb: '../studio/sites/thumbs/live--the-ivory-sukundu.webp' },
     { name: 'Sonia Luxury Hair', slug: 'sonia-luxury-hair', meta: 'Son site · kreeative.xyz/concepts/sonia-luxury-hair', thumb: '../studio/sites/thumbs/concepts--sonia-luxury-hair.webp' },
     { name: 'Joshua Cooker', slug: 'joshua-cooker', meta: 'Son site · kreeative.xyz/concepts/joshua-cooker', thumb: '../studio/sites/thumbs/concepts--joshua-cooker.webp' },
+    { name: 'Lyzma', slug: 'lyzma', meta: 'Coiffure afro, rendez-vous · kreeative.xyz/concepts/lyzma', thumb: '../studio/sites/thumbs/concepts--lyzma.webp' },
     { name: 'ANSE', slug: 'anse', meta: 'Boutique de démonstration · jehre.com/modeles/anse', thumb: '../studio/sites/thumbs/concepts--anse.webp' },
     { name: 'SÈVE', slug: 'seve', meta: 'Boutique de démonstration · jehre.com/modeles/seve', thumb: '../studio/sites/thumbs/concepts--seve.webp' },
     { name: 'SOYEUSE', slug: 'soyeuse', meta: 'Boutique de démonstration · jehre.com/modeles/soyeuse', thumb: '../studio/sites/thumbs/concepts--soyeuse.webp' },

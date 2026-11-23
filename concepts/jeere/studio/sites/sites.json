@@ -744,6 +744,80 @@
    ]
   },
   {
+   "id": "concepts--lyzma",
+   "title": "Lyzma — locks, tresses et faux locks sur rendez-vous à Montréal",
+   "kind": "concept",
+   "kindLabel": "Concept",
+   "ownSite": true,
+   "commerce": true,
+   "path": "concepts/lyzma",
+   "branch": "claude/kreeative-portfolio-design-n2a770",
+   "onlyOnBranch": false,
+   "liveUrl": "https://kreeative.xyz/concepts/lyzma/",
+   "externalUrl": null,
+   "thumbnail": "thumbs/concepts--lyzma.webp",
+   "updated": {
+    "date": "2026-11-23T19:27:10+00:00",
+    "commit": "7714574",
+    "subject": "Lyzma : site de réservation coiffure afro (locks, tresses, mèches, faux locks) à Montréal"
+   },
+   "local": false,
+   "previewBase": null,
+   "writable": [
+    "concepts/lyzma/"
+   ],
+   "uploads": "concepts/lyzma/img/",
+   "pages": [
+    {
+     "path": "concepts/lyzma/index.html",
+     "title": "Lyzma — locks, tresses et faux locks sur rendez-vous à Montréal",
+     "url": "",
+     "sha": "ddbae3f15be9826e8d9c384fa7cb04a42063d473",
+     "size": 13903,
+     "local": false
+    },
+    {
+     "path": "concepts/lyzma/mentions-legales/index.html",
+     "title": "Mentions légales — Lyzma",
+     "url": "mentions-legales/",
+     "sha": "be0df71c9d62bdb1123cbf7e5984225d01faf638",
+     "size": 5599,
+     "local": false
+    },
+    {
+     "path": "concepts/lyzma/rendez-vous/index.html",
+     "title": "Mon rendez-vous — Lyzma",
+     "url": "rendez-vous/",
+     "sha": "24ef5a921f88ced7403fdc2a8d46c6b84ebefc2c",
+     "size": 2756,
+     "local": false
+    },
+    {
+     "path": "concepts/lyzma/reserver/index.html",
+     "title": "Prendre rendez-vous — Lyzma",
+     "url": "reserver/",
+     "sha": "c8b46017356f9cc1d7badcf24e7cd0f746b4365b",
+     "size": 2680,
+     "local": false
+    }
+   ],
+   "images": [
+    "concepts/lyzma/img/fauxlocks.webp",
+    "concepts/lyzma/img/hero.webp",
+    "concepts/lyzma/img/locks.webp",
+    "concepts/lyzma/img/logo-creme.webp",
+    "concepts/lyzma/img/logo-nuit.webp",
+    "concepts/lyzma/img/logo.webp",
+    "concepts/lyzma/img/mains.webp",
+    "concepts/lyzma/img/marque.webp",
+    "concepts/lyzma/img/meches.webp",
+    "concepts/lyzma/img/raies.webp",
+    "concepts/lyzma/img/salon.webp",
+    "concepts/lyzma/img/sourire.webp",
+    "concepts/lyzma/img/tresses.webp"
+   ]
+  },
+  {
    "id": "concepts--michou",
    "title": "MICHOU — streetwear",
    "kind": "concept",
