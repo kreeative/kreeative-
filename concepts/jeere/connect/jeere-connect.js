@@ -741,7 +741,7 @@
     // edited, not yet published; it replaces the published one on this page only, for her alone.
     if (window.parent !== window) {
       window.addEventListener('message', function (e) {
-        if (!/^https:\/\/(jehre\.com|jeere\.kreeative\.xyz)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
+        if (!/^https:\/\/(jehre\.com|jeere\.kreeative\.xyz|jehre-app\.vercel\.app)$|^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin)) return;
         // the panel asks to show one: scrolled into view, outlined a moment
         if (isObj(e.data) && typeof e.data.jeereSection === 'number') {
           var se = sections()[e.data.jeereSection];
