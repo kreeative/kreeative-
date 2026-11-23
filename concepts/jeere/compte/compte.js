@@ -80,7 +80,7 @@
     if (!SUITE || !SUITE.model) return;
     var NAMES = { anse: 'ANSE', seve: 'SÈVE', soyeuse: 'SOYEUSE', michou: 'MICHOU', regard: 'REGARD', vernie: 'VERNIE', minuit: 'MINUIT' };
     var say = function () {
-      [['c-signup-lead', 'Créez votre compte pour voir le modèle '], ['c-login-lead', 'Connectez-vous pour voir le modèle ']].forEach(function (x) {
+      [['c-signup-lead', 'Créez votre compte pour choisir le modèle '], ['c-login-lead', 'Connectez-vous pour choisir le modèle ']].forEach(function (x) {
         var el = root.document.getElementById(x[0]);
         if (!el || el.getAttribute('data-model')) return;
         el.setAttribute('data-model', SUITE.model);
@@ -535,7 +535,7 @@
   function drawChannelTexts() {
     var one = !demo() && !providers.sms && !providers.whatsapp;
     var lead = doc.getElementById('c-signup-lead');
-    if (lead) lead.innerHTML = (SUITE && SUITE.model ? '<strong>Créez votre compte pour voir le modèle ' + SUITE.model.toUpperCase().replace('SEVE', 'SÈVE') + '.</strong> ' : '') + 'Pas de mot de passe.';
+    if (lead) lead.innerHTML = (SUITE && SUITE.model ? '<strong>Créez votre compte pour choisir le modèle ' + SUITE.model.toUpperCase().replace('SEVE', 'SÈVE') + '.</strong> ' : '') + 'Pas de mot de passe.';
     // with e-mail alone, the line under the (hidden) choice repeats the e-mail field's hint: hidden too
     ['c-method-hint', 'c-l-method-hint'].forEach(function (id) { var h = doc.getElementById(id); if (h) h.hidden = one; });
   }

@@ -20,9 +20,10 @@
       var open = false;
       try { open = !!(acc && acc.loggedIn && acc.userId && localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token')); } catch (e) { open = false; }
       window.JEHRE_OPEN = open;
-      // no model named: the list of the models is in the dashboard (which asks for the account too)
-      if (!m) { location.replace(open ? '/admin/#boutique' : '/compte/#inscription'); return; }
-      if (!open) location.replace('/compte/?suite=modele&m=' + m[1] + (acc ? '#connexion' : '#inscription'));
+      window.JEHRE_KNOWN = !!acc;
+      // A model is seen by anyone, inside Jehre (this page): no account is asked to look. The account is asked
+      // only by « Choisir ce modèle ». No model named: the list of the models (the dashboard, or the home page).
+      if (!m) location.replace(open ? '/admin/#boutique' : '/#modeles');
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,14 +63,17 @@
   <script>
     (function () {
       var slug = window.JEHRE_MODEL;
-      if (!slug || !window.JEHRE_OPEN) return;
+      if (!slug) return;
+      var open = !!window.JEHRE_OPEN;
       var M = window.JeereModels, m = null;
       try { m = M && M.bySlug ? M.bySlug(slug) : null; } catch (e) { m = null; }
       var name = (m && m.name) || slug.toUpperCase();
       document.title = 'Modèle ' + name + ' · Jehre';
       document.getElementById('mv-title').textContent = 'Modèle ' + name;
       if (m && m.kind) document.getElementById('mv-kind').textContent = m.kind;
-      document.getElementById('mv-choose').href = '/admin/#boutique/modele/' + slug;
+      // choosing it needs her account: the dashboard when she is in, else the account page (which brings her back)
+      document.getElementById('mv-choose').href = open ? '/admin/#boutique/modele/' + slug : '/compte/?suite=modele&m=' + slug + (window.JEHRE_KNOWN ? '#connexion' : '#inscription');
+      if (!open) { document.querySelector('.mv-all').href = '/#modeles'; document.querySelector('.mv-logo').href = '/'; document.querySelector('.mv-logo').setAttribute('aria-label', 'Jehre, accueil'); }
       document.getElementById('mv-frame').src = '/modeles/voir/' + slug + '/';
       // the logo, the same drawing as everywhere (taken from the account page's sprite)
       fetch('/compte/index.html').then(function (r) { return r.text(); }).then(function (t) {
