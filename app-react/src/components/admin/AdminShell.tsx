@@ -29,6 +29,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   useEffect(() => { setMenu(false); }, [path]);
+  // links written for the current dashboard (« Choisir ce modèle » on a model's demo: /admin/#boutique/modele/<nom>)
+  useEffect(() => {
+    const m = /^#boutique(?:\/modele\/([a-z]+))?/.exec(window.location.hash);
+    if (m) window.location.replace(m[1] ? `/admin/modeles/?choisir=${m[1]}` : '/admin/modeles/');
+  }, []);
   useEffect(() => {
     if (!menu) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false); };
