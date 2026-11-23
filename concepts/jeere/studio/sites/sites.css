@@ -565,3 +565,23 @@ html.sk-resizing-e, html.sk-resizing-e * { cursor: ew-resize !important; user-se
 html.sk-resizing-s, html.sk-resizing-s * { cursor: ns-resize !important; user-select: none !important; }
 html.sk-resizing-se, html.sk-resizing-se * { cursor: nwse-resize !important; user-select: none !important; }
 html[class*="sk-resizing-"] iframe { pointer-events: none; }
+
+/* ---------- the panels with the kit's look: 28 px fields, 11 px labels, 12 px values (the Design tab of the website editor) */
+#skPanel .dz-row { grid-template-columns: 76px minmax(0, 1fr) 12px; gap: 8px; min-height: 32px; }
+#skPanel .dz-lab { font-size: 11px; color: var(--jk-ink-2, #5E5E5E); }
+#skPanel .dz-num, #skPanel .dz-num input, #skPanel .dz-select, #skPanel .dz-color, #skPanel .dz-hex, #skPanel .dz-text:not(textarea) { height: 28px; }
+#skPanel .dz-num, #skPanel .dz-color, #skPanel .dz-select, #skPanel .dz-text, #skPanel .dz-seg { border-radius: var(--jk-r, 7px); }
+#skPanel .dz-num input, #skPanel .dz-select, #skPanel .dz-text, #skPanel .dz-hex { font-size: 12px; font-variant-numeric: tabular-nums; }
+#skPanel .dz-num:focus-within, #skPanel .dz-color:focus-within, #skPanel .dz-text:focus { box-shadow: inset 0 0 0 1.5px var(--jk-focus, #1E1E1E); }
+#skPanel .dz-gh__t { font-size: 12.5px; }
+
+/* ---------- Layers: lock, drag to reorder */
+.sk-row__lock { width: var(--ctl-xs); height: var(--ctl-xs); display: inline-flex; align-items: center; justify-content: center; border: 0; background: none; padding: 0; color: var(--fg-3); cursor: pointer; opacity: 0; border-radius: 4px; }
+.sk-row__lock svg { width: 14px; height: 14px; }
+.sk-row:hover .sk-row__lock, .sk-row__lock.is-on, .sk-row__lock:focus-visible { opacity: 1; }
+.sk-row__lock:hover, .sk-row__eye:hover { color: var(--fg-1); background: var(--bg-hover); }
+.sk-row.is-locked .sk-row__name { color: var(--fg-3); }
+.sk-row[draggable="true"] { cursor: grab; }
+.sk-row.is-dragging { opacity: .45; }
+.sk-row.is-drop-before { box-shadow: inset 0 2px 0 var(--st-ink, #1E1E1E); }
+.sk-row.is-drop-after { box-shadow: inset 0 -2px 0 var(--st-ink, #1E1E1E); }
