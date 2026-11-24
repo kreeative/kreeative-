@@ -7,6 +7,7 @@ import { useSave } from '@/components/admin/useSave';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { FontPicker, useSiteFonts } from '@/components/ui/FontPicker';
+import { MODEL_FONTS } from '@/lib/fonts';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { brandOf, editorSite, MODEL_COLORS, withBrand, type Brand } from '@/lib/models';
@@ -79,8 +80,8 @@ export default function BrandingPage() {
 
           <section className={styles.card} aria-label="Polices">
             <h2><Icon name="edit" size={18} />Polices</h2>
-            <FontPicker label="Titres" value={b.headFont} onChange={(v) => set({ headFont: v })} />
-            <FontPicker label="Textes" value={b.textFont} textOnly onChange={(v) => set({ textFont: v })} />
+            <FontPicker label="Titres" value={b.headFont} current={MODEL_FONTS[modelSlug]?.head ?? 'Police du site'} onChange={(v) => set({ headFont: v })} />
+            <FontPicker label="Textes" value={b.textFont} current={MODEL_FONTS[modelSlug]?.text ?? 'Police du site'} textOnly onChange={(v) => set({ textFont: v })} />
           </section>
 
           <section className={styles.card} aria-label="Boutons">

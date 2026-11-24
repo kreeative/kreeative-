@@ -53,3 +53,15 @@ export function fontsUrl(fonts: SiteFont[], all = false): string {
   const fam = fonts.map((f) => `family=${encodeURIComponent(f.name).replace(/%20/g, '+')}${all ? `:wght@${f.weights.join(';')}` : ''}`).join('&');
   return `https://fonts.googleapis.com/css2?${fam}&display=swap`;
 }
+
+/** The fonts each designer model is drawn with (titles, texts), as its site loads them: what her site shows until
+ *  she chooses another one. Hastegi is SOYEUSE's own font (not on Google Fonts). */
+export const MODEL_FONTS: Record<string, { head: string; text: string }> = {
+  seve: { head: 'Instrument Serif', text: 'Inter' }, soyeuse: { head: 'Hastegi', text: 'Montserrat' },
+  michou: { head: 'Archivo', text: 'Space Mono' }, anse: { head: 'Inter Tight', text: 'Inter' },
+  regard: { head: 'Anton', text: 'DM Sans' }, vernie: { head: 'Bebas Neue', text: 'DM Mono' },
+  minuit: { head: 'Cormorant Garamond', text: 'Montserrat' },
+};
+const ON_GOOGLE = ['Instrument Serif', 'Archivo', 'Space Mono', 'Inter Tight', 'DM Mono', 'Anton', 'Cormorant Garamond', 'Bebas Neue', 'Montserrat', 'Inter', 'DM Sans'];
+/** The models' own fonts, so their names too are written in themselves in the menu. */
+export const modelFontsUrl = (): string => `https://fonts.googleapis.com/css2?${ON_GOOGLE.map((n) => `family=${n.replace(/ /g, '+')}`).join('&')}&display=swap`;

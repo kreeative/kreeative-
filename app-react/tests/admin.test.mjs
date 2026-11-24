@@ -1861,6 +1861,10 @@ await test('Branding: logo, colours and shape of the buttons for the whole site,
   await page.screenshot({ path: `${SHOTS}80-branding.png` });
   // the fonts: the 33 of Jehre in five styles, for the titles and for the texts, applied to her whole site
   // one compact field each: a menu drops down, by style, each name in its own font
+  // the field says which font her site uses now (SOYEUSE: Hastegi, Montserrat); no « Celle du modèle »
+  const polices = page.getByRole('region', { name: 'Polices' });
+  assert.deepEqual(await polices.getByRole('button').allInnerTexts(), ['Hastegi', 'Montserrat']);
+  assert.equal(await page.getByText('Celle du modèle').count(), 0);
   await page.getByRole('region', { name: 'Polices' }).getByRole('button', { name: /^Titres/ }).click();
   await page.getByRole('listbox', { name: 'Titres' }).getByRole('option', { name: 'Bodoni Moda' }).click();
   assert.equal(await page.getByRole('listbox').count(), 0, 'the menu closes on a choice');
