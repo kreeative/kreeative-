@@ -132,7 +132,7 @@ export function AddedInspector({ added, fiche, pages, userId, onChange }: { adde
           <Field label="Texte du bouton" maxLength={60} value={added.cta ?? ''} onChange={(e) => onChange({ cta: e.target.value }, 'cta')} />
           <LinkPicker key={added.id} value={added.href ?? ''} fiche={fiche} pages={pages} onChange={(v) => onChange({ href: v ?? undefined })} />
         </> : null}
-        {added.type === 'products' ? <p className={styles.hint}>Vos huit premiers produits s’affichent ici. Ils se gèrent dans <a href="/admin/produits/"><b>Produits</b></a>.</p> : null}
+        {added.type === 'products' ? <p className={styles.hint}>Vos huit premiers produits s’affichent ici. Ils se gèrent et se modifient dans <a href="/admin/produits/"><b>Produits</b></a>.</p> : null}
         {added.type === 'reviews' || added.type === 'faq' ? <>
           {items.map((it, i) => (
             <div key={i} className={styles.line}>

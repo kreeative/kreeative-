@@ -113,6 +113,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       if (method === 'DELETE') { world.team = (world.team ?? []).filter((x) => !url.search.includes(`user_id=eq.${x.user_id}`)); return json(route, 204); }
       return json(route, 200, []);
     }
+    // her uploaded photos, shown back (a colour per file) so the captures show real pictures
+    if (p.startsWith('/storage/v1/object/public/store-media/')) { const c = ['#E8467C', '#1E9BE0', '#22C97E', '#F0C414', '#6A4CFF'][[...p].reduce((n, ch) => n + ch.charCodeAt(0), 0) % 5]; return route.fulfill({ status: 200, contentType: 'image/svg+xml', headers: { 'access-control-allow-origin': '*' }, body: `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="${c}"/></svg>` }); }
     if (p.startsWith('/storage/v1/object/store-media/')) { world.uploads.push(p.replace('/storage/v1/object/store-media/', '')); return json(route, 200, { Key: p }); }
     if (p === '/rest/v1/stores') {
       // the dashboard must ask for HER stores only: a query without the owner filter would return every public store
@@ -282,25 +284,37 @@ await test('products: a store changed elsewhere meanwhile is not overwritten', a
   await ctx.close();
 });
 
-await test('products: a photo is shrunk, sent to her own folder, and saved on the product', async () => {
+await test('products: several photos per product, each shrunk and sent to her own folder; the first is the main one, any can become it', async () => {
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/produits/`); await h1(page, 'Produits');
   await page.getByText('Savon noir au karité').click();
   const sheet = page.getByRole('dialog');
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-  await sheet.getByLabel('Choisir une photo').setInputFiles({ name: 'savon.png', mimeType: 'image/png', buffer: png });
-  await sheet.getByRole('button', { name: 'Changer la photo' }).waitFor();
-  assert.equal(w.uploads.length, 1); assert.match(w.uploads[0], new RegExp(`^${USER.id}/[0-9a-f]{20}-1\\.webp$`), 'under her own folder, named by its content');
+  // three photos at once (three different pictures)
+  const red = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGO4Iyf3HwAFCgIYn0f7egAAAABJRU5ErkJggg==', 'base64');
+  const blue = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGOQs7nzHwAD6AI2lMYubQAAAABJRU5ErkJggg==', 'base64');
+  await sheet.getByLabel('Choisir des photos').setInputFiles([{ name: 'savon.png', mimeType: 'image/png', buffer: png }, { name: 'savon-2.png', mimeType: 'image/png', buffer: red }, { name: 'savon-3.png', mimeType: 'image/png', buffer: blue }]);
+  const photos = sheet.getByRole('list', { name: 'Photos du produit' });
+  await photos.getByRole('img', { name: 'Photo 3' }).waitFor();
+  assert.equal(w.uploads.length, 3); assert.match(w.uploads[0], new RegExp(`^${USER.id}/[0-9a-f]{20}-1\\.webp$`), 'under her own folder, named by its content');
+  await photos.getByText('Principale').waitFor();
+  // the third becomes the main one; the second is removed
+  await photos.getByRole('button', { name: 'Mettre la photo 3 en principale' }).click();
+  await photos.getByRole('button', { name: 'Retirer la photo 3' }).click();
+  assert.equal(await photos.getByRole('img').count(), 2);
   await page.screenshot({ path: `${SHOTS}18-produit-photo.png` });
+  const shown = await photos.getByRole('img').evaluateAll((xs) => xs.map((x) => x.getAttribute('src')));
   await sheet.getByRole('button', { name: 'Enregistrer' }).click();
   await page.waitForFunction(() => !document.querySelector('[role=dialog]'));
   const saved = w.stores[0].fiche.products[1];
+  assert.deepEqual(saved.images, shown, 'her photos, in her order');
+  assert.equal(saved.image, shown[0], 'the main photo is the first');
   assert.match(saved.image, new RegExp(`/storage/v1/object/public/store-media/${USER.id}/[0-9a-f]{20}-1\\.webp$`)); assert.equal(saved.art, 'soap', 'the rest of the product is kept');
   // a file that is not an image is refused, and nothing is sent
   await page.getByText('Huile de coco vierge').click();
-  await sheet.getByLabel('Choisir une photo').setInputFiles({ name: 'liste.pdf', mimeType: 'application/pdf', buffer: Buffer.from('x') });
+  await sheet.getByLabel('Choisir des photos').setInputFiles({ name: 'liste.pdf', mimeType: 'application/pdf', buffer: Buffer.from('x') });
   await sheet.getByText('Choisissez une image').waitFor();
-  assert.equal(w.uploads.length, 1);
+  assert.equal(w.uploads.length, 3);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -2069,7 +2083,7 @@ await test('a title with its own small line (MICHOU « Hauts » / « t-shirts lo
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-await test('a product card in the editor (SÈVE): which product of the catalogue it shows, Masquer, and « Modifier dans Produits »; never its photo, name or price', async () => {
+await test('a product card in the editor (SÈVE): which product of the catalogue it shows and Masquer; the sentence leads to Produits; never its photo, name or price', async () => {
   const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);
   const site = page.frameLocator('iframe[title="Votre site"]');
@@ -2080,11 +2094,15 @@ await test('a product card in the editor (SÈVE): which product of the catalogue
   await card.locator('img').first().click({ force: true });
   await tools.getByRole('button', { name: 'Produit', exact: true }).click();
   await page.getByRole('dialog', { name: 'Produit de cette case' }).getByLabel('Produit').selectOption('Savon noir au karité');
-  await page.getByRole('dialog', { name: 'Produit de cette case' }).getByRole('button', { name: 'Fermer' }).click(); await page.waitForTimeout(500);
-  assert.deepEqual(await tools.locator('button span').allInnerTexts(), ['Produit', 'Modifier dans Produits', 'Masquer'], 'no Photo, Nom or Prix on a card');
+  const drawer = page.getByRole('dialog', { name: 'Produit de cette case' });
+  await drawer.getByText('Vos produits se gèrent et se modifient dans').waitFor();
+  await page.screenshot({ path: `${SHOTS}102b-carte-produit-tiroir.png` });
+  await drawer.getByRole('button', { name: 'Fermer' }).click(); await page.waitForTimeout(500);
+  assert.deepEqual(await tools.locator('button span').allInnerTexts(), ['Produit', 'Masquer'], 'no Photo, Nom or Prix on a card, and no second way to Produits');
   await page.screenshot({ path: `${SHOTS}102-carte-produit-barre.png` });
-  // the shortcut: her changes are kept first, then the product opens in Produits
-  await tools.getByRole('button', { name: 'Modifier dans Produits', exact: true }).click();
+  // the sentence's link: her changes are kept first, then the product opens in Produits
+  await tools.getByRole('button', { name: 'Produit', exact: true }).click();
+  await drawer.getByRole('link', { name: 'Produits' }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Enregistrer et quitter' }).click();
   await page.waitForURL(/\/admin\/produits\/\?produit=p2$/);
   const sheet = page.getByRole('dialog', { name: 'Modifier le produit' });
@@ -2134,6 +2152,29 @@ await test('the top bar on a phone floats like the bottom one: a glass capsule a
   assert.equal(Math.round(await bar.evaluate((n) => n.getBoundingClientRect().top)), 8, 'it stays, floating, while the page passes under it');
   await page.screenshot({ path: `${SHOTS}109-barre-haut-defilement.png` });
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('a product with several photos: on its page, small photos under the big one; a touch shows it big (MICHOU)', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/compte/`);
+  const pics = ['https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=640', 'https://images.unsplash.com/photo-1521369909029-2afed882baee?w=640', 'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?w=640'];
+  await page.evaluate(() => { document.body.innerHTML = '<iframe id="f" title="Page produit" style="width:390px;height:844px;border:0" src="https://kreeative.xyz/concepts/michou/produits/casquette-etoile/"></iframe>'; });
+  const frame = page.frameLocator('#f');
+  await frame.locator('img[data-jeere-photo]').first().waitFor({ timeout: 60000 });
+  await page.waitForFunction(() => true); await page.waitForTimeout(1500);
+  const fiche = { ...w.stores[0].fiche, products: [{ id: 'p8', name: 'Casquette Étoile', price: 15000, category: 'Accessoires', description: '', images: pics, image: pics[0] }] };
+  await page.evaluate((f) => document.getElementById('f').contentWindow.postMessage({ jeerePreview: 'michou', fiche: f, edit: false, store: 'boutique-test' }, '*'), fiche);
+  const gallery = frame.getByRole('group', { name: 'Photos du produit' });
+  await gallery.waitFor({ timeout: 15000 });
+  assert.equal(await gallery.getByRole('button').count(), 3);
+  assert.deepEqual(await gallery.locator('img').evaluateAll((xs) => xs.map((x) => x.getAttribute('src'))), pics, 'her three photos, in her order');
+  const big = frame.locator('main img[data-jeere-photo]').first();
+  assert.equal(await big.getAttribute('src'), pics[0]);
+  await gallery.getByRole('button', { name: 'Photo 2 sur 3' }).click();
+  assert.equal(await big.getAttribute('src'), pics[1], 'the photo touched is shown big');
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: `${SHOTS}112-page-produit-photos.png` });
+  assert.deepEqual(errors.filter((e) => !/net::|Failed to load resource/.test(e)), []); await ctx.close();
 });
 
 await browser.close();

@@ -222,7 +222,3 @@ span.fold { cursor: default; }
 .payNote a, .payNotePhone a { color: var(--ink); text-decoration: none; }
 .brandLink { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: var(--r-sm); color: var(--ink); font: 500 12px/1 var(--font); text-decoration: none; }
 .brandLink:hover { background: var(--grey-1); }
-/* a card shows a product of the catalogue: its photo, name and price are changed in Produits */
-.toCatalog { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: var(--ink); font: 500 11.5px/16px var(--font); text-decoration: none; }
-.toCatalog:hover { text-decoration: none; opacity: .7; }
-

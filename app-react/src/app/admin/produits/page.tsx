@@ -16,9 +16,17 @@ import styles from '../admin.module.css';
 
 const BADGES: { id: string; label: string }[] = [{ id: '', label: 'Aucune' }, { id: 'best', label: 'Meilleure vente' }, { id: 'new', label: 'Nouveau' }, { id: 'promo', label: 'Promo' }];
 
-/** `photo`: what the sheet shows; `image`: her own photo to save (undefined = unchanged, null = removed) */
-interface Draft { id: string | null; name: string; price: string; category: string; description: string; badge: string; photo: string | null; image?: string | null }
-const draftOf = (p?: Product): Draft => ({ id: p?.id ?? null, name: p?.name ?? '', price: p ? String(p.price ?? '') : '', category: p?.category ?? '', description: p?.description ?? '', badge: typeof p?.badge === 'string' ? p.badge : '', photo: p ? productPhoto(p) : null });
+/** A product has up to 8 photos: the first is the main one (on the cards), the others show on its page.
+ *  `photos`: what the sheet shows; `changed`: her photos are saved (images, and image = the first) */
+const MAX_PHOTOS = 8;
+interface Draft { id: string | null; name: string; price: string; category: string; description: string; badge: string; photos: string[]; changed?: boolean }
+const photosOf = (p: Product): string[] => {
+  const list = Array.isArray(p.images) ? (p.images as unknown[]).filter((v): v is string => typeof v === 'string' && /^https:\/\//.test(v)) : [];
+  if (list.length) return list.slice(0, MAX_PHOTOS);
+  const one = productPhoto(p);
+  return one ? [one] : [];
+};
+const draftOf = (p?: Product): Draft => ({ id: p?.id ?? null, name: p?.name ?? '', price: p ? String(p.price ?? '') : '', category: p?.category ?? '', description: p?.description ?? '', badge: typeof p?.badge === 'string' ? p.badge : '', photos: p ? photosOf(p) : [] });
 
 export default function ProductsPage() {
   const { account, store, replaceStore, reload } = useAdmin();
@@ -62,16 +70,22 @@ export default function ProductsPage() {
     return false;
   }
 
+  // one photo or several at once, added after the others (8 at most)
   async function pickPhoto(e: ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = '';
-    if (!f || !draft) return;
-    setUploading(true); setPhotoError('');
-    const r = await uploadPhoto(f, account.userId);
+    if (!files.length || !draft) return;
+    const room = MAX_PHOTOS - draft.photos.length;
+    setPhotoError(room < files.length ? `${MAX_PHOTOS} photos au plus par produit.` : '');
+    setUploading(true);
+    for (const f of files.slice(0, Math.max(0, room))) {
+      const r = await uploadPhoto(f, account.userId);
+      if (!r.ok) { setPhotoError(UPLOAD_ERROR[r.error]); break; }
+      setDraft((d) => (d ? { ...d, photos: [...d.photos, r.url].slice(0, MAX_PHOTOS), changed: true } : d));
+    }
     setUploading(false);
-    if (!r.ok) { setPhotoError(UPLOAD_ERROR[r.error]); return; }
-    setDraft((d) => (d ? { ...d, photo: r.url, image: r.url } : d));
   }
+  const setPhotos = (f: (list: string[]) => string[]) => setDraft((d) => (d ? { ...d, photos: f(d.photos), changed: true } : d));
 
   async function save(e: FormEvent) {
     e.preventDefault();
@@ -83,7 +97,7 @@ export default function ProductsPage() {
     if (!draft.price.trim() || !Number.isFinite(price) || price < 0) errs.price = 'Indiquez un prix, en chiffres.';
     setErrors(errs);
     if (Object.keys(errs).length) return;
-    const fields = { name, price, category: clip(draft.category, 40), description: draft.description.trim().slice(0, 2000), badge: draft.badge, ...(draft.image !== undefined ? { image: draft.image, ...(draft.image === null ? { photo: null } : {}) } : {}) };
+    const fields = { name, price, category: clip(draft.category, 40), description: draft.description.trim().slice(0, 2000), badge: draft.badge, ...(draft.changed ? { images: draft.photos, image: draft.photos[0] ?? null, ...(draft.photos.length ? {} : { photo: null }) } : {}) };
     const next = draft.id
       ? products.map((p) => (p.id === draft.id ? { ...p, ...fields } : p))          // every other field of the product is kept
       : [...products, { id: newProductId(products), image: null, photo: null, ...fields }];
@@ -126,17 +140,23 @@ export default function ProductsPage() {
       {draft ? (
         <Sheet title={draft.id ? 'Modifier le produit' : 'Nouveau produit'} sub={store.published ? 'Visible dans votre boutique dès l’enregistrement.' : 'Visible quand votre boutique sera en ligne.'} onClose={close} expandable>
             <form className={styles.block} style={{ gap: 'var(--sp-4)' }} onSubmit={save} noValidate>
-              <div className={styles.photoRow}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <span className={styles.photoBig}>{draft.photo ? <img src={draft.photo} alt="" /> : <Icon name="image" size={28} />}</span>
-                <div className={styles.block}>
-                  <span className={styles.label}>Photo</span>
-                  <div className={styles.sheetActions}>
-                    <Button variant="secondary" icon="image" busy={uploading} onClick={() => file.current?.click()}>{draft.photo ? 'Changer la photo' : 'Ajouter une photo'}</Button>
-                    {draft.photo && !uploading ? <Button variant="quiet" onClick={() => setDraft({ ...draft, photo: null, image: null })}>Retirer</Button> : null}
-                  </div>
-                  <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => void pickPhoto(e)} aria-label="Choisir une photo" />
-                </div>
+              <div className={styles.block}>
+                <span className={styles.label}>Photos <span className={styles.muted}>· {draft.photos.length} sur {MAX_PHOTOS}</span></span>
+                <ul className={styles.photos} aria-label="Photos du produit">
+                  {draft.photos.map((src, i) => (
+                    <li key={src + i}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={`Photo ${i + 1}`} />
+                      {i === 0 ? <span className={styles.mainTag}>Principale</span> : <button type="button" className={styles.photoBtn} data-pos="left" onClick={() => setPhotos((l) => [l[i]!, ...l.filter((_, k) => k !== i)])} aria-label={`Mettre la photo ${i + 1} en principale`}><Icon name="up" size={14} /></button>}
+                      <button type="button" className={styles.photoBtn} onClick={() => setPhotos((l) => l.filter((_, k) => k !== i))} aria-label={`Retirer la photo ${i + 1}`}><Icon name="close" size={14} /></button>
+                    </li>
+                  ))}
+                  {draft.photos.length < MAX_PHOTOS ? (
+                    <li><button type="button" className={styles.addPhoto} disabled={uploading} aria-busy={uploading || undefined} onClick={() => file.current?.click()}>{uploading ? <span className={styles.spin} aria-hidden="true" /> : <Icon name="plus" size={20} />}<span>{uploading ? 'Envoi…' : 'Ajouter'}</span></button></li>
+                  ) : null}
+                </ul>
+                <span className={styles.muted}>La première est la photo principale. Les autres s’affichent sur la page du produit.</span>
+                <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => void pickPhoto(e)} aria-label="Choisir des photos" />
               </div>
               {photoError ? <Notice tone="error">{photoError}</Notice> : null}
               <Field label="Nom du produit" name="name" maxLength={80} autoFocus value={draft.name} onChange={(e) => { setDraft({ ...draft, name: e.target.value }); setErrors(({ name: _n, ...rest }) => rest); }} error={errors.name} />

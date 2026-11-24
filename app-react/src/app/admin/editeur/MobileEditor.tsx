@@ -124,7 +124,6 @@ export function MobileEditor(p: MobileEditorProps) {
       { id: 'hide', label: 'Masquer', icon: 'eyeOff', act: () => { change((d) => withBand(d, item.key, { hide: true })); done(); } });
   } else if (item && mode === 'product') {
     tools.push({ id: 'product', label: 'Produit', icon: 'tag', open: 'product' });
-    tools.push({ id: 'catalog', label: 'Modifier dans Produits', icon: 'external', act: () => p.onLeave(shown ? `/admin/produits/?produit=${encodeURIComponent(shown.id)}` : '/admin/produits/') });
     tools.push({ id: 'hide', label: 'Masquer', icon: 'eyeOff', act: () => { change((d) => withSlot(d, item.ref, '-')); done(); } });
   } else if (section) {
     const off = sectionHidden(draft, section);
@@ -278,7 +277,7 @@ export function MobileEditor(p: MobileEditorProps) {
       <p className={styles.badge}><Icon name="tag" size={14} />Cette carte → {now === '-' ? 'masquée' : mine ? `Produit ${mine.name || mine.id}` : 'Produit du modèle'}</p>
       <Select label="Produit" options={[...products.map((x) => x.name || x.id), ...(mine || now === '-' ? [] : [keep]), none]} value={now === '-' ? none : mine ? mine.name || mine.id : keep}
         onChange={(e) => change((d) => withSlot(d, item.ref, e.target.value === none ? '-' : products.find((x) => (x.name || x.id) === e.target.value)?.id ?? item.ref))} />
-      <p className={styles.hint}>Vos produits se gèrent dans <a href="/admin/produits/"><b>Produits</b></a>.</p>
+      <p className={styles.hint}>Vos produits se gèrent et se modifient dans <a href={mine ? `/admin/produits/?produit=${encodeURIComponent(mine.id)}` : '/admin/produits/'}><b>Produits</b></a>.</p>
     </> };
   } else if (section && tool === 'bg') {
     const look = sectionLook(draft, section.key);

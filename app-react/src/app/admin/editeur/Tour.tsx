@@ -19,14 +19,14 @@ export const DESK_TOUR: TourStep[] = [
   { target: 'add', title: 'Ajouter une section', text: 'Une bannière, vos produits, un texte avec une image, des avis, des questions fréquentes : elle se place après la section choisie.' },
   { target: 'devices', title: 'Ordinateur ou téléphone', text: 'Vérifiez votre site sur les deux. La plupart de vos clientes viendront avec leur téléphone.' },
   { target: 'history', title: 'Une erreur ? Annulez', text: 'Ces deux flèches annulent et rétablissent vos derniers changements.' },
-  { target: 'publish', title: 'Publier', text: 'Rien n’est en ligne tant que vous n’avez pas cliqué sur Publier. Vos produits, eux, se gèrent dans le tableau de bord, page Produits.' },
+  { target: 'publish', title: 'Publier', text: 'Rien n’est en ligne tant que vous n’avez pas cliqué sur Publier. Vos produits, eux, se gèrent et se modifient dans le tableau de bord, page Produits.' },
 ];
 export const PHONE_TOUR: TourStep[] = [
   { title: 'Bienvenue dans votre éditeur', text: 'Voici votre site, tel que vos clientes le verront. Tout se change ici, du bout du doigt. La visite dure une minute.' },
   { target: 'site', title: 'Touchez pour changer', text: 'Touchez un texte, une photo ou un bouton. Il s’encadre en bleu et ses outils apparaissent en bas : modifier, couleur, remplacer, cadrer, supprimer. Le rond noir ✓ termine.' },
   { target: 'bar', title: 'Les outils du site', text: 'Sections : l’ordre et ce qui est masqué. Pages : les autres pages. Style : la police. Ajouter : remettre ce que vous avez supprimé.' },
   { target: 'history', title: 'Une erreur ? Annulez', text: 'Ces deux flèches annulent et rétablissent vos derniers changements.' },
-  { target: 'publish', title: 'Publier', text: 'Rien n’est en ligne tant que vous n’avez pas touché Publier. Vos produits se gèrent dans le tableau de bord, onglet Produits.' },
+  { target: 'publish', title: 'Publier', text: 'Rien n’est en ligne tant que vous n’avez pas touché Publier. Vos produits se gèrent et se modifient dans le tableau de bord, onglet Produits.' },
 ];
 
 export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void }) {
