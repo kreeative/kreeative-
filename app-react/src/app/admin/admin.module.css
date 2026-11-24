@@ -4,7 +4,7 @@
 .banner { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); padding: var(--sp-3) var(--sp-4); border-radius: var(--r); background: var(--white); box-shadow: 0 0 0 1px var(--line); color: var(--ink-2); font-size: var(--fs-sm); }
 
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 44%), 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-4); }
-.kpis > div { min-width: 0; overflow: hidden; container-type: inline-size; display: grid; gap: 2px; padding: var(--sp-4) clamp(12px, 3.6vw, 20px); border-radius: var(--r-lg); background: var(--white); box-shadow: 0 0 0 1px var(--line); }
+.kpis > div { min-width: 0; overflow: hidden; container-type: inline-size; display: grid; gap: 2px; padding: var(--sp-4) clamp(12px, 3.6vw, 20px); border-radius: var(--r-lg); background: linear-gradient(180deg, #FFFFFF, #FCFCFB); box-shadow: var(--glass-hi), 0 0 0 1px var(--line), 0 10px 24px -20px rgba(17, 17, 17, .25); align-content: start; }
 .kpis dt { color: var(--muted); font-size: var(--fs-sm); }
 .kpis dt, .kpis small { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* the figure shrinks with its card (never below 15 px), on one line; « … » only as a last resort */

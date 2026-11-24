@@ -2,6 +2,9 @@
 
 import { useSwipeDown } from '@/components/ui/useSwipeDown';
 import Link from 'next/link';
+import { Sheet } from '@/components/ui/Sheet';
+import { useOrders } from '@/components/admin/useOrders';
+import { productsOf } from '@/lib/stores';
 import { usePathname } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon, Logo, type IconName } from '@/components/ui/Icon';
@@ -48,6 +51,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
     setLeaving((was) => { if (!was) window.setTimeout(() => { setMenu(false); setLeaving(false); }, 160); return true; });
   }, []);
   useEffect(() => { setMenu(false); setLeaving(false); }, [path]);
+  const [panel, setPanel] = useState<'' | 'search' | 'help'>('');
+  const [query, setQuery] = useState('');
+  const { orders } = useOrders(panel === 'search' ? store?.id ?? null : null);
+  useEffect(() => { setPanel(''); setQuery(''); }, [path]);
   const sheet = useRef<HTMLDivElement>(null);
   useSwipeDown(sheet, closeMenu, menu);      // « Plus » on a phone: pulled down, it closes
   // on a computer every page is already in the bar: her name goes straight to her account. On a phone it is « Plus ».
@@ -117,6 +124,49 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </>) : null}
         </div>
       </aside>
+
+      {/* on a phone: her store on top (and a way to change it), the search, the help, her account */}
+      {/^\/admin\/(editeur|modeles\/apercu)\/?$/.test(path) ? null : (
+        <header className={styles.topbar}>
+          {store ? (
+            <label className={styles.topStore}>
+              <span className={styles.topMark} aria-hidden="true">{storeName(store).slice(0, 1).toUpperCase()}</span>
+              <span className={styles.topName}>{storeName(store)}</span>
+              {stores.length > 1 ? <Icon name="down" size={14} /> : null}
+              <select aria-label="Boutique" value={store.id} onChange={(e) => selectStore(e.target.value)} disabled={stores.length < 2}>
+                {stores.map((s) => <option key={s.id} value={s.id}>{storeName(s)}</option>)}
+              </select>
+            </label>
+          ) : <Link className={styles.topStore} href="/admin/" aria-label="Jehre, accueil du tableau de bord"><Logo height={28} rainbow /></Link>}
+          <div className={styles.topActs}>
+            {store ? <button type="button" className={styles.topBtn} onClick={() => setPanel('search')} aria-label="Rechercher"><Icon name="search" size={20} /></button> : null}
+            <button type="button" className={styles.topBtn} onClick={() => setPanel('help')} aria-label="Aide"><Icon name="info" size={20} /></button>
+            <a className={styles.topMe} href="/compte/" aria-label="Mon compte">{initial}</a>
+          </div>
+        </header>
+      )}
+      {panel === 'search' && store ? (() => {
+        const q = query.trim().toLowerCase();
+        const prods = q ? productsOf(store).filter((p) => `${p.name} ${p.category}`.toLowerCase().includes(q)).slice(0, 6) : [];
+        const ords = q ? (orders ?? []).filter((o) => `${o.number} ${o.customer.name ?? ''} ${o.customer.phone ?? ''}`.toLowerCase().includes(q)).slice(0, 6) : [];
+        return (
+          <Sheet title="Rechercher" onClose={() => setPanel('')}>
+            <input className={styles.find} type="search" autoFocus placeholder="Un produit, une cliente, un numéro de commande" aria-label="Rechercher un produit ou une commande" value={query} onChange={(e) => setQuery(e.target.value)} />
+            {q && !prods.length && !ords.length ? <p className={styles.findNone}>{orders === null ? 'Recherche…' : 'Rien ne correspond.'}</p> : null}
+            {ords.length ? <ul className={styles.findList} aria-label="Commandes">{ords.map((o) => <li key={o.id}><Link href={`/admin/commandes/?c=${o.number}`}><Icon name="receipt" size={18} /><span>N° {o.number} · {o.customer.name || 'Cliente'}</span></Link></li>)}</ul> : null}
+            {prods.length ? <ul className={styles.findList} aria-label="Produits">{prods.map((p) => <li key={p.id}><Link href="/admin/produits/"><Icon name="tag" size={18} /><span>{p.name}</span></Link></li>)}</ul> : null}
+          </Sheet>
+        );
+      })() : null}
+      {panel === 'help' ? (
+        <Sheet title="Aide" sub="Une vraie personne vous répond, en français." onClose={() => setPanel('')}>
+          <ul className={styles.findList}>
+            <li><a href="mailto:bonjour@jehre.com"><Icon name="mail" size={18} /><span>Écrire à l’équipe Jehre</span></a></li>
+            <li><button type="button" onClick={() => { try { window.localStorage.removeItem('jehre-steps-hidden'); } catch { /* nothing kept */ } window.location.assign('/admin/'); }}><Icon name="check" size={18} /><span>Afficher les premiers pas</span></button></li>
+            <li><a href="/compte/"><Icon name="user" size={18} /><span>Mon compte</span></a></li>
+          </ul>
+        </Sheet>
+      ) : null}
 
       {/* each page comes in with a soft fade. The editor and the model viewer cover the screen (position: fixed):
           they are not wrapped in anything that moves */}
