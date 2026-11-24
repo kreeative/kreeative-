@@ -1,10 +1,11 @@
 import type { User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
-/* Sign-up and login with a one-time code sent by e-mail (Supabase Auth). There is no password on Jehre:
-   nothing to forget, nothing to reset. The same e-mail carries a link that also opens the session. */
+/* Sign-up and login with a one-time code sent by e-mail (Supabase Auth); the same e-mail carries a link that also
+   opens the session. A seller may also give her account a password (from her account page, once logged in) and
+   then log in with it. A forgotten password needs no reset page: she logs in with a code and sets a new one. */
 
-export type AuthFailure = { ok: false; kind: 'no-account' | 'network' | 'rate' | 'code' | 'email' | 'other'; text: string };
+export type AuthFailure = { ok: false; kind: 'no-account' | 'network' | 'rate' | 'code' | 'email' | 'password' | 'other'; text: string };
 export type AuthResult<T = object> = ({ ok: true } & T) | AuthFailure;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -28,6 +29,16 @@ function failure(err: unknown): AuthFailure {
   }
   if (e.status === 429 || code === 'over_email_send_rate_limit' || /rate limit|too many|security purposes/i.test(msg)) {
     return { ok: false, kind: 'rate', text: 'Trop de demandes en peu de temps. Patientez une minute, puis réessayez.' };
+  }
+  if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg)) {
+    return { ok: false, kind: 'password', text: 'Adresse ou mot de passe incorrect. Vous pouvez aussi recevoir un code par e-mail.' };
+  }
+  if (code === 'weak_password' || /password should be|weak password/i.test(msg)) {
+    return { ok: false, kind: 'password', text: 'Ce mot de passe est trop simple. Mettez au moins 8 caractères, avec des lettres et des chiffres.' };
+  }
+  if (code === 'same_password') return { ok: false, kind: 'password', text: 'C’est déjà votre mot de passe.' };
+  if (code === 'reauthentication_needed' || /reauthentication/i.test(msg)) {
+    return { ok: false, kind: 'password', text: 'Pour changer de mot de passe, déconnectez-vous puis reconnectez-vous avec un code.' };
   }
   if (code === 'otp_expired' || /expired|invalid.*(token|otp)|token.*invalid/i.test(msg)) {
     return { ok: false, kind: 'code', text: 'Ce code n’est pas le bon, ou il a expiré. Vérifiez-le ou demandez-en un nouveau.' };
@@ -66,6 +77,28 @@ export async function verifyCode(email: string, token: string): Promise<AuthResu
     if (error) return failure(error);
     if (!data.user) return failure({ message: 'invalid token' });
     return { ok: true, user: data.user };
+  } catch (err) { return failure(err); }
+}
+
+/** A password as Jehre accepts it: 8 characters or more, with a letter and a digit. */
+export const PASSWORD_RULE = 'Au moins 8 caractères, avec des lettres et des chiffres.';
+export const validPassword = (v: string): boolean => v.length >= 8 && v.length <= 72 && /[A-Za-zÀ-ÿ]/.test(v) && /\d/.test(v);
+
+/** Login with the password she gave her account. */
+export async function signInPassword(email: string, password: string): Promise<AuthResult<{ user: User }>> {
+  try {
+    const { data, error } = await supabase().auth.signInWithPassword({ email: normEmail(email), password });
+    if (error) return failure(error);
+    if (!data.user) return failure({ message: 'invalid login credentials' });
+    return { ok: true, user: data.user };
+  } catch (err) { return failure(err); }
+}
+
+/** Gives the open account a password, or changes it. */
+export async function setPassword(password: string): Promise<AuthResult> {
+  try {
+    const { error } = await supabase().auth.updateUser({ password });
+    return error ? failure(error) : { ok: true };
   } catch (err) { return failure(err); }
 }
 

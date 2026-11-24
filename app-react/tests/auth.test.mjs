@@ -37,6 +37,11 @@ async function open(browser, viewport, world) {
       return json(route, 200, session());
     }
     if (url.pathname === '/auth/v1/logout') return json(route, 204);
+    if (url.pathname === '/auth/v1/token' && url.searchParams.get('grant_type') === 'password') {
+      if (!world.password || body.password !== world.password || !world.known.includes(body.email)) return json(route, 400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
+      return json(route, 200, session());
+    }
+    if (url.pathname === '/auth/v1/user' && method === 'PUT') { world.password = body.password; return json(route, 200, USER); }
     if (url.pathname === '/auth/v1/user') return json(route, 200, USER);
     if (url.pathname === '/rest/v1/profiles') {
       if (method === 'GET') return json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]);
@@ -171,6 +176,49 @@ await test('a pasted code fills every box; the code can be asked again only afte
   await page.locator('input[autocomplete="one-time-code"]').click(); await page.keyboard.press('Control+v');
   await page.waitForFunction(() => /Bonjour|Votre compte/.test(document.querySelector('h1')?.textContent ?? ''));
   await ctx.close();
+});
+
+await test('password: she gives her account one from her account page, logs in with it; a wrong one is refused, and a code still works', async () => {
+  const w = newWorld({ known: ['kady@exemple.com'] }); Object.assign(w.profile, { first_name: 'Kady', store_name: 'Boutique Test' });
+  const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/compte/#connexion`); await page.waitForSelector('h1');
+  // no password yet: the code, as before
+  await page.getByLabel('Adresse e-mail').fill('kady@exemple.com');
+  await page.getByRole('button', { name: 'Recevoir mon code' }).click();
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
+  await typeCode(page, w.code);
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
+  // her account page: a password that is too simple is refused before anything is sent
+  await page.getByRole('button', { name: 'Créer ou changer mon mot de passe' }).click();
+  await page.getByLabel('Nouveau mot de passe').fill('azerty');
+  await page.getByRole('button', { name: 'Enregistrer le mot de passe' }).click();
+  await page.getByText('Au moins 8 caractères, avec des lettres et des chiffres.').first().waitFor();
+  assert.equal(w.calls.filter((c) => c.path === '/auth/v1/user' && c.method === 'PUT').length, 0);
+  await page.getByLabel('Nouveau mot de passe').fill('Karite2026ok');
+  await page.getByRole('button', { name: 'Enregistrer le mot de passe' }).click();
+  await page.getByText('Mot de passe enregistré.').waitFor();
+  assert.equal(w.password, 'Karite2026ok');
+  await page.screenshot({ path: `${SHOTS}07-mot-de-passe-enregistre.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Se déconnecter' }).click();
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');
+  // login with it: a wrong one is refused with a way out, the right one opens the account
+  await page.getByRole('button', { name: 'Me connecter avec mon mot de passe' }).click();
+  await page.getByLabel('Adresse e-mail').fill('kady@exemple.com');
+  await page.getByLabel('Mot de passe', { exact: true }).fill('pasLeBon1');
+  await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
+  await page.getByText('Adresse ou mot de passe incorrect.').waitFor();
+  await page.screenshot({ path: `${SHOTS}08-mot-de-passe-refuse.png`, fullPage: true });
+  await page.getByLabel('Mot de passe', { exact: true }).fill('Karite2026ok');
+  await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
+  assert.equal(w.calls.some((c) => c.path === '/auth/v1/token' && c.body.password === 'Karite2026ok'), true);
+  // forgotten: one tap goes back to the code
+  await page.getByRole('button', { name: 'Se déconnecter' }).click();
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');
+  await page.getByLabel('Mot de passe', { exact: true }).waitFor();      // the form remembers she uses her password
+  await page.getByRole('button', { name: 'Recevez un code' }).click();
+  await page.getByRole('button', { name: 'Recevoir mon code' }).waitFor();
+  await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
 });
 
 await browser.close();

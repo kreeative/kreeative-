@@ -97,3 +97,6 @@
 .choice { transition: box-shadow var(--dur) var(--ease), background-color var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .choice:active { transform: scale(.985); }
 @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } }
+
+/* her password: a small form inside her account page */
+.pass { display: grid; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--line); }
