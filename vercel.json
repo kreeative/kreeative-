@@ -20,6 +20,59 @@
       "dest": "/api/catalogue?slug=$1"
     },
     {
+      "src": "^/admin-classique/?$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jehre\\.com|www\\.jehre\\.com)"
+        }
+      ],
+      "dest": "/concepts/jeere/admin/index.html"
+    },
+    {
+      "src": "^/admin-classique/(.+)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jehre\\.com|www\\.jehre\\.com)"
+        }
+      ],
+      "dest": "/concepts/jeere/admin/$1"
+    },
+    {
+      "src": "^/_next/(.*)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jehre\\.com|www\\.jehre\\.com)"
+        }
+      ],
+      "dest": "https://jehre-app.vercel.app/_next/$1"
+    },
+    {
+      "src": "^/(admin|compte)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jehre\\.com|www\\.jehre\\.com)"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "/$1/"
+      }
+    },
+    {
+      "src": "^/(admin|compte)/((?:[^.?]*/)?[^./?]*/?)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jehre\\.com|www\\.jehre\\.com)"
+        }
+      ],
+      "dest": "https://jehre-app.vercel.app/$1/$2"
+    },
+    {
       "src": "^/(.*)$",
       "has": [
         {
