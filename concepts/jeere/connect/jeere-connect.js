@@ -866,8 +866,14 @@
   function drawSel() {
     if (!selBox) return;
     if (!selEl || !document.documentElement.contains(selEl)) { selBox.style.display = 'none'; return; }
-    var r = selEl.getBoundingClientRect();
-    if (!r.width && !r.height) { selBox.style.display = 'none'; return; }
+    var r0 = selEl.getBoundingClientRect(), r = { left: r0.left, right: r0.right, top: r0.top, bottom: r0.bottom };
+    // what one SEES of it: a picture bigger than the box that crops it is framed where it is cropped
+    for (var par = selEl.parentElement; par && par !== document.body && par !== document.documentElement; par = par.parentElement) {
+      var ov = ''; try { ov = window.getComputedStyle(par).overflow; } catch (e) { ov = ''; }
+      if (ov && ov !== 'visible') { var q = par.getBoundingClientRect(); r.left = Math.max(r.left, q.left); r.right = Math.min(r.right, q.right); r.top = Math.max(r.top, q.top); r.bottom = Math.min(r.bottom, q.bottom); }
+    }
+    r.width = r.right - r.left; r.height = r.bottom - r.top;
+    if (r.width <= 0 || r.height <= 0) { selBox.style.display = 'none'; return; }
     selBox.style.display = 'block';
     // the frame follows the element exactly (its own rounded corners too) and never leaves the page on the sides
     var full = document.documentElement.clientWidth || window.innerWidth;
@@ -887,7 +893,7 @@
       selBox.setAttribute('style', 'position:absolute;z-index:2147483000;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:4px;pointer-events:none;display:none');
       [['left', 'top'], ['right', 'top'], ['left', 'bottom'], ['right', 'bottom']].forEach(function (c) {
         var h = document.createElement('i');
-        h.setAttribute('style', 'position:absolute;width:8px;height:8px;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:2px;background:#fff;' + c[0] + ':-4px;' + c[1] + ':-4px');
+        h.setAttribute('style', 'position:absolute;width:6px;height:6px;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:2px;background:#fff;' + c[0] + ':-3.5px;' + c[1] + ':-3.5px');
         selBox.appendChild(h);
       });
       document.body.appendChild(selBox);
