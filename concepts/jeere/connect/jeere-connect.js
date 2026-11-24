@@ -1303,21 +1303,25 @@
    * dashboard's (app-react/src/lib/fonts.ts): [Google Fonts name, fallback kind, weights, reads well in paragraphs].
    * Only these ids are used: nothing she saves can reach the page as a font address or as CSS. */
   var FONT_CAT = {'playfair':['Playfair','serif','400;500;600;700;800;900',0],'cormorant-garamond':['Cormorant Garamond','serif','300;400;500;600;700',0],'eb-garamond':['EB Garamond','serif','400;500;600;700;800',0],'bodoni-moda':['Bodoni Moda','serif','400;500;600;700;800;900',0],'dm-serif-display':['DM Serif Display','serif','400',0],'libre-baskerville':['Libre Baskerville','serif','400;500;600;700',1],'lora':['Lora','serif','400;500;600;700',1],'fraunces':['Fraunces','serif','300;400;500;600;700;800;900',1],'marcellus':['Marcellus','serif','400',0],'inter':['Inter','sans-serif','300;400;500;600;700;800;900',1],'montserrat':['Montserrat','sans-serif','300;400;500;600;700;800;900',1],'poppins':['Poppins','sans-serif','300;400;500;600;700;800;900',1],'dm-sans':['DM Sans','sans-serif','300;400;500;600;700;800;900',1],'manrope':['Manrope','sans-serif','300;400;500;600;700;800',1],'space-grotesk':['Space Grotesk','sans-serif','300;400;500;600;700',1],'fira-sans':['Fira Sans','sans-serif','300;400;500;600;700;800;900',1],'onest':['Onest','sans-serif','300;400;500;600;700;800;900',1],'nunito':['Nunito','sans-serif','300;400;500;600;700;800;900',1],'quicksand':['Quicksand','sans-serif','300;400;500;600;700',1],'comfortaa':['Comfortaa','sans-serif','300;400;500;600;700',0],'baloo-2':['Baloo 2','sans-serif','400;500;600;700;800',0],'fredoka':['Fredoka','sans-serif','300;400;500;600;700',0],'unbounded':['Unbounded','sans-serif','300;400;500;600;700;800;900',0],'anton':['Anton','sans-serif','400',0],'bebas-neue':['Bebas Neue','sans-serif','400',0],'archivo-black':['Archivo Black','sans-serif','400',0],'oswald':['Oswald','sans-serif','300;400;500;600;700',0],'bricolage-grotesque':['Bricolage Grotesque','sans-serif','300;400;500;600;700;800',1],'pacifico':['Pacifico','cursive','400',0],'dancing-script':['Dancing Script','cursive','400;500;600;700',0],'caveat':['Caveat','cursive','400;500;600;700',0],'great-vibes':['Great Vibes','cursive','400',0],'amatic-sc':['Amatic SC','cursive','400;700',0]};
+  /* Four fonts: titles (h1, h2, her name), sub-titles (h3–h6 and the small words over a title), the texts of the
+   * interface (menu, links, buttons, fields) and the paragraphs (only fonts that read well at 15 px). */
   function brandFonts(b) {
-    var head = isObj(b) && typeof b.headFont === 'string' && FONT_CAT.hasOwnProperty(b.headFont) ? FONT_CAT[b.headFont] : null;
-    var text = isObj(b) && typeof b.textFont === 'string' && FONT_CAT.hasOwnProperty(b.textFont) && FONT_CAT[b.textFont][3] ? FONT_CAT[b.textFont] : null;
+    var pickF = function (k, para) { var id = isObj(b) && typeof b[k] === 'string' && FONT_CAT.hasOwnProperty(b[k]) ? b[k] : ''; return id && (!para || FONT_CAT[id][3]) ? FONT_CAT[id] : null; };
+    var head = pickF('headFont'), sub = pickF('subFont'), text = pickF('textFont'), para = pickF('paraFont', true);
     var link = document.getElementById('jeere-brand-fonts');
-    var fams = [head, text].filter(Boolean).filter(function (f, i, l) { return l.indexOf(f) === i; });
+    var fams = [head, sub, text, para].filter(Boolean).filter(function (f, i, l) { return l.indexOf(f) === i; });
     if (!fams.length) { if (link) link.parentNode.removeChild(link); return ''; }
     var url = 'https://fonts.googleapis.com/css2?' + fams.map(function (f) { return 'family=' + f[0].replace(/ /g, '+') + ':wght@' + f[2]; }).join('&') + '&display=swap';
     if (!link) { link = document.createElement('link'); link.id = 'jeere-brand-fonts'; link.rel = 'stylesheet'; document.head.appendChild(link); }
     if (link.getAttribute('href') !== url) link.setAttribute('href', url);
     var stack = function (f) { return "'" + f[0] + "', " + f[1]; };
     var css = '';
-    // the texts first, the titles after (a title's own words keep the title's font); a name drawn in the model's
-    // ornamental letters (.logo__mark) and the page's icons keep their own
-    if (text) css += 'body,p,li,a,button,input,select,textarea,label,small,dd,dt,td,th,figcaption,blockquote{font-family:' + stack(text) + '!important}';
-    if (head) css += 'h1,h2,h3,h4,h1 *,h2 *,h3 *,h4 *,a.logo:not(:has(.logo__mark)),.brand{font-family:' + stack(head) + '!important}';
+    // the most general first, the titles last (a title's own words keep the title's font); a name drawn in the
+    // model's ornamental letters (.logo__mark) keeps its own
+    if (para) css += 'body,p,li,dd,dt,blockquote,figcaption,td,th,small{font-family:' + stack(para) + '!important}';
+    if (text) css += 'a,button,input,select,textarea,label,nav,nav *,.btn,.pill,.button,[class*="btn--"]{font-family:' + stack(text) + '!important}';
+    if (sub) css += 'h3,h4,h5,h6,h3 *,h4 *,h5 *,h6 *,[class*="eyebrow"],[class*="kicker"],[class*="overline"],[class*="surtitle"]{font-family:' + stack(sub) + '!important}';
+    if (head) css += 'h1,h2,h1 *,h2 *,a.logo:not(:has(.logo__mark)),.brand{font-family:' + stack(head) + '!important}';
     return css;
   }
   function applyBrand(b) {
