@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { TishePromos } from '@/components/tishe/TishePromos';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button } from '@/components/ui/Button';
@@ -16,7 +17,13 @@ const KINDS: [Promo['kind'], string][] = [['percent', 'Pourcentage (%)'], ['amou
 
 /** « Codes promo »: the codes her buyers type at the checkout. The server (`orders`) checks them and applies them;
  *  they never appear in the public store. */
-export default function PromosPage() {
+/** The Ivory Sukundu in view: its own page (its data stays on its site). */
+export default function PromosPageSwitch() {
+  const { tishe } = useAdmin();
+  return tishe.on ? <TishePromos /> : <PromosPage />;
+}
+
+function PromosPage() {
   const { store } = useAdmin();
   const [list, setList] = useState<Promo[] | null>(null);
   const [code, setCode] = useState('');

@@ -1,6 +1,7 @@
 'use client';
 
 import { CloudLoader } from '@/components/ui/CloudLoader';
+import { TisheClients } from '@/components/tishe/TisheMore';
 import { useMemo } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -14,7 +15,13 @@ import styles from '../admin.module.css';
 interface Client { key: string; name: string; phone: string; commune: string; orders: number; total: number; last: string; currency: string }
 
 /** Her customers, made from her orders: one line per phone number (or per name when there is no number). */
-export default function ClientsPage() {
+/** The Ivory Sukundu in view: its own page (its data stays on its site). */
+export default function ClientsPageSwitch() {
+  const { tishe } = useAdmin();
+  return tishe.on ? <TisheClients /> : <ClientsPage />;
+}
+
+function ClientsPage() {
   const { store, model } = useAdmin();
   const { orders } = useOrders(store?.id ?? null);
 

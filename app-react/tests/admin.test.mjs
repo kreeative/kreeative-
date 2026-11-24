@@ -56,6 +56,23 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if ((req.headers().authorization ?? '') !== 'Bearer tx-session') return json(route, 401, { error: 'Please sign in again.' });
     if (b.action === 'overview') return json(route, 200, { stats: { todo: { toOrder: T.orders.filter((o) => o.status === 'new').length, awaitingTracking: T.orders.filter((o) => o.status === 'ordered').length } }, setup: { stripe: true, webhook: true, resend: true }, orders: T.orders });
     if (b.action === 'legacyOrders') return json(route, 200, { orders: [] });
+    T.doc ??= { products: [
+      { id: 'gid1', handle: 'kente-wave', title: 'Kente Wave Wig', supplier: 'nine', hidden: false, descriptionHtml: '<p>Soft body wave.</p>', media: [], featuredImage: null, options: [{ name: 'Length' }], variants: [{ id: 'v1', selectedOptions: [{ name: 'Length', value: '18"' }], price: { CAD: 320, USD: 235 }, compareAtPrice: null, availableForSale: true }] },
+      { id: 'gid2', handle: 'ivory-straight', title: 'Ivory Straight', supplier: 'evelyn', hidden: true, descriptionHtml: '', media: [], featuredImage: null, options: [{ name: 'Length' }], variants: [{ id: 'v2', selectedOptions: [{ name: 'Length', value: '22"' }], price: { CAD: 410, USD: 300 }, compareAtPrice: null, availableForSale: true }] },
+    ], discounts: [{ code: 'CIRCLE10', kind: 'percent', percent: 10, active: true, label: '10% off' }], site: { announcements: ['Free shipping over $250'], sale: null },
+      shipping: { zones: [{ id: 'ca', label: 'Canada', currency: 'CAD', rate: 15, countries: ['CA'] }, { id: 'us', label: 'États-Unis', currency: 'USD', rate: 20, countries: ['US'] }] } };
+    const doc = () => ({ doc: T.doc });
+    if (b.action === 'store') return json(route, 200, { ...doc(), usage: { CIRCLE10: 4 } });
+    if (b.action === 'saveProduct') { const i = T.doc.products.findIndex((x) => x.id === b.product.id); const np = { ...b.product, handle: b.product.id ? T.doc.products[i].handle : 'new-' + T.doc.products.length, id: b.product.id || 'gid' + (T.doc.products.length + 1) }; if (i >= 0) T.doc.products[i] = np; else T.doc.products.push(np); return json(route, 200, doc()); }
+    if (b.action === 'moveProduct') { const i = T.doc.products.findIndex((x) => x.id === b.id), j = b.direction === 'up' ? i - 1 : i + 1; const [x] = T.doc.products.splice(i, 1); T.doc.products.splice(j, 0, x); return json(route, 200, doc()); }
+    if (b.action === 'deleteProduct') { T.doc.products = T.doc.products.filter((x) => x.id !== b.id); return json(route, 200, doc()); }
+    if (b.action === 'upload') return json(route, 200, { url: 'https://cdn.example/full.jpg', thumb: 'https://cdn.example/thumb.jpg' });
+    if (b.action === 'saveCode') { T.doc.discounts = [...T.doc.discounts.filter((x) => x.code !== b.previousCode && x.code !== b.rule.code), b.rule]; return json(route, 200, doc()); }
+    if (b.action === 'deleteCode') { T.doc.discounts = T.doc.discounts.filter((x) => x.code !== b.code); return json(route, 200, doc()); }
+    if (b.action === 'saveSite') { T.doc.site = { announcements: b.announcements, sale: b.sale }; return json(route, 200, doc()); }
+    if (b.action === 'saveShipping') { T.doc.shipping.zones = T.doc.shipping.zones.map((z) => ({ ...z, rate: b.rates[z.id] ?? z.rate })); return json(route, 200, doc()); }
+    if (b.action === 'customers') return json(route, 200, { customers: [{ name: 'Ama K.', email: 'ama@exemple.com', country: 'CA', orders: 2, spent: 505, last: new Date().toISOString() }] });
+    if (b.action === 'subscribers') return json(route, 200, { subscribers: [{ email: 'circle@exemple.com', firstName: 'Efua', createdAt: new Date().toISOString() }] });
     const o = T.orders.find((x) => x.id === b.id);
     const full = () => ({ ...o, subtotal: o.total - 1500, shippingAmount: 1500, items: [{ title: 'Robe Kente', variant: 'M', quantity: 1, unitAmount: o.total - 1500, total: o.total - 1500 }], timeline: [{ title: 'Commande payée', at: o.createdAt }], paid: true });
     if (b.action === 'order') return json(route, 200, { order: full(), supplierMessages: [{ name: 'Atelier Accra', message: 'Hello, please make 1 Kente dress size M.' }] });
@@ -1884,13 +1901,13 @@ await test('Branding: logo, colours and shape of the buttons for the whole site,
   // one compact field each: a menu drops down, by style, each name in its own font
   // the field says which font her site uses now (SOYEUSE: Hastegi, Montserrat); no « Celle du modèle »
   const polices = page.getByRole('region', { name: 'Polices' });
-  assert.deepEqual(await polices.getByRole('button').allInnerTexts(), ['Hastegi', 'Montserrat']);
+  assert.deepEqual(await polices.getByRole('button').allInnerTexts(), ['Hastegi', 'Hastegi', 'Montserrat', 'Montserrat']);
   assert.equal(await page.getByText('Celle du modèle').count(), 0);
   await page.getByRole('region', { name: 'Polices' }).getByRole('button', { name: /^Titres/ }).click();
   await page.getByRole('listbox', { name: 'Titres' }).getByRole('option', { name: 'Bodoni Moda' }).click();
   assert.equal(await page.getByRole('listbox').count(), 0, 'the menu closes on a choice');
-  await page.getByRole('region', { name: 'Polices' }).getByRole('button', { name: /^Textes/ }).click();
-  const textList = page.getByRole('listbox', { name: 'Textes' });
+  await page.getByRole('region', { name: 'Polices' }).getByRole('button', { name: /^Paragraphes/ }).click();
+  const textList = page.getByRole('listbox', { name: 'Paragraphes' });
   assert.equal(await textList.getByRole('group', { name: 'Manuscrit' }).count(), 0, 'no handwritten font for paragraphs');
   await page.waitForTimeout(400); await page.screenshot({ path: `${SHOTS}81-branding-polices-menu.png` });
   await textList.getByRole('option', { name: 'DM Sans' }).click();
@@ -1903,7 +1920,7 @@ await test('Branding: logo, colours and shape of the buttons for the whole site,
   await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
   await page.getByText(/C’est enregistré/).waitFor();
   const saved = w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').pop();
-  assert.deepEqual(saved.body.fiche.store.site.b, { shape: 'square', btnStyle: 'outline', headFont: 'bodoni-moda', textFont: 'dm-sans' });
+  assert.deepEqual(saved.body.fiche.store.site.b, { shape: 'square', btnStyle: 'outline', headFont: 'bodoni-moda', paraFont: 'dm-sans' });
   assert.equal(JSON.stringify(saved.body.fiche.products), JSON.stringify(w.stores[0].fiche.products), 'her products travel untouched');
   // the menu and the editor lead there
   await page.goto(`${BASE}/admin/editeur/`);
@@ -2788,6 +2805,77 @@ await test('The Ivory Sukundu in the new dashboard: in the switcher for the foun
   await page.locator('#store-pick').selectOption(w.stores[0].id);
   await page.getByRole('heading', { name: 'Commandes', level: 1 }).waitFor();
   await page.getByText('Mariam K.').first().waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('The Ivory Sukundu, its other pages: Produits (order, a product with its options and prices), Codes promo, Bandeau et soldes, Livraison, Clientes, Paramètres', async () => {
+  const w = world({ founder: true, tishe: { orders: [] } });
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  page.on('dialog', (dl) => dl.accept());
+  await page.addInitScript(() => window.localStorage.setItem('jeere-ext', 'tishe'));
+  // Produits: the shop's order, one product edited
+  await page.goto(`${BASE}/admin/produits/`);
+  await page.getByRole('heading', { name: 'Produits', level: 1 }).waitFor();
+  await page.getByText('Kente Wave Wig').waitFor();
+  await page.getByRole('button', { name: 'Descendre Kente Wave Wig' }).click();
+  await page.getByText('Ordre enregistré.').waitFor();
+  assert.deepEqual(w.tishe.doc.products.map((x) => x.handle), ['ivory-straight', 'kente-wave']);
+  await page.getByRole('button', { name: /^Kente Wave Wig/ }).click();
+  const sheet = page.getByRole('dialog', { name: 'Kente Wave Wig' });
+  await sheet.getByLabel('Prix CAD 1').fill('299');
+  await sheet.getByRole('button', { name: 'Ajouter une option' }).click();
+  await sheet.getByLabel('Option 2', { exact: true }).fill('20"');
+  await sheet.getByLabel('Prix CAD 2').fill('340');
+  await page.screenshot({ path: `${SHOTS}172-tishe-produit.png` });
+  await sheet.getByRole('button', { name: 'Enregistrer sur la boutique' }).click();
+  await page.getByText('Produit enregistré sur la boutique.').waitFor();
+  const saved = w.tisheCalls.filter((c) => c.action === 'saveProduct').pop().product;
+  assert.deepEqual(saved.variants.map((v) => [v.selectedOptions[0].value, v.price.CAD]), [['18"', 299], ['20"', 340]]);
+  assert.equal(saved.descriptionHtml, '<p>Soft body wave.</p>', 'its own formatting is kept while she does not touch the words');
+  await page.keyboard.press('Escape');
+  // Codes promo
+  await page.goto(`${BASE}/admin/promos/`);
+  await page.getByText('CIRCLE10').waitFor();
+  await page.getByText('4 utilisations').waitFor();
+  await page.getByRole('button', { name: 'Nouveau code' }).click();
+  const code = page.getByRole('dialog', { name: 'Nouveau code' });
+  await code.getByLabel('Code').fill('vip20');
+  await code.getByLabel('Pourcentage').fill('20');
+  await code.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Code enregistré.').waitFor();
+  assert.deepEqual(w.tisheCalls.filter((c) => c.action === 'saveCode').pop().rule, { code: 'VIP20', kind: 'percent', active: true, label: '', percent: 20 });
+  // Bandeau et soldes
+  await page.goto(`${BASE}/admin/bandeau/`);
+  await page.getByLabel('Message 2').fill('New lengths in stock');
+  await page.getByText('Des soldes en cours').click();
+  await page.getByLabel('Fin des soldes').fill('2026-12-31T23:00');
+  await page.getByText('Ivory Straight').click();
+  await page.getByRole('button', { name: 'Enregistrer sur la boutique' }).click();
+  await page.getByText('Bandeau et soldes enregistrés sur la boutique.').waitFor();
+  const site = w.tisheCalls.filter((c) => c.action === 'saveSite').pop();
+  assert.deepEqual(site.announcements, ['Free shipping over $250', 'New lengths in stock']);
+  assert.deepEqual(site.sale.handles, ['ivory-straight']);
+  await page.screenshot({ path: `${SHOTS}173-tishe-bandeau.png`, fullPage: true });
+  // Livraison
+  await page.goto(`${BASE}/admin/livraison/`);
+  await page.getByLabel('Canada (CAD)').fill('12,50');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Tarifs de livraison enregistrés.').waitFor();
+  assert.deepEqual(w.tisheCalls.filter((c) => c.action === 'saveShipping').pop().rates, { ca: 12.5, us: 20 });
+  // Clientes and the Circle
+  await page.goto(`${BASE}/admin/clients/`);
+  await page.getByText('ama@exemple.com').waitFor();
+  await page.getByText('circle@exemple.com').waitFor();
+  // Paramètres: its services, and a way to disconnect this browser
+  await page.goto(`${BASE}/admin/parametres/`);
+  await page.getByRole('link', { name: 'Ouvrir Stripe' }).waitFor();
+  await page.getByRole('link', { name: 'Le site' }).first().waitFor();
+  // Le site: its pages, edited in place (the real site in its frame; nothing is saved here)
+  await page.goto(`${BASE}/admin/le-site/`);
+  await page.getByRole('heading', { name: 'Le site', level: 1 }).waitFor();
+  assert.equal(await page.locator('iframe[title="theivorysukundu.com, modifiable"]').getAttribute('src'), 'https://www.theivorysukundu.com/?jeere=edit#/');
+  await page.waitForTimeout(4000);
+  await page.screenshot({ path: `${SHOTS}174-tishe-site.png` });
   assert.deepEqual(errors, []); await ctx.close();
 });
 

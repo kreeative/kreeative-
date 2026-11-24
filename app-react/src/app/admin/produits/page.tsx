@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { TisheProducts } from '@/components/tishe/TisheProducts';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { SHOP_OPTION_PRICE, buyShopOption, modelBySlug, shopOptionStores } from '@/lib/models';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -29,7 +30,13 @@ const photosOf = (p: Product): string[] => {
 };
 const draftOf = (p?: Product): Draft => ({ id: p?.id ?? null, name: p?.name ?? '', price: p ? String(p.price ?? '') : '', category: p?.category ?? '', description: p?.description ?? '', badge: typeof p?.badge === 'string' ? p.badge : '', photos: p ? photosOf(p) : [] });
 
-export default function ProductsPage() {
+/** The Ivory Sukundu in view: its own page (its data stays on its site). */
+export default function ProductsPageSwitch() {
+  const { tishe } = useAdmin();
+  return tishe.on ? <TisheProducts /> : <ProductsPage />;
+}
+
+function ProductsPage() {
   const { account, store, replaceStore, reload, model } = useAdmin();
   // a booking site sells products only with the option (+25 000 F), bought for this store
   const booking = !!modelBySlug(model)?.rdv;

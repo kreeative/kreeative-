@@ -80,8 +80,13 @@ export default function BrandingPage() {
 
           <section className={styles.card} aria-label="Polices">
             <h2><Icon name="edit" size={18} />Polices</h2>
-            <FontPicker label="Titres" value={b.headFont} current={MODEL_FONTS[modelSlug]?.head ?? 'Police du site'} onChange={(v) => set({ headFont: v })} />
-            <FontPicker label="Textes" value={b.textFont} current={MODEL_FONTS[modelSlug]?.text ?? 'Police du site'} textOnly onChange={(v) => set({ textFont: v })} />
+            <div className={styles.fonts}>
+              <FontPicker label="Titres" value={b.headFont} current={MODEL_FONTS[modelSlug]?.head ?? 'Police du site'} onChange={(v) => set({ headFont: v })} />
+              <FontPicker label="Sous-titres" value={b.subFont} current={MODEL_FONTS[modelSlug]?.head ?? 'Police du site'} onChange={(v) => set({ subFont: v })} />
+              <FontPicker label="Textes" value={b.textFont} current={MODEL_FONTS[modelSlug]?.text ?? 'Police du site'} onChange={(v) => set({ textFont: v })} />
+              <FontPicker label="Paragraphes" value={b.paraFont} current={MODEL_FONTS[modelSlug]?.text ?? 'Police du site'} textOnly onChange={(v) => set({ paraFont: v })} />
+            </div>
+            <p className={styles.hint}>Textes : menu, liens et boutons.</p>
           </section>
 
           <section className={styles.card} aria-label="Boutons">

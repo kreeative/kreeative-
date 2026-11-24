@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
+import { TisheShipping } from '@/components/tishe/TisheMore';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { SaveBar } from '@/components/admin/SaveBar';
@@ -16,7 +17,13 @@ interface Row { name: string; fee: string }
 const MAX_ZONES = 30;
 
 /** Her delivery zones and their fees, commune by commune: the « Livraison » section of her store's page. */
-export default function DeliveryPage() {
+/** The Ivory Sukundu in view: its own page (its data stays on its site). */
+export default function DeliveryPageSwitch() {
+  const { tishe } = useAdmin();
+  return tishe.on ? <TisheShipping /> : <DeliveryPage />;
+}
+
+function DeliveryPage() {
   const { store } = useAdmin();
   const { busy, problem, saved, write } = useSave();
   const [rows, setRows] = useState<Row[]>([]);

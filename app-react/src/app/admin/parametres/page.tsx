@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
+import { TisheSettings } from '@/components/tishe/TisheMore';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { SaveBar } from '@/components/admin/SaveBar';
@@ -24,7 +25,13 @@ function download(name: string, text: string, type: string) {
 const csv = (rows: (string | number)[][]) => rows.map((r) => r.map((v) => { const t = String(v ?? '').replace(/\r?\n/g, ' '); return /[";,]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; }).join(';')).join('\n');
 
 /** What her store is called and how to reach her: fiche.store (name, tagline, city, WhatsApp). */
-export default function SettingsPage() {
+/** The Ivory Sukundu in view: its own page (its data stays on its site). */
+export default function SettingsPageSwitch() {
+  const { tishe } = useAdmin();
+  return tishe.on ? <TisheSettings /> : <SettingsPage />;
+}
+
+function SettingsPage() {
   const { store } = useAdmin();
   const { busy, problem, saved, write } = useSave();
   const [form, setForm] = useState<Form>({ name: '', tagline: '', city: '', whatsapp: '', currency: 'XOF', waButton: true, pixel: '', ga4: '' });

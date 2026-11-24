@@ -43,15 +43,17 @@ const SHOP: NavItem[] = [
 ];
 
 // The Ivory Sukundu: its own pages (its data stays on its site, ../../lib/tishe.ts)
-// Accueil and Commandes are here; its other pages open in the classic dashboard (same session) until they move
+// its pages: its data stays on its site (../../lib/tishe.ts)
 const TISHE_NAV: NavItem[] = [
   { href: '/admin/', label: 'Accueil', icon: 'home' },
   { href: '/admin/commandes/', label: 'Commandes', icon: 'receipt' },
-  { href: '/admin-classique/#produits', label: 'Produits', icon: 'tag' },
-  { href: '/admin-classique/#clients', label: 'Clients', icon: 'users', more: true },
-  { href: '/admin-classique/#promos', label: 'Codes promo', icon: 'sparkle', more: true },
-  { href: '/admin-classique/#boutique', label: 'Bandeau et soldes', icon: 'text', group: 'Boutique en ligne', more: true },
-  { href: '/admin-classique/#livraison', label: 'Livraison', icon: 'truck', more: true },
+  { href: '/admin/produits/', label: 'Produits', icon: 'tag' },
+  { href: '/admin/clients/', label: 'Clientes', icon: 'users', more: true },
+  { href: '/admin/promos/', label: 'Codes promo', icon: 'sparkle', more: true },
+  { href: '/admin/le-site/', label: 'Le site', icon: 'edit', group: 'Boutique en ligne', more: true },
+  { href: '/admin/bandeau/', label: 'Bandeau et soldes', icon: 'text', more: true },
+  { href: '/admin/livraison/', label: 'Livraison', icon: 'truck', group: 'Réglages', more: true },
+  { href: '/admin/parametres/', label: 'Paramètres', icon: 'gear', more: true },
 ];
 
 /** The frame of the dashboard: the store and the menu on the left (a bar at the bottom on a phone), the page on the right. */

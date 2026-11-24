@@ -18,3 +18,7 @@
 @media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); padding-bottom: calc(24px + env(safe-area-inset-bottom)); } .card { padding: var(--sp-4) var(--sp-3); } .preview { position: static; height: 70dvh; min-height: 420px; } }
 /* a menu open inside a card (Polices) passes over the cards under it */
 .card:has([aria-expanded="true"]) { position: relative; z-index: 30; }
+
+/* the four fonts: two by two on a wide screen */
+.fonts { display: grid; gap: var(--sp-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 640px) { .fonts { grid-template-columns: minmax(0, 1fr); } }

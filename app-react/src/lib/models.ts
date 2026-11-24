@@ -363,7 +363,7 @@ export function withSectionSource(fiche: Fiche, key: string, cat: string): Fiche
 export const categoriesOf = (fiche: Fiche): string[] => [...new Set((Array.isArray(fiche.products) ? fiche.products : []).map((x) => String(x.category ?? '').trim()).filter(Boolean))];
 
 /** Her brand, for the whole site: colours, buttons. Every value optional; none = the model's own. */
-export interface Brand { btnBg?: string; btnText?: string; bg?: string; text?: string; muted?: string; accent?: string; shape?: 'square' | 'round' | 'pill'; btnStyle?: 'fill' | 'outline'; logoH?: number; /** a font of lib/fonts.ts, for the titles and for the texts */ headFont?: string; textFont?: string }
+export interface Brand { btnBg?: string; btnText?: string; bg?: string; text?: string; muted?: string; accent?: string; shape?: 'square' | 'round' | 'pill'; btnStyle?: 'fill' | 'outline'; logoH?: number; /** fonts of lib/fonts.ts: titles, sub-titles, texts of the interface, paragraphs */ headFont?: string; subFont?: string; textFont?: string; paraFont?: string }
 export const brandOf = (fiche: Fiche): Brand => bag(bag(bag(fiche.store).site).b) as Brand;
 export function withBrand(fiche: Fiche, patch: Brand): Fiche {
   const st = bag(fiche.store), site = bag(st.site), one = { ...bag(site.b), ...patch } as Record<string, unknown>;
