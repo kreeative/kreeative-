@@ -761,10 +761,15 @@
     var r = selEl.getBoundingClientRect();
     if (!r.width && !r.height) { selBox.style.display = 'none'; return; }
     selBox.style.display = 'block';
-    selBox.style.left = Math.round(r.left + window.pageXOffset - 3) + 'px';
-    selBox.style.top = Math.round(r.top + window.pageYOffset - 3) + 'px';
-    selBox.style.width = Math.round(r.width + 6) + 'px';
-    selBox.style.height = Math.round(r.height + 6) + 'px';
+    // the frame follows the element exactly (its own rounded corners too) and never leaves the page on the sides
+    var full = document.documentElement.clientWidth || window.innerWidth;
+    var left = Math.max(1, r.left), right = Math.min(full - 1, r.right);
+    selBox.style.left = Math.round(left + window.pageXOffset) + 'px';
+    selBox.style.top = Math.round(r.top + window.pageYOffset) + 'px';
+    selBox.style.width = Math.max(0, Math.round(right - left)) + 'px';
+    selBox.style.height = Math.round(r.height) + 'px';
+    var rad = ''; try { rad = window.getComputedStyle(selEl).borderRadius; } catch (e) { rad = ''; }
+    selBox.style.borderRadius = rad && rad !== '0px' ? rad : '3px';
   }
   function select(el) {
     selEl = el || null;
@@ -774,7 +779,7 @@
       selBox.setAttribute('style', 'position:absolute;z-index:2147483000;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:4px;pointer-events:none;display:none');
       [['left', 'top'], ['right', 'top'], ['left', 'bottom'], ['right', 'bottom']].forEach(function (c) {
         var h = document.createElement('i');
-        h.setAttribute('style', 'position:absolute;width:8px;height:8px;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:2px;background:#fff;' + c[0] + ':-5px;' + c[1] + ':-5px');
+        h.setAttribute('style', 'position:absolute;width:8px;height:8px;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:2px;background:#fff;' + c[0] + ':-4px;' + c[1] + ':-4px');
         selBox.appendChild(h);
       });
       document.body.appendChild(selBox);
@@ -837,7 +842,7 @@
     if (editing) return;
     editing = true;
     var st = document.createElement('style');
-    st.textContent = '[data-jeere-pickable]{cursor:pointer!important}.jeere-hl{outline:2px solid #3657FF!important;outline-offset:3px}img.jeere-hl{outline-offset:-2px}';
+    st.textContent = '[data-jeere-pickable]{cursor:pointer!important}.jeere-hl{outline:1.5px solid #3657FF!important;outline-offset:-1.5px!important}';
     document.head.appendChild(st);
     var mark = function () { keyed().forEach(function (x) { x.el.setAttribute('data-jeere-pickable', x.kind); }); };
     mark();
