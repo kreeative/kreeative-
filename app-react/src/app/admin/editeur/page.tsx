@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty } from '@/components/admin/AdminShell';
 import { useSave } from '@/components/admin/useSave';
@@ -14,8 +14,9 @@ import { Toast } from '@/components/ui/Toast';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
 import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSectionLook, withSectionOrder, withSiteEdit, withSlot, type SectionLook, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
+import { AddedInspector, ColorField, PhotoField, TextStyle } from './Extras';
 import { MobileEditor } from './MobileEditor';
-import { modelBySlug } from '@/lib/models';
+import { ADDED_KINDS, addedName, addedSections, modelBySlug, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
 import styles from './editeur.module.css';
 
 type Device = 'phone' | 'desktop';
@@ -37,6 +38,7 @@ export default function EditorPage() {
   const [picked, setPicked] = useState<number | null>(null);
   const [focus, setFocus] = useState('');
   const [sel, setSel] = useState('');
+  const [adding, setAdding] = useState(false);
   const [device, setDevice] = useState<Device>('desktop');
   const [phone, setPhone] = useState(false);
   const [room, setRoom] = useState({ w: 900, h: 700 });
@@ -78,7 +80,8 @@ export default function EditorPage() {
     if (!model) return;
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== siteOrigin || e.source !== frame.current?.contentWindow) return;
-      const d = (e.data ?? {}) as { jeereConnect?: unknown; jeereNone?: unknown; jeerePick?: { key?: unknown; sec?: unknown } };
+      const d = (e.data ?? {}) as { jeereConnect?: unknown; jeereNone?: unknown; jeereAdded?: unknown; jeerePick?: { key?: unknown; sec?: unknown } };
+      if (typeof d.jeereAdded === 'string') { setPicked(null); setFocus(''); setSel(`a:${d.jeereAdded}`); return; }
       if (d.jeereNone === true) { setSel(''); return; }
       if (d.jeereConnect === 'ready') { send(); return; }
       const m = readSiteMap(e.data);
@@ -192,6 +195,22 @@ export default function EditorPage() {
     moveSection(n, movable.indexOf(n) + (e.key === 'ArrowUp' ? -1 : 1));
   };
 
+  // the sections she added to this page, and what she does with them
+  const page = map?.page ?? '';
+  const added = draft && map ? addedSections(draft, page) : [];
+  const chosen = sel.startsWith('a:') ? added.find((a) => a.id === sel.slice(2)) : undefined;
+  const lastBody = [...sections].reverse().find((x) => !x.fixed)?.n ?? -1;
+  const anchorOf = (a: Added) => (sections.some((x) => x.n === a.after && x.name !== 'Pied de page') ? a.after : lastBody);
+  const addSection = (type: Added['type']) => {
+    const kind = ADDED_KINDS.find((k) => k.type === type)!, id = newAddedId();
+    const after = picked !== null && sections.some((x) => x.n === picked && x.name !== 'Pied de page') ? picked : chosen ? chosen.after : lastBody;
+    change((d) => withAdded(d, page, [...addedSections(d, page), { id, type, after, ...kind.start } as Added]));
+    setAdding(false); setPicked(null); setFocus(''); setSel(`a:${id}`);
+  };
+  const patchAdded = (id: string, patch: Partial<Added>, tag = '') => change((d) => withAdded(d, page, addedSections(d, page).map((a) => (a.id === id ? { ...a, ...patch } : a))), tag ? `a:${id}:${tag}` : '');
+  const copyAdded = (a: Added) => { const id = newAddedId(); change((d) => { const l = addedSections(d, page), i = l.findIndex((x) => x.id === a.id); return withAdded(d, page, [...l.slice(0, i + 1), { ...a, id }, ...l.slice(i + 1)]); }); setSel(`a:${id}`); };
+  const dropAdded = (id: string) => { change((d) => withAdded(d, page, addedSections(d, page).filter((a) => a.id !== id))); if (sel === `a:${id}`) setSel(''); };
+
   if (!store) return <Empty icon="store" title="Pas encore de boutique" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>Choisissez un modèle pour créer votre boutique.</Empty>;
   if (!draft) return <div className={styles.wait}><p>Chargement de l’éditeur…</p></div>;
   if (!model) return <Empty icon="template" title="Choisissez d’abord un modèle" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>L’éditeur s’ouvre sur votre modèle : MICHOU, SÈVE, ANSE, REGARD… Choisissez le vôtre, puis revenez ici.</Empty>;
@@ -207,7 +226,9 @@ export default function EditorPage() {
   const shown = needle ? sections.filter((x) => x.name.toLowerCase().includes(needle) || (map?.items ?? []).some((i) => i.sec === x.n && `${i.role} ${i.text}`.toLowerCase().includes(needle))) : sections;
   const url = storeUrl(store, modelSlug);
   const inspector = current ? (
-    <Inspector key={current.key} section={current} items={items} fiche={draft} userId={account.userId} focus={focus}
+    <Inspector key={current.key} section={current} items={items} fiche={draft} userId={account.userId} focus={focus} pages={pages}
+      onTextLook={(key, patch, tag) => change((d) => withTextLook(d, key, patch), `x:${key}:${tag}`)}
+      onLogo={(v) => change((d) => { const st = { ...(d.store ?? {}) } as Record<string, unknown>; if (v) st.logo = v; else delete st.logo; return { ...d, store: st }; })}
       onLook={(patch) => change((d) => withSectionLook(d, current.key, patch), `look:${current.key}:${Object.keys(patch).join()}`)}
       onEdit={(kind, key, value) => change((d) => withSiteEdit(d, kind, key, value), `${kind}:${key}`)} onSlot={(slot, value) => change((d) => withSlot(d, slot, value))} />
   ) : null;
@@ -251,19 +272,21 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <div className={styles.cols} data-open={current && !phone ? '' : undefined} data-left={leftOpen || phone ? '' : undefined} data-narrow={narrow ? '' : undefined}>
+      <div className={styles.cols} data-open={(current || chosen) && !phone ? '' : undefined} data-left={leftOpen || phone ? '' : undefined} data-narrow={narrow ? '' : undefined}>
         {leftOpen || phone ? (
         <aside className={styles.left} aria-label="Sections de la page">
           <h2 className={styles.title}>{path === '' ? 'Page d’accueil' : `Page ${pageName}`}</h2>
-          {sections.length > 5 ? <input className={styles.search} type="search" placeholder="Rechercher une section, un texte" aria-label="Rechercher une section ou un texte" value={query} onChange={(e) => setQuery(e.target.value)} /> : null}
+          {sections.length > 5 ? <input className={styles.search} type="search" placeholder="Rechercher..." aria-label="Rechercher une section ou un texte" value={query} onChange={(e) => setQuery(e.target.value)} /> : null}
           {map ? (
             <ol className={styles.list}>
               {shown.map((s) => {
                 const off = siteValue(draft, 'h', s.key) !== undefined;
                 const inside = (map.items ?? []).filter((x) => x.sec === s.n && x.kind !== 's');
                 const open = unfolded.includes(s.n) || (!!needle && !s.name.toLowerCase().includes(needle));
+                const mine = added.filter((a) => anchorOf(a) === s.n);
                 return (
-                 <li key={s.key} className={styles.node}>
+                 <Fragment key={s.key}>
+                 <li className={styles.node}>
                   <div className={styles.row} data-on={picked === s.n ? '' : undefined} data-off={off ? '' : undefined} data-over={dragged !== null && dragged !== s.n && !s.fixed ? '' : undefined}
                     draggable={!s.fixed} onDragStart={(e) => { setDragged(s.n); e.dataTransfer.effectAllowed = 'move'; }} onDragEnd={() => setDragged(null)}
                     onDragOver={(e) => { if (dragged !== null && !s.fixed) e.preventDefault(); }}
@@ -272,7 +295,8 @@ export default function EditorPage() {
                       : <button type="button" className={styles.grip} onKeyDown={(e) => onGripKey(e, s.n)} aria-label={`Déplacer ${s.name} (flèches haut et bas)`}><Icon name="grip" size={16} /></button>}
                     {inside.length ? <button type="button" className={styles.fold} aria-expanded={open} onClick={() => setUnfolded((u) => (open ? u.filter((n) => n !== s.n) : [...u, s.n]))} aria-label={open ? `Replier ${s.name}` : `Déplier ${s.name}`}><Icon name="chevron" size={14} /></button> : <span className={styles.fold} aria-hidden="true" />}
                     <button type="button" className={styles.rowMain} onClick={() => openSection(s)} aria-current={picked === s.n ? 'true' : undefined}>{s.name}</button>
-                    {s.fixed ? null : <button type="button" className={styles.eye} aria-pressed={!off} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, off ? null : '1'))} aria-label={off ? `Afficher ${s.name}` : `Masquer ${s.name}`}><Icon name={off ? 'eyeOff' : 'eye'} size={16} /></button>}
+                    {s.fixed ? null : <button type="button" className={styles.eye} aria-pressed={!off} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, off ? null : '1'))} aria-label={off ? `Afficher ${s.name}` : `Masquer ${s.name}`}><Icon name={off ? 'eyeOff' : 'eye'} size={14} /></button>}
+                    {s.fixed || off ? null : <button type="button" className={styles.eye} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, '1'))} aria-label={`Supprimer ${s.name}`} title="Supprimer (elle reste dans la liste, grisée, pour la remettre)"><Icon name="trash" size={14} /></button>}
                   </div>
                   {open ? (() => {
                     const words = inside.filter((x) => x.kind === 't' || x.kind === 'c'), pics = inside.filter((x) => x.kind === 'i'), cases = inside.filter((x) => x.kind === 'p');
@@ -289,11 +313,32 @@ export default function EditorPage() {
                     );
                   })() : null}
                  </li>
+                 {mine.map((a) => (
+                   <li key={a.id} className={styles.node}>
+                     <div className={styles.row} data-on={sel === `a:${a.id}` ? '' : undefined} data-added="">
+                       <span className={styles.grip} aria-hidden="true" /><span className={styles.fold} aria-hidden="true" />
+                       <button type="button" className={styles.rowMain} onClick={() => { setPicked(null); setFocus(''); setSel(`a:${a.id}`); }} aria-current={sel === `a:${a.id}` ? 'true' : undefined}>{addedName(a)}{a.title ? ` – ${a.title}` : ''}</button>
+                       <button type="button" className={styles.eye} onClick={() => copyAdded(a)} aria-label={`Dupliquer ${addedName(a)}`} title="Dupliquer"><Icon name="copy" size={14} /></button>
+                       <button type="button" className={styles.eye} onClick={() => dropAdded(a.id)} aria-label={`Supprimer ${addedName(a)}`} title="Supprimer"><Icon name="trash" size={14} /></button>
+                     </div>
+                   </li>
+                 ))}
+                 </Fragment>
                 );
               })}
             </ol>
           ) : <p className={styles.hint}>Chargement de votre modèle…</p>}
           {map && needle && !shown.length ? <p className={styles.hint}>Aucune section ne correspond.</p> : null}
+          {map && !needle ? (
+            <div className={styles.addBox}>
+              <button type="button" className={styles.add} aria-expanded={adding} aria-haspopup="menu" onClick={() => setAdding((v) => !v)}><Icon name="plus" size={14} /><span>Ajouter une section</span></button>
+              {adding ? (
+                <div className={styles.addMenu} role="menu" aria-label="Type de section">
+                  {ADDED_KINDS.map((k) => <button key={k.type} type="button" role="menuitem" onClick={() => addSection(k.type)}>{k.name}</button>)}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <p className={styles.hint}>Cliquez sur un texte ou une photo de votre site pour le changer. Vos produits se gèrent dans <Link href="/admin/produits/"><b>Produits</b></Link>.</p>
         </aside>
         ) : null}
@@ -313,6 +358,15 @@ export default function EditorPage() {
           </div>
         )}
 
+        {chosen && !current && !phone ? (
+          <aside className={styles.right} aria-label={`Contenu : ${addedName(chosen)}`}>
+            <div className={styles.rightHead}>
+              <h2>{addedName(chosen)}</h2>
+              <button type="button" className={styles.icon} onClick={() => setSel('')} aria-label="Fermer"><Icon name="close" size={16} /></button>
+            </div>
+            <AddedInspector key={chosen.id} added={chosen} fiche={draft} pages={pages} userId={account.userId} onChange={(patch, tag) => patchAdded(chosen.id, patch, tag)} />
+          </aside>
+        ) : null}
         {current && !phone ? (
           <aside className={styles.right} aria-label={`Contenu : ${current.name}`}>
             <div className={styles.rightHead}>
@@ -330,13 +384,13 @@ export default function EditorPage() {
 }
 
 /** What one section of the model holds, in two calm groups: its texts, then its pictures (and its product cases). */
-const BACKGROUNDS: [string, string][] = [['', 'Modèle'], ['#FFFFFF', 'Blanc'], ['#F5F5F3', 'Gris clair'], ['#FAF6EF', 'Crème'], ['#111111', 'Noir']];
 const ALIGN: [SectionLook['align'] | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
 const px = (v: string, max: number): number | undefined => (v.trim() === '' ? undefined : Math.min(max, Number(v.replace(/\D/g, '')) || 0));
 
-function Inspector({ section, items, fiche, userId, focus, onEdit, onSlot, onLook }: {
-  section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string; focus: string; onLook: (patch: SectionLook) => void;
-  onEdit: (kind: 't' | 'i' | 'c', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
+function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot, onLook, onTextLook, onLogo }: {
+  section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string; focus: string; pages: { path: string; name: string }[]; onLook: (patch: SectionLook) => void;
+  onTextLook: (key: string, patch: TextLook, tag: string) => void; onLogo: (v: string | null) => void;
+  onEdit: (kind: 't' | 'i' | 'c' | 'k', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
 }) {
   const products = Array.isArray(fiche.products) ? fiche.products : [];
   const slots = ((fiche.store?.slots ?? {}) as Record<string, string>);
@@ -352,6 +406,8 @@ function Inspector({ section, items, fiche, userId, focus, onEdit, onSlot, onLoo
   const casesShown = allCases || cases.length <= CASES || cases.slice(CASES).some((x) => x.key === focus) ? cases : cases.slice(0, CASES);
   const picked = images.find((x) => x.key === chosen) ?? images[0];
   const imageName = (i: number) => IMAGE_NAMES[i] ?? `Image ${i + 1}`;
+  const onText = texts.find((x) => x.key === focus && x.kind === 't');
+  const logo = typeof fiche.store?.logo === 'string' ? fiche.store.logo : '';
   return (
     <div className={styles.inspector}>
       <h3 className={styles.group3}>Contenu</h3>
@@ -373,6 +429,13 @@ function Inspector({ section, items, fiche, userId, focus, onEdit, onSlot, onLoo
             );
           })}
           {textsShown.length < texts.length ? <button type="button" className={styles.more} onClick={() => setAllTexts(true)}>Afficher les {texts.length - textsShown.length} autres textes</button> : null}
+        </section>
+      ) : null}
+      {onText ? <TextStyle item={onText} fiche={fiche} pages={pages} link={siteValue(fiche, 'k', onText.key) ?? ''} onLook={(patch, tag) => onTextLook(onText.key, patch, tag)} onLink={(v) => onEdit('k', onText.key, v)} /> : null}
+      {section.name === 'En-tête' ? (
+        <section className={styles.block} aria-label="Logo">
+          <h3>Logo</h3>
+          <PhotoField name="Votre logo" src={logo} own={!!logo} userId={userId} onChange={onLogo} />
         </section>
       ) : null}
       {images.length ? (
@@ -428,12 +491,7 @@ function Inspector({ section, items, fiche, userId, focus, onEdit, onSlot, onLoo
 
       <h3 className={styles.group3}>Apparence</h3>
       <section className={styles.block} aria-label="Apparence">
-        <div className={styles.control}>
-          <span className={styles.caption} id="look-bg">Fond de la section</span>
-          <div className={styles.swatches} role="group" aria-labelledby="look-bg">
-            {BACKGROUNDS.map(([v, label]) => <button key={label} type="button" aria-pressed={(look.bg ?? '') === v} onClick={() => onLook({ bg: v || undefined })} aria-label={label} title={label}><i style={v ? { background: v } : undefined} data-none={v ? undefined : ''} /></button>)}
-          </div>
-        </div>
+        <ColorField key={section.key} label="Fond de la section" value={look.bg ?? ''} onChange={(v) => onLook({ bg: v })} />
         <div className={styles.pair}>
           <Field label="Coins des images (px)" inputMode="numeric" placeholder="Modèle" value={look.radius === undefined ? '' : String(look.radius)} onChange={(e) => onLook({ radius: px(e.target.value, 200) })} />
           <div className={styles.control}>

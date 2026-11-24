@@ -207,7 +207,7 @@ export function withSectionLook(fiche: Fiche, key: string, patch: SectionLook): 
 
 /** Her look for ONE text of the model (its size, colour, weight, alignment, font; hidden or not) and the framing
  *  of ONE picture (filled or whole, the point kept in view; hidden or not). None = the model's own. */
-export interface TextLook { size?: number; color?: string; bold?: boolean; align?: 'left' | 'center' | 'right'; font?: 'serif' | 'sans' | 'mono'; hide?: boolean }
+export interface TextLook { size?: number; color?: string; bold?: boolean; align?: 'left' | 'center' | 'right'; font?: 'serif' | 'sans' | 'mono'; hide?: boolean; btn?: 'fill' | 'outline'; fill?: string; round?: boolean }
 export interface ImageFrame { fit?: 'cover' | 'contain'; x?: number; y?: number; hide?: boolean }
 export const textLook = (fiche: Fiche, key: string): TextLook => bag(bag(bag(bag(fiche.store).site).x)[key]) as TextLook;
 export const imageFrame = (fiche: Fiche, key: string): ImageFrame => bag(bag(bag(bag(fiche.store).site).f)[key]) as ImageFrame;
@@ -222,4 +222,35 @@ function withSitePatch(fiche: Fiche, part: 'x' | 'f', key: string, patch: Record
 export const withTextLook = (fiche: Fiche, key: string, patch: TextLook): Fiche => withSitePatch(fiche, 'x', key, patch as Record<string, unknown>);
 export const withImageFrame = (fiche: Fiche, key: string, patch: ImageFrame): Fiche => withSitePatch(fiche, 'f', key, patch as Record<string, unknown>);
 /** An address a link of the site may take: https, an e-mail or a phone number (what the site itself accepts). */
+/** Where a link of the site goes: an outside address (https, e-mail, phone), a page of the site
+ *  (« page:<path> », with « #<part> » for a category of the shop) or one of her products (« p:<id> »). */
 export const linkOk = (v: string): boolean => /^(https:\/\/[^\s"'<>]{3,500}|mailto:[^\s"'<>]{3,200}|tel:\+?[0-9 ]{4,20})$/.test(v);
+/** A category as the model's shop addresses it (the same rule as the site's own script). */
+export const categorySlug = (t: string): string => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '-').replace(/^-+|-+$/g, '');
+
+/* ---------------------------------------------------------------- the sections she adds
+   Besides the model's own sections she can add simple ones to a page: `store.site.a[<page>]`, a list. Each is
+   drawn by the site after the model's section number `after`. The model's sections keep their numbers. */
+export type AddedType = 'text' | 'image' | 'banner' | 'products' | 'reviews' | 'faq';
+export interface Added { id: string; type: AddedType; after: number; title?: string; body?: string; img?: string; cta?: string; href?: string; items?: { a: string; b: string }[] }
+export const ADDED_KINDS: { type: AddedType; name: string; start: Partial<Added> }[] = [
+  { type: 'banner', name: 'Bannière', start: { title: 'Votre titre', body: 'Une phrase qui donne envie.', cta: 'Découvrir' } },
+  { type: 'products', name: 'Grille de produits', start: { title: 'Nos produits' } },
+  { type: 'image', name: 'Texte et image', start: { title: 'Votre titre', body: 'Racontez votre histoire, votre savoir-faire, vos engagements.' } },
+  { type: 'text', name: 'Texte', start: { title: 'Votre titre', body: 'Votre texte.' } },
+  { type: 'reviews', name: 'Avis', start: { title: 'Elles en parlent', items: [{ a: 'Prénom', b: 'Votre premier avis.' }, { a: 'Prénom', b: 'Votre deuxième avis.' }, { a: 'Prénom', b: 'Votre troisième avis.' }] } },
+  { type: 'faq', name: 'Questions fréquentes', start: { title: 'Questions fréquentes', items: [{ a: 'Livrez-vous partout ?', b: 'Votre réponse.' }, { a: 'Comment payer ?', b: 'Votre réponse.' }] } },
+];
+export const addedName = (a: Added): string => ADDED_KINDS.find((k) => k.type === a.type)?.name ?? 'Section';
+export function addedSections(fiche: Fiche, page: string): Added[] {
+  const l = bag(bag(bag(fiche.store).site).a)[page];
+  return Array.isArray(l) ? (l as unknown[]).map((x) => bag(x)).filter((x) => typeof x.id === 'string' && ADDED_KINDS.some((k) => k.type === x.type)).map((x) => x as unknown as Added) : [];
+}
+export function withAdded(fiche: Fiche, page: string, list: Added[]): Fiche {
+  const st = bag(fiche.store), site = bag(st.site), all = bag(site.a);
+  if (list.length) all[page] = list; else delete all[page];
+  if (Object.keys(all).length) site.a = all; else delete site.a;
+  if (Object.keys(site).length) st.site = site; else delete st.site;
+  return { ...fiche, store: st };
+}
+export const newAddedId = (): string => Math.random().toString(36).slice(2, 10).padEnd(6, '0');
