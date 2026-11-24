@@ -924,6 +924,36 @@ await test('editor: the first time, a guided visit shows how it works (computer 
   await noOverflow(o.page); assert.deepEqual(o.errors, []); await o.ctx.close();
 });
 
+await test('editor, SOYEUSE: its logo is drawn with ornamental letters; the editor shows and edits it as plain letters', async () => {
+  // a store that keeps the model's name: the ornamental logo stays, and its field reads « SOYEUSE », not unknown signs
+  const w = withModel(world(), 'soyeuse'); w.stores[0].fiche.store.name = 'SOYEUSE';
+  const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  const mark = site.locator('.hero__brand').first();
+  await mark.waitFor({ timeout: 60000 });
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  assert.match(await mark.evaluate((n) => n.textContent), /[-]/, 'the model draws its name with letters of its own');
+  await mark.click();
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  await tools.getByRole('button', { name: 'Modifier le texte' }).click();
+  const field = page.getByRole('dialog').getByRole('textbox');
+  assert.equal(await field.inputValue(), 'SOYEUSE', 'plain letters in the field');
+  await field.fill('Maison Awa');
+  await page.waitForTimeout(400);
+  assert.equal(await mark.evaluate((n) => n.textContent), 'Maison Awa');
+  await page.screenshot({ path: `${SHOTS}67-soyeuse-logo.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+  // a store with its own name: the ornamental logo takes that name by itself, as the other models do
+  const o = await open(browser, PHONE, withModel(world(), 'soyeuse'));
+  await o.page.goto(`${BASE}/admin/editeur/`);
+  const m2 = o.page.frameLocator('iframe[title="Votre site"]').locator('.hero__brand').first();
+  await o.page.frameLocator('iframe[title="Votre site"]').locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  await o.page.waitForTimeout(400);
+  assert.equal(await m2.evaluate((n) => n.textContent), 'Boutique Test');
+  assert.deepEqual(o.errors, []); await o.ctx.close();
+});
+
 await test('editor on a phone: a thin bar, her site on the whole screen, one bar of tools at the bottom that becomes the tools of what she touches', async () => {
   const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);
