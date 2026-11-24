@@ -722,7 +722,7 @@
     if (/^H[1-5]$/.test(t)) return 'Titre';
     if (t === 'A' || t === 'BUTTON') return 'Bouton ou lien';
     if (t === 'LI' || t === 'DT' || t === 'DD') return 'Ligne';
-    return (x.el.textContent || '').length > 70 ? 'Texte' : 'Petit texte';
+    return (x.el.textContent || '').length > 70 ? 'Texte' : 'Sous-texte';
   }
   /* A model may draw its name with ornamental letters of its font (private characters: SOYEUSE's logo). The
    * editor must show plain letters: such a word that has the shape of the model's name IS the model's name;
