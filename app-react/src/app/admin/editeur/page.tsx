@@ -16,7 +16,7 @@ import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSect
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
 import { AddedInspector, ColorField, PhotoField, TextStyle } from './Extras';
 import { MobileEditor } from './MobileEditor';
-import { ADDED_KINDS, addedName, addedSections, modelBySlug, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
+import { ADDED_KINDS, addedName, addedSections, hiddenItems, hiddenLabel, modelBySlug, withImageFrame, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
 import styles from './editeur.module.css';
 
 type Device = 'phone' | 'desktop';
@@ -331,6 +331,11 @@ export default function EditorPage() {
             </ol>
           ) : <p className={styles.hint}>Chargement de votre modèle…</p>}
           {map && needle && !shown.length ? <p className={styles.hint}>Aucune section ne correspond.</p> : null}
+          {map && !needle && hiddenItems(draft, map).length ? (
+            <div className={styles.hiddenBox} aria-label="Éléments masqués">
+              {hiddenItems(draft, map).map((x) => <button key={x.key} type="button" className={styles.leaf} onClick={() => change((d) => (x.kind === 'i' ? withImageFrame(d, x.key, { hide: undefined }) : withTextLook(d, x.key, { hide: undefined })))}><Icon name="eye" size={14} /><span>Remettre {hiddenLabel(x)}</span></button>)}
+            </div>
+          ) : null}
           {map && !needle ? (
             <div className={styles.addBox}>
               <button type="button" className={styles.add} aria-expanded={adding} aria-haspopup="menu" onClick={() => setAdding((v) => !v)}><Icon name="plus" size={14} /><span>Ajouter une section</span></button>

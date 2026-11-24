@@ -6,7 +6,7 @@ import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Menu } from '@/components/ui/Menu';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { imageFrame, linkOk, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook } from '@/lib/models';
+import { hiddenItems, hiddenLabel, imageFrame, linkOk, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook } from '@/lib/models';
 import type { Fiche } from '@/lib/stores';
 import styles from './mobile.module.css';
 
@@ -97,11 +97,11 @@ export function MobileEditor(p: MobileEditorProps) {
     if (mode === 'text') tools.push({ id: 'font', label: 'Police', icon: 'text', open: 'font' }, { id: 'size', label: 'Taille', icon: 'textSize', open: 'size' });
     tools.push({ id: 'color', label: 'Couleur', icon: 'drop', open: 'color' });
     if (mode === 'text') tools.push({ id: 'bold', label: 'Gras', icon: 'bold', on: look.bold === true, act: () => set({ bold: look.bold ? undefined : true }, 'bold') }, { id: 'align', label: 'Alignement', icon: 'alignText', open: 'align' });
-    tools.push({ id: 'hide', label: look.hide ? 'Afficher' : 'Masquer', icon: look.hide ? 'eye' : 'eyeOff', on: look.hide === true, act: () => set({ hide: look.hide ? undefined : true }, 'hide') });
+    tools.push({ id: 'hide', label: look.hide ? 'Afficher' : 'Masquer', icon: look.hide ? 'eye' : 'eyeOff', on: look.hide === true, act: () => { set({ hide: look.hide ? undefined : true }, 'hide'); if (!look.hide) done(); } });
   } else if (item && mode === 'image') {
     const fr = imageFrame(draft, item.key);
     tools.push({ id: 'replace', label: 'Remplacer la photo', icon: 'image', act: () => file.current?.click() }, { id: 'frame', label: 'Ajuster / Cadre', icon: 'crop', open: 'frame' },
-      { id: 'hide', label: fr.hide ? 'Remettre' : 'Supprimer', icon: fr.hide ? 'eye' : 'trash', on: fr.hide === true, act: () => change((d) => withImageFrame(d, item.key, { hide: fr.hide ? undefined : true })) });
+      { id: 'hide', label: fr.hide ? 'Remettre' : 'Supprimer', icon: fr.hide ? 'eye' : 'trash', on: fr.hide === true, act: () => { change((d) => withImageFrame(d, item.key, { hide: fr.hide ? undefined : true })); if (!fr.hide) done(); } });
   } else if (item && mode === 'product') {
     tools.push({ id: 'product', label: 'Produit', icon: 'tag', open: 'product' });
   } else if (section) {
@@ -109,7 +109,7 @@ export function MobileEditor(p: MobileEditorProps) {
     const movable = sections.filter((s) => !s.fixed), at = movable.findIndex((s) => s.n === section.n);
     tools.push({ id: 'bg', label: 'Couleur', icon: 'drop', open: 'bg' }, { id: 'space', label: 'Espaces', icon: 'alignText', open: 'space' });
     if (!section.fixed) {
-      tools.push({ id: 'hide', label: off ? 'Afficher' : 'Masquer', icon: off ? 'eye' : 'eyeOff', on: off, act: () => change((d) => withSiteEdit(d, 'h', section.key, off ? null : '1')) });
+      tools.push({ id: 'hide', label: off ? 'Afficher' : 'Masquer', icon: off ? 'eye' : 'eyeOff', on: off, act: () => { change((d) => withSiteEdit(d, 'h', section.key, off ? null : '1')); if (!off) done(); } });
       if (at > 0) tools.push({ id: 'up', label: 'Monter', icon: 'up', act: () => p.moveSection(section.n, at - 1) });
       if (at >= 0 && at < movable.length - 1) tools.push({ id: 'down', label: 'Descendre', icon: 'downArrow', act: () => p.moveSection(section.n, at + 1) });
     }
@@ -161,10 +161,11 @@ export function MobileEditor(p: MobileEditorProps) {
       <a className={styles.linkRow} href="/admin/modeles/"><Icon name="template" size={18} /><span>Changer de modèle</span><Icon name="chevron" size={14} /></a>
     </> };
   } else if (tool === 'add') {
-    const hiddenSecs = sections.filter((s) => siteValue(draft, 'h', s.key) !== undefined);
+    const hiddenSecs = sections.filter((s) => siteValue(draft, 'h', s.key) !== undefined), hiddenBits = hiddenItems(draft, map);
     drawer = { title: 'Ajouter', body: <>
       <a className={styles.linkRow} href={p.booking ? '/admin/prestations/' : '/admin/produits/'}><Icon name={p.booking ? 'receipt' : 'tag'} size={18} /><span>{p.booking ? 'Une prestation' : 'Un produit'}</span><Icon name="chevron" size={14} /></a>
       {hiddenSecs.map((s) => <button key={s.key} type="button" className={styles.linkRow} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, null))}><Icon name="eye" size={18} /><span>Remettre « {s.name} »</span></button>)}
+      {hiddenBits.map((x) => <button key={x.key} type="button" className={styles.linkRow} onClick={() => change((d) => (x.kind === 'i' ? withImageFrame(d, x.key, { hide: undefined }) : withTextLook(d, x.key, { hide: undefined })))}><Icon name="eye" size={18} /><span>Remettre {hiddenLabel(x)}</span></button>)}
       <p className={styles.hint}>Les sections viennent de votre modèle : vous pouvez les masquer, les remettre et changer leur ordre.</p>
     </> };
   } else if (item && tool === 'edit') {

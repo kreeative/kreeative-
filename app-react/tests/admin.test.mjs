@@ -963,19 +963,26 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await page.getByRole('dialog').getByRole('button', { name: 'Entière' }).click();
   await page.waitForTimeout(300);
   assert.equal(await img.evaluate((n) => n.style.objectFit), 'contain');
+  // « Supprimer »: the picture is gone from the site (not just faded), the bar goes back to the site's tools,
+  // and « Ajouter » lists it to bring it back
   await tools.getByRole('button', { name: 'Supprimer', exact: true }).click();
-  await tools.getByRole('button', { name: 'Remettre', exact: true }).waitFor();
-  assert.equal(await img.evaluate((n) => n.style.opacity), '0.28');
-  await tools.getByRole('button', { name: 'Remettre', exact: true }).click();
-  await tools.getByRole('button', { name: 'Terminer' }).click();
-
+  await bar.getByRole('button', { name: 'Ajouter', exact: true }).waitFor();
+  await page.waitForTimeout(300);
+  assert.deepEqual(await img.evaluate((n) => [n.style.display, n.style.opacity]), ['none', '']);
+  await site.locator('[data-jeere-sel]').waitFor({ state: 'hidden' });
+  await bar.getByRole('button', { name: 'Ajouter', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Remettre une photo' }).click();
+  await page.waitForTimeout(300);
+  assert.equal(await img.evaluate((n) => n.style.display), '');
+  await page.getByRole('dialog').getByRole('button', { name: 'Fermer' }).click();
   // a section chosen in « Sections »: colour, spaces, hide, move
   await bar.getByRole('button', { name: 'Sections', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Grande bannière', exact: true }).click();
   for (const t of ['Couleur', 'Espaces', 'Masquer']) await tools.getByRole('button', { name: t, exact: true }).waitFor();
   await tools.getByRole('button', { name: 'Masquer', exact: true }).click();
-  await tools.getByRole('button', { name: 'Afficher', exact: true }).waitFor();
-  await tools.getByRole('button', { name: 'Terminer' }).click();
+  await bar.getByRole('button', { name: 'Sections', exact: true }).waitFor();
+  await page.waitForTimeout(300);
+  assert.equal(await site.locator('section').first().evaluate((n) => n.style.display), 'none', 'a hidden section is gone from the editor too');
   // the pages of the model, from the top bar and from « Pages »
   await bar.getByRole('button', { name: 'Pages', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Boutique', exact: true }).waitFor();

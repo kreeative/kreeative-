@@ -254,3 +254,9 @@ export function withAdded(fiche: Fiche, page: string, list: Added[]): Fiche {
   return { ...fiche, store: st };
 }
 export const newAddedId = (): string => Math.random().toString(36).slice(2, 10).padEnd(6, '0');
+
+/** The texts and pictures of the page she hid: they are gone from the site, and listed in the editor to bring back. */
+export function hiddenItems(fiche: Fiche, map: SiteMap | null): SiteItem[] {
+  return (map?.items ?? []).filter((x) => (x.kind === 'i' ? imageFrame(fiche, x.key).hide === true : (x.kind === 't' || x.kind === 'c') && textLook(fiche, x.key).hide === true));
+}
+export const hiddenLabel = (x: SiteItem): string => (x.kind === 'i' ? 'une photo' : `« ${(x.text || x.role).slice(0, 28)}${(x.text || x.role).length > 28 ? '…' : ''} »`);
