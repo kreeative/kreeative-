@@ -737,7 +737,7 @@
     var all = sections(), base = pagePath();
     var items = keyed().map(function (x) {
       return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : label(x), text: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : x.own ? ownWords(x.el) : x.kind === 't' || x.kind === 'c' ? words(x.el) : '', role: x.kind === 'm' ? 'Bandeau défilant' : role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
-        tag: x.el.tagName.toLowerCase(), href: x.el.tagName === 'A' ? (x.el.getAttribute('data-jeere-k') || x.el.getAttribute('href') || '') : '', size: x.kind === 't' || x.kind === 'c' ? Math.round(parseFloat(window.getComputedStyle(x.el).fontSize) || 0) : 0, long: x.kind === 't' && (x.el.textContent || '').length > 70 };
+        tag: x.el.tagName.toLowerCase(), href: x.el.tagName === 'A' ? (x.el.getAttribute('data-jeere-k') || x.el.getAttribute('href') || '') : x.kind === 'i' && photoLink(x.el) ? (photoLink(x.el).getAttribute('data-jeere-href') || photoLink(x.el).getAttribute('href') || '') : '', size: x.kind === 't' || x.kind === 'c' ? Math.round(parseFloat(window.getComputedStyle(x.el).fontSize) || 0) : 0, long: x.kind === 't' && (x.el.textContent || '').length > 70 };
     });
     var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER', demo: demoSec(el) }; });
     try { if (editing) { markAll(); payNote(); } } catch (e) { /* marked at the next change */ }
@@ -892,6 +892,19 @@
     el.style.objectPosition = x === null && y === null ? was[1] : (x === null ? 50 : x) + '% ' + (y === null ? 50 : y) + '%';
     hideEl(el, o.hide === true, was[2], was[3]);
   }
+  // her products' categories (from the fiche shown), to find a product that has no card on this page
+  var prodCat = {};
+  function shopHref() {
+    var a = $$('a[href]').filter(function (x) { var h = x.getAttribute('data-jeere-href') || x.getAttribute('data-jeere-k') || x.getAttribute('href') || ''; return /(^|\/)(boutique|shop|catalogue)\/?(#|$)/.test(h); })[0];
+    return a ? (a.getAttribute('data-jeere-href') || a.getAttribute('data-jeere-k') || a.getAttribute('href')).replace(/#.*$/, '') : siteBase() + 'boutique/';
+  }
+  /** a product of hers: the page of its card on this page; otherwise the shop, on its category (her products listed) */
+  function productHref(id) {
+    var pa = document.querySelector(attrSel('data-jeere-product', id) + ' a[href]:not([href^="#"])');
+    if (pa) return pa.getAttribute('href');
+    var c = prodCat[id];
+    return shopHref() + (c ? '#' + catSlug(c) : '');
+  }
   function siteBase() { var m = /^\/concepts\/[a-z0-9-]+\//.exec(location.pathname); return m ? m[0] : '/'; }
   /* Where a link goes: « page:<path>[#part] » (a page of this site), « p:<id> » (one of her products), or an
    * https / mailto / tel address. Anything else gives '' (the model's own link stays). */
@@ -899,10 +912,7 @@
     if (typeof to !== 'string') return '';
     if (/^(https:\/\/[^\s"'<>]{3,500}|mailto:[^\s"'<>]{3,200}|tel:\+?[0-9 ]{4,20})$/.test(to)) return to;
     if (/^page:[a-z0-9\-\/]{0,80}(#[a-z0-9\-]{1,80})?$/.test(to)) return siteBase() + to.slice(5);
-    if (/^p:[A-Za-z0-9_\-]{1,64}$/.test(to)) {
-      var pa = document.querySelector(attrSel('data-jeere-product', to.slice(2)) + ' a[href]:not([href^="#"])');
-      return pa ? pa.getAttribute('href') : '';
-    }
+    if (/^p:[A-Za-z0-9_\-]{1,64}$/.test(to)) return productHref(to.slice(2));
     return '';
   }
   function linkTo(el, to) {
@@ -1082,6 +1092,8 @@
     st.textContent = css;
   }
   function applySite(fiche) {
+    prodCat = {};
+    (Array.isArray(fiche.products) ? fiche.products : []).forEach(function (p) { if (isObj(p) && typeof p.id === 'string' && typeof p.category === 'string' && p.category.trim()) prodCat[p.id] = p.category.trim(); });
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
     var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {}, ll = isObj(site.l) ? site.l : {};
     try { applyBrand(site.b); } catch (e) { /* the model's own look stays */ }
@@ -1119,10 +1131,7 @@
           if (!lk.hasAttribute('data-jeere-href')) lk.setAttribute('data-jeere-href', lk.getAttribute('href'));
           var was = lk.getAttribute('data-jeere-href'), href = was;
           if (to.indexOf('c:') === 0) href = was.replace(/#.*$/, '') + '#' + catSlug(to.slice(2));
-          else if (to.indexOf('p:') === 0) {
-            var pa = document.querySelector(attrSel('data-jeere-product', to.slice(2)) + ' a[href]:not([href^="#"])');
-            if (pa) href = pa.getAttribute('href');
-          }
+          else if (to.indexOf('p:') === 0) href = productHref(to.slice(2));
           lk.setAttribute('href', href);
         }
         var v = typeof im[x.key] === 'string' ? im[x.key] : '';
@@ -1157,6 +1166,9 @@
     // what is under the pointer, even under a decorative layer (a gradient, a title over a photo)
     var under = function (e) {
       var el = e.target && e.target.closest ? e.target.closest('[data-jeere-pickable]') : null;
+      var card = el && el.tagName === 'IMG' && el.closest ? el.closest('[data-jeere-product]') : null;
+      if (card && card.hasAttribute('data-jeere-pickable')) return card;
+      if (!el && e.target && e.target.closest) { card = e.target.closest('[data-jeere-product]'); if (card && card.hasAttribute('data-jeere-pickable')) return card; }
       if (el) return el;
       var all = document.elementsFromPoint ? document.elementsFromPoint(e.clientX, e.clientY) : [];
       for (var i = 0; i < all.length; i++) { var c = all[i].closest ? all[i].closest('[data-jeere-pickable]') : null; if (c) return c; }
