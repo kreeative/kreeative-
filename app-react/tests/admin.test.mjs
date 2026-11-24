@@ -2556,6 +2556,13 @@ await test('the orders of the month count against the plan: every order received
 
 await test('home with her store in a phone on the right; pages use the width; About; booking sites: products are an option; the deposit', async () => {
   const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, { width: 1600, height: 1000 }, w);
+  // the test store has no site on the internet: its phone shows the SÈVE demo instead (when the network allows it)
+  await ctx.route('https://boutique-test.store.jehre.com/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const to = path.startsWith('/connect/') ? null : path.startsWith('/concepts/') ? `https://kreeative.xyz${path}` : `https://kreeative.xyz/concepts/seve${path}`;
+    if (!to) return route.fallback();
+    try { const r = await route.fetch({ url: to }); await route.fulfill({ response: r }); } catch { await route.fulfill({ status: 200, contentType: 'text/html', body: '<p>Boutique</p>' }); }
+  });
   await page.goto(`${BASE}/admin/`);
   const prev = page.getByRole('region', { name: 'Votre boutique' });
   await prev.getByText('En ligne', { exact: true }).waitFor();

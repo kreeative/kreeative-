@@ -15,6 +15,7 @@ import { money, plural, when } from '@/lib/format';
 import { modelBySlug } from '@/lib/models';
 import { productsOf, statusLabel, storeName, storeUrl, zonesOf } from '@/lib/stores';
 import styles from './admin.module.css';
+import iphoneFrame from './iphone-18-pro-silver.webp';
 import home from './home.module.css';
 
 const TONE: Record<string, string> = { nouvelle: 'new', confirmee: 'go', preparee: 'go', expediee: 'go', livree: 'ok', annulee: 'off' };
@@ -185,10 +186,27 @@ function StorePreview({ url, name, published, thumb }: { url: string; name: stri
         <span className={home.online} data-on={published ? '' : undefined}>{published ? 'En ligne' : 'Pas en ligne'}</span>
       </div>
       <div className={home.phoneWrap}>
-        <div className={home.phone}>
-          {published ? <iframe title={`Aperçu de ${name}`} src={url} loading="lazy" tabIndex={-1} />
-            /* eslint-disable-next-line @next/next/no-img-element */
-            : thumb ? <img src={`https://jehre.com/studio/sites/thumbs/concepts--${thumb}.webp`} alt="" /> : null}
+        <div className={home.iphone}>
+          <div className={home.device}>
+            <div className={home.screen}>
+              <div className={home.status} aria-hidden="true">
+                <span>9:41</span>
+                <span>
+                  <svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="1" /><rect x="5" y="5.5" width="3" height="6.5" rx="1" /><rect x="10" y="3" width="3" height="9" rx="1" /><rect x="15" y="0" width="3" height="12" rx="1" /></svg>
+                  <svg viewBox="0 0 16 12" width="16" height="12"><path d="M8 2.6c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .8 10.4 10.4 0 0 0 .8 3.7L2 5c1.6-1.5 3.7-2.4 6-2.4Zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.7 6.7 0 0 0 8 4.4c-1.8 0-3.4.7-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3Zm0 3.6c-.4 0-.8.2-1.1.4L8 11.4l1.1-1.2c-.3-.2-.7-.4-1.1-.4Z" /></svg>
+                  <span className={home.batt}><i /></span>
+                </span>
+              </div>
+              <div className={home.page}>
+                {published ? <iframe title={`Aperçu de ${name}`} src={url} loading="lazy" tabIndex={-1} />
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  : thumb ? <img src={`https://jehre.com/studio/sites/thumbs/concepts--${thumb}.webp`} alt="" /> : null}
+              </div>
+              <span className={home.homeBar} aria-hidden="true" />
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className={home.frame} src={iphoneFrame.src} alt="" width={450} height={920} decoding="async" />
+          </div>
         </div>
       </div>
       <ButtonLink block href="/admin/editeur/" icon="edit">Personnaliser</ButtonLink>
