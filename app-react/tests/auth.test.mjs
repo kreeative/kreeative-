@@ -37,6 +37,7 @@ async function open(browser, viewport, world) {
       return json(route, 200, session());
     }
     if (url.pathname === '/auth/v1/logout') return json(route, 204);
+    if (url.pathname === '/auth/v1/recover') return json(route, 200, {});
     if (url.pathname === '/auth/v1/token' && url.searchParams.get('grant_type') === 'password') {
       if (!world.password || body.password !== world.password || !world.known.includes(body.email)) return json(route, 400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
       return json(route, 200, session());
@@ -202,7 +203,7 @@ await test('password: she gives her account one from her account page, logs in w
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');
   // login with it: a wrong one is refused with a way out, the right one opens the account
-  await page.getByRole('button', { name: 'Me connecter avec mon mot de passe' }).click();
+  await page.getByRole('button', { name: 'Mot de passe', exact: true }).click();
   await page.getByLabel('Adresse e-mail').fill('kady@exemple.com');
   await page.getByLabel('Mot de passe', { exact: true }).fill('pasLeBon1');
   await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
@@ -212,11 +213,15 @@ await test('password: she gives her account one from her account page, logs in w
   await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
   assert.equal(w.calls.some((c) => c.path === '/auth/v1/token' && c.body.password === 'Karite2026ok'), true);
-  // forgotten: one tap goes back to the code
+  // forgotten: « Réinitialiser » sends her the link, nothing more to read
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');
   await page.getByLabel('Mot de passe', { exact: true }).waitFor();      // the form remembers she uses her password
-  await page.getByRole('button', { name: 'Recevez un code' }).click();
+  await page.getByLabel('Adresse e-mail').fill('kady@exemple.com');
+  await page.getByRole('button', { name: 'Réinitialiser' }).click();
+  await page.getByText('E-mail envoyé.').waitFor();
+  assert.equal(w.calls.find((c) => c.path === '/auth/v1/recover').body.email, 'kady@exemple.com');
+  await page.getByRole('button', { name: 'Recevoir un code', exact: true }).click();
   await page.getByRole('button', { name: 'Recevoir mon code' }).waitFor();
   await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
 });

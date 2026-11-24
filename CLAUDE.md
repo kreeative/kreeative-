@@ -43,7 +43,7 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 ## Le nouveau front (`app-react/`)
 - **Migrer, ce n'est pas redessiner.** Chaque page reprend l'aspect de la page actuelle : mêmes éléments, mêmes mots, mêmes dessins (bouton principal en arc-en-ciel, logo arc-en-ciel du tableau de bord, carte de l'offre de lancement, panneau noir aux dessins de la page du compte). Avant de coder une page, faire une capture de l'actuelle et comparer à la fin.
 - Les pages gardent les adresses du site actuel (`/compte/`, `/admin/`, `/b/<boutique>/`), avec la barre finale.
-- La connexion se fait par code reçu par e-mail, ou par mot de passe si la vendeuse en a créé un depuis sa page compte (8 caractères au moins, lettres et chiffres). Pas de page « mot de passe oublié » : elle se connecte avec un code, puis en choisit un nouveau.
+- La connexion se fait par code reçu par e-mail, ou par mot de passe si la vendeuse en a créé un depuis sa page compte (8 caractères au moins, lettres et chiffres). Mot de passe oublié : « Réinitialiser » envoie un lien qui ouvre son compte sur le champ du nouveau mot de passe. Textes au plus court.
 - Après une connexion, `src/lib/account.ts` écrit la copie locale `jeere-account` que lisent encore les pages non migrées. Ne pas changer sa forme.
 - Composants dans `src/components/ui/` (Button, Field, CodeInput, Notice, Icon). Une page se compose avec eux ; pas de champ ni de bouton dessiné dans une page.
 - Icônes : `Icon` (Iconly), reprises du site actuel dans `icons.ts`.

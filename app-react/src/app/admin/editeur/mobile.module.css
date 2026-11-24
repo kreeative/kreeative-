@@ -1,6 +1,6 @@
 /* The editor on a phone: a 52 px bar on top, the site on the whole screen, one glass bar of tools at the bottom.
    Light only. The blue of a selection lives on the site itself; the interface stays ink on white. */
-.editor { --bar: 64px; --gap: 10px; --kb: 0px; --toast-bottom: calc(var(--bar) + var(--gap) + 16px); position: fixed; inset: 0; z-index: 55; background: #F5F5F7; overflow: hidden; }
+.editor { --bar: 58px; --gap: 10px; --zoom: .88; --kb: 0px; --toast-bottom: calc(var(--bar) + var(--gap) + 16px); position: fixed; inset: 0; z-index: 55; background: #F5F5F7; overflow: hidden; }
 
 .top { position: fixed; z-index: 3; top: 0; left: 0; right: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px;
   background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--glass-line); }
@@ -13,22 +13,26 @@
 .publish { flex: none; min-height: 36px; padding: 0 14px; border-radius: 12px; font-size: var(--fs-sm); }
 
 /* the site: everything between the two bars, never squeezed by a panel */
-.stage { position: fixed; top: 52px; left: 0; right: 0; bottom: calc(var(--bar) + 2 * var(--gap) + env(safe-area-inset-bottom)); background: var(--white); }
-.stage iframe { display: block; width: 100%; height: 100%; border: 0; background: var(--white); }
+/* the site, a little smaller than the screen, on the neutral canvas: air all around, a rounded frame, a soft shadow.
+   It is the page itself that is scaled (the frame is bigger by 1 / zoom, then brought back), so what the site
+   draws on itself (the blue frame of a selection, its handles) is scaled with it, exactly in place. */
+.stage { position: fixed; top: 52px; left: 0; right: 0; bottom: calc(var(--bar) + 2 * var(--gap) + env(safe-area-inset-bottom)); padding: 12px 14px 4px; background: #F5F5F7; }
+.frame { position: relative; width: 100%; height: 100%; border-radius: 14px; overflow: hidden; background: var(--white); box-shadow: 0 0 0 1px var(--glass-line), 0 16px 36px -22px rgba(17, 17, 17, .4); }
+.stage iframe { display: block; width: calc(100% / var(--zoom)); height: calc(100% / var(--zoom)); border: 0; background: var(--white); transform: scale(var(--zoom)); transform-origin: 0 0; }
 
 /* the bar of tools: fixed to the bottom, glass, scrolled sideways; it rises with the keyboard */
-.bar { position: fixed; z-index: 4; left: var(--gap); right: var(--gap); bottom: calc(var(--gap) + env(safe-area-inset-bottom)); height: var(--bar); border-radius: 22px; overflow: hidden; transform: translateY(calc(-1 * var(--kb)));
+.bar { position: fixed; z-index: 4; left: var(--gap); right: var(--gap); bottom: calc(var(--gap) + env(safe-area-inset-bottom)); height: var(--bar); display: flex; align-items: center; border-radius: 20px; overflow: hidden; transform: translateY(calc(-1 * var(--kb)));
   background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 12px 32px -8px rgba(17, 17, 17, .22); }
-.tools { display: flex; align-items: center; gap: 2px; height: var(--bar); padding: 0 8px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; animation: toolsIn var(--dur-in) var(--ease); }
+.tools { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; height: var(--bar); padding: 0 6px; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; animation: toolsIn var(--dur-in) var(--ease); }
 .tools::-webkit-scrollbar { display: none; }
 .tools:not([data-context]) { justify-content: space-between; }
 @keyframes toolsIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.tool { flex: none; display: grid; justify-items: center; align-content: center; gap: 4px; min-width: 62px; height: 54px; padding: 0 10px; border: 0; border-radius: 14px; background: none; color: var(--ink);
-  font: var(--w-ui) var(--fs-xs)/var(--lh-xs) var(--font); white-space: nowrap; cursor: pointer; transition: background var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.tool { flex: none; display: grid; justify-items: center; align-content: center; gap: 3px; min-width: 58px; height: 48px; padding: 0 8px; border: 0; border-radius: 12px; background: none; color: var(--ink);
+  font: 500 11.5px/14px var(--font); white-space: nowrap; cursor: pointer; transition: background var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .tool:active:not(:disabled) { transform: scale(.97); }
 .tool[aria-pressed="true"] { background: rgba(17, 17, 17, .08); }
 .tool:disabled { opacity: .5; }
-.ok { flex: none; position: sticky; right: 0; display: grid; place-items: center; width: 44px; height: 44px; margin-left: 8px; border: 0; border-radius: 50%; background: var(--ink); color: var(--white); cursor: pointer; box-shadow: 0 0 0 6px rgba(255, 255, 255, .72); transition: transform var(--dur) var(--ease); }
+.ok { flex: none; display: grid; place-items: center; width: 38px; height: 38px; margin: 0 10px 0 6px; border: 0; border-radius: 50%; background: var(--ink); color: var(--white); cursor: pointer; transition: transform var(--dur) var(--ease); }
 .ok:active { transform: scale(.97); }
 .barNote { flex: 1; margin: 0; padding: 0 8px; font-size: var(--fs-sm); color: var(--muted); }
 .barNote a { color: var(--ink); text-decoration: none; }

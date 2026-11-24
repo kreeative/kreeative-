@@ -3,7 +3,8 @@ import { supabase } from './supabase';
 
 /* Sign-up and login with a one-time code sent by e-mail (Supabase Auth); the same e-mail carries a link that also
    opens the session. A seller may also give her account a password (from her account page, once logged in) and
-   then log in with it. A forgotten password needs no reset page: she logs in with a code and sets a new one. */
+   then log in with it. A forgotten password: « Réinitialiser » sends her a link that opens her account, where
+   she chooses a new one. */
 
 export type AuthFailure = { ok: false; kind: 'no-account' | 'network' | 'rate' | 'code' | 'email' | 'password' | 'other'; text: string };
 export type AuthResult<T = object> = ({ ok: true } & T) | AuthFailure;
@@ -31,7 +32,7 @@ function failure(err: unknown): AuthFailure {
     return { ok: false, kind: 'rate', text: 'Trop de demandes en peu de temps. Patientez une minute, puis réessayez.' };
   }
   if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg)) {
-    return { ok: false, kind: 'password', text: 'Adresse ou mot de passe incorrect. Vous pouvez aussi recevoir un code par e-mail.' };
+    return { ok: false, kind: 'password', text: 'Adresse ou mot de passe incorrect.' };
   }
   if (code === 'weak_password' || /password should be|weak password/i.test(msg)) {
     return { ok: false, kind: 'password', text: 'Ce mot de passe est trop simple. Mettez au moins 8 caractères, avec des lettres et des chiffres.' };
@@ -91,6 +92,14 @@ export async function signInPassword(email: string, password: string): Promise<A
     if (error) return failure(error);
     if (!data.user) return failure({ message: 'invalid login credentials' });
     return { ok: true, user: data.user };
+  } catch (err) { return failure(err); }
+}
+
+/** A forgotten password: an e-mail with a link that opens her account, where she chooses a new one. */
+export async function resetPassword(email: string): Promise<AuthResult> {
+  try {
+    const { error } = await supabase().auth.resetPasswordForEmail(normEmail(email), { redirectTo: `${window.location.origin}${window.location.pathname}` });
+    return error ? failure(error) : { ok: true };
   } catch (err) { return failure(err); }
 }
 

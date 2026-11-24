@@ -43,6 +43,8 @@ const COLORS: [string, string][] = [['', 'Modèle'], ['#111111', 'Noir'], ['#FFF
 const BACKGROUNDS: [string, string][] = [['', 'Modèle'], ['#FFFFFF', 'Blanc'], ['#F5F5F3', 'Gris clair'], ['#FAF6EF', 'Crème'], ['#111111', 'Noir']];
 const ALIGN: ['left' | 'center' | 'right' | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
 const SPOTS = [0, 50, 100];
+// the words under the icons stay short, so every tool is read whole; the full name is what a screen reader says
+const SHORT: Record<string, string> = { 'Modifier le texte': 'Modifier', 'Remplacer la photo': 'Remplacer', 'Ajuster / Cadre': 'Cadrer', Alignement: 'Aligner' };
 const px = (v: string, max: number): number | undefined => (v.trim() === '' ? undefined : Math.min(max, Number(v.replace(/\D/g, '')) || 0));
 
 export function MobileEditor(p: MobileEditorProps) {
@@ -250,7 +252,7 @@ export function MobileEditor(p: MobileEditorProps) {
       </header>
 
       <div className={styles.stage}>
-        <iframe ref={p.frame} key={p.path} title="Votre site" src={p.site + p.path} />
+        <div className={styles.frame}><iframe ref={p.frame} key={p.path} title="Votre site" src={p.site + p.path} /></div>
       </div>
 
       {drawer ? (
@@ -266,12 +268,12 @@ export function MobileEditor(p: MobileEditorProps) {
           {mode === 'services' ? <p className={styles.barNote}>Vos prestations se gèrent dans <a href="/admin/prestations/"><b>Prestations</b></a>.</p> : null}
           {tools.map((t) => (
             <button key={t.id} type="button" className={styles.tool} aria-pressed={t.open ? tool === t.open : t.on} disabled={t.id === 'replace' && uploading}
-              onClick={() => { if (t.open) flip(t.open); else t.act?.(); }}>
-              <Icon name={t.icon} size={20} /><span>{t.id === 'replace' && uploading ? 'Envoi…' : t.label}</span>
+              aria-label={t.label} onClick={() => { if (t.open) flip(t.open); else t.act?.(); }}>
+              <Icon name={t.icon} size={18} /><span>{t.id === 'replace' && uploading ? 'Envoi…' : SHORT[t.label] ?? t.label}</span>
             </button>
           ))}
-          {mode === 'site' ? null : <button type="button" className={styles.ok} onClick={done} aria-label="Terminer"><Icon name="check" size={20} /></button>}
         </div>
+        {mode === 'site' ? null : <button type="button" className={styles.ok} onClick={done} aria-label="Terminer"><Icon name="check" size={18} /></button>}
       </nav>
       <input ref={file} type="file" accept="image/*" hidden onChange={(e) => void pick(e)} aria-label="Choisir une photo" />
       {p.children}

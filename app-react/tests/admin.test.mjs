@@ -877,8 +877,10 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   assert.equal(await page.getByRole('complementary', { name: /Sections de la page|Contenu/ }).count(), 0, 'no side panel on a phone');
   const box = async (l) => { const r = await l.boundingBox(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; };
   assert.deepEqual(await box(page.locator('header').first()), [0, 0, 390, 52]);
-  assert.deepEqual(await box(bar), [10, 770, 370, 64]);
-  assert.deepEqual(await box(page.locator('iframe[title="Votre site"]')), [0, 52, 390, 708]);
+  assert.deepEqual(await box(bar), [10, 776, 370, 58]);
+  // the site is shown a little smaller, with air around it, in a rounded frame with a soft shadow
+  const fr = await page.locator('iframe[title="Votre site"]').evaluate((f) => { const b = f.parentElement.getBoundingClientRect(), c = getComputedStyle(f.parentElement); return { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height), radius: c.borderRadius, shadow: c.boxShadow !== 'none', zoom: Math.round(f.getBoundingClientRect().width / f.offsetWidth * 100) }; });
+  assert.deepEqual(fr, { x: 14, y: 64, w: 362, h: 698, radius: '14px', shadow: true, zoom: 88 });
   for (const t of ['Sections', 'Pages', 'Style', 'Thème', 'Ajouter']) await bar.getByRole('button', { name: t, exact: true }).waitFor();
   assert.match(await bar.evaluate((n) => getComputedStyle(n).backdropFilter || getComputedStyle(n).webkitBackdropFilter), /blur\(16px\)/);
   await noOverflow(page);
@@ -891,7 +893,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await drawer.getByRole('button', { name: 'Grande bannière', exact: true }).waitFor();
   await page.waitForTimeout(400);                       // its way in is over
   const d = await drawer.boundingBox();
-  assert.ok(d.y > 844 * 0.4 && d.y + d.height <= 770, 'the drawer sits just above the bar and leaves the site visible');
+  assert.ok(d.y > 844 * 0.4 && d.y + d.height <= 776, 'the drawer sits just above the bar and leaves the site visible');
   await page.screenshot({ path: `${SHOTS}54-editeur-telephone-sections.png` });
   await drawer.getByRole('button', { name: 'Fermer' }).click(); await drawer.waitFor({ state: 'detached' });
 
@@ -903,7 +905,13 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await site.locator('[data-jeere-sel]').waitFor();
   assert.match(await site.locator('[data-jeere-sel]').evaluate((n) => getComputedStyle(n).borderColor), /54, 87, 255/, 'a thin blue frame');
   assert.equal(await site.locator('[data-jeere-sel] i').count(), 4, 'four small handles');
-  assert.deepEqual(await box(tools), [10, 770, 370, 64], 'the bar did not move');
+  // at this smaller scale the frame is still exactly on the element (both are drawn by the site itself)
+  const on = await title.evaluate((n) => { const a = n.getBoundingClientRect(), b = document.querySelector('[data-jeere-sel]').getBoundingClientRect(); return [Math.abs(a.top - b.top) < 1.5, Math.abs(a.height - b.height) < 1.5, b.left >= 0, b.right <= document.documentElement.clientWidth]; });
+  assert.deepEqual(on, [true, true, true, true]);
+  // every tool is read whole: no word is cut, the ✓ is beside the tools, never over them
+  const cut = await tools.evaluate((n) => { const ok = n.querySelector('button[aria-label="Terminer"]').getBoundingClientRect(); const strip = n.firstElementChild.getBoundingClientRect(); return [[...n.querySelectorAll('button span')].every((s) => s.scrollWidth <= s.clientWidth + 1), strip.right <= ok.left + 1, getComputedStyle(n.querySelector('button span')).fontSize]; });
+  assert.deepEqual(cut, [true, true, '11.5px']);
+  assert.deepEqual(await box(tools), [10, 776, 370, 58], 'the bar did not move');
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${SHOTS}53-editeur-telephone-texte.png` });
   await tools.getByRole('button', { name: 'Modifier le texte' }).click();
@@ -931,6 +939,10 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   const img = site.locator('img[data-jeere-pickable="i"]').first();
   await img.scrollIntoViewIfNeeded(); await img.click();
   for (const t of ['Remplacer la photo', 'Ajuster / Cadre', 'Supprimer']) await tools.getByRole('button', { name: t, exact: true }).waitFor();
+  assert.deepEqual(await tools.locator('div button span').allInnerTexts(), ['Remplacer', 'Cadrer', 'Supprimer']);
+  // the frame is on what one SEES of the picture (a picture cropped by its box is framed where it is cropped), with small handles
+  const seen = await img.evaluate((n) => { const b = document.querySelector('[data-jeere-sel]').getBoundingClientRect(); let r = n.getBoundingClientRect(), box = { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; for (let p = n.parentElement; p && p !== document.body; p = p.parentElement) { if (getComputedStyle(p).overflow !== 'visible') { const q = p.getBoundingClientRect(); box = { top: Math.max(box.top, q.top), bottom: Math.min(box.bottom, q.bottom), left: Math.max(box.left, q.left), right: Math.min(box.right, q.right) }; } } const h = document.querySelector('[data-jeere-sel] i').getBoundingClientRect(); return [Math.abs(b.top - box.top) < 2, Math.abs(b.bottom - box.bottom) < 2, Math.round(h.width)]; });
+  assert.deepEqual(seen, [true, true, 6]);
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${SHOTS}56-editeur-telephone-image.png` });
   await tools.getByRole('button', { name: 'Ajuster / Cadre' }).click();
@@ -965,7 +977,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   assert.deepEqual(Object.values(saved.x), [{ bold: true, size: before + 2, color: '#E8467C' }]);
   assert.deepEqual(Object.values(saved.f), [{ fit: 'contain' }]);
   assert.equal(Object.keys(saved.h).length, 1);
-  assert.deepEqual(await box(bar), [10, 770, 370, 64], 'the bar is still fixed to the bottom');
+  assert.deepEqual(await box(bar), [10, 776, 370, 58], 'the bar is still fixed to the bottom');
   assert.deepEqual(errors, []); await ctx.close();
 
   // a one-page booking model: no page menu, the same tools

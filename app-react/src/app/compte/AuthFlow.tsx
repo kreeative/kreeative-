@@ -10,7 +10,7 @@ import { modelBySlug, type Model } from '@/lib/models';
 import { clip, completeLogin, readAccount, rememberSource, saveStoreName, signOut, slugify, type Account } from '@/lib/account';
 import { mountDoodles } from '@/lib/doodles';
 import { COUNTRIES, launchOffer, type LaunchOffer } from '@/lib/launch';
-import { PASSWORD_RULE, currentUser, maskEmail, normEmail, normPhone, sendCode, setPassword, signInPassword, validEmail, validPassword, verifyCode, type AuthFailure } from '@/lib/auth';
+import { PASSWORD_RULE, currentUser, resetPassword, maskEmail, normEmail, normPhone, sendCode, setPassword, signInPassword, validEmail, validPassword, verifyCode, type AuthFailure } from '@/lib/auth';
 import styles from './auth.module.css';
 
 /* The seller's account, one screen at a time:
@@ -46,6 +46,8 @@ export function AuthFlow() {
   const [password, setPass] = useState('');
   const [passOpen, setPassOpen] = useState(false);
   const [passSaved, setPassSaved] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const recovering = useRef(false);
   const title = useRef<HTMLHeadingElement>(null);
 
   const go = useCallback((next: Step) => { setErrors({}); setFailure(null); setStep(next); }, []);
@@ -59,6 +61,7 @@ export function AuthFlow() {
   // on arrival: remember where she comes from, and open her account if a session is already there
   useEffect(() => {
     rememberSource();
+    recovering.current = /type=recovery/.test(window.location.hash);      // back from « Réinitialiser »: straight to a new password
     const wanted: Mode = /connexion|login/.test(window.location.hash) ? 'login' : 'signup';
     setMode(wanted);
     let alive = true;
@@ -69,6 +72,7 @@ export function AuthFlow() {
       if (!alive) return;
       setAccount(acc);
       setStep(acc ? 'account' : wanted);
+      if (acc && recovering.current) setPassOpen(true);
     });
     return () => { alive = false; };
   }, []);
@@ -149,6 +153,15 @@ export function AuthFlow() {
       setBusy(false);
       setFailure({ ok: false, kind: 'network', text: 'Votre mot de passe est bon, mais votre compte n’a pas pu s’ouvrir. Vérifiez votre connexion, puis réessayez.' });
     }
+  }
+  /** « Réinitialiser »: a link by e-mail opens her account on the form of a new password. */
+  async function forgot() {
+    if (busy) return;
+    if (!validEmail(email)) { setErrors({ email: 'Entrez une adresse e-mail valide.' }); return; }
+    setErrors({}); setFailure(null); setBusy(true);
+    const r = await resetPassword(email);
+    setBusy(false);
+    if (r.ok) setResetSent(true); else setFailure(r);
   }
   /** From her account page: her account gets a password, or a new one. */
   async function savePassword(e: FormEvent) {
@@ -249,16 +262,16 @@ export function AuthFlow() {
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Connectez-vous</h1>
                 {wanted ? <p><b>Connectez-vous pour choisir le modèle {wanted.name}.</b></p> : null}
-                <p>{byPass ? 'Entrez votre adresse et votre mot de passe.' : 'Recevez un code par e-mail pour entrer.'}</p>
+                {byPass ? null : <p>Recevez un code par e-mail pour entrer.</p>}
               </div>
               <Field label="Adresse e-mail" name="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder="vous@exemple.com" value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }} error={errors.email} />
               {byPass ? <Field label="Mot de passe" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => { setPass(e.target.value); clearError('password'); }} error={errors.password}
-                hint={<>Mot de passe oublié ? <button type="button" className={styles.link} onClick={() => { setByPass(false); setPass(''); setErrors({}); setFailure(null); }}>Recevez un code</button>, puis choisissez-en un nouveau dans votre compte.</>} /> : null}
+                hint={resetSent ? 'E-mail envoyé.' : <>Mot de passe oublié ? <button type="button" className={styles.link} onClick={() => void forgot()}>Réinitialiser</button></>} /> : null}
               {failure?.kind === 'no-account'
                 ? <Notice tone="warn" title="Aucun compte avec cette adresse" action={<Button variant="secondary" onClick={() => switchTo('signup')}>Créer un compte</Button>}>Vérifiez l’adresse, ou créez votre compte : c’est gratuit.</Notice>
                 : failure && <Notice tone="error">{failure.text}</Notice>}
               <Button type="submit" variant="rainbow" block busy={busy} iconEnd="arrow">{byPass ? 'Se connecter' : 'Recevoir mon code'}</Button>
-              <Button variant="quiet" block icon="lock" onClick={() => { setByPass((v) => !v); setPass(''); setErrors({}); setFailure(null); }}>{byPass ? 'Recevoir un code à la place' : 'Me connecter avec mon mot de passe'}</Button>
+              <Button variant="quiet" block icon="lock" onClick={() => { setByPass((v) => !v); setPass(''); setErrors({}); setFailure(null); }}>{byPass ? 'Recevoir un code' : 'Mot de passe'}</Button>
               <p className={styles.switch}>Pas encore de compte ? <button type="button" className={styles.link} onClick={() => switchTo('signup')}>Créer un compte</button></p>
             </form>
           )}
@@ -324,7 +337,7 @@ export function AuthFlow() {
                 <p>Votre compte est ouvert sur cet appareil.</p>
               </div>
               <ButtonLink href={LINKS.dashboard} block icon="dashboard">Ouvrir mon tableau de bord</ButtonLink>
-              {passSaved ? <Notice tone="ok">Mot de passe enregistré. Vous pouvez vous connecter avec, ou toujours avec un code.</Notice> : null}
+              {passSaved ? <Notice tone="ok">Mot de passe enregistré.</Notice> : null}
               {passOpen ? (
                 <form className={styles.pass} onSubmit={savePassword} noValidate>
                   <Field label="Nouveau mot de passe" name="new-password" type="password" autoComplete="new-password" value={password} onChange={(e) => { setPass(e.target.value); clearError('password'); }} error={errors.password} hint={PASSWORD_RULE} />
