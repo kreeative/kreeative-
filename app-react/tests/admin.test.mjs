@@ -467,11 +467,11 @@ await test('phone: the floating bottom bar stays in place while the page scrolls
     await page.evaluate(() => { const d = document.createElement('div'); d.style.height = '2400px'; document.querySelector('main').appendChild(d); });
     const where = () => page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), width: Math.round(r.width), y: Math.round(window.scrollY), h: window.innerHeight }; });
     const start = await where();
-    assert.equal(start.bottom, 832, `${path}: the bar floats 12 px above the bottom edge`); assert.equal(start.left, 12); assert.equal(start.width, 366);
+    assert.equal(start.bottom, 844, `${path}: the bar is locked to the bottom edge`); assert.equal(start.left, 0); assert.equal(start.width, 390);
     for (const dy of [300, 500, 700, -400, 900]) {
       await page.mouse.wheel(0, dy); await page.waitForTimeout(120);
       const now = await where();
-      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 832);
+      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 844);
     }
     const end = await where(); assert.ok(end.y > 1200, 'the page really scrolled');
     // nothing around the bar can detach it: no ancestor transforms, filters, clips or scrolls
@@ -547,8 +547,15 @@ await test('editor: a bar, the sections, HER model in the middle, the inspector;
   assert.equal(await right.getByLabel('Titre', { exact: true }).inputValue(), 'Collection Harmattan', 'two lines of a title read as two words');
   // pictures: a clean card (miniature, plain name, « Remplacer »), never the model's own notes
   const media = right.getByRole('region', { name: 'Images' });
-  assert.deepEqual(await media.locator('b').allInnerTexts(), ['Image principale', 'Image secondaire']);
-  assert.equal(await media.getByRole('button', { name: /^Remplacer/ }).count(), 2);
+  // several pictures: a compact grid of miniatures, and ONE card for the picture chosen (never a pile of cards)
+  assert.deepEqual(await media.getByRole('group', { name: 'Choisir une image' }).getByRole('button').evaluateAll((l) => l.map((b) => b.getAttribute('aria-label'))), ['Image principale', 'Image secondaire']);
+  assert.deepEqual(await media.locator('b').allInnerTexts(), ['Image principale']);
+  await media.getByRole('button', { name: 'Image secondaire', exact: true }).click();
+  assert.deepEqual(await media.locator('b').allInnerTexts(), ['Image secondaire']);
+  assert.equal(await media.getByRole('button', { name: /^Remplacer/ }).count(), 1);
+  // the panels float as glass cards, 12 px from the edges
+  const glass = await right.evaluate((n) => { const c = getComputedStyle(n), r = n.getBoundingClientRect(); return [c.backdropFilter || c.webkitBackdropFilter, c.borderRadius, Math.round(window.innerWidth - r.right), Math.round(r.top - 56)]; });
+  assert.match(glass[0], /blur\(16px\)/); assert.deepEqual(glass.slice(1), ['16px', 12, 12]);
   assert.equal((await right.innerText()).match(/Pinterest|mannequin|Cold Culture/i), null);
   await page.waitForTimeout(900);
   await page.screenshot({ path: `${SHOTS}50-editeur-ordinateur.png` });
@@ -561,7 +568,7 @@ await test('editor: a bar, the sections, HER model in the middle, the inspector;
   // the tree: a section unfolds on its elements; one of them opens its field
   await left.getByRole('button', { name: 'Déplier Grande bannière' }).click();
   const leaves = await left.locator('ol > li ul button').allInnerTexts();
-  assert.ok(leaves.some((x) => x.startsWith('Titre – Collection Harmattan')), leaves.join(' | ')); assert.ok(leaves.includes('Image principale'));
+  assert.ok(leaves.some((x) => x.startsWith('Titre – Collection Harmattan')), leaves.join(' | ')); assert.ok(leaves.includes('2 images'), 'the pictures of a section are one line of the tree, not one line each');
   // a click on the site opens the field of what was clicked
   const target = site.locator('footer [data-jeere-pickable="t"]').first();
   const clicked = (await target.innerText()).replace(/\s+/g, ' ').trim();
@@ -618,7 +625,7 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   await site.locator('h1, h2').first().waitFor({ timeout: 30000 });
   // the panels float: 12 px from the edges, rounded 16 px, white, over a light canvas (never a dark theme)
   const card = (el) => { const r = el.getBoundingClientRect(), c = getComputedStyle(el); return { x: Math.round(r.left), top: Math.round(r.top), w: Math.round(r.width), gapBottom: Math.round(innerHeight - r.bottom), radius: c.borderTopLeftRadius, bg: c.backgroundColor, shadow: c.boxShadow !== 'none' }; };
-  assert.deepEqual(await left.evaluate(card), { x: 12, top: 68, w: 260, gapBottom: 12, radius: '16px', bg: 'rgb(255, 255, 255)', shadow: true });
+  assert.deepEqual(await left.evaluate(card), { x: 12, top: 68, w: 260, gapBottom: 12, radius: '16px', bg: 'rgba(255, 255, 255, 0.78)', shadow: true });
   assert.equal(await page.locator('header').evaluate((h) => getComputedStyle(h).backgroundColor), 'rgb(255, 255, 255)');
   assert.equal(await page.locator('header').evaluate((h) => getComputedStyle(h.parentElement).backgroundColor), 'rgb(245, 245, 247)');
   // the site keeps clear of the left panel on a wide screen
@@ -638,7 +645,7 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   await left.getByRole('button', { name: 'Nouveautés', exact: true }).click();
   const right = page.getByRole('complementary', { name: 'Contenu : Nouveautés' });
   await right.waitFor(); await page.waitForTimeout(400);      // it slides in
-  assert.deepEqual(await right.evaluate(card), { x: 1440 - 12 - 300, top: 68, w: 300, gapBottom: 12, radius: '16px', bg: 'rgb(255, 255, 255)', shadow: true });
+  assert.deepEqual(await right.evaluate(card), { x: 1440 - 12 - 300, top: 68, w: 300, gapBottom: 12, radius: '16px', bg: 'rgba(255, 255, 255, 0.78)', shadow: true });
   assert.deepEqual(await right.locator('h3').evaluateAll((els) => els.filter((e) => e.parentElement.tagName !== 'SECTION').map((e) => e.textContent)), ['Contenu', 'Mise en page', 'Apparence']);
   assert.equal(Math.round((await right.getByLabel('Espace au-dessus (px)').boundingBox()).height), 32);
   // layout and appearance: written in her store, drawn on the site at once, and undone in one click
@@ -661,7 +668,7 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   await zoom.getByText('120 %').waitFor();
   await page.waitForTimeout(400);
   assert.deepEqual(await zoom.boundingBox(), z0, 'the bar did not move');
-  assert.deepEqual(await left.evaluate(card), { x: 12, top: 68, w: 260, gapBottom: 12, radius: '16px', bg: 'rgb(255, 255, 255)', shadow: true });
+  assert.deepEqual(await left.evaluate(card), { x: 12, top: 68, w: 260, gapBottom: 12, radius: '16px', bg: 'rgba(255, 255, 255, 0.78)', shadow: true });
   await zoom.getByRole('button', { name: /revenir à 100 %/ }).click(); await zoom.getByText('100 %').waitFor();
   await page.getByRole('button', { name: 'Publier' }).click();
   await page.getByRole('status').filter({ hasText: 'Votre site est en ligne' }).waitFor();
@@ -677,7 +684,7 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
     await noOverflow(page);
     // one panel beside the site: the section's settings; the list is put away, one tap brings it back
     const r = await right.evaluate(card);
-    assert.equal(r.x, vp.width - 312); assert.equal(r.w, 300); assert.equal(r.radius, '16px'); assert.equal(r.bg, 'rgb(255, 255, 255)');
+    assert.equal(r.x, vp.width - 312); assert.equal(r.w, 300); assert.equal(r.radius, '16px'); assert.equal(r.bg, 'rgba(255, 255, 255, 0.78)');
     assert.equal(await left.count(), 0, 'the list is away while a section is open');
     assert.equal(Math.round((await page.locator('header').boundingBox()).height), 56, 'one line of bar on a tablet');
     assert.ok((await page.locator('iframe[title="Votre site"]').boundingBox()).x <= 24, 'on a tablet the site takes the whole width, under the panels');
@@ -685,10 +692,47 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
     await page.getByRole('button', { name: 'Afficher les sections' }).click();
     await left.getByRole('list').first().waitFor();
     const l = await left.evaluate(card);
-    assert.equal(l.x, 12); assert.equal(l.w, 260); assert.equal(l.radius, '16px'); assert.equal(l.bg, 'rgb(255, 255, 255)');
+    assert.equal(l.x, 12); assert.equal(l.w, 260); assert.equal(l.radius, '16px'); assert.equal(l.bg, 'rgba(255, 255, 255, 0.78)');
     await page.getByRole('button', { name: 'Masquer les sections' }).click();
     await left.waitFor({ state: 'detached' });
     await noOverflow(page);
+  }
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor, a busy model (SÈVE): every section stays in view on the left, and a section with many pictures and products stays short on the right', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, { width: 1440, height: 900 }, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('list').first().waitFor({ timeout: 60000 });
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  // the tree: all the sections, none unfolded, nothing to scroll
+  assert.equal(await left.locator('ol > li ul').count(), 0, 'nothing is unfolded at first');
+  assert.equal(await left.evaluate((n) => n.scrollHeight <= n.clientHeight + 1), true, 'the list of sections fits without scrolling');
+  const names = await left.locator('ol > li > div > button[aria-current], ol > li > div > button:not([aria-label])').allInnerTexts();
+  const busy = names.find((n) => /catalogue/i.test(n)) ?? names[2];
+  await left.getByRole('button', { name: `Déplier ${busy}` }).click();
+  const leaves = await left.locator('ol > li ul button').allInnerTexts();
+  assert.ok(leaves.length <= 8, `a section unfolds on a few lines, not one per picture: ${leaves.join(' | ')}`);
+  await left.getByRole('button', { name: busy, exact: true }).click();
+  const right = page.getByRole('complementary', { name: `Contenu : ${busy}` });
+  await right.waitFor();
+  assert.ok(await right.getByRole('button', { name: /^Remplacer/ }).count() <= 1, 'one picture card at a time');
+  assert.ok(await right.getByRole('combobox').count() + await right.locator('select').count() <= 8, 'the product cases are not all unrolled');
+  // what is chosen is framed on the site, exactly on it, inside the page
+  const frame = await site.locator('[data-jeere-sel]').evaluate((n) => { const r = n.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.right), document.documentElement.clientWidth]; });
+  assert.ok(frame[0] >= 0 && frame[1] <= frame[2], `the frame stays inside the page: ${frame}`);
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `${SHOTS}57-editeur-seve.png` });
+  // a click on a card of the site frames that card, no wider than it
+  const card = site.locator('[data-jeere-pickable="p"]').first();
+  if (await card.count()) {
+    await card.scrollIntoViewIfNeeded(); await card.click({ position: { x: 20, y: 20 } });
+    await page.waitForTimeout(700);
+    const fit = await site.locator('body').evaluate(() => { const b = document.querySelector('[data-jeere-sel]').getBoundingClientRect(); const all = [...document.querySelectorAll('[data-jeere-pickable]')]; const hit = all.find((e) => { const r = e.getBoundingClientRect(); return Math.abs(r.left - b.left) < 2 && Math.abs(r.top - b.top) < 2 && Math.abs(r.width - b.width) < 2 && Math.abs(r.height - b.height) < 2; }); return !!hit; });
+    assert.equal(fit, true, 'the frame has the size of the element chosen');
+    await page.screenshot({ path: `${SHOTS}58-editeur-seve-selection.png` });
   }
   assert.deepEqual(errors, []); await ctx.close();
 });
@@ -1268,7 +1312,7 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   const o = await open(browser, PHONE, world());
   await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
   const bar = () => o.page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.bottom), Math.round(r.width)]; });
-  assert.deepEqual(await bar(), [12, 832, 366]);
+  assert.deepEqual(await bar(), [0, 844, 390]);
   // Échap closes it and gives the focus back; a touch outside closes it; the button itself closes it
   const me = o.page.getByRole('button', { name: /Plus/ });
   await me.click(); await o.page.getByRole('menu').waitFor();
@@ -1282,7 +1326,7 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await o.page.getByRole('menuitem', { name: 'Paiements' }).click();
   const seen = [];
   for (let i = 0; i < 12; i++) { seen.push((await bar()).join()); await o.page.waitForTimeout(30); }      // while the page changes and fades in
-  assert.deepEqual([...new Set(seen)], ['12,832,366'], 'the bottom bar stayed where it is during the transition');
+  assert.deepEqual([...new Set(seen)], ['0,844,390'], 'the bottom bar stayed where it is during the transition');
   await h1(o.page, 'Paiements'); await o.page.getByRole('menu').waitFor({ state: 'detached' });
   await noOverflow(o.page);
   // a drawer leaves softly and is gone; opened while the page is still coming in, it is already in its place

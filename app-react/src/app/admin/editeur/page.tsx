@@ -93,10 +93,9 @@ export default function EditorPage() {
     return () => window.removeEventListener('message', onMessage);
   }, [model, siteOrigin, send]);
   useEffect(() => { send(); }, [draft, send]);
-  // on a phone, what she is working on stays framed on the site until she is done with it
+  // what she is working on stays framed on the site until she chooses something else
   useEffect(() => {
-    if (!phone) return;
-    try { frame.current?.contentWindow?.postMessage({ jeereSelect: sel, show: true }, siteOrigin); } catch { /* the bar still shows its tools */ }
+    try { frame.current?.contentWindow?.postMessage({ jeereSelect: sel, show: phone }, siteOrigin); } catch { /* the bar still shows its tools */ }
   }, [sel, map, phone, siteOrigin]);
   // the field of what was clicked on the site, brought into view
   useEffect(() => {
@@ -170,11 +169,11 @@ export default function EditorPage() {
 
   /** One element of a section, chosen in the tree: its section opens, its field is brought up, the site shows it. */
   const openItem = (x: SiteItem) => {
-    setPicked(x.sec); setFocus(x.key);
+    setPicked(x.sec); setFocus(x.key); setSel(x.key);
     try { frame.current?.contentWindow?.postMessage({ jeereFocus: x.key }, siteOrigin); } catch { /* the field still opens */ }
   };
   const openSection = (s: SiteSection) => {
-    setPicked(s.n); setFocus('');
+    setPicked(s.n); setFocus(''); setSel(s.key);
     try { frame.current?.contentWindow?.postMessage({ jeereSection: s.n }, siteOrigin); } catch { /* the list still opens it */ }
   };
   /** Puts section `n` just before section `before` (or last, among those that move). */
@@ -208,7 +207,7 @@ export default function EditorPage() {
   const shown = needle ? sections.filter((x) => x.name.toLowerCase().includes(needle) || (map?.items ?? []).some((i) => i.sec === x.n && `${i.role} ${i.text}`.toLowerCase().includes(needle))) : sections;
   const url = storeUrl(store, modelSlug);
   const inspector = current ? (
-    <Inspector section={current} items={items} fiche={draft} userId={account.userId}
+    <Inspector key={current.key} section={current} items={items} fiche={draft} userId={account.userId} focus={focus}
       onLook={(patch) => change((d) => withSectionLook(d, current.key, patch), `look:${current.key}:${Object.keys(patch).join()}`)}
       onEdit={(kind, key, value) => change((d) => withSiteEdit(d, kind, key, value), `${kind}:${key}`)} onSlot={(slot, value) => change((d) => withSlot(d, slot, value))} />
   ) : null;
@@ -262,7 +261,6 @@ export default function EditorPage() {
                 const off = siteValue(draft, 'h', s.key) !== undefined;
                 const inside = (map.items ?? []).filter((x) => x.sec === s.n && x.kind !== 's');
                 const open = unfolded.includes(s.n) || (!!needle && !s.name.toLowerCase().includes(needle));
-                let nImg = 0;
                 return (
                  <li key={s.key} className={styles.node}>
                   <div className={styles.row} data-on={picked === s.n ? '' : undefined} data-off={off ? '' : undefined} data-over={dragged !== null && dragged !== s.n && !s.fixed ? '' : undefined}
@@ -275,15 +273,20 @@ export default function EditorPage() {
                     <button type="button" className={styles.rowMain} onClick={() => openSection(s)} aria-current={picked === s.n ? 'true' : undefined}>{s.name}</button>
                     {s.fixed ? null : <button type="button" className={styles.eye} aria-pressed={!off} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, off ? null : '1'))} aria-label={off ? `Afficher ${s.name}` : `Masquer ${s.name}`}><Icon name={off ? 'eyeOff' : 'eye'} size={16} /></button>}
                   </div>
-                  {open ? (
+                  {open ? (() => {
+                    const words = inside.filter((x) => x.kind === 't' || x.kind === 'c'), pics = inside.filter((x) => x.kind === 'i'), cases = inside.filter((x) => x.kind === 'p');
+                    return (
                     <ul className={styles.leaves}>
-                      {inside.map((x) => {
-                        const what = x.kind === 'i' ? (IMAGE_NAMES[nImg++] ?? `Image ${nImg}`) : x.kind === 'p' ? 'Produit' : x.role;
-                        const said = x.kind === 't' || x.kind === 'c' ? (siteValue(draft, x.kind, x.key) ?? x.text) : '';
-                        return <li key={x.key}><button type="button" className={styles.leaf} data-on={focus === x.key ? '' : undefined} onClick={() => openItem(x)}><Icon name={x.kind === 'i' ? 'image' : x.kind === 'p' ? 'tag' : 'edit'} size={14} /><span>{what}{said ? <i> – {said}</i> : null}</span></button></li>;
+                      {words.slice(0, 5).map((x) => {
+                        const said = siteValue(draft, x.kind === 'c' ? 'c' : 't', x.key) ?? x.text;
+                        return <li key={x.key}><button type="button" className={styles.leaf} data-on={focus === x.key ? '' : undefined} onClick={() => openItem(x)}><Icon name="edit" size={14} /><span>{x.role}{said ? <i> – {said}</i> : null}</span></button></li>;
                       })}
+                      {words.length > 5 ? <li><button type="button" className={styles.leaf} onClick={() => openSection(s)}><Icon name="edit" size={14} /><span>{words.length - 5} autres textes</span></button></li> : null}
+                      {pics.length ? <li><button type="button" className={styles.leaf} onClick={() => openItem(pics[0]!)}><Icon name="image" size={14} /><span>{pics.length > 1 ? `${pics.length} images` : 'Image'}</span></button></li> : null}
+                      {cases.length ? <li><button type="button" className={styles.leaf} onClick={() => openItem(cases[0]!)}><Icon name="tag" size={14} /><span>{cases.length > 1 ? `${cases.length} produits` : 'Produit'}</span></button></li> : null}
                     </ul>
-                  ) : null}
+                    );
+                  })() : null}
                  </li>
                 );
               })}
@@ -313,7 +316,7 @@ export default function EditorPage() {
           <aside className={styles.right} aria-label={`Contenu : ${current.name}`}>
             <div className={styles.rightHead}>
               <h2>{current.name}</h2>
-              <button type="button" className={styles.icon} onClick={() => setPicked(null)} aria-label="Fermer"><Icon name="close" size={16} /></button>
+              <button type="button" className={styles.icon} onClick={() => { setPicked(null); setSel(''); }} aria-label="Fermer"><Icon name="close" size={16} /></button>
             </div>
             {inspector}
           </aside>
@@ -330,22 +333,32 @@ const BACKGROUNDS: [string, string][] = [['', 'Modèle'], ['#FFFFFF', 'Blanc'], 
 const ALIGN: [SectionLook['align'] | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
 const px = (v: string, max: number): number | undefined => (v.trim() === '' ? undefined : Math.min(max, Number(v.replace(/\D/g, '')) || 0));
 
-function Inspector({ section, items, fiche, userId, onEdit, onSlot, onLook }: {
-  section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string; onLook: (patch: SectionLook) => void;
+function Inspector({ section, items, fiche, userId, focus, onEdit, onSlot, onLook }: {
+  section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string; focus: string; onLook: (patch: SectionLook) => void;
   onEdit: (kind: 't' | 'i' | 'c', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
 }) {
   const products = Array.isArray(fiche.products) ? fiche.products : [];
   const slots = ((fiche.store?.slots ?? {}) as Record<string, string>);
   const texts = items.filter((x) => x.kind === 't' || x.kind === 'c'), images = items.filter((x) => x.kind === 'i'), cases = items.filter((x) => x.kind === 'p');
   const look = sectionLook(fiche, section.key);
+  // long lists stay short until she asks for the rest; what she clicked on the site is always shown
+  const [allTexts, setAllTexts] = useState(false);
+  const [allCases, setAllCases] = useState(false);
+  const [chosen, setChosen] = useState('');
+  useEffect(() => { if (images.some((x) => x.key === focus)) setChosen(focus); }, [focus]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const TEXTS = 6, CASES = 4;
+  const textsShown = allTexts || texts.length <= TEXTS || texts.slice(TEXTS).some((x) => x.key === focus) ? texts : texts.slice(0, TEXTS);
+  const casesShown = allCases || cases.length <= CASES || cases.slice(CASES).some((x) => x.key === focus) ? cases : cases.slice(0, CASES);
+  const picked = images.find((x) => x.key === chosen) ?? images[0];
+  const imageName = (i: number) => IMAGE_NAMES[i] ?? `Image ${i + 1}`;
   return (
     <div className={styles.inspector}>
       <h3 className={styles.group3}>Contenu</h3>
       {!items.length ? <p className={styles.hint}>{section.fixed ? 'Votre nom et votre logo viennent de vos paramètres.' : 'Cette section n’a pas de texte ni de photo à changer.'}</p> : null}
       {texts.length ? (
         <section className={styles.block} aria-label="Textes">
-          <h3>Textes</h3>
-          {texts.map((x) => {
+          <h3>Textes{texts.length > 1 ? <span> · {texts.length}</span> : null}</h3>
+          {textsShown.map((x) => {
             const kind = x.kind === 'c' ? 'c' : 't';
             const own = siteValue(fiche, kind, x.key);
             const value = own ?? x.text;
@@ -358,18 +371,28 @@ function Inspector({ section, items, fiche, userId, onEdit, onSlot, onLook }: {
               </div>
             );
           })}
+          {textsShown.length < texts.length ? <button type="button" className={styles.more} onClick={() => setAllTexts(true)}>Afficher les {texts.length - textsShown.length} autres textes</button> : null}
         </section>
       ) : null}
       {images.length ? (
         <section className={styles.block} aria-label="Images">
-          <h3>Images</h3>
-          {images.map((x, i) => <MediaCard key={x.key} item={x} name={IMAGE_NAMES[i] ?? `Image ${i + 1}`} own={siteValue(fiche, 'i', x.key)} userId={userId} onChange={(v) => onEdit('i', x.key, v)} />)}
+          <h3>Images{images.length > 1 ? <span> · {images.length}</span> : null}</h3>
+          {images.length > 1 ? (
+            <div className={styles.thumbs} role="group" aria-label="Choisir une image">
+              {images.map((x, i) => { const src = siteValue(fiche, 'i', x.key) ?? x.src; return (
+                <button key={x.key} type="button" aria-pressed={picked?.key === x.key} aria-label={imageName(i)} title={imageName(i)} onClick={() => setChosen(x.key)}>
+                  {src ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={src} alt="" loading="lazy" /> : <Icon name="image" size={16} />}
+                </button>
+              ); })}
+            </div>
+          ) : null}
+          {picked ? <MediaCard key={picked.key} item={picked} name={imageName(images.indexOf(picked))} own={siteValue(fiche, 'i', picked.key)} userId={userId} onChange={(v) => onEdit('i', picked.key, v)} /> : null}
         </section>
       ) : null}
       {cases.length ? (
         <section className={styles.block} aria-label="Produits">
-          <h3>Produits</h3>
-          {cases.map((x, i) => {
+          <h3>Produits{cases.length > 1 ? <span> · {cases.length}</span> : null}</h3>
+          {casesShown.map((x, i) => {
             // a case shows the product of the same number; when she has fewer products, it keeps the model's own
             const none = 'Masquer cette case', keep = 'Produit du modèle';
             const now = slots[x.ref] ?? x.ref;
@@ -383,6 +406,7 @@ function Inspector({ section, items, fiche, userId, onEdit, onSlot, onLook }: {
               </div>
             );
           })}
+          {casesShown.length < cases.length ? <button type="button" className={styles.more} onClick={() => setAllCases(true)}>Afficher les {cases.length - casesShown.length} autres cases</button> : null}
         </section>
       ) : null}
       {items.some((x) => x.kind === 's') ? <p className={styles.hint}>Vos prestations s’affichent ici. Elles se gèrent dans <Link href="/admin/prestations/"><b>Prestations</b></Link>.</p> : null}

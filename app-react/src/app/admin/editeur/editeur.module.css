@@ -1,6 +1,6 @@
 /* The editor, in the manner of a theme editor: a 56 px bar, the sections (260 px), the site, the inspector (300 px).
    Light, calm, thin lines; the blue of a selection lives on the site itself, never in the interface. */
-.editor { position: fixed; inset: 0; z-index: 35; display: grid; grid-template-rows: 56px minmax(0, 1fr); background: #F5F5F7; }
+.editor { position: fixed; inset: 0; z-index: 55; display: grid; grid-template-rows: 56px minmax(0, 1fr); background: #F5F5F7; }
 .wait { display: grid; place-items: center; min-height: 50dvh; color: var(--muted); }
 .editor { --toast-bottom: 68px; }      /* a message sits above the zoom bar, never on it */
 
@@ -24,7 +24,7 @@
 /* The two panels float: cards detached from the edges (12 px), rounded (16 px), a thin line and a soft shadow.
    On a wide screen the site keeps clear of them; on a tablet they lie over it (the left one can be put away). */
 .cols { position: relative; min-height: 0; overflow: hidden; }
-.left, .right { position: absolute; z-index: 2; top: 12px; bottom: 12px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: var(--white); border-radius: 16px; box-shadow: 0 0 0 1px var(--line), 0 16px 40px -20px rgba(17, 17, 17, .22); display: grid; align-content: start; }
+.left, .right { position: absolute; z-index: 2; top: 12px; bottom: 12px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-line); border-radius: 16px; box-shadow: var(--glass-hi), 0 18px 44px -22px rgba(17, 17, 17, .28); display: grid; align-content: start; }
 .left { left: 12px; width: 260px; padding: 14px 8px; gap: 10px; }
 .right { right: 12px; width: 300px; padding: 14px; gap: 14px; }
 .title { padding: 0 6px; font: var(--w-title) var(--fs-sm)/var(--lh) var(--font); }
@@ -109,6 +109,13 @@ span.fold { cursor: default; }
 .media { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--line); }
 .thumb { display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--r-sm); background: var(--grey-1); color: var(--faint); overflow: hidden; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
+/* many pictures: a compact grid of miniatures; the one chosen shows its card under it */
+.thumbs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.thumbs button { display: grid; place-items: center; aspect-ratio: 1; padding: 0; border: 0; border-radius: var(--r-sm); background: var(--grey-1); color: var(--faint); overflow: hidden; cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
+.thumbs button img { width: 100%; height: 100%; object-fit: cover; }
+.thumbs button[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+.block h3 span { color: var(--faint); }
+.more { justify-self: start; height: 28px; padding: 0 10px; border: 0; border-radius: var(--r-sm); background: var(--grey-1); color: var(--ink); font: var(--w-ui) var(--fs-xs)/1 var(--font); cursor: pointer; }
 .mediaBody { display: grid; gap: 6px; min-width: 0; }
 .mediaBody b { font-weight: 500; font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mediaActs { display: flex; align-items: center; gap: 10px; }
@@ -136,7 +143,7 @@ span.fold { cursor: default; }
 }
 
 /* a model previewed inside Jehre, the way a theme is shown inside Shopify: a quiet bar, then the site, centred */
-.preview { position: fixed; inset: 0; z-index: 35; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--grey-1); }
+.preview { position: fixed; inset: 0; z-index: 55; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--grey-1); }
 .preview[data-full] { grid-template-rows: minmax(0, 1fr); background: var(--white); }
 .pvBar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--sp-3); width: min(1280px, 100%); margin: 0 auto; padding: var(--sp-3) var(--sp-4) var(--sp-2); }
 .pvBar > :first-child { justify-self: start; }

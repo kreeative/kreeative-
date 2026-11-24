@@ -1,9 +1,9 @@
 /* The editor on a phone: a 52 px bar on top, the site on the whole screen, one glass bar of tools at the bottom.
    Light only. The blue of a selection lives on the site itself; the interface stays ink on white. */
-.editor { --bar: 68px; --kb: 0px; --toast-bottom: calc(var(--bar) + 16px); position: fixed; inset: 0; z-index: 35; background: #F5F5F7; overflow: hidden; }
+.editor { --bar: 68px; --kb: 0px; --toast-bottom: calc(var(--bar) + 16px); position: fixed; inset: 0; z-index: 55; background: #F5F5F7; overflow: hidden; }
 
 .top { position: fixed; z-index: 3; top: 0; left: 0; right: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px;
-  background: rgba(255, 255, 255, .82); -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); border-bottom: 1px solid var(--line); }
+  background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--glass-line); }
 .side { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .side:last-child { gap: 8px; }
 .icon { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 12px; background: none; color: var(--ink); cursor: pointer; transition: background var(--dur) var(--ease), transform var(--dur) var(--ease); }
@@ -18,7 +18,7 @@
 
 /* the bar of tools: fixed to the bottom, glass, scrolled sideways; it rises with the keyboard */
 .bar { position: fixed; z-index: 4; left: 0; right: 0; bottom: 0; height: calc(var(--bar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); transform: translateY(calc(-1 * var(--kb)));
-  background: rgba(255, 255, 255, .72); -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); border-top: 1px solid rgba(17, 17, 17, .08); }
+  background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-top: 1px solid var(--glass-line); box-shadow: var(--glass-hi); }
 .tools { display: flex; align-items: center; gap: 2px; height: var(--bar); padding: 0 8px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; animation: toolsIn var(--dur-in) var(--ease); }
 .tools::-webkit-scrollbar { display: none; }
 .tools:not([data-context]) { justify-content: space-between; }
@@ -35,7 +35,7 @@
 
 /* the drawer of a tool: just above the bar, the site still in view above it */
 .drawer { position: fixed; z-index: 4; left: 8px; right: 8px; bottom: calc(var(--bar) + env(safe-area-inset-bottom) + 8px + var(--kb)); max-height: min(46dvh, 380px); display: flex; flex-direction: column; border-radius: 20px;
-  background: rgba(255, 255, 255, .86); -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); box-shadow: 0 0 0 1px rgba(17, 17, 17, .08), 0 18px 44px -20px rgba(17, 17, 17, .35); animation: drawerIn var(--dur-in) var(--ease); }
+  background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 18px 44px -20px rgba(17, 17, 17, .35); animation: drawerIn var(--dur-in) var(--ease); }
 @keyframes drawerIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .drawerHead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 0 16px; }
 .drawerHead h2 { margin: 0; font: var(--w-title) var(--fs)/var(--lh) var(--font); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
