@@ -3079,6 +3079,15 @@
       ['instagram', 'tiktok', 'facebook'].forEach(function (k) { var h = socialHandle(k, srcStore.social[k]); if (h) soc[k] = h; });
       if (Object.keys(soc).length) store.social = soc;
     }
+    // Pickup in the shop (Livraison), her trackers (Paramètres: Meta Pixel, Google Analytics 4), the WhatsApp button
+    if (isObj(srcStore.pickup) && srcStore.pickup.on === true) store.pickup = { on: true, address: oneLine(srcStore.pickup.address, 200) };
+    if (isObj(srcStore.tracking)) {
+      var trk = {}, px = String(srcStore.tracking.metaPixel || '').replace(/\D/g, ''), ga = String(srcStore.tracking.ga4 || '').trim().toUpperCase();
+      if (/^\d{8,20}$/.test(px)) trk.metaPixel = px;
+      if (/^G-[A-Z0-9]{4,15}$/.test(ga)) trk.ga4 = ga;
+      if (Object.keys(trk).length) store.tracking = trk;
+    }
+    if (srcStore.waButton === false) store.waButton = false;
 
     var srcTheme = isObj(src.theme) ? src.theme : {};
     var theme = {

@@ -916,6 +916,8 @@
     // Same name twice: keep the first, the select needs distinct values.
     const seenZone = {};
     zones = zones.filter((z) => { const k = z.name.toLowerCase(); if (seenZone[k]) return false; seenZone[k] = true; return true; });
+    // « Retrait en boutique » (Livraison › Retrait): one more choice, without delivery fee
+    if (isObj(cfg.store) && isObj(cfg.store.pickup) && cfg.store.pickup.on === true && !seenZone['retrait en boutique']) zones.push({ name: 'Retrait en boutique', fee: 0 });
 
     // Distinct categories, in order of first appearance; empty ones are skipped. A tile shows the
     // category's last product: the product grid opens with the first ones, so a small store does not
