@@ -115,10 +115,10 @@ export const MODEL_PAGES: Record<string, { path: string; name: string }[]> = {
 };
 
 /** One thing of the page: a text (t), a picture (i), a category (c), a product case (p), the list of services (s). */
-export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean }
+export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean; tag: string; href: string; size: number }
 export interface SiteSection { n: number; key: string; name: string; fixed: boolean }
 export interface SiteMap { page: string; items: SiteItem[]; sections: SiteSection[] }
-export type SiteKind = 't' | 'i' | 'c' | 'h';
+export type SiteKind = 't' | 'i' | 'c' | 'h' | 'k';
 
 type Bag = Record<string, unknown>;
 const bag = (v: unknown): Bag => (v && typeof v === 'object' && !Array.isArray(v) ? { ...(v as Bag) } : {});
@@ -154,7 +154,7 @@ export function readSiteMap(data: unknown): SiteMap | null {
   return {
     page: s(m.page),
     items: (m.items as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && /^[ticps]$/.test(s(x.kind)))
-      .map((x) => ({ key: s(x.key), kind: s(x.kind) as SiteItem['kind'], ref: s(x.ref), label: s(x.label), text: s(x.text), role: s(x.role), sec: typeof x.sec === 'number' ? x.sec : -1, src: s(x.src), long: x.long === true })),
+      .map((x) => ({ key: s(x.key), kind: s(x.kind) as SiteItem['kind'], ref: s(x.ref), label: s(x.label), text: s(x.text), role: s(x.role), sec: typeof x.sec === 'number' ? x.sec : -1, src: s(x.src), long: x.long === true, tag: s(x.tag), href: s(x.href), size: typeof x.size === 'number' && Number.isFinite(x.size) ? x.size : 0 })),
     sections: (m.sections as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && typeof x.n === 'number')
       .map((x) => ({ n: x.n as number, key: s(x.key), name: s(x.name) || 'Section', fixed: x.fixed === true })),
   };
@@ -204,3 +204,22 @@ export function withSectionLook(fiche: Fiche, key: string, patch: SectionLook): 
   if (Object.keys(site).length) st.site = site; else delete st.site;
   return { ...fiche, store: st };
 }
+
+/** Her look for ONE text of the model (its size, colour, weight, alignment, font; hidden or not) and the framing
+ *  of ONE picture (filled or whole, the point kept in view; hidden or not). None = the model's own. */
+export interface TextLook { size?: number; color?: string; bold?: boolean; align?: 'left' | 'center' | 'right'; font?: 'serif' | 'sans' | 'mono'; hide?: boolean }
+export interface ImageFrame { fit?: 'cover' | 'contain'; x?: number; y?: number; hide?: boolean }
+export const textLook = (fiche: Fiche, key: string): TextLook => bag(bag(bag(bag(fiche.store).site).x)[key]) as TextLook;
+export const imageFrame = (fiche: Fiche, key: string): ImageFrame => bag(bag(bag(bag(fiche.store).site).f)[key]) as ImageFrame;
+function withSitePatch(fiche: Fiche, part: 'x' | 'f', key: string, patch: Record<string, unknown>): Fiche {
+  const st = bag(fiche.store), site = bag(st.site), all = bag(site[part]), one = { ...bag(all[key]), ...patch } as Record<string, unknown>;
+  for (const k of Object.keys(one)) if (one[k] === undefined || one[k] === '' || one[k] === false || (typeof one[k] === 'number' && !Number.isFinite(one[k]))) delete one[k];
+  if (Object.keys(one).length) all[key] = one; else delete all[key];
+  if (Object.keys(all).length) site[part] = all; else delete site[part];
+  if (Object.keys(site).length) st.site = site; else delete st.site;
+  return { ...fiche, store: st };
+}
+export const withTextLook = (fiche: Fiche, key: string, patch: TextLook): Fiche => withSitePatch(fiche, 'x', key, patch as Record<string, unknown>);
+export const withImageFrame = (fiche: Fiche, key: string, patch: ImageFrame): Fiche => withSitePatch(fiche, 'f', key, patch as Record<string, unknown>);
+/** An address a link of the site may take: https, an e-mail or a phone number (what the site itself accepts). */
+export const linkOk = (v: string): boolean => /^(https:\/\/[^\s"'<>]{3,500}|mailto:[^\s"'<>]{3,200}|tel:\+?[0-9 ]{4,20})$/.test(v);

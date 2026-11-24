@@ -10,11 +10,12 @@ import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { Menu } from '@/components/ui/Menu';
 import { Notice } from '@/components/ui/Notice';
-import { Sheet } from '@/components/ui/Sheet';
 import { Toast } from '@/components/ui/Toast';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
 import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSectionLook, withSectionOrder, withSiteEdit, withSlot, type SectionLook, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
+import { MobileEditor } from './MobileEditor';
+import { modelBySlug } from '@/lib/models';
 import styles from './editeur.module.css';
 
 type Device = 'phone' | 'desktop';
@@ -35,6 +36,7 @@ export default function EditorPage() {
   const [map, setMap] = useState<SiteMap | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [focus, setFocus] = useState('');
+  const [sel, setSel] = useState('');
   const [device, setDevice] = useState<Device>('desktop');
   const [phone, setPhone] = useState(false);
   const [room, setRoom] = useState({ w: 900, h: 700 });
@@ -76,19 +78,26 @@ export default function EditorPage() {
     if (!model) return;
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== siteOrigin || e.source !== frame.current?.contentWindow) return;
-      const d = (e.data ?? {}) as { jeereConnect?: unknown; jeerePick?: { key?: unknown; sec?: unknown } };
+      const d = (e.data ?? {}) as { jeereConnect?: unknown; jeereNone?: unknown; jeerePick?: { key?: unknown; sec?: unknown } };
+      if (d.jeereNone === true) { setSel(''); return; }
       if (d.jeereConnect === 'ready') { send(); return; }
       const m = readSiteMap(e.data);
       if (m) { setMap((old) => (same(old, m) ? old : m)); return; }
       if (d.jeerePick && typeof d.jeerePick.key === 'string') {
         if (typeof d.jeerePick.sec === 'number' && d.jeerePick.sec >= 0) setPicked(d.jeerePick.sec);
         setFocus(d.jeerePick.key);
+        setSel(d.jeerePick.key);
       }
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
   }, [model, siteOrigin, send]);
   useEffect(() => { send(); }, [draft, send]);
+  // on a phone, what she is working on stays framed on the site until she is done with it
+  useEffect(() => {
+    if (!phone) return;
+    try { frame.current?.contentWindow?.postMessage({ jeereSelect: sel, show: true }, siteOrigin); } catch { /* the bar still shows its tools */ }
+  }, [sel, map, phone, siteOrigin]);
   // the field of what was clicked on the site, brought into view
   useEffect(() => {
     if (!focus) return;
@@ -101,7 +110,7 @@ export default function EditorPage() {
   }, [focus, picked]);
 
   useEffect(() => {
-    const q = window.matchMedia('(max-width: 700px)'), t = window.matchMedia('(max-width: 1100px)');
+    const q = window.matchMedia('(max-width: 767px)'), t = window.matchMedia('(max-width: 1100px)');
     const on = () => { setPhone(q.matches); if (q.matches) setDevice('phone'); setNarrow(t.matches); };
     on(); q.addEventListener('change', on); t.addEventListener('change', on);
     return () => { q.removeEventListener('change', on); t.removeEventListener('change', on); };
@@ -140,7 +149,7 @@ export default function EditorPage() {
   const undo = () => { const d = latest.current, prev = past[past.length - 1]; if (!d || !prev) return; lastEdit.current = { at: 0, tag: '' }; setPast(past.slice(0, -1)); setFuture([d, ...future]); setDraft(prev); clear(); };
   const redo = () => { const d = latest.current, next = future[0]; if (!d || !next) return; lastEdit.current = { at: 0, tag: '' }; setFuture(future.slice(1)); setPast([...past, d]); setDraft(next); clear(); };
 
-  const goPage = (p: string) => { if (p !== path) { setPath(p); setMap(null); setPicked(null); setFocus(''); } };
+  const goPage = (p: string) => { if (p !== path) { setPath(p); setMap(null); setPicked(null); setFocus(''); setSel(''); } };
   async function save(publish: boolean) {
     if (!draft || busy || (!dirty && !(publish && !store?.published))) return;
     setToast(null);
@@ -203,6 +212,18 @@ export default function EditorPage() {
       onLook={(patch) => change((d) => withSectionLook(d, current.key, patch), `look:${current.key}:${Object.keys(patch).join()}`)}
       onEdit={(kind, key, value) => change((d) => withSiteEdit(d, kind, key, value), `${kind}:${key}`)} onSlot={(slot, value) => change((d) => withSlot(d, slot, value))} />
   ) : null;
+
+  const toasts = (<>
+      {problem === 'conflict' ? <Toast onDone={clear} ms={12000} action={<button type="button" onClick={() => void reload()}>Recharger</button>}>Votre boutique a changé entre-temps. Rien n’a été écrasé.</Toast> : null}
+      {problem === 'network' ? <Toast onDone={clear} ms={8000}>Rien n’a été enregistré. Vérifiez votre connexion.</Toast> : null}
+      {toast === 'live' && !problem ? <Toast onDone={() => setToast(null)} action={<a href={url} target="_blank" rel="noopener">Voir mon site</a>}>Votre site est en ligne · {url.replace(/^https:\/\//, '')}</Toast> : null}
+      {toast === 'saved' && !problem ? <Toast onDone={() => setToast(null)} ms={3000}>Brouillon enregistré. Votre site n’est pas encore en ligne.</Toast> : null}
+  </>);
+  if (phone) return (
+    <MobileEditor published={store.published} pages={pages} path={path} goPage={goPage} canUndo={past.length > 0} canRedo={future.length > 0} undo={undo} redo={redo}
+      busy={busy} dirty={dirty} save={(pub) => void save(pub)} site={site} frame={frame} map={map} sections={sections} draft={draft} change={change} moveSection={moveSection}
+      sel={sel} setSel={setSel} userId={account.userId} modelName={modelBySlug(modelSlug)?.name ?? model.name} booking={!!modelBySlug(modelSlug)?.rdv}>{toasts}</MobileEditor>
+  );
 
   return (
     <div className={styles.editor}>
@@ -299,11 +320,7 @@ export default function EditorPage() {
         ) : null}
       </div>
 
-      {current && phone ? <Sheet title={current.name} onClose={() => setPicked(null)}>{inspector}</Sheet> : null}
-      {problem === 'conflict' ? <Toast onDone={clear} ms={12000} action={<button type="button" onClick={() => void reload()}>Recharger</button>}>Votre boutique a changé entre-temps. Rien n’a été écrasé.</Toast> : null}
-      {problem === 'network' ? <Toast onDone={clear} ms={8000}>Rien n’a été enregistré. Vérifiez votre connexion.</Toast> : null}
-      {toast === 'live' && !problem ? <Toast onDone={() => setToast(null)} action={<a href={url} target="_blank" rel="noopener">Voir mon site</a>}>Votre site est en ligne · {url.replace(/^https:\/\//, '')}</Toast> : null}
-      {toast === 'saved' && !problem ? <Toast onDone={() => setToast(null)} ms={3000}>Brouillon enregistré. Votre site n’est pas encore en ligne.</Toast> : null}
+      {toasts}
     </div>
   );
 }

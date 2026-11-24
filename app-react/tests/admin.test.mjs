@@ -26,7 +26,7 @@ const store = () => ({
     ] },
 });
 const orders = (sid) => [
-  { id: 'o3', store_id: sid, number: 3, status: 'nouvelle', customer: { name: 'Mariam K.', phone: '+225 07 08 09 10 11', commune: 'Cocody', address: 'Riviera 2' }, lines: [{ id: 'p1', name: 'Beurre de karité brut', qty: 2, price: 6500, amount: 13000 }], subtotal: 13000, delivery_fee: 1500, total: 14500, currency: 'XOF', payment: 'Wave', payment_status: '', note: 'Livrer après 17 h.', source: 'boutique', created_at: ago(2) },
+  { id: 'o3', store_id: sid, number: 3, status: 'nouvelle', customer: { name: 'Mariam K.', phone: '+225 07 08 09 10 11', commune: 'Cocody', address: 'Riviera 2' }, lines: [{ id: 'p1', name: 'Beurre de karité brut', qty: 2, price: 6500, amount: 13000 }], subtotal: 13000, delivery_fee: 1500, total: 14500, currency: 'XOF', payment: 'Wave', payment_status: '', note: 'Livrer après 17 h.', source: 'boutique', created_at: new Date(Math.max(new Date().setHours(0, 0, 0, 0), Date.now() - 2 * 36e5)).toISOString() },
   { id: 'o2', store_id: sid, number: 2, status: 'confirmee', customer: { name: 'Fatou D.', phone: '+2250101020304', commune: 'Marcory' }, lines: [{ id: 'p3', name: 'Huile de coco vierge', qty: 1, price: 4500, amount: 4500 }], subtotal: 4500, delivery_fee: 1000, total: 5500, currency: 'XOF', payment: 'Orange Money', payment_status: 'payee', note: null, source: 'boutique', created_at: ago(30) },
   { id: 'o1', store_id: sid, number: 1, status: 'livree', customer: { name: 'Grâce A.' }, lines: [{ id: 'p2', name: 'Savon noir au karité', qty: 3, price: 3000, amount: 9000 }], subtotal: 9000, delivery_fee: 0, total: 9000, currency: 'XOF', payment: 'Carte bancaire', payment_status: 'payee', note: null, source: 'boutique', created_at: ago(24 * 9) },
 ];
@@ -693,29 +693,121 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-await test('editor on a phone: her site on top, the sections under it, the content in a bottom sheet; a booking model works the same', async () => {
-  const w = withModel(world(), 'regard'); const { page, ctx, errors } = await open(browser, PHONE, w);
+await test('editor on a phone: a thin bar, her site on the whole screen, one bar of tools at the bottom that becomes the tools of what she touches', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);
-  await page.getByText('En ligne', { exact: true }).waitFor({ timeout: 30000 });
-  const left = page.getByRole('complementary', { name: 'Sections de la page' });
-  await left.getByRole('list').first().waitFor({ timeout: 60000 });
-  assert.equal(await page.getByRole('button', { name: /^Page :/ }).count(), 0, 'a one-page model has no page menu');
-  assert.equal(await page.locator('iframe[title="Votre site"]').getAttribute('width'), '390', 'on a phone the site is shown as a phone');
+  const bar = page.getByRole('navigation', { name: 'Outils du site' });
+  await bar.waitFor({ timeout: 30000 });
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  // no side panel: the bar on top (52 px), the site between the two bars, the tools fixed to the bottom
+  assert.equal(await page.getByRole('complementary', { name: /Sections de la page|Contenu/ }).count(), 0, 'no side panel on a phone');
+  const box = async (l) => { const r = await l.boundingBox(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; };
+  assert.deepEqual(await box(page.locator('header').first()), [0, 0, 390, 52]);
+  assert.deepEqual(await box(bar), [0, 776, 390, 68]);
+  assert.deepEqual(await box(page.locator('iframe[title="Votre site"]')), [0, 52, 390, 724]);
+  for (const t of ['Sections', 'Pages', 'Style', 'Thème', 'Ajouter']) await bar.getByRole('button', { name: t, exact: true }).waitFor();
+  assert.match(await bar.evaluate((n) => getComputedStyle(n).backdropFilter || getComputedStyle(n).webkitBackdropFilter), /blur\(16px\)/);
   await noOverflow(page);
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(1200);
   await page.screenshot({ path: `${SHOTS}52-editeur-telephone.png` });
-  await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
-  const sheet = page.getByRole('dialog');
-  await sheet.getByRole('textbox').first().fill('Regard Test');
-  await page.frameLocator('iframe[title="Votre site"]').getByText('Regard Test').first().waitFor({ timeout: 15000 });
-  await page.waitForTimeout(500); await noOverflow(page);
-  await page.screenshot({ path: `${SHOTS}53-editeur-telephone-contenu.png` });
-  await page.keyboard.press('Escape');
-  w.conflict = true;
-  await page.getByRole('button', { name: 'Publier' }).click();
-  await page.getByText('Votre boutique a changé entre-temps').waitFor();
+
+  // a tool opens a small drawer above the bar; the site stays in view
+  await bar.getByRole('button', { name: 'Sections', exact: true }).click();
+  const drawer = page.getByRole('dialog');
+  await drawer.getByRole('button', { name: 'Grande bannière', exact: true }).waitFor();
+  await page.waitForTimeout(400);                       // its way in is over
+  const d = await drawer.boundingBox();
+  assert.ok(d.y > 844 * 0.4 && d.y + d.height <= 776, 'the drawer sits just above the bar and leaves the site visible');
+  await page.screenshot({ path: `${SHOTS}54-editeur-telephone-sections.png` });
+  await drawer.getByRole('button', { name: 'Fermer' }).click(); await drawer.waitFor({ state: 'detached' });
+
+  // she touches a title: framed in blue on the site, and the bar becomes the tools of a text
+  const title = site.locator('h1[data-jeere-pickable], h2[data-jeere-pickable]').first();
+  await title.click();
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  for (const t of ['Modifier le texte', 'Police', 'Taille', 'Couleur', 'Gras', 'Alignement']) await tools.getByRole('button', { name: t, exact: true }).waitFor();
+  await site.locator('[data-jeere-sel]').waitFor();
+  assert.match(await site.locator('[data-jeere-sel]').evaluate((n) => getComputedStyle(n).borderColor), /54, 87, 255/, 'a thin blue frame');
+  assert.equal(await site.locator('[data-jeere-sel] i').count(), 4, 'four small handles');
+  assert.deepEqual(await box(tools), [0, 776, 390, 68], 'the bar did not move');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}53-editeur-telephone-texte.png` });
+  await tools.getByRole('button', { name: 'Modifier le texte' }).click();
+  await page.getByRole('dialog').getByRole('textbox').fill('Bonjour Test');
+  await site.getByText('Bonjour Test').first().waitFor({ timeout: 15000 });
+  await tools.getByRole('button', { name: 'Gras', exact: true }).click();
+  await page.waitForFunction(() => true); await page.waitForTimeout(300);
+  assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.fontWeight), '700');
+  await tools.getByRole('button', { name: 'Taille', exact: true }).click();
+  const before = parseInt(await page.getByRole('dialog').locator('output').innerText(), 10);
+  await page.getByRole('dialog').getByRole('button', { name: 'Plus grand' }).click();
+  await page.waitForTimeout(300);
+  assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.fontSize), `${before + 2}px`);
+  await tools.getByRole('button', { name: 'Couleur', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Rose' }).click();
+  await page.waitForTimeout(300);
+  assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.color), 'rgb(232, 70, 124)');
+  await page.screenshot({ path: `${SHOTS}55-editeur-telephone-couleur.png` });
+  // ✓ ends it: the site's tools come back and the frame goes
+  await tools.getByRole('button', { name: 'Terminer' }).click();
+  await bar.getByRole('button', { name: 'Sections', exact: true }).waitFor();
+  await site.locator('[data-jeere-sel]').waitFor({ state: 'hidden' });
+
+  // a picture: replace, frame, remove (it stays greyed in the editor so she can bring it back)
+  const img = site.locator('img[data-jeere-pickable="i"]').first();
+  await img.scrollIntoViewIfNeeded(); await img.click();
+  for (const t of ['Remplacer la photo', 'Ajuster / Cadre', 'Supprimer']) await tools.getByRole('button', { name: t, exact: true }).waitFor();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}56-editeur-telephone-image.png` });
+  await tools.getByRole('button', { name: 'Ajuster / Cadre' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Entière' }).click();
+  await page.waitForTimeout(300);
+  assert.equal(await img.evaluate((n) => n.style.objectFit), 'contain');
+  await tools.getByRole('button', { name: 'Supprimer', exact: true }).click();
+  await tools.getByRole('button', { name: 'Remettre', exact: true }).waitFor();
+  assert.equal(await img.evaluate((n) => n.style.opacity), '0.28');
+  await tools.getByRole('button', { name: 'Remettre', exact: true }).click();
+  await tools.getByRole('button', { name: 'Terminer' }).click();
+
+  // a section chosen in « Sections »: colour, spaces, hide, move
+  await bar.getByRole('button', { name: 'Sections', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Grande bannière', exact: true }).click();
+  for (const t of ['Couleur', 'Espaces', 'Masquer']) await tools.getByRole('button', { name: t, exact: true }).waitFor();
+  await tools.getByRole('button', { name: 'Masquer', exact: true }).click();
+  await tools.getByRole('button', { name: 'Afficher', exact: true }).waitFor();
+  await tools.getByRole('button', { name: 'Terminer' }).click();
+  // the pages of the model, from the top bar and from « Pages »
+  await bar.getByRole('button', { name: 'Pages', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Boutique', exact: true }).waitFor();
+  await page.getByRole('dialog').getByRole('button', { name: 'Fermer' }).click();
+  await noOverflow(page);
+
+  // nothing was live until « Publier »; then her changes are in her store, each in its place
   assert.equal(w.stores[0].fiche.store.site, undefined);
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await page.getByText(/Votre site est en ligne/).waitFor();
+  const saved = w.stores[0].fiche.store.site;
+  assert.deepEqual(Object.values(saved.t), ['Bonjour Test']);
+  assert.deepEqual(Object.values(saved.x), [{ bold: true, size: before + 2, color: '#E8467C' }]);
+  assert.deepEqual(Object.values(saved.f), [{ fit: 'contain' }]);
+  assert.equal(Object.keys(saved.h).length, 1);
+  assert.deepEqual(await box(bar), [0, 776, 390, 68], 'the bar is still fixed to the bottom');
   assert.deepEqual(errors, []); await ctx.close();
+
+  // a one-page booking model: no page menu, the same tools
+  const w2 = withModel(world(), 'regard'); const o = await open(browser, PHONE, w2);
+  await o.page.goto(`${BASE}/admin/editeur/`);
+  await o.page.getByRole('navigation', { name: 'Outils du site' }).waitFor({ timeout: 30000 });
+  await o.page.frameLocator('iframe[title="Votre site"]').locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  assert.equal(await o.page.getByRole('button', { name: /^Page :/ }).count(), 0, 'a one-page model has no page menu');
+  w2.conflict = true;
+  await o.page.getByRole('navigation', { name: 'Outils du site' }).getByRole('button', { name: 'Style', exact: true }).click();
+  await o.page.getByRole('dialog').getByRole('button', { name: 'Classique' }).click();
+  await o.page.getByRole('button', { name: 'Publier' }).click();
+  await o.page.getByText('Votre boutique a changé entre-temps').waitFor();
+  assert.equal(w2.stores[0].fiche.store.site, undefined);
+  assert.deepEqual(o.errors, []); await o.ctx.close();
 });
 
 await test('from payment to a live site: the model bought is in the account at once (her store is made for her), « Modifier » opens it, « Publier » puts it online', async () => {
