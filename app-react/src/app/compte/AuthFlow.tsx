@@ -11,6 +11,7 @@ import { clip, completeLogin, readAccount, rememberSource, saveStoreName, signOu
 import { mountDoodles } from '@/lib/doodles';
 import { COUNTRIES, launchOffer, type LaunchOffer } from '@/lib/launch';
 import { PASSWORD_RULE, currentUser, emailVerified, hasPassword, markPassword, resetPassword, maskEmail, normEmail, normPhone, sendCode, setPassword, signInPassword, validEmail, validPassword, verifyCode, type AuthFailure } from '@/lib/auth';
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import styles from './auth.module.css';
 
 /* The seller's account, one screen at a time:
@@ -235,7 +236,7 @@ export function AuthFlow() {
       <main className={styles.main}>
         <section className={styles.card} aria-live="polite" aria-busy={step === 'loading' || undefined}>
           {step === 'loading' && (
-            <div className={styles.loading}><span className={styles.spinner} aria-hidden="true" /><p>Un instant…</p></div>
+            <CloudLoader label="Un instant…" />
           )}
 
           {step === 'signup' && (

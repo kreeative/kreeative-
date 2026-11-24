@@ -1,8 +1,8 @@
 /* The guided visit: the page dimmed, a clear window on the part it talks about, a white card beside it */
-.tour { position: fixed; inset: 0; z-index: 95; }
+.tour { position: fixed; inset: 0; z-index: 95; pointer-events: none; }
 .dim { position: absolute; inset: 0; background: rgba(17, 17, 17, .42); }
 .hole { position: absolute; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(17, 17, 17, .42), 0 0 0 2px var(--white); transition: left var(--dur-in) var(--ease), top var(--dur-in) var(--ease), width var(--dur-in) var(--ease), height var(--dur-in) var(--ease); }
-.card { position: absolute; display: grid; gap: 8px; padding: 16px; border-radius: 18px; background: var(--white); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 24px 60px -20px rgba(17, 17, 17, .5); animation: cardIn var(--dur-in) var(--ease); }
+.card { pointer-events: auto; position: absolute; display: grid; gap: 8px; padding: 16px; border-radius: 18px; background: var(--white); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 24px 60px -20px rgba(17, 17, 17, .5); animation: cardIn var(--dur-in) var(--ease); }
 @keyframes cardIn { from { opacity: 0; transform: translateY(6px); } }
 .count { margin: 0; color: var(--muted); font: var(--w-ui) var(--fs-xs)/var(--lh-xs) var(--font); letter-spacing: .06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
 .card h2 { margin: 0; font: var(--w-title) var(--fs-lg)/var(--lh-lg) var(--font); }

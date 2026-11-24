@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -81,7 +82,7 @@ export default function BookingSettingsPage() {
     <>
       <PageHead title="Horaires et réservation" sub="Quand vos clientes peuvent réserver, comment, et ce qu’elles lisent avant." action={<ButtonLink variant="secondary" href="/admin/rendez-vous/" icon="back">Agenda</ButtonLink>} />
       {error ? <Notice tone="error" action={<Button variant="secondary" onClick={() => void load()}>Réessayer</Button>}>{error}</Notice> : null}
-      {!s && !error ? <p className={shared.muted}>Chargement…</p> : null}
+      {!s && !error ? <CloudLoader /> : null}
 
       {s && home ? (
         <form className={styles.page} onSubmit={save} noValidate>

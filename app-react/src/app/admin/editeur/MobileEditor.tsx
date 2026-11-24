@@ -6,7 +6,9 @@ import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Menu } from '@/components/ui/Menu';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { bandOf, hiddenItems, hiddenLabel, imageFrame, linkOk, withBand, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook } from '@/lib/models';
+import { LinkPicker } from './Extras';
+import { CloudLoader } from '@/components/ui/CloudLoader';
+import { bandOf, categoriesOf, hiddenItems, hiddenLabel, imageFrame, linkLabel, linkOk, sectionHidden, sectionSource, withBand, withSectionHidden, withSectionSource, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook } from '@/lib/models';
 import type { Fiche } from '@/lib/stores';
 import styles from './mobile.module.css';
 
@@ -32,13 +34,14 @@ export interface MobileEditorProps {
   moveSection: (n: number, to: number) => void;
   sel: string; setSel: (key: string) => void;
   onHelp: () => void;
+  hideHint?: boolean;
   userId: string;
   modelName: string;
   booking: boolean;
   children?: ReactNode;
 }
 
-type Tool = '' | 'sections' | 'pages' | 'style' | 'theme' | 'add' | 'edit' | 'font' | 'size' | 'color' | 'align' | 'link' | 'frame' | 'bg' | 'space' | 'product' | 'band' | 'bandLook';
+type Tool = '' | 'sections' | 'pages' | 'style' | 'theme' | 'add' | 'edit' | 'font' | 'size' | 'color' | 'align' | 'link' | 'frame' | 'bg' | 'space' | 'product' | 'band' | 'bandLook' | 'imgLink' | 'pname' | 'pprice' | 'source';
 const FONTS: [TextLook['font'] | undefined, string][] = [[undefined, 'Modèle'], ['serif', 'Classique'], ['sans', 'Moderne'], ['mono', 'Machine']];
 const COLORS: [string, string][] = [['', 'Modèle'], ['#111111', 'Noir'], ['#FFFFFF', 'Blanc'], ['#6B6B6B', 'Gris'], ['#E8467C', 'Rose'], ['#F08A3C', 'Orange'], ['#1F9D62', 'Vert'], ['#1E6FE0', 'Bleu'], ['#6A4CFF', 'Violet']];
 const BACKGROUNDS: [string, string][] = [['', 'Modèle'], ['#FFFFFF', 'Blanc'], ['#F5F5F3', 'Gris clair'], ['#FAF6EF', 'Crème'], ['#111111', 'Noir']];
@@ -82,8 +85,18 @@ export function MobileEditor(p: MobileEditorProps) {
     setUploading(true); setError('');
     const r = await uploadPhoto(f, p.userId);
     setUploading(false);
-    if (r.ok) change((d) => withSiteEdit(d, 'i', item.key, r.url)); else setError(UPLOAD_ERROR[r.error]);
+    if (!r.ok) { setError(UPLOAD_ERROR[r.error]); return; }
+    if (item.kind === 'p' && shown) change((d) => withProduct(d, shown.id, { image: r.url }));
+    else change((d) => withSiteEdit(d, 'i', item.key, r.url));
   }
+
+  // the product a case shows (hers, chosen for the case, or the one of the same number); none: the model's demo
+  const slotsNow = ((draft.store?.slots ?? {}) as Record<string, string>);
+  const productsNow = Array.isArray(draft.products) ? draft.products : [];
+  const shown = item && item.kind === 'p' ? productsNow.find((x) => x.id === (slotsNow[item.ref] ?? item.ref)) : undefined;
+  const linkOf = item ? (item.kind === 'i' ? siteValue(draft, 'l', item.key.replace('|i|', '|l|')) : siteValue(draft, 'k', item.key)) ?? '' : '';
+  const linked = item && linkOf ? (item.kind === 'i' ? (linkOf.startsWith('c:') ? `Catégorie ${linkOf.slice(2)}` : linkLabel(linkOf, draft, p.pages)) : linkLabel(linkOf, draft, p.pages)) : '';
+  const cases = section && map ? map.items.filter((x) => x.kind === 'p' && x.sec === section.n) : [];
 
   /* ---------------------------------------------------------------- the tools of what is chosen */
   const tools: { id: string; label: string; icon: IconName; on?: boolean; open?: Tool; act?: () => void }[] = [];
@@ -94,7 +107,7 @@ export function MobileEditor(p: MobileEditorProps) {
     const kind = item.kind === 'c' ? 'c' : 't', look = textLook(draft, item.key);
     const set = (patch: TextLook, tag: string) => change((d) => withTextLook(d, item.key, patch), `x:${item.key}:${tag}`);
     tools.push({ id: 'edit', label: mode === 'button' ? 'Texte' : 'Modifier le texte', icon: 'edit', open: 'edit' });
-    if (mode === 'button' && item.tag === 'a' && kind === 't') tools.push({ id: 'link', label: 'Lien', icon: 'link', open: 'link' });
+    if (item.tag === 'a' && kind === 't') tools.push({ id: 'link', label: 'Lier à…', icon: 'link', open: 'link' });
     if (mode === 'text') tools.push({ id: 'font', label: 'Police', icon: 'text', open: 'font' }, { id: 'size', label: 'Taille', icon: 'textSize', open: 'size' });
     tools.push({ id: 'color', label: 'Couleur', icon: 'drop', open: 'color' });
     if (mode === 'text') tools.push({ id: 'bold', label: 'Gras', icon: 'bold', on: look.bold === true, act: () => set({ bold: look.bold ? undefined : true }, 'bold') }, { id: 'align', label: 'Alignement', icon: 'alignText', open: 'align' });
@@ -103,6 +116,7 @@ export function MobileEditor(p: MobileEditorProps) {
     const fr = imageFrame(draft, item.key);
     tools.push({ id: 'replace', label: 'Remplacer la photo', icon: 'image', act: () => file.current?.click() }, { id: 'frame', label: 'Ajuster / Cadre', icon: 'crop', open: 'frame' },
       { id: 'hide', label: fr.hide ? 'Remettre' : 'Supprimer', icon: fr.hide ? 'eye' : 'trash', on: fr.hide === true, act: () => { change((d) => withImageFrame(d, item.key, { hide: fr.hide ? undefined : true })); if (!fr.hide) done(); } });
+    if (item.link) tools.splice(2, 0, { id: 'imgLink', label: 'Lier à…', icon: 'link', open: 'imgLink' });
   } else if (item && mode === 'band') {
     const b = bandOf(draft, item.key);
     tools.push({ id: 'band', label: 'Modifier le texte', icon: 'edit', open: 'band' }, { id: 'bandLook', label: 'Couleurs', icon: 'drop', open: 'bandLook' },
@@ -110,12 +124,15 @@ export function MobileEditor(p: MobileEditorProps) {
       { id: 'hide', label: 'Masquer', icon: 'eyeOff', act: () => { change((d) => withBand(d, item.key, { hide: true })); done(); } });
   } else if (item && mode === 'product') {
     tools.push({ id: 'product', label: 'Produit', icon: 'tag', open: 'product' });
+    if (shown) tools.push({ id: 'replace', label: 'Photo', icon: 'image', act: () => file.current?.click() }, { id: 'pname', label: 'Nom', icon: 'edit', open: 'pname' }, { id: 'pprice', label: 'Prix', icon: 'wallet', open: 'pprice' });
+    tools.push({ id: 'hide', label: 'Masquer', icon: 'eyeOff', act: () => { change((d) => withSlot(d, item.ref, '-')); done(); } });
   } else if (section) {
-    const off = siteValue(draft, 'h', section.key) !== undefined;
+    const off = sectionHidden(draft, section);
     const movable = sections.filter((s) => !s.fixed), at = movable.findIndex((s) => s.n === section.n);
+    if (cases.length) tools.push({ id: 'source', label: 'Produits', icon: 'tag', open: 'source' });
     tools.push({ id: 'bg', label: 'Couleur', icon: 'drop', open: 'bg' }, { id: 'space', label: 'Espaces', icon: 'alignText', open: 'space' });
     if (!section.fixed) {
-      tools.push({ id: 'hide', label: off ? 'Afficher' : 'Masquer', icon: off ? 'eye' : 'eyeOff', on: off, act: () => { change((d) => withSiteEdit(d, 'h', section.key, off ? null : '1')); if (!off) done(); } });
+      tools.push({ id: 'hide', label: off ? 'Afficher' : 'Masquer', icon: off ? 'eye' : 'eyeOff', on: off, act: () => { change((d) => withSectionHidden(d, section, !off)); if (!off) done(); } });
       if (at > 0) tools.push({ id: 'up', label: 'Monter', icon: 'up', act: () => p.moveSection(section.n, at - 1) });
       if (at >= 0 && at < movable.length - 1) tools.push({ id: 'down', label: 'Descendre', icon: 'downArrow', act: () => p.moveSection(section.n, at + 1) });
     }
@@ -128,20 +145,20 @@ export function MobileEditor(p: MobileEditorProps) {
     drawer = { title: 'Sections', body: map ? (
       <ol className={styles.rows}>
         {sections.map((s) => {
-          const off = siteValue(draft, 'h', s.key) !== undefined, at = movable.findIndex((x) => x.n === s.n);
+          const off = sectionHidden(draft, s), at = movable.findIndex((x) => x.n === s.n);
           return (
             <li key={s.key} className={styles.row} data-off={off ? '' : undefined}>
               <button type="button" className={styles.rowMain} onClick={() => setSel(s.key)}>{s.name}</button>
               {s.fixed ? null : <>
                 <button type="button" className={styles.mini} disabled={at <= 0} onClick={() => p.moveSection(s.n, at - 1)} aria-label={`Monter ${s.name}`}><Icon name="up" size={16} /></button>
                 <button type="button" className={styles.mini} disabled={at >= movable.length - 1} onClick={() => p.moveSection(s.n, at + 1)} aria-label={`Descendre ${s.name}`}><Icon name="downArrow" size={16} /></button>
-                <button type="button" className={styles.mini} aria-pressed={!off} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, off ? null : '1'))} aria-label={off ? `Afficher ${s.name}` : `Masquer ${s.name}`}><Icon name={off ? 'eyeOff' : 'eye'} size={16} /></button>
+                <button type="button" className={styles.mini} aria-pressed={!off} onClick={() => change((d) => withSectionHidden(d, s, !off))} aria-label={off ? `Afficher ${s.name}` : `Masquer ${s.name}`}><Icon name={off ? 'eyeOff' : 'eye'} size={16} /></button>
               </>}
             </li>
           );
         })}
       </ol>
-    ) : <p className={styles.hint}>Chargement de votre modèle…</p> };
+    ) : <CloudLoader label="Chargement de votre modèle…" /> };
   } else if (tool === 'pages') {
     drawer = { title: 'Pages', body: (
       <ol className={styles.rows}>
@@ -160,17 +177,19 @@ export function MobileEditor(p: MobileEditorProps) {
       <span className={styles.caption} id="m-font">Police des textes</span>
       <div className={styles.segments} role="group" aria-labelledby="m-font">{FONTS.map(([v, label]) => <button key={label} type="button" aria-pressed={font === v} onClick={() => setFont(v)}>{label}</button>)}</div>
       <p className={styles.hint}>Pour le fond ou les espaces d’une partie du site, ouvrez <b>Sections</b> et choisissez-la.</p>
+      <a className={styles.linkRow} href="/admin/branding/"><Icon name="brush" size={18} /><span>Logo, couleurs et boutons de la marque</span><Icon name="chevron" size={14} /></a>
     </> };
   } else if (tool === 'theme') {
     drawer = { title: 'Thème', body: <>
       <p className={styles.hint}>Votre site utilise le modèle <b>{p.modelName}</b>. Vos textes et vos photos sont gardés pour chaque modèle.</p>
+      <a className={styles.linkRow} href="/admin/branding/"><Icon name="brush" size={18} /><span>Logo, couleurs et boutons de la marque</span><Icon name="chevron" size={14} /></a>
       <a className={styles.linkRow} href="/admin/modeles/"><Icon name="template" size={18} /><span>Changer de modèle</span><Icon name="chevron" size={14} /></a>
     </> };
   } else if (tool === 'add') {
-    const hiddenSecs = sections.filter((s) => siteValue(draft, 'h', s.key) !== undefined), hiddenBits = hiddenItems(draft, map);
+    const hiddenSecs = sections.filter((s) => sectionHidden(draft, s)), hiddenBits = hiddenItems(draft, map);
     drawer = { title: 'Ajouter', body: <>
       <a className={styles.linkRow} href={p.booking ? '/admin/prestations/' : '/admin/produits/'}><Icon name={p.booking ? 'receipt' : 'tag'} size={18} /><span>{p.booking ? 'Une prestation' : 'Un produit'}</span><Icon name="chevron" size={14} /></a>
-      {hiddenSecs.map((s) => <button key={s.key} type="button" className={styles.linkRow} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, null))}><Icon name="eye" size={18} /><span>Remettre « {s.name} »</span></button>)}
+      {hiddenSecs.map((s) => <button key={s.key} type="button" className={styles.linkRow} onClick={() => change((d) => withSectionHidden(d, s, false))}><Icon name="eye" size={18} /><span>Remettre « {s.name} »</span></button>)}
       {hiddenBits.map((x) => <button key={x.key} type="button" className={styles.linkRow} onClick={() => change((d) => (x.kind === 'm' ? withBand(d, x.key, { hide: undefined }) : x.kind === 'i' ? withImageFrame(d, x.key, { hide: undefined }) : withTextLook(d, x.key, { hide: undefined })))}><Icon name="eye" size={18} /><span>Remettre {hiddenLabel(x)}</span></button>)}
       <p className={styles.hint}>Les sections viennent de votre modèle : vous pouvez les masquer, les remettre et changer leur ordre.</p>
     </> };
@@ -199,7 +218,36 @@ export function MobileEditor(p: MobileEditorProps) {
     </> };
   } else if (item && tool === 'link') {
     const own = siteValue(draft, 'k', item.key), value = own ?? '';
-    drawer = { title: 'Lien du bouton', body: <LinkField key={item.key} value={value} model={item.href} onSet={(v) => change((d) => withSiteEdit(d, 'k', item.key, v), `k:${item.key}`)} /> };
+    drawer = { title: 'Lier à…', body: <>
+      {linked ? <p className={styles.badge}><Icon name="link" size={14} />Lié à : {linked}</p> : null}
+      <LinkPicker key={item.key} value={value} fiche={draft} pages={p.pages} onChange={(v) => change((d) => withSiteEdit(d, 'k', item.key, v), `k:${item.key}`)} />
+    </> };
+  } else if (item && tool === 'imgLink') {
+    const lk = item.key.replace('|i|', '|l|'), now = siteValue(draft, 'l', lk) ?? '', cats = categoriesOf(draft), prods = productsNow;
+    const opts = ['Lien du modèle', ...cats.map((c) => `Catégorie ${c}`), ...prods.map((x) => `Produit ${x.name || x.id}`)];
+    const cur = now.startsWith('c:') ? `Catégorie ${now.slice(2)}` : now.startsWith('p:') ? `Produit ${prods.find((x) => x.id === now.slice(2))?.name ?? ''}` : 'Lien du modèle';
+    drawer = { title: 'Lier à…', body: <>
+      {linked ? <p className={styles.badge}><Icon name="link" size={14} />Lié à : {linked}</p> : null}
+      <Select label="Cette photo mène à" options={opts} value={cur} onChange={(e) => { const v = e.target.value; const c = cats.find((x) => `Catégorie ${x}` === v), pr = prods.find((x) => `Produit ${x.name || x.id}` === v); change((d) => withSiteEdit(d, 'l', lk, c ? `c:${c}` : pr ? `p:${pr.id}` : null)); }} />
+      {!cats.length && !prods.length ? <p className={styles.hint}>Ajoutez des produits avec une catégorie pour les lier ici.</p> : null}
+    </> };
+  } else if (item && shown && tool === 'pname') {
+    drawer = { title: 'Nom du produit', body: <>
+      <Field label="Nom" maxLength={120} value={shown.name} autoFocus onChange={(e) => change((d) => withProduct(d, shown.id, { name: e.target.value }), `pn:${shown.id}`)} />
+      <p className={styles.hint}>C’est le nom de votre produit partout : il change aussi dans <a href="/admin/produits/"><b>Produits</b></a>.</p>
+    </> };
+  } else if (item && shown && tool === 'pprice') {
+    drawer = { title: 'Prix', body: <>
+      <Field label="Prix (FCFA)" inputMode="numeric" value={String(shown.price ?? '')} autoFocus onChange={(e) => change((d) => withProduct(d, shown.id, { price: Number(e.target.value.replace(/\D/g, '')) || 0 }), `pp:${shown.id}`)} />
+    </> };
+  } else if (section && tool === 'source') {
+    const cats = categoriesOf(draft), now = sectionSource(draft, section.key);
+    drawer = { title: 'Produits de cette section', body: <>
+      {now ? <p className={styles.badge}><Icon name="link" size={14} />Lié à : Catégorie {now}</p> : null}
+      <Select label="Afficher" options={['Ma sélection, case par case', ...cats.map((c) => `Catégorie ${c}`)]} value={now ? `Catégorie ${now}` : 'Ma sélection, case par case'}
+        onChange={(e) => change((d) => withSectionSource(d, section.key, cats.find((c) => `Catégorie ${c}` === e.target.value) ?? ''))} />
+      <p className={styles.hint}>{now ? 'Les produits de cette catégorie s’affichent d’eux-mêmes, et les nouveaux aussi.' : 'Touchez une case pour choisir son produit.'}</p>
+    </> };
   } else if (item && tool === 'font') {
     const look = textLook(draft, item.key);
     drawer = { title: 'Police', body: <div className={styles.segments} role="group" aria-label="Police">{FONTS.map(([v, label]) => <button key={label} type="button" aria-pressed={look.font === v} onClick={() => change((d) => withTextLook(d, item.key, { font: v }))}>{label}</button>)}</div> };
@@ -278,6 +326,8 @@ export function MobileEditor(p: MobileEditorProps) {
         <div className={styles.frame} data-tour="site"><iframe ref={p.frame} key={p.path} title="Votre site" src={p.site + p.path} /></div>
       </div>
 
+      {!item && !section && !drawer && !p.hideHint ? <p className={styles.hint0} role="note">Touchez un texte, une image ou un bouton pour le modifier</p> : null}
+      {linked && !drawer ? <p className={styles.chip}><Icon name="link" size={12} />Lié à : {linked}</p> : null}
       {drawer ? (
         <section className={styles.drawer} role="dialog" aria-label={drawer.title} key={tool}>
           <header className={styles.drawerHead}><h2>{drawer.title}</h2><button type="button" className={styles.icon} onClick={() => setTool('')} aria-label="Fermer"><Icon name="close" size={18} /></button></header>
@@ -325,4 +375,10 @@ function LinkField({ value, model, onSet }: { value: string; model: string; onSe
       {value ? <button type="button" className={styles.reset} onClick={() => { setText(''); onSet(null); }}>Remettre le lien du modèle</button> : null}
     </>
   );
+}
+
+/** A product of her catalogue, changed from the editor (the same product as in « Produits »). */
+function withProduct(fiche: Fiche, id: string, patch: Record<string, unknown>): Fiche {
+  const products = Array.isArray(fiche.products) ? fiche.products : [];
+  return { ...fiche, products: products.map((x) => (x.id === id ? { ...x, ...patch } : x)) };
 }

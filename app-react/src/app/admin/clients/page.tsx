@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { useMemo } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -40,7 +41,7 @@ export default function ClientsPage() {
   return (
     <>
       <PageHead title="Clients" sub={orders ? plural(clients.length, 'cliente', 'clientes') : 'Chargement…'} />
-      {orders === null ? <p className={styles.muted}>Chargement…</p>
+      {orders === null ? <CloudLoader />
         : clients.length === 0 ? <Empty icon="users" title="Aucune cliente pour l’instant">Chaque personne qui commande dans votre boutique est ajoutée ici, avec ses achats.</Empty>
         : <section className={styles.card}>
             <ul className={styles.rows}>

@@ -135,6 +135,7 @@ const h1 = (page, text) => page.waitForFunction((t) => document.querySelector('h
 
 const results = [];
 async function test(name, fn) {
+  if (process.env.ONLY && !name.includes(process.env.ONLY)) return;
   try { await fn(); results.push(['ok', name]); console.log('  ✓', name); }
   catch (e) { results.push(['FAIL', name]); console.log('  ✗', name, '\n   ', String(e.message).split('\n').slice(0, 6).join(' / ')); }
 }
@@ -732,7 +733,7 @@ await test('editor, a busy model (SÈVE): every section stays in view on the lef
   const right = page.getByRole('complementary', { name: `Contenu : ${busy}` });
   await right.waitFor();
   assert.ok(await right.getByRole('button', { name: /^Remplacer/ }).count() <= 1, 'one picture card at a time');
-  assert.ok(await right.getByRole('combobox').count() + await right.locator('select').count() <= 8, 'the product cases are not all unrolled');
+  assert.ok(await right.getByRole('combobox').count() + await right.locator('select').count() <= 10, 'the product cases are not all unrolled (each list counts twice; one more for « Afficher »)');
   // the longest lines (the footer's links) are cut with « … » inside the panel: nothing is wider than it
   await left.getByRole('button', { name: 'Déplier Pied de page' }).click();
   const wide = await left.evaluate((n) => { const r = n.getBoundingClientRect(); return [n.scrollWidth <= n.clientWidth, [...n.querySelectorAll('button, li, p, input, h2, ol, ul')].every((e) => { const b = e.getBoundingClientRect(); return !b.width || b.right <= r.right + 0.5; })]; });
@@ -1752,6 +1753,54 @@ await test('partners: invite by e-mail, cancel an invitation, remove a partner; 
   assert.deepEqual((await page.getByRole('region', { name: 'Pays' }).locator('li').allInnerTexts()).map((x) => x.replace(/\s+/g, ' ')), ['Côte d’Ivoire 30', 'Sénégal 8', 'Canada 3']);
   await page.screenshot({ path: `${SHOTS}83-en-direct.png` });
   await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('Branding: logo, colours and shape of the buttons for the whole site, seen at once on her site, saved in her store', async () => {
+  const w = withModel(world(), 'soyeuse'); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/branding/`);
+  const site = page.frameLocator('iframe[title="Aperçu de votre site"]');
+  await site.locator('[data-jeere-add]').first().waitFor({ timeout: 60000 });
+  await page.getByRole('group', { name: 'Forme' }).getByRole('button', { name: 'Carré', exact: true }).click();
+  await page.getByRole('group', { name: 'Style' }).getByRole('button', { name: 'Contour', exact: true }).click();
+  const btn = site.locator('[data-jeere-add]').first();
+  await page.waitForFunction(() => true);
+  await site.locator('style#jeere-brand').waitFor({ state: 'attached' });
+  await page.waitForTimeout(300);
+  const look = await btn.evaluate((n) => { const c = getComputedStyle(n); return [c.borderTopLeftRadius, c.backgroundColor]; });
+  assert.deepEqual(look, ['0px', 'rgba(0, 0, 0, 0)'], 'the buttons of her site are square and outlined at once');
+  await page.screenshot({ path: `${SHOTS}80-branding.png` });
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
+  await page.getByText(/C’est enregistré/).waitFor();
+  const saved = w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').pop();
+  assert.deepEqual(saved.body.fiche.store.site.b, { shape: 'square', btnStyle: 'outline' });
+  assert.equal(JSON.stringify(saved.body.fiche.products), JSON.stringify(w.stores[0].fiche.products), 'her products travel untouched');
+  // the menu and the editor lead there
+  await page.goto(`${BASE}/admin/editeur/`);
+  await page.locator('a[href="/admin/branding/"]').first().waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor: the payment of the checkout page is not edited there; a note leads to Paiements; the frame of a card leaves with it when scrolled away', async () => {
+  const w = withModel(world(), 'soyeuse'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  assert.equal(await page.getByText('Touchez un texte, une image ou un bouton pour le modifier').count() >= 0, true);
+  // a product card: its own tools
+  const card = site.locator('[data-jeere-product]').first();
+  await card.scrollIntoViewIfNeeded();
+  await card.locator('[data-jeere-name]').click({ force: true });
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  await tools.waitFor();
+  await site.locator('[data-jeere-sel]').waitFor();
+  await page.waitForTimeout(1500);                                   // the cards come in with the model's own animation
+  await page.screenshot({ path: `${SHOTS}81-carte-avant-defilement.png` });
+  // scrolled far away: the frame does not stay alone on the screen
+  await site.locator('body').evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(400);
+  assert.equal(await site.locator('[data-jeere-sel]').evaluate((n) => n.style.display), 'none', 'no frame left behind');
+  await page.screenshot({ path: `${SHOTS}82-carte-apres-defilement.png` });
   assert.deepEqual(errors, []); await ctx.close();
 });
 

@@ -10,7 +10,7 @@
 .icon:active:not(:disabled) { background: var(--grey-1); transform: scale(.97); }
 .icon:disabled { color: var(--faint); opacity: .5; }
 .onePage { font: var(--w-ui) var(--fs-sm)/var(--lh) var(--font); color: var(--ink); }
-.publish { flex: none; min-height: 36px; padding: 0 14px; border-radius: 12px; font-size: var(--fs-sm); }
+.publish { flex: none; min-height: 34px; height: 34px; padding: 0 14px; border-radius: 10px; border-width: 1.5px; font: 600 12px/1 var(--font); }
 
 /* the site: everything between the two bars, never squeezed by a panel */
 /* the site, a little smaller than the screen, on the neutral canvas: air all around, a rounded frame, a soft shadow.
@@ -86,3 +86,12 @@
 /* the scrollbar is not drawn; the wheel, the finger and the keyboard still scroll */
 .tools, .drawerBody { scrollbar-width: none; -ms-overflow-style: none; }
 .tools::-webkit-scrollbar, .drawerBody::-webkit-scrollbar { display: none; }
+
+/* nothing chosen: one short line on top of the site, never over the tools; what is chosen says what it links to */
+.hint0, .chip { position: fixed; z-index: 3; left: 50%; transform: translateX(-50%); top: 62px; max-width: calc(100% - 40px); margin: 0; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 8px 20px -12px rgba(17, 17, 17, .3);
+  color: var(--muted); font: 400 11px/14px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; animation: hintIn var(--dur-in) var(--ease); }
+.chip { color: var(--ink); font-weight: 500; }
+@keyframes hintIn { from { opacity: 0; transform: translate(-50%, -4px); } }
+.badge { display: inline-flex; align-items: center; gap: 6px; justify-self: start; margin: 0; padding: 4px 10px; border-radius: 999px; background: var(--grey-1); color: var(--ink); font: 500 12px/16px var(--font); }
+@media (prefers-reduced-motion: reduce) { .hint0, .chip { animation: none; } }

@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
@@ -53,6 +54,7 @@ export default function AdminHome() {
   const steps: { id: string; title: string; href: string; done: boolean }[] = [
     ...(booking ? [{ id: 'services', title: 'Ajoutez vos prestations', href: '/admin/prestations/', done: false }]
       : [{ id: 'products', title: 'Ajoutez 3 produits avec une vraie photo', href: '/admin/produits/', done: products.filter((p) => p.image || p.photo).length >= 3 }]),
+    ...(booking ? [] : [{ id: 'categories', title: 'Rangez vos produits en catégories', href: '/admin/produits/', done: new Set(products.map((p) => String(p.category ?? '').trim()).filter(Boolean)).size >= 2 }]),
     { id: 'wave', title: 'Connectez Wave et le mobile money', href: '/admin/paiements/', done: Object.values(pay).some((v) => typeof v === 'string' && v.trim() !== '') },
     { id: 'whatsapp', title: 'Ajoutez votre numéro WhatsApp', href: '/admin/parametres/', done: typeof st.whatsapp === 'string' && st.whatsapp.trim() !== '' },
     ...(booking ? [] : [{ id: 'delivery', title: 'Choisissez vos communes de livraison', href: '/admin/livraison/', done: zonesOf(store).length > 0 }]),
@@ -107,7 +109,7 @@ export default function AdminHome() {
 
       <section className={styles.card}>
         <div className={styles.cardHead}><h2>Dernières commandes</h2>{list.length ? <Link href="/admin/commandes/">Tout voir</Link> : null}</div>
-        {orders === null ? <p className={styles.muted}>Chargement…</p>
+        {orders === null ? <CloudLoader />
           : list.length === 0 ? <p className={styles.muted}>Aucune commande pour l’instant. Partagez le lien de votre boutique pour recevoir la première.</p>
           : <ul className={styles.rows}>
               {list.slice(0, 5).map((o) => (

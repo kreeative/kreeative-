@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -93,7 +94,7 @@ export default function ServicesPage() {
       <PageHead title="Prestations" sub={home ? plural(services.length, 'prestation', 'prestations') : undefined}
         action={home ? <Button icon="plus" onClick={() => setDraft(draftOf())}>Ajouter une prestation</Button> : null} />
       {error ? <Notice tone="error" action={<Button variant="secondary" onClick={() => void load()}>Réessayer</Button>}>{error}</Notice> : null}
-      {!home && !error ? <p className={shared.muted}>Chargement…</p> : null}
+      {!home && !error ? <CloudLoader /> : null}
 
       {home ? (services.length === 0
         ? <Empty icon="tag" title="Aucune prestation pour l’instant" action={<Button icon="plus" onClick={() => setDraft(draftOf())}>Ajouter une prestation</Button>}>Ajoutez ce que vos clientes peuvent réserver : son nom, sa durée et son prix.</Empty>

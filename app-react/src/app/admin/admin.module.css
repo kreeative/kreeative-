@@ -102,3 +102,11 @@
 /* the scrollbar is not drawn; the wheel, the finger and the keyboard still scroll */
 .filters, .sheet { scrollbar-width: none; -ms-overflow-style: none; }
 .filters::-webkit-scrollbar, .sheet::-webkit-scrollbar { display: none; }
+
+/* the four steps to be ready to sell (Paiements) */
+.ready { list-style: none; margin: 0 0 var(--sp-4); padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 8px; }
+.ready li { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; border-radius: var(--r); background: var(--white); box-shadow: 0 0 0 1px var(--line); font: var(--w-ui) var(--fs-sm)/var(--lh) var(--font); }
+.ready li[data-on] { box-shadow: 0 0 0 1.5px var(--ink); }
+.ready b { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--grey-2); font: 600 11px/1 var(--font); }
+.ready a { color: var(--ink); text-decoration: none; }
+

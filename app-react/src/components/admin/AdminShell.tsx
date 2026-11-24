@@ -30,6 +30,7 @@ const SHOP: NavItem[] = [
   { href: '/admin/clients/', label: 'Clients', icon: 'users', more: true },
   { href: '/admin/editeur/', label: 'Éditeur', icon: 'edit', group: 'Boutique en ligne', more: true },
   { href: '/admin/modeles/', label: 'Modèles', icon: 'template', more: true },
+  { href: '/admin/branding/', label: 'Branding', icon: 'brush', more: true },
   { href: '/admin/paiements/', label: 'Paiements', icon: 'wallet', group: 'Réglages', more: true },
   { href: '/admin/livraison/', label: 'Livraison', icon: 'truck', more: true },
   { href: '/admin/equipe/', label: 'Associés', icon: 'users', more: true },

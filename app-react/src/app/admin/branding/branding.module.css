@@ -1,0 +1,23 @@
+/* Branding: the settings on the left (glass cards), her site on the right with them applied; one column on a phone */
+.grid { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+.panel { display: grid; gap: var(--sp-4); min-width: 0; }
+.card { display: grid; gap: 12px; padding: var(--sp-5); border-radius: var(--r-lg); background: var(--glass-strong); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 12px 30px -24px rgba(17, 17, 17, .3); }
+.card h2 { display: flex; align-items: center; gap: 8px; margin: 0; font: var(--w-title) var(--fs-lg)/var(--lh-lg) var(--font); }
+.caption { font: 500 11.5px/16px var(--font); color: var(--muted); }
+.segments { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; padding: 2px; border-radius: 10px; background: var(--grey-1); }
+.segments button { height: 32px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: var(--w-ui) var(--fs-sm)/1 var(--font); cursor: pointer; transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease); }
+.segments button[aria-pressed="true"] { background: var(--white); color: var(--ink); box-shadow: 0 1px 2px rgba(17, 17, 17, .12); }
+.sample { display: grid; place-items: center; padding: var(--sp-4); border-radius: var(--r); background: var(--grey-1); }
+.sample span, .onButton { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; font: 600 13px/1 var(--font); }
+.logos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.logos > span { display: grid; place-items: center; min-height: 72px; padding: 8px; border-radius: var(--r); overflow: hidden; }
+.logos img { max-width: 100%; object-fit: contain; }
+.onLight { background: var(--white); box-shadow: inset 0 0 0 1px var(--line); }
+.onDark { background: #111111; }
+.logos > .onButton { display: inline-flex; place-self: center; min-height: 0; padding: 0 14px; }
+.hint { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh); }
+.hint a { color: var(--ink); text-decoration: none; }
+.note { margin-bottom: var(--sp-4); }
+.preview { position: sticky; top: 16px; height: calc(100dvh - 120px); min-height: 520px; border-radius: 18px; overflow: hidden; background: var(--white); box-shadow: 0 0 0 1px var(--line), 0 18px 44px -24px rgba(17, 17, 17, .3); }
+.preview iframe { display: block; width: 100%; height: 100%; border: 0; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } .preview { position: static; height: 70dvh; min-height: 420px; } }

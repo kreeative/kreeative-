@@ -16,8 +16,9 @@ import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSect
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
 import { AddedInspector, BandInspector, ColorField, PhotoField, TextStyle } from './Extras';
 import { MobileEditor } from './MobileEditor';
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { DESK_TOUR, PHONE_TOUR, TOUR_KEY, Tour } from './Tour';
-import { ADDED_KINDS, addedName, addedSections, hiddenItems, hiddenLabel, modelBySlug, withBand, withImageFrame, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
+import { ADDED_KINDS, addedName, addedSections, categoriesOf, hiddenItems, hiddenLabel, linkLabel, modelBySlug, sectionHidden, sectionSource, withBand, withImageFrame, withSectionHidden, withSectionSource, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
 import styles from './editeur.module.css';
 
 type Device = 'phone' | 'desktop';
@@ -44,6 +45,8 @@ export default function EditorPage() {
   const [tour, setTour] = useState(false);
   // the guided visit: by itself the first time on this device (or with ?visite=1), then from the « ? » of the bar
   useEffect(() => { try { setTour(window.localStorage.getItem(TOUR_KEY) !== '1' || new URLSearchParams(window.location.search).get('visite') === '1'); } catch { setTour(true); } }, []);
+  // she touches an element of her site during the visit: the visit gives way at once
+  useEffect(() => { if (sel && tour) { setTour(false); try { window.localStorage.setItem(TOUR_KEY, '1'); } catch { /* shown again next time */ } } }, [sel]);   // eslint-disable-line react-hooks/exhaustive-deps
   const endTour = useCallback(() => { setTour(false); try { window.localStorage.setItem(TOUR_KEY, '1'); } catch { /* shown again next time */ } }, []);
   useEffect(() => { try { setTip(window.localStorage.getItem('jehre-editor-tip') !== '1'); } catch { setTip(true); } }, []);
   const [device, setDevice] = useState<Device>('desktop');
@@ -81,7 +84,7 @@ export default function EditorPage() {
   const send = useCallback(() => {
     const w = frame.current?.contentWindow;
     if (!w || !model || !latest.current) return;
-    try { w.postMessage({ jeerePreview: model.key, fiche: latest.current, edit: true }, siteOrigin); } catch { /* the page keeps the published store */ }
+    try { w.postMessage({ jeerePreview: model.key, fiche: latest.current, edit: true, store: store?.slug ?? '' }, siteOrigin); } catch { /* the page keeps the published store */ }
   }, [model, siteOrigin]);
   useEffect(() => {
     if (!model) return;
@@ -89,6 +92,7 @@ export default function EditorPage() {
       if (e.origin !== siteOrigin || e.source !== frame.current?.contentWindow) return;
       const d = (e.data ?? {}) as { jeereConnect?: unknown; jeereNone?: unknown; jeereAdded?: unknown; jeerePick?: { key?: unknown; sec?: unknown } };
       if (typeof d.jeereAdded === 'string') { setPicked(null); setFocus(''); setSel(`a:${d.jeereAdded}`); return; }
+      if ((d as { jeereGo?: unknown }).jeereGo === 'paiements') { window.location.assign('/admin/paiements/'); return; }
       if (d.jeereNone === true) { setSel(''); return; }
       if (d.jeereConnect === 'ready') { send(); return; }
       const m = readSiteMap(e.data);
@@ -221,7 +225,7 @@ export default function EditorPage() {
   const dropAdded = (id: string) => { change((d) => withAdded(d, page, addedSections(d, page).filter((a) => a.id !== id))); if (sel === `a:${id}`) setSel(''); };
 
   if (!store) return <Empty icon="store" title="Pas encore de boutique" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>Choisissez un modèle pour créer votre boutique.</Empty>;
-  if (!draft) return <div className={styles.wait}><p>Chargement de l’éditeur…</p></div>;
+  if (!draft) return <CloudLoader full label="Ouverture de l’éditeur…" />;
   if (!model) return <Empty icon="template" title="Choisissez d’abord un modèle" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>L’éditeur s’ouvre sur votre modèle : MICHOU, SÈVE, ANSE, REGARD… Choisissez le vôtre, puis revenez ici.</Empty>;
 
   const pageName = pages.find((p) => p.path === path)?.name ?? 'Accueil';
@@ -237,6 +241,7 @@ export default function EditorPage() {
   const inspector = current ? (
     <Inspector key={current.key} section={current} items={items} fiche={draft} userId={account.userId} focus={focus} pages={pages}
       onTextLook={(key, patch, tag) => change((d) => withTextLook(d, key, patch), `x:${key}:${tag}`)}
+      onSource={(cat) => change((d) => withSectionSource(d, current.key, cat))}
       onLogo={(v) => change((d) => { const st = { ...(d.store ?? {}) } as Record<string, unknown>; if (v) st.logo = v; else delete st.logo; return { ...d, store: st }; })}
       onLook={(patch) => change((d) => withSectionLook(d, current.key, patch), `look:${current.key}:${Object.keys(patch).join()}`)}
       onEdit={(kind, key, value) => change((d) => withSiteEdit(d, kind, key, value), `${kind}:${key}`)} onSlot={(slot, value) => change((d) => withSlot(d, slot, value))} />
@@ -244,6 +249,7 @@ export default function EditorPage() {
 
   const toasts = (<>
       {tour && map ? <Tour steps={phone ? PHONE_TOUR : DESK_TOUR} onDone={endTour} /> : null}
+      {path.includes('commande') && map ? <p className={phone ? styles.payNotePhone : styles.payNote}><Icon name="wallet" size={14} />Le paiement se règle dans <a href="/admin/paiements/"><b>Paiements</b></a>.</p> : null}
       {problem === 'conflict' ? <Toast onDone={clear} ms={12000} action={<button type="button" onClick={() => void reload()}>Recharger</button>}>Votre boutique a changé entre-temps. Rien n’a été écrasé.</Toast> : null}
       {problem === 'network' ? <Toast onDone={clear} ms={8000}>Rien n’a été enregistré. Vérifiez votre connexion.</Toast> : null}
       {toast === 'live' && !problem ? <Toast onDone={() => setToast(null)} action={<a href={url} target="_blank" rel="noopener">Voir mon site</a>}>Votre site est en ligne · {url.replace(/^https:\/\//, '')}</Toast> : null}
@@ -252,7 +258,7 @@ export default function EditorPage() {
   if (phone) return (
     <MobileEditor published={store.published} pages={pages} path={path} goPage={goPage} canUndo={past.length > 0} canRedo={future.length > 0} undo={undo} redo={redo}
       busy={busy} dirty={dirty} save={(pub) => void save(pub)} site={site} frame={frame} map={map} sections={sections} draft={draft} change={change} moveSection={moveSection}
-      sel={sel} setSel={setSel} onHelp={() => setTour(true)} userId={account.userId} modelName={modelBySlug(modelSlug)?.name ?? model.name} booking={!!modelBySlug(modelSlug)?.rdv}>{toasts}</MobileEditor>
+      sel={sel} setSel={setSel} onHelp={() => setTour(true)} hideHint={tour} userId={account.userId} modelName={modelBySlug(modelSlug)?.name ?? model.name} booking={!!modelBySlug(modelSlug)?.rdv}>{toasts}</MobileEditor>
   );
 
   return (
@@ -291,7 +297,7 @@ export default function EditorPage() {
           {map ? (
             <ol className={styles.list}>
               {shown.map((s) => {
-                const off = siteValue(draft, 'h', s.key) !== undefined;
+                const off = sectionHidden(draft, s);
                 const inside = (map.items ?? []).filter((x) => x.sec === s.n && x.kind !== 's');
                 const open = unfolded.includes(s.n) || (!!needle && !s.name.toLowerCase().includes(needle));
                 const mine = added.filter((a) => anchorOf(a) === s.n);
@@ -306,8 +312,8 @@ export default function EditorPage() {
                       : <button type="button" className={styles.grip} onKeyDown={(e) => onGripKey(e, s.n)} aria-label={`Déplacer ${s.name} (flèches haut et bas)`}><Icon name="grip" size={16} /></button>}
                     {inside.length ? <button type="button" className={styles.fold} aria-expanded={open} onClick={() => setUnfolded((u) => (open ? u.filter((n) => n !== s.n) : [...u, s.n]))} aria-label={open ? `Replier ${s.name}` : `Déplier ${s.name}`}><Icon name="chevron" size={14} /></button> : <span className={styles.fold} aria-hidden="true" />}
                     <button type="button" className={styles.rowMain} onClick={() => openSection(s)} aria-current={picked === s.n ? 'true' : undefined}>{s.name}</button>
-                    {s.fixed ? null : <button type="button" className={styles.eye} aria-pressed={!off} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, off ? null : '1'))} aria-label={off ? `Afficher ${s.name}` : `Masquer ${s.name}`}><Icon name={off ? 'eyeOff' : 'eye'} size={14} /></button>}
-                    {s.fixed || off ? null : <button type="button" className={styles.eye} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, '1'))} aria-label={`Supprimer ${s.name}`} title="Supprimer (elle reste dans la liste, grisée, pour la remettre)"><Icon name="trash" size={14} /></button>}
+                    {s.fixed ? null : <button type="button" className={styles.eye} aria-pressed={!off} onClick={() => change((d) => withSectionHidden(d, s, !off))} aria-label={off ? `Afficher ${s.name}` : `Masquer ${s.name}`}><Icon name={off ? 'eyeOff' : 'eye'} size={14} /></button>}
+                    {s.fixed || off ? null : <button type="button" className={styles.eye} onClick={() => change((d) => withSectionHidden(d, s, true))} aria-label={`Supprimer ${s.name}`} title="Supprimer (elle reste dans la liste, grisée, pour la remettre)"><Icon name="trash" size={14} /></button>}
                   </div>
                   {open ? (() => {
                     const words = inside.filter((x) => x.kind === 't' || x.kind === 'c'), pics = inside.filter((x) => x.kind === 'i'), cases = inside.filter((x) => x.kind === 'p');
@@ -338,7 +344,7 @@ export default function EditorPage() {
                 );
               })}
             </ol>
-          ) : <p className={styles.hint}>Chargement de votre modèle…</p>}
+          ) : <CloudLoader label="Chargement de votre modèle…" />}
           {map && needle && !shown.length ? <p className={styles.hint}>Aucune section ne correspond.</p> : null}
           {map && !needle ? bands.map((x) => (
             <div key={x.key} className={styles.row} data-on={sel === x.key ? '' : undefined} data-added="">
@@ -353,6 +359,7 @@ export default function EditorPage() {
           ) : null}
           {map && !needle ? (
             <div className={styles.addBox}>
+              <a className={styles.brandLink} href="/admin/branding/"><Icon name="brush" size={14} />Logo, couleurs et boutons</a>
               <button type="button" className={styles.add} data-tour="add" aria-expanded={adding} aria-haspopup="menu" onClick={() => setAdding((v) => !v)}><Icon name="plus" size={14} /><span>Ajouter une section</span></button>
               {adding ? (
                 <div className={styles.addMenu} role="menu" aria-label="Type de section">
@@ -424,10 +431,10 @@ export default function EditorPage() {
 const ALIGN: [SectionLook['align'] | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
 const px = (v: string, max: number): number | undefined => (v.trim() === '' ? undefined : Math.min(max, Number(v.replace(/\D/g, '')) || 0));
 
-function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot, onLook, onTextLook, onLogo }: {
+function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot, onLook, onTextLook, onLogo, onSource }: {
   section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string; focus: string; pages: { path: string; name: string }[]; onLook: (patch: SectionLook) => void;
-  onTextLook: (key: string, patch: TextLook, tag: string) => void; onLogo: (v: string | null) => void;
-  onEdit: (kind: 't' | 'i' | 'c' | 'k', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
+  onTextLook: (key: string, patch: TextLook, tag: string) => void; onLogo: (v: string | null) => void; onSource: (cat: string) => void;
+  onEdit: (kind: 't' | 'i' | 'c' | 'k' | 'l', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
 }) {
   const products = Array.isArray(fiche.products) ? fiche.products : [];
   const slots = ((fiche.store?.slots ?? {}) as Record<string, string>);
@@ -444,6 +451,7 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
   const picked = images.find((x) => x.key === chosen) ?? images[0];
   const imageName = (i: number) => IMAGE_NAMES[i] ?? `Image ${i + 1}`;
   const onText = texts.find((x) => x.key === focus && x.kind === 't');
+  const cats = categoriesOf(fiche), source = sectionSource(fiche, section.key);
   const logo = typeof fiche.store?.logo === 'string' ? fiche.store.logo : '';
   return (
     <div className={styles.inspector}>
@@ -488,11 +496,18 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
             </div>
           ) : null}
           {picked ? <MediaCard key={picked.key} item={picked} name={imageName(images.indexOf(picked))} own={siteValue(fiche, 'i', picked.key)} userId={userId} onChange={(v) => onEdit('i', picked.key, v)} /> : null}
+          {picked && picked.link ? (() => { const lk = picked.key.replace('|i|', '|l|'), now = siteValue(fiche, 'l', lk) ?? '', prods = Array.isArray(fiche.products) ? fiche.products : [];
+            const opts = ['Lien du modèle', ...cats.map((c) => `Catégorie ${c}`), ...prods.map((x) => `Produit ${x.name || x.id}`)];
+            const cur = now.startsWith('c:') ? `Catégorie ${now.slice(2)}` : now.startsWith('p:') ? `Produit ${prods.find((x) => x.id === now.slice(2))?.name ?? ''}` : 'Lien du modèle';
+            return <Select label="Cette photo mène à" options={opts} value={cur} onChange={(e) => { const v = e.target.value, c = cats.find((x) => `Catégorie ${x}` === v), pr = prods.find((x) => `Produit ${x.name || x.id}` === v); onEdit('l', lk, c ? `c:${c}` : pr ? `p:${pr.id}` : null); }} />; })() : null}
         </section>
       ) : null}
       {cases.length ? (
         <section className={styles.block} aria-label="Produits">
           <h3>Produits{cases.length > 1 ? <span> · {cases.length}</span> : null}</h3>
+          {source ? <p className={styles.linked}><Icon name="link" size={12} />Lié à : Catégorie {source}</p> : null}
+          <Select label="Afficher" options={['Ma sélection, case par case', ...cats.map((c) => `Catégorie ${c}`)]} value={source ? `Catégorie ${source}` : 'Ma sélection, case par case'}
+            onChange={(e) => onSource(cats.find((c) => `Catégorie ${c}` === e.target.value) ?? '')} />
           {casesShown.map((x, i) => {
             // a case shows the product of the same number; when she has fewer products, it keeps the model's own
             const none = 'Masquer cette case', keep = 'Produit du modèle';

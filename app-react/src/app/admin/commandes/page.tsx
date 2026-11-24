@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -59,7 +60,7 @@ export default function OrdersPage() {
         {FILTERS.map((f) => <button key={f.id} type="button" className={styles.filter} aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>{f.label}{orders ? ` · ${orders.filter(f.match).length}` : ''}</button>)}
       </div>
 
-      {orders === null ? <p className={styles.muted}>Chargement…</p>
+      {orders === null ? <CloudLoader />
         : orders.length === 0 ? <Empty icon="receipt" title="Aucune commande pour l’instant">Partagez le lien de votre boutique : chaque commande passée par une cliente arrive ici.</Empty>
         : shown.length === 0 ? <p className={styles.muted}>Aucune commande dans ce filtre.</p>
         : <section className={styles.card}>

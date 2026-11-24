@@ -58,6 +58,12 @@ export default function PaymentsPage() {
   return (
     <>
       <PageHead title="Paiements" sub="Vos clientes vous paient directement. Jehre ne garde jamais votre argent." />
+      <ol className={styles.ready} aria-label="Pour être prête à vendre">
+        <li data-on=""><b>1</b><span>Choisissez vos moyens de paiement, ci-dessous</span></li>
+        <li><b>2</b><a href="/admin/produits/">Ajoutez vos produits</a></li>
+        <li><b>3</b><a href="/admin/produits/">Rangez-les en catégories</a></li>
+        <li><b>4</b><a href="/admin/parametres/">Vérifiez le nom et le WhatsApp de la boutique</a></li>
+      </ol>
       <form onSubmit={save} noValidate style={{ display: 'grid', gap: 'var(--sp-4)', maxWidth: 640 }}>
         <section className={styles.card}>
           <div className={styles.cardHead}><h2>Moyens de paiement proposés</h2></div>

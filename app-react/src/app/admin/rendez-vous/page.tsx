@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -146,7 +147,7 @@ export default function AgendaPage() {
           {bookable.length ? <Button icon="plus" onClick={() => { setAddError(''); setAdding({ serviceId: bookable[0]!.id, date: day || data.today, time: '10:00', name: '', phone: '', note: '' }); }}>Ajouter un rendez-vous</Button> : null}
         </div> : null} />
       {error ? <Notice tone="error" action={<Button variant="secondary" onClick={() => void load()}>Réessayer</Button>}>{error}</Notice> : null}
-      {!data && !error ? <p className={shared.muted}>Chargement…</p> : null}
+      {!data && !error ? <CloudLoader /> : null}
 
       {data && home ? (
         <div className={styles.page}>

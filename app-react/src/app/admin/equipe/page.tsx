@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -86,7 +87,7 @@ export default function TeamPage() {
 
             <section className={shared.card} aria-label="Associés et invitations">
               <div className={shared.cardHead}><h2>Qui gère cette boutique</h2></div>
-              {members === null ? <p className={shared.muted}>Chargement…</p> : (
+              {members === null ? <CloudLoader /> : (
                 <ul className={shared.rows}>
                   <li><div className={shared.row} style={{ cursor: 'default' }}><span className={shared.rowMain}><b>{account.firstName || 'Vous'}</b><small>{account.email ?? ''}</small></span><span className={styles.pill}>Propriétaire</span></div></li>
                   {members.map((m) => (

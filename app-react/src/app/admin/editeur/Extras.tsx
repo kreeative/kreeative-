@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { addedName, bandOf, categorySlug, linkOk, textLook, type Added, type Band, type SiteItem, type TextLook } from '@/lib/models';
+import { addedName, bandOf, categorySlug, linkLabel, linkOk, textLook, type Added, type Band, type SiteItem, type TextLook } from '@/lib/models';
 import type { Fiche } from '@/lib/stores';
 import styles from './editeur.module.css';
 
@@ -105,6 +105,7 @@ export function TextStyle({ item, fiche, pages, link, onLook, onLink }: {
   return (
     <section className={styles.block} aria-label="Style du texte choisi">
       <h3>{button ? 'Bouton choisi' : 'Texte choisi'}</h3>
+      {item.tag === 'a' && link ? <p className={styles.linked}><Icon name="link" size={12} />Lié à : {linkLabel(link, fiche, pages)}</p> : null}
       {item.tag === 'a' ? <LinkPicker key={item.key} value={link} fiche={fiche} pages={pages} onChange={onLink} /> : null}
       <ColorField key={`c${item.key}`} label="Couleur du texte" value={look.color ?? ''} onChange={(v) => onLook({ color: v }, 'color')} />
       <div className={styles.pair}>

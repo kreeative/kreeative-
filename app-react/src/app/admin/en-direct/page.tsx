@@ -1,5 +1,6 @@
 'use client';
 
+import { CloudLoader } from '@/components/ui/CloudLoader';
 import { useEffect, useState } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -52,7 +53,7 @@ export default function LivePage() {
   return (
     <>
       <PageHead title="En direct" sub={`Qui regarde votre boutique, et d’où.${live?.ok ? ` Mis à jour toutes les 30${NB}secondes.` : ''}`} />
-      {live === undefined ? <p className={shared.muted}>Chargement…</p> : null}
+      {live === undefined ? <CloudLoader /> : null}
       {live === null ? <Notice tone="error">Les visites n’ont pas pu être lues. Vérifiez votre connexion.</Notice> : null}
       {noPlan ? <div className={styles.note}><Notice tone="info" title="Avec les formules Pro et Business" action={<ButtonLink variant="secondary" href="/admin/abonnement/">Voir les formules</ButtonLink>}>Voyez en direct qui est sur votre boutique, et d’où.</Notice></div> : null}
       {live && !live.ok && !noPlan ? <Notice tone="info">Les visites de cette boutique ne sont pas disponibles.</Notice> : null}

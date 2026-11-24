@@ -115,10 +115,10 @@ export const MODEL_PAGES: Record<string, { path: string; name: string }[]> = {
 };
 
 /** One thing of the page: a text (t), a picture (i), a category (c), a product case (p), the list of services (s). */
-export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's' | 'm'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean; tag: string; href: string; size: number }
-export interface SiteSection { n: number; key: string; name: string; fixed: boolean }
+export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's' | 'm'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean; tag: string; href: string; size: number; link: boolean }
+export interface SiteSection { n: number; key: string; name: string; fixed: boolean; demo?: boolean }
 export interface SiteMap { page: string; items: SiteItem[]; sections: SiteSection[] }
-export type SiteKind = 't' | 'i' | 'c' | 'h' | 'k';
+export type SiteKind = 't' | 'i' | 'c' | 'h' | 'k' | 'l';
 
 type Bag = Record<string, unknown>;
 const bag = (v: unknown): Bag => (v && typeof v === 'object' && !Array.isArray(v) ? { ...(v as Bag) } : {});
@@ -154,9 +154,9 @@ export function readSiteMap(data: unknown): SiteMap | null {
   return {
     page: s(m.page),
     items: (m.items as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && /^[ticpsm]$/.test(s(x.kind)))
-      .map((x) => ({ key: s(x.key), kind: s(x.kind) as SiteItem['kind'], ref: s(x.ref), label: s(x.label), text: s(x.text), role: s(x.role), sec: typeof x.sec === 'number' ? x.sec : -1, src: s(x.src), long: x.long === true, tag: s(x.tag), href: s(x.href), size: typeof x.size === 'number' && Number.isFinite(x.size) ? x.size : 0 })),
+      .map((x) => ({ key: s(x.key), kind: s(x.kind) as SiteItem['kind'], ref: s(x.ref), label: s(x.label), text: s(x.text), role: s(x.role), sec: typeof x.sec === 'number' ? x.sec : -1, src: s(x.src), long: x.long === true, tag: s(x.tag), href: s(x.href), size: typeof x.size === 'number' && Number.isFinite(x.size) ? x.size : 0, link: x.link === true })),
     sections: (m.sections as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && typeof x.n === 'number')
-      .map((x) => ({ n: x.n as number, key: s(x.key), name: s(x.name) || 'Section', fixed: x.fixed === true })),
+      .map((x) => ({ n: x.n as number, key: s(x.key), name: s(x.name) || 'Section', fixed: x.fixed === true, demo: x.demo === true })),
   };
 }
 
@@ -266,3 +266,48 @@ export const hiddenLabel = (x: SiteItem): string => (x.kind === 'm' ? 'le bandea
 export interface Band { text?: string; bg?: string; color?: string; speed?: 'slow' | 'fast'; hide?: boolean }
 export const bandOf = (fiche: Fiche, key: string): Band => bag(bag(bag(bag(fiche.store).site).m)[key]) as Band;
 export const withBand = (fiche: Fiche, key: string, patch: Band): Fiche => withSitePatch(fiche, 'm', key, patch as Record<string, unknown>);
+
+/* A section is hidden when she hid it ('1'). The example reviews of a model are hidden on her store until she
+   shows them ('show'). */
+export function sectionHidden(fiche: Fiche, s: SiteSection): boolean {
+  const v = siteValue(fiche, 'h', s.key);
+  return v === 'show' ? false : v !== undefined ? true : !!s.demo;
+}
+export const withSectionHidden = (fiche: Fiche, s: SiteSection, hide: boolean): Fiche => withSiteEdit(fiche, 'h', s.key, hide ? (s.demo ? null : '1') : (s.demo ? 'show' : null));
+
+/** Where a link of the site leads, in words: « Page Boutique », « Catégorie Tissages », « Produit … ». */
+export function linkLabel(v: string, fiche: Fiche, pages: { path: string; name: string }[]): string {
+  if (!v) return '';
+  const products = Array.isArray(fiche.products) ? fiche.products : [];
+  if (v.startsWith('p:')) { const p = products.find((x) => x.id === v.slice(2)); return p ? `Produit ${p.name || p.id}` : 'Un produit'; }
+  if (v.startsWith('c:')) return `Catégorie ${v.slice(2)}`;
+  if (v.startsWith('page:')) {
+    const [path, part] = v.slice(5).split('#');
+    if (part) { const c = [...new Set(products.map((x) => String(x.category ?? '').trim()).filter(Boolean))].find((c) => categorySlug(c) === part); return `Catégorie ${c ?? part}`; }
+    return `Page ${pages.find((p) => p.path === path)?.name ?? 'Accueil'}`;
+  }
+  return 'Lien externe';
+}
+
+/** A section of product cases can show the products of ONE category (her own, as they come) instead of a choice made
+ *  case by case: store.site.q[<section key>] = { cat }. */
+export const sectionSource = (fiche: Fiche, key: string): string => String(bag(bag(bag(bag(fiche.store).site).q)[key]).cat ?? '');
+export function withSectionSource(fiche: Fiche, key: string, cat: string): Fiche {
+  const st = bag(fiche.store), site = bag(st.site), all = bag(site.q);
+  if (cat) all[key] = { cat }; else delete all[key];
+  if (Object.keys(all).length) site.q = all; else delete site.q;
+  if (Object.keys(site).length) st.site = site; else delete st.site;
+  return { ...fiche, store: st };
+}
+export const categoriesOf = (fiche: Fiche): string[] => [...new Set((Array.isArray(fiche.products) ? fiche.products : []).map((x) => String(x.category ?? '').trim()).filter(Boolean))];
+
+/** Her brand, for the whole site: colours, buttons. Every value optional; none = the model's own. */
+export interface Brand { btnBg?: string; btnText?: string; bg?: string; text?: string; muted?: string; accent?: string; shape?: 'square' | 'round' | 'pill'; btnStyle?: 'fill' | 'outline'; logoH?: number }
+export const brandOf = (fiche: Fiche): Brand => bag(bag(bag(fiche.store).site).b) as Brand;
+export function withBrand(fiche: Fiche, patch: Brand): Fiche {
+  const st = bag(fiche.store), site = bag(st.site), one = { ...bag(site.b), ...patch } as Record<string, unknown>;
+  for (const k of Object.keys(one)) if (one[k] === undefined || one[k] === '') delete one[k];
+  if (Object.keys(one).length) site.b = one; else delete site.b;
+  if (Object.keys(site).length) st.site = site; else delete st.site;
+  return { ...fiche, store: st };
+}
