@@ -564,13 +564,65 @@
     return !!((el.closest && el.closest(sel)) || (el.querySelector && el.querySelector(sel) && (el.textContent || '').length < 400));
   }
   function cardOf(el) { return el.closest ? el.closest('a[data-jeere-book]:not([data-jeere-book=""]), [data-jeere-service]') : null; }
+  /* The scrolling bands of a model (« ruban »): a track of short messages that runs in a loop. */
+  var MARQ = '.ruban, .marquee, [data-jeere-marquee]';
+  function marquees() { return $$(MARQ).filter(function (el) { return !skip(el) && !(el.parentElement && el.parentElement.closest(MARQ)); }); }
+  function bandTrack(el) { return el.querySelector('.ruban__track, .marquee__track, [data-jeere-track]') || el.firstElementChild || el; }
+  function bandCount(el) {
+    if (!el.hasAttribute('data-jeere-mn')) el.setAttribute('data-jeere-mn', String(editTexts().filter(function (t) { return el.contains(t); }).length));
+    return parseInt(el.getAttribute('data-jeere-mn'), 10) || 0;
+  }
+  function bandWords(html) {
+    var box = document.createElement('div'), seen = []; box.innerHTML = html;
+    Array.prototype.forEach.call(box.children.length ? box.children : [box], function (c) { var t = plain(c.textContent || '').replace(/\s+/g, ' ').trim(); if (t && seen.indexOf(t) === -1) seen.push(t); });
+    return seen.join(' • ');
+  }
+  /* Her band (store.site.m[<key>] = { text, bg, color, speed, hide }): ONE text, its messages separated by « • ».
+   * It is written once and runs in a loop without a seam: the messages are repeated until they are wider than
+   * the screen, that group is laid twice side by side, and the track slides by exactly one group. */
+  function applyBands(all, base) {
+    marquees().forEach(function (el, n) {
+      var o = isObj(all[base + '|m|' + n]) ? all[base + '|m|' + n] : null, tr = bandTrack(el);
+      bandCount(el);
+      if (!el.hasAttribute('data-jeere-m')) el.setAttribute('data-jeere-m', JSON.stringify([tr.innerHTML, tr.style.animation || '', el.style.background || '', el.style.color || '', el.style.display || '']));
+      var was = []; try { was = JSON.parse(el.getAttribute('data-jeere-m')) || []; } catch (e) { was = []; }
+      var own = bandWords(was[0] || '');
+      o = o || {};
+      var text = typeof o.text === 'string' ? o.text.slice(0, 600).replace(/\s+/g, ' ').trim() : '';
+      el.setAttribute('data-jeere-mt', text || own);
+      el.style.background = hexColor(o.bg) ? o.bg : (was[2] || '');
+      el.style.color = hexColor(o.color) ? o.color : (was[3] || '');
+      el.style.display = o.hide === true ? 'none' : (was[4] || '');
+      var speed = o.speed === 'slow' || o.speed === 'fast' ? o.speed : '';
+      var state = text + '|' + speed;
+      if (el.getAttribute('data-jeere-ms') === state) return;
+      el.setAttribute('data-jeere-ms', state);
+      if (!text && !speed) { tr.innerHTML = was[0] || ''; tr.style.animation = was[1] || ''; return; }
+      var msgs = (text || own).split('•').map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 20);
+      if (!msgs.length) { tr.innerHTML = was[0] || ''; tr.style.animation = was[1] || ''; return; }
+      var group = [], chars = 0;
+      do { msgs.forEach(function (m) { group.push(m); chars += m.length + 4; }); } while (chars < 170 && group.length < 80);
+      tr.innerHTML = '';
+      [0, 1].forEach(function () { group.forEach(function (m) { tr.appendChild(mk('span', '', m)); }); });
+      tr.style.width = 'max-content'; tr.style.whiteSpace = 'nowrap';
+      if (!document.getElementById('jeere-band-css')) { var st = document.createElement('style'); st.id = 'jeere-band-css'; st.textContent = '@keyframes jeere-band{from{transform:translateX(0)}to{transform:translateX(var(--jeere-band,-50%))}}'; document.head.appendChild(st); }
+      var shift = tr.children.length > group.length ? tr.children[group.length].offsetLeft - tr.children[0].offsetLeft : 0;
+      tr.style.setProperty('--jeere-band', shift > 0 ? '-' + shift + 'px' : '-50%');
+      var still = false; try { still = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { still = false; }
+      var pace = speed === 'slow' ? 28 : speed === 'fast' ? 95 : 52;
+      tr.style.animation = still ? 'none' : 'jeere-band ' + Math.max(6, Math.round((shift || 1200) / pace)) + 's linear infinite';
+    });
+  }
   function keyed() {
-    var base = pagePath(), out = [], nt = 0, nc = 0;
+    var base = pagePath(), out = [], nt = 0, nc = 0, seenBands = [];
     editTexts().forEach(function (el) {
       var card = cardOf(el), cat = card && /pill|cat|tag|badge/.test(String(el.className || ''));
       if (cat) out.push({ el: el, kind: 'c', key: base + '|c|' + (nc++), ref: card.getAttribute('data-jeere-book') || card.getAttribute('data-jeere-service') || '' });
       // « Modèle par Kreeative »: the designer's signature stays as it is (it keeps its number, so the other texts keep theirs)
       else if (credit(el)) nt++;
+      // a scrolling band is ONE thing to edit: its moving pieces are not offered. They keep the numbers the model
+      // gave them (counted once, as the model wrote them), so the texts after the band keep theirs whatever she writes
+      else if (el.closest && el.closest(MARQ)) { var band = el.closest(MARQ); if (seenBands.indexOf(band) === -1) { seenBands.push(band); nt += bandCount(band); } }
       // what a product card says comes from the product (the dashboard), not from here; numbers kept
       else if (isCard(el.closest('[data-jeere-product]'))) nt++;
       else out.push({ el: el, kind: 't', key: base + '|t|' + (nt++) });
@@ -578,6 +630,7 @@
     editImgs().forEach(function (el, n) { out.push({ el: el, kind: 'i', key: base + '|i|' + n }); });
     $$('[data-jeere-product]').forEach(function (el) { var slot = el.getAttribute('data-jeere-slot-product') || el.getAttribute('data-jeere-product'); if (!skip(el.parentElement || el)) out.push({ el: el, kind: 'p', key: base + '|p|' + slot, ref: slot }); });
     $$('[data-jeere-services]').forEach(function (el, n) { out.push({ el: el, kind: 's', key: base + '|s|' + n }); });
+    marquees().forEach(function (el, n) { out.push({ el: el, kind: 'm', key: base + '|m|' + n }); });
     return out;
   }
   // the sections of the page, in order: the header, each <section>, the footer (as in the simple editor's list)
@@ -639,7 +692,7 @@
     if (!editing || !parentOrigin) return;
     var all = sections(), base = pagePath();
     var items = keyed().map(function (x) {
-      return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: label(x), text: x.kind === 't' || x.kind === 'c' ? words(x.el) : '', role: role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
+      return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : label(x), text: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : x.kind === 't' || x.kind === 'c' ? words(x.el) : '', role: x.kind === 'm' ? 'Bandeau défilant' : role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
         tag: x.el.tagName.toLowerCase(), href: x.el.tagName === 'A' ? (x.el.getAttribute('data-jeere-k') || x.el.getAttribute('href') || '') : '', size: x.kind === 't' || x.kind === 'c' ? Math.round(parseFloat(window.getComputedStyle(x.el).fontSize) || 0) : 0, long: x.kind === 't' && (x.el.textContent || '').length > 70 };
     });
     var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER' }; });
@@ -954,12 +1007,13 @@
     var hh = isObj(site.h) ? site.h : {}, base0 = pagePath();
     try { orderSections(isObj(site.o) && Array.isArray(site.o[base0]) ? site.o[base0] : null); } catch (e) { /* the model's own order stays */ }
     try { styleSections(isObj(site.s) ? site.s : {}, base0); } catch (e) { /* the model's own look stays */ }
+    try { keyed(); applyBands(isObj(site.m) ? site.m : {}, base0); } catch (e) { /* the model's own band stays */ }
     sections().forEach(function (el, n) {
       var off = typeof hh[base0 + '|h|' + n] === 'string';
       el.style.opacity = ''; el.style.display = off ? 'none' : '';
     });
     keyed().forEach(function (x) {
-      if (x.kind === 'p' || x.kind === 's') return;
+      if (x.kind === 'p' || x.kind === 's' || x.kind === 'm') return;
       if (x.kind === 'c') {
         if (!original[x.key]) original[x.key] = x.el.innerHTML;
         if (typeof cc[x.key] === 'string') x.el.textContent = cc[x.key]; else if (preview) x.el.innerHTML = original[x.key];
