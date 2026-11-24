@@ -7,8 +7,8 @@ import { supabase } from './supabase';
    localStorage, 'jeere-account', with a snapshot of what the server has in 'jeere-auth-sync'. This module
    writes both in the very same shape, so those pages keep working unchanged after a login made here. */
 
-export type Plan = 'gratuit' | 'essentiel' | 'pro' | 'business';
-const PLANS: readonly Plan[] = ['gratuit', 'essentiel', 'pro', 'business'];
+export type Plan = 'gratuit' | 'essentiel' | 'croissance' | 'pro' | 'business' | 'entreprise';
+const PLANS: readonly Plan[] = ['gratuit', 'essentiel', 'croissance', 'pro', 'business', 'entreprise'];
 
 export interface Profile {
   id: string;

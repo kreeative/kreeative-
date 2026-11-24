@@ -17,7 +17,8 @@ export async function launchOffer(): Promise<LaunchOffer | null> {
     const tm = Number(o.trialMonths) || 1;
     const first = tm > 1 ? `${tm}${NB}mois offerts` : '1er mois offert';
     const left = Number(o.left) || 0;
-    if (!o.active) return { title: `Obtiens ton ${first} sur le pack Essentiel.`, detail: 'Tout est inclus.', left: '' };
+    // the free month comes only with the purchase of a model
+    if (!o.active) return { title: `Ton ${first} d’Essentiel avec ton modèle.`, detail: 'À l’achat d’un modèle.', left: '' };
     return {
       // 3 months of Essentiel at 3 500 F = 10 500 F: « plus de 10 000 F » is true
       title: `Gagne plus de 10${NB}000${NB}F${NB}: ${o.months}${NB}mois de pack Essentiel offerts.`,

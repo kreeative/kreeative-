@@ -4,20 +4,25 @@ import { SUPABASE_KEY, SUPABASE_URL, supabase } from './supabase';
    place that knows the prices and the Stripe key); a domain is connected by the `domains` function (the only place
    that can add a name to Jehre's hosting). The browser never sees a key and never sets a price. */
 
-export interface Plan { id: string; name: string; month: number; week: number | null; orders: number | null; fee: number; forWho: string; recommended?: boolean }
-/** The store plans, as on the current site (creer/data.js). The server charges its own copy of these prices. */
+export interface Plan { id: string; name: string; month: number; week: number | null; orders: number | null; fee: number; forWho: string; recommended?: boolean; live?: boolean }
+/** The store plans (the grid of 24 Nov 2026), per month. The server (`billing`) charges its own copy of these prices.
+ *  « En direct » comes from the 3rd plan up (Pro). There is no free plan any more. */
 export const PLANS: Plan[] = [
-  { id: 'gratuit', name: 'Gratuit', month: 0, week: null, orders: 20, fee: 2, forWho: 'Pour démarrer' },
-  { id: 'essentiel', name: 'Essentiel', month: 3500, week: 1000, orders: 150, fee: 1, forWho: 'Pour les vendeurs actifs sur les réseaux', recommended: true },
-  { id: 'pro', name: 'Pro', month: 10000, week: null, orders: 600, fee: 0, forWho: 'Pour les marques qui grandissent' },
-  { id: 'business', name: 'Business', month: 25000, week: null, orders: null, fee: 0, forWho: 'Pour les boutiques installées' },
+  { id: 'essentiel', name: 'Essentiel', month: 3500, week: null, orders: 10, fee: 1, forWho: 'Pour vos premières ventes' },
+  { id: 'croissance', name: 'Croissance', month: 7500, week: null, orders: 30, fee: 0, forWho: 'Pour les vendeurs actifs sur les réseaux', recommended: true },
+  { id: 'pro', name: 'Pro', month: 15000, week: null, orders: 80, fee: 0, forWho: 'Pour les marques qui grandissent', live: true },
+  { id: 'business', name: 'Business', month: 30000, week: null, orders: 200, fee: 0, forWho: 'Pour les boutiques installées', live: true },
+  { id: 'entreprise', name: 'Entreprise', month: 60000, week: null, orders: null, fee: 0, forWho: 'Pour les grandes boutiques', live: true },
 ];
+/** A store with no plan yet (the old free plan, 'gratuit' in the base): she must choose one. */
+export const NO_PLAN: Plan = { id: 'gratuit', name: 'Aucune formule', month: 0, week: null, orders: 0, fee: 0, forWho: '' };
 export const PLAN_FEATURES = [
   'Toutes les fonctions : boutique, paiements, commandes WhatsApp, livraison, codes promo, avis clients',
   'Une vraie personne qui vous répond sur WhatsApp, en français',
   'Pause ou arrêt en un clic, rien n’est prélevé sans vous',
 ];
-export const planOf = (id: string | null | undefined): Plan => PLANS.find((p) => p.id === id) ?? PLANS[0]!;
+export const planOf = (id: string | null | undefined): Plan => PLANS.find((p) => p.id === id) ?? NO_PLAN;
+export const hasPlan = (id: string | null | undefined): boolean => PLANS.some((p) => p.id === id);
 
 export type Answer<T> = ({ ok: true } & T) | { ok: false; message: string; code?: string };
 

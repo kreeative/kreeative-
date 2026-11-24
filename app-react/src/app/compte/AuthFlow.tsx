@@ -253,8 +253,8 @@ export function AuthFlow() {
               <Progress label="Créer un compte" at={1} of={3} />
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>Créez votre compte</h1>
-                {wanted ? <p><b>Créez votre compte pour choisir le modèle {wanted.name}.</b> C’est gratuit.</p> : null}
-                <p>Gratuit. Votre boutique en ligne en quelques minutes.</p>
+                {wanted ? <p><b>Créez votre compte pour choisir le modèle {wanted.name}.</b></p> : null}
+                <p>Votre boutique en ligne en quelques minutes.</p>
               </div>
               {offer ? <p className={styles.launch}><span className={styles.launchText}><b>{offer.title}</b> {offer.detail}</span>{offer.left ? <span className={styles.launchLeft}>{offer.left}</span> : null}</p> : null}
               <Field label="Votre prénom" name="firstName" autoComplete="given-name" autoCapitalize="words" maxLength={40} value={firstName} onChange={(e) => { setFirstName(e.target.value); clearError('firstName'); }} error={errors.firstName} />
@@ -386,7 +386,7 @@ export function AuthFlow() {
             <p className={styles.sideText}>Une boutique en ligne, les commandes WhatsApp, le paiement mobile money et la livraison par commune. Depuis votre téléphone.</p>
           </div>
           <ul className={`${styles.perks} c-perks`}>
-            <li><span><Icon name="check" size={16} /></span>Gratuit pour démarrer, sans carte bancaire</li>
+            <li><span><Icon name="check" size={16} /></span>Un modèle de designer, payé une seule fois</li>
             <li><span><Icon name="check" size={16} /></span>Jehre ne garde jamais votre argent</li>
             <li><span><Icon name="check" size={16} /></span>Une vraie personne vous répond sur WhatsApp, en français</li>
           </ul>

@@ -13,10 +13,18 @@
 .storeLink:hover { color: var(--ink); }
 
 /* the list scrolls inside the card when the screen is short; the logo, the store and the account stay in place */
-.nav { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: grid; gap: 2px; align-content: start; }
+.nav { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; display: grid; gap: 4px; align-content: start; margin: 0 calc(-1 * var(--sp-4)); padding: 6px var(--sp-4) 10px; }
 .item { display: flex; align-items: center; gap: 8px; height: var(--ctl); padding: 0 var(--sp-3); border-radius: var(--r-sm); font: var(--w-ui) var(--fs)/var(--lh) var(--font); color: var(--ink-2); transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease); }
 .item:hover { background: var(--grey-1); color: var(--ink); }
-.on, .on:hover { background: var(--ink); color: var(--white); }
+/* the page she is on: light Liquid Glass, a thin rainbow edge and a soft rainbow halo, never a black block */
+.item { position: relative; isolation: isolate; outline-offset: 2px; }
+.on, .on:hover {
+  color: var(--ink); font-weight: 600; --ic-b: 1; --ic-sw: 2;
+  border: 1.5px solid transparent; border-radius: 14px;
+  background: linear-gradient(rgba(255, 255, 255, .97), rgba(255, 255, 255, .97)) padding-box, var(--rainbow) border-box;
+  -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+  box-shadow: 0 6px 18px -8px rgba(106, 76, 255, .35), 0 6px 18px -10px rgba(232, 70, 124, .35), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
 
 .me { position: relative; margin-top: auto; }
 .meBtn { display: flex; align-items: center; gap: 8px; width: 100%; height: 44px; font: var(--w-ui) var(--fs)/var(--lh) var(--font); padding: 0 var(--sp-2); border: 0; border-radius: var(--r); background: none; cursor: pointer; text-align: left; }
@@ -45,7 +53,7 @@
   .logo, .store { display: none; }
   .nav { flex: 1; overflow: visible; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; align-content: normal; }
   .item { flex-direction: column; justify-content: center; gap: 2px; height: 52px; padding: 0; font-size: 11px; }
-  .on, .on:hover { background: none; color: var(--ink); font-weight: 500; }
+  .on, .on:hover { background: none; color: var(--ink); font-weight: 500; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .me { margin: 0; }
   .meBtn { width: 52px; height: 52px; justify-content: center; padding: 0; }
   .meName, .meBtn > svg { display: none; }
@@ -140,7 +148,7 @@
   .item svg, .plus svg { flex: none; width: 20px; height: 20px; }
   /* a word is never cut: the longest (« Commandes ») may pass its column by a pixel or two, far from its neighbours */
   .item span, .plus span { min-width: 0; white-space: nowrap; letter-spacing: -.1px; }
-  .on, .on:hover { background: none; color: var(--ink); font-weight: 600; --ic-b: 1; --ic-sw: 2; }
+  .on, .on:hover { background: none; color: var(--ink); font-weight: 600; --ic-b: 1; --ic-sw: 2; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .me { min-width: 0; margin: 0; }
   .plus { display: flex; flex-direction: column; align-items: center; gap: 4px; font: inherit; color: inherit; }
   .main { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }

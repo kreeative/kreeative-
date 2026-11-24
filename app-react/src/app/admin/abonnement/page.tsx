@@ -6,7 +6,7 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
-import { PLANS, PLAN_FEATURES, openPortal, planOf, subscribe, syncPlans, type Plan } from '@/lib/billing';
+import { PLANS, PLAN_FEATURES, hasPlan, openPortal, planOf, subscribe, syncPlans, type Plan } from '@/lib/billing';
 import { money } from '@/lib/format';
 import { storeName } from '@/lib/stores';
 import styles from './abonnement.module.css';
@@ -50,11 +50,12 @@ export default function PlanPage() {
 
   return (
     <>
-      <PageHead title="Abonnement" sub={`${storeName(store)} · formule ${current.name}${store.plan_until && current.month ? ` jusqu’au ${until(store.plan_until)}` : ''}`}
+      <PageHead title="Abonnement" sub={hasPlan(store.plan) ? `${storeName(store)} · formule ${current.name}${store.plan_until && current.month ? ` jusqu’au ${until(store.plan_until)}` : ''}` : `${storeName(store)} · aucune formule`}
         action={current.month && owner ? <Button variant="secondary" busy={busy === 'portal'} onClick={() => void manage()}>Gérer mon abonnement</Button> : null} />
       {message ? <div className={styles.notice}><Notice tone={message.tone}>{message.text}</Notice></div> : null}
       {error ? <div className={styles.notice}><Notice tone="error">{error}</Notice></div> : null}
       {owner ? null : <div className={styles.notice}><Notice tone="info">Seule la propriétaire de cette boutique peut changer sa formule.</Notice></div>}
+      {owner && !hasPlan(store.plan) ? <div className={styles.notice}><Notice tone="warn" title="Choisissez une formule">Votre boutique reste en ligne. Choisissez la formule qui vous convient.</Notice></div> : null}
 
       <ul className={styles.plans}>
         {PLANS.map((p) => {
@@ -63,19 +64,17 @@ export default function PlanPage() {
             <li key={p.id} className={styles.plan} data-mine={mine ? '' : undefined}>
               <div className={styles.head}><h2>{p.name}</h2>{mine ? <span className={styles.chip}>Votre formule</span> : null}</div>
               <p className={styles.for}>{p.forWho}</p>
-              <p className={styles.price}><b>{p.month ? money(p.month) : `0${NB}FCFA`}</b>{p.month ? <span> / mois</span> : null}</p>
-              <p className={styles.week}>{p.week ? `ou ${money(p.week)} par semaine` : NB}</p>
+              <p className={styles.price}><b>{money(p.month)}</b><span> / mois</span></p>
               <ul className={styles.facts}>
                 <li><Icon name="check" size={16} />{p.orders === null ? 'Commandes illimitées' : `Jusqu’à ${p.orders} commandes par mois`}</li>
                 <li><Icon name="check" size={16} />{p.fee ? `${p.fee}${NB}% par vente en ligne` : 'Aucune commission Jehre'}</li>
+                {p.live ? <li><Icon name="check" size={16} />En direct : qui visite votre boutique</li> : null}
               </ul>
               {owner && !mine && p.month ? (
                 <div className={styles.acts}>
                   <Button block busy={busy === `${p.id}-mois`} disabled={!!busy} onClick={() => void choose(p, 'mois')} aria-label={`Choisir ${p.name} au mois`}>Choisir {p.name}</Button>
-                  {p.week ? <Button block variant="secondary" busy={busy === `${p.id}-semaine`} disabled={!!busy} onClick={() => void choose(p, 'semaine')} aria-label={`Choisir ${p.name} à la semaine`}>Payer à la semaine</Button> : null}
                 </div>
               ) : null}
-              {owner && !mine && !p.month && current.month ? <p className={styles.small}>Pour revenir à Gratuit, arrêtez votre abonnement dans « Gérer mon abonnement ».</p> : null}
             </li>
           );
         })}

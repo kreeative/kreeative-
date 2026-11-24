@@ -29,7 +29,7 @@ function sample(): Live {
 const COUNTRY = (code: string): string => { try { return new Intl.DisplayNames(['fr'], { type: 'region' }).of(code.toUpperCase()) ?? code; } catch { return code; } };
 
 /** « En direct »: who is on the store right now, today and this week, and from where. Read again every 30 seconds.
- *  It comes with the Pro and Business plans (the server decides). */
+ *  It comes from the 3rd plan up: Pro, Business, Entreprise (the server decides). */
 export default function LivePage() {
   const { store } = useAdmin();
   const [live, setLive] = useState<Live | null | undefined>(undefined);
@@ -55,7 +55,7 @@ export default function LivePage() {
       <PageHead title="En direct" sub={`Qui regarde votre boutique, et d’où.${live?.ok ? ` Mis à jour toutes les 30${NB}secondes.` : ''}`} />
       {live === undefined ? <CloudLoader /> : null}
       {live === null ? <Notice tone="error">Les visites n’ont pas pu être lues. Vérifiez votre connexion.</Notice> : null}
-      {noPlan ? <div className={styles.note}><Notice tone="info" title="Avec les formules Pro et Business" action={<ButtonLink variant="secondary" href="/admin/abonnement/">Voir les formules</ButtonLink>}>Voyez en direct qui est sur votre boutique, et d’où.</Notice></div> : null}
+      {noPlan ? <div className={styles.note}><Notice tone="info" title="À partir de la formule Pro" action={<ButtonLink variant="secondary" href="/admin/abonnement/">Voir les formules</ButtonLink>}>Voyez en direct qui est sur votre boutique, et d’où.</Notice></div> : null}
       {live && !live.ok && !noPlan ? <Notice tone="info">Les visites de cette boutique ne sont pas disponibles.</Notice> : null}
       {shown ? (
         <>

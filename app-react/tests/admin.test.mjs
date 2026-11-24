@@ -1567,12 +1567,14 @@ await test('booking hours and rules: hours, a break, special days, the team, the
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-await test('subscription: the plan of this store, the four plans with their prices; choosing one asks Stripe for THIS store; back from Stripe the plan is active', async () => {
+await test('subscription: the plan of this store, the five plans with their prices (no free plan, no weekly price); choosing one asks Stripe for THIS store; back from Stripe the plan is active', async () => {
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/abonnement/`); await h1(page, 'Abonnement');
   await page.getByText('Boutique Test · formule Essentiel').waitFor();
   const plans = await page.locator('main > div > ul > li').evaluateAll((els) => els.map((li) => [li.querySelector('h2').textContent, li.querySelector('p b').textContent.replace(/\s/g, ' '), [...li.querySelectorAll('button')].map((b) => b.textContent)]));
-  assert.deepEqual(plans, [['Gratuit', '0 FCFA', []], ['Essentiel', '3 500 FCFA', []], ['Pro', '10 000 FCFA', ['Choisir Pro']], ['Business', '25 000 FCFA', ['Choisir Business']]]);
+  assert.deepEqual(plans, [['Essentiel', '3 500 FCFA', []], ['Croissance', '7 500 FCFA', ['Choisir Croissance']], ['Pro', '15 000 FCFA', ['Choisir Pro']], ['Business', '30 000 FCFA', ['Choisir Business']], ['Entreprise', '60 000 FCFA', ['Choisir Entreprise']]]);
+  assert.ok((await page.locator('main').innerText()).includes('Jusqu’à 10 commandes par mois'), 'Essentiel: 10 orders');
+  assert.equal(await page.getByText('Gratuit', { exact: true }).count(), 0);
   assert.equal(await page.getByText('Votre formule').count(), 1);
   await page.screenshot({ path: `${SHOTS}80-abonnement.png`, fullPage: true });
   await page.getByRole('button', { name: 'Choisir Pro au mois' }).click();
@@ -1589,12 +1591,16 @@ await test('subscription: the plan of this store, the four plans with their pric
   await page.getByText(/Boutique Test · formule Pro jusqu’au 23 décembre 2026/).waitFor();
   assert.equal(new URL(page.url()).search, '');
   await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
-  // the weekly price exists for Essentiel only, from the free plan
+  // a store still on the old free plan: no plan; she is asked to choose one (her store stays online)
   const w2 = world(); w2.stores[0].plan = 'gratuit'; const o = await open(browser, PHONE, w2);
   await o.page.goto(`${BASE}/admin/abonnement/`); await h1(o.page, 'Abonnement');
-  await o.page.getByRole('button', { name: 'Choisir Essentiel à la semaine' }).click();
+  await o.page.getByText('Choisissez une formule', { exact: true }).waitFor();
+  assert.equal(await o.page.getByRole('button', { name: /à la semaine/ }).count(), 0);
+  await o.page.screenshot({ path: `${SHOTS}129-abonnement-sans-formule.png`, fullPage: true });
+  await o.page.getByRole('button', { name: 'Choisir Essentiel au mois' }).click();
   await o.page.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
-  assert.equal(w2.calls.find((c) => c.body.action === 'subscribe').body.period, 'semaine');
+  assert.equal(w2.calls.find((c) => c.body.action === 'subscribe').body.period, 'mois');
+  await o.page.goto(`${BASE}/admin/`); await o.page.getByRole('link', { name: 'Choisir une formule' }).waitFor();
   assert.equal(await o.page.getByRole('button', { name: 'Gérer mon abonnement' }).count(), 0);
   assert.deepEqual([...errors, ...o.errors], []); await ctx.close(); await o.ctx.close();
 });
@@ -1781,7 +1787,7 @@ await test('partners: invite by e-mail, cancel an invitation, remove a partner; 
   // live visits: not in this plan → the page says which plans have it; with it, the three figures and the countries
   await page.setViewportSize(DESK);
   await page.goto(`${BASE}/admin/en-direct/`); await h1(page, 'En direct');
-  await page.getByText('Avec les formules Pro et Business').waitFor();
+  await page.getByText('À partir de la formule Pro').waitFor();
   assert.equal(await page.getByRole('link', { name: 'Voir les formules' }).getAttribute('href'), '/admin/abonnement/');
   // the globe is there even then, alive, with example visitors (said so)
   const globe = page.getByRole('img', { name: 'Globe des visiteurs de votre boutique' });
@@ -2387,6 +2393,22 @@ await test('Produits: only the products of the shop she is on; another shop with
   assert.equal(w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').length, 0, 'nothing written by just looking');
   // and after a reload, still rhorho, still empty
   await page.reload(); await page.getByText('Aucun produit pour le moment').waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('sidebar: the page she is on is light glass with a thin rainbow edge, never a black block, and nothing of it is cut', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/commandes/`); await h1(page, 'Commandes');
+  const on = page.locator('aside nav a[aria-current="page"]').first();
+  await on.waitFor();
+  const look = await on.evaluate((a) => { const c = getComputedStyle(a); return { bg: c.backgroundColor, color: c.color, img: c.backgroundImage.includes('gradient') }; });
+  assert.notEqual(look.bg, 'rgb(17, 17, 17)', 'not a black block');
+  assert.equal(look.img, true, 'a rainbow edge');
+  const inside = await on.evaluate((a) => { const r = a.getBoundingClientRect(), s = a.closest('aside').getBoundingClientRect(); return r.left - s.left >= 8 && s.right - r.right >= 8; });
+  assert.equal(inside, true, 'it floats inside the panel');
+  await page.waitForTimeout(300);
+  const box = await page.locator('aside').boundingBox();
+  await page.screenshot({ path: `${SHOTS}130-barre-onglet-actif.png`, clip: { x: box.x, y: box.y, width: box.width, height: Math.min(box.height, 620) } });
   assert.deepEqual(errors, []); await ctx.close();
 });
 

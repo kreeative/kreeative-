@@ -1,5 +1,6 @@
 'use client';
 
+import { hasPlan } from '@/lib/billing';
 import { CARD_LABEL, cardState, cardStatus, type CardState } from '@/lib/card';
 import { CloudLoader } from '@/components/ui/CloudLoader';
 import Link from 'next/link';
@@ -83,6 +84,7 @@ export default function AdminHome() {
       <PageHead title={hello} sub={storeName(store)}
         action={<ButtonLink href={storeUrl(store, model)} target="_blank" rel="noopener" variant="secondary" icon="eye">Voir la boutique</ButtonLink>} />
 
+      {store.role === 'owner' && !hasPlan(store.plan) ? <p className={styles.banner}><Icon name="sparkle" size={18} /><span>Votre boutique n’a pas encore de formule. <a href="/admin/abonnement/"><b>Choisir une formule</b></a></span></p> : null}
       {!store.published ? <p className={styles.banner}><Icon name="info" size={18} />Votre boutique n’est pas encore en ligne : vos clientes ne la voient pas.</p> : null}
 
       <section className={home.today} aria-label="Aujourd’hui">
