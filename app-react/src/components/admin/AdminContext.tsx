@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { currentModel, modelBySlug, myModels } from '@/lib/models';
 import { completeLogin, readAccount, type Account } from '@/lib/account';
-import { currentUser } from '@/lib/auth';
+import { currentUser, emailVerified, hasPassword } from '@/lib/auth';
 import { createStore, listStores, type Store } from '@/lib/stores';
 
 /* What every page of the dashboard needs: who is logged in, her stores, the one she is looking at. A visitor
@@ -48,6 +48,8 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
   const load = useCallback(async () => {
     const user = await currentUser();
     if (!user) { window.location.replace(loginUrl()); return; }
+    // every account has a verified e-mail and a password: the account page asks for what is missing
+    if (!emailVerified(user) || !hasPassword(user)) { window.location.replace('/compte/'); return; }
     const acc = await completeLogin(user).catch(() => readAccount());
     if (!acc) { window.location.replace(loginUrl()); return; }
     let [list, owned] = await Promise.all([listStores(user.id), myModels()]);

@@ -10,7 +10,7 @@ import { modelBySlug, type Model } from '@/lib/models';
 import { clip, completeLogin, readAccount, rememberSource, saveStoreName, signOut, slugify, type Account } from '@/lib/account';
 import { mountDoodles } from '@/lib/doodles';
 import { COUNTRIES, launchOffer, type LaunchOffer } from '@/lib/launch';
-import { PASSWORD_RULE, currentUser, resetPassword, maskEmail, normEmail, normPhone, sendCode, setPassword, signInPassword, validEmail, validPassword, verifyCode, type AuthFailure } from '@/lib/auth';
+import { PASSWORD_RULE, currentUser, emailVerified, hasPassword, markPassword, resetPassword, maskEmail, normEmail, normPhone, sendCode, setPassword, signInPassword, validEmail, validPassword, verifyCode, type AuthFailure } from '@/lib/auth';
 import styles from './auth.module.css';
 
 /* The seller's account, one screen at a time:
@@ -19,7 +19,7 @@ import styles from './auth.module.css';
    A seller who is already logged in lands on « account ». The pages that are not migrated yet (dashboard, editor)
    are reached by their current addresses. */
 
-type Step = 'loading' | 'signup' | 'login' | 'code' | 'store' | 'done' | 'account';
+type Step = 'loading' | 'signup' | 'login' | 'code' | 'password' | 'store' | 'done' | 'account';
 type Mode = 'signup' | 'login';
 const RESEND_AFTER = 60;
 const LINKS = { home: '/', dashboard: '/admin/', editor: '/creer/', models: '/admin/#boutique', privacy: '/confidentialite/', terms: '/mentions-legales/' };
@@ -48,6 +48,7 @@ export function AuthFlow() {
   const [passSaved, setPassSaved] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const recovering = useRef(false);
+  const after = useRef<Step>('account');      // where she goes once her password exists
   const title = useRef<HTMLHeadingElement>(null);
 
   const go = useCallback((next: Step) => { setErrors({}); setFailure(null); setStep(next); }, []);
@@ -68,11 +69,13 @@ export function AuthFlow() {
     void currentUser().then(async (user) => {
       if (!alive) return;
       if (!user) { setStep(wanted); return; }
+      // an e-mail never verified: a code sent to it verifies it (the login by code)
+      if (!emailVerified(user)) { setEmail(user.email ?? ''); setMode('login'); setStep('login'); setFailure({ ok: false, kind: 'email', text: 'Vérifiez votre e-mail : recevez un code.' }); return; }
       const acc = await completeLogin(user).catch(() => readAccount());
       if (!alive) return;
       setAccount(acc);
-      setStep(acc ? 'account' : wanted);
-      if (acc && recovering.current) setPassOpen(true);
+      // every account has a password: she creates hers before anything else
+      setStep(!acc ? wanted : hasPassword(user) && !recovering.current ? 'account' : 'password');
     });
     return () => { alive = false; };
   }, []);
@@ -126,7 +129,8 @@ export function AuthFlow() {
       setStoreName(acc.storeName);
       setBusy(false);
       // a new seller names her store; one who has a name already (or who logs in) goes to her account
-      go(mode === 'signup' && !acc.storeName ? 'store' : 'account');
+      after.current = mode === 'signup' && !acc.storeName ? 'store' : 'account';
+      go(hasPassword(r.user) ? after.current : 'password');
     } catch {
       setBusy(false);
       setFailure({ ok: false, kind: 'network', text: 'Votre code est bon, mais votre compte n’a pas pu s’ouvrir. Vérifiez votre connexion, puis réessayez.' });
@@ -147,6 +151,7 @@ export function AuthFlow() {
     if (!r.ok) { setBusy(false); setFailure(r); return; }
     try {
       const acc = await completeLogin(r.user, {});
+      if (!hasPassword(r.user)) void markPassword();
       setAccount(acc); setStoreName(acc.storeName); setPass(''); setBusy(false);
       go('account');
     } catch {
@@ -175,6 +180,7 @@ export function AuthFlow() {
     setBusy(false);
     if (!r.ok) { setFailure(r); return; }
     setPass(''); setPassOpen(false); setPassSaved(true);
+    if (step === 'password') { const next = after.current; after.current = 'account'; go(next); }
   }
 
   async function resend() {
@@ -293,6 +299,19 @@ export function AuthFlow() {
                   ? <>Renvoyer dans <span className={styles.timer}>{Math.floor(wait / 60)}:{String(wait % 60).padStart(2, '0')}</span></>
                   : <button type="button" className={styles.link} onClick={() => void resend()}>Renvoyer le code</button>}
               </p>
+            </form>
+          )}
+
+          {step === 'password' && (
+            <form className={styles.form} onSubmit={savePassword} noValidate>
+              <div className={styles.head}>
+                <h1 ref={title} tabIndex={-1}>Créez votre mot de passe</h1>
+                <p>Il protège votre compte.</p>
+              </div>
+              <Field label="Mot de passe" name="new-password" type="password" autoComplete="new-password" value={password} onChange={(e) => { setPass(e.target.value); clearError('password'); }} error={errors.password} hint={PASSWORD_RULE} />
+              {failure ? <Notice tone="error">{failure.text}</Notice> : null}
+              <Button type="submit" variant="rainbow" block busy={busy} iconEnd="arrow">Enregistrer</Button>
+              <Button variant="quiet" block icon="logout" onClick={() => void logout()}>Se déconnecter</Button>
             </form>
           )}
 

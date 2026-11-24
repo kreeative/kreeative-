@@ -11,10 +11,13 @@ const BASE = process.env.BASE ?? 'http://localhost:3100';
 const SHOTS = new URL('./shots/', import.meta.url).pathname;
 mkdirSync(SHOTS, { recursive: true });
 
-const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'kady@exemple.com', created_at: '2026-11-23T10:00:00Z', user_metadata: { first_name: 'Kady' }, app_metadata: {} };
+const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'kady@exemple.com', created_at: '2026-11-23T10:00:00Z', email_confirmed_at: '2026-11-01T10:00:00Z', user_metadata: { first_name: 'Kady', has_password: true }, app_metadata: {} };
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const jwt = () => `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: USER.id, email: USER.email, role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`;
 const session = () => ({ access_token: jwt(), token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'refresh', user: USER });
+// an account that has no password yet (world.noPassword), until she saves one
+const userOf = (w) => (w.noPassword ? { ...USER, user_metadata: { first_name: 'Kady' } } : USER);
+const sessionOf = (w) => ({ ...session(), user: userOf(w) });
 
 /** A page whose Supabase calls are answered here. `world` is the fake server: its profile row and what it received. */
 async function open(browser, viewport, world) {
@@ -34,16 +37,16 @@ async function open(browser, viewport, world) {
     }
     if (url.pathname === '/auth/v1/verify') {
       if (body.token !== world.code) return json(route, 403, { code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' });
-      return json(route, 200, session());
+      return json(route, 200, sessionOf(world));
     }
     if (url.pathname === '/auth/v1/logout') return json(route, 204);
     if (url.pathname === '/auth/v1/recover') return json(route, 200, {});
     if (url.pathname === '/auth/v1/token' && url.searchParams.get('grant_type') === 'password') {
       if (!world.password || body.password !== world.password || !world.known.includes(body.email)) return json(route, 400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
-      return json(route, 200, session());
+      return json(route, 200, sessionOf(world));
     }
-    if (url.pathname === '/auth/v1/user' && method === 'PUT') { world.password = body.password; return json(route, 200, USER); }
-    if (url.pathname === '/auth/v1/user') return json(route, 200, USER);
+    if (url.pathname === '/auth/v1/user' && method === 'PUT') { if (body.password) { world.password = body.password; world.noPassword = false; } return json(route, 200, userOf(world)); }
+    if (url.pathname === '/auth/v1/user') return json(route, 200, userOf(world));
     if (url.pathname === '/rest/v1/profiles') {
       if (method === 'GET') return json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]);
       if (method === 'PATCH') { Object.assign(world.profile, body); return json(route, 204); }
@@ -179,27 +182,28 @@ await test('a pasted code fills every box; the code can be asked again only afte
   await ctx.close();
 });
 
-await test('password: she gives her account one from her account page, logs in with it; a wrong one is refused, and a code still works', async () => {
-  const w = newWorld({ known: ['kady@exemple.com'] }); Object.assign(w.profile, { first_name: 'Kady', store_name: 'Boutique Test' });
+await test('password: every account must have one. After the code she creates it before anything else; then she logs in with it, a wrong one is refused, « Réinitialiser » sends the link', async () => {
+  const w = newWorld({ known: ['kady@exemple.com'], noPassword: true }); Object.assign(w.profile, { first_name: 'Kady', store_name: 'Boutique Test' });
   const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/compte/#connexion`); await page.waitForSelector('h1');
-  // no password yet: the code, as before
   await page.getByLabel('Adresse e-mail').fill('kady@exemple.com');
   await page.getByRole('button', { name: 'Recevoir mon code' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
   await typeCode(page, w.code);
-  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
-  // her account page: a password that is too simple is refused before anything is sent
-  await page.getByRole('button', { name: 'Créer ou changer mon mot de passe' }).click();
-  await page.getByLabel('Nouveau mot de passe').fill('azerty');
-  await page.getByRole('button', { name: 'Enregistrer le mot de passe' }).click();
+  // her e-mail is verified by the code; no password yet: she must create one, there is no way around it
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Créez votre mot de passe');
+  assert.equal(await page.getByRole('link', { name: /tableau de bord/ }).count(), 0, 'no way to the dashboard before the password');
+  await page.screenshot({ path: `${SHOTS}07-mot-de-passe-obligatoire.png`, fullPage: true });
+  await page.reload(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Créez votre mot de passe');   // coming back does not skip it
+  await page.getByLabel('Mot de passe', { exact: true }).fill('azerty');
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
   await page.getByText('Au moins 8 caractères, avec des lettres et des chiffres.').first().waitFor();
   assert.equal(w.calls.filter((c) => c.path === '/auth/v1/user' && c.method === 'PUT').length, 0);
-  await page.getByLabel('Nouveau mot de passe').fill('Karite2026ok');
-  await page.getByRole('button', { name: 'Enregistrer le mot de passe' }).click();
-  await page.getByText('Mot de passe enregistré.').waitFor();
+  await page.getByLabel('Mot de passe', { exact: true }).fill('Karite2026ok');
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
+  assert.equal(w.calls.find((c) => c.path === '/auth/v1/user' && c.method === 'PUT').body.data.has_password, true, 'the account is marked as having a password');
   assert.equal(w.password, 'Karite2026ok');
-  await page.screenshot({ path: `${SHOTS}07-mot-de-passe-enregistre.png`, fullPage: true });
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');
   // login with it: a wrong one is refused with a way out, the right one opens the account

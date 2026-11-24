@@ -11,7 +11,7 @@ const SHOTS = new URL('./shots/', import.meta.url).pathname;
 const CONNECT = (await import('node:fs')).readFileSync(new URL('../../concepts/jeere/connect/jeere-connect.js', import.meta.url), 'utf8');
 mkdirSync(SHOTS, { recursive: true });
 
-const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'kady@exemple.com', created_at: '2026-11-01T10:00:00Z', user_metadata: { first_name: 'Kady' }, app_metadata: {} };
+const USER = { id: '11111111-2222-4333-8444-555555555555', aud: 'authenticated', role: 'authenticated', email: 'kady@exemple.com', created_at: '2026-11-01T10:00:00Z', email_confirmed_at: '2026-11-01T10:00:00Z', user_metadata: { first_name: 'Kady', has_password: true }, app_metadata: {} };
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const session = () => ({ access_token: `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: USER.id, role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`, token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'refresh', user: USER });
 const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString();
@@ -142,6 +142,17 @@ const PHONE = { width: 390, height: 844 }, DESK = { width: 1280, height: 860 };
 await test('without a session, the dashboard sends to the login page', async () => {
   const { page, ctx } = await open(browser, DESK, world(), { logged: false });
   await page.goto(`${BASE}/admin/`); await page.waitForURL('**/compte/#connexion'); await ctx.close();
+});
+
+await test('an account without a password is sent to its account page before the dashboard', async () => {
+  const ctx = await browser.newContext({ viewport: DESK });
+  const bare = { ...session(), user: { ...USER, user_metadata: { first_name: 'Kady' } } };
+  await ctx.addInitScript((s) => { window.localStorage.setItem('sb-aezchxfvzfoqlvzchqyk-auth-token', JSON.stringify(s)); }, bare);
+  const page = await ctx.newPage();
+  await page.route('https://aezchxfvzfoqlvzchqyk.supabase.co/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' }, body: route.request().url().includes('/auth/v1/user') ? JSON.stringify(bare.user) : '[]' }));
+  await page.goto(`${BASE}/admin/`);
+  await page.waitForURL(/\/compte\/$/);
+  await ctx.close();
 });
 
 await test('a seller without a store sees how to create one, and no one else’s store', async () => {

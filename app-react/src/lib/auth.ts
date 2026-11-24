@@ -106,9 +106,18 @@ export async function resetPassword(email: string): Promise<AuthResult> {
 /** Gives the open account a password, or changes it. */
 export async function setPassword(password: string): Promise<AuthResult> {
   try {
-    const { error } = await supabase().auth.updateUser({ password });
+    const { error } = await supabase().auth.updateUser({ password, data: { has_password: true } });
     return error ? failure(error) : { ok: true };
   } catch (err) { return failure(err); }
+}
+
+/* Every account must have a password and a verified e-mail. The account says it has a password in its own
+   metadata (`has_password`), written when she saves one; an e-mail is verified once she entered a code sent to it. */
+export const hasPassword = (user: User): boolean => (user.user_metadata as { has_password?: unknown } | undefined)?.has_password === true;
+export const emailVerified = (user: User): boolean => !!user.email_confirmed_at;
+/** She just logged in WITH a password: the account is marked as having one (accounts older than the mark). */
+export async function markPassword(): Promise<void> {
+  try { await supabase().auth.updateUser({ data: { has_password: true } }); } catch { /* asked again at her next login */ }
 }
 
 /** The user of the open session, or null. */
