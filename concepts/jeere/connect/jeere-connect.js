@@ -643,7 +643,17 @@
       return;
     }
     var id;
-    if (el.hasAttribute('data-jeere-add')) { id = idOf(el, 'data-jeere-add'); if (id) { e.preventDefault(); if (add(id, 1)) shopTrack('AddToCart'); } return; }
+    if (el.hasAttribute('data-jeere-add')) {
+      id = idOf(el, 'data-jeere-add');
+      if (id) {
+        e.preventDefault();
+        if (add(id, 1)) {
+          shopTrack('AddToCart');
+          if (el.hasAttribute('data-jeere-go') && !inEditor) { try { window.location.assign(checkoutUrl()); } catch (x) { window.location.href = checkoutUrl(); } }
+        }
+      }
+      return;
+    }
     if (el.hasAttribute('data-jeere-inc')) { id = idOf(el, 'data-jeere-inc'); if (id) { e.preventDefault(); add(id, 1); } return; }
     if (el.hasAttribute('data-jeere-dec')) { id = idOf(el, 'data-jeere-dec'); if (id) { e.preventDefault(); set(id, (S.cart[id] || 0) - 1); } return; }
     if (el.hasAttribute('data-jeere-remove')) { id = idOf(el, 'data-jeere-remove'); if (id) { e.preventDefault(); set(id, 0); } }
@@ -1146,6 +1156,11 @@
         var c = mk('div', ''), ph = mk('div', 'aspect-ratio:1;border-radius:12px;overflow:hidden;background:rgba(17,17,17,.06);margin-bottom:10px');
         var src = httpsImg(p.image); if (src) { var pi = mk('img', 'display:block;width:100%;height:100%;object-fit:cover'); pi.src = src; pi.alt = ''; pi.loading = 'lazy'; ph.appendChild(pi); }
         c.appendChild(ph); c.appendChild(mk('div', 'font-weight:600;line-height:1.3', p.name)); c.appendChild(mk('div', 'opacity:.7;margin-top:2px', fmt(p.price)));
+        if (str(p.id)) {   // her buyer orders it in one tap: into the cart, then the checkout
+          var go = mk('button', 'margin-top:10px;padding:9px 18px;border:0;border-radius:999px;background:#111111;color:#FFFFFF;cursor:pointer;font:inherit;font-weight:600', 'Commander');
+          go.type = 'button'; go.setAttribute('data-jeere-add', str(p.id)); go.setAttribute('data-jeere-go', '');
+          c.appendChild(go);
+        }
         pg.appendChild(c);
       });
       wrap.appendChild(pg);
