@@ -954,6 +954,30 @@ await test('editor, SOYEUSE: its logo is drawn with ornamental letters; the edit
   assert.deepEqual(o.errors, []); await o.ctx.close();
 });
 
+await test('editor, MINUIT: hiding a line of the checklist removes its ticked box with it, and bringing it back restores both', async () => {
+  const w = withModel(world(), 'minuit'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  const line = site.locator('.prep__list li').first();
+  await line.scrollIntoViewIfNeeded();
+  assert.equal(await line.locator('svg').count(), 1, 'a line is a ticked box and its words');
+  await page.waitForTimeout(900);                                    // the list comes in with the model's own animation
+  await line.locator('span').click({ force: true });
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  await tools.getByRole('button', { name: 'Masquer', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Outils du site' }).waitFor();
+  await page.waitForTimeout(300);
+  assert.equal(await line.evaluate((n) => getComputedStyle(n).display), 'none', 'the whole line is gone: the box does not stay alone');
+  assert.equal(await site.locator('.prep__list li').nth(1).evaluate((n) => getComputedStyle(n).display !== 'none'), true, 'the other lines stay');
+  await page.screenshot({ path: `${SHOTS}68-minuit-ligne-masquee.png` });
+  await page.getByRole('navigation', { name: 'Outils du site' }).getByRole('button', { name: 'Ajouter', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /^Remettre «/ }).first().click();
+  await page.waitForTimeout(300);
+  assert.notEqual(await line.evaluate((n) => getComputedStyle(n).display), 'none');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await test('editor on a phone: a thin bar, her site on the whole screen, one bar of tools at the bottom that becomes the tools of what she touches', async () => {
   const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);
