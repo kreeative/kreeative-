@@ -3946,6 +3946,7 @@
       payCall({ action: 'status', storeId: sid }).then((j) => { S.stripe = Object.assign({ storeId: sid }, j); if (S.route && S.route.name === 'paiements') refresh(); });
       return '';
     }
+    if (st.code === 'login') return H`<div class="a-note a-note--strong" style="margin:6px 0 10px">${ico('info')}<div><p>${esc(fr('Votre session a expiré. Reconnectez-vous pour connecter Stripe.'))}</p><div class="a-btnrow" style="margin-top:8px"><a class="a-btn a-btn--primary a-btn--sm" href="../compte/?suite=carte#connexion">Me reconnecter</a></div></div></div>`;
     if (st.loading || !st.ok) return '';
     let txt, tone;
     if (!st.configured) { txt = 'Le paiement par carte sera bientôt activé sur Jehre.'; tone = 'muted'; }
@@ -3985,6 +3986,10 @@
       return H`<div class="a-page"><div class="a-card"><p class="a-small">Chargement…</p></div></div>`;
     }
     const st = S.stripe || {};
+    if (st.code === 'login') {
+      return H`<div class="a-page a-page--wide"><header class="a-ph"><div class="a-ph__txt"><h1 class="a-h1" tabindex="-1">Paiements par carte</h1></div>
+        <div class="a-ph__actions"><a class="a-btn a-btn--quiet a-btn--sm" href="#paiements">${ico('back')}Paiements</a></div></header>${H`<section class="a-card a-carte-start"><p class="a-note a-note--line">${esc(fr('Votre session a expiré. Reconnectez-vous pour connecter Stripe.'))}</p><div class="a-btnrow a-btnrow--top"><a class="a-btn a-btn--primary" href="../compte/?suite=carte#connexion">Me reconnecter</a></div></section>`}</div>`;
+    }
     const active = !!st.chargesEnabled;
     const t = CARTE_TABS.find((x) => x[0] === tab) ? tab : (active ? 'ventes' : 'activer');
     const needCountry = t === 'activer' && !st.connected;
@@ -4028,6 +4033,7 @@
     try { inst = await stripeInstance(country); } catch (e) {
       // Stripe refused (a missing permission on Jehre's key, no publishable key…): a clear message, then Stripe's own page
       const raw = String((e && e.message) || '');
+      if (/Connectez-vous/.test(raw)) { S.stripe = { storeId: remoteStoreId(), code: 'login' }; refresh(); return; }
       const why = /permission|lacks access|restricted/i.test(raw)
         ? 'Le paiement par carte n’est pas encore ouvert sur Jehre : la clé Stripe de la plateforme n’a pas encore toutes ses autorisations. Réessayez un peu plus tard.'
         : (/STRIPE_PUBLISHABLE_KEY|publique/i.test(raw) ? 'Le paiement par carte se termine sur la page de Stripe.' : 'Stripe n’a pas pu s’ouvrir ici. Réessayez dans un instant.');

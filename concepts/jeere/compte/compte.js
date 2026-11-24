@@ -63,9 +63,10 @@
     // « ?suite=modele&m=michou » (../modeles/, a model's demo asks for an account): back to that model
     var md = /[?&]suite=modele&m=(anse|seve|soyeuse|michou|regard|vernie|minuit)(?:&|$)/.exec(q);
     if (md) return { id: 'modele&m=' + md[1], model: md[1], url: '../modeles/' + md[1] + '/', title: 'Voir le modèle', text: 'Retour au modèle que vous regardiez.', cta: 'Voir le modèle' };
-    var m = /[?&]suite=(studio-publier|publier|studio|abonnements)(?:&|$)/.exec(q);
+    var m = /[?&]suite=(studio-publier|publier|studio|abonnements|carte)(?:&|$)/.exec(q);
     if (!m) return null;
     // « Se connecter pour publier » (creer/publish.js): back to the editor or the Studio, the publish dialog open
+    if (m[1] === 'carte') return { id: 'carte', url: '../admin/#paiements/carte/activer', title: 'Connecter Stripe', text: 'Retour aux paiements par carte.', cta: 'Connecter Stripe' };
     if (m[1] === 'publier') return { id: 'publier', publish: true, url: '../creer/#publier', title: 'Publier ma boutique', text: 'Retour à l’éditeur, la publication est ouverte.', cta: 'Publier ma boutique' };
     if (m[1] === 'studio-publier') return { id: 'studio-publier', publish: true, url: '../studio/#publier', title: 'Publier ma boutique', text: 'Retour au Studio, la publication est ouverte.', cta: 'Publier ma boutique' };
     if (m[1] === 'studio') return { id: 'studio', url: '../studio/?essai=1', title: 'Démarrer mon essai du Studio', text: '14 jours de Studio complet, gratuits. Aucun moyen de paiement demandé.', cta: 'Démarrer mon essai du Studio' };
