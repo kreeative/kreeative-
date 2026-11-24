@@ -56,6 +56,19 @@
       "dest": "https://jehre-app.vercel.app/_next/$1"
     },
     {
+      "src": "^/abonnements(/.*)?$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com|www\\.jehre\\.com)"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "/#tarifs"
+      }
+    },
+    {
       "src": "^/(admin|compte|atlas)$",
       "has": [
         {

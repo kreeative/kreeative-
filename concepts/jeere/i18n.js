@@ -366,7 +366,7 @@ window.JEERE_EN = {
   'contact.title': 'A question? Write to us.',
   'contact.lead': 'A real person answers, usually within 48 hours.',
   'contact.sellT': 'You sell',
-  'contact.sellD': 'A question about your store, prices or the Studio.',
+  'contact.sellD': 'A question about your store or prices.',
   'contact.partT': 'Partnership or press',
   'contact.partD': 'Payments, delivery, markets, associations, journalists.',
   'contact.repT': 'Report a store',
