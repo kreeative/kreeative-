@@ -202,8 +202,10 @@ span.fold { cursor: default; }
 .link, .line { display: grid; gap: 8px; min-width: 0; }
 .line { padding-top: 10px; border-top: 1px solid var(--line); }
 
-/* the one-line help of the tree: a very small notice on top (white card, grey text), closed for good with × */
-.tip { display: flex; align-items: flex-start; gap: 6px; min-width: 0; margin: 0; padding: 6px 6px 6px 10px; border-radius: 10px; background: var(--white); box-shadow: 0 0 0 1px var(--line); color: var(--muted); font: 400 10.5px/14px var(--font); }
+/* the one-line help: a very small notice on top of the screen, over the site (white, grey text), closed for good with × */
+.tip { position: absolute; z-index: 3; top: 10px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; max-width: min(460px, calc(100% - 24px)); margin: 0; padding: 6px 6px 6px 12px; border-radius: 999px; background: var(--white); box-shadow: 0 0 0 1px var(--line), 0 10px 26px -14px rgba(17, 17, 17, .35); color: var(--muted); font: 400 11px/14px var(--font); animation: tipIn var(--dur-in) var(--ease); }
+@keyframes tipIn { from { opacity: 0; transform: translate(-50%, -6px); } }
+@media (prefers-reduced-motion: reduce) { .tip { animation: none; } }
 .tip span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .tip a { color: var(--ink); text-decoration: none; }
 .tip button { flex: none; display: grid; place-items: center; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--faint); cursor: pointer; }

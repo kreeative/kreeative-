@@ -278,12 +278,6 @@ export default function EditorPage() {
         {leftOpen || phone ? (
         <aside className={styles.left} aria-label="Sections de la page">
           <h2 className={styles.title}>{path === '' ? 'Page d’accueil' : `Page ${pageName}`}</h2>
-          {tip ? (
-            <p className={styles.tip} role="note">
-              <span>Cliquez sur un texte ou une photo pour le changer. Vos produits : <Link href="/admin/produits/"><b>Produits</b></Link>.</span>
-              <button type="button" onClick={() => { setTip(false); try { window.localStorage.setItem('jehre-editor-tip', '1'); } catch { /* shown again next time */ } }} aria-label="Fermer cette aide"><Icon name="close" size={12} /></button>
-            </p>
-          ) : null}
           {sections.length > 5 ? <input className={styles.search} type="search" placeholder="Rechercher..." aria-label="Rechercher une section ou un texte" value={query} onChange={(e) => setQuery(e.target.value)} /> : null}
           {map ? (
             <ol className={styles.list}>
@@ -356,6 +350,13 @@ export default function EditorPage() {
           </div>
         </div>
 
+        {/* the one-line help: a small notice on top of the screen, over the site, closed for good with × */}
+        {tip && !phone ? (
+            <p className={styles.tip} role="note">
+              <span>Cliquez sur un texte ou une photo pour le changer. Vos produits : <Link href="/admin/produits/"><b>Produits</b></Link>.</span>
+              <button type="button" onClick={() => { setTip(false); try { window.localStorage.setItem('jehre-editor-tip', '1'); } catch { /* shown again next time */ } }} aria-label="Fermer cette aide"><Icon name="close" size={12} /></button>
+            </p>
+        ) : null}
         {/* the view: a small bar that floats over the site and never moves with it */}
         {phone ? null : (
           <div className={styles.viewBar} role="group" aria-label="Zoom">

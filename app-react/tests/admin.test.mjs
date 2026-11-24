@@ -790,12 +790,15 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   assert.deepEqual(await left.getByRole('button', { name: 'Nouveautés', exact: true }).evaluate((n) => [getComputedStyle(n).fontSize, n.parentElement.getBoundingClientRect().height]), ['12px', 28]);
   assert.equal(await left.getByRole('searchbox').getAttribute('placeholder'), 'Rechercher...');
 
-  // the help is a very small notice on top of the tree; closed, it does not come back
-  const tip = left.getByRole('note');
-  assert.equal(await tip.evaluate((n) => getComputedStyle(n).fontSize), '10.5px');
-  assert.ok((await tip.boundingBox()).y < (await left.getByRole('searchbox').boundingBox()).y, 'it sits on top, above the search');
+  // the help is a very small notice on top of the screen, centred over the site (not in the panel); closed, it does not come back
+  const tip = page.getByRole('note');
+  assert.equal(await left.getByRole('note').count(), 0, 'not inside the panel of sections');
+  const tb = await tip.boundingBox();
+  assert.equal(await tip.evaluate((n) => getComputedStyle(n).fontSize), '11px');
+  assert.ok(tb.y >= 52 && tb.y < 80 && Math.abs(tb.x + tb.width / 2 - 720) < 4, `on top, in the middle: ${JSON.stringify(tb)}`);
+  await page.screenshot({ path: `${SHOTS}63-editeur-aide.png` });
   await tip.getByRole('button', { name: 'Fermer cette aide' }).click();
-  assert.equal(await left.getByRole('note').count(), 0); assert.equal(await page.evaluate(() => localStorage.getItem('jehre-editor-tip')), '1');
+  assert.equal(await page.getByRole('note').count(), 0); assert.equal(await page.evaluate(() => localStorage.getItem('jehre-editor-tip')), '1');
   // + Ajouter une section: a small menu, the section appears on the site after the one she was on, and in the tree
   const numbered = await site.locator('[data-jeere-pickable="t"]').count();
   await left.getByRole('button', { name: 'Nouveautés', exact: true }).click();
