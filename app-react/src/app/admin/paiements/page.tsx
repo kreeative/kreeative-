@@ -12,6 +12,7 @@ import { CARD_LABEL, cardState, cardStatus, type CardStatus } from '@/lib/card';
 import { PAYMENT_METHODS, type PayNumbers, type PaymentKey } from '@/lib/stores';
 import styles from '../admin.module.css';
 import pay from './paiements.module.css';
+import { GUIDE_KEY, PayGuide } from './PayGuide';
 
 const cleanPhone = (v: string) => v.replace(/[^\d+]/g, '');
 const validPhone = (v: string) => /^\+?\d{8,15}$/.test(cleanPhone(v));
@@ -30,6 +31,10 @@ export default function PaymentsPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
   const [card, setCard] = useState<CardStatus | null>(null);
+  // the guide comes to her the first time, on the whole screen, until « J'ai compris »
+  const [guide, setGuide] = useState(false);
+  useEffect(() => { try { if (window.localStorage.getItem(GUIDE_KEY) !== '1') setGuide(true); } catch { setGuide(true); } }, []);
+  const guideDone = () => { setGuide(false); try { window.localStorage.setItem(GUIDE_KEY, '1'); } catch { /* shown again next time */ } };
 
   useEffect(() => {
     const chosen = store?.fiche.payments ?? {};
@@ -77,16 +82,10 @@ export default function PaymentsPage() {
   const methods = [...PAYMENT_METHODS].sort((a, b) => (a.key === 'wave' ? -1 : b.key === 'wave' ? 1 : 0));
   return (
     <>
+      {guide ? <PayGuide onDone={guideDone} /> : null}
       <PageHead title="Paiements" sub="Vos clientes vous paient directement. Jehre ne garde jamais votre argent." />
       <div className={pay.page}>
-        <details className={pay.guide} open>
-          <summary><Icon name="info" size={18} /><b>Comment configurer vos paiements</b><Icon name="down" size={16} /></summary>
-          <ol>
-            <li><b>1</b><span>Activez <b>Wave</b> et collez votre lien marchand <code>https://pay.wave.com/m/…</code> : la cliente paie dès la commande.</span></li>
-            <li><b>2</b><span>Connectez <b>Stripe</b> pour accepter les cartes bancaires, partout dans le monde.</span></li>
-            <li><b>3</b><span>N’activez Orange Money, MTN MoMo, Moov Money ou le paiement à la livraison que si vous confirmez les paiements à la main.</span></li>
-          </ol>
-        </details>
+        <button type="button" className={pay.howto} onClick={() => setGuide(true)}><span aria-hidden="true"><Icon name="info" size={18} /></span>Comment configurer vos paiements ?<Icon name="chevron" size={16} /></button>
 
         <form onSubmit={save} noValidate className={pay.form}>
           <section className={styles.card}>

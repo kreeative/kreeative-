@@ -37,7 +37,8 @@
 .section { margin: var(--sp-5) 0 var(--sp-3); font: var(--w-title) var(--fs-lg)/var(--lh-lg) var(--font); }
 
 /* the chip of a figure: a soft tint, a thin inner light, the icon in the tint's own ink */
-.chip { flex: none; display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 8px; border-radius: 12px; background: var(--tint); color: var(--tone); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px color-mix(in srgb, var(--tone) 14%, transparent); }
+/* the icon of a figure: coloured, on nothing (no coloured box behind it) */
+.chip { flex: none; display: grid; place-items: start; width: 24px; height: 24px; margin-bottom: 10px; background: none; color: var(--tone); }
 .chip[data-tone="green"] { --tint: #DFF7EA; --tone: #14804A; }
 .chip[data-tone="violet"] { --tint: #ECE8FF; --tone: #5B3FE0; }
 .chip[data-tone="orange"] { --tint: #FFEBD8; --tone: #B85A12; }

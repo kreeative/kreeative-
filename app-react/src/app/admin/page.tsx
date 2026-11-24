@@ -119,10 +119,10 @@ export default function AdminHome() {
 
       <h2 className={home.section}>Vos ventes</h2>
       <dl className={styles.kpis} aria-busy={orders === null || undefined}>
-        <div><span className={home.chip} data-tone="green" aria-hidden="true"><Icon name="wallet" size={18} /></span><dt>Ventes aujourd’hui</dt><dd>{money(sum(since(today)), currency)}</dd><small>{plural(since(today).length, 'commande', 'commandes')}</small></div>
-        <div><span className={home.chip} data-tone="violet" aria-hidden="true"><Icon name="chart" size={18} /></span><dt>Ventes sur 7 jours</dt><dd>{money(sum(since(week)), currency)}</dd><small>{plural(since(week).length, 'commande', 'commandes')}</small></div>
-        <div><span className={home.chip} data-tone="orange" aria-hidden="true"><Icon name="receipt" size={18} /></span><dt>À traiter</dt><dd>{todo.length}</dd><small>{todo.length ? 'nouvelles commandes' : 'tout est à jour'}</small></div>
-        <div><span className={home.chip} data-tone="blue" aria-hidden="true"><Icon name="tag" size={18} /></span><dt>Produits</dt><dd>{products.length}</dd><small>dans votre boutique</small></div>
+        <div><span className={home.chip} data-tone="green" aria-hidden="true"><Icon name="wallet" size={22} /></span><dt>Ventes aujourd’hui</dt><dd>{money(sum(since(today)), currency)}</dd><small>{plural(since(today).length, 'commande', 'commandes')}</small></div>
+        <div><span className={home.chip} data-tone="violet" aria-hidden="true"><Icon name="chart" size={22} /></span><dt>Ventes sur 7 jours</dt><dd>{money(sum(since(week)), currency)}</dd><small>{plural(since(week).length, 'commande', 'commandes')}</small></div>
+        <div><span className={home.chip} data-tone="orange" aria-hidden="true"><Icon name="receipt" size={22} /></span><dt>À traiter</dt><dd>{todo.length}</dd><small>{todo.length ? 'nouvelles commandes' : 'tout est à jour'}</small></div>
+        <div><span className={home.chip} data-tone="blue" aria-hidden="true"><Icon name="tag" size={22} /></span><dt>Produits</dt><dd>{products.length}</dd><small>dans votre boutique</small></div>
       </dl>
 
       <section className={styles.card}>

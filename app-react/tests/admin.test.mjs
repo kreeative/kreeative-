@@ -36,6 +36,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   if (logged) await ctx.addInitScript((s) => { window.localStorage.setItem('sb-aezchxfvzfoqlvzchqyk-auth-token', JSON.stringify(s)); }, session());
   // the guided visit of the editor has its own test: elsewhere she has already seen it
   if (!world.firstVisit) await ctx.addInitScript(() => { window.localStorage.setItem('jehre-editor-tour', '1'); });
+  // the payments guide too (its own test shows it the first time)
+  if (!world.payGuide) await ctx.addInitScript(() => { window.localStorage.setItem('jeere-pay-guide-seen', '1'); });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -1888,14 +1890,29 @@ await test('colours: the model’s own and the base colours, a « + » that open
 });
 
 await test('payments: Wave first, on by default and recommended with its link; the others off; a guide; the card with Stripe, connected inside Jehre', async () => {
-  const w = world(); delete w.stores[0].fiche.payments; const { page, ctx, errors } = await open(browser, DESK, w);
-  await page.goto(`${BASE}/admin/paiements/`); await h1(page, 'Paiements');
+  const w = world(); w.payGuide = true; delete w.stores[0].fiche.payments; const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/paiements/`);
+  // the first time: the guide takes the whole screen, and stays until « J'ai compris »
+  const guide = page.getByRole('dialog', { name: 'Comment configurer vos paiements' });
+  await guide.waitFor();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SHOTS}118-paiements-guide.png` });
+  await page.mouse.click(10, 10); await page.keyboard.press('Escape');
+  assert.equal(await guide.isVisible(), true, 'it does not go away by itself');
+  await guide.getByRole('button', { name: 'J’ai compris' }).click();
+  await guide.waitFor({ state: 'detached' });
+  // afterwards one clear line brings it back
+  await page.getByRole('button', { name: 'Comment configurer vos paiements ?' }).click();
+  await guide.waitFor();
+  await guide.getByRole('button', { name: 'J’ai compris' }).click();
+  await page.reload(); await h1(page, 'Paiements');
+  assert.equal(await guide.count(), 0, 'once understood, it does not come back by itself');
+  await page.setViewportSize(DESK);
   const sw = async (n) => page.getByRole('switch', { name: n, exact: true }).getAttribute('aria-checked');
   assert.deepEqual([await sw('Wave'), await sw('Orange Money'), await sw('MTN MoMo'), await sw('Moov Money'), await sw('Paiement à la livraison')], ['true', 'false', 'false', 'false', 'false']);
   await page.getByText('Recommandé', { exact: true }).waitFor();
   await page.getByLabel('Lien de paiement Wave (recommandé)').waitFor();
   await page.getByText('Avec un numéro seul, elle envoie sa commande').waitFor();
-  await page.getByText('Comment configurer vos paiements').waitFor();
   const card = page.getByRole('region', { name: 'Carte bancaire' });
   await card.getByText('À configurer').waitFor();
   await page.getByLabel('Lien de paiement Wave (recommandé)').fill('https://pay.wave.com/m/M_ci_test/c/ci/');
