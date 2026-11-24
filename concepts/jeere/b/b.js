@@ -238,6 +238,8 @@
     var out = [];
     (cfg.sections || []).forEach(function (s) { if (!out.length && s && s.type === 'delivery' && s.settings && Array.isArray(s.settings.zones)) out = s.settings.zones; });
     if (!out.length && D && Array.isArray(D.communes)) out = D.communes;
+    var pk = S.config && S.config.store && S.config.store.pickup;
+    if (pk && pk.on === true) out = out.concat([{ name: 'Retrait en boutique', fee: 0 }]);
     return out;
   }
   function orderLines() {
@@ -269,14 +271,80 @@
     var t = 'Bonjour ' + name + ', je voudrais commander :\n';
     o.lines.forEach(function (l) { t += '• ' + l.qty + ' × ' + l.name + ' — ' + price(l.amount) + '\n'; });
     if (f.commune) t += 'Livraison : ' + f.commune + (fee ? ' (' + price(fee) + ')' : '') + '\n';
-    if (o.lines.length) t += 'Total : ' + price(money(o.total + fee)) + '\n';
+    var disc = S.promo && S.promo.discount ? money(S.promo.discount) : 0;
+    if (disc) t += 'Code promo ' + S.promo.code + ' : -' + price(disc) + '\n';
+    if (f.commune === 'Retrait en boutique') { var pk2 = S.config.store.pickup || {}; if (pk2.address) t += 'Retrait : ' + pk2.address + '\n'; }
+    if (o.lines.length) t += 'Total : ' + price(money(o.total + fee - disc)) + '\n';
     if (pay) t += 'Paiement : ' + pay + '\n';
     if (f.first) t += 'Nom : ' + f.first + '\n';
     if (f.phone) t += 'Téléphone : ' + f.phone + '\n';
     if (f.address) t += 'Adresse : ' + f.address + '\n';
     t += '(Commande depuis ' + location.host + location.pathname + ')';
-    return { text: fr(t), lines: o.lines, total: money(o.total + fee), fee: fee, commune: f.commune || '' };
+    return { text: fr(t), lines: o.lines, total: money(o.total + fee - disc), fee: fee, commune: f.commune || '' };
   }
+  /* ---------------------------------------------------------------- her trackers, the promo code, the kept cart
+   * Meta Pixel and Google Analytics 4 (Paramètres): loaded on her real store only, never in a preview. The promo
+   * code is checked by the `orders` function (store_promos), then sent with the order, which applies it again.
+   * A buyer who typed her phone at the checkout and did not order: her cart is kept (`draft`) for the shop. */
+  function tracking() {
+    var t = S.config && S.config.store && S.config.store.tracking;
+    if (!t || !S.store || S.store.preview === true || window.__jbTracking) return;
+    window.__jbTracking = true;
+    if (t.metaPixel) {
+      /* eslint-disable */
+      !function (f, b, e, v, n, a, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; a = b.createElement(e); a.async = !0; a.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(a, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+      window.fbq('init', t.metaPixel); window.fbq('track', 'PageView');
+    }
+    if (t.ga4) {
+      var g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(t.ga4); document.head.appendChild(g);
+      window.dataLayer = window.dataLayer || []; window.gtag = function () { window.dataLayer.push(arguments); }; window.gtag('js', new Date()); window.gtag('config', t.ga4);
+    }
+  }
+  function track(ev, data) {
+    try { if (window.fbq) window.fbq('track', ev, data || {}); } catch (e) { /* ignore */ }
+    var ga = { Purchase: 'purchase', InitiateCheckout: 'begin_checkout', AddToCart: 'add_to_cart' }[ev];
+    try { if (window.gtag && ga) window.gtag('event', ga, data ? { value: data.value, currency: data.currency } : {}); } catch (e) { /* ignore */ }
+  }
+  function watchCheckout() {
+    if (!S.root || S.root.__jbWatch || typeof MutationObserver !== 'function') return;
+    S.root.__jbWatch = true;
+    var check = function () { try { promoBox(); keepDraft(); } catch (e) { /* the checkout works without them */ } };
+    new MutationObserver(check).observe(S.root, { childList: true, subtree: true });
+    check();
+  }
+  function promoBox() {
+    var btn = S.root && S.root.querySelector('[data-jst-action="order"]');
+    if (!btn || !S.store || S.store.preview === true) return;
+    if (!S.root.__jbBegun) { S.root.__jbBegun = true; track('InitiateCheckout'); }
+    if (S.root.querySelector('#jb-promo')) return;
+    var box = document.createElement('div');
+    box.id = 'jb-promo'; box.className = 'jb-promo';
+    box.innerHTML = '<label for="jb-promo-in">Code promo</label><div class="jb-promo__row"><input id="jb-promo-in" class="jst-input" type="text" autocomplete="off" autocapitalize="characters" maxlength="24" placeholder="Votre code"' + (S.promo ? ' value="' + esc(S.promo.code) + '"' : '') + '><button type="button" class="jb-btn jb-btn--ghost" data-jb="promo">Appliquer</button></div><p class="jb-promo__msg" role="status">' + (S.promo ? esc(fr('Code ' + S.promo.code + ' : -' + price(money(S.promo.discount)) + ' sur votre commande.')) : '') + '</p>';
+    btn.parentNode.insertBefore(box, btn);
+    box.querySelector('[data-jb="promo"]').addEventListener('click', function () {
+      var input = box.querySelector('input'), msg = box.querySelector('.jb-promo__msg');
+      var code = String(input.value || '').toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      if (!code) { S.promo = null; msg.textContent = ''; return; }
+      var f = (S.root && S.root.__jstForm) || {};
+      msg.textContent = 'Vérification…';
+      fn('orders', { action: 'promo', slug: S.store.slug, code: code, cart: (S.root && S.root.__jstCart) || {}, commune: f.commune || '' }).then(function (j) {
+        if (j && j.ok) { S.promo = { code: j.code, discount: j.discount }; msg.textContent = fr('Code ' + j.code + ' : -' + price(money(j.discount)) + ' sur votre commande.'); }
+        else { S.promo = null; msg.textContent = (j && j.message) || 'Ce code n’existe pas.'; }
+      }, function () { msg.textContent = 'Vérifiez votre connexion, puis réessayez.'; });
+    });
+  }
+  function keepDraft() {
+    var ph = S.root && S.root.querySelector('[data-jst-field="phone"]');
+    if (!ph || ph.__jbDraft || !S.store || S.store.preview === true) return;
+    ph.__jbDraft = true;
+    ph.addEventListener('change', function () {
+      var f = (S.root && S.root.__jstForm) || {}, cart = (S.root && S.root.__jstCart) || {};
+      var phone = String(ph.value || f.phone || '');
+      if (phone.replace(/\D/g, '').length < 8 || !Object.keys(cart).length || S.ordered) return;
+      fn('orders', { action: 'draft', slug: S.store.slug, cart: cart, customer: { name: f.first || '', phone: phone, email: f.email || '', commune: f.commune || '' } }).then(function () {}, function () {});
+    });
+  }
+
   /* ---------------------------------------------------------------- card payment (Stripe, the `payments` function)
    * A store whose seller connected Stripe takes cards from anywhere: the order is recorded by the `orders`
    * function (prices from the published fiche), then the customer pays on Stripe's page and comes back here
@@ -320,7 +388,7 @@
     }
     if (btn) { btn.setAttribute('aria-busy', 'true'); btn.disabled = true; }
     var done = function () { if (btn) { btn.removeAttribute('aria-busy'); btn.disabled = false; } };
-    fn('orders', { action: 'place', slug: S.store.slug, cart: cart, payment: 'Carte bancaire', source: 'boutique',
+    fn('orders', { action: 'place', slug: S.store.slug, cart: cart, payment: 'Carte bancaire', source: 'boutique', promo: S.promo ? S.promo.code : '',
       customer: { name: f.first, phone: f.phone, email: f.email || '', commune: f.commune || '', address: f.address || '' } })
       .then(function (o) {
         if (!o || !o.ok) throw new Error((o && o.message) || 'La commande n’a pas pu être enregistrée.');
@@ -487,11 +555,12 @@
     if (link) { try { wa = window.open('', '_blank'); } catch (x) { wa = null; } }
     if (btn) { btn.setAttribute('aria-busy', 'true'); btn.disabled = true; }
     var done = function () { if (btn) { btn.removeAttribute('aria-busy'); btn.disabled = false; } };
-    fn('orders', { action: 'place', slug: S.store.slug, cart: cart, payment: payLabel(), source: siteBack() ? 'site' : 'boutique',
+    fn('orders', { action: 'place', slug: S.store.slug, cart: cart, payment: payLabel(), source: siteBack() ? 'site' : 'boutique', promo: S.promo ? S.promo.code : '',
       customer: { name: f.first, phone: f.phone, email: f.email || '', commune: f.commune || '', address: f.address || '' } })
       .then(function (o) {
         done();
         if (!o || !o.ok) throw new Error((o && o.message) || 'La commande n’a pas pu être enregistrée.');
+        track('Purchase', { value: o.total, currency: o.currency || 'XOF' });
         var num = ' n°' + NB + o.number;
         var text = num ? ('Commande' + num) : 'Commande';
         S.ordered = true;
@@ -654,6 +723,7 @@
     root.id = 'jb-store';
     main.appendChild(root);
     S.root = root;
+    try { tracking(); watchCheckout(); } catch (e) { /* the store works without them */ }
     // The cart the site sent (none of its products here: an empty cart, not render.js's sample line)
     if (fromSite) { root.__jstCart = fromSite; root.__jstCartCleared = !Object.keys(fromSite).length; }
     root.addEventListener('click', intercept, true);

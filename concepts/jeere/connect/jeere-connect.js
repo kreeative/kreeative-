@@ -434,6 +434,36 @@
     facebook: { label: 'Facebook', re: /^[A-Za-z0-9.\-]{2,80}$/, url: function (h) { return 'https://www.facebook.com/' + h; },
       svg: '<path d="M14.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.6 1.6-1.6h1.6V4.3a21 21 0 0 0-2.4-.1c-2.4 0-4 1.4-4 4.1v2.2H8.6v3h2.7V21"/>' }
   };
+  /* Her shop's extras (never in the editor's preview): the round WhatsApp button (Paramètres, on unless she turns it
+     off) and her trackers, Meta Pixel and Google Analytics 4 (Paramètres), with « add to cart ». */
+  function shopExtras(fiche) {
+    if (inEditor || preview || !isObj(fiche) || !isObj(fiche.store)) return;
+    var st = fiche.store, wa = String(st.whatsapp || '').replace(/\D/g, '');
+    if (wa.length >= 8 && st.waButton !== false && !document.getElementById('jeere-wa')) {
+      var a = document.createElement('a');
+      a.id = 'jeere-wa'; a.href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent('Bonjour ' + String(st.name || '') + ', j’ai une question :');
+      a.target = '_blank'; a.rel = 'noopener'; a.setAttribute('aria-label', 'Écrire sur WhatsApp');
+      a.setAttribute('style', 'position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:2147483000;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;box-shadow:0 10px 24px -8px rgba(0,0,0,.45);text-decoration:none');
+      a.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>';
+      document.body.appendChild(a);
+    }
+    var t = isObj(st.tracking) ? st.tracking : {}, px = String(t.metaPixel || '').replace(/\D/g, ''), ga = String(t.ga4 || '').trim().toUpperCase();
+    if (window.__jeereTracking) return;
+    window.__jeereTracking = true;
+    if (/^\d{8,20}$/.test(px)) {
+      /* eslint-disable */
+      !function (f, b, e, v, n, a2, s2) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; a2 = b.createElement(e); a2.async = !0; a2.src = v; s2 = b.getElementsByTagName(e)[0]; s2.parentNode.insertBefore(a2, s2); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+      window.fbq('init', px); window.fbq('track', 'PageView');
+    }
+    if (/^G-[A-Z0-9]{4,15}$/.test(ga)) {
+      var g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ga); document.head.appendChild(g);
+      window.dataLayer = window.dataLayer || []; window.gtag = function () { window.dataLayer.push(arguments); }; window.gtag('js', new Date()); window.gtag('config', ga);
+    }
+  }
+  function shopTrack(ev) {
+    try { if (window.fbq) window.fbq('track', ev); } catch (e) { /* ignore */ }
+    try { if (window.gtag && ev === 'AddToCart') window.gtag('event', 'add_to_cart'); } catch (e) { /* ignore */ }
+  }
   function drawSocial(fiche) {
     var boxes = $$('[data-jeere-social]');
     if (!boxes.length) return;
@@ -613,7 +643,7 @@
       return;
     }
     var id;
-    if (el.hasAttribute('data-jeere-add')) { id = idOf(el, 'data-jeere-add'); if (id) { e.preventDefault(); add(id, 1); } return; }
+    if (el.hasAttribute('data-jeere-add')) { id = idOf(el, 'data-jeere-add'); if (id) { e.preventDefault(); if (add(id, 1)) shopTrack('AddToCart'); } return; }
     if (el.hasAttribute('data-jeere-inc')) { id = idOf(el, 'data-jeere-inc'); if (id) { e.preventDefault(); add(id, 1); } return; }
     if (el.hasAttribute('data-jeere-dec')) { id = idOf(el, 'data-jeere-dec'); if (id) { e.preventDefault(); set(id, (S.cart[id] || 0) - 1); } return; }
     if (el.hasAttribute('data-jeere-remove')) { id = idOf(el, 'data-jeere-remove'); if (id) { e.preventDefault(); set(id, 0); } }
@@ -1440,6 +1470,7 @@
       if (r.ok) {
         try { S.products = readFiche(r.fiche); S.status = 'ready'; remapSlots(r.fiche); } catch (e) { S.products = null; S.status = 'offline'; }
         try { drawSocial(r.fiche); } catch (e) { /* the page keeps its own */ }
+        try { shopExtras(r.fiche); } catch (e) { /* the page keeps its own */ }
         try { brand(r.fiche); } catch (e) { /* the model's name stays */ }
         try { applySite(r.fiche); } catch (e) { /* the page keeps its own */ }
       } else S.status = r.code;

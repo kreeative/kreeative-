@@ -6,6 +6,20 @@
       "dest": "/api/visit"
     },
     {
+      "src": "^/catalogue\\.csv$",
+      "has": [
+        {
+          "type": "host",
+          "value": ".+\\.store\\.jehre\\.com"
+        }
+      ],
+      "dest": "/api/catalogue"
+    },
+    {
+      "src": "^/b/([a-z0-9-]+)/catalogue\\.csv$",
+      "dest": "/api/catalogue?slug=$1"
+    },
+    {
       "src": "^/(.*)$",
       "has": [
         {
