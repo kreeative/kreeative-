@@ -61,17 +61,7 @@ export default function BrandingPage() {
         <div className={styles.panel}>
           <section className={styles.card} aria-label="Logo">
             <h2><Icon name="image" size={18} />Logo</h2>
-            <PhotoField name="Votre logo" src={logo} own={!!logo} userId={account.userId} onChange={setLogo} />
-            {logo ? (
-              <div className={styles.logos} aria-label="Aperçu du logo">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <span className={styles.onLight}><img src={logo} alt="" style={{ height: b.logoH ?? 42 }} /></span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <span className={styles.onDark}><img src={logo} alt="" style={{ height: b.logoH ?? 42 }} /></span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <span className={styles.onButton} style={sample}><img src={logo} alt="" style={{ height: 18 }} />Commander</span>
-              </div>
-            ) : null}
+            <PhotoField name="Votre logo" src={logo} own={!!logo} userId={account.userId} onChange={setLogo} logo />
             <Field label="Hauteur dans l’en-tête (px)" inputMode="numeric" placeholder="42" value={b.logoH ? String(b.logoH) : ''} onChange={(e) => { const n = Number(e.target.value.replace(/\D/g, '')); set({ logoH: n >= 16 && n <= 120 ? n : undefined }); }} />
           </section>
 

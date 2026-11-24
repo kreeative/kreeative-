@@ -127,7 +127,9 @@ span.fold { cursor: default; }
 .more { justify-self: start; height: 28px; padding: 0 10px; border: 0; border-radius: var(--r-sm); background: var(--grey-1); color: var(--ink); font: var(--w-ui) var(--fs-xs)/1 var(--font); cursor: pointer; }
 .mediaBody { display: grid; gap: 6px; min-width: 0; }
 .mediaBody b { font-weight: 500; font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mediaActs { display: flex; align-items: center; gap: 10px; }
+.mediaActs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.thumb[data-logo] { background: var(--white); box-shadow: inset 0 0 0 1px var(--line); }
+.thumb[data-logo] img { object-fit: contain; padding: 6px; }
 .small { min-height: 28px; padding: 0 10px; border-radius: var(--r-sm); font-size: var(--fs-xs); }
 .mediaError { grid-column: 1 / -1; font-size: var(--fs-xs); color: var(--err-ink); }
 

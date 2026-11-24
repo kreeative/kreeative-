@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { ColorField } from '@/components/ui/ColorField';
 import { Icon } from '@/components/ui/Icon';
-import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
+import { useCropper } from '@/components/ui/useCropper';
 import { addedName, bandOf, categorySlug, linkLabel, linkOk, textLook, type Added, type Band, type SiteItem, type TextLook } from '@/lib/models';
 import type { Fiche } from '@/lib/stores';
 import styles from './editeur.module.css';
@@ -47,32 +47,30 @@ export function LinkPicker({ value, fiche, pages, onChange }: { value: string; f
   );
 }
 
-/** A picture to import or replace: its miniature, a plain name, « Importer » / « Remplacer », and a way back. */
-export function PhotoField({ name, src, own, userId, onChange }: { name: string; src: string; own: boolean; userId: string; onChange: (v: string | null) => void }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+/** A picture to import or replace: its miniature, a plain name, « Importer » / « Remplacer », « Recadrer », and a way
+ *  back. A new picture opens the cropping window first, so she centres it before it goes on her site. */
+export function PhotoField({ name, src, own, userId, onChange, logo = false }: { name: string; src: string; own: boolean; userId: string; onChange: (v: string | null) => void; logo?: boolean }) {
   const input = useRef<HTMLInputElement>(null);
-  async function pick(e: ChangeEvent<HTMLInputElement>) {
+  const crop = useCropper(userId, logo ? 'logo' : 'photo', (url) => onChange(url));
+  function pick(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file) return;
-    setBusy(true); setError('');
-    const r = await uploadPhoto(file, userId);
-    setBusy(false);
-    if (r.ok) onChange(r.url); else setError(UPLOAD_ERROR[r.error]);
+    if (file) crop.openFile(file);
   }
   return (
     <div className={styles.media}>
-      <span className={styles.thumb}>{src ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={src} alt="" /> : <Icon name="image" size={20} />}</span>
+      <span className={styles.thumb} data-logo={logo ? '' : undefined}>{src ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={src} alt="" /> : <Icon name="image" size={20} />}</span>
       <div className={styles.mediaBody}>
         <b>{name}</b>
         <div className={styles.mediaActs}>
-          <Button className={styles.small} variant="secondary" busy={busy} onClick={() => input.current?.click()} aria-label={`${src ? 'Remplacer' : 'Importer'} : ${name}`}>{src ? 'Remplacer' : 'Importer'}</Button>
+          <Button className={styles.small} variant="secondary" onClick={() => input.current?.click()} aria-label={`${src ? 'Remplacer' : 'Importer'} : ${name}`}>{src ? 'Remplacer' : 'Importer'}</Button>
+          {src ? <Button className={styles.small} variant="secondary" icon="crop" onClick={() => crop.openUrl(src)} aria-label={`Recadrer : ${name}`}>Recadrer</Button> : null}
           {own ? <button type="button" className={styles.reset} onClick={() => onChange(null)} aria-label={`Retirer : ${name}`}>Retirer</button> : null}
         </div>
       </div>
-      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => void pick(e)} aria-label={`Choisir une image : ${name}`} />
-      {error ? <p className={styles.mediaError} role="alert">{error}</p> : null}
+      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={pick} aria-label={`Choisir une image : ${name}`} />
+      {crop.error ? <p className={styles.mediaError} role="alert">{crop.error}</p> : null}
+      {crop.node}
     </div>
   );
 }

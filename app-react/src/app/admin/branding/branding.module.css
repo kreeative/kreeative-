@@ -8,14 +8,8 @@
 .segments button { height: 32px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: var(--w-ui) var(--fs-sm)/1 var(--font); cursor: pointer; transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease); }
 .segments button[aria-pressed="true"] { background: var(--white); color: var(--ink); box-shadow: 0 1px 2px rgba(17, 17, 17, .12); }
 .sample { display: grid; place-items: center; padding: var(--sp-4); border-radius: var(--r); background: var(--grey-1); }
-.sample span, .onButton { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; font: 600 13px/1 var(--font); }
-.logos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 4px 0 12px; }
-.logos > span { display: grid; place-items: center; min-height: 72px; padding: 8px; border-radius: var(--r); overflow: hidden; }
-.logos img { max-width: 100%; object-fit: contain; }
-.onLight { background: var(--white); box-shadow: inset 0 0 0 1px var(--line); }
-.onDark { background: #111111; }
+.sample span { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; font: 600 13px/1 var(--font); }
 /* the button sample takes its own line under the two grounds: never wider than the card */
-.logos > .onButton { grid-column: 1 / -1; justify-self: center; display: inline-flex; max-width: 100%; min-height: 0; padding: 0 16px; overflow: hidden; white-space: nowrap; }
 .hint { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh); }
 .hint a { color: var(--ink); text-decoration: none; }
 .note { margin-bottom: var(--sp-4); }

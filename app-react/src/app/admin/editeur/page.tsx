@@ -8,10 +8,10 @@ import { useSave } from '@/components/admin/useSave';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
+import { useCropper } from '@/components/ui/useCropper';
 import { Menu } from '@/components/ui/Menu';
 import { Notice } from '@/components/ui/Notice';
 import { Toast } from '@/components/ui/Toast';
-import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
 import { brandOf, editorSite, MODEL_COLORS, readSiteMap, sectionLook, sectionOrder, siteValue, withSectionLook, withSectionOrder, withSiteEdit, withSlot, type SectionLook, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
 import { ColorPalette } from '@/components/ui/ColorField';
@@ -539,7 +539,7 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
       {section.name === 'En-tête' ? (
         <section className={styles.block} aria-label="Logo">
           <h3>Logo</h3>
-          <PhotoField name="Votre logo" src={logo} own={!!logo} userId={userId} onChange={onLogo} />
+          <PhotoField name="Votre logo" src={logo} own={!!logo} userId={userId} onChange={onLogo} logo />
         </section>
       ) : null}
       {images.length ? (
@@ -621,17 +621,12 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
 /** A picture of the section: its miniature, a plain name, and « Remplacer ». Her photo is shrunk and sent to her
  *  folder like a product's. Nothing of the model's own notes (where a demo photo comes from) is ever shown. */
 function MediaCard({ item, name, own, onChange, userId }: { item: SiteItem; name: string; own: string | undefined; onChange: (v: string | null) => void; userId: string }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const input = useRef<HTMLInputElement>(null);
-  async function pick(e: ChangeEvent<HTMLInputElement>) {
+  const crop = useCropper(userId, 'photo', (url) => onChange(url));
+  function pick(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file) return;
-    setBusy(true); setError('');
-    const r = await uploadPhoto(file, userId);
-    setBusy(false);
-    if (r.ok) onChange(r.url); else setError(UPLOAD_ERROR[r.error]);
+    if (file) crop.openFile(file);
   }
   const src = own ?? item.src;
   return (
@@ -640,12 +635,14 @@ function MediaCard({ item, name, own, onChange, userId }: { item: SiteItem; name
       <div className={styles.mediaBody}>
         <b>{name}</b>
         <div className={styles.mediaActs}>
-          <Button className={styles.small} variant="secondary" busy={busy} onClick={() => input.current?.click()} aria-label={`Remplacer : ${name}`}>Remplacer</Button>
+          <Button className={styles.small} variant="secondary" onClick={() => input.current?.click()} aria-label={`Remplacer : ${name}`}>Remplacer</Button>
+          {src ? <Button className={styles.small} variant="secondary" icon="crop" onClick={() => crop.openUrl(src)} aria-label={`Recadrer : ${name}`}>Recadrer</Button> : null}
           {own !== undefined ? <button type="button" className={styles.reset} onClick={() => onChange(null)} aria-label={`Remettre la photo du modèle : ${name}`}>Remettre</button> : null}
         </div>
       </div>
-      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => void pick(e)} aria-label={`Choisir une photo : ${name}`} />
-      {error ? <p className={styles.mediaError} role="alert">{error}</p> : null}
+      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={pick} aria-label={`Choisir une photo : ${name}`} />
+      {crop.error ? <p className={styles.mediaError} role="alert">{crop.error}</p> : null}
+      {crop.node}
     </div>
   );
 }

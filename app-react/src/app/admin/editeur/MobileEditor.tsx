@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Menu } from '@/components/ui/Menu';
-import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
+import { useCropper } from '@/components/ui/useCropper';
 import { LinkPicker } from './Extras';
 import { CloudLoader } from '@/components/ui/CloudLoader';
 import { bandOf, categoriesOf, hiddenItems, hiddenLabel, imageFrame, linkLabel, linkOk, sectionHidden, sectionSource, withBand, withSectionHidden, withSectionSource, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook, photoTarget } from '@/lib/models';
@@ -55,17 +55,20 @@ const px = (v: string, max: number): number | undefined => (v.trim() === '' ? un
 export function MobileEditor(p: MobileEditorProps) {
   const { draft, map, sections, sel, setSel, change } = p;
   const [tool, setTool] = useState<Tool>('');
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
   const root = useRef<HTMLDivElement>(null);
   const file = useRef<HTMLInputElement>(null);
 
   const item = sel && map ? map.items.find((x) => x.key === sel) : undefined;
   const section = sel && !item ? sections.find((s) => s.key === sel) : undefined;
+  // the photo being cropped stays the one she chose, even if she touches something else meanwhile
+  const cropKey = useRef('');
+  const crop = useCropper(p.userId, 'photo', (url) => { if (cropKey.current) change((d) => withSiteEdit(d, 'i', cropKey.current, url)); });
+  const cropNow = (key: string, src: string) => { cropKey.current = key; crop.openUrl(src); };
+  const error = crop.error;
   const isButton = !!item && item.kind === 't' && (item.tag === 'a' || item.tag === 'button');
   const mode = item ? (item.kind === 'm' ? 'band' : item.kind === 'i' ? 'image' : item.kind === 'p' ? 'product' : item.kind === 's' ? 'services' : isButton ? 'button' : 'text') : section ? 'section' : 'site';
   // another element, or none: the drawer of the one before is put away
-  useEffect(() => { setTool(''); setError(''); }, [sel]);
+  useEffect(() => { setTool('');}, [sel]);
 
   // the keyboard: the bar and its drawer rise by what it covers, so they are never hidden under it
   useEffect(() => {
@@ -79,15 +82,12 @@ export function MobileEditor(p: MobileEditorProps) {
   const flip = (t: Tool) => setTool((now) => (now === t ? '' : t));
   const done = () => { setTool(''); setSel(''); };
 
-  async function pick(e: ChangeEvent<HTMLInputElement>) {
+  function pick(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     e.target.value = '';
     if (!f || !item) return;
-    setUploading(true); setError('');
-    const r = await uploadPhoto(f, p.userId);
-    setUploading(false);
-    if (!r.ok) { setError(UPLOAD_ERROR[r.error]); return; }
-    change((d) => withSiteEdit(d, 'i', item.key, r.url));
+    cropKey.current = item.key;
+    crop.openFile(f);
   }
 
   // the product a case shows (hers, chosen for the case, or the one of the same number); none: the model's demo
@@ -114,7 +114,10 @@ export function MobileEditor(p: MobileEditorProps) {
     tools.push({ id: 'hide', label: look.hide ? 'Afficher' : 'Masquer', icon: look.hide ? 'eye' : 'eyeOff', on: look.hide === true, act: () => { set({ hide: look.hide ? undefined : true }, 'hide'); if (!look.hide) done(); } });
   } else if (item && mode === 'image') {
     const fr = imageFrame(draft, item.key);
-    tools.push({ id: 'replace', label: 'Remplacer la photo', icon: 'image', act: () => file.current?.click() }, { id: 'frame', label: 'Ajuster / Cadre', icon: 'crop', open: 'frame' },
+    const shownSrc = siteValue(draft, 'i', item.key) ?? item.src;
+    tools.push({ id: 'replace', label: 'Remplacer la photo', icon: 'image', act: () => file.current?.click() },
+      ...(shownSrc ? [{ id: 'crop', label: 'Recadrer', icon: 'crop' as IconName, act: () => cropNow(item.key, shownSrc) }] : []),
+      { id: 'frame', label: 'Ajuster / Cadre', icon: 'layers', open: 'frame' },
       { id: 'hide', label: fr.hide ? 'Remettre' : 'Supprimer', icon: fr.hide ? 'eye' : 'trash', on: fr.hide === true, act: () => { change((d) => withImageFrame(d, item.key, { hide: fr.hide ? undefined : true })); if (!fr.hide) done(); } });
     if (item.link) tools.splice(1, 0, { id: 'imgLink', label: 'Associer', icon: 'link', open: 'imgLink' });
   } else if (item && mode === 'band') {
@@ -259,7 +262,9 @@ export function MobileEditor(p: MobileEditorProps) {
     drawer = { title: 'Alignement', body: <div className={styles.segments} role="group" aria-label="Alignement">{ALIGN.map(([v, label]) => <button key={label} type="button" aria-pressed={look.align === v} onClick={() => change((d) => withTextLook(d, item.key, { align: v }))}>{label}</button>)}</div> };
   } else if (item && tool === 'frame') {
     const fr = imageFrame(draft, item.key);
+    const shownSrc = siteValue(draft, 'i', item.key) ?? item.src;
     drawer = { title: 'Ajuster / Cadre', body: <>
+      {shownSrc ? <Button variant="secondary" icon="crop" block onClick={() => cropNow(item.key, shownSrc)}>Recadrer la photo</Button> : null}
       <div className={styles.segments} role="group" aria-label="Cadre">
         {([[undefined, 'Modèle'], ['cover', 'Remplir'], ['contain', 'Entière']] as const).map(([v, label]) => <button key={label} type="button" aria-pressed={fr.fit === v} onClick={() => change((d) => withImageFrame(d, item.key, { fit: v }))}>{label}</button>)}
       </div>
@@ -330,15 +335,16 @@ export function MobileEditor(p: MobileEditorProps) {
         <div className={styles.tools} key={mode + (item?.key ?? section?.key ?? '')} data-context={mode === 'site' ? undefined : ''}>
           {mode === 'services' ? <p className={styles.barNote}>Vos prestations se gèrent dans <a href="/admin/prestations/"><b>Prestations</b></a>.</p> : null}
           {tools.map((t) => (
-            <button key={t.id} type="button" className={styles.tool} aria-pressed={t.open ? tool === t.open : t.on} disabled={t.id === 'replace' && uploading}
+            <button key={t.id} type="button" className={styles.tool} aria-pressed={t.open ? tool === t.open : t.on} 
               aria-label={t.label} onClick={() => { if (t.open) flip(t.open); else t.act?.(); }}>
-              <Icon name={t.icon} size={18} /><span>{t.id === 'replace' && uploading ? 'Envoi…' : SHORT[t.label] ?? t.label}</span>
+              <Icon name={t.icon} size={18} /><span>{SHORT[t.label] ?? t.label}</span>
             </button>
           ))}
         </div>
         {mode === 'site' ? null : <button type="button" className={styles.ok} onClick={done} aria-label="Terminer"><Icon name="check" size={18} /></button>}
       </nav>
-      <input ref={file} type="file" accept="image/*" hidden onChange={(e) => void pick(e)} aria-label="Choisir une photo" />
+      <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={pick} aria-label="Choisir une photo" />
+      {crop.node}
       {p.children}
     </div>
   );

@@ -909,6 +909,8 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   const head = page.getByRole('complementary', { name: 'Contenu : En-tête' });
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
   await head.getByLabel('Choisir une image : Votre logo').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: png });
+  // a new logo opens the cropping window first
+  await page.getByRole('dialog', { name: 'Recadrer le logo' }).getByRole('button', { name: 'Appliquer' }).click();
   await head.getByRole('button', { name: 'Remplacer : Votre logo' }).waitFor({ timeout: 15000 });
 
   await page.getByRole('button', { name: 'Publier' }).click();
@@ -1142,7 +1144,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   const img = site.locator('img[data-jeere-pickable="i"]').first();
   await img.scrollIntoViewIfNeeded(); await img.click();
   for (const t of ['Remplacer la photo', 'Ajuster / Cadre', 'Supprimer']) await tools.getByRole('button', { name: t, exact: true }).waitFor();
-  assert.deepEqual(await tools.locator('div button span').allInnerTexts(), ['Remplacer', 'Cadrer', 'Supprimer']);
+  assert.deepEqual(await tools.locator('div button span').allInnerTexts(), ['Remplacer', 'Recadrer', 'Cadrer', 'Supprimer']);
   // the frame is on what one SEES of the picture (a picture cropped by its box is framed where it is cropped), with small handles
   const seen = await img.evaluate((n) => { const b = document.querySelector('[data-jeere-sel]').getBoundingClientRect(); let r = n.getBoundingClientRect(), box = { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; for (let p = n.parentElement; p && p !== document.body; p = p.parentElement) { if (getComputedStyle(p).overflow !== 'visible') { const q = p.getBoundingClientRect(); box = { top: Math.max(box.top, q.top), bottom: Math.min(box.bottom, q.bottom), left: Math.max(box.left, q.left), right: Math.min(box.right, q.right) }; } } const h = document.querySelector('[data-jeere-sel] i').getBoundingClientRect(); return [Math.abs(b.top - box.top) < 2, Math.abs(b.bottom - box.bottom) < 2, Math.round(h.width)]; });
   assert.deepEqual(seen, [true, true, 6]);
@@ -2138,11 +2140,15 @@ await test('Branding on a phone: one calm line per colour, one open at a time, r
   await colours.waitFor();
   assert.equal(await colours.locator('[role=group]').count(), 0, 'every colour folded at first');
   await colours.scrollIntoViewIfNeeded(); await page.waitForTimeout(300);
-  // her logo shown on light, on dark and in a button: all of it inside the card
+  // her logo once, with Remplacer, Recadrer, Retirer and its height: no pile of previews under it
   const logoCard = page.getByRole('region', { name: 'Logo' });
-  await logoCard.getByLabel('Aperçu du logo').scrollIntoViewIfNeeded(); await page.waitForTimeout(300);
-  const inside = await logoCard.evaluate((c) => { const r = c.getBoundingClientRect(); return [...c.querySelectorAll('[aria-label="Aperçu du logo"] > span')].every((e) => { const b = e.getBoundingClientRect(); return b.left >= r.left - 0.5 && b.right <= r.right + 0.5; }); });
-  assert.equal(inside, true, 'the logo previews stay inside the card');
+  await logoCard.scrollIntoViewIfNeeded(); await page.waitForTimeout(300);
+  assert.equal(await logoCard.getByLabel('Aperçu du logo').count(), 0);
+  assert.equal(await logoCard.locator('img').count(), 1);
+  for (const n of ['Remplacer : Votre logo', 'Recadrer : Votre logo', 'Retirer : Votre logo']) await logoCard.getByRole('button', { name: n }).waitFor();
+  await logoCard.getByLabel('Hauteur dans l’en-tête (px)').waitFor();
+  const inside = await logoCard.evaluate((c) => { const r = c.getBoundingClientRect(); return [...c.querySelectorAll('button')].every((e) => { const b = e.getBoundingClientRect(); return b.left >= r.left - 0.5 && b.right <= r.right + 0.5; }); });
+  assert.equal(inside, true, 'the logo buttons stay inside the card');
   await page.screenshot({ path: `${SHOTS}115-branding-logo-telephone.png` });
   await page.screenshot({ path: `${SHOTS}104-branding-couleurs-telephone.png` });
   await openColor(colours, 'Boutons');
@@ -2270,6 +2276,93 @@ await test('« Boutique » with a site: HER shop first (its picture, online or n
   await h1(page, 'Modèles de designer');
   await page.getByRole('button', { name: 'Ma boutique' }).click();
   await h1(page, 'Ma boutique');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('Logo: one picture and Remplacer / Recadrer / Retirer; a new logo opens the cropping window (grid, darkened outside, zoom, drag, Réinitialiser, Annuler, Appliquer)', async () => {
+  const LOGO = 'https://aezchxfvzfoqlvzchqyk.supabase.co/storage/v1/object/public/store-media/x/logo-awa.webp';
+  const w = withModel(world(), 'seve'); w.stores[0].fiche.store.logo = LOGO; const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.route(LOGO, (route) => route.fulfill({ status: 200, contentType: 'image/svg+xml', headers: { 'access-control-allow-origin': '*' }, body: '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520"><circle cx="250" cy="260" r="150" fill="#E8467C"/><circle cx="330" cy="230" r="90" fill="#F0C414" opacity=".9"/><text x="440" y="300" font-family="Georgia, serif" font-size="120" font-weight="700" fill="#111">Awa</text><text x="446" y="370" font-family="Arial, sans-serif" font-size="40" letter-spacing="14" fill="#555">BEAUTÉ</text></svg>' }));
+  await page.goto(`${BASE}/admin/branding/`);
+  const card = page.getByRole('region', { name: 'Logo' });
+  await card.getByRole('button', { name: 'Recadrer : Votre logo' }).click();
+  const dlg = page.getByRole('dialog', { name: 'Recadrer le logo' });
+  await dlg.waitFor();
+  const stage = dlg.getByLabel(/^Zone de recadrage/);
+  await stage.locator('img').waitFor();
+  // the grid of thirds and the darkened outside
+  const frame = await stage.evaluate((s) => { const f = s.querySelector('[aria-hidden="true"]'); return { lines: f.querySelectorAll('i').length, corners: f.querySelectorAll('b').length, mask: getComputedStyle(f).boxShadow.includes('rgba(17, 17, 17, 0.62)') }; });
+  assert.deepEqual(frame, { lines: 4, corners: 4, mask: true });
+  for (const n of ['Annuler', 'Appliquer', 'Réinitialiser', 'Zoomer', 'Dézoomer']) await dlg.getByRole('button', { name: n, exact: true }).first().waitFor();
+  await dlg.getByRole('group', { name: 'Forme du cadre' }).getByRole('button', { name: 'Carré' }).click();
+  // zoom with « + » and the slider, then move the picture with a finger
+  await dlg.getByRole('button', { name: 'Zoomer', exact: true }).click(); await dlg.getByRole('button', { name: 'Zoomer', exact: true }).click();
+  assert.equal(await dlg.locator('output').innerText(), '144 %');
+  const before = await stage.locator('img').evaluate((i) => i.style.transform);
+  const b = await stage.boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down();
+  await page.mouse.move(b.x + b.width / 2 + 60, b.y + b.height / 2 + 10, { steps: 6 }); await page.mouse.up();
+  assert.notEqual(await stage.locator('img').evaluate((i) => i.style.transform), before, 'the picture follows the finger');
+  await dlg.getByRole('slider', { name: 'Zoom' }).fill('300');
+  assert.notEqual(await dlg.locator('output').innerText(), '144 %');
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}125-recadrage-logo-telephone.png` });
+  // Réinitialiser: back to the whole logo, centred
+  await dlg.getByRole('button', { name: 'Réinitialiser' }).click();
+  assert.equal(await dlg.locator('output').innerText(), '100 %');
+  await dlg.getByRole('button', { name: 'Zoomer', exact: true }).click();
+  // Appliquer: the cropped logo is sent to her folder and becomes her logo
+  const n = w.uploads.length;
+  await dlg.getByRole('button', { name: 'Appliquer' }).click();
+  await dlg.waitFor({ state: 'detached', timeout: 15000 });
+  assert.ok(w.uploads.length > n, 'the cropped logo is uploaded');
+  assert.match(await card.locator('img').getAttribute('src'), new RegExp(`/store-media/${USER.id}/[0-9a-f]{20}-\\d+\\.webp$`));
+  // a new file opens the window first; Annuler leaves her logo as it was
+  const now = await card.locator('img').getAttribute('src');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  await card.getByLabel('Choisir une image : Votre logo').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: png });
+  await dlg.waitFor();
+  await dlg.getByRole('button', { name: 'Annuler', exact: true }).last().click();
+  await dlg.waitFor({ state: 'detached' });
+  assert.equal(await card.locator('img').getAttribute('src'), now);
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).first().click();
+  await page.getByText(/C’est enregistré/).waitFor();
+  assert.equal(w.stores[0].fiche.store.logo, now, 'the cropped logo is saved in her store');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor: « Recadrer » a photo of her site, on a phone and on a computer, with the grid and the zoom; the cropped photo replaces it', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  const img = site.locator('img[data-jeere-pickable="i"]').first();
+  await img.scrollIntoViewIfNeeded(); await img.click();
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  await tools.getByRole('button', { name: 'Recadrer', exact: true }).click();
+  const dlg = page.getByRole('dialog', { name: 'Recadrer la photo' });
+  const stage = dlg.getByLabel(/^Zone de recadrage/);
+  await stage.locator('img').waitFor({ timeout: 30000 });
+  await dlg.getByRole('group', { name: 'Forme du cadre' }).getByRole('button', { name: 'Portrait' }).click();
+  await dlg.getByRole('slider', { name: 'Zoom' }).fill('160');
+  const b = await stage.boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down();
+  await page.mouse.move(b.x + b.width / 2 - 40, b.y + b.height / 2 - 30, { steps: 6 }); await page.mouse.up();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SHOTS}126-recadrage-photo-editeur.png` });
+  await dlg.getByRole('button', { name: 'Appliquer' }).click();
+  await dlg.waitFor({ state: 'detached', timeout: 20000 });
+  await page.waitForTimeout(500);
+  assert.match(await img.getAttribute('src'), /store-media\//, 'the cropped photo is on her site');
+  // « Ajuster / Cadre » opens the same window
+  await img.click();
+  await tools.getByRole('button', { name: 'Ajuster / Cadre' }).click();
+  await page.getByRole('button', { name: 'Recadrer la photo' }).click();
+  await dlg.waitFor();
+  await dlg.getByRole('button', { name: 'Annuler', exact: true }).last().click();
+  await dlg.waitFor({ state: 'detached' });
+  // on a computer: the « Recadrer » of a picture in the side panel
+  await page.setViewportSize(DESK); await page.waitForTimeout(800);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
