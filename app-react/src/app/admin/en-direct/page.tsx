@@ -8,7 +8,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { Globe } from '@/components/admin/Globe';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
-import { liveVisits, type Live } from '@/lib/team';
+import { liveVisits, type Live, tisheVisits } from '@/lib/team';
 import shared from '../admin.module.css';
 import styles from './live.module.css';
 
@@ -31,20 +31,21 @@ const COUNTRY = (code: string): string => { try { return new Intl.DisplayNames([
 /** « En direct »: who is on the store right now, today and this week, and from where. Read again every 30 seconds.
  *  It comes from the 3rd plan up: Pro, Business, Entreprise (the server decides). */
 export default function LivePage() {
-  const { store } = useAdmin();
+  const { store, tishe } = useAdmin();
   const [live, setLive] = useState<Live | null | undefined>(undefined);
-  const storeId = store?.id ?? '';
+  // The Ivory Sukundu in view: its own visits
+  const storeId = tishe.on ? 'ext:tishe' : store?.id ?? '';
 
   useEffect(() => {
     if (!storeId) return;
     let on = true;
-    const read = () => void liveVisits(storeId).then((r) => { if (on) setLive(r); });
+    const read = () => void (storeId === 'ext:tishe' ? tisheVisits() : liveVisits(storeId)).then((r) => { if (on) setLive(r); });
     setLive(undefined); read();
     const t = setInterval(() => { if (!document.hidden) read(); }, 30000);
     return () => { on = false; clearInterval(t); };
   }, [storeId]);
 
-  if (!store) return <><PageHead title="En direct" /><Empty icon="store" title="Pas encore de boutique" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>Les visites de votre boutique s’affichent ici.</Empty></>;
+  if (!store && !tishe.on) return <><PageHead title="En direct" /><Empty icon="store" title="Pas encore de boutique" action={<ButtonLink href="/admin/modeles/">Voir les modèles</ButtonLink>}>Les visites de votre boutique s’affichent ici.</Empty></>;
 
   const noPlan = !!live && !live.ok && live.reason === 'plan';
   const shown = live?.ok ? live : noPlan ? sample() : null;

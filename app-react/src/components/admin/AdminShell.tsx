@@ -48,6 +48,7 @@ const TISHE_NAV: NavItem[] = [
   { href: '/admin/', label: 'Accueil', icon: 'home' },
   { href: '/admin/commandes/', label: 'Commandes', icon: 'receipt' },
   { href: '/admin/produits/', label: 'Produits', icon: 'tag' },
+  { href: '/admin/en-direct/', label: 'En direct', icon: 'eye', more: true },
   { href: '/admin/clients/', label: 'Clientes', icon: 'users', more: true },
   { href: '/admin/promos/', label: 'Codes promo', icon: 'sparkle', more: true },
   { href: '/admin/le-site/', label: 'Le site', icon: 'edit', group: 'Boutique en ligne', more: true },

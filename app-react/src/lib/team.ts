@@ -33,3 +33,9 @@ export async function liveVisits(storeId: string): Promise<Live | null> {
   const { data, error } = await supabase().rpc('store_visits_live', { p_store: storeId });
   return error || !data ? null : (data as Live);
 }
+/** The visitors of The Ivory Sukundu (its own site: its visits are kept under its name). The server lets in the
+ *  founder and its partners only. */
+export async function tisheVisits(): Promise<Live | null> {
+  const { data, error } = await supabase().rpc('site_visits_live', { p_site: 'the-ivory-sukundu' });
+  return error || !data ? null : (data as Live);
+}

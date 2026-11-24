@@ -93,6 +93,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
     if (p === '/functions/v1/sites-publish') return json(route, 200, { ok: true, editor: !!world.founder });
     if (p === '/rest/v1/rpc/my_ext_stores') return json(route, 200, world.extStores ?? []);
+    if (p === '/rest/v1/rpc/site_visits_live') { (world.siteLive ??= []).push(body); return json(route, 200, { ok: true, now: 2, today: 14, week: 61, points: [{ lat: 45.5, lon: -73.6, city: 'Montréal', country: 'Canada', at: new Date().toISOString(), live: true }, { lat: 5.3, lon: -4.0, city: 'Abidjan', country: 'Côte d’Ivoire', at: new Date().toISOString(), live: false }] }); }
     if (p === '/rest/v1/rpc/my_models') { if (world.modelsLate > 0) { world.modelsLate--; return json(route, 200, []); } return json(route, 200, world.models ?? []); }
     if (p === '/rest/v1/rpc/my_stores') return json(route, 200, world.stores.map((x) => ({ id: x.id, slug: x.slug })));
     if (p === '/rest/v1/rpc/slug_available') return json(route, 200, { available: !(world.taken ?? []).includes(body.p_slug), reason: 'ok' });
@@ -2862,6 +2863,12 @@ await test('The Ivory Sukundu, its other pages: Produits (order, a product with 
   await page.getByRole('button', { name: 'Enregistrer' }).click();
   await page.getByText('Tarifs de livraison enregistrés.').waitFor();
   assert.deepEqual(w.tisheCalls.filter((c) => c.action === 'saveShipping').pop().rates, { ca: 12.5, us: 20 });
+  // En direct: the visitors of its own site
+  await page.goto(`${BASE}/admin/en-direct/`);
+  await page.getByText('Montréal').first().waitFor();
+  assert.deepEqual(w.siteLive.pop(), { p_site: 'the-ivory-sukundu' });
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: `${SHOTS}175-tishe-en-direct.png` });
   // Clientes and the Circle
   await page.goto(`${BASE}/admin/clients/`);
   await page.getByText('ama@exemple.com').waitFor();
