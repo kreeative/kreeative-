@@ -28,6 +28,8 @@ const SHOP: NavItem[] = [
   { href: '/admin/produits/', label: 'Produits', icon: 'tag' },
   { href: '/admin/en-direct/', label: 'En direct', icon: 'eye', more: true },
   { href: '/admin/clients/', label: 'Clients', icon: 'users', more: true },
+  { href: '/admin/promos/', label: 'Codes promo', icon: 'sparkle', more: true },
+  { href: '/admin/paniers/', label: 'Paniers abandonnés', icon: 'bag', more: true },
   { href: '/admin/editeur/', label: 'Éditeur', icon: 'edit', group: 'Boutique en ligne', more: true },
   { href: '/admin/modeles/', label: 'Modèles', icon: 'template', more: true },
   { href: '/admin/branding/', label: 'Branding', icon: 'brush', more: true },
@@ -122,6 +124,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <span className={styles.menuHandle} aria-hidden="true" />
               {NAV.filter((n) => n.more).map((n) => <Link key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</Link>)}
               <a role="menuitem" href="/compte/"><Icon name="user" size={18} />Mon compte</a>
+              {/* the classic dashboard stays for what is not here yet: pages, connected sites, the Studio */}
+              <a role="menuitem" href="/admin-classique/"><Icon name="external" size={18} />Ancien tableau de bord</a>
               <button role="menuitem" type="button" onClick={() => void logout()}><Icon name="logout" size={18} />Se déconnecter</button>
             </div>
           </>) : null}

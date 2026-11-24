@@ -58,6 +58,20 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/rpc/my_models') { if (world.modelsLate > 0) { world.modelsLate--; return json(route, 200, []); } return json(route, 200, world.models ?? []); }
     if (p === '/rest/v1/rpc/my_stores') return json(route, 200, world.stores.map((x) => ({ id: x.id, slug: x.slug })));
     if (p === '/rest/v1/rpc/slug_available') return json(route, 200, { available: !(world.taken ?? []).includes(body.p_slug), reason: 'ok' });
+    if (p === '/rest/v1/store_promos') {
+      world.promos ??= [];
+      if (method === 'GET') return json(route, 200, world.promos);
+      if (method === 'POST') { if (world.promos.some((x) => x.code === body.code)) return json(route, 409, { code: '23505', message: 'duplicate' }); world.promos.unshift({ id: 'promo-' + (world.promos.length + 1), uses: 0, active: true, ...body }); return json(route, 201, []); }
+      const id = (url.searchParams.get('id') ?? '').replace(/^eq\./, '');
+      if (method === 'PATCH') { world.promos = world.promos.map((x) => (x.id === id ? { ...x, ...body } : x)); return json(route, 204); }
+      if (method === 'DELETE') { world.promos = world.promos.filter((x) => x.id !== id); return json(route, 204); }
+    }
+    if (p === '/rest/v1/abandoned_carts') {
+      world.carts ??= [];
+      const id = (url.searchParams.get('id') ?? '').replace(/^eq\./, '');
+      if (method === 'PATCH') { world.carts = world.carts.map((x) => (x.id === id ? { ...x, ...body } : x)); return json(route, 204); }
+      return json(route, 200, world.carts.filter((x) => !x.recovered_at));
+    }
     if (p === '/rest/v1/install_requests') { if (method === 'POST') { const row = { ...body, id: 'cccccccc-0000-4000-8000-00000000000' + ((world.installs ??= []).length + 1) }; world.installs.push(row); return json(route, 201, [{ id: row.id }]); } return json(route, 200, world.installs ?? []); }
     if (p === '/functions/v1/billing') {
       if (body.action === 'sync') { if (world.planAfter) Object.assign(world.stores[0], world.planAfter, { updated_at: new Date().toISOString() }); return json(route, 200, { ok: true, applied: world.planAfter ? 1 : 0 }); }
@@ -2461,6 +2475,65 @@ await test('installation by the team: a complete form, read to the end, accepted
   assert.deepEqual([bill.body.model, bill.body.install, bill.body.installRequestId], ['michou', true, row.id]);
   await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
   await page.screenshot({ path: `${SHOTS}135-formulaire-installation-telephone.png`, fullPage: true });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('promo codes, abandoned carts, pickup in the shop, WhatsApp button, trackers, catalogue and the export of her data', async () => {
+  const w = withModel(world(), 'seve');
+  w.carts = [{ id: 'cart-1', name: 'Mariam', phone: '07 08 09 10 11', email: '', cart: [{ name: 'Beurre de karité brut', qty: 2 }], total: 13000, currency: 'XOF', updated_at: new Date(Date.now() - 3 * 3600000).toISOString(), relaunched_at: null }];
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  // a promo code: checked fields, created, paused, deleted
+  await page.goto(`${BASE}/admin/promos/`); await h1(page, 'Codes promo');
+  await page.getByLabel('Code', { exact: true }).fill('ab');
+  await page.getByRole('button', { name: 'Créer le code' }).click();
+  await page.getByText('De 3 à 24 lettres ou chiffres, sans espace (ex. BIENVENUE10).').waitFor();
+  await page.getByLabel('Code', { exact: true }).fill('BIENVENUE10');
+  await page.getByLabel('Panier minimum (FCFA)').fill('10000');
+  await page.getByRole('button', { name: 'Créer le code' }).click();
+  await page.getByText('BIENVENUE10', { exact: true }).waitFor();
+  assert.deepEqual([w.promos[0].code, w.promos[0].kind, w.promos[0].value, w.promos[0].min_total, w.promos[0].store_id], ['BIENVENUE10', 'percent', 10, 10000, w.stores[0].id]);
+  await page.getByText(/-10 % · dès 10.000.FCFA · 0 utilisation/).waitFor();
+  await page.screenshot({ path: `${SHOTS}136-codes-promo.png` });
+  await page.getByRole('button', { name: 'Mettre en pause' }).click();
+  await page.getByRole('button', { name: 'Réactiver' }).waitFor();
+  assert.equal(w.promos[0].active, false);
+  // abandoned carts: one tap to WhatsApp with the cart written out
+  await page.goto(`${BASE}/admin/paniers/`); await h1(page, 'Paniers abandonnés');
+  const wa = page.getByRole('link', { name: 'Relancer sur WhatsApp' });
+  const href = await wa.getAttribute('href');
+  assert.match(href, /^https:\/\/wa\.me\/2250708091011\?text=/);
+  assert.match(decodeURIComponent(href), /2 × Beurre de karité brut/);
+  await page.screenshot({ path: `${SHOTS}137-paniers-abandonnes.png` });
+  await page.getByRole('button', { name: 'Traité' }).click();
+  await page.getByText('Aucun panier abandonné ces 30 derniers jours.').waitFor();
+  // pickup in the shop
+  await page.goto(`${BASE}/admin/livraison/`); await h1(page, 'Livraison');
+  await page.getByText('Vos clientes peuvent venir chercher leur commande, sans frais de livraison.').click();
+  await page.getByLabel('Adresse du retrait').fill('Cocody Riviera 2, en face de la pharmacie');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.waitForFunction(() => true);
+  await page.waitForTimeout(600);
+  let saved = w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').pop();
+  assert.deepEqual(saved.body.fiche.store.pickup, { on: true, address: 'Cocody Riviera 2, en face de la pharmacie' });
+  // settings: WhatsApp button off, Pixel and GA4, the catalogue address, the exports
+  await page.goto(`${BASE}/admin/parametres/`); await h1(page, 'Paramètres');
+  await page.getByLabel('Pixel Meta (Facebook, Instagram)').fill('12ab');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText(/L’identifiant du Pixel est une suite de chiffres/).waitFor();
+  await page.getByLabel('Pixel Meta (Facebook, Instagram)').fill('123456789012345');
+  await page.getByLabel('Google Analytics 4').fill('g-abc12345');
+  await page.getByText('Bouton WhatsApp rond en bas de votre site (avec votre numéro ci-dessus).').click();
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.waitForTimeout(600);
+  saved = w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').pop();
+  assert.deepEqual([saved.body.fiche.store.tracking, saved.body.fiche.store.waButton], [{ metaPixel: '123456789012345', ga4: 'G-ABC12345' }, false]);
+  await page.getByText('https://boutique-test.store.jehre.com/catalogue.csv').waitFor();
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Commandes (CSV)' }).click()]);
+  assert.equal(dl.suggestedFilename(), 'commandes-boutique-test.csv');
+  const [dl2] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Clients (CSV)' }).click()]);
+  const txt = (await import('node:fs')).readFileSync(await dl2.path(), 'utf8');
+  assert.match(txt, /Nom;Téléphone;E-mail;Commune;Commandes;Total dépensé/);
+  await page.screenshot({ path: `${SHOTS}138-parametres-pub-donnees.png`, fullPage: true });
   assert.deepEqual(errors, []); await ctx.close();
 });
 

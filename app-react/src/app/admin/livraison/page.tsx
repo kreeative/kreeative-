@@ -6,6 +6,7 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { SaveBar } from '@/components/admin/SaveBar';
 import { useSave } from '@/components/admin/useSave';
 import { Button } from '@/components/ui/Button';
+import { Check, Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { clip } from '@/lib/account';
 import { withZones, zonesOf } from '@/lib/stores';
@@ -21,8 +22,14 @@ export default function DeliveryPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
+  const [pickup, setPickup] = useState(false);
+  const [pickupAt, setPickupAt] = useState('');
 
-  useEffect(() => { setRows(store ? zonesOf(store).map((z) => ({ name: z.name, fee: String(z.fee) })) : []); setError(''); setDirty(false); }, [store]);
+  useEffect(() => {
+    setRows(store ? zonesOf(store).map((z) => ({ name: z.name, fee: String(z.fee) })) : []); setError(''); setDirty(false);
+    const pk = (store?.fiche.store as Record<string, unknown> | undefined)?.pickup as { on?: boolean; address?: string } | undefined;
+    setPickup(pk?.on === true); setPickupAt(pk?.address ?? '');
+  }, [store]);
 
   if (!store) return (<><PageHead title="Livraison" /><Empty icon="truck" title="Pas encore de boutique">Créez votre boutique pour régler vos zones de livraison.</Empty></>);
 
@@ -36,7 +43,11 @@ export default function DeliveryPage() {
     const filled = rows.filter((r) => r.name.trim() || r.fee.trim());
     if (filled.some((r) => !r.name.trim())) { setError('Donnez un nom à chaque zone, ou retirez la ligne vide.'); return; }
     const zones = filled.map((r) => ({ name: clip(r.name, 40), fee: Math.min(100000, Math.max(0, Number(r.fee.replace(/[^\d]/g, '')) || 0)) }));
-    if (await write(withZones(store.fiche, zones))) setDirty(false);
+    if (pickup && !pickupAt.trim()) { setError('Écrivez l’adresse où vos clientes récupèrent leur commande.'); return; }
+    const next = withZones(store.fiche, zones);
+    const st = { ...(next.store ?? {}) } as Record<string, unknown>;
+    if (pickup) st.pickup = { on: true, address: clip(pickupAt, 200) }; else delete st.pickup;
+    if (await write({ ...next, store: st })) setDirty(false);
   }
 
   return (
@@ -58,6 +69,11 @@ export default function DeliveryPage() {
           )}
           {error ? <p className={styles.fieldError} role="alert">{error}</p> : null}
           <div style={{ marginTop: 'var(--sp-3)' }}><Button variant="secondary" icon="plus" disabled={rows.length >= MAX_ZONES} onClick={add}>Ajouter une zone</Button></div>
+        </section>
+        <section className={styles.card} aria-label="Retrait en boutique" style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+          <div className={styles.cardHead} style={{ marginBottom: 0 }}><h2>Retrait en boutique</h2></div>
+          <Check checked={pickup} onChange={(e) => { setPickup(e.target.checked); setDirty(true); setError(''); }}>Vos clientes peuvent venir chercher leur commande, sans frais de livraison.</Check>
+          {pickup ? <Field label="Adresse du retrait" maxLength={200} placeholder="Cocody Riviera 2, en face de la pharmacie" value={pickupAt} onChange={(e) => { setPickupAt(e.target.value); setDirty(true); setError(''); }} /> : null}
         </section>
         <SaveBar busy={busy} problem={problem} saved={saved} dirty={dirty} />
       </form>
