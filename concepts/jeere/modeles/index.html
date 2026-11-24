@@ -73,6 +73,21 @@
       if (m && m.kind) document.getElementById('mv-kind').textContent = m.kind;
       // choosing it needs her account: the dashboard when she is in, else the account page (which brings her back)
       document.getElementById('mv-choose').href = open ? '/admin/#boutique/modele/' + slug : '/compte/?suite=modele&m=' + slug + (window.JEHRE_KNOWN ? '#connexion' : '#inscription');
+      // a model she already has (bought, or her own store under the model's name): no « Choisir », her site instead
+      (function mine() {
+        var tok = null;
+        try { var t = JSON.parse(localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token') || 'null'); tok = t && (t.access_token || (t.currentSession && t.currentSession.access_token)); } catch (e) { tok = null; }
+        if (!tok) return;
+        var H = { apikey: 'sb_publishable_w0gqMepSQZn-DWRboBOR1w_rh6-jg_w', Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' };
+        var ask = function (fn) { return fetch('https://aezchxfvzfoqlvzchqyk.supabase.co/rest/v1/rpc/' + fn, { method: 'POST', headers: H, body: '{}' }).then(function (r) { return r.ok ? r.json() : []; }, function () { return []; }); };
+        Promise.all([ask('my_models'), ask('my_stores')]).then(function (r) {
+          var has = (Array.isArray(r[0]) ? r[0] : []).some(function (x) { return x && x.model === slug; }) || (Array.isArray(r[1]) ? r[1] : []).some(function (x) { return x && x.slug === slug; });
+          if (!has) return;
+          var b = document.getElementById('mv-choose');
+          b.textContent = 'Modifier mon site';
+          b.href = '/admin/#boutique';
+        });
+      })();
       if (!open) { document.querySelector('.mv-all').href = '/#modeles'; document.querySelector('.mv-logo').href = '/'; document.querySelector('.mv-logo').setAttribute('aria-label', 'Jehre, accueil'); }
       document.getElementById('mv-frame').src = '/modeles/voir/' + slug + '/';
       // the logo, the same drawing as everywhere (taken from the account page's sprite)
