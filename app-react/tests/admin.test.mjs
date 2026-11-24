@@ -91,6 +91,27 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/auth/v1/logout') return json(route, 204);
     if (p === '/rest/v1/profiles') return method === 'GET' ? json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]) : json(route, 204);
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
+    if (p === '/auth/v1/otp') return json(route, 200, {});
+    if (p === '/auth/v1/verify') { if (body.token !== '123456') return json(route, 403, { code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' }); if (world.atlas) world.atlas.state = 'in'; return json(route, 200, session()); }
+    if (p === '/functions/v1/atlas') {
+      const A = world.atlas;
+      if (!A || A.state === 'denied') return json(route, 403, { ok: false, code: 'denied', message: 'Cet espace est réservé à l’équipe Jehre.' });
+      if (A.state === 'code') return json(route, 403, { ok: false, code: 'code', message: 'Confirmez avec le code reçu par e-mail.', email: USER.email });
+      const RK = { fondatrice: 4, admin: 3, support: 2, lecture: 1 };
+      const need = { suspend: 'admin', plan: 'admin', reset: 'support', admin_set: 'fondatrice' }[body.action];
+      if (need && RK[A.role] < RK[need]) return json(route, 403, { ok: false, code: 'role', message: 'Votre rôle ne permet pas cette action.' });
+      if (body.action === 'me') return json(route, 200, { ok: true, role: A.role, email: USER.email });
+      if (body.action === 'overview') return json(route, 200, { ok: true, accounts: A.accounts.length, newWeek: 1, verified: 2, stores: 2, published: 1, paying: 1, byPlan: { croissance: 1 }, suspended: A.accounts.filter((a) => a.suspended).length, purchases: 1, purchasesAmount: 25000 });
+      if (body.action === 'accounts') return json(route, 200, { ok: true, accounts: A.accounts });
+      if (body.action === 'suspend') { const a = A.accounts.find((x) => x.id === body.userId); a.suspended = body.on; a.stores.forEach((st) => { st.published = !body.on; }); return json(route, 200, { ok: true }); }
+      if (body.action === 'plan') { A.accounts.flatMap((a) => a.stores).find((x) => x.id === body.storeId).plan = body.plan; return json(route, 200, { ok: true }); }
+      if (body.action === 'reset') return json(route, 200, { ok: true });
+      if (body.action === 'admins') return json(route, 200, { ok: true, admins: A.admins });
+      if (body.action === 'admin_set') { A.admins = A.admins.filter((x) => x.email !== body.email); if (body.role) A.admins.push({ email: body.email, role: body.role, added_by: USER.email, added_at: new Date().toISOString() }); return json(route, 200, { ok: true }); }
+      if (body.action === 'log') return json(route, 200, { ok: true, log: [{ at: new Date().toISOString(), actor: USER.email, action: 'suspendre', target: 'awa@exemple.com', detail: {} }] });
+      if (body.action === 'live') return json(route, 200, { ok: true, now: 3, today: 41, week: 260, countries: [{ country: 'SN', n: 2 }, { country: 'CI', n: 1 }], points: [{ lat: 14.7, lon: -17.45, city: 'Dakar', country: 'SN', at: new Date().toISOString(), path: '/', live: true }, { lat: 5.35, lon: -4.0, city: 'Abidjan', country: 'CI', at: new Date(Date.now() - 36e5).toISOString(), path: '/modeles/' }] });
+      return json(route, 400, { ok: false, message: 'Action inconnue.' });
+    }
     if (p === '/functions/v1/sites-publish') return json(route, 200, { ok: true, editor: !!world.founder });
     if (p === '/rest/v1/rpc/my_ext_stores') return json(route, 200, world.extStores ?? []);
     if (p === '/rest/v1/rpc/site_visits_live') { (world.siteLive ??= []).push(body); return json(route, 200, { ok: true, now: 2, today: 14, week: 61, points: [{ lat: 45.5, lon: -73.6, city: 'Montréal', country: 'Canada', at: new Date().toISOString(), live: true }, { lat: 5.3, lon: -4.0, city: 'Abidjan', country: 'Côte d’Ivoire', at: new Date().toISOString(), live: false }] }); }
@@ -2883,6 +2904,101 @@ await test('The Ivory Sukundu, its other pages: Produits (order, a product with 
   assert.equal(await page.locator('iframe[title="theivorysukundu.com, modifiable"]').getAttribute('src'), 'https://www.theivorysukundu.com/?jeere=edit#/');
   await page.waitForTimeout(4000);
   await page.screenshot({ path: `${SHOTS}174-tishe-site.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+const atlasWorld = (role = 'fondatrice', state = 'in') => world({ atlas: { state, role,
+  admins: [{ email: USER.email, role: 'fondatrice', added_by: 'migration', added_at: '2026-11-01T10:00:00Z' }],
+  accounts: [
+    { id: 'u1', email: 'awa@exemple.com', firstName: 'Awa', source: 'tiktok', phone: '+2250707000000', createdAt: ago(48), lastSignIn: ago(2), verified: true, suspended: false, stores: [{ id: 's1', slug: 'awa-beaute', name: 'Awa Beauté', published: true, plan: 'croissance', promo: false }], purchases: [{ model: 'SÈVE', amount: 25000, at: ago(40), install: true, installedAt: null }] },
+    { id: 'u2', email: 'fanta@exemple.com', firstName: 'Fanta', createdAt: ago(300), lastSignIn: null, verified: true, suspended: false, stores: [{ id: 's2', slug: 'fanta-wax', name: 'Fanta Wax', published: false, plan: 'gratuit', promo: false }], purchases: [] },
+    { id: 'u3', email: 'nouvelle@exemple.com', firstName: '', createdAt: ago(5), lastSignIn: ago(5), verified: false, suspended: false, stores: [], purchases: [] },
+  ] } });
+
+await test('atlas: the e-mail code comes first, then the overview', async () => {
+  const w = atlasWorld('fondatrice', 'code');
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/atlas/`);
+  await page.getByRole('button', { name: 'Recevoir le code' }).click();
+  const otp = w.calls.find((c) => c.path === '/auth/v1/otp');
+  assert.equal(otp.body.email, USER.email); assert.equal(otp.body.create_user, false);
+  await page.screenshot({ path: `${SHOTS}180-atlas-code.png` });
+  await page.locator('input[autocomplete="one-time-code"]').click();
+  await page.keyboard.type('123456');
+  assert.equal(w.calls.find((c) => c.path === '/auth/v1/verify').body.token, '123456');
+  await page.getByRole('heading', { name: 'Vue d’ensemble' }).waitFor();
+  await page.getByText('Formules payées').waitFor();
+  await page.getByText('Installations à faire').first().waitFor();
+  await page.getByText('Tiktok', { exact: true }).waitFor();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}181-atlas-vue.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('atlas: an account outside the team is turned away', async () => {
+  const { page, ctx } = await open(browser, DESK, atlasWorld('lecture', 'denied'));
+  await page.goto(`${BASE}/atlas/`);
+  await page.getByText('Cet espace est réservé à l’équipe Jehre.').waitFor();
+  await ctx.close();
+});
+
+await test('atlas: the founder suspends, reactivates, changes a plan and manages the admins', async () => {
+  const w = atlasWorld('fondatrice');
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/atlas/`);
+  await page.getByRole('heading', { name: 'Vue d’ensemble' }).waitFor();
+  await page.getByRole('button', { name: 'Comptes', exact: true }).click();
+  await page.getByRole('searchbox', { name: 'Rechercher un compte' }).fill('awa');
+  await page.getByRole('button', { name: /awa@exemple\.com/ }).click();
+  await page.screenshot({ path: `${SHOTS}182-atlas-comptes.png` });
+  await page.getByLabel('Formule de Awa Beauté').selectOption('Pro');
+  await page.getByText('Formule de Awa Beauté : Pro.').waitFor();
+  assert.deepEqual(w.calls.filter((c) => c.path === '/functions/v1/atlas' && c.body.action === 'plan').pop().body, { action: 'plan', storeId: 's1', plan: 'pro' });
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('button', { name: 'Suspendre le compte' }).click();
+  await page.getByText('Compte suspendu.').waitFor();
+  await page.getByText('Suspendu', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Réactiver le compte' }).click();
+  await page.getByText(/Compte réactivé/).waitFor();
+  await page.getByRole('button', { name: 'Envoyer un lien de mot de passe' }).click();
+  await page.getByText('Lien de mot de passe envoyé à awa@exemple.com.').waitFor();
+  // Administrateurs: add a support member, then remove her
+  await page.getByRole('button', { name: 'Administrateurs', exact: true }).click();
+  await page.getByLabel('Adresse e-mail').fill('aide@exemple.com');
+  await page.getByLabel('Rôle', { exact: true }).selectOption('Support');
+  await page.getByRole('button', { name: 'Ajouter', exact: true }).click();
+  await page.getByText('aide@exemple.com est support.').waitFor();
+  await page.getByText('aide@exemple.com', { exact: true }).waitFor();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SHOTS}183-atlas-admins.png` });
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('button', { name: 'Retirer' }).click();
+  await page.getByText('aide@exemple.com n’est plus administrateur.').waitFor();
+  assert.equal(w.atlas.admins.length, 1);
+  // Journal and En direct
+  await page.getByRole('button', { name: 'Journal', exact: true }).click();
+  await page.getByText('suspendre · awa@exemple.com').waitFor();
+  await page.getByRole('button', { name: 'En direct', exact: true }).click();
+  await page.getByText('Dakar, Sénégal').waitFor();
+  await page.locator('canvas').first().waitFor();
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${SHOTS}184-atlas-direct.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('atlas: read-only sees, but cannot act; on a phone nothing overflows', async () => {
+  const w = atlasWorld('lecture');
+  const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/atlas/`);
+  await page.getByRole('heading', { name: 'Vue d’ensemble' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Administrateurs', exact: true }).count(), 0);
+  await page.getByRole('button', { name: 'Comptes', exact: true }).click();
+  await page.getByRole('button', { name: /awa@exemple\.com/ }).click();
+  assert.equal(await page.getByRole('button', { name: 'Suspendre le compte' }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Envoyer un lien de mot de passe' }).count(), 0);
+  assert.equal(await page.getByLabel('Formule de Awa Beauté').count(), 0);
+  await noOverflow(page);
+  await page.screenshot({ path: `${SHOTS}185-atlas-phone.png` });
   assert.deepEqual(errors, []); await ctx.close();
 });
 
