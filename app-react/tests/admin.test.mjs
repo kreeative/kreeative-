@@ -2026,6 +2026,33 @@ await test('catalogue links on a computer: the inspector of a banner shows what 
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('a title with its own small line (MICHOU « Hauts » / « t-shirts lourds et délavés »): two texts, each edited without touching the other', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('button', { name: 'Campagne', exact: true }).click();
+  const right = page.getByRole('complementary', { name: 'Contenu : Campagne' });
+  await right.waitFor();
+  const values = await right.locator('input:not([type=file]):not([type=checkbox]), textarea').evaluateAll((xs) => xs.map((x) => x.value));
+  for (const v of ['Hauts', 't-shirts lourds et délavés', 'Bas', 'jorts et pantalons larges']) assert.ok(values.includes(v), `« ${v} » is a text of its own: ${values.join(' | ')}`);
+  assert.equal(values.some((v) => /Hautst-shirts|Hauts ?t-shirts/.test(v)), false, 'never the two glued together');
+  const title = right.locator('input:not([type=file]):not([type=checkbox]), textarea').nth(values.indexOf('Hauts'));
+  await title.fill('Tops');
+  const line = right.locator('input:not([type=file]):not([type=checkbox]), textarea').nth(values.indexOf('t-shirts lourds et délavés'));
+  await line.fill('coton épais, coupe large');
+  await page.waitForTimeout(500);
+  const span = site.locator('.edito a span').first();
+  assert.deepEqual(await span.evaluate((n) => [n.firstChild.nodeValue.trim(), n.querySelector('small').textContent]), ['Tops', 'coton épais, coupe large']);
+  await page.screenshot({ path: `${SHOTS}101-titre-et-petite-ligne.png` });
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await page.getByText(/Votre site est en ligne/).waitFor();
+  const t = w.stores[0].fiche.store.site.t;
+  assert.ok(Object.entries(t).some(([k, v]) => /\|t\|/.test(k) && v === 'Tops') && Object.entries(t).some(([k, v]) => /\|w\|/.test(k) && v === 'coton épais, coupe large'), JSON.stringify(t));
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);
