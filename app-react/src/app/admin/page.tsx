@@ -1,5 +1,6 @@
 'use client';
 
+import { CARD_LABEL, cardState, cardStatus, type CardState } from '@/lib/card';
 import { CloudLoader } from '@/components/ui/CloudLoader';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -16,6 +17,7 @@ import home from './home.module.css';
 
 const TONE: Record<string, string> = { nouvelle: 'new', confirmee: 'go', preparee: 'go', expediee: 'go', livree: 'ok', annulee: 'off' };
 const STEPS_KEY = 'jehre-steps-hidden';
+interface Step { id: string; title: string; href: string; action: string; done: boolean; state?: string; out?: boolean }
 
 export default function AdminHome() {
   const { account, store, model } = useAdmin();
@@ -23,6 +25,8 @@ export default function AdminHome() {
   const [allSteps, setAllSteps] = useState(false);
   useEffect(() => { try { setStepsOff(window.localStorage.getItem(STEPS_KEY) === '1'); } catch { setStepsOff(false); } }, []);
   const { orders } = useOrders(store?.id ?? null);
+  const [card, setCard] = useState<CardState>('loading');
+  useEffect(() => { if (!store?.id) return; let on = true; void cardStatus(store.id).then((x) => { if (on) setCard(cardState(x)); }); return () => { on = false; }; }, [store?.id]);
   const hello = account.firstName ? `Bonjour ${account.firstName}` : 'Bonjour';
 
   if (!store) {
@@ -51,18 +55,24 @@ export default function AdminHome() {
   const st = (store.fiche.store ?? {}) as Record<string, unknown>;
   const pay = (st.pay ?? {}) as Record<string, unknown>;
   const booking = !!modelBySlug(model)?.rdv;
-  const steps: { id: string; title: string; href: string; done: boolean }[] = [
-    ...(booking ? [{ id: 'services', title: 'Ajoutez vos prestations', href: '/admin/prestations/', done: false }]
-      : [{ id: 'products', title: 'Ajoutez 3 produits avec une vraie photo', href: '/admin/produits/', done: products.filter((p) => p.image || p.photo).length >= 3 }]),
-    ...(booking ? [] : [{ id: 'categories', title: 'Rangez vos produits en catégories', href: '/admin/produits/', done: new Set(products.map((p) => String(p.category ?? '').trim()).filter(Boolean)).size >= 2 }]),
-    { id: 'wave', title: 'Connectez Wave et le mobile money', href: '/admin/paiements/', done: Object.values(pay).some((v) => typeof v === 'string' && v.trim() !== '') },
-    { id: 'whatsapp', title: 'Ajoutez votre numéro WhatsApp', href: '/admin/parametres/', done: typeof st.whatsapp === 'string' && st.whatsapp.trim() !== '' },
-    ...(booking ? [] : [{ id: 'delivery', title: 'Choisissez vos communes de livraison', href: '/admin/livraison/', done: zonesOf(store).length > 0 }]),
-    { id: 'site', title: booking ? 'Mettez vos photos et vos textes' : 'Personnalisez votre boutique', href: '/admin/editeur/', done: !!st.site },
-    { id: 'logo', title: 'Ajoutez votre logo', href: '/admin/editeur/', done: typeof st.logo === 'string' && st.logo !== '' },
-    { id: 'live', title: 'Mettez votre site en ligne', href: '/admin/editeur/', done: store.published },
-    { id: 'address', title: 'Choisissez l’adresse de votre site', href: '/admin/domaine/', done: !!store.custom_domain },
-  ].filter((x) => !(booking && x.id === 'services'));
+  const site = (st.site ?? {}) as Record<string, Record<string, unknown> | undefined>;
+  const cats = new Set(products.map((p) => String(p.category ?? '').trim()).filter(Boolean));
+  const linked = Object.keys(site.q ?? {}).length > 0 || Object.values({ ...(site.k ?? {}), ...(site.l ?? {}) }).some((v) => typeof v === 'string' && (v.startsWith('c:') || v.includes('#')));
+  const brand = site.b ?? {};
+  const waveLink = typeof pay.wave === 'string' && /^https:\/\/pay\.wave\.com\//i.test(pay.wave);
+  const cardOn = card === 'on';
+  const steps: Step[] = [
+    { id: 'currency', title: 'Choisissez la monnaie et le nom de la boutique', href: '/admin/parametres/', action: 'Régler', done: typeof st.currency === 'string' && typeof st.name === 'string' && st.name.trim() !== '' },
+    { id: 'brand', title: 'Ajoutez votre logo, vos couleurs et vos boutons', href: '/admin/branding/', action: 'Branding', done: (typeof st.logo === 'string' && st.logo !== '') || Object.keys(brand).length > 0 },
+    ...(booking ? [] : [{ id: 'categories', title: 'Créez vos catégories et liez-les à vos sections', href: cats.size ? '/admin/editeur/' : '/admin/produits/', action: cats.size ? 'Lier' : 'Créer', done: cats.size >= 1 && linked, state: cats.size && !linked ? 'À lier' : undefined }]),
+    booking ? { id: 'services', title: 'Ajoutez vos prestations et vos forfaits', href: '/admin/prestations/', action: 'Ajouter', done: false }
+      : { id: 'products', title: 'Ajoutez vos produits : photos, prix, détails', href: '/admin/produits/', action: 'Ajouter', done: products.filter((p) => p.image || p.photo).length >= 3, state: products.length ? `${products.length} produit${products.length > 1 ? 's' : ''}` : undefined },
+    { id: 'wave', title: 'Activez Wave avec votre lien marchand', href: '/admin/paiements/', action: 'Configurer', done: waveLink, state: !waveLink && Object.values(pay).some((v) => typeof v === 'string' && v.trim() !== '') ? 'Lien manquant' : undefined },
+    { id: 'card', title: 'Acceptez les cartes bancaires (Stripe)', href: card === 'on' || card === 'soon' ? '/admin/paiements/' : '/admin/paiements/carte/', action: card === 'pending' ? 'Terminer' : 'Connecter', done: cardOn, state: card === 'loading' ? undefined : CARD_LABEL[card] },
+    { id: 'contact', title: booking ? 'Vérifiez vos horaires et votre WhatsApp' : 'Vérifiez la livraison et votre WhatsApp', href: booking ? '/admin/rendez-vous/reglages/' : (zonesOf(store).length ? '/admin/parametres/' : '/admin/livraison/'), action: 'Vérifier', done: typeof st.whatsapp === 'string' && st.whatsapp.trim() !== '' && (booking || zonesOf(store).length > 0) },
+    { id: 'site', title: booking ? 'Mettez vos photos et vos textes' : 'Personnalisez les textes et les photos', href: '/admin/editeur/', action: 'Éditer', done: !!st.site },
+    { id: 'live', title: 'Publiez et vérifiez votre site en ligne', href: store.published ? storeUrl(store, model) : '/admin/editeur/', action: store.published ? 'Voir' : 'Publier', done: store.published, out: store.published },
+  ];
   const doneN = steps.filter((x) => x.done).length, next = steps.filter((x) => !x.done).slice(0, 3);
   const shownSteps = allSteps ? steps : next;
   const day = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -93,7 +103,15 @@ export default function AdminHome() {
           </div>
           {doneN === steps.length ? <p className={home.ready}>Tout est en place. Partagez le lien de votre boutique.</p> : null}
           <ul className={home.stepList}>
-            {shownSteps.map((x) => <li key={x.id}><Link className={home.step} href={x.href} data-done={x.done ? '' : undefined}><span className={home.ring}>{x.done ? <Icon name="check" size={14} /> : null}</span><span>{x.title}</span><Icon name="chevron" size={16} /></Link></li>)}
+            {shownSteps.map((x) => (
+              <li key={x.id}>
+                <Link className={home.step} href={x.href} data-done={x.done ? '' : undefined} target={x.out ? '_blank' : undefined} rel={x.out ? 'noopener' : undefined}>
+                  <span className={home.ring}>{x.done ? <Icon name="check" size={14} /> : null}</span>
+                  <span>{x.title}<small>{x.done ? 'Configuré' : x.state ?? 'À faire'}</small></span>
+                  <span className={home.go}>{x.done ? (x.out ? 'Voir' : 'Modifier') : x.action}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
           <button type="button" className={home.more} aria-expanded={allSteps} onClick={() => setAllSteps((v) => !v)}><Icon name="down" size={14} />{allSteps ? 'Voir moins' : `Voir les ${steps.length} étapes (${plural(doneN, 'faite', 'faites')})`}</button>
         </section>

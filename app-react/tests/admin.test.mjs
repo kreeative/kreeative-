@@ -40,6 +40,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   const json = (route, status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*', 'access-control-expose-headers': '*' }, body: body === undefined ? '' : JSON.stringify(body) });
+  // Stripe's embedded forms: a stand-in that draws a recognisable block (no request leaves for Stripe)
+  await ctx.route('https://connect-js.stripe.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: `window.StripeConnect = { init: (o) => ({ create: (name) => { const d = document.createElement('div'); d.setAttribute('data-stripe', name); d.textContent = 'Formulaire sécurisé Stripe : ' + name; d.style.cssText = 'padding:24px;border-radius:12px;background:#f6f6f6;font:500 14px Poppins'; d.setOnExit = (f) => { window.__stripeExit = f; }; return d; } }) };` }));
   await ctx.route('**/connect/jeere-connect.js', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' }, body: CONNECT }));
   await page.route('https://aezchxfvzfoqlvzchqyk.supabase.co/**', async (route) => {
     const req = route.request(), url = new URL(req.url()), method = req.method();
@@ -69,6 +71,13 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       return json(route, 400, { ok: false });
     }
     if (p === '/functions/v1/appel') return json(route, 200, { ok: true });
+    if (p === '/functions/v1/payments') {
+      const C = world.card ?? (world.card = { ok: true, configured: true, connected: false, chargesEnabled: false, detailsSubmitted: false, country: '' });
+      if (!world.stores.some((x) => x.id === body.storeId)) return json(route, 403, { ok: false, code: 'forbidden' });
+      if (body.action === 'status') return json(route, 200, C);
+      if (body.action === 'session') { C.connected = true; C.country = body.country || C.country; return json(route, 200, { ok: true, clientSecret: 'cs_test', publishableKey: 'pk_test', accountId: 'acct_test' }); }
+      return json(route, 200, { ok: true, url: 'https://connect.stripe.com/test' });
+    }
     if (p === '/functions/v1/bookings') {
       const B = world.booking ?? (world.booking = { settings: bookingSettings(), appts: [] });
       const mine = world.stores.some((x) => x.id === body.storeId) || B.appts.some((a) => a.id === body.id) || (B.blocks ?? []).some((x) => x.id === body.id);
@@ -130,6 +139,13 @@ const bookingSettings = (services = []) => ({ enabled: true, timezone: 'Africa/A
   deposit: { mode: 'none', value: 0 }, payments: ['Sur place'], address: '', intro: '', mapUrl: '', policies: { deposit: '', late: '', cancel: '', payment: '', prep: '' },
   hours: [0, 1, 2, 3, 4, 5, 6].map((d) => ({ open: d !== 0, from: d === 6 ? '10:00' : '09:00', to: '18:00', breaks: [] })), services, addons: [], staff: [{ id: 'e1', name: 'Kady', role: '', photo: '', active: true, hours: null }], special: [] });
 const world = (over = {}) => { const s = store(); return { calls: [], uploads: [], conflict: false, profile: { id: USER.id, first_name: 'Kady', phone: '+2250707123456', store_name: 'Boutique Test', plan: 'gratuit', studio: null, created_at: '2026-11-01T10:00:00Z' }, stores: [s], orders: orders(s.id), ...over }; };
+/** a colour by its code, through the « + » picker of a colour field */
+async function pickColor(scope, label, hex) {
+  await scope.getByRole('group', { name: `${label} : couleurs de base` }).getByRole('button', { name: 'Autre couleur' }).click();
+  const pk = scope.getByRole('group', { name: `Choisir la couleur : ${label}` });
+  await pk.getByLabel('Code couleur').fill(hex.replace('#', ''));
+  await pk.getByRole('button', { name: 'Appliquer' }).click();
+}
 const noOverflow = async (page) => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), false, 'the page must not scroll sideways');
 const h1 = (page, text) => page.waitForFunction((t) => document.querySelector('h1')?.textContent === t, text);
 
@@ -301,7 +317,7 @@ await test('payments: the means offered and the numbers are saved; a wrong numbe
   await page.getByLabel('Numéro qui reçoit Orange Money').fill('0707');
   await page.getByLabel('Numéro qui reçoit Wave').fill('+225 07 79 01 16 40');
   await page.getByRole('button', { name: 'Enregistrer' }).click();
-  await page.getByText('Ce numéro ne semble pas complet').waitFor();
+  await page.getByText('Numéro incomplet').waitFor();
   assert.equal(w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').length, 0);
   await page.getByLabel('Numéro qui reçoit Orange Money').fill('+225 05 05 12 34 56');
   await page.screenshot({ path: `${SHOTS}21-paiements.png` });
@@ -668,11 +684,11 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   await right.getByLabel('Espace au-dessus (px)').fill('120');
   await right.getByLabel('Espace en dessous (px)').fill('64');
   await right.getByRole('button', { name: 'Centre' }).click();
-  await right.getByRole('button', { name: 'Crème' }).click();
+  await right.getByRole('group', { name: 'Fond de la section : couleurs de base' }).getByRole('button', { name: 'Or' }).click();
   await right.getByLabel('Coins des images (px)').fill('24');
   await right.getByRole('switch', { name: 'Filet au-dessus de la section' }).click();
   await page.waitForFunction(() => true); await page.waitForTimeout(500);
-  assert.deepEqual(await sec(), { pt: '120px', pb: '64px', align: 'center', bg: 'rgb(250, 246, 239)', line: '1px', radius: '24px' });
+  assert.deepEqual(await sec(), { pt: '120px', pb: '64px', align: 'center', bg: 'rgb(232, 185, 49)', line: '1px', radius: '24px' });
   assert.equal(w.calls.some((c) => c.method === 'PATCH' && c.path === '/rest/v1/stores'), false);
   await page.screenshot({ path: `${SHOTS}55-editeur-studio-ordinateur.png` });
   // the zoom bar floats over the site and changes its scale only
@@ -686,7 +702,7 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   await zoom.getByRole('button', { name: /revenir à 100 %/ }).click(); await zoom.getByText('100 %').waitFor();
   await page.getByRole('button', { name: 'Publier' }).click();
   await page.getByRole('status').filter({ hasText: 'Votre site est en ligne' }).waitFor();
-  assert.deepEqual(Object.values(w.stores[0].fiche.store.site.s), [{ pt: 120, pb: 64, align: 'center', bg: '#FAF6EF', radius: 24, line: true }]);
+  assert.deepEqual(Object.values(w.stores[0].fiche.store.site.s), [{ pt: 120, pb: 64, align: 'center', bg: '#E8B931', radius: 24, line: true }]);
   // « Remettre l’apparence du modèle » gives the section back as the designer drew it
   await right.getByRole('button', { name: 'Remettre l’apparence du modèle' }).click();
   await page.waitForTimeout(500);
@@ -857,11 +873,11 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   await style.getByLabel('Adresse').fill('https://exemple.com/promo');
   await style.getByRole('button', { name: 'Plein' }).click();
   await style.getByRole('switch', { name: 'Bouton arrondi' }).click();
-  await style.getByLabel('Couleur du bouton : code couleur').fill('#1E6FE0');
+  await pickColor(style, 'Couleur du bouton', '#1E6FE0');
   await page.waitForTimeout(500);
   assert.deepEqual(await btn.evaluate((n) => [n.getAttribute('href'), n.style.borderRadius, n.style.backgroundColor, n.style.color]), ['https://exemple.com/promo', '999px', 'rgb(30, 111, 224)', 'rgb(255, 255, 255)']);
   // the background of a section: the theme's colours and any other by its code
-  await right.getByLabel('Fond de la section : code couleur').fill('#FFE9F1');
+  await pickColor(right, 'Fond de la section', '#FFE9F1');
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${SHOTS}62-editeur-bouton-style.png` });
   // her logo, imported in the header
@@ -1009,19 +1025,19 @@ await test('editor, the scrolling band (MICHOU): one stable block, ONE text writ
   await page.screenshot({ path: `${SHOTS}69-bandeau-defilant.png` });
   // its colours and its speed
   await tools.getByRole('button', { name: 'Couleurs', exact: true }).click();
-  await page.getByRole('dialog').getByRole('group', { name: 'Couleur du bandeau' }).getByRole('button', { name: 'Rose' }).click();
-  await page.getByRole('dialog').getByRole('group', { name: 'Couleur du texte du bandeau' }).getByRole('button', { name: 'Blanc' }).click();
+  await page.getByRole('dialog').getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button', { name: 'Rouge' }).click();
+  await page.getByRole('dialog').getByRole('group', { name: 'Couleur du texte du bandeau : couleurs de base' }).getByRole('button', { name: 'Blanc' }).click();
   const slow = await band.evaluate((b) => parseFloat(getComputedStyle(b.querySelector('.ruban__track')).animationDuration));
   await tools.getByRole('button', { name: 'Vitesse', exact: true }).click();
   await page.waitForTimeout(400);
   const fast = await band.evaluate((b) => [getComputedStyle(b).backgroundColor, getComputedStyle(b).color, parseFloat(getComputedStyle(b.querySelector('.ruban__track')).animationDuration)]);
-  assert.deepEqual(fast.slice(0, 2), ['rgb(232, 70, 124)', 'rgb(255, 255, 255)']); assert.ok(fast[2] < slow, 'faster');
+  assert.deepEqual(fast.slice(0, 2), ['rgb(229, 57, 53)', 'rgb(255, 255, 255)']); assert.ok(fast[2] < slow, 'faster');
   await page.screenshot({ path: `${SHOTS}70-bandeau-couleurs.png` });
   assert.equal(await keyOf(), firstTitle);
   await tools.getByRole('button', { name: 'Terminer' }).click();
   await page.getByRole('button', { name: 'Publier' }).click();
   await page.getByText(/Votre site est en ligne/).waitFor();
-  assert.deepEqual(Object.values(w.stores[0].fiche.store.site.m), [{ text: 'Soldes de fin d’année • Livraison offerte dès 20 000 F', bg: '#E8467C', color: '#FFFFFF', speed: 'fast' }]);
+  assert.deepEqual(Object.values(w.stores[0].fiche.store.site.m), [{ text: 'Soldes de fin d’année • Livraison offerte dès 20 000 F', bg: '#E53935', color: '#FFFFFF', speed: 'fast' }]);
   assert.equal(w.stores[0].fiche.store.site.t, undefined, 'no piece of the band was saved as a text of its own');
   assert.deepEqual(errors, []); await ctx.close();
 });
@@ -1086,9 +1102,9 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await page.waitForTimeout(300);
   assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.fontSize), `${before + 2}px`);
   await tools.getByRole('button', { name: 'Couleur', exact: true }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Rose' }).click();
+  await page.getByRole('dialog').getByRole('group', { name: 'Couleur du texte : couleurs de base' }).getByRole('button', { name: 'Rouge' }).click();
   await page.waitForTimeout(300);
-  assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.color), 'rgb(232, 70, 124)');
+  assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.color), 'rgb(229, 57, 53)');
   await page.screenshot({ path: `${SHOTS}55-editeur-telephone-couleur.png` });
   // ✓ ends it: the site's tools come back and the frame goes
   await tools.getByRole('button', { name: 'Terminer' }).click();
@@ -1141,7 +1157,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await page.getByText(/Votre site est en ligne/).waitFor();
   const saved = w.stores[0].fiche.store.site;
   assert.deepEqual(Object.values(saved.t), ['Bonjour Test']);
-  assert.deepEqual(Object.values(saved.x), [{ bold: true, size: before + 2, color: '#E8467C' }]);
+  assert.deepEqual(Object.values(saved.x), [{ bold: true, size: before + 2, color: '#E53935' }]);
   assert.deepEqual(Object.values(saved.f), [{ fit: 'contain' }]);
   assert.equal(Object.keys(saved.h).length, 1);
   assert.deepEqual(await box(bar), [10, 776, 370, 58], 'the bar is still fixed to the bottom');
@@ -1801,6 +1817,148 @@ await test('editor: the payment of the checkout page is not edited there; a note
   await page.waitForTimeout(400);
   assert.equal(await site.locator('[data-jeere-sel]').evaluate((n) => n.style.display), 'none', 'no frame left behind');
   await page.screenshot({ path: `${SHOTS}82-carte-apres-defilement.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('colours: the model’s own and the base colours, a « + » that opens a picker of any colour, and her recent colours', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  await site.locator('.ruban').first().click({ force: true });
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  await tools.getByRole('button', { name: 'Couleurs', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Couleurs du bandeau' });
+  const own = sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs du modèle' });
+  assert.ok(await own.getByRole('button', { name: 'Rouge soldes' }).count() === 1, 'MICHOU’s own red is offered first');
+  assert.deepEqual(await sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button').evaluateAll((b) => b.map((x) => x.getAttribute('aria-label'))), ['Blanc', 'Rouge', 'Bleu', 'Vert', 'Or', 'Autre couleur'], 'plain base colours (black is already MICHOU’s ink)');
+  assert.equal(await sheet.locator('input[type="color"]').count(), 0, 'no raw colour input of the browser');
+  await page.screenshot({ path: `${SHOTS}90-couleurs-bandeau.png` });
+  await sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button', { name: 'Autre couleur' }).click();
+  const picker = sheet.getByRole('group', { name: 'Choisir la couleur : Couleur du bandeau' });
+  await picker.waitFor();
+  // dragging in the field and along the band of hues changes the colour; its code can be typed
+  const f = await picker.locator('[class*="field"]').first().boundingBox();
+  await page.mouse.click(f.x + f.width * 0.8, f.y + f.height * 0.25);
+  await picker.getByLabel('Code couleur').fill('2E7D5B');
+  await picker.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `${SHOTS}91-selecteur-couleur.png` });
+  await picker.getByRole('button', { name: 'Appliquer' }).click();
+  await page.waitForTimeout(300);
+  assert.equal(await site.locator('.ruban').first().evaluate((b) => getComputedStyle(b).backgroundColor), 'rgb(46, 125, 91)');
+  const recent = sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs récentes' });
+  assert.deepEqual(await recent.getByRole('button').evaluateAll((b) => b.map((x) => x.getAttribute('aria-label'))), ['#2E7D5B']);
+  // the same recent colour is offered for the text too, one touch applies it
+  await sheet.getByRole('group', { name: 'Couleur du texte du bandeau : couleurs récentes' }).getByRole('button', { name: '#2E7D5B' }).click();
+  await page.waitForTimeout(300);
+  assert.equal(await site.locator('.ruban').first().evaluate((b) => getComputedStyle(b).color), 'rgb(46, 125, 91)');
+  await page.screenshot({ path: `${SHOTS}92-couleurs-recentes.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('payments: Wave first, on by default and recommended with its link; the others off; a guide; the card with Stripe, connected inside Jehre', async () => {
+  const w = world(); delete w.stores[0].fiche.payments; const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/paiements/`); await h1(page, 'Paiements');
+  const sw = async (n) => page.getByRole('switch', { name: n, exact: true }).getAttribute('aria-checked');
+  assert.deepEqual([await sw('Wave'), await sw('Orange Money'), await sw('MTN MoMo'), await sw('Moov Money'), await sw('Paiement à la livraison')], ['true', 'false', 'false', 'false', 'false']);
+  await page.getByText('Recommandé', { exact: true }).waitFor();
+  await page.getByLabel('Lien de paiement Wave (recommandé)').waitFor();
+  await page.getByText('Avec un numéro seul, elle envoie sa commande').waitFor();
+  await page.getByText('Comment configurer vos paiements').waitFor();
+  const card = page.getByRole('region', { name: 'Carte bancaire' });
+  await card.getByText('À configurer').waitFor();
+  await page.getByLabel('Lien de paiement Wave (recommandé)').fill('https://pay.wave.com/m/M_ci_test/c/ci/');
+  await page.getByText('La cliente paie à l’avance', { exact: false }).first().waitFor();
+  await page.screenshot({ path: `${SHOTS}93-paiements.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Enregistré.').waitFor();
+  assert.deepEqual(w.stores[0].fiche.payments, { wave: true, orange: false, mtn: false, moov: false, cod: false });
+  // the card: her country, then Stripe’s own form inside Jehre, for THIS store
+  await card.getByRole('link', { name: 'Connecter Stripe' }).click();
+  await h1(page, 'Paiements par carte');
+  await page.getByLabel('Pays où votre activité est enregistrée').selectOption('Canada');
+  await page.screenshot({ path: `${SHOTS}94-stripe-pays.png` });
+  await page.getByRole('button', { name: 'Commencer' }).click();
+  await page.locator('[data-stripe="account-onboarding"]').waitFor();
+  const asked = w.calls.find((c) => c.path === '/functions/v1/payments' && c.body.action === 'session');
+  assert.deepEqual([asked.body.storeId, asked.body.country], [w.stores[0].id, 'CA'], 'tied to her store, in her country');
+  await page.screenshot({ path: `${SHOTS}95-stripe-formulaire.png` });
+  // once Stripe has checked her: « Connecté » on Paiements and ticked on the home
+  Object.assign(w.card, { chargesEnabled: true, detailsSubmitted: true });
+  await page.evaluate(() => window.__stripeExit && window.__stripeExit());
+  await page.waitForURL(/\/admin\/paiements\/\?carte=1/);
+  await page.getByRole('region', { name: 'Carte bancaire' }).getByText('Connecté').waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('home: a living checklist — currency, brand, categories linked, products, Wave, Stripe, delivery, publish — each with its state and one tap to the right place', async () => {
+  const w = withModel(world(), 'soyeuse'); w.stores[0].published = false; const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/`);
+  await page.getByRole('heading', { name: 'Premiers pas' }).waitFor();
+  await page.getByRole('button', { name: /^Voir les \d+ étapes/ }).click();
+  const list = page.locator('section[aria-labelledby="h-steps"] li');
+  await page.getByText('Acceptez les cartes bancaires (Stripe)').waitFor();
+  const titles = await list.allInnerTexts();
+  for (const t of ['monnaie', 'logo, vos couleurs', 'catégories', 'produits', 'Wave', 'Stripe', 'livraison', 'Publiez']) assert.ok(titles.some((x) => x.includes(t)), `a step about ${t}`);
+  assert.ok(titles.some((x) => /Stripe[\s\S]*À configurer[\s\S]*Connecter/.test(x)), 'Stripe: its state and its action');
+  await page.screenshot({ path: `${SHOTS}96-accueil-checklist.png`, fullPage: true });
+  // the currency is set in Paramètres: back on the home, the step is ticked
+  await list.filter({ hasText: 'monnaie' }).getByRole('link').click();
+  await h1(page, 'Paramètres');
+  await page.getByLabel('Monnaie de la boutique').selectOption('Euro (€)');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Enregistré.').waitFor();
+  assert.equal(w.stores[0].fiche.store.currency, 'EUR');
+  await page.goto(`${BASE}/admin/`);
+  await page.getByRole('button', { name: /^Voir les \d+ étapes/ }).click();
+  assert.match(await list.filter({ hasText: 'monnaie' }).innerText(), /Configuré/);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor: leaving with changes not saved asks first — save and leave, leave without saving, or stay; without changes the arrow leaves at once', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  // nothing changed: straight back
+  await page.getByRole('link', { name: 'Retour au tableau de bord' }).click();
+  await page.waitForURL(`${BASE}/admin/`);
+  await page.goto(`${BASE}/admin/editeur/`);
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  const title = site.locator('h1[data-jeere-pickable], h2[data-jeere-pickable]').first();
+  await title.click();
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  await tools.getByRole('button', { name: 'Gras', exact: true }).click();
+  await page.waitForTimeout(700);
+  assert.ok(await page.evaluate(() => Object.keys(localStorage).some((k) => k.startsWith('jeere-editor-draft:'))), 'a safety copy is kept on the device');
+  // the arrow: the question, « Rester » keeps her where she was
+  await page.getByRole('link', { name: 'Retour au tableau de bord' }).click();
+  const ask = page.getByRole('alertdialog', { name: 'Enregistrer vos modifications ?' });
+  await ask.waitFor();
+  await page.screenshot({ path: `${SHOTS}97-quitter-editeur.png` });
+  await ask.getByRole('button', { name: 'Rester' }).click();
+  await ask.waitFor({ state: 'detached' });
+  assert.match(page.url(), /\/admin\/editeur\/$/);
+  await tools.waitFor();
+  // a link of the editor (Branding) asks too; « Enregistrer et quitter » saves, then leaves
+  await page.getByRole('link', { name: 'Retour au tableau de bord' }).click();
+  await ask.getByRole('button', { name: 'Enregistrer et quitter' }).click();
+  await page.waitForURL(`${BASE}/admin/`);
+  const saved = w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').pop();
+  assert.ok(saved && JSON.stringify(saved.body.fiche.store.site.x).includes('"bold"'), 'the change was saved before leaving');
+  assert.equal(await page.evaluate(() => Object.keys(localStorage).some((k) => k.startsWith('jeere-editor-draft:'))), false, 'the safety copy is dropped once saved');
+  // « Quitter sans enregistrer »: nothing is written
+  await page.goto(`${BASE}/admin/editeur/`);
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  await site.locator('h1[data-jeere-pickable], h2[data-jeere-pickable]').first().click();
+  await tools.getByRole('button', { name: 'Gras', exact: true }).click();
+  await page.waitForTimeout(300);
+  const before = w.calls.filter((c) => c.method === 'PATCH').length;
+  await page.getByRole('link', { name: 'Retour au tableau de bord' }).click();
+  await ask.getByRole('button', { name: 'Quitter sans enregistrer' }).click();
+  await page.waitForURL(`${BASE}/admin/`);
+  assert.equal(w.calls.filter((c) => c.method === 'PATCH').length, before);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

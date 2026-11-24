@@ -1,5 +1,6 @@
 'use client';
 
+import { ColorField } from '@/components/ui/ColorField';
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode, type RefObject } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
@@ -25,6 +26,8 @@ export interface MobileEditorProps {
   goPage: (p: string) => void;
   canUndo: boolean; canRedo: boolean; undo: () => void; redo: () => void;
   busy: boolean; dirty: boolean; save: (publish: boolean) => void;
+  /** leaves the editor: asks first when changes are not saved */
+  onLeave: (href: string) => void;
   site: string;
   frame: RefObject<HTMLIFrameElement | null>;
   map: SiteMap | null;
@@ -43,8 +46,6 @@ export interface MobileEditorProps {
 
 type Tool = '' | 'sections' | 'pages' | 'style' | 'theme' | 'add' | 'edit' | 'font' | 'size' | 'color' | 'align' | 'link' | 'frame' | 'bg' | 'space' | 'product' | 'band' | 'bandLook' | 'imgLink' | 'pname' | 'pprice' | 'source';
 const FONTS: [TextLook['font'] | undefined, string][] = [[undefined, 'Modèle'], ['serif', 'Classique'], ['sans', 'Moderne'], ['mono', 'Machine']];
-const COLORS: [string, string][] = [['', 'Modèle'], ['#111111', 'Noir'], ['#FFFFFF', 'Blanc'], ['#6B6B6B', 'Gris'], ['#E8467C', 'Rose'], ['#F08A3C', 'Orange'], ['#1F9D62', 'Vert'], ['#1E6FE0', 'Bleu'], ['#6A4CFF', 'Violet']];
-const BACKGROUNDS: [string, string][] = [['', 'Modèle'], ['#FFFFFF', 'Blanc'], ['#F5F5F3', 'Gris clair'], ['#FAF6EF', 'Crème'], ['#111111', 'Noir']];
 const ALIGN: ['left' | 'center' | 'right' | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
 const SPOTS = [0, 50, 100];
 // the words under the icons stay short, so every tool is read whole; the full name is what a screen reader says
@@ -203,10 +204,8 @@ export function MobileEditor(p: MobileEditorProps) {
   } else if (item && tool === 'bandLook') {
     const b = bandOf(draft, item.key);
     drawer = { title: 'Couleurs du bandeau', body: <>
-      <span className={styles.caption}>Bandeau</span>
-      <Swatches label="Couleur du bandeau" options={COLORS} value={b.bg ?? ''} onPick={(v) => change((d) => withBand(d, item.key, { bg: v || undefined }))} />
-      <span className={styles.caption}>Texte</span>
-      <Swatches label="Couleur du texte du bandeau" options={COLORS} value={b.color ?? ''} onPick={(v) => change((d) => withBand(d, item.key, { color: v || undefined }))} />
+      <ColorField label="Couleur du bandeau" value={b.bg ?? ''} onChange={(v) => change((d) => withBand(d, item.key, { bg: v }))} />
+      <ColorField label="Couleur du texte du bandeau" value={b.color ?? ''} onChange={(v) => change((d) => withBand(d, item.key, { color: v }))} />
     </> };
   } else if (item && tool === 'edit') {
     const kind = item.kind === 'c' ? 'c' : 't', own = siteValue(draft, kind, item.key), value = own ?? item.text;
@@ -264,7 +263,7 @@ export function MobileEditor(p: MobileEditorProps) {
     </> };
   } else if (item && tool === 'color') {
     const look = textLook(draft, item.key);
-    drawer = { title: 'Couleur', body: <Swatches label="Couleur du texte" options={COLORS} value={look.color ?? ''} onPick={(v) => change((d) => withTextLook(d, item.key, { color: v || undefined }))} /> };
+    drawer = { title: 'Couleur', body: <ColorField label="Couleur du texte" value={look.color ?? ''} onChange={(v) => change((d) => withTextLook(d, item.key, { color: v }))} /> };
   } else if (item && tool === 'align') {
     const look = textLook(draft, item.key);
     drawer = { title: 'Alignement', body: <div className={styles.segments} role="group" aria-label="Alignement">{ALIGN.map(([v, label]) => <button key={label} type="button" aria-pressed={look.align === v} onClick={() => change((d) => withTextLook(d, item.key, { align: v }))}>{label}</button>)}</div> };
@@ -291,7 +290,7 @@ export function MobileEditor(p: MobileEditorProps) {
     </> };
   } else if (section && tool === 'bg') {
     const look = sectionLook(draft, section.key);
-    drawer = { title: 'Couleur du fond', body: <Swatches label="Fond de la section" options={BACKGROUNDS} value={look.bg ?? ''} onPick={(v) => change((d) => withSectionLook(d, section.key, { bg: v || undefined }))} /> };
+    drawer = { title: 'Couleur du fond', body: <ColorField label="Fond de la section" value={look.bg ?? ''} onChange={(v) => change((d) => withSectionLook(d, section.key, { bg: v }))} /> };
   } else if (section && tool === 'space') {
     const look = sectionLook(draft, section.key);
     const set = (patch: Parameters<typeof withSectionLook>[2], tag: string) => change((d) => withSectionLook(d, section.key, patch), `look:${section.key}:${tag}`);
@@ -311,7 +310,7 @@ export function MobileEditor(p: MobileEditorProps) {
     <div className={styles.editor} ref={root}>
       <header className={styles.top}>
         <div className={styles.side}>
-          <a className={styles.icon} href="/admin/" aria-label="Retour au tableau de bord"><Icon name="back" size={20} /></a>
+          <a className={styles.icon} href="/admin/" aria-label="Retour au tableau de bord" onClick={(e) => { e.preventDefault(); p.onLeave('/admin/'); }}><Icon name="back" size={20} /></a>
           <button type="button" className={styles.icon} disabled={!p.canUndo} onClick={p.undo} aria-label="Annuler"><Icon name="undo" size={20} /></button>
           <button type="button" className={styles.icon} disabled={!p.canRedo} onClick={p.redo} aria-label="Rétablir" data-tour="history"><Icon name="redo" size={20} /></button>
           <button type="button" className={styles.icon} onClick={p.onHelp} aria-label="Revoir la visite de l’éditeur"><Icon name="info" size={20} /></button>
@@ -355,14 +354,6 @@ export function MobileEditor(p: MobileEditorProps) {
 }
 
 /** A row of colours: the model's own first, then a few plain ones. */
-function Swatches({ label, options, value, onPick }: { label: string; options: [string, string][]; value: string; onPick: (v: string) => void }) {
-  return (
-    <div className={styles.swatches} role="group" aria-label={label}>
-      {options.map(([v, name]) => <button key={name} type="button" aria-pressed={value.toLowerCase() === v.toLowerCase()} onClick={() => onPick(v)} aria-label={name} title={name}><i style={v ? { background: v } : undefined} data-none={v ? undefined : ''} /></button>)}
-    </div>
-  );
-}
-
 /** Where a button of the site leads: an https address, an e-mail or a phone number. A wrong one is not kept. */
 function LinkField({ value, model, onSet }: { value: string; model: string; onSet: (v: string | null) => void }) {
   const [text, setText] = useState(value);

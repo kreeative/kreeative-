@@ -1,0 +1,36 @@
+/* A colour field: rows of round swatches (model, base, recent) and a « + » that opens the picker below them */
+.control { display: grid; gap: 6px; min-width: 0; }
+.caption { font: 500 11.5px/16px var(--font); color: var(--muted); }
+.sub { margin-top: 2px; font: 500 10.5px/14px var(--font); color: var(--muted); }
+.swatches { display: flex; flex-wrap: wrap; gap: 4px; }
+.swatches button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink); cursor: pointer; transition: box-shadow var(--dur) var(--ease); }
+.swatches i { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .14); background: var(--white); }
+.swatches i[data-none] { background: linear-gradient(135deg, var(--white) 46%, var(--line-2) 46%, var(--line-2) 54%, var(--white) 54%); }
+.swatches button[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ink); }
+.swatches button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.more { box-shadow: inset 0 0 0 1px var(--line-2) !important; }
+.more[aria-expanded="true"] { background: var(--grey-1) !important; }
+
+/* the picker: a clear glass card, the colour field, the band of hues, before/after, the code, two clear actions */
+.picker { display: grid; gap: 10px; margin-top: 4px; padding: 12px; border-radius: 14px; background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 14px 34px -22px rgba(17, 17, 17, .35); animation: in .18s var(--ease); }
+.field { position: relative; height: 140px; border-radius: 10px; cursor: crosshair; touch-action: none; }
+.field::before, .field::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.field::before { background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0)); }
+.field::after { background: linear-gradient(to top, #000, rgba(0, 0, 0, 0)); }
+.fieldThumb, .bandThumb { position: absolute; z-index: 1; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; box-shadow: 0 0 0 2.5px #fff, 0 0 0 3.5px rgba(17, 17, 17, .25), 0 2px 6px rgba(17, 17, 17, .3); cursor: grab; }
+.fieldThumb:focus-visible, .bandThumb:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.band { position: relative; height: 14px; border-radius: 999px; cursor: pointer; touch-action: none; background: linear-gradient(to right, #f00 0%, #ff0 16.7%, #0f0 33.3%, #0ff 50%, #00f 66.7%, #f0f 83.3%, #f00 100%); }
+.bandThumb { top: 50%; }
+.row { display: flex; align-items: center; gap: 8px; }
+.compare { flex: none; display: flex; width: 56px; height: 30px; border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .12); }
+.compare span { flex: 1; }
+.compare span[data-none] { background: linear-gradient(135deg, var(--white) 46%, var(--line-2) 46%, var(--line-2) 54%, var(--white) 54%); }
+.code { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border-radius: 8px; background: var(--white); box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); font: 500 12px/1 var(--font); }
+.code:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.code input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: 500 12px/1 var(--font); font-variant-numeric: tabular-nums; letter-spacing: .04em; text-transform: uppercase; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; border: 0; border-radius: 8px; font: 600 12px/1 var(--font); cursor: pointer; }
+.cancel { background: var(--grey-1); color: var(--ink); }
+.apply { background: var(--ink); color: var(--white); }
+@keyframes in { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .picker { animation: none; } }

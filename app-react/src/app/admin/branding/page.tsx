@@ -8,7 +8,8 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
-import { brandOf, editorSite, withBrand, type Brand } from '@/lib/models';
+import { brandOf, editorSite, MODEL_COLORS, withBrand, type Brand } from '@/lib/models';
+import { ColorPalette } from '@/components/ui/ColorField';
 import type { Fiche } from '@/lib/stores';
 import { ColorField, PhotoField } from '../editeur/Extras';
 import styles from './branding.module.css';
@@ -74,7 +75,7 @@ export default function BrandingPage() {
             <Field label="Hauteur dans l’en-tête (px)" inputMode="numeric" placeholder="42" value={b.logoH ? String(b.logoH) : ''} onChange={(e) => { const n = Number(e.target.value.replace(/\D/g, '')); set({ logoH: n >= 16 && n <= 120 ? n : undefined }); }} />
           </section>
 
-          <section className={styles.card} aria-label="Couleurs">
+          <ColorPalette value={MODEL_COLORS[modelSlug || site?.key || ''] ?? []}><section className={styles.card} aria-label="Couleurs">
             <h2><Icon name="drop" size={18} />Couleurs</h2>
             <ColorField key={`bb${store.id}`} label="Boutons" value={b.btnBg ?? ''} onChange={(v) => set({ btnBg: v })} />
             <ColorField key={`bt${store.id}`} label="Texte des boutons" value={b.btnText ?? ''} onChange={(v) => set({ btnText: v })} />
@@ -82,7 +83,7 @@ export default function BrandingPage() {
             <ColorField key={`tx${store.id}`} label="Textes principaux" value={b.text ?? ''} onChange={(v) => set({ text: v })} />
             <ColorField key={`mu${store.id}`} label="Textes secondaires" value={b.muted ?? ''} onChange={(v) => set({ muted: v })} />
             <ColorField key={`ac${store.id}`} label="Accent (liens)" value={b.accent ?? ''} onChange={(v) => set({ accent: v })} />
-          </section>
+          </section></ColorPalette>
 
           <section className={styles.card} aria-label="Boutons">
             <h2><Icon name="edit" size={18} />Boutons</h2>

@@ -33,6 +33,8 @@ export const PAYMENT_METHODS: { key: PaymentKey; label: string; number?: keyof P
   { key: 'moov', label: 'Moov Money', number: 'moov' },
   { key: 'cod', label: 'Paiement à la livraison' },
 ];
+/** the money her prices are shown in on her site (fiche.store.currency, read by the sites' connector) */
+export const CURRENCIES: [string, string][] = [['XOF', 'Franc CFA (FCFA)'], ['EUR', 'Euro (€)'], ['CAD', 'Dollar canadien ($ CA)'], ['USD', 'Dollar américain ($ US)']];
 export interface Zone { name: string; fee: number }
 export interface Section { id: string; type: string; enabled?: boolean; settings?: Record<string, unknown>; [key: string]: unknown }
 

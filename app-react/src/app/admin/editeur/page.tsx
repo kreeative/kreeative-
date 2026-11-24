@@ -12,8 +12,10 @@ import { Menu } from '@/components/ui/Menu';
 import { Notice } from '@/components/ui/Notice';
 import { Toast } from '@/components/ui/Toast';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSectionLook, withSectionOrder, withSiteEdit, withSlot, type SectionLook, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
+import { brandOf, editorSite, MODEL_COLORS, readSiteMap, sectionLook, sectionOrder, siteValue, withSectionLook, withSectionOrder, withSiteEdit, withSlot, type SectionLook, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
+import { ColorPalette } from '@/components/ui/ColorField';
+import { LeaveDialog } from './LeaveDialog';
 import { AddedInspector, BandInspector, ColorField, PhotoField, TextStyle } from './Extras';
 import { MobileEditor } from './MobileEditor';
 import { CloudLoader } from '@/components/ui/CloudLoader';
@@ -33,6 +35,7 @@ export default function EditorPage() {
   const { busy, problem, write, clear } = useSave();
   const [draft, setDraft] = useState<Fiche | null>(null);
   const [origin, setOrigin] = useState<Fiche | null>(null);
+  const leaveRef = useRef<(href: string) => void>((h) => window.location.assign(h));
   const [past, setPast] = useState<Fiche[]>([]);
   const [future, setFuture] = useState<Fiche[]>([]);
   const [path, setPath] = useState('');
@@ -92,7 +95,7 @@ export default function EditorPage() {
       if (e.origin !== siteOrigin || e.source !== frame.current?.contentWindow) return;
       const d = (e.data ?? {}) as { jeereConnect?: unknown; jeereNone?: unknown; jeereAdded?: unknown; jeerePick?: { key?: unknown; sec?: unknown } };
       if (typeof d.jeereAdded === 'string') { setPicked(null); setFocus(''); setSel(`a:${d.jeereAdded}`); return; }
-      if ((d as { jeereGo?: unknown }).jeereGo === 'paiements') { window.location.assign('/admin/paiements/'); return; }
+      if ((d as { jeereGo?: unknown }).jeereGo === 'paiements') { leaveRef.current('/admin/paiements/'); return; }
       if (d.jeereNone === true) { setSel(''); return; }
       if (d.jeereConnect === 'ready') { send(); return; }
       const m = readSiteMap(e.data);
@@ -141,11 +144,53 @@ export default function EditorPage() {
   }, [ready]);
 
   const dirty = !!draft && !!origin && !same(draft, origin);
+  // closing or reloading the tab with changes not saved: the browser asks first
+  const leaving = useRef(false);
   useEffect(() => {
     if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    const warn = (e: BeforeUnloadEvent) => { if (leaving.current) return; e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+  // a safety copy of her changes on this device, while they are not saved: a crash or a closed tab loses nothing
+  const backupKey = storeId ? `jeere-editor-draft:${storeId}` : '';
+  const dropBackup = useCallback(() => { try { if (backupKey) window.localStorage.removeItem(backupKey); } catch { /* nothing kept */ } }, [backupKey]);
+  useEffect(() => {
+    if (!backupKey || !draft || !dirty) return;
+    const t = window.setTimeout(() => { try { window.localStorage.setItem(backupKey, JSON.stringify({ base: stamp ?? '', at: Date.now(), fiche: draft })); } catch { /* the device is full: the question before leaving still protects her */ } }, 500);
+    return () => window.clearTimeout(t);
+  }, [backupKey, draft, dirty, stamp]);
+  const [recovered, setRecovered] = useState<Fiche | null>(null);
+  useEffect(() => {
+    if (!backupKey || !store) return;
+    try {
+      const raw = window.localStorage.getItem(backupKey); if (!raw) return;
+      const b = JSON.parse(raw) as { base?: string; fiche?: Fiche };
+      // only on top of the same saved version: a copy older than what is saved now would undo newer work
+      if (b.fiche && b.base === (stamp ?? '') && !same(b.fiche, store.fiche)) setRecovered(b.fiche); else window.localStorage.removeItem(backupKey);
+    } catch { /* an unreadable copy is ignored */ }
+  }, [backupKey, stamp]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // leaving the editor (the arrow, a link of the editor): with changes not saved, she is asked first
+  const [exitTo, setExitTo] = useState<string | null>(null);
+  const go = useCallback((href: string) => { leaving.current = true; window.location.assign(href); }, []);
+  const leave = useCallback((href: string) => { if (dirty) setExitTo(href); else go(href); }, [dirty, go]);
+  leaveRef.current = leave;
+  // every link of the editor that leads elsewhere in Jehre (Produits, Branding, Paiements…) goes through the same question
+  useEffect(() => {
+    if (!dirty) return;
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
+      const href = a.getAttribute('href') ?? '';
+      if (!href.startsWith('/') || href.startsWith('//')) return;
+      const url = new URL(href, window.location.href);
+      if (url.pathname === window.location.pathname) return;
+      e.preventDefault(); e.stopPropagation();
+      setExitTo(url.pathname + url.search + url.hash);
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
   }, [dirty]);
 
   // every change can be undone; the letters typed in one field within a moment count as one change
@@ -166,7 +211,12 @@ export default function EditorPage() {
   async function save(publish: boolean) {
     if (!draft || busy || (!dirty && !(publish && !store?.published))) return;
     setToast(null);
-    if (await write(draft, publish)) { setOrigin(draft); setToast(publish ? 'live' : 'saved'); }
+    if (await write(draft, publish)) { setOrigin(draft); dropBackup(); setToast(publish ? 'live' : 'saved'); }
+  }
+  async function saveAndLeave() {
+    if (!draft || !exitTo) return;
+    if (await write(draft, !!store?.published)) { setOrigin(draft); dropBackup(); go(exitTo); }
+    else setExitTo(null);   // the reason is shown below; she stays with her changes
   }
 
   // the sections of the page, in HER order (the header first and the footer last, always)
@@ -248,6 +298,8 @@ export default function EditorPage() {
   ) : null;
 
   const toasts = (<>
+      {exitTo ? <LeaveDialog published={!!store.published} busy={busy} onSave={() => void saveAndLeave()} onDrop={() => { dropBackup(); go(exitTo); }} onStay={() => setExitTo(null)} /> : null}
+      {recovered ? <Toast onDone={() => { setRecovered(null); dropBackup(); }} ms={15000} action={<button type="button" onClick={() => { change(() => recovered); setRecovered(null); }}>Reprendre</button>}>Des modifications non enregistrées ont été retrouvées.</Toast> : null}
       {tour && map ? <Tour steps={phone ? PHONE_TOUR : DESK_TOUR} onDone={endTour} /> : null}
       {path.includes('commande') && map ? <p className={phone ? styles.payNotePhone : styles.payNote}><Icon name="wallet" size={14} />Le paiement se règle dans <a href="/admin/paiements/"><b>Paiements</b></a>.</p> : null}
       {problem === 'conflict' ? <Toast onDone={clear} ms={12000} action={<button type="button" onClick={() => void reload()}>Recharger</button>}>Votre boutique a changé entre-temps. Rien n’a été écrasé.</Toast> : null}
@@ -255,17 +307,23 @@ export default function EditorPage() {
       {toast === 'live' && !problem ? <Toast onDone={() => setToast(null)} action={<a href={url} target="_blank" rel="noopener">Voir mon site</a>}>Votre site est en ligne · {url.replace(/^https:\/\//, '')}</Toast> : null}
       {toast === 'saved' && !problem ? <Toast onDone={() => setToast(null)} ms={3000}>Brouillon enregistré. Votre site n’est pas encore en ligne.</Toast> : null}
   </>);
+  // the colours offered in every colour field: her brand's, then her model's own
+  const b0 = brandOf(draft);
+  const palette: [string, string][] = [
+    ...([[b0.btnBg, 'Boutons'], [b0.bg, 'Fond'], [b0.text, 'Textes'], [b0.accent, 'Accent']] as [string | undefined, string][]).filter((x): x is [string, string] => !!x[0]),
+    ...(MODEL_COLORS[modelSlug || model.key] ?? []),
+  ];
   if (phone) return (
-    <MobileEditor published={store.published} pages={pages} path={path} goPage={goPage} canUndo={past.length > 0} canRedo={future.length > 0} undo={undo} redo={redo}
+    <ColorPalette value={palette}><MobileEditor published={store.published} pages={pages} path={path} goPage={goPage} canUndo={past.length > 0} canRedo={future.length > 0} undo={undo} redo={redo}
       busy={busy} dirty={dirty} save={(pub) => void save(pub)} site={site} frame={frame} map={map} sections={sections} draft={draft} change={change} moveSection={moveSection}
-      sel={sel} setSel={setSel} onHelp={() => setTour(true)} hideHint={tour} userId={account.userId} modelName={modelBySlug(modelSlug)?.name ?? model.name} booking={!!modelBySlug(modelSlug)?.rdv}>{toasts}</MobileEditor>
+      sel={sel} setSel={setSel} onHelp={() => setTour(true)} hideHint={tour} onLeave={leave} userId={account.userId} modelName={modelBySlug(modelSlug)?.name ?? model.name} booking={!!modelBySlug(modelSlug)?.rdv}>{toasts}</MobileEditor></ColorPalette>
   );
 
   return (
-    <div className={styles.editor}>
+    <ColorPalette value={palette}><div className={styles.editor}>
       <header className={styles.top}>
         <div className={styles.topLeft}>
-          <Link className={styles.icon} href="/admin/" aria-label="Retour au tableau de bord"><Icon name="back" size={16} /></Link>
+          <a className={styles.icon} href="/admin/" aria-label="Retour au tableau de bord" onClick={(e) => { e.preventDefault(); leave('/admin/'); }}><Icon name="back" size={16} /></a>
           {phone ? null : <button type="button" className={styles.icon} aria-pressed={leftOpen} onClick={() => setLeftOpen((v) => !v)} aria-label={leftOpen ? 'Masquer les sections' : 'Afficher les sections'}><Icon name="menu" size={16} /></button>}
           <b className={styles.name}>{storeName(store)}</b>
           <span className={styles.badge} data-live={store.published ? '' : undefined}>{store.published ? 'En ligne' : 'Brouillon'}</span>
@@ -423,7 +481,7 @@ export default function EditorPage() {
       </div>
 
       {toasts}
-    </div>
+    </div></ColorPalette>
   );
 }
 

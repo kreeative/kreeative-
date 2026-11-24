@@ -1,0 +1,26 @@
+/* Paiements: the guide (a clear glass card), mobile money, then the card with Stripe */
+.page { display: grid; gap: var(--sp-4); max-width: 680px; }
+.form { display: grid; gap: var(--sp-4); }
+.guide { border-radius: var(--r-lg); background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 12px 30px -24px rgba(17, 17, 17, .3); }
+.guide summary { display: flex; align-items: center; gap: 10px; padding: 14px 18px; cursor: pointer; list-style: none; font: 500 var(--fs) / 1.3 var(--font); }
+.guide summary::-webkit-details-marker { display: none; }
+.guide summary b { flex: 1; font-weight: 600; }
+.guide summary > svg:last-child { transition: transform var(--dur) var(--ease); }
+.guide[open] summary > svg:last-child { transform: rotate(180deg); }
+.guide ol { list-style: none; margin: 0; padding: 0 18px 16px; display: grid; gap: 10px; }
+.guide li { display: flex; gap: 10px; align-items: flex-start; font: 400 var(--fs-sm) / var(--lh) var(--font); color: var(--ink); }
+.guide li > b { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--white); font: 600 11px/1 var(--font); }
+.guide code { font: 500 12px/1 var(--font); padding: 2px 6px; border-radius: 6px; background: var(--grey-1); word-break: break-all; }
+.name { display: inline-flex; align-items: center; gap: 8px; }
+.badge { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; background: var(--ink); color: var(--white); font: 600 11px/1 var(--font); }
+.note { margin: 0; color: var(--muted); font: 400 var(--fs-sm) / var(--lh) var(--font); }
+.wave { display: grid; gap: 8px; }
+.why { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 10px 12px; border-radius: var(--r); background: var(--grey-1); color: var(--ink); font: 400 var(--fs-sm) / var(--lh) var(--font); }
+.why svg { flex: none; margin-top: 2px; }
+.stripe { display: grid; gap: var(--sp-3); }
+.stripe .cardHead, .stripe > div:first-child { margin-bottom: 0; }
+.stripe > a { justify-self: start; }
+.state { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: 999px; background: var(--grey-1); color: var(--muted); font: 600 11.5px/1 var(--font); white-space: nowrap; }
+.state[data-state="on"] { background: #E8F6EE; color: #17714A; }
+.state[data-state="pending"] { background: #FFF4DB; color: #8A5A00; }
+.state[data-state="off"] { background: var(--ink); color: var(--white); }

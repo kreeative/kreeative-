@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
+import { ColorField } from '@/components/ui/ColorField';
 import { Icon } from '@/components/ui/Icon';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
 import { addedName, bandOf, categorySlug, linkLabel, linkOk, textLook, type Added, type Band, type SiteItem, type TextLook } from '@/lib/models';
@@ -12,27 +13,8 @@ import styles from './editeur.module.css';
 /* The parts of the inspector that several panels share: where a link goes, a colour (the theme's and a free one),
    a picture to import, the look of one text or button, and the content of a section she added herself. */
 
-const HEX = /^#[0-9a-fA-F]{6}$/;
-export const THEME: [string, string][] = [['', 'Modèle'], ['#111111', 'Noir'], ['#FFFFFF', 'Blanc'], ['#F5F5F3', 'Gris clair'], ['#FAF6EF', 'Crème'], ['#E8467C', 'Rose'], ['#1F9D62', 'Vert'], ['#1E6FE0', 'Bleu']];
 
-/** A colour: the theme's swatches, then any colour by its code (#RRGGBB). */
-export function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string | undefined) => void }) {
-  const [text, setText] = useState(value);
-  const shown = value && !THEME.some(([v]) => v.toLowerCase() === value.toLowerCase()) ? value : '';
-  return (
-    <div className={styles.control}>
-      <span className={styles.caption}>{label}</span>
-      <div className={styles.swatches} role="group" aria-label={label}>
-        {THEME.map(([v, name]) => <button key={name} type="button" aria-pressed={value.toLowerCase() === v.toLowerCase()} onClick={() => { setText(v); onChange(v || undefined); }} aria-label={name} title={name}><i style={v ? { background: v } : undefined} data-none={v ? undefined : ''} /></button>)}
-      </div>
-      <div className={styles.hex}>
-        <i style={{ background: HEX.test(text) ? text : shown || 'transparent' }} aria-hidden="true" />
-        <input aria-label={`${label} : code couleur`} placeholder="#RRGGBB" maxLength={7} value={text} spellCheck={false} autoCapitalize="none"
-          onChange={(e) => { const v = e.target.value.trim(); setText(v); if (v === '') onChange(undefined); else if (HEX.test(v)) onChange(v.toUpperCase()); }} />
-      </div>
-    </div>
-  );
-}
+export { ColorField };
 
 type Dest = 'model' | 'page' | 'cat' | 'product' | 'out';
 const DEST: [Dest, string][] = [['model', 'Lien du modèle'], ['page', 'Page'], ['cat', 'Collection'], ['product', 'Produit'], ['out', 'Lien externe']];

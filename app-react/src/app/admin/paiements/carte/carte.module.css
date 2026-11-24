@@ -1,0 +1,16 @@
+/* The card with Stripe: three steps, the tabs once connected, Stripe's own form in a white card */
+.page { display: grid; gap: var(--sp-4); max-width: 760px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.steps li { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 10px 12px; border-radius: var(--r); background: var(--glass-strong); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line); color: var(--muted); font: 500 var(--fs-sm) / 1.3 var(--font); }
+.steps b { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--grey-2); color: var(--ink); font: 600 11px/1 var(--font); }
+.steps li[data-on] { color: var(--ink); box-shadow: var(--glass-hi), 0 0 0 1.5px var(--ink); }
+.steps li[data-done] { color: var(--ink); }
+.steps li[data-done] b { background: var(--ink); color: var(--white); }
+.tabs { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: var(--grey-1); justify-self: start; max-width: 100%; overflow-x: auto; }
+.tabs button { height: 32px; padding: 0 14px; border: 0; border-radius: 9px; background: none; color: var(--muted); font: 500 var(--fs-sm) / 1 var(--font); white-space: nowrap; cursor: pointer; }
+.tabs button[aria-current="page"] { background: var(--white); color: var(--ink); box-shadow: 0 1px 2px rgba(17, 17, 17, .12); }
+.start { display: grid; gap: var(--sp-3); padding: var(--sp-5); border-radius: var(--r-lg); background: var(--white); box-shadow: 0 0 0 1px var(--line); }
+.start > button { justify-self: start; }
+.embed { min-height: 240px; padding: var(--sp-5); border-radius: var(--r-lg); background: var(--white); box-shadow: 0 0 0 1px var(--line); }
+.embed[hidden] { display: none; }
+@media (max-width: 560px) { .steps { grid-template-columns: minmax(0, 1fr); } .embed, .start { padding: var(--sp-4); } }

@@ -29,6 +29,17 @@ export const MODELS: Model[] = [
   { slug: 'minuit', name: 'MINUIT', kind: 'Cils et ongles · rendez-vous', desc: 'Noir et champagne, tarifs, conditions, offre du mois.', price: 25000, was: 50000, rdv: true },
 ];
 
+/** The colours each model is drawn with (read from its own style sheet): offered first wherever she picks a colour. */
+export const MODEL_COLORS: Record<string, [string, string][]> = {
+  seve: [['#102A1C', 'Vert nuit'], ['#9AA27E', 'Sauge'], ['#E1EAA8', 'Citron'], ['#EFEEE5', 'Crème'], ['#121410', 'Encre'], ['#868A80', 'Gris']],
+  soyeuse: [['#FFDCEE', 'Rose pâle'], ['#FFAAD5', 'Rose'], ['#FF7CBD', 'Rose vif'], ['#C8156F', 'Framboise'], ['#2A2226', 'Encre'], ['#9A8E94', 'Gris rosé']],
+  michou: [['#111111', 'Encre'], ['#C4332B', 'Rouge soldes'], ['#F7F7F7', 'Gris clair'], ['#444444', 'Gris foncé'], ['#8B8B8B', 'Gris']],
+  anse: [['#1D1C1A', 'Encre'], ['#55524C', 'Taupe'], ['#8A8780', 'Gris'], ['#E9E6E0', 'Lin']],
+  regard: [['#0D0B0A', 'Encre'], ['#4A2C1B', 'Brun'], ['#F4EFE9', 'Poudre'], ['#6F6862', 'Gris']],
+  vernie: [['#F6F4F1', 'Ivoire'], ['#5C544E', 'Taupe'], ['#F2E6A8', 'Beurre'], ['#4A443F', 'Encre'], ['#EFECE8', 'Sable']],
+  minuit: [['#0A0A0A', 'Noir'], ['#E3D9CC', 'Champagne'], ['#F3EFE9', 'Ivoire'], ['#161514', 'Charbon'], ['#A8A099', 'Gris']],
+};
+
 export const modelBySlug = (slug: string): Model | undefined => MODELS.find((m) => m.slug === slug);
 export const installPrice = (m: Model): number => m.install ?? INSTALL_PRICE;
 /** The picture of a model (640 × 400) and its real demo, both served by the live site. */

@@ -55,3 +55,10 @@
 @media (min-width: 821px) {
   .today { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
 }
+
+/* a step: what it is, its state (À faire / Configuré), and where one tap takes her */
+.step > span:nth-child(2) small { display: block; margin-top: 1px; color: var(--muted); font: 400 12px/16px var(--font); }
+.go { flex: none; display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; background: var(--ink); color: var(--white); font: 600 12px/1 var(--font); }
+.step[data-done] .go { background: var(--grey-1); color: var(--ink); }
+.step[data-done] > span:nth-child(2) { color: var(--muted); }
+
