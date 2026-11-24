@@ -11,3 +11,7 @@
 .button, .option { transition: background-color var(--dur) var(--ease); }
 .list { animation: listIn var(--dur-in) var(--ease); }
 @keyframes listIn { from { opacity: 0; transform: translate(-50%, -4px); } }
+
+/* the scrollbar is not drawn; the wheel, the finger and the keyboard still scroll */
+.list { scrollbar-width: none; -ms-overflow-style: none; }
+.list::-webkit-scrollbar { display: none; }

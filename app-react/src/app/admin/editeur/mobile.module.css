@@ -78,3 +78,7 @@
 .spots button[aria-pressed="true"]::after { background: var(--white); }
 
 @media (prefers-reduced-motion: reduce) { .tools, .drawer { animation: none; } .bar { transition: none; } }
+
+/* the scrollbar is not drawn; the wheel, the finger and the keyboard still scroll */
+.tools, .drawerBody { scrollbar-width: none; -ms-overflow-style: none; }
+.tools::-webkit-scrollbar, .drawerBody::-webkit-scrollbar { display: none; }

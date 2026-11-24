@@ -93,3 +93,7 @@
   .menuScrim[data-leaving] { animation: menuFadeOut var(--dur-out) var(--ease) both; pointer-events: none; }
 }
 @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } }
+
+/* the scrollbar is not drawn; the wheel, the finger and the keyboard still scroll */
+.nav, .menu { scrollbar-width: none; -ms-overflow-style: none; }
+.nav::-webkit-scrollbar, .menu::-webkit-scrollbar { display: none; }

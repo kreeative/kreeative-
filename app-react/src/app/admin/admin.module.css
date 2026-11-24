@@ -98,3 +98,7 @@
 .row, .filter { transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .filter:active { transform: scale(.97); }
 .switch, .switch::after { transition: background-color var(--dur) var(--ease), transform var(--dur) var(--ease); }
+
+/* the scrollbar is not drawn; the wheel, the finger and the keyboard still scroll */
+.filters, .sheet { scrollbar-width: none; -ms-overflow-style: none; }
+.filters::-webkit-scrollbar, .sheet::-webkit-scrollbar { display: none; }

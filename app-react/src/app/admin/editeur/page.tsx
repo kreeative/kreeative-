@@ -237,9 +237,10 @@ export default function EditorPage() {
           {pages.length > 1 ? <Menu label="Page" options={pages.map((p) => ({ value: p.path, label: p.name }))} value={path} onChange={goPage} /> : <span className={styles.onePage}>{pageName}</span>}
         </div>
         <div className={styles.topRight}>
-          <div className={styles.group} role="group" aria-label="Taille de l’aperçu">
-            <button type="button" className={styles.icon} aria-pressed={wide} onClick={() => setDevice('desktop')} aria-label="Ordinateur"><Icon name="desktop" size={18} /></button>
-            <button type="button" className={styles.icon} aria-pressed={!wide} onClick={() => setDevice('phone')} aria-label="Téléphone"><Icon name="phone" size={18} /></button>
+          <div className={styles.devices} role="group" aria-label="Taille de l’aperçu" data-device={device}>
+            <span className={styles.devThumb} aria-hidden="true" />
+            <button type="button" aria-pressed={wide} onClick={() => setDevice('desktop')} aria-label="Ordinateur"><Icon name="desktop" size={16} /><span>Ordinateur</span></button>
+            <button type="button" aria-pressed={!wide} onClick={() => setDevice('phone')} aria-label="Téléphone"><Icon name="phone" size={16} /><span>Téléphone</span></button>
           </div>
           <div className={styles.group}>
             <button type="button" className={styles.icon} disabled={!past.length} onClick={undo} aria-label="Annuler"><Icon name="undo" size={18} /></button>

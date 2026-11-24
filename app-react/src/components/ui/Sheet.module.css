@@ -38,3 +38,7 @@
 @keyframes toRight { to { transform: translateX(32px); opacity: 0; } }
 @keyframes toBottom { to { transform: translateY(100%); } }
 @media (max-width: 820px) { .scrim[data-leaving] .sheet { animation: toBottom var(--dur-out) var(--ease) both; } }
+
+/* the scrollbar is not drawn; the wheel, the finger and the keyboard still scroll */
+.sheet, .inner { scrollbar-width: none; -ms-overflow-style: none; }
+.sheet::-webkit-scrollbar, .inner::-webkit-scrollbar { display: none; }

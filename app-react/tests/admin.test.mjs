@@ -737,6 +737,38 @@ await test('editor, a busy model (SÈVE): every section stays in view on the lef
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('editor: « Ordinateur / Téléphone » is in the bar, its thumb slides to the option chosen, and no scrollbar is drawn on the panels', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, { width: 1440, height: 900 }, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const pick = page.getByRole('group', { name: 'Taille de l’aperçu' });
+  await pick.waitFor({ timeout: 30000 });
+  assert.deepEqual(await pick.getByRole('button').allInnerTexts(), ['Ordinateur', 'Téléphone'], 'both options are named, not only drawn');
+  const thumb = () => pick.locator('span[aria-hidden]').first().evaluate((n) => Math.round(n.getBoundingClientRect().left - n.parentElement.getBoundingClientRect().left));
+  const frame = page.locator('iframe[title="Votre site"]');
+  await page.frameLocator('iframe[title="Votre site"]').locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  assert.equal(await thumb(), 2); assert.ok(Number(await frame.getAttribute('width')) >= 1280);
+  await page.screenshot({ path: `${SHOTS}59-editeur-apercu-ordinateur.png` });
+  await pick.getByRole('button', { name: 'Téléphone' }).click();
+  await page.waitForTimeout(500);
+  assert.ok(await thumb() > 60, 'the thumb went under « Téléphone »');
+  assert.match(await pick.locator('span[aria-hidden]').first().evaluate((n) => getComputedStyle(n).transitionTimingFunction), /cubic-bezier\(0\.34, 1\.4, 0\.64, 1\)/);
+  assert.equal(await frame.getAttribute('width'), '390');
+  const box = await frame.boundingBox(), stage = await page.locator('iframe[title="Votre site"]').locator('xpath=../..').boundingBox();
+  assert.ok(Math.abs((box.x + box.width / 2) - (stage.x + stage.width / 2)) < 160, 'the phone frame sits in the middle of the canvas');
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: `${SHOTS}60-editeur-apercu-telephone.png` });
+  await pick.getByRole('button', { name: 'Ordinateur' }).click();
+  await page.waitForTimeout(400); assert.equal(await thumb(), 2);
+  // the panels scroll, without a drawn scrollbar
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  assert.deepEqual(await left.evaluate((n) => [getComputedStyle(n).scrollbarWidth, getComputedStyle(n).overflowY]), ['none', 'auto']);
+  await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
+  const right = page.getByRole('complementary', { name: /^Contenu/ });
+  assert.equal(await right.evaluate((n) => getComputedStyle(n).scrollbarWidth), 'none');
+  assert.equal(await right.evaluate((n) => { n.scrollTop = 200; return n.scrollTop > 0 || n.scrollHeight <= n.clientHeight; }), true, 'it still scrolls');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await test('editor on a phone: a thin bar, her site on the whole screen, one bar of tools at the bottom that becomes the tools of what she touches', async () => {
   const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);
