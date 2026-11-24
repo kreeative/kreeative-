@@ -56,7 +56,7 @@
       "dest": "https://jehre-app.vercel.app/_next/$1"
     },
     {
-      "src": "^/(admin|compte)$",
+      "src": "^/(admin|compte|atlas)$",
       "has": [
         {
           "type": "host",
@@ -69,7 +69,7 @@
       }
     },
     {
-      "src": "^/(admin|compte)/((?:[^.?]*/)?[^./?]*/?)$",
+      "src": "^/(admin|compte|atlas)/((?:[^.?]*/)?[^./?]*/?)$",
       "has": [
         {
           "type": "host",
