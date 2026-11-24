@@ -1549,11 +1549,24 @@ await test('partners: invite by e-mail, cancel an invitation, remove a partner; 
   await page.goto(`${BASE}/admin/en-direct/`); await h1(page, 'En direct');
   await page.getByText('Avec les formules Pro et Business').waitFor();
   assert.equal(await page.getByRole('link', { name: 'Voir les formules' }).getAttribute('href'), '/admin/abonnement/');
-  w.live = { ok: true, now: 3, today: 41, week: 212, countries: [{ country: 'CI', n: 30 }, { country: 'SN', n: 8 }, { country: 'CA', n: 3 }], points: [{ city: 'Abidjan', country: 'CI', live: true }, { city: 'Dakar', country: 'SN', live: true }, { city: 'Paris', country: 'FR', live: false }] };
+  // the globe is there even then, alive, with example visitors (said so)
+  const globe = page.getByRole('img', { name: 'Globe des visiteurs de votre boutique' });
+  await globe.waitFor(); await page.getByText('Aperçu · visiteurs d’exemple').waitFor();
+  const drawn = () => globe.evaluate((c) => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let ink = 0, green = 0; for (let i = 0; i < d.length; i += 16) { if (d[i + 3] > 200 && d[i] < 205 && Math.abs(d[i] - d[i + 1]) < 12 && Math.abs(d[i + 1] - d[i + 2]) < 12) ink++; if (d[i] < 80 && d[i + 1] > 170 && d[i + 2] > 90 && d[i + 2] < 170) green++; } return [c.width > 200, ink > 200, green > 3]; });
+  await page.waitForTimeout(600);
+  assert.deepEqual(await drawn(), [true, true, true], 'a sphere, the land in dots, visitors in green');
+  await page.screenshot({ path: `${SHOTS}83-en-direct-apercu.png` });
+  w.live = { ok: true, now: 3, today: 41, week: 212, countries: [{ country: 'CI', n: 30 }, { country: 'SN', n: 8 }, { country: 'CA', n: 3 }], points: [{ lat: 5.35, lon: -4.0, city: 'Abidjan', country: 'CI', live: true, at: new Date(Date.now() - 60000).toISOString() }, { lat: 14.7, lon: -17.45, city: 'Dakar', country: 'SN', live: true, at: new Date(Date.now() - 120000).toISOString() }, { lat: 48.85, lon: 2.35, city: 'Paris', country: 'FR', live: false, at: new Date(Date.now() - 3 * 3600e3).toISOString() }] };
   await page.reload(); await h1(page, 'En direct');
   await page.getByText('Cette semaine').waitFor();
   assert.deepEqual(await page.locator('main dl dd').allInnerTexts(), ['3', '41', '212']);
-  await page.getByText('Abidjan, Côte d’Ivoire · Dakar, Sénégal').waitFor();
+  assert.equal(await page.getByText('Aperçu · visiteurs d’exemple').count(), 0, 'her real visitors, not the example');
+  assert.deepEqual((await page.getByRole('region', { name: 'Dernières visites' }).locator('li span').allInnerTexts()), ['Abidjan, Côte d’Ivoire', 'Dakar, Sénégal', 'Paris, France']);
+  await page.waitForTimeout(600); assert.deepEqual(await drawn(), [true, true, true]);
+  // she turns it with the mouse (or a finger)
+  const gb = await globe.boundingBox(); const before = await globe.evaluate((c) => c.toDataURL().length + c.toDataURL().slice(5000, 5200));
+  await page.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2); await page.mouse.down(); await page.mouse.move(gb.x + gb.width / 2 + 140, gb.y + gb.height / 2 + 30, { steps: 6 }); await page.mouse.up();
+  assert.notEqual(await globe.evaluate((c) => c.toDataURL().length + c.toDataURL().slice(5000, 5200)), before, 'the globe turned');
   assert.deepEqual((await page.getByRole('region', { name: 'Pays' }).locator('li').allInnerTexts()).map((x) => x.replace(/\s+/g, ' ')), ['Côte d’Ivoire 30', 'Sénégal 8', 'Canada 3']);
   await page.screenshot({ path: `${SHOTS}83-en-direct.png` });
   await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);

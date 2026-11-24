@@ -6,7 +6,7 @@ import { supabase } from './supabase';
 
 export interface Member { user_id: string; email: string; first_name: string; role: string; added_at: string }
 export interface Invite { id: string; email: string; created_at: string }
-export interface Live { ok: boolean; reason?: string; now?: number; today?: number; week?: number; countries?: { country: string; n: number }[]; points?: { city?: string | null; country?: string | null; live?: boolean }[] }
+export interface Live { ok: boolean; reason?: string; now?: number; today?: number; week?: number; countries?: { country: string; n: number }[]; points?: { lat?: number | null; lon?: number | null; city?: string | null; country?: string | null; at?: string | null; live?: boolean }[] }
 
 export async function listTeam(storeId: string): Promise<{ members: Member[]; invites: Invite[] } | null> {
   const sb = supabase();
