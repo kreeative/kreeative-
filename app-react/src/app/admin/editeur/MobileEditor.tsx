@@ -6,7 +6,7 @@ import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Menu } from '@/components/ui/Menu';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { hiddenItems, hiddenLabel, imageFrame, linkOk, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook } from '@/lib/models';
+import { bandOf, hiddenItems, hiddenLabel, imageFrame, linkOk, withBand, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook } from '@/lib/models';
 import type { Fiche } from '@/lib/stores';
 import styles from './mobile.module.css';
 
@@ -38,7 +38,7 @@ export interface MobileEditorProps {
   children?: ReactNode;
 }
 
-type Tool = '' | 'sections' | 'pages' | 'style' | 'theme' | 'add' | 'edit' | 'font' | 'size' | 'color' | 'align' | 'link' | 'frame' | 'bg' | 'space' | 'product';
+type Tool = '' | 'sections' | 'pages' | 'style' | 'theme' | 'add' | 'edit' | 'font' | 'size' | 'color' | 'align' | 'link' | 'frame' | 'bg' | 'space' | 'product' | 'band' | 'bandLook';
 const FONTS: [TextLook['font'] | undefined, string][] = [[undefined, 'Modèle'], ['serif', 'Classique'], ['sans', 'Moderne'], ['mono', 'Machine']];
 const COLORS: [string, string][] = [['', 'Modèle'], ['#111111', 'Noir'], ['#FFFFFF', 'Blanc'], ['#6B6B6B', 'Gris'], ['#E8467C', 'Rose'], ['#F08A3C', 'Orange'], ['#1F9D62', 'Vert'], ['#1E6FE0', 'Bleu'], ['#6A4CFF', 'Violet']];
 const BACKGROUNDS: [string, string][] = [['', 'Modèle'], ['#FFFFFF', 'Blanc'], ['#F5F5F3', 'Gris clair'], ['#FAF6EF', 'Crème'], ['#111111', 'Noir']];
@@ -59,7 +59,7 @@ export function MobileEditor(p: MobileEditorProps) {
   const item = sel && map ? map.items.find((x) => x.key === sel) : undefined;
   const section = sel && !item ? sections.find((s) => s.key === sel) : undefined;
   const isButton = !!item && item.kind === 't' && (item.tag === 'a' || item.tag === 'button');
-  const mode = item ? (item.kind === 'i' ? 'image' : item.kind === 'p' ? 'product' : item.kind === 's' ? 'services' : isButton ? 'button' : 'text') : section ? 'section' : 'site';
+  const mode = item ? (item.kind === 'm' ? 'band' : item.kind === 'i' ? 'image' : item.kind === 'p' ? 'product' : item.kind === 's' ? 'services' : isButton ? 'button' : 'text') : section ? 'section' : 'site';
   // another element, or none: the drawer of the one before is put away
   useEffect(() => { setTool(''); setError(''); }, [sel]);
 
@@ -103,6 +103,11 @@ export function MobileEditor(p: MobileEditorProps) {
     const fr = imageFrame(draft, item.key);
     tools.push({ id: 'replace', label: 'Remplacer la photo', icon: 'image', act: () => file.current?.click() }, { id: 'frame', label: 'Ajuster / Cadre', icon: 'crop', open: 'frame' },
       { id: 'hide', label: fr.hide ? 'Remettre' : 'Supprimer', icon: fr.hide ? 'eye' : 'trash', on: fr.hide === true, act: () => { change((d) => withImageFrame(d, item.key, { hide: fr.hide ? undefined : true })); if (!fr.hide) done(); } });
+  } else if (item && mode === 'band') {
+    const b = bandOf(draft, item.key);
+    tools.push({ id: 'band', label: 'Modifier le texte', icon: 'edit', open: 'band' }, { id: 'bandLook', label: 'Couleurs', icon: 'drop', open: 'bandLook' },
+      { id: 'speed', label: b.speed === 'slow' ? 'Lente' : b.speed === 'fast' ? 'Rapide' : 'Vitesse', icon: 'chart', act: () => change((d) => withBand(d, item.key, { speed: b.speed === undefined ? 'fast' : b.speed === 'fast' ? 'slow' : undefined })) },
+      { id: 'hide', label: 'Masquer', icon: 'eyeOff', act: () => { change((d) => withBand(d, item.key, { hide: true })); done(); } });
   } else if (item && mode === 'product') {
     tools.push({ id: 'product', label: 'Produit', icon: 'tag', open: 'product' });
   } else if (section) {
@@ -166,8 +171,23 @@ export function MobileEditor(p: MobileEditorProps) {
     drawer = { title: 'Ajouter', body: <>
       <a className={styles.linkRow} href={p.booking ? '/admin/prestations/' : '/admin/produits/'}><Icon name={p.booking ? 'receipt' : 'tag'} size={18} /><span>{p.booking ? 'Une prestation' : 'Un produit'}</span><Icon name="chevron" size={14} /></a>
       {hiddenSecs.map((s) => <button key={s.key} type="button" className={styles.linkRow} onClick={() => change((d) => withSiteEdit(d, 'h', s.key, null))}><Icon name="eye" size={18} /><span>Remettre « {s.name} »</span></button>)}
-      {hiddenBits.map((x) => <button key={x.key} type="button" className={styles.linkRow} onClick={() => change((d) => (x.kind === 'i' ? withImageFrame(d, x.key, { hide: undefined }) : withTextLook(d, x.key, { hide: undefined })))}><Icon name="eye" size={18} /><span>Remettre {hiddenLabel(x)}</span></button>)}
+      {hiddenBits.map((x) => <button key={x.key} type="button" className={styles.linkRow} onClick={() => change((d) => (x.kind === 'm' ? withBand(d, x.key, { hide: undefined }) : x.kind === 'i' ? withImageFrame(d, x.key, { hide: undefined }) : withTextLook(d, x.key, { hide: undefined })))}><Icon name="eye" size={18} /><span>Remettre {hiddenLabel(x)}</span></button>)}
       <p className={styles.hint}>Les sections viennent de votre modèle : vous pouvez les masquer, les remettre et changer leur ordre.</p>
+    </> };
+  } else if (item && tool === 'band') {
+    const b = bandOf(draft, item.key);
+    drawer = { title: 'Bandeau défilant', body: <>
+      <TextArea label="Texte qui défile" rows={3} maxLength={600} value={b.text ?? item.text} autoFocus onChange={(e) => change((d) => withBand(d, item.key, { text: e.target.value.trim() ? e.target.value : undefined }), `m:${item.key}`)} />
+      <p className={styles.hint}>Écrivez tout le texte une seule fois. Séparez vos messages par <b>•</b> : il défile en boucle.</p>
+      {b.text !== undefined ? <button type="button" className={styles.reset} onClick={() => change((d) => withBand(d, item.key, { text: undefined }))}>Remettre le texte du modèle</button> : null}
+    </> };
+  } else if (item && tool === 'bandLook') {
+    const b = bandOf(draft, item.key);
+    drawer = { title: 'Couleurs du bandeau', body: <>
+      <span className={styles.caption}>Bandeau</span>
+      <Swatches label="Couleur du bandeau" options={COLORS} value={b.bg ?? ''} onPick={(v) => change((d) => withBand(d, item.key, { bg: v || undefined }))} />
+      <span className={styles.caption}>Texte</span>
+      <Swatches label="Couleur du texte du bandeau" options={COLORS} value={b.color ?? ''} onPick={(v) => change((d) => withBand(d, item.key, { color: v || undefined }))} />
     </> };
   } else if (item && tool === 'edit') {
     const kind = item.kind === 'c' ? 'c' : 't', own = siteValue(draft, kind, item.key), value = own ?? item.text;
@@ -238,7 +258,7 @@ export function MobileEditor(p: MobileEditorProps) {
   }
 
   const pageName = p.pages.find((x) => x.path === p.path)?.name ?? 'Accueil';
-  const what = item ? (item.kind === 'i' ? 'Photo' : item.kind === 'p' ? 'Produit' : item.kind === 's' ? 'Prestations' : isButton ? 'Bouton' : item.role) : section ? section.name : '';
+  const what = item ? (item.kind === 'm' ? 'Bandeau défilant' : item.kind === 'i' ? 'Photo' : item.kind === 'p' ? 'Produit' : item.kind === 's' ? 'Prestations' : isButton ? 'Bouton' : item.role) : section ? section.name : '';
   return (
     <div className={styles.editor} ref={root}>
       <header className={styles.top}>

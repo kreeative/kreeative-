@@ -978,6 +978,53 @@ await test('editor, MINUIT: hiding a line of the checklist removes its ticked bo
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('editor, the scrolling band (MICHOU): one stable block, ONE text written once that loops without a seam, its colours and speed', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  const band = site.locator('.ruban');
+  // the texts after the band keep their numbers: what the model offered before is counted the same
+  const keyOf = () => site.locator('section h2[data-jeere-pickable]').first().evaluate((n) => n.textContent);
+  const firstTitle = await keyOf();
+  // its moving pieces are not offered one by one: a touch anywhere on it chooses the band itself
+  assert.equal(await band.locator('span[data-jeere-pickable]').count(), 0);
+  await band.scrollIntoViewIfNeeded();
+  await band.click({ position: { x: 120, y: 10 }, force: true });
+  const tools = page.getByRole('navigation', { name: 'Outils : Bandeau défilant' });
+  await tools.waitFor();
+  // the blue frame is on the band (which does not move), not on a piece of text that runs away
+  const steady = async () => site.locator('body').evaluate(() => { const b = document.querySelector('[data-jeere-sel]').getBoundingClientRect(), r = document.querySelector('.ruban').getBoundingClientRect(); return [Math.round(b.left - r.left), Math.round(b.top - r.top), Math.round(b.height - r.height)]; });
+  const f1 = await steady(); await page.waitForTimeout(700); const f2 = await steady();
+  assert.deepEqual(f1, f2, 'the frame does not move while the text runs'); assert.ok(Math.abs(f1[1]) <= 1 && Math.abs(f1[2]) <= 1, `the frame is the band: ${f1}`);
+  // ONE field with everything it says
+  await tools.getByRole('button', { name: 'Modifier le texte' }).click();
+  const field = page.getByRole('dialog').getByRole('textbox');
+  assert.equal(await field.inputValue(), 'Nouvelle collection • Livraison à Abidjan en 48 h • Échange sous 7 jours • Paiement mobile money');
+  await field.fill('Soldes de fin d’année • Livraison offerte dès 20 000 F');
+  await page.waitForTimeout(500);
+  const loop = await band.evaluate((b) => { const tr = b.querySelector('.ruban__track'), kids = [...tr.children], half = kids.length / 2; return { words: [...new Set(kids.map((k) => k.textContent))], twoHalves: kids.slice(0, half).map((k) => k.textContent).join('|') === kids.slice(half).map((k) => k.textContent).join('|'), wide: kids[half].offsetLeft - kids[0].offsetLeft >= b.clientWidth, shift: getComputedStyle(tr).getPropertyValue('--jeere-band').trim() === `-${kids[half].offsetLeft - kids[0].offsetLeft}px`, anim: getComputedStyle(tr).animationName }; });
+  assert.deepEqual(loop, { words: ['Soldes de fin d’année', 'Livraison offerte dès 20 000 F'], twoHalves: true, wide: true, shift: true, anim: 'jeere-band' });
+  await page.screenshot({ path: `${SHOTS}69-bandeau-defilant.png` });
+  // its colours and its speed
+  await tools.getByRole('button', { name: 'Couleurs', exact: true }).click();
+  await page.getByRole('dialog').getByRole('group', { name: 'Couleur du bandeau' }).getByRole('button', { name: 'Rose' }).click();
+  await page.getByRole('dialog').getByRole('group', { name: 'Couleur du texte du bandeau' }).getByRole('button', { name: 'Blanc' }).click();
+  const slow = await band.evaluate((b) => parseFloat(getComputedStyle(b.querySelector('.ruban__track')).animationDuration));
+  await tools.getByRole('button', { name: 'Vitesse', exact: true }).click();
+  await page.waitForTimeout(400);
+  const fast = await band.evaluate((b) => [getComputedStyle(b).backgroundColor, getComputedStyle(b).color, parseFloat(getComputedStyle(b.querySelector('.ruban__track')).animationDuration)]);
+  assert.deepEqual(fast.slice(0, 2), ['rgb(232, 70, 124)', 'rgb(255, 255, 255)']); assert.ok(fast[2] < slow, 'faster');
+  await page.screenshot({ path: `${SHOTS}70-bandeau-couleurs.png` });
+  assert.equal(await keyOf(), firstTitle);
+  await tools.getByRole('button', { name: 'Terminer' }).click();
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await page.getByText(/Votre site est en ligne/).waitFor();
+  assert.deepEqual(Object.values(w.stores[0].fiche.store.site.m), [{ text: 'Soldes de fin d’année • Livraison offerte dès 20 000 F', bg: '#E8467C', color: '#FFFFFF', speed: 'fast' }]);
+  assert.equal(w.stores[0].fiche.store.site.t, undefined, 'no piece of the band was saved as a text of its own');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await test('editor on a phone: a thin bar, her site on the whole screen, one bar of tools at the bottom that becomes the tools of what she touches', async () => {
   const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/admin/editeur/`);

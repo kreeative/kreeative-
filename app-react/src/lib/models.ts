@@ -115,7 +115,7 @@ export const MODEL_PAGES: Record<string, { path: string; name: string }[]> = {
 };
 
 /** One thing of the page: a text (t), a picture (i), a category (c), a product case (p), the list of services (s). */
-export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean; tag: string; href: string; size: number }
+export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's' | 'm'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean; tag: string; href: string; size: number }
 export interface SiteSection { n: number; key: string; name: string; fixed: boolean }
 export interface SiteMap { page: string; items: SiteItem[]; sections: SiteSection[] }
 export type SiteKind = 't' | 'i' | 'c' | 'h' | 'k';
@@ -153,7 +153,7 @@ export function readSiteMap(data: unknown): SiteMap | null {
   const s = (v: unknown) => (typeof v === 'string' ? v : '');
   return {
     page: s(m.page),
-    items: (m.items as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && /^[ticps]$/.test(s(x.kind)))
+    items: (m.items as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && /^[ticpsm]$/.test(s(x.kind)))
       .map((x) => ({ key: s(x.key), kind: s(x.kind) as SiteItem['kind'], ref: s(x.ref), label: s(x.label), text: s(x.text), role: s(x.role), sec: typeof x.sec === 'number' ? x.sec : -1, src: s(x.src), long: x.long === true, tag: s(x.tag), href: s(x.href), size: typeof x.size === 'number' && Number.isFinite(x.size) ? x.size : 0 })),
     sections: (m.sections as unknown[]).map((x) => bag(x)).filter((x) => typeof x.key === 'string' && typeof x.n === 'number')
       .map((x) => ({ n: x.n as number, key: s(x.key), name: s(x.name) || 'Section', fixed: x.fixed === true })),
@@ -211,7 +211,7 @@ export interface TextLook { size?: number; color?: string; bold?: boolean; align
 export interface ImageFrame { fit?: 'cover' | 'contain'; x?: number; y?: number; hide?: boolean }
 export const textLook = (fiche: Fiche, key: string): TextLook => bag(bag(bag(bag(fiche.store).site).x)[key]) as TextLook;
 export const imageFrame = (fiche: Fiche, key: string): ImageFrame => bag(bag(bag(bag(fiche.store).site).f)[key]) as ImageFrame;
-function withSitePatch(fiche: Fiche, part: 'x' | 'f', key: string, patch: Record<string, unknown>): Fiche {
+function withSitePatch(fiche: Fiche, part: 'x' | 'f' | 'm', key: string, patch: Record<string, unknown>): Fiche {
   const st = bag(fiche.store), site = bag(st.site), all = bag(site[part]), one = { ...bag(all[key]), ...patch } as Record<string, unknown>;
   for (const k of Object.keys(one)) if (one[k] === undefined || one[k] === '' || one[k] === false || (typeof one[k] === 'number' && !Number.isFinite(one[k]))) delete one[k];
   if (Object.keys(one).length) all[key] = one; else delete all[key];
@@ -257,6 +257,12 @@ export const newAddedId = (): string => Math.random().toString(36).slice(2, 10).
 
 /** The texts and pictures of the page she hid: they are gone from the site, and listed in the editor to bring back. */
 export function hiddenItems(fiche: Fiche, map: SiteMap | null): SiteItem[] {
-  return (map?.items ?? []).filter((x) => (x.kind === 'i' ? imageFrame(fiche, x.key).hide === true : (x.kind === 't' || x.kind === 'c') && textLook(fiche, x.key).hide === true));
+  return (map?.items ?? []).filter((x) => (x.kind === 'm' ? bandOf(fiche, x.key).hide === true : x.kind === 'i' ? imageFrame(fiche, x.key).hide === true : (x.kind === 't' || x.kind === 'c') && textLook(fiche, x.key).hide === true));
 }
-export const hiddenLabel = (x: SiteItem): string => (x.kind === 'i' ? 'une photo' : `« ${(x.text || x.role).slice(0, 28)}${(x.text || x.role).length > 28 ? '…' : ''} »`);
+export const hiddenLabel = (x: SiteItem): string => (x.kind === 'm' ? 'le bandeau défilant' : x.kind === 'i' ? 'une photo' : `« ${(x.text || x.role).slice(0, 28)}${(x.text || x.role).length > 28 ? '…' : ''} »`);
+
+/** The scrolling band of a model: ONE text (its messages separated by « • ») that runs in a loop, the colour of
+ *  the band and of its words, its speed; hidden or not. None = the model's own. */
+export interface Band { text?: string; bg?: string; color?: string; speed?: 'slow' | 'fast'; hide?: boolean }
+export const bandOf = (fiche: Fiche, key: string): Band => bag(bag(bag(bag(fiche.store).site).m)[key]) as Band;
+export const withBand = (fiche: Fiche, key: string, patch: Band): Fiche => withSitePatch(fiche, 'm', key, patch as Record<string, unknown>);

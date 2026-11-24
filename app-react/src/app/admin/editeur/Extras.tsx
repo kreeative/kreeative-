@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
-import { addedName, categorySlug, linkOk, textLook, type Added, type SiteItem, type TextLook } from '@/lib/models';
+import { addedName, bandOf, categorySlug, linkOk, textLook, type Added, type Band, type SiteItem, type TextLook } from '@/lib/models';
 import type { Fiche } from '@/lib/stores';
 import styles from './editeur.module.css';
 
@@ -160,6 +160,29 @@ export function AddedInspector({ added, fiche, pages, userId, onChange }: { adde
           ))}
           {items.length < 8 ? <button type="button" className={styles.more} onClick={() => onChange({ items: [...items, { a: '', b: '' }] })}>Ajouter une ligne</button> : null}
         </> : null}
+      </section>
+    </div>
+  );
+}
+
+const SPEED: [Band['speed'] | undefined, string][] = [['slow', 'Lente'], [undefined, 'Normale'], ['fast', 'Rapide']];
+/** The scrolling band: ONE field for everything it says (messages separated by « • »), then its colours and speed. */
+export function BandInspector({ item, fiche, onChange, focus }: { item: SiteItem; fiche: Fiche; onChange: (patch: Band, tag?: string) => void; focus?: boolean }) {
+  const b = bandOf(fiche, item.key);
+  return (
+    <div className={styles.inspector}>
+      <section className={styles.block} aria-label="Texte du bandeau">
+        <TextArea label="Texte qui défile" rows={3} maxLength={600} value={b.text ?? item.text} autoFocus={focus} onChange={(e) => onChange({ text: e.target.value.trim() ? e.target.value : undefined }, 'text')} />
+        <p className={styles.hint}>Écrivez tout le texte une seule fois. Séparez vos messages par <b>•</b> : il défile en boucle.</p>
+        {b.text !== undefined ? <button type="button" className={styles.reset} onClick={() => onChange({ text: undefined })}>Remettre le texte du modèle</button> : null}
+      </section>
+      <section className={styles.block} aria-label="Apparence du bandeau">
+        <ColorField key={`bg${item.key}`} label="Couleur du bandeau" value={b.bg ?? ''} onChange={(v) => onChange({ bg: v })} />
+        <ColorField key={`fg${item.key}`} label="Couleur du texte" value={b.color ?? ''} onChange={(v) => onChange({ color: v })} />
+        <div className={styles.control}>
+          <span className={styles.caption} id="band-speed">Vitesse</span>
+          <div className={styles.segments} role="group" aria-labelledby="band-speed">{SPEED.map(([v, l]) => <button key={l} type="button" aria-pressed={b.speed === v} onClick={() => onChange({ speed: v })}>{l}</button>)}</div>
+        </div>
       </section>
     </div>
   );

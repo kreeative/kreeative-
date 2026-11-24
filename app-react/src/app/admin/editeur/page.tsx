@@ -14,10 +14,10 @@ import { Toast } from '@/components/ui/Toast';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
 import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSectionLook, withSectionOrder, withSiteEdit, withSlot, type SectionLook, type SiteItem, type SiteMap, type SiteSection } from '@/lib/models';
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
-import { AddedInspector, ColorField, PhotoField, TextStyle } from './Extras';
+import { AddedInspector, BandInspector, ColorField, PhotoField, TextStyle } from './Extras';
 import { MobileEditor } from './MobileEditor';
 import { DESK_TOUR, PHONE_TOUR, TOUR_KEY, Tour } from './Tour';
-import { ADDED_KINDS, addedName, addedSections, hiddenItems, hiddenLabel, modelBySlug, withImageFrame, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
+import { ADDED_KINDS, addedName, addedSections, hiddenItems, hiddenLabel, modelBySlug, withBand, withImageFrame, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
 import styles from './editeur.module.css';
 
 type Device = 'phone' | 'desktop';
@@ -94,7 +94,7 @@ export default function EditorPage() {
       const m = readSiteMap(e.data);
       if (m) { setMap((old) => (same(old, m) ? old : m)); return; }
       if (d.jeerePick && typeof d.jeerePick.key === 'string') {
-        if (typeof d.jeerePick.sec === 'number' && d.jeerePick.sec >= 0) setPicked(d.jeerePick.sec);
+        if (typeof d.jeerePick.sec === 'number' && d.jeerePick.sec >= 0) setPicked(d.jeerePick.sec); else setPicked(null);
         setFocus(d.jeerePick.key);
         setSel(d.jeerePick.key);
       }
@@ -206,6 +206,8 @@ export default function EditorPage() {
   const page = map?.page ?? '';
   const added = draft && map ? addedSections(draft, page) : [];
   const chosen = sel.startsWith('a:') ? added.find((a) => a.id === sel.slice(2)) : undefined;
+  const bands = (map?.items ?? []).filter((x) => x.kind === 'm');
+  const band = bands.find((x) => x.key === sel);
   const lastBody = [...sections].reverse().find((x) => !x.fixed)?.n ?? -1;
   const anchorOf = (a: Added) => (sections.some((x) => x.n === a.after && x.name !== 'Pied de page') ? a.after : lastBody);
   const addSection = (type: Added['type']) => {
@@ -281,7 +283,7 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <div className={styles.cols} data-open={(current || chosen) && !phone ? '' : undefined} data-left={leftOpen || phone ? '' : undefined} data-narrow={narrow ? '' : undefined}>
+      <div className={styles.cols} data-open={(current || chosen || band) && !phone ? '' : undefined} data-left={leftOpen || phone ? '' : undefined} data-narrow={narrow ? '' : undefined}>
         {leftOpen || phone ? (
         <aside className={styles.left} aria-label="Sections de la page" data-tour="sections">
           <h2 className={styles.title}>{path === '' ? 'Page d’accueil' : `Page ${pageName}`}</h2>
@@ -338,9 +340,15 @@ export default function EditorPage() {
             </ol>
           ) : <p className={styles.hint}>Chargement de votre modèle…</p>}
           {map && needle && !shown.length ? <p className={styles.hint}>Aucune section ne correspond.</p> : null}
+          {map && !needle ? bands.map((x) => (
+            <div key={x.key} className={styles.row} data-on={sel === x.key ? '' : undefined} data-added="">
+              <span className={styles.grip} aria-hidden="true" /><span className={styles.fold} aria-hidden="true" />
+              <button type="button" className={styles.rowMain} onClick={() => { setPicked(null); setFocus(''); setSel(x.key); }} aria-current={sel === x.key ? 'true' : undefined}>Bandeau défilant</button>
+            </div>
+          )) : null}
           {map && !needle && hiddenItems(draft, map).length ? (
             <div className={styles.hiddenBox} aria-label="Éléments masqués">
-              {hiddenItems(draft, map).map((x) => <button key={x.key} type="button" className={styles.leaf} onClick={() => change((d) => (x.kind === 'i' ? withImageFrame(d, x.key, { hide: undefined }) : withTextLook(d, x.key, { hide: undefined })))}><Icon name="eye" size={14} /><span>Remettre {hiddenLabel(x)}</span></button>)}
+              {hiddenItems(draft, map).map((x) => <button key={x.key} type="button" className={styles.leaf} onClick={() => change((d) => (x.kind === 'm' ? withBand(d, x.key, { hide: undefined }) : x.kind === 'i' ? withImageFrame(d, x.key, { hide: undefined }) : withTextLook(d, x.key, { hide: undefined })))}><Icon name="eye" size={14} /><span>Remettre {hiddenLabel(x)}</span></button>)}
             </div>
           ) : null}
           {map && !needle ? (
@@ -378,6 +386,15 @@ export default function EditorPage() {
           </div>
         )}
 
+        {band && !phone ? (
+          <aside className={styles.right} aria-label="Contenu : Bandeau défilant">
+            <div className={styles.rightHead}>
+              <h2>Bandeau défilant</h2>
+              <button type="button" className={styles.icon} onClick={() => setSel('')} aria-label="Fermer"><Icon name="close" size={16} /></button>
+            </div>
+            <BandInspector key={band.key} item={band} fiche={draft} onChange={(patch, tag) => change((d) => withBand(d, band.key, patch), tag ? `m:${band.key}:${tag}` : '')} />
+          </aside>
+        ) : null}
         {chosen && !current && !phone ? (
           <aside className={styles.right} aria-label={`Contenu : ${addedName(chosen)}`}>
             <div className={styles.rightHead}>
@@ -387,7 +404,7 @@ export default function EditorPage() {
             <AddedInspector key={chosen.id} added={chosen} fiche={draft} pages={pages} userId={account.userId} onChange={(patch, tag) => patchAdded(chosen.id, patch, tag)} />
           </aside>
         ) : null}
-        {current && !phone ? (
+        {current && !band && !phone ? (
           <aside className={styles.right} aria-label={`Contenu : ${current.name}`}>
             <div className={styles.rightHead}>
               <h2>{current.name}</h2>
