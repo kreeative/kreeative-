@@ -63,3 +63,26 @@
 .step[data-done] .go { background: var(--grey-1); color: var(--ink); }
 .step[data-done] > span:nth-child(2) { color: var(--muted); }
 
+
+/* the home page in two columns from 1200 px: her day on the left, her store in a phone on the right (sticky) */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); align-items: start; max-width: 1440px; }
+.mainCol { display: grid; gap: var(--sp-4); min-width: 0; align-content: start; }
+.mainCol > * { margin-top: 0; margin-bottom: 0; }
+.preview { display: none; }
+@media (min-width: 1200px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 380px; }
+  .preview { position: sticky; top: 24px; display: grid; gap: 12px; padding: 18px; border-radius: 22px; background: var(--white); box-shadow: 0 0 0 1px var(--line), 0 16px 40px -28px rgba(17, 17, 17, .35); }
+}
+.previewHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.previewHead h2 { margin: 0; font: 600 var(--fs-lg)/1.3 var(--font); }
+.previewHead p { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; color: var(--muted); font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.online { flex: none; padding: 4px 10px; border-radius: 999px; background: var(--grey-1); color: var(--muted); font: 500 12.5px/1.3 var(--font); }
+.online[data-on] { background: #E7F8EF; color: #17714A; }
+.phoneWrap { display: grid; place-items: center; padding: 18px 0 0; border-radius: 16px; background: var(--grey-1); overflow: hidden; height: 470px; align-items: start; }
+.phone { position: relative; width: 250px; height: 520px; border-radius: 36px; background: #111; padding: 9px; box-shadow: 0 20px 40px -20px rgba(17, 17, 17, .5); overflow: hidden; }
+.phone iframe, .phone img { display: block; border: 0; border-radius: 28px; background: var(--white); }
+.phone iframe { width: 390px; height: 788px; transform: scale(.595); transform-origin: 0 0; pointer-events: none; }
+.phone img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.previewActs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.shareBtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--ctl); border: 0; border-radius: var(--r); background: var(--white); box-shadow: inset 0 0 0 1.5px var(--line-2); color: var(--ink); font: 500 var(--fs)/1 var(--font); cursor: pointer; }
+.shareBtn:hover { background: var(--grey-1); }

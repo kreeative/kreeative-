@@ -65,22 +65,28 @@ export default function SettingsPage() {
   return (
     <>
       <PageHead title="Paramètres" sub={storeUrl(store).replace(/^https:\/\//, '')} />
-      <form onSubmit={save} noValidate style={{ display: 'grid', gap: 'var(--sp-4)', maxWidth: 640 }}>
+      <form onSubmit={save} noValidate className={styles.wideForm}>
         <section className={styles.card} style={{ display: 'grid', gap: 'var(--sp-4)' }}>
           <div className={styles.cardHead} style={{ marginBottom: 0 }}><h2>Votre boutique</h2><span className={styles.status} data-s={store.published ? 'livree' : undefined}>{store.published ? 'En ligne' : 'Pas en ligne'}</span></div>
+          <div className={styles.fields}>
           <Field label="Nom de la boutique" maxLength={40} value={form.name} onChange={(e) => set('name', e.target.value)} error={errors.name} />
           <Field label="Phrase d’accroche" optional maxLength={80} placeholder="Soins naturels faits main" value={form.tagline} onChange={(e) => set('tagline', e.target.value)} />
+          </div>
+          <div className={styles.fields}>
           <Select label="Monnaie de la boutique" options={CURRENCIES.map(([, l]) => l)} value={CURRENCIES.find(([c]) => c === form.currency)?.[1] ?? CURRENCIES[0]![1]}
             onChange={(e) => set('currency', CURRENCIES.find(([, l]) => l === e.target.value)?.[0] ?? 'XOF')} />
           <Field label="Ville" optional maxLength={40} placeholder="Abidjan" value={form.city} onChange={(e) => set('city', e.target.value)} />
+          </div>
           <Field label="Numéro WhatsApp" optional type="tel" inputMode="tel" placeholder="+225 07 07 12 34 56" value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} error={errors.whatsapp}
             hint="Celui où vos clientes vous écrivent et où arrivent vos commandes." />
         </section>
         <section className={styles.card} style={{ display: 'grid', gap: 'var(--sp-4)' }} aria-label="WhatsApp et publicité">
           <div className={styles.cardHead} style={{ marginBottom: 0 }}><h2>WhatsApp et publicité</h2></div>
           <Check checked={form.waButton} onChange={(e) => set('waButton', e.target.checked)}>Bouton WhatsApp rond en bas de votre site (avec votre numéro ci-dessus).</Check>
+          <div className={styles.fields}>
           <Field label="Pixel Meta (Facebook, Instagram)" optional inputMode="numeric" placeholder="123456789012345" value={form.pixel} onChange={(e) => set('pixel', e.target.value)} error={errors.pixel} hint="Les visites, ajouts au panier et achats arrivent dans votre Gestionnaire d’événements." />
           <Field label="Google Analytics 4" optional autoCapitalize="characters" placeholder="G-XXXXXXXXXX" value={form.ga4} onChange={(e) => set('ga4', e.target.value)} error={errors.ga4} />
+          </div>
           <div style={{ display: 'grid', gap: 6 }}>
             <span style={{ font: '500 var(--fs-sm)/1.3 var(--font)' }}>Catalogue Facebook et Instagram</span>
             <p className={styles.muted} style={{ margin: 0 }}>Collez cette adresse dans Meta Commerce Manager › Catalogue › Sources de données › Flux programmé. Seuls les produits avec photo y figurent.</p>
@@ -92,7 +98,7 @@ export default function SettingsPage() {
         </section>
         <SaveBar busy={busy} problem={problem} saved={saved} dirty={dirty} />
       </form>
-      <section className={styles.card} style={{ display: 'grid', gap: 'var(--sp-3)', maxWidth: 640, marginTop: 'var(--sp-4)' }} aria-label="Vos données">
+      <section className={styles.card} style={{ display: 'grid', gap: 'var(--sp-3)', maxWidth: 1440, marginTop: 'var(--sp-5)' }} aria-label="Vos données">
         <div className={styles.cardHead} style={{ marginBottom: 0 }}><h2>Vos données</h2></div>
         <p className={styles.muted} style={{ margin: 0 }}>Elles vous appartiennent : téléchargez-les quand vous voulez.</p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

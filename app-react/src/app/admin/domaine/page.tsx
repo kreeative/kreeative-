@@ -124,7 +124,7 @@ export default function DomainPage() {
         ) : null}
 
         {owner && !domain ? (
-          <>
+          <div className={shared.pair}>
             <section className={shared.card}>
               <div className={shared.cardHead}><h2>J’ai déjà un nom de domaine</h2></div>
               <form className={styles.line} onSubmit={attach} noValidate>
@@ -154,7 +154,7 @@ export default function DomainPage() {
                 <p className={shared.muted}>Paiement par carte, sécurisé par Stripe. Le domaine est à vous, relié à votre boutique automatiquement.</p>
               </div>
             </section>
-          </>
+          </div>
         ) : null}
         {owner ? null : <Notice tone="info">Seule la propriétaire de cette boutique peut changer son adresse.</Notice>}
       </div>

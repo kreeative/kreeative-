@@ -60,7 +60,7 @@
 /* the country code before the number: our own look, the list of the system opens on a tap */
 .dial { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; height: var(--ctl); padding: 0 var(--sp-3); border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--line-2); font-size: 16px; white-space: nowrap; }
 .dial select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
-.dial:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink), var(--ring); }
+.dial:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); outline: 0; }
 
 /* the black panel with the brush drawings (wide screens only) */
 .side { display: none; }

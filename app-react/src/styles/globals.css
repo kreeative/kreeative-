@@ -18,6 +18,8 @@ a { color: inherit; text-decoration: none; font-weight: 500; }
 button, input, select, textarea { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* a field in focus has one line, its own black edge: never the outline on top of it */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible, select:focus-visible, textarea:focus-visible { outline: 0; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 
 /* Motion. A press answers at once (a slight scale), drawers and menus fade and slide in and out, a page comes in

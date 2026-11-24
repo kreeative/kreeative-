@@ -89,6 +89,8 @@ export default function AdminHome() {
       {store.role === 'owner' && !hasPlan(store.plan) ? <p className={styles.banner}><Icon name="sparkle" size={18} /><span>Votre boutique n’a pas encore de formule. <a href="/admin/abonnement/"><b>Choisir une formule</b></a></span></p> : null}
       {!store.published ? <p className={styles.banner}><Icon name="info" size={18} />Votre boutique n’est pas encore en ligne : vos clientes ne la voient pas.</p> : null}
 
+      <div className={home.layout}>
+      <div className={home.mainCol}>
       <section className={home.today} aria-label="Aujourd’hui">
         <Link className={home.todayMain} href="/admin/commandes/"><span><small>Aujourd’hui</small><b>{todo.length ? `${plural(todo.length, 'commande', 'commandes')} à préparer` : 'Rien à préparer'}</b></span><Icon name="chevron" size={18} /></Link>
         {todo.length ? <Link className={home.todayBtn} href="/admin/commandes/"><Icon name="receipt" size={18} />Voir les commandes</Link>
@@ -145,6 +147,9 @@ export default function AdminHome() {
               ))}
             </ul>}
       </section>
+      </div>
+      <StorePreview url={storeUrl(store, model)} name={storeName(store)} published={!!store.published} thumb={modelBySlug(model)?.slug ?? ''} />
+      </div>
     </>
   );
 }
@@ -162,6 +167,36 @@ function MonthBanner({ storeId, plan, owner }: { storeId: string; plan: string |
       <span>{u.level === 'over' ? `${n} commandes ce mois-ci, pour ${u.limit} dans votre formule. Vos commandes continuent d’arriver.` : `${n} commandes sur ${u.limit} ce mois-ci.`}
         {owner && u.next ? <> <a href="/admin/abonnement/"><b>Passer à {u.next.name}</b></a></> : null}</span>
     </p>
+  );
+}
+
+/** « Votre boutique », on the right of the home page (from 1200 px): her site in a phone, online or not, its
+ *  address, and the three things she does with it: customise, see, share. */
+function StorePreview({ url, name, published, thumb }: { url: string; name: string; published: boolean; thumb: string }) {
+  const [shared, setShared] = useMonthState(false);
+  const share = async () => {
+    try { if (navigator.share) { await navigator.share({ title: name, url }); return; } } catch { /* she closed it */ return; }
+    try { await navigator.clipboard.writeText(url); setShared(true); } catch { /* nothing to do */ }
+  };
+  return (
+    <section className={home.preview} aria-label="Votre boutique">
+      <div className={home.previewHead}>
+        <div><h2>Votre boutique</h2><p><Icon name="external" size={14} />{url.replace(/^https:\/\//, '').replace(/\/$/, '')}</p></div>
+        <span className={home.online} data-on={published ? '' : undefined}>{published ? 'En ligne' : 'Pas en ligne'}</span>
+      </div>
+      <div className={home.phoneWrap}>
+        <div className={home.phone}>
+          {published ? <iframe title={`Aperçu de ${name}`} src={url} loading="lazy" tabIndex={-1} />
+            /* eslint-disable-next-line @next/next/no-img-element */
+            : thumb ? <img src={`https://jehre.com/studio/sites/thumbs/concepts--${thumb}.webp`} alt="" /> : null}
+        </div>
+      </div>
+      <ButtonLink block href="/admin/editeur/" icon="edit">Personnaliser</ButtonLink>
+      <div className={home.previewActs}>
+        <ButtonLink variant="secondary" href={url} target="_blank" rel="noopener" icon="eye">Voir</ButtonLink>
+        <button type="button" className={home.shareBtn} onClick={() => void share()}><Icon name="up" size={18} />{shared ? 'Lien copié' : 'Partager'}</button>
+      </div>
+    </section>
   );
 }
 

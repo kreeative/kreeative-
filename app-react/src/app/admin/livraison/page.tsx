@@ -24,6 +24,7 @@ export default function DeliveryPage() {
   const [dirty, setDirty] = useState(false);
   const [pickup, setPickup] = useState(false);
   const [pickupAt, setPickupAt] = useState('');
+  const [pickupError, setPickupError] = useState('');
 
   useEffect(() => {
     setRows(store ? zonesOf(store).map((z) => ({ name: z.name, fee: String(z.fee) })) : []); setError(''); setDirty(false);
@@ -43,17 +44,23 @@ export default function DeliveryPage() {
     const filled = rows.filter((r) => r.name.trim() || r.fee.trim());
     if (filled.some((r) => !r.name.trim())) { setError('Donnez un nom à chaque zone, ou retirez la ligne vide.'); return; }
     const zones = filled.map((r) => ({ name: clip(r.name, 40), fee: Math.min(100000, Math.max(0, Number(r.fee.replace(/[^\d]/g, '')) || 0)) }));
-    if (pickup && !pickupAt.trim()) { setError('Écrivez l’adresse où vos clientes récupèrent leur commande.'); return; }
+    if (pickup && !pickupAt.trim()) { setPickupError('Écrivez l’adresse de la boutique.'); return; }
     const next = withZones(store.fiche, zones);
     const st = { ...(next.store ?? {}) } as Record<string, unknown>;
-    if (pickup) st.pickup = { on: true, address: clip(pickupAt, 200) }; else delete st.pickup;
+    // the shop's address is kept even when pickup is off, ready for the day she turns it on
+    if (pickup || pickupAt.trim()) st.pickup = { on: pickup, address: clip(pickupAt, 200) }; else delete st.pickup;
     if (await write({ ...next, store: st })) setDirty(false);
   }
 
   return (
     <>
       <PageHead title="Livraison" sub="Les frais de la commune de la cliente s’ajoutent à sa commande." />
-      <form onSubmit={save} noValidate style={{ display: 'grid', gap: 'var(--sp-4)', maxWidth: 640 }}>
+      <form onSubmit={save} noValidate className={styles.wideForm}>
+        <section className={styles.card} aria-label="Retrait en boutique" style={{ display: 'grid', gap: 'var(--sp-4)' }}>
+          <div className={styles.cardHead} style={{ marginBottom: 0 }}><h2>Retrait en boutique</h2></div>
+          <Check checked={pickup} onChange={(e) => { setPickup(e.target.checked); setDirty(true); setPickupError(''); }}>Vos clientes peuvent venir chercher leur commande, sans frais de livraison.</Check>
+          <Field label="Adresse de la boutique" optional={!pickup} maxLength={200} placeholder="Cocody Riviera 2, en face de la pharmacie" value={pickupAt} error={pickupError} onChange={(e) => { setPickupAt(e.target.value); setDirty(true); setPickupError(''); }} />
+        </section>
         <section className={styles.card}>
           <div className={styles.cardHead}><h2>Zones de livraison</h2><span className={styles.muted}>{rows.length} / {MAX_ZONES}</span></div>
           {rows.length === 0 ? <p className={styles.muted}>Aucune zone pour l’instant. Ajoutez les communes où vous livrez.</p> : (
@@ -69,11 +76,6 @@ export default function DeliveryPage() {
           )}
           {error ? <p className={styles.fieldError} role="alert">{error}</p> : null}
           <div style={{ marginTop: 'var(--sp-3)' }}><Button variant="secondary" icon="plus" disabled={rows.length >= MAX_ZONES} onClick={add}>Ajouter une zone</Button></div>
-        </section>
-        <section className={styles.card} aria-label="Retrait en boutique" style={{ display: 'grid', gap: 'var(--sp-3)' }}>
-          <div className={styles.cardHead} style={{ marginBottom: 0 }}><h2>Retrait en boutique</h2></div>
-          <Check checked={pickup} onChange={(e) => { setPickup(e.target.checked); setDirty(true); setError(''); }}>Vos clientes peuvent venir chercher leur commande, sans frais de livraison.</Check>
-          {pickup ? <Field label="Adresse du retrait" maxLength={200} placeholder="Cocody Riviera 2, en face de la pharmacie" value={pickupAt} onChange={(e) => { setPickupAt(e.target.value); setDirty(true); setError(''); }} /> : null}
         </section>
         <SaveBar busy={busy} problem={problem} saved={saved} dirty={dirty} />
       </form>

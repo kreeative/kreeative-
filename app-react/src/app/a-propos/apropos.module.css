@@ -1,0 +1,10 @@
+.page { min-height: 100dvh; background: radial-gradient(1200px 500px at 10% -10%, rgba(232, 70, 124, .08), transparent 60%), radial-gradient(900px 500px at 100% 0%, rgba(106, 76, 255, .08), transparent 60%), var(--white); }
+.top { display: flex; align-items: center; justify-content: space-between; max-width: 880px; margin: 0 auto; padding: 20px 24px; }
+.logo { display: inline-flex; color: var(--ink); }
+.back { color: var(--ink); font: 500 var(--fs-sm)/1 var(--font); text-decoration: none; }
+.body { display: grid; gap: 18px; max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+.eyebrow { margin: 0; color: var(--muted); font: 500 12px/1 var(--font); letter-spacing: .12em; text-transform: uppercase; }
+.body h1 { margin: 0; font: 600 clamp(32px, 5vw, 48px)/1.1 var(--font); letter-spacing: -.02em; }
+.body p { margin: 0; color: var(--ink-2); font: 400 17px/1.65 var(--font); }
+.body .lead { color: var(--ink); font-size: 20px; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }

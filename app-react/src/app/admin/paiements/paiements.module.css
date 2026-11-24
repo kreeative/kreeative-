@@ -1,5 +1,5 @@
 /* Paiements: the guide (a clear glass card), mobile money, then the card with Stripe */
-.page { display: grid; gap: var(--sp-4); max-width: 680px; }
+.page { display: grid; gap: var(--sp-4); max-width: 1440px; }
 .form { display: grid; gap: var(--sp-4); }
 .guide { border-radius: var(--r-lg); background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 12px 30px -24px rgba(17, 17, 17, .3); }
 .guide summary { display: flex; align-items: center; gap: 10px; padding: 14px 18px; cursor: pointer; list-style: none; font: 500 var(--fs) / 1.3 var(--font); }
@@ -29,4 +29,5 @@
 .howto > span { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--grey-1); }
 .howto > svg:last-child { margin-left: auto; color: var(--muted); }
 .howto:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
 

@@ -5,11 +5,11 @@ import { useAdmin } from '@/components/admin/AdminContext';
 import { PageHead } from '@/components/admin/AdminShell';
 import { useSave } from '@/components/admin/useSave';
 import { Button, ButtonLink } from '@/components/ui/Button';
-import { Field, Select, TextArea } from '@/components/ui/Field';
+import { Field, Select, TextArea, Check } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { money } from '@/lib/format';
-import { CUSTOM_FROM, MODELS, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
+import { CUSTOM_FROM, MODELS, SHOP_OPTION_PRICE, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
 import { createStore, saveFiche, storeName, storeUrl } from '@/lib/stores';
 import { Icon } from '@/components/ui/Icon';
 import styles from './modeles.module.css';
@@ -87,6 +87,7 @@ export default function ModelsPage() {
       <>
         <PageHead title="Ma boutique" sub={storeName(store)} />
         {notices}
+        <div className={styles.mineWrap}>
         <section className={styles.mine} aria-label="Votre site">
           <a className={styles.mineShot} href={`/admin/editeur/?b=${store.id}`} aria-label="Modifier mon site">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -102,6 +103,7 @@ export default function ModelsPage() {
             </div>
           </div>
         </section>
+        <div className={styles.mineSide}>
         <ul className={styles.mineLinks} aria-label="Réglages de la boutique">
           {([['/admin/produits/', 'tag', 'Produits', 'Photos, prix, catégories'], ['/admin/branding/', 'brush', 'Branding', 'Logo, couleurs, boutons'], ['/admin/paiements/', 'wallet', 'Paiements', 'Wave, Stripe, mobile money'], ['/admin/domaine/', 'link', 'Adresse du site', 'Votre nom de domaine']] as const).map(([href, icon, title, sub]) => (
             <li key={href}><a href={href}><span aria-hidden="true"><Icon name={icon} size={20} /></span><span><b>{title}</b><small>{sub}</small></span><Icon name="chevron" size={16} /></a></li>
@@ -114,6 +116,8 @@ export default function ModelsPage() {
           </section>
         ) : null}
         <button type="button" className={styles.more} onClick={() => { setAll(true); window.scrollTo(0, 0); }}><Icon name="template" size={18} />Voir plus de modèles<Icon name="chevron" size={16} /></button>
+        </div>
+        </div>
       </>
     );
   }
@@ -166,6 +170,8 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
   model: Model; onClose: () => void; onAsked: (text: string) => void; firstName: string; phone: string; email: string; storeId: string; shopName: string; sells: string;
 }) {
   const [way, setWay] = useState<Way>('self');
+  // a booking site: selling products too is an option (+25 000 F)
+  const [shop, setShop] = useState(false);
   const [count, setCount] = useState('1 à 10');
   const [photos, setPhotos] = useState('Oui');
   const [logo, setLogo] = useState('Oui');
@@ -180,7 +186,7 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
     setError(''); setWaError('');
     if (way === 'self' || m.installIncluded) {
       setBusy(true);
-      const r = await buyModel(m.slug, { storeId, shopName, sells });
+      const r = await buyModel(m.slug, { storeId, shopName, sells, shop: !!m.rdv && shop });
       if (!r.ok) { setBusy(false); setError(r.message); }
       return;
     }
@@ -199,7 +205,7 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
   }
 
   const options: { id: Way; title: string; price: string; text: string }[] = [
-    { id: 'self', title: 'Je remplis moi-même', price: money(m.price), text: 'Vous ajoutez vous-même vos produits, vos prix et vos photos depuis votre tableau de bord.' },
+    { id: 'self', title: 'Je remplis moi-même', price: m.rdv ? `À partir de ${money(m.price)}` : money(m.price), text: 'Vous ajoutez vous-même vos produits, vos prix et vos photos depuis votre tableau de bord.' },
     { id: 'install', title: 'Jehre installe tout pour moi', price: `À partir de ${money(m.price + installPrice(m))}`, text: 'Nous mettons tout en place : jusqu’à 10 produits et 2 séries de corrections, 5 000 F par produit en plus. Un formulaire à remplir et à signer, puis vous payez.' },
     { id: 'custom', title: 'Un site 100 % sur mesure', price: `À partir de ${money(CUSTOM_FROM)}`, text: 'Vous ne voulez pas d’un modèle ? Le designer de Kreeative dessine un site unique, rien que pour vous. Un site complet comme The Ivory Sukundu : 500 000 FCFA. On en parle d’abord ensemble.' },
   ];
@@ -228,7 +234,8 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
               <TextArea label="Précisions" optional rows={3} maxLength={800} value={need} onChange={(e) => setNeed(e.target.value)} />
             </div>
           ) : null}
-          <p className={styles.small}>{NOTE[way]}</p>
+          {m.rdv && way === 'self' ? <Check checked={shop} onChange={(e) => setShop(e.target.checked)}>Vendre aussi des produits sur mon site (+{money(SHOP_OPTION_PRICE)})</Check> : null}
+          <p className={styles.small}>{NOTE[way]}{m.rdv && way === 'self' ? ` Total : ${money(m.price + (shop ? SHOP_OPTION_PRICE : 0))}.` : ''}</p>
         </>
       )}
       {error ? <Notice tone="error">{error}</Notice> : null}

@@ -76,7 +76,7 @@ export default function TeamPage() {
             </div>
           </section>
         ) : (
-          <>
+          <div className={shared.pair}>
             <section className={shared.card}>
               <div className={shared.cardHead}><h2>Inviter une personne</h2></div>
               <form className={styles.line} onSubmit={invite} noValidate>
@@ -108,7 +108,7 @@ export default function TeamPage() {
                 </ul>
               )}
             </section>
-          </>
+          </div>
         )}
       </div>
     </>

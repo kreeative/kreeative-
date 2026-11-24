@@ -98,7 +98,7 @@ export default function ServicesPage() {
 
       {home ? (services.length === 0
         ? <Empty icon="tag" title="Aucune prestation pour l’instant" action={<Button icon="plus" onClick={() => setDraft(draftOf())}>Ajouter une prestation</Button>}>Ajoutez ce que vos clientes peuvent réserver : son nom, sa durée et son prix.</Empty>
-        : <section className={shared.card} style={{ maxWidth: 760 }}>
+        : <section className={shared.card} style={{ maxWidth: 1440 }}>
             <ul className={shared.rows}>
               {services.map((s) => (
                 <li key={s.id} className={s.active ? undefined : styles.off}>
@@ -113,7 +113,7 @@ export default function ServicesPage() {
           </section>) : null}
 
       {home ? (
-        <section aria-label="Options" style={{ maxWidth: 760 }}>
+        <section aria-label="Options" style={{ maxWidth: 1440 }}>
           <h2 className={styles.sectionTitle}>Options</h2>
           <p className={shared.muted} style={{ marginBottom: 'var(--sp-3)' }}>Ce que la cliente peut ajouter à une prestation : une dépose, un soin, un nail art.</p>
           {addons.length ? (

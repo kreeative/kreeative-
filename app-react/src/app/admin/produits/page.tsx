@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
+import { SHOP_OPTION_PRICE, buyShopOption, modelBySlug, shopOptionStores } from '@/lib/models';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
@@ -29,7 +30,13 @@ const photosOf = (p: Product): string[] => {
 const draftOf = (p?: Product): Draft => ({ id: p?.id ?? null, name: p?.name ?? '', price: p ? String(p.price ?? '') : '', category: p?.category ?? '', description: p?.description ?? '', badge: typeof p?.badge === 'string' ? p.badge : '', photos: p ? photosOf(p) : [] });
 
 export default function ProductsPage() {
-  const { account, store, replaceStore, reload } = useAdmin();
+  const { account, store, replaceStore, reload, model } = useAdmin();
+  // a booking site sells products only with the option (+25 000 F), bought for this store
+  const booking = !!modelBySlug(model)?.rdv;
+  const [optionOk, setOptionOk] = useState<boolean | null>(null);
+  const [optBusy, setOptBusy] = useState(false);
+  const [optError, setOptError] = useState('');
+  useEffect(() => { if (!booking || !store?.id) { setOptionOk(true); return; } let on = true; void shopOptionStores().then((ids) => { if (on) setOptionOk(ids.includes(store.id)); }); return () => { on = false; }; }, [booking, store?.id]);
   const file = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
@@ -65,6 +72,7 @@ export default function ProductsPage() {
     close(); setQuery('');
   }, [storeId, close]);
 
+  if (store && booking && optionOk === false) return (<><PageHead title="Produits" /><Empty icon="tag" title="Vendre aussi des produits" action={store.role === 'owner' ? <Button busy={optBusy} onClick={async () => { setOptBusy(true); setOptError(''); const r = await buyShopOption(store.id); if (!r.ok) { setOptBusy(false); setOptError(r.message); } }}>Activer pour {money(SHOP_OPTION_PRICE)}</Button> : undefined}>Votre site de réservation peut aussi vendre des produits, avec panier et paiement. C’est une option à {money(SHOP_OPTION_PRICE)}, payée une seule fois.</Empty>{optError ? <Notice tone="error">{optError}</Notice> : null}</>);
   if (!store) return (<><PageHead title="Produits" /><Empty icon="tag" title="Pas encore de boutique">Créez votre boutique pour y ajouter vos produits.</Empty></>);
   const canEdit = store.role === 'owner' || store.role === 'agency' || store.role === 'editor';
 

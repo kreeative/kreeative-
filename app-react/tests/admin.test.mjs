@@ -2510,7 +2510,7 @@ await test('promo codes, abandoned carts, pickup in the shop, WhatsApp button, t
   // pickup in the shop
   await page.goto(`${BASE}/admin/livraison/`); await h1(page, 'Livraison');
   await page.getByText('Vos clientes peuvent venir chercher leur commande, sans frais de livraison.').click();
-  await page.getByLabel('Adresse du retrait').fill('Cocody Riviera 2, en face de la pharmacie');
+  await page.getByLabel(/^Adresse de la boutique/).fill('Cocody Riviera 2, en face de la pharmacie');
   await page.getByRole('button', { name: 'Enregistrer' }).click();
   await page.waitForFunction(() => true);
   await page.waitForTimeout(600);
@@ -2551,6 +2551,75 @@ await test('the orders of the month count against the plan: every order received
   await page.getByText('8 commandes sur 10 ce mois-ci.').waitFor();
   w.monthOrders = 3; await page.goto(`${BASE}/admin/`); await page.waitForTimeout(1200);
   assert.equal(await page.getByText(/commandes sur 10 ce mois-ci/).count(), 0, 'nothing said while far from the limit');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('home with her store in a phone on the right; pages use the width; About; booking sites: products are an option; the deposit', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, { width: 1600, height: 1000 }, w);
+  await page.goto(`${BASE}/admin/`);
+  const prev = page.getByRole('region', { name: 'Votre boutique' });
+  await prev.getByText('En ligne', { exact: true }).waitFor();
+  for (const n of ['Personnaliser', 'Voir']) await prev.getByRole('link', { name: n }).waitFor();
+  await prev.getByRole('button', { name: 'Partager' }).waitFor();
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${SHOTS}142-accueil-apercu.png` });
+  // the deposit, in Paiements
+  await page.goto(`${BASE}/admin/paiements/`);
+  await page.getByText('Avec Wave ou le mobile money, la cliente paie une partie à la commande, et le reste à la livraison.').click();
+  await page.getByLabel('Part payée à la commande (%)').fill('30');
+  await page.getByRole('button', { name: 'Enregistrer' }).first().click();
+  await page.waitForTimeout(800);
+  const saved = w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').pop();
+  assert.deepEqual(saved.body.fiche.store.deposit, { on: true, percent: 30 });
+  // About, public
+  await page.goto(`${BASE}/a-propos/`);
+  await page.getByRole('heading', { name: 'L’histoire de Jehre' }).waitFor();
+  await page.getByText(/Anne-Kelly Kouyate/).first().waitFor();
+  await page.screenshot({ path: `${SHOTS}143-a-propos.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+  // a booking site (REGARD) without the option: Produits offers it; the model's price says « À partir de »
+  const w2 = withModel(world(), 'regard'); w2.stores[0].fiche.store.model = 'regard';
+  const o = await open(browser, DESK, w2);
+  await o.page.goto(`${BASE}/admin/produits/`);
+  await o.page.getByText('Vendre aussi des produits').waitFor();
+  await o.page.getByRole('button', { name: /^Activer pour 25.000.FCFA$/ }).click();
+  await o.page.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
+  const opt = w2.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'shop_option');
+  assert.equal(opt.body.storeId, w2.stores[0].id);
+  await o.page.screenshot({ path: `${SHOTS}144-option-produits.png` });
+  // with the option bought for this store, the products are there
+  w2.models = [...(w2.models ?? []), { model: 'option-produits', store_id: w2.stores[0].id }];
+  await o.page.goto(`${BASE}/admin/produits/`);
+  await o.page.getByText('Beurre de karité brut').first().waitFor();
+  assert.deepEqual(o.errors, []); await o.ctx.close();
+});
+
+await test('wide settings pages: Paramètres, Paiements, Livraison, Associés, Domaine and Modèles use the screen; light glass cards; one focus ring', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, { width: 1600, height: 1000 }, w);
+  const narrow = [];
+  const pages = [['parametres', 'Paramètres'], ['paiements', 'Paiements'], ['livraison', 'Livraison'], ['equipe', 'Associés'], ['domaine', 'Nom de domaine'], ['modeles', 'Ma boutique'], ['modeles', 'Modèles de designer', true]];
+  for (const [path, title, all] of pages) {
+    if (all) { w.models = []; delete w.stores[0].fiche.store.model; }
+    await page.goto(`${BASE}/admin/${path}/`);
+    await page.getByRole('heading', { level: 1, name: title }).waitFor();
+    await page.waitForTimeout(900);
+    // the content runs from the side bar to the right edge (less its margin): no narrow column with an empty right half
+    const used = await page.evaluate(() => {
+      const main = document.querySelector('main'); if (!main) return 0;
+      const kids = [...main.querySelectorAll('section, form, ul')].filter((n) => n.getBoundingClientRect().height > 40);
+      const right = Math.max(...kids.map((n) => n.getBoundingClientRect().right));
+      return right / window.innerWidth;
+    });
+    if (used <= 0.9) narrow.push(`${title} : ${Math.round(used * 100)} %`);
+    await page.screenshot({ path: `${SHOTS}150-large-${path}${all ? '-grille' : ''}.png`, fullPage: true });
+  }
+  assert.deepEqual(narrow, [], 'pages qui s’arrêtent avant la droite');
+  // a field in focus has one ring, never a grey and a black one stacked
+  await page.goto(`${BASE}/admin/parametres/`);
+  const f = page.locator('main input[type="text"], main input:not([type])').first();
+  await f.focus();
+  const ring = await f.evaluate((el) => { const cs = getComputedStyle(el); return { outline: cs.outlineStyle, shadow: cs.boxShadow }; });
+  assert.ok(ring.outline === 'none' || ring.shadow === 'none', `double contour : ${JSON.stringify(ring)}`);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

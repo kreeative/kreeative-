@@ -72,7 +72,32 @@ export const modelPreview = (slug: string): string => `/admin/modeles/apercu/?m=
 export async function myModels(): Promise<string[]> {
   const { data, error } = await supabase().rpc('my_models');
   if (error || !Array.isArray(data)) return [];
-  return (data as { model?: unknown }[]).map((x) => String(x.model ?? '')).filter(Boolean);
+  // the models only: an option bought for a store (« option-produits ») is not a model
+  return (data as { model?: unknown }[]).map((x) => String(x.model ?? '')).filter((x) => !!modelBySlug(x));
+}
+
+/** A booking site (REGARD, VERNIE, MINUIT) sells products only with the option, bought for that store: 25 000 F. */
+export const SHOP_OPTION = 'option-produits';
+export const SHOP_OPTION_PRICE = 25000;
+export async function shopOptionStores(): Promise<string[]> {
+  const { data, error } = await supabase().rpc('my_models');
+  if (error || !Array.isArray(data)) return [];
+  return (data as { model?: unknown; store_id?: unknown }[]).filter((x) => x.model === SHOP_OPTION && typeof x.store_id === 'string').map((x) => String(x.store_id));
+}
+/** Opens the card payment of the option for one store (the server checks the store and the price). */
+export async function buyShopOption(storeId: string): Promise<Outcome> {
+  try {
+    const { data } = await supabase().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false, message: 'Connectez-vous à votre compte Jehre pour payer.' };
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/billing`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'shop_option', storeId, returnUrl: window.location.origin + window.location.pathname }),
+    });
+    const j = (await r.json().catch(() => null)) as { ok?: boolean; url?: string; message?: string } | null;
+    if (j?.ok && j.url) { window.location.assign(j.url); return { ok: true }; }
+    return { ok: false, message: j?.message || 'Le paiement n’a pas pu s’ouvrir. Rien n’a été prélevé : réessayez.' };
+  } catch { return { ok: false, message: 'La connexion a été coupée. Rien n’a été prélevé : réessayez.' }; }
 }
 
 /** The model in use: the one chosen for this store if she bought it, else the latest she bought. */
@@ -102,14 +127,14 @@ export function withModel(fiche: Fiche, slug: string, from: string): Fiche {
 export type Outcome = { ok: true } | { ok: false; message: string };
 
 /** The card payment of a model: Stripe opens in this tab and brings her back to the models page. */
-export async function buyModel(slug: string, o: { storeId?: string; shopName?: string; sells?: string; installRequestId?: string }): Promise<Outcome> {
+export async function buyModel(slug: string, o: { storeId?: string; shopName?: string; sells?: string; installRequestId?: string; shop?: boolean }): Promise<Outcome> {
   try {
     const { data } = await supabase().auth.getSession();
     const token = data.session?.access_token;
     if (!token) return { ok: false, message: 'Connectez-vous à votre compte Jehre pour payer.' };
     const r = await fetch(`${SUPABASE_URL}/functions/v1/billing`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'model', model: slug, install: !!o.installRequestId, installRequestId: o.installRequestId ?? '', storeId: o.storeId ?? '', shopName: o.shopName ?? '', sells: o.sells ?? '', returnUrl: window.location.origin + (o.installRequestId ? '/admin/modeles/' : window.location.pathname) }),
+      body: JSON.stringify({ action: 'model', model: slug, shop: !!o.shop, install: !!o.installRequestId, installRequestId: o.installRequestId ?? '', storeId: o.storeId ?? '', shopName: o.shopName ?? '', sells: o.sells ?? '', returnUrl: window.location.origin + (o.installRequestId ? '/admin/modeles/' : window.location.pathname) }),
     });
     const j = (await r.json().catch(() => null)) as { ok?: boolean; url?: string; message?: string } | null;
     if (j?.ok && j.url) { window.location.assign(j.url); return { ok: true }; }

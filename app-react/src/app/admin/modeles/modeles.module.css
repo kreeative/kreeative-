@@ -1,11 +1,12 @@
-.notice { margin-bottom: var(--sp-4); max-width: 640px; }
+.notice { margin-bottom: var(--sp-4); max-width: 1440px; }
 
 /* the cards: the picture on top, then the name, the trade, the price and the two buttons side by side */
-.grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--sp-5, 20px); }
-.card { display: flex; flex-direction: column; min-width: 0; border-radius: 14px; background: var(--white); box-shadow: 0 0 0 1px var(--line); overflow: hidden; }
+.grid { list-style: none; margin: 0; padding: 0; max-width: 1440px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr)); gap: var(--sp-5, 20px); }
+@media (min-width: 1500px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.card { display: flex; flex-direction: column; min-width: 0; border-radius: 20px; background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 18px 40px -34px rgba(17, 17, 17, .28); overflow: hidden; }
 .shot { display: block; aspect-ratio: 16 / 10; background: var(--grey-1); }
 .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-.body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; padding: 12px 14px 14px; }
+.body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; padding: 14px 16px 16px; }
 .name { font: 600 15px/1.3 var(--font); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .kind { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .price { margin-top: 6px; font-size: 14px; font-variant-numeric: tabular-nums; }
@@ -41,7 +42,7 @@
 
 /* motion: a card lifts a little under the pointer */
 .card { transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
-@media (hover: hover) { .card:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--line), 0 14px 30px -18px rgba(17, 17, 17, .3); } }
+@media (hover: hover) { .card:hover { transform: translateY(-2px); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 20px 40px -22px rgba(17, 17, 17, .3); } }
 .shot img { transition: transform .5s var(--ease); }
 @media (hover: hover) { .card:hover .shot img { transform: scale(1.02); } }
 .shot { overflow: hidden; }
@@ -49,7 +50,7 @@
 
 /* « Ma boutique »: her site first (its picture, online or not, its address, two clear actions), her settings, then
    « Voir plus de modèles » at the bottom */
-.mine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; max-width: 720px; border-radius: 20px; overflow: hidden; background: var(--white); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 16px 40px -28px rgba(17, 17, 17, .35); }
+.mine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border-radius: 22px; overflow: hidden; background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 18px 40px -34px rgba(17, 17, 17, .28); }
 .mineShot { display: block; aspect-ratio: 16 / 10; background: var(--grey-1); }
 .mineShot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 .mineBody { display: grid; gap: 4px; padding: 16px 16px 18px; min-width: 0; }
@@ -60,26 +61,41 @@
 .mineName { margin: 0; font: 600 20px/1.25 var(--font); color: var(--ink); }
 .mineActs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; margin-top: 12px; }
 .mineActs > * { white-space: nowrap; }
-.mineLinks { list-style: none; margin: var(--sp-4) 0 0; padding: 0; max-width: 720px; display: grid; border-radius: 20px; overflow: hidden; background: var(--white); box-shadow: 0 0 0 1px var(--line); }
-.mineLinks li + li { border-top: 1px solid var(--line); }
+.mineLinks { list-style: none; margin: 0; padding: 0; display: grid; border-radius: 22px; overflow: hidden; background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 18px 40px -34px rgba(17, 17, 17, .28); }
+.mineLinks li + li { border-top: 1px solid var(--glass-line); }
 .mineLinks a { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 10px 16px; color: var(--ink); text-decoration: none; }
-.mineLinks a:hover { background: var(--grey-1); }
+.mineLinks a:hover { background: rgba(255, 255, 255, .6); }
 .mineLinks a > span:first-child { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--grey-1); }
 .mineLinks a > span:nth-child(2) { flex: 1; min-width: 0; display: grid; }
 .mineLinks b { font: 600 var(--fs)/1.3 var(--font); }
 .mineLinks small { color: var(--muted); font: 400 12.5px/1.4 var(--font); }
 .mineLinks a > svg:last-child { color: var(--muted); }
-.mineOthers { max-width: 720px; margin-top: var(--sp-5); }
+.mineOthers { margin: 0; }
 .mineOthers h2 { margin: 0 0 8px; font: 600 var(--fs-lg)/1.3 var(--font); }
 .mineOthers ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.mineOthers li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--white); box-shadow: 0 0 0 1px var(--line); font: 600 var(--fs)/1.3 var(--font); }
+.mineOthers li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 18px 40px -34px rgba(17, 17, 17, .28); font: 600 var(--fs)/1.3 var(--font); }
 .mineOthers li > span { display: grid; min-width: 0; }
 .mineOthers li small { color: var(--muted); font: 400 12.5px/1.4 var(--font); }
-.more { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 720px; min-height: 56px; margin-top: var(--sp-5); padding: 10px 16px; border: 0; border-radius: 16px; background: none; box-shadow: inset 0 0 0 1.5px var(--line-2); color: var(--ink); font: 600 var(--fs)/1.3 var(--font); text-align: left; cursor: pointer; }
+.more { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; margin-top: 0; padding: 10px 16px; border: 0; border-radius: 16px; background: none; box-shadow: inset 0 0 0 1.5px var(--line-2); color: var(--ink); font: 600 var(--fs)/1.3 var(--font); text-align: left; cursor: pointer; }
 .more > svg:last-child { margin-left: auto; color: var(--muted); }
-.more:hover { background: var(--white); }
+.more:hover { background: var(--glass); }
 .backMine { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 var(--sp-3); padding: 6px 2px; border: 0; background: none; color: var(--ink); font: 500 var(--fs-sm)/1 var(--font); cursor: pointer; }
 
 /* a model's demo (its gallery, its demo viewer): its photos are only an example; on her store they become plain frames */
 .example { position: absolute; z-index: 2; left: 10px; top: 10px; display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(255, 255, 255, .82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); box-shadow: 0 0 0 1px rgba(17, 17, 17, .08), 0 4px 12px -6px rgba(17, 17, 17, .3); color: var(--ink); font: 500 11.5px/1 var(--font); pointer-events: none; }
 .shot, .big { position: relative; }
+
+/* « Ma boutique »: one under the other, each the whole width; on a big screen her site is a wide card, its picture
+   on the left and its name and actions on the right */
+.mineWrap { display: grid; gap: var(--sp-4); max-width: 1440px; grid-template-columns: minmax(0, 1fr); }
+.mineSide { display: grid; gap: var(--sp-4); }
+@media (min-width: 1000px) {
+  .mine { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; }
+  .mineShot { height: 100%; min-height: 300px; aspect-ratio: auto; }
+  .mineBody { padding: 28px 32px; gap: 6px; }
+  .mineName { font-size: 26px; }
+  .mineLinks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mineLinks li + li { border-top: 0; }
+  .mineLinks li:nth-child(n + 3) { border-top: 1px solid var(--glass-line); }
+  .mineLinks li:nth-child(even) { border-left: 1px solid var(--glass-line); }
+}

@@ -6,7 +6,7 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { SaveBar } from '@/components/admin/SaveBar';
 import { useSave } from '@/components/admin/useSave';
 import { ButtonLink } from '@/components/ui/Button';
-import { Field } from '@/components/ui/Field';
+import { Field, Check } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { CARD_LABEL, cardState, cardStatus, type CardStatus } from '@/lib/card';
 import { PAYMENT_METHODS, type PayNumbers, type PaymentKey } from '@/lib/stores';
@@ -30,6 +30,9 @@ export default function PaymentsPage() {
   const [nums, setNums] = useState<PayNumbers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
+  // the acompte: with mobile money, a part at the order, the rest on delivery
+  const [depOn, setDepOn] = useState(false);
+  const [depPct, setDepPct] = useState('50');
   const [card, setCard] = useState<CardStatus | null>(null);
   // the guide comes to her the first time, on the whole screen, until « J'ai compris »
   const [guide, setGuide] = useState(false);
@@ -41,6 +44,8 @@ export default function PaymentsPage() {
     const fresh = !Object.keys(chosen).length;
     setOn(fresh ? { ...DEFAULTS } : { ...chosen });
     setNums({ ...(store?.fiche.store?.pay ?? {}) });
+    const dep = (store?.fiche.store as Record<string, unknown> | undefined)?.deposit as { on?: boolean; percent?: number } | undefined;
+    setDepOn(dep?.on === true); setDepPct(String(dep?.percent ?? 50));
     setErrors({}); setDirty(fresh && !!store);   // the defaults are offered: one « Enregistrer » makes them hers
   }, [store]);
   useEffect(() => {
@@ -76,6 +81,8 @@ export default function PaymentsPage() {
     if (Object.keys(errs).length) return;
     const st = { ...(store.fiche.store ?? {}) };
     if (Object.keys(next).length) st.pay = next; else delete st.pay;
+    const pct = Math.min(90, Math.max(10, Math.round(Number(depPct.replace(/\D/g, '')) || 50)));
+    if (depOn) (st as Record<string, unknown>).deposit = { on: true, percent: pct }; else delete (st as Record<string, unknown>).deposit;
     if (await write({ ...store.fiche, payments: { ...(store.fiche.payments ?? {}), ...on }, store: st })) setDirty(false);
   }
 
@@ -88,7 +95,7 @@ export default function PaymentsPage() {
         <button type="button" className={pay.howto} onClick={() => setGuide(true)}><span aria-hidden="true"><Icon name="info" size={18} /></span>Comment configurer vos paiements ?<Icon name="chevron" size={16} /></button>
 
         <form onSubmit={save} noValidate className={pay.form}>
-          <section className={styles.card}>
+          <section className={`${styles.card} ${pay.mobile}`}>
             <div className={styles.cardHead}><h2>Paiement mobile</h2></div>
             <ul className={styles.rows}>
               {methods.map((m) => (
@@ -98,12 +105,15 @@ export default function PaymentsPage() {
                     <button type="button" role="switch" aria-checked={!!on[m.key]} aria-label={m.label} className={styles.switch} onClick={() => toggle(m.key)} />
                   </div>
                   {MANUAL[m.key] && on[m.key] ? <p className={pay.note}>{MANUAL[m.key]}</p> : null}
-                  {m.number && on[m.key] ? (
+                  {m.number && on[m.key] && m.key !== 'wave' ? (
                     <Field label={`Numéro qui reçoit ${m.label}`} type="tel" inputMode="tel" placeholder="+225 07 07 12 34 56" value={nums[m.number] ?? ''} onChange={(e) => setNumber(m.number!, e.target.value)} error={errors[m.number]} />
                   ) : null}
                   {m.key === 'wave' && on.wave ? (
                     <div className={pay.wave}>
+                      <div className={styles.fields}>
+                      <Field label={`Numéro qui reçoit ${m.label}`} type="tel" inputMode="tel" placeholder="+225 07 07 12 34 56" value={nums[m.number!] ?? ''} onChange={(e) => setNumber(m.number!, e.target.value)} error={errors[m.number!]} />
                       <Field label="Lien de paiement Wave (recommandé)" type="url" inputMode="url" placeholder="https://pay.wave.com/m/…" value={nums.wave ?? ''} onChange={(e) => setNumber('wave', e.target.value)} error={errors.wave} />
+                      </div>
                       <p className={pay.why}><Icon name={waveLink ? 'check' : 'info'} size={16} />
                         {waveLink
                           ? <span><b>La cliente paie à l’avance</b>, le montant exact, en un geste, dès sa commande.</span>
@@ -114,6 +124,11 @@ export default function PaymentsPage() {
                 </li>
               ))}
             </ul>
+          </section>
+          <section className={`${styles.card} ${pay.deposit}`} aria-label="Acompte" style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+            <h2 style={{ margin: 0, font: '600 var(--fs-lg)/1.3 var(--font)' }}>Acompte</h2>
+            <Check checked={depOn} onChange={(e) => { setDepOn(e.target.checked); setDirty(true); }}>Avec Wave ou le mobile money, la cliente paie une partie à la commande, et le reste à la livraison.</Check>
+            {depOn ? <Field label="Part payée à la commande (%)" inputMode="numeric" maxLength={2} value={depPct} onChange={(e) => { setDepPct(e.target.value.replace(/\D/g, '')); setDirty(true); }} hint="Entre 10 et 90 %. La carte bancaire paie toujours la totalité." /> : null}
           </section>
           <SaveBar busy={busy} problem={problem} saved={saved} dirty={dirty} />
         </form>

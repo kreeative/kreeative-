@@ -40,7 +40,7 @@ export default function CartsPage() {
   return (
     <>
       <PageHead title="Paniers abandonnés" sub="Les clientes qui ont donné leur numéro sans finir leur commande. Relancez-les en un geste." />
-      <section className={styles.card} style={{ maxWidth: 860 }} aria-label="Paniers">
+      <section className={styles.card} style={{ maxWidth: 1440 }} aria-label="Paniers">
         {list === null ? <p className={styles.muted}>Chargement…</p> : null}
         {list && !list.length ? <p className={styles.muted}>Aucun panier abandonné ces 30 derniers jours.</p> : null}
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>

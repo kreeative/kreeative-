@@ -64,7 +64,7 @@ export default function PromosPage() {
   return (
     <>
       <PageHead title="Codes promo" sub="Vos clientes tapent le code au moment de commander." />
-      <div style={{ display: 'grid', gap: 'var(--sp-4)', maxWidth: 760 }}>
+      <div style={{ display: 'grid', gap: 'var(--sp-4)', maxWidth: 1440 }}>
         {canEdit ? (
           <section className={styles.card} style={{ display: 'grid', gap: 'var(--sp-3)' }} aria-label="Nouveau code">
             <div className={styles.cardHead} style={{ marginBottom: 0 }}><h2>Nouveau code</h2></div>
