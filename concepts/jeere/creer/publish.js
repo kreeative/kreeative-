@@ -265,6 +265,11 @@
     });
     function write(s, pubFiche) {
       var rec = local();
+      // the examples of a niche never go online in her store (a draft made before they were removed)
+      var D0 = window.JEERE_DATA;
+      if (D0 && typeof D0.isSampleProduct === 'function' && pubFiche && Array.isArray(pubFiche.products)) {
+        pubFiche = Object.assign({}, pubFiche, { products: pubFiche.products.filter(function (p) { return !D0.isSampleProduct(p); }) });
+      }
       var body = { slug: slug, fiche: pubFiche, published: true, show_badge: badge };
       var sel = '?select=id,slug,published,published_at,show_badge,updated_at';
       var pickId = rec && rec.storeId && (!rec.ownerId || !s.userId || rec.ownerId === s.userId) ? Promise.resolve(rec.storeId)
