@@ -438,6 +438,7 @@ const DEPOSITS = ['', 'en_attente', 'recu', 'rembourse', 'garde'];
 const APPT_COLS = 'id,store_id,number,status,staff_id,starts_at,ends_at,busy_until,service,customer,total,deposit,deposit_status,payment,currency,note,memo,source,manage_url,emails,created_at,updated_at';
 
 /* ------------------------------------------------------------------ the handler */
+const DEMO_SLUGS = ['seve', 'soyeuse', 'michou', 'anse', 'regard', 'vernie', 'minuit'];   // the designer models' demo stores: shown, never sold from
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json({ ok: false, code: 'method' }, 405);
@@ -451,6 +452,7 @@ Deno.serve(async (req: Request) => {
   if (action === 'config' || action === 'slots' || action === 'book') {
     const st = await storeBySlug(str(b.slug, 40).toLowerCase());
     if (!st) return json({ ok: false, code: 'store', message: 'Boutique introuvable ou pas encore en ligne.' }, 404);
+    if (action === 'book' && DEMO_SLUGS.includes(String(st.slug))) return json({ ok: false, code: 'demo', message: 'Ceci est un site de démonstration : aucun rendez-vous n’est pris ici. Créez le vôtre sur jehre.com.' }, 403);
     const { S } = await settingsOf(st.id);
     const info = storeInfo(st);
     const team = teamOf(S, info);
