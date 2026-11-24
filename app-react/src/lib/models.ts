@@ -322,3 +322,27 @@ export function withBrand(fiche: Fiche, patch: Brand): Fiche {
   if (Object.keys(site).length) st.site = site; else delete st.site;
   return { ...fiche, store: st };
 }
+
+/** « hauts-t-shirts » → « Hauts t shirts »: a category of the model, read from its own link */
+const unslug = (v: string) => { const w = decodeURIComponent(v).replace(/[-_]+/g, ' ').trim(); return w ? w[0]!.toUpperCase() + w.slice(1) : ''; };
+/** Where a picture of the model leads by itself (its link in the page): « Catégorie Hauts », « Boutique », « Produit » */
+export function modelLinkLabel(href: string): string {
+  const h = href.trim();
+  if (!h) return '';
+  const hash = /#([a-z0-9-]+)$/i.exec(h);
+  if (hash && /boutique|shop|catalogue/i.test(h)) return `Catégorie ${unslug(hash[1]!)}`;
+  if (/produits?\//i.test(h)) return 'Produit du modèle';
+  if (/boutique|shop|catalogue/i.test(h)) return 'Boutique';
+  return 'Lien du modèle';
+}
+/** A picture that leads somewhere (a campaign banner, a slide): its name in its section (« Bannière », « Visuel 2 »)
+ *  and what it is associated with: her choice (store.site.l), else the model's own link. */
+export function photoTarget(fiche: Fiche, item: SiteItem, items: SiteItem[]): { who: string; to: string; own: boolean } {
+  const peers = items.filter((x) => x.kind === 'i' && x.link && x.sec === item.sec);
+  const who = peers.length > 1 ? `Visuel ${peers.findIndex((x) => x.key === item.key) + 1}` : 'Bannière';
+  const v = siteValue(fiche, 'l', item.key.replace('|i|', '|l|')) ?? '';
+  const prods = Array.isArray(fiche.products) ? fiche.products : [];
+  if (v.startsWith('c:')) return { who, to: `Catégorie ${v.slice(2)}`, own: true };
+  if (v.startsWith('p:')) return { who, to: `Produit ${prods.find((x) => x.id === v.slice(2))?.name ?? ''}`.trim(), own: true };
+  return { who, to: modelLinkLabel(item.href) || 'Lien du modèle', own: false };
+}

@@ -1962,6 +1962,70 @@ await test('editor: leaving with changes not saved asks first — save and leave
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('catalogue links (MICHOU): each campaign banner is associated with a category or a product; a product card’s photo chooses the card; the public links follow', async () => {
+  const w = withModel(world(), 'michou'); w.stores[0].fiche.products.push({ id: 'bonnet-laine', name: 'Bonnet en laine', price: 8000, category: 'Accessoires', image: null, photo: null }); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  const hauts = site.locator('.edito a').first();
+  await hauts.scrollIntoViewIfNeeded(); await page.waitForTimeout(900);
+  await hauts.locator('img').click({ force: true });
+  await tools.getByRole('button', { name: 'Associer', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Associer à une catégorie / un produit' });
+  await sheet.getByText('Visuel 1 → Catégorie Hauts (modèle)').waitFor();
+  await sheet.getByLabel('Associer à').selectOption('Catégorie Cheveux');
+  await sheet.getByText('Visuel 1 → Catégorie Cheveux').waitFor();
+  await page.waitForTimeout(300);
+  assert.match(await hauts.getAttribute('href'), /boutique\/#cheveux$/, 'the banner leads to her category');
+  await page.screenshot({ path: `${SHOTS}98-bannière-associer.png` });
+  // the second banner on its own: one of her products (no card of it on the page: the shop, on its category)
+  await page.keyboard.press('Escape');
+  await tools.getByRole('button', { name: 'Terminer' }).click(); await page.waitForTimeout(300);
+  const bas = site.locator('.edito a').nth(1);
+  await bas.locator('img').click({ force: true });
+  await tools.getByRole('button', { name: 'Associer', exact: true }).click();
+  await sheet.getByText('Visuel 2 → Catégorie Bas (modèle)').waitFor();
+  await sheet.getByLabel('Associer à').selectOption('Produit Bonnet en laine');
+  await page.waitForTimeout(300);
+  assert.match(await bas.getAttribute('href'), /boutique\/#accessoires$/, 'a product with no card here: the shop, on its category');
+  assert.match(await hauts.getAttribute('href'), /#cheveux$/, 'each banner keeps its own');
+  await page.keyboard.press('Escape');
+  await tools.getByRole('button', { name: 'Terminer' }).click(); await page.waitForTimeout(300);
+  // a product card: its photo chooses the card (which of her products goes in it)
+  const card = site.locator('[data-jeere-product]').first();
+  await card.scrollIntoViewIfNeeded(); await page.waitForTimeout(900);
+  await card.locator('img').first().click({ force: true });
+  assert.equal((await tools.locator('button span').allInnerTexts())[0], 'Produit', 'the card, not a loose picture');
+  await tools.getByRole('button', { name: 'Produit', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Produit de cette case' }).getByText(/^Cette carte → /).waitFor();
+  await page.screenshot({ path: `${SHOTS}99-carte-produit.png` });
+  await page.keyboard.press('Escape');
+  await tools.getByRole('button', { name: 'Terminer' }).click();
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await page.getByText(/Votre site est en ligne/).waitFor();
+  const l = w.stores[0].fiche.store.site.l;
+  assert.deepEqual(Object.values(l).sort(), ['c:Cheveux', 'p:bonnet-laine']);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('catalogue links on a computer: the inspector of a banner shows what it is associated with', async () => {
+  const w = withModel(world(), 'michou'); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  const hauts = site.locator('.edito a').first();
+  await hauts.scrollIntoViewIfNeeded(); await page.waitForTimeout(900);
+  await hauts.locator('img').click({ force: true });
+  await page.getByText('Visuel 1 → Catégorie Hauts (modèle)').waitFor();
+  await page.getByLabel('Associer à une catégorie / un produit').selectOption('Catégorie Corps');
+  await page.getByText('Visuel 1 → Catégorie Corps').waitFor();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SHOTS}100-bannière-associer-ordinateur.png` });
+  assert.match(await hauts.getAttribute('href'), /boutique\/#corps$/);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);

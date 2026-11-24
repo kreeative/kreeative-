@@ -20,6 +20,7 @@ import { AddedInspector, BandInspector, ColorField, PhotoField, TextStyle } from
 import { MobileEditor } from './MobileEditor';
 import { CloudLoader } from '@/components/ui/CloudLoader';
 import { DESK_TOUR, PHONE_TOUR, TOUR_KEY, Tour } from './Tour';
+import { photoTarget } from '@/lib/models';
 import { ADDED_KINDS, addedName, addedSections, categoriesOf, hiddenItems, hiddenLabel, linkLabel, modelBySlug, sectionHidden, sectionSource, withBand, withImageFrame, withSectionHidden, withSectionSource, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
 import styles from './editeur.module.css';
 
@@ -557,7 +558,8 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
           {picked && picked.link ? (() => { const lk = picked.key.replace('|i|', '|l|'), now = siteValue(fiche, 'l', lk) ?? '', prods = Array.isArray(fiche.products) ? fiche.products : [];
             const opts = ['Lien du modèle', ...cats.map((c) => `Catégorie ${c}`), ...prods.map((x) => `Produit ${x.name || x.id}`)];
             const cur = now.startsWith('c:') ? `Catégorie ${now.slice(2)}` : now.startsWith('p:') ? `Produit ${prods.find((x) => x.id === now.slice(2))?.name ?? ''}` : 'Lien du modèle';
-            return <Select label="Cette photo mène à" options={opts} value={cur} onChange={(e) => { const v = e.target.value, c = cats.find((x) => `Catégorie ${x}` === v), pr = prods.find((x) => `Produit ${x.name || x.id}` === v); onEdit('l', lk, c ? `c:${c}` : pr ? `p:${pr.id}` : null); }} />; })() : null}
+            const tg = photoTarget(fiche, picked, items);
+            return <><p className={styles.linked}><Icon name="link" size={12} />{tg.who} → {tg.to}{tg.own ? '' : ' (modèle)'}</p><Select label="Associer à une catégorie / un produit" options={opts} value={cur} onChange={(e) => { const v = e.target.value, c = cats.find((x) => `Catégorie ${x}` === v), pr = prods.find((x) => `Produit ${x.name || x.id}` === v); onEdit('l', lk, c ? `c:${c}` : pr ? `p:${pr.id}` : null); }} /></>; })() : null}
         </section>
       ) : null}
       {cases.length ? (

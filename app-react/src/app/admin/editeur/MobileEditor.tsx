@@ -9,7 +9,7 @@ import { Menu } from '@/components/ui/Menu';
 import { UPLOAD_ERROR, uploadPhoto } from '@/lib/media';
 import { LinkPicker } from './Extras';
 import { CloudLoader } from '@/components/ui/CloudLoader';
-import { bandOf, categoriesOf, hiddenItems, hiddenLabel, imageFrame, linkLabel, linkOk, sectionHidden, sectionSource, withBand, withSectionHidden, withSectionSource, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook } from '@/lib/models';
+import { bandOf, categoriesOf, hiddenItems, hiddenLabel, imageFrame, linkLabel, linkOk, sectionHidden, sectionSource, withBand, withSectionHidden, withSectionSource, sectionLook, siteValue, textLook, withImageFrame, withSectionLook, withSiteEdit, withSlot, withTextLook, type SiteMap, type SiteSection, type TextLook, photoTarget } from '@/lib/models';
 import type { Fiche } from '@/lib/stores';
 import styles from './mobile.module.css';
 
@@ -117,7 +117,7 @@ export function MobileEditor(p: MobileEditorProps) {
     const fr = imageFrame(draft, item.key);
     tools.push({ id: 'replace', label: 'Remplacer la photo', icon: 'image', act: () => file.current?.click() }, { id: 'frame', label: 'Ajuster / Cadre', icon: 'crop', open: 'frame' },
       { id: 'hide', label: fr.hide ? 'Remettre' : 'Supprimer', icon: fr.hide ? 'eye' : 'trash', on: fr.hide === true, act: () => { change((d) => withImageFrame(d, item.key, { hide: fr.hide ? undefined : true })); if (!fr.hide) done(); } });
-    if (item.link) tools.splice(2, 0, { id: 'imgLink', label: 'Lier à…', icon: 'link', open: 'imgLink' });
+    if (item.link) tools.splice(1, 0, { id: 'imgLink', label: 'Associer', icon: 'link', open: 'imgLink' });
   } else if (item && mode === 'band') {
     const b = bandOf(draft, item.key);
     tools.push({ id: 'band', label: 'Modifier le texte', icon: 'edit', open: 'band' }, { id: 'bandLook', label: 'Couleurs', icon: 'drop', open: 'bandLook' },
@@ -225,9 +225,10 @@ export function MobileEditor(p: MobileEditorProps) {
     const lk = item.key.replace('|i|', '|l|'), now = siteValue(draft, 'l', lk) ?? '', cats = categoriesOf(draft), prods = productsNow;
     const opts = ['Lien du modèle', ...cats.map((c) => `Catégorie ${c}`), ...prods.map((x) => `Produit ${x.name || x.id}`)];
     const cur = now.startsWith('c:') ? `Catégorie ${now.slice(2)}` : now.startsWith('p:') ? `Produit ${prods.find((x) => x.id === now.slice(2))?.name ?? ''}` : 'Lien du modèle';
-    drawer = { title: 'Lier à…', body: <>
-      {linked ? <p className={styles.badge}><Icon name="link" size={14} />Lié à : {linked}</p> : null}
-      <Select label="Cette photo mène à" options={opts} value={cur} onChange={(e) => { const v = e.target.value; const c = cats.find((x) => `Catégorie ${x}` === v), pr = prods.find((x) => `Produit ${x.name || x.id}` === v); change((d) => withSiteEdit(d, 'l', lk, c ? `c:${c}` : pr ? `p:${pr.id}` : null)); }} />
+    const tg = p.map ? photoTarget(draft, item, p.map.items) : null;
+    drawer = { title: 'Associer à une catégorie / un produit', body: <>
+      {tg ? <p className={styles.badge}><Icon name="link" size={14} />{tg.who} → {tg.to}{tg.own ? '' : ' (modèle)'}</p> : null}
+      <Select label="Associer à" options={opts} value={cur} onChange={(e) => { const v = e.target.value; const c = cats.find((x) => `Catégorie ${x}` === v), pr = prods.find((x) => `Produit ${x.name || x.id}` === v); change((d) => withSiteEdit(d, 'l', lk, c ? `c:${c}` : pr ? `p:${pr.id}` : null)); }} />
       {!cats.length && !prods.length ? <p className={styles.hint}>Ajoutez des produits avec une catégorie pour les lier ici.</p> : null}
     </> };
   } else if (item && shown && tool === 'pname') {
@@ -284,6 +285,7 @@ export function MobileEditor(p: MobileEditorProps) {
     const products = Array.isArray(draft.products) ? draft.products : [], slots = ((draft.store?.slots ?? {}) as Record<string, string>);
     const none = 'Masquer cette case', keep = 'Produit du modèle', now = slots[item.ref] ?? item.ref, mine = products.find((x) => x.id === now);
     drawer = { title: 'Produit de cette case', body: <>
+      <p className={styles.badge}><Icon name="tag" size={14} />Cette carte → {now === '-' ? 'masquée' : mine ? `Produit ${mine.name || mine.id}` : 'Produit du modèle'}</p>
       <Select label="Produit" options={[...products.map((x) => x.name || x.id), ...(mine || now === '-' ? [] : [keep]), none]} value={now === '-' ? none : mine ? mine.name || mine.id : keep}
         onChange={(e) => change((d) => withSlot(d, item.ref, e.target.value === none ? '-' : products.find((x) => (x.name || x.id) === e.target.value)?.id ?? item.ref))} />
       <p className={styles.hint}>Vos produits se gèrent dans <a href="/admin/produits/"><b>Produits</b></a>.</p>
