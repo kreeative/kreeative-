@@ -44,7 +44,7 @@ export interface MobileEditorProps {
   children?: ReactNode;
 }
 
-type Tool = '' | 'sections' | 'pages' | 'style' | 'theme' | 'add' | 'edit' | 'font' | 'size' | 'color' | 'align' | 'link' | 'frame' | 'bg' | 'space' | 'product' | 'band' | 'bandLook' | 'imgLink' | 'pname' | 'pprice' | 'source';
+type Tool = '' | 'sections' | 'pages' | 'style' | 'theme' | 'add' | 'edit' | 'font' | 'size' | 'color' | 'align' | 'link' | 'frame' | 'bg' | 'space' | 'product' | 'band' | 'bandLook' | 'imgLink' | 'source';
 const FONTS: [TextLook['font'] | undefined, string][] = [[undefined, 'Modèle'], ['serif', 'Classique'], ['sans', 'Moderne'], ['mono', 'Machine']];
 const ALIGN: ['left' | 'center' | 'right' | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
 const SPOTS = [0, 50, 100];
@@ -87,8 +87,7 @@ export function MobileEditor(p: MobileEditorProps) {
     const r = await uploadPhoto(f, p.userId);
     setUploading(false);
     if (!r.ok) { setError(UPLOAD_ERROR[r.error]); return; }
-    if (item.kind === 'p' && shown) change((d) => withProduct(d, shown.id, { image: r.url }));
-    else change((d) => withSiteEdit(d, 'i', item.key, r.url));
+    change((d) => withSiteEdit(d, 'i', item.key, r.url));
   }
 
   // the product a case shows (hers, chosen for the case, or the one of the same number); none: the model's demo
@@ -125,7 +124,7 @@ export function MobileEditor(p: MobileEditorProps) {
       { id: 'hide', label: 'Masquer', icon: 'eyeOff', act: () => { change((d) => withBand(d, item.key, { hide: true })); done(); } });
   } else if (item && mode === 'product') {
     tools.push({ id: 'product', label: 'Produit', icon: 'tag', open: 'product' });
-    if (shown) tools.push({ id: 'replace', label: 'Photo', icon: 'image', act: () => file.current?.click() }, { id: 'pname', label: 'Nom', icon: 'edit', open: 'pname' }, { id: 'pprice', label: 'Prix', icon: 'wallet', open: 'pprice' });
+    tools.push({ id: 'catalog', label: 'Modifier dans Produits', icon: 'external', act: () => p.onLeave(shown ? `/admin/produits/?produit=${encodeURIComponent(shown.id)}` : '/admin/produits/') });
     tools.push({ id: 'hide', label: 'Masquer', icon: 'eyeOff', act: () => { change((d) => withSlot(d, item.ref, '-')); done(); } });
   } else if (section) {
     const off = sectionHidden(draft, section);
@@ -230,15 +229,6 @@ export function MobileEditor(p: MobileEditorProps) {
       {tg ? <p className={styles.badge}><Icon name="link" size={14} />{tg.who} → {tg.to}{tg.own ? '' : ' (modèle)'}</p> : null}
       <Select label="Associer à" options={opts} value={cur} onChange={(e) => { const v = e.target.value; const c = cats.find((x) => `Catégorie ${x}` === v), pr = prods.find((x) => `Produit ${x.name || x.id}` === v); change((d) => withSiteEdit(d, 'l', lk, c ? `c:${c}` : pr ? `p:${pr.id}` : null)); }} />
       {!cats.length && !prods.length ? <p className={styles.hint}>Ajoutez des produits avec une catégorie pour les lier ici.</p> : null}
-    </> };
-  } else if (item && shown && tool === 'pname') {
-    drawer = { title: 'Nom du produit', body: <>
-      <Field label="Nom" maxLength={120} value={shown.name} autoFocus onChange={(e) => change((d) => withProduct(d, shown.id, { name: e.target.value }), `pn:${shown.id}`)} />
-      <p className={styles.hint}>C’est le nom de votre produit partout : il change aussi dans <a href="/admin/produits/"><b>Produits</b></a>.</p>
-    </> };
-  } else if (item && shown && tool === 'pprice') {
-    drawer = { title: 'Prix', body: <>
-      <Field label="Prix (FCFA)" inputMode="numeric" value={String(shown.price ?? '')} autoFocus onChange={(e) => change((d) => withProduct(d, shown.id, { price: Number(e.target.value.replace(/\D/g, '')) || 0 }), `pp:${shown.id}`)} />
     </> };
   } else if (section && tool === 'source') {
     const cats = categoriesOf(draft), now = sectionSource(draft, section.key);
@@ -368,10 +358,4 @@ function LinkField({ value, model, onSet }: { value: string; model: string; onSe
       {value ? <button type="button" className={styles.reset} onClick={() => { setText(''); onSet(null); }}>Remettre le lien du modèle</button> : null}
     </>
   );
-}
-
-/** A product of her catalogue, changed from the editor (the same product as in « Produits »). */
-function withProduct(fiche: Fiche, id: string, patch: Record<string, unknown>): Fiche {
-  const products = Array.isArray(fiche.products) ? fiche.products : [];
-  return { ...fiche, products: products.map((x) => (x.id === id ? { ...x, ...patch } : x)) };
 }

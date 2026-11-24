@@ -579,6 +579,7 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
               <div key={x.key} data-site-key={x.key}>
                 <Select label={`Case ${i + 1}`} options={[...names, ...(mine || now === '-' ? [] : [keep]), none]} value={label}
                   onChange={(e) => onSlot(x.ref, e.target.value === none ? '-' : products.find((p) => (p.name || p.id) === e.target.value)?.id ?? x.ref)} />
+                {mine ? <Link className={styles.toCatalog} href={`/admin/produits/?produit=${encodeURIComponent(mine.id)}`}><Icon name="external" size={12} />Modifier dans Produits</Link> : null}
               </div>
             );
           })}

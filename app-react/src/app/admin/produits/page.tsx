@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button } from '@/components/ui/Button';
@@ -39,6 +39,14 @@ export default function ProductsPage() {
     return q ? products.filter((p) => `${p.name} ${p.category}`.toLowerCase().includes(q)) : products;
   }, [products, query]);
 
+  // from the editor (« Modifier dans Produits »): the product of that card opens at once
+  const asked = useRef(false);
+  useEffect(() => {
+    if (asked.current || !products.length || !store || !['owner', 'agency', 'editor'].includes(String(store.role))) return;
+    const id = new URLSearchParams(window.location.search).get('produit');
+    const p = id ? products.find((x) => x.id === id) : undefined;
+    if (p) { asked.current = true; setDraft(draftOf(p)); }
+  }, [products, store]);   // eslint-disable-line react-hooks/exhaustive-deps
   const close = useCallback(() => { setDraft(null); setErrors({}); setProblem(''); setConfirmDelete(false); setPhotoError(''); }, []);
 
   if (!store) return (<><PageHead title="Produits" /><Empty icon="tag" title="Pas encore de boutique">Créez votre boutique pour y ajouter vos produits.</Empty></>);

@@ -2053,6 +2053,31 @@ await test('a title with its own small line (MICHOU « Hauts » / « t-shirts lo
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('a product card in the editor (SÈVE): which product of the catalogue it shows, Masquer, and « Modifier dans Produits »; never its photo, name or price', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-product][data-jeere-pickable]').first().waitFor({ state: 'attached', timeout: 60000 });
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  const card = site.locator('[data-jeere-product]').first();
+  await card.scrollIntoViewIfNeeded(); await page.waitForTimeout(900);
+  await card.locator('img').first().click({ force: true });
+  await tools.getByRole('button', { name: 'Produit', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Produit de cette case' }).getByLabel('Produit').selectOption('Savon noir au karité');
+  await page.getByRole('dialog', { name: 'Produit de cette case' }).getByRole('button', { name: 'Fermer' }).click(); await page.waitForTimeout(500);
+  assert.deepEqual(await tools.locator('button span').allInnerTexts(), ['Produit', 'Modifier dans Produits', 'Masquer'], 'no Photo, Nom or Prix on a card');
+  await page.screenshot({ path: `${SHOTS}102-carte-produit-barre.png` });
+  // the shortcut: her changes are kept first, then the product opens in Produits
+  await tools.getByRole('button', { name: 'Modifier dans Produits', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Enregistrer et quitter' }).click();
+  await page.waitForURL(/\/admin\/produits\/\?produit=p2$/);
+  const sheet = page.getByRole('dialog', { name: 'Modifier le produit' });
+  assert.equal(await sheet.getByLabel('Nom du produit').inputValue(), 'Savon noir au karité');
+  await page.screenshot({ path: `${SHOTS}103-produit-ouvert.png` });
+  assert.equal(Object.values(w.stores[0].fiche.store.slots ?? {}).includes('p2'), true, 'the card’s product was saved');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);
