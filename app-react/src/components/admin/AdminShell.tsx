@@ -1,5 +1,6 @@
 'use client';
 
+import { useSwipeDown } from '@/components/ui/useSwipeDown';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -47,6 +48,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
     setLeaving((was) => { if (!was) window.setTimeout(() => { setMenu(false); setLeaving(false); }, 160); return true; });
   }, []);
   useEffect(() => { setMenu(false); setLeaving(false); }, [path]);
+  const sheet = useRef<HTMLDivElement>(null);
+  useSwipeDown(sheet, closeMenu, menu);      // « Plus » on a phone: pulled down, it closes
   // on a computer every page is already in the bar: her name goes straight to her account. On a phone it is « Plus ».
   const openAccount = () => { if (window.matchMedia('(min-width: 821px)').matches) { window.location.assign('/compte/'); return; } if (menu) closeMenu(); else setMenu(true); };
   // links written for the current dashboard (« Choisir ce modèle » on a model's demo: /admin/#boutique/modele/<nom>)
@@ -105,7 +108,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </button>
           {menu ? (<>
             <div className={styles.menuScrim} data-leaving={leaving || undefined} onClick={closeMenu} aria-hidden="true" />
-            <div className={styles.menu} role="menu" data-leaving={leaving || undefined} onClick={(e) => { if ((e.target as Element).closest('a, button')) closeMenu(); }}>
+            <div className={styles.menu} ref={sheet} role="menu" data-leaving={leaving || undefined} onClick={(e) => { if ((e.target as Element).closest('a, button')) closeMenu(); }}>
               <span className={styles.menuHandle} aria-hidden="true" />
               {NAV.filter((n) => n.more).map((n) => <Link key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</Link>)}
               <a role="menuitem" href="/compte/"><Icon name="user" size={18} />Mon compte</a>

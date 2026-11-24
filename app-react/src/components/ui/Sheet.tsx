@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
+import { useSwipeDown } from './useSwipeDown';
 import styles from './Sheet.module.css';
+
+const PHONE = '(max-width: 820px)';
 
 interface SheetProps {
   title: string;
@@ -39,10 +42,13 @@ export function Sheet({ title, sub, label, onClose, expandable, children }: Shee
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = before; };
   }, [leave]);
 
+  const panel = useRef<HTMLElement>(null);
+  useSwipeDown(panel, leave, mounted && !full, PHONE);      // a bottom sheet on a phone: pulled down, it closes
+
   if (!mounted) return null;
   return createPortal(
     <div className={styles.scrim} data-full={full || undefined} data-leaving={leaving || undefined} onMouseDown={(e) => { if (e.target === e.currentTarget) leave(); }}>
-      <aside className={styles.sheet} role="dialog" aria-modal="true" aria-label={label ?? title}>
+      <aside className={styles.sheet} ref={panel} role="dialog" aria-modal="true" aria-label={label ?? title}>
         <span className={styles.handle} aria-hidden="true" />
         <div className={styles.inner}>
           <header className={styles.head}>

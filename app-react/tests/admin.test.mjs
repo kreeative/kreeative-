@@ -1442,6 +1442,29 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
   const bar = () => o.page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.bottom), Math.round(r.width)]; });
   assert.deepEqual(await bar(), [12, 832, 366]);
+  // pulled down with a finger, « Plus » follows it and closes; a short pull lets it come back
+  const pull = (sel, dy) => o.page.evaluate(([q, d]) => {
+    const el = document.querySelector(q), r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + 12;
+    const t = (yy) => new Touch({ identifier: 1, target: el, clientX: x, clientY: yy });
+    el.dispatchEvent(new TouchEvent('touchstart', { touches: [t(y)], changedTouches: [t(y)], bubbles: true, cancelable: true }));
+    for (const k of [0.3, 0.6, 1]) el.dispatchEvent(new TouchEvent('touchmove', { touches: [t(y + d * k)], changedTouches: [t(y + d * k)], bubbles: true, cancelable: true }));
+    const moved = el.style.transform;
+    el.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [t(y + d)], bubbles: true, cancelable: true }));
+    return moved;
+  }, [sel, dy]);
+  await o.page.getByRole('button', { name: /Plus/ }).click(); await o.page.getByRole('menu').waitFor();
+  await o.page.waitForTimeout(700);                              // a slow, short pull: it comes back
+  assert.equal(await pull('[role="menu"]', 20), 'translateY(20px)', 'the sheet follows the finger');
+  await o.page.waitForTimeout(400); assert.equal(await o.page.getByRole('menu').count(), 1);
+  assert.equal(await pull('[role="menu"]', 160), 'translateY(160px)');
+  await o.page.getByRole('menu').waitFor({ state: 'detached' });
+  // the drawer of a product closes the same way
+  await o.page.goto(`${BASE}/admin/produits/`); await h1(o.page, 'Produits');
+  await o.page.getByRole('button', { name: 'Ajouter un produit' }).first().click();
+  await o.page.getByRole('dialog').waitFor(); await o.page.waitForTimeout(500);
+  await pull('[role="dialog"]', 180);
+  await o.page.getByRole('dialog').waitFor({ state: 'detached' });
+  await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
   // Échap closes it and gives the focus back; a touch outside closes it; the button itself closes it
   const me = o.page.getByRole('button', { name: /Plus/ });
   await me.click(); await o.page.getByRole('menu').waitFor();
