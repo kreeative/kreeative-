@@ -263,11 +263,13 @@ async function modelPage(model, rest, row, cfg, canonical) {
   }
   html = html.replace(/<meta name="robots" content="noindex, nofollow">/, '<meta name="robots" content="index, follow">');
   // her name and city in place of the model's
-  const name = String((cfg.store && cfg.store.name) || '').trim().slice(0, 40);
+  // her shop's name; without one, her address (never the model's own name on her shop)
+  const name = String((cfg.store && cfg.store.name) || (row.slug !== model ? row.slug : '') || '').trim().slice(0, 40);
   const city = String((cfg.store && cfg.store.city) || '').split(',')[0].trim().slice(0, 40);
   if (name) {
-    const n = MODEL_NAMES[model];
-    html = html.replace(new RegExp('(?<![\\p{L}])' + escRe(n) + '(?![\\p{L}])', 'gu'), textEsc(name));
+    // « MICHOU » and « Michou » (the header logo); never the lower-case form, which is in the model's addresses
+    const n = MODEL_NAMES[model], t = n.charAt(0) + n.slice(1).toLowerCase();
+    [n, t].forEach((w) => { html = html.replace(new RegExp('(?<![\\p{L}/._-])' + escRe(w) + '(?![\\p{L}/._-])', 'gu'), textEsc(name)); });
   }
   if (city && city !== 'Abidjan') html = html.replace(/(?<![\p{L}-])Abidjan(?![\p{L}])/gu, textEsc(city));
   return html;
