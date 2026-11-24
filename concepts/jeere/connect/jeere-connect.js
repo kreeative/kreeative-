@@ -259,6 +259,20 @@
   var SLOT_ATTRS = ['product', 'name', 'desc', 'price', 'photo', 'add', 'inc', 'dec', 'remove'];
   function remapSlots(fiche) {
     var map = fiche && isObj(fiche.store) && isObj(fiche.store.slots) ? fiche.store.slots : {};
+    try {
+      var q = isObj(fiche.store) && isObj(fiche.store.site) && isObj(fiche.store.site.q) ? fiche.store.site.q : {}, base = pagePath(), own = {};
+      Object.keys(map).forEach(function (k) { own[k] = map[k]; });
+      sections().forEach(function (sec, n) {
+        var cat = isObj(q[base + '|h|' + n]) ? str(q[base + '|h|' + n].cat).trim() : '';
+        if (!cat) return;
+        var prods = (Array.isArray(fiche.products) ? fiche.products : []).filter(function (p) { return p && p.id && String(p.category || '').trim() === cat; });
+        $$('[data-jeere-product]', sec).filter(outsideLines).forEach(function (el, i) {
+          var slot = el.getAttribute('data-jeere-slot-product') || el.getAttribute('data-jeere-product');
+          if (slot && ID_RE.test(slot)) own[slot] = prods[i] ? prods[i].id : '-';
+        });
+      });
+      map = own;
+    } catch (e) { /* the cases keep her own choice */ }
     SLOT_ATTRS.forEach(function (n) {
       var a = 'data-jeere-' + n, keep = 'data-jeere-slot-' + n;
       $$('[' + a + ']').filter(outsideLines).forEach(function (el) {
@@ -497,7 +511,7 @@
   var INLINE = { B: 1, I: 1, EM: 1, STRONG: 1, BR: 1, SMALL: 1, U: 1, SPAN: 1 };
   var original = {}, editing = false, parentOrigin = '';
   function pagePath() { var p = location.pathname.replace(/^\/concepts\/[a-z0-9-]+/, '').replace(/index\.html$/, ''); return p ? (p.charAt(p.length - 1) === '/' ? p : p + '/') : '/'; }
-  function skip(el) { return !!(el.closest && el.closest('[data-jeere-added], .concept, .concept-bar, .avis__note-exemple, script, style, noscript, [data-jeere-lines], [data-jeere-price], [data-jeere-name], [data-jeere-count], [data-jeere-total], [data-jeere-services], [data-jeere-social], .jb, [hidden]')); }
+  function skip(el) { return !!(el.closest && el.closest('[data-jeere-added], [data-jeere-note], label.paiement, [data-pay], .concept, .concept-bar, .avis__note-exemple, script, style, noscript, [data-jeere-lines], [data-jeere-price], [data-jeere-name], [data-jeere-count], [data-jeere-total], [data-jeere-services], [data-jeere-social], .jb, [hidden]')); }
   function editTexts() {
     return $$(TEXT_SEL).filter(function (el) {
       if (skip(el)) return false;
@@ -511,6 +525,27 @@
     // a child with a class of its own is a piece of the design (a logo's name and its line): edited apart
     for (var i = 0; i < el.children.length; i++) if (!INLINE[el.children[i].tagName] || el.children[i].children.length || (el.children[i].tagName !== 'BR' && el.children[i].className)) return false;
     return true;
+  }
+  function ownNodes(el) { return Array.prototype.filter.call(el.childNodes, function (n) { return n.nodeType === 3 && n.nodeValue.replace(/\s+/g, '').length > 0; }); }
+  function ownWords(el) { return plain(ownNodes(el).map(function (n) { return n.nodeValue; }).join(' ')).replace(/\s+/g, ' ').trim(); }
+  function ownTexts() {
+    var whole = editTexts();
+    return $$('h1,h2,h3,h4,h5,h6,p,a,button,li,dt,dd,blockquote,figcaption,label,small,span,strong,em').filter(function (el) {
+      if (skip(el) || editableText(el) || !ownNodes(el).length) return false;
+      if (ownWords(el).length < 2 || (el.textContent || '').length > 800) return false;
+      if (credit(el) || (el.closest && el.closest(MARQ))) return false;
+      if (isCard(el.closest('[data-jeere-product]'))) return false;
+      if (el.closest && el.closest('label.paiement, [data-pay], form label')) return false;
+      for (var i = 0; i < whole.length; i++) if (whole[i].contains(el)) return false;
+      return true;
+    });
+  }
+  function setOwn(el, text) {
+    var ns = ownNodes(el);
+    if (!el.hasAttribute('data-jeere-own')) el.setAttribute('data-jeere-own', JSON.stringify(ns.map(function (n) { return n.nodeValue; })));
+    var was = []; try { was = JSON.parse(el.getAttribute('data-jeere-own')) || []; } catch (e) { was = []; }
+    if (typeof text === 'string') { ns.forEach(function (n, i) { n.nodeValue = i === 0 ? text + (/\s$/.test(was[0] || '') ? ' ' : '') : ''; }); }
+    else ns.forEach(function (n, i) { if (typeof was[i] === 'string') n.nodeValue = was[i]; });
   }
   function editImgs() { return $$('img').filter(function (el) { return !skip(el); }); }
   // what she can change on this page, numbered in page order: texts (t), pictures (i), the category of a
@@ -631,6 +666,7 @@
     $$('[data-jeere-product]').forEach(function (el) { var slot = el.getAttribute('data-jeere-slot-product') || el.getAttribute('data-jeere-product'); if (!skip(el.parentElement || el)) out.push({ el: el, kind: 'p', key: base + '|p|' + slot, ref: slot }); });
     $$('[data-jeere-services]').forEach(function (el, n) { out.push({ el: el, kind: 's', key: base + '|s|' + n }); });
     marquees().forEach(function (el, n) { out.push({ el: el, kind: 'm', key: base + '|m|' + n }); });
+    ownTexts().forEach(function (el, n) { out.push({ el: el, kind: 't', key: base + '|o|' + n, own: true }); });
     return out;
   }
   // the sections of the page, in order: the header, each <section>, the footer (as in the simple editor's list)
@@ -649,6 +685,14 @@
     if (el.querySelector('[data-jeere-product]')) return [t || 'Produits', 'bag'];
     return [t ? (t.length > 34 ? t.slice(0, 32) + '…' : t) : 'Section ' + (n + 1), /gal/.test(el.className) ? 'image' : /avis|review/.test(el.className) ? 'star' : 'info'];
   }
+  // the store this page shows: her store in the editor (sent by the editor), else the one of the page
+  var viewing = '';
+  function demoSec(el) {
+    var who = viewing || slug;
+    if (MODEL_NAMES[who]) return false;                      // the model's own store keeps its example reviews
+    return !!(el.matches && (el.matches('.avis, .avis-band, .reviews, .temoignages') || el.querySelector('.avis__note-exemple, .avis__grid')));
+  }
+  function secHidden(v, el) { return v === 'show' ? false : typeof v === 'string' ? true : demoSec(el); }
   function secOf(el, all) { for (var i = 0; i < all.length; i++) if (all[i].contains(el)) return i; return -1; }
   function role(x) {
     if (x.kind === 'i') return 'Photo';
@@ -692,10 +736,11 @@
     if (!editing || !parentOrigin) return;
     var all = sections(), base = pagePath();
     var items = keyed().map(function (x) {
-      return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : label(x), text: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : x.kind === 't' || x.kind === 'c' ? words(x.el) : '', role: x.kind === 'm' ? 'Bandeau défilant' : role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
+      return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : label(x), text: x.kind === 'm' ? (x.el.getAttribute('data-jeere-mt') || '') : x.own ? ownWords(x.el) : x.kind === 't' || x.kind === 'c' ? words(x.el) : '', role: x.kind === 'm' ? 'Bandeau défilant' : role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
         tag: x.el.tagName.toLowerCase(), href: x.el.tagName === 'A' ? (x.el.getAttribute('data-jeere-k') || x.el.getAttribute('href') || '') : '', size: x.kind === 't' || x.kind === 'c' ? Math.round(parseFloat(window.getComputedStyle(x.el).fontSize) || 0) : 0, long: x.kind === 't' && (x.el.textContent || '').length > 70 };
     });
-    var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER' }; });
+    var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER', demo: demoSec(el) }; });
+    try { if (editing) { markAll(); payNote(); } } catch (e) { /* marked at the next change */ }
     try { window.parent.postMessage({ jeereMap: { page: base, title: document.title, items: items, sections: secs } }, parentOrigin); } catch (e) { /* not in the editor */ }
   }
   // her logo in place of the model's name, in the header and the footer
@@ -707,7 +752,7 @@
       if (logo) {
         el.innerHTML = '';
         var im = document.createElement('img');
-        im.src = logo; im.alt = name; im.setAttribute('style', 'display:block;height:42px;width:auto;max-width:190px;object-fit:contain');
+        im.src = logo; im.alt = name; im.setAttribute('style', 'display:block;height:42px;width:auto;max-width:220px;object-fit:contain');
         el.appendChild(im);
       } else if (preview && el.querySelector('img[style]')) el.innerHTML = el.getAttribute('data-jeere-logo');
     });
@@ -955,6 +1000,12 @@
   /* What she is working on stays framed in blue, with four small handles, until she picks something else. The
    * frame is drawn over the page (it takes no room and catches no touch) and follows the page as it changes. */
   var selEl = null, selBox = null;
+  function opaque(n) {
+    var cs; try { cs = window.getComputedStyle(n); } catch (e) { return false; }
+    if (cs.backgroundImage && cs.backgroundImage !== 'none') return true;
+    var m = /rgba?\(([^)]+)\)/.exec(cs.backgroundColor || ''); if (!m) return false;
+    var p = m[1].split(','); return p.length < 4 || parseFloat(p[3]) > 0.5;
+  }
   function drawSel() {
     if (!selBox) return;
     if (!selEl || !document.documentElement.contains(selEl)) { selBox.style.display = 'none'; return; }
@@ -964,8 +1015,21 @@
       var ov = ''; try { ov = window.getComputedStyle(par).overflow; } catch (e) { ov = ''; }
       if (ov && ov !== 'visible') { var q = par.getBoundingClientRect(); r.left = Math.max(r.left, q.left); r.right = Math.min(r.right, q.right); r.top = Math.max(r.top, q.top); r.bottom = Math.min(r.bottom, q.bottom); }
     }
+    // a header fixed on top of the page covers what passes under it: the frame stops below it
+    $$('header, nav, .nav, .topbar').forEach(function (h) {
+      if (h.contains(selEl) || selEl.contains(h)) return;
+      var pos = ''; try { pos = window.getComputedStyle(h).position; } catch (e) { pos = ''; }
+      if (pos !== 'fixed' && pos !== 'sticky') return;
+      if (!opaque(h) && !(h.firstElementChild && opaque(h.firstElementChild))) return;   // a see-through header hides nothing
+      var hb = h.getBoundingClientRect();
+      if (hb.top <= 1 && hb.bottom > r.top && hb.bottom < r.bottom) r.top = hb.bottom;
+    });
+    // the screen itself: what has been scrolled away is not framed
+    r.top = Math.max(r.top, 0); r.bottom = Math.min(r.bottom, window.innerHeight || document.documentElement.clientHeight);
     r.width = r.right - r.left; r.height = r.bottom - r.top;
-    if (r.width <= 0 || r.height <= 0) { selBox.style.display = 'none'; return; }
+    var whole = Math.max(1, r0.width * r0.height);
+    // mostly out of view (a card scrolled away in a carousel): no frame left alone on the edge
+    if (r.width <= 0 || r.height <= 0 || (r.width * r.height) / whole < 0.35) { selBox.style.display = 'none'; return; }
     selBox.style.display = 'block';
     // the frame follows the element exactly (its own rounded corners too) and never leaves the page on the sides
     var full = document.documentElement.clientWidth || window.innerWidth;
@@ -982,7 +1046,7 @@
     if (!selBox) {
       selBox = document.createElement('div');
       selBox.setAttribute('data-jeere-sel', '');
-      selBox.setAttribute('style', 'position:absolute;z-index:2147483000;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:4px;pointer-events:none;display:none');
+      selBox.setAttribute('style', 'position:absolute;z-index:2147480000;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:4px;pointer-events:none;display:none');
       [['left', 'top'], ['right', 'top'], ['left', 'bottom'], ['right', 'bottom']].forEach(function (c) {
         var h = document.createElement('i');
         h.setAttribute('style', 'position:absolute;width:6px;height:6px;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:2px;background:#fff;' + c[0] + ':-3.5px;' + c[1] + ':-3.5px');
@@ -990,14 +1054,37 @@
       });
       document.body.appendChild(selBox);
       window.addEventListener('resize', drawSel);
+      var queued = 0;
+      document.addEventListener('scroll', function () { if (!queued) queued = requestAnimationFrame(function () { queued = 0; drawSel(); }); }, true);
       window.addEventListener('load', drawSel);
       setInterval(drawSel, 400);      // pictures that arrive, a section that opens: the frame stays on its element
     }
     drawSel();
   }
+  function applyBrand(b) {
+    var st = document.getElementById('jeere-brand');
+    if (!isObj(b) || !Object.keys(b).length) { if (st) st.parentNode.removeChild(st); return; }
+    if (!st) { st = document.createElement('style'); st.id = 'jeere-brand'; document.head.appendChild(st); }
+    var c = function (v) { return hexColor(v) ? v : ''; }, css = '';
+    var BTN = '.btn,.pill,.button,[class*="btn--"],[data-jeere-add],[data-jeere-checkout],[data-jeere-book],button[type="submit"]';
+    if (c(b.bg)) css += 'html,body{background:' + b.bg + '!important}';
+    if (c(b.text)) css += 'body,h1,h2,h3,h4,h5,h6{color:' + b.text + '!important}';
+    if (c(b.muted)) css += 'p,small,figcaption,li,dd{color:' + b.muted + '!important}';
+    if (c(b.accent)) css += 'a:not(' + BTN + '){color:' + b.accent + '!important}::selection{background:' + b.accent + ';color:#fff}';
+    var rad = b.shape === 'square' ? '0px' : b.shape === 'round' ? '10px' : b.shape === 'pill' ? '9999px' : '';
+    var rule = '';
+    if (rad) rule += 'border-radius:' + rad + '!important;';
+    if (b.btnStyle === 'outline') rule += 'background:transparent!important;border:1.5px solid ' + (c(b.btnBg) || 'currentColor') + '!important;color:' + (c(b.btnBg) || 'inherit') + '!important;';
+    else { if (c(b.btnBg)) rule += 'background:' + b.btnBg + '!important;border-color:' + b.btnBg + '!important;'; if (c(b.btnText)) rule += 'color:' + b.btnText + '!important;'; }
+    if (rule) css += BTN.split(',').map(function (x) { return x + ':not([data-jeere-x])'; }).join(',') + '{' + rule + '}';
+    var lh = typeof b.logoH === 'number' && b.logoH >= 16 && b.logoH <= 120 ? Math.round(b.logoH) : 0;
+    if (lh) css += '.logo__mark img,.brand img,a.logo img{height:' + lh + 'px!important}';
+    st.textContent = css;
+  }
   function applySite(fiche) {
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
     var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {}, ll = isObj(site.l) ? site.l : {};
+    try { applyBrand(site.b); } catch (e) { /* the model's own look stays */ }
     var xx = isObj(site.x) ? site.x : {}, ff = isObj(site.f) ? site.f : {}, kk = isObj(site.k) ? site.k : {};
     var gfont = isObj(site.g) && typeof site.g.font === 'string' && FONTS.hasOwnProperty(site.g.font) ? site.g.font : '';
     try { drawAdded(isObj(site.a) ? site.a[pagePath()] : null, fiche); } catch (e) { /* the page keeps the model's sections */ }
@@ -1009,7 +1096,7 @@
     try { styleSections(isObj(site.s) ? site.s : {}, base0); } catch (e) { /* the model's own look stays */ }
     try { keyed(); applyBands(isObj(site.m) ? site.m : {}, base0); } catch (e) { /* the model's own band stays */ }
     sections().forEach(function (el, n) {
-      var off = typeof hh[base0 + '|h|' + n] === 'string';
+      var off = secHidden(hh[base0 + '|h|' + n], el);
       el.style.opacity = ''; el.style.display = off ? 'none' : '';
     });
     keyed().forEach(function (x) {
@@ -1020,6 +1107,7 @@
         try { lookText(x.el, withFont(xx[x.key], gfont)); } catch (e) { /* the model's own look stays */ }
         return;
       }
+      if (x.own) { setOwn(x.el, typeof t[x.key] === 'string' ? t[x.key] : null); try { lookText(x.el, withFont(xx[x.key], gfont)); linkTo(x.el, kk[x.key]); } catch (e) { /* the model's own look stays */ } return; }
       if (!original[x.key]) original[x.key] = x.kind === 't' ? x.el.innerHTML : { src: x.el.getAttribute('src'), srcset: x.el.getAttribute('srcset') };
       if (x.kind === 't') {
         if (typeof t[x.key] === 'string') x.el.textContent = t[x.key];
@@ -1044,6 +1132,19 @@
       }
     });
   }
+  function payNote() {
+    var first = document.querySelector('label.paiement, [data-pay]');
+    if (!editing || !first || document.querySelector('[data-jeere-note]')) return;
+    var box = mk('div', 'display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:12px;background:#FFFFFF;box-shadow:0 0 0 1px rgba(17,17,17,.12);color:#555;font:400 13px/1.4 Poppins,system-ui,sans-serif;text-align:left;letter-spacing:0;text-transform:none');
+    box.setAttribute('data-jeere-note', '');
+    box.appendChild(mk('span', '', 'Ces modes de paiement viennent de vos réglages : ils se changent dans Paiements, pas ici.'));
+    var go = mk('button', 'flex:none;height:32px;padding:0 12px;border:0;border-radius:8px;background:#111;color:#fff;font:500 12px/1 Poppins,system-ui,sans-serif;cursor:pointer', 'Paiements');
+    go.type = 'button';
+    go.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); try { window.parent.postMessage({ jeereGo: 'paiements' }, parentOrigin || '*'); } catch (err) { /* not in the editor */ } }, true);
+    box.appendChild(go);
+    first.parentNode.insertBefore(box, first);
+  }
+  function markAll() { keyed().forEach(function (x) { x.el.setAttribute('data-jeere-pickable', x.kind); }); }
   function pickOn() {
     drawSel();
     if (editing) return;
@@ -1051,7 +1152,7 @@
     var st = document.createElement('style');
     st.textContent = '[data-jeere-pickable]{cursor:pointer!important}.jeere-hl{outline:1.5px solid #3657FF!important;outline-offset:-1.5px!important}';
     document.head.appendChild(st);
-    var mark = function () { keyed().forEach(function (x) { x.el.setAttribute('data-jeere-pickable', x.kind); }); };
+    var mark = markAll;
     mark();
     // what is under the pointer, even under a decorative layer (a gradient, a title over a photo)
     var under = function (e) {
@@ -1089,7 +1190,7 @@
       select(x.el);
       var big = x.el.getBoundingClientRect();
       try {
-        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', sec: secOf(x.el, sections()), value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : plain(x.el.textContent || '').trim(),
+        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', sec: secOf(x.el, sections()), value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : x.own ? ownWords(x.el) : plain(x.el.textContent || '').trim(),
           tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && ((x.el.textContent || '').length > 70 || big.height > 60) } }, parentOrigin || '*');
       } catch (err) { /* not in the editor */ }
     }, true);
@@ -1107,7 +1208,8 @@
     // Shown inside Jehre (the model viewer, the editor): the demo band « Boutique de démonstration » is not shown.
     // The page keeps it for whoever reads its source and its legal page; a direct visit is sent to Jehre anyway.
     if (window.top !== window.self) {
-      try { var hide = document.createElement('style'); hide.textContent = '.concept,.concept-bar{display:none!important}'; document.head.appendChild(hide); } catch (e) { /* the band stays */ }
+      try { var hide = document.createElement('style'); hide.textContent = '.concept,.concept-bar,.avis__note-exemple{display:none!important}'; document.head.appendChild(hide); } catch (e) { /* the band stays */ }
+      try { var tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), tn; while ((tn = tw.nextNode())) if (/[Bb]outique de démonstration par/.test(tn.nodeValue)) tn.nodeValue = tn.nodeValue.replace(/[Bb]outique de démonstration par/g, 'Modèle par'); } catch (e) { /* the words stay */ }
     }
     loadCart();
     document.addEventListener('click', onClick);
@@ -1144,6 +1246,7 @@
         }
         if (!isObj(e.data) || e.data.jeerePreview !== slug || !isObj(e.data.fiche)) return;
         preview = true;
+        if (typeof e.data.store === 'string' && /^[a-z0-9-]{2,40}$/.test(e.data.store)) viewing = e.data.store;
         parentOrigin = e.origin;
         inEditor = true;
         try { S.products = readFiche(e.data.fiche); S.status = 'ready'; remapSlots(e.data.fiche); drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
