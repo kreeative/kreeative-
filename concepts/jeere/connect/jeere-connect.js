@@ -606,14 +606,32 @@
     if (t === 'LI' || t === 'DT' || t === 'DD') return 'Ligne';
     return (x.el.textContent || '').length > 70 ? 'Texte' : 'Petit texte';
   }
+  /* A model may draw its name with ornamental letters of its font (private characters: SOYEUSE's logo). The
+   * editor must show plain letters: such a word that has the shape of the model's name IS the model's name;
+   * elsewhere the ornamental characters are left out. What she types is always plain letters. */
+  var PUA = /[\uE000-\uF8FF]/;
+  function plain(t) {
+    t = String(t || '');
+    if (!PUA.test(t)) return t;
+    var model = MODEL_NAMES[slug] || '';
+    return t.replace(/[A-Za-zÀ-ÿ\uE000-\uF8FF]+/g, function (w) {
+      if (!PUA.test(w)) return w;
+      if (w.length === model.length) {
+        var same = true;
+        for (var i = 0; i < w.length; i++) if (!PUA.test(w.charAt(i)) && w.charAt(i).toUpperCase() !== model.charAt(i).toUpperCase()) same = false;
+        if (same) return model;
+      }
+      return w.replace(/[\uE000-\uF8FF]/g, '');
+    });
+  }
   function words(el) {
     var c = el.cloneNode(true), br = c.querySelectorAll ? c.querySelectorAll('br') : [], i;
     for (i = 0; i < br.length; i++) br[i].parentNode.replaceChild(document.createTextNode(' '), br[i]);
-    return (c.textContent || '').replace(/\s+/g, ' ').trim();
+    return plain(c.textContent || '').replace(/\s+/g, ' ').trim();
   }
   function label(x) {
     if (x.kind === 'i') return x.el.getAttribute('alt') || '';
-    var t = (x.el.textContent || '').replace(/\s+/g, ' ').trim();
+    var t = plain(x.el.textContent || '').replace(/\s+/g, ' ').trim();
     return t.length > 90 ? t.slice(0, 88) + '…' : t;
   }
   // the editor's left panel lists all of it, before any click
@@ -647,7 +665,11 @@
     $$('.concept, .concept-bar').forEach(function (n) { n.remove(); });
     var re = new RegExp('(^|[^\\wÀ-ÿ])' + model + '(?![\\wÀ-ÿ])', 'g');
     var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), node;
-    while ((node = w.nextNode())) if (node.nodeValue.indexOf(model) !== -1) node.nodeValue = node.nodeValue.replace(re, '$1' + name);
+    while ((node = w.nextNode())) {
+      // the name drawn in ornamental letters (a logo) is the model's name too: it becomes her store's name
+      if (name !== model && PUA.test(node.nodeValue) && plain(node.nodeValue).indexOf(model) !== -1) node.nodeValue = plain(node.nodeValue);
+      if (node.nodeValue.indexOf(model) !== -1) node.nodeValue = node.nodeValue.replace(re, '$1' + name);
+    }
     if (document.title.indexOf(model) !== -1) document.title = document.title.replace(re, '$1' + name);
   }
   /* Her order of the sections of a page (store.site.o[<page>] = their numbers, in the order she wants). The page
@@ -994,7 +1016,7 @@
       select(x.el);
       var big = x.el.getBoundingClientRect();
       try {
-        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', sec: secOf(x.el, sections()), value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : (x.el.textContent || '').trim(),
+        window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', sec: secOf(x.el, sections()), value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : plain(x.el.textContent || '').trim(),
           tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && ((x.el.textContent || '').length > 70 || big.height > 60) } }, parentOrigin || '*');
       } catch (err) { /* not in the editor */ }
     }, true);
