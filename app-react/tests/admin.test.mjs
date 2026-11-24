@@ -467,11 +467,11 @@ await test('phone: the floating bottom bar stays in place while the page scrolls
     await page.evaluate(() => { const d = document.createElement('div'); d.style.height = '2400px'; document.querySelector('main').appendChild(d); });
     const where = () => page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), width: Math.round(r.width), y: Math.round(window.scrollY), h: window.innerHeight }; });
     const start = await where();
-    assert.equal(start.bottom, 844, `${path}: the bar is locked to the bottom edge`); assert.equal(start.left, 0); assert.equal(start.width, 390);
+    assert.equal(start.bottom, 832, `${path}: the bar floats 12 px above the bottom edge`); assert.equal(start.left, 12); assert.equal(start.width, 366);
     for (const dy of [300, 500, 700, -400, 900]) {
       await page.mouse.wheel(0, dy); await page.waitForTimeout(120);
       const now = await where();
-      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 844);
+      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 832);
     }
     const end = await where(); assert.ok(end.y > 1200, 'the page really scrolled');
     // nothing around the bar can detach it: no ancestor transforms, filters, clips or scrolls
@@ -748,8 +748,8 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   assert.equal(await page.getByRole('complementary', { name: /Sections de la page|Contenu/ }).count(), 0, 'no side panel on a phone');
   const box = async (l) => { const r = await l.boundingBox(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; };
   assert.deepEqual(await box(page.locator('header').first()), [0, 0, 390, 52]);
-  assert.deepEqual(await box(bar), [0, 776, 390, 68]);
-  assert.deepEqual(await box(page.locator('iframe[title="Votre site"]')), [0, 52, 390, 724]);
+  assert.deepEqual(await box(bar), [10, 770, 370, 64]);
+  assert.deepEqual(await box(page.locator('iframe[title="Votre site"]')), [0, 52, 390, 708]);
   for (const t of ['Sections', 'Pages', 'Style', 'Thème', 'Ajouter']) await bar.getByRole('button', { name: t, exact: true }).waitFor();
   assert.match(await bar.evaluate((n) => getComputedStyle(n).backdropFilter || getComputedStyle(n).webkitBackdropFilter), /blur\(16px\)/);
   await noOverflow(page);
@@ -762,7 +762,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await drawer.getByRole('button', { name: 'Grande bannière', exact: true }).waitFor();
   await page.waitForTimeout(400);                       // its way in is over
   const d = await drawer.boundingBox();
-  assert.ok(d.y > 844 * 0.4 && d.y + d.height <= 776, 'the drawer sits just above the bar and leaves the site visible');
+  assert.ok(d.y > 844 * 0.4 && d.y + d.height <= 770, 'the drawer sits just above the bar and leaves the site visible');
   await page.screenshot({ path: `${SHOTS}54-editeur-telephone-sections.png` });
   await drawer.getByRole('button', { name: 'Fermer' }).click(); await drawer.waitFor({ state: 'detached' });
 
@@ -774,7 +774,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await site.locator('[data-jeere-sel]').waitFor();
   assert.match(await site.locator('[data-jeere-sel]').evaluate((n) => getComputedStyle(n).borderColor), /54, 87, 255/, 'a thin blue frame');
   assert.equal(await site.locator('[data-jeere-sel] i').count(), 4, 'four small handles');
-  assert.deepEqual(await box(tools), [0, 776, 390, 68], 'the bar did not move');
+  assert.deepEqual(await box(tools), [10, 770, 370, 64], 'the bar did not move');
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${SHOTS}53-editeur-telephone-texte.png` });
   await tools.getByRole('button', { name: 'Modifier le texte' }).click();
@@ -836,7 +836,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   assert.deepEqual(Object.values(saved.x), [{ bold: true, size: before + 2, color: '#E8467C' }]);
   assert.deepEqual(Object.values(saved.f), [{ fit: 'contain' }]);
   assert.equal(Object.keys(saved.h).length, 1);
-  assert.deepEqual(await box(bar), [0, 776, 390, 68], 'the bar is still fixed to the bottom');
+  assert.deepEqual(await box(bar), [10, 770, 370, 64], 'the bar is still fixed to the bottom');
   assert.deepEqual(errors, []); await ctx.close();
 
   // a one-page booking model: no page menu, the same tools
@@ -1312,7 +1312,7 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   const o = await open(browser, PHONE, world());
   await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
   const bar = () => o.page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.bottom), Math.round(r.width)]; });
-  assert.deepEqual(await bar(), [0, 844, 390]);
+  assert.deepEqual(await bar(), [12, 832, 366]);
   // Échap closes it and gives the focus back; a touch outside closes it; the button itself closes it
   const me = o.page.getByRole('button', { name: /Plus/ });
   await me.click(); await o.page.getByRole('menu').waitFor();
@@ -1326,7 +1326,7 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await o.page.getByRole('menuitem', { name: 'Paiements' }).click();
   const seen = [];
   for (let i = 0; i < 12; i++) { seen.push((await bar()).join()); await o.page.waitForTimeout(30); }      // while the page changes and fades in
-  assert.deepEqual([...new Set(seen)], ['0,844,390'], 'the bottom bar stayed where it is during the transition');
+  assert.deepEqual([...new Set(seen)], ['12,832,366'], 'the bottom bar stayed where it is during the transition');
   await h1(o.page, 'Paiements'); await o.page.getByRole('menu').waitFor({ state: 'detached' });
   await noOverflow(o.page);
   // a drawer leaves softly and is gone; opened while the page is still coming in, it is already in its place
