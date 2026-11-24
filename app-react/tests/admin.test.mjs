@@ -490,7 +490,8 @@ await test('models: a model she bought is hers; she switches model and her texts
   const w = world(); w.models = [{ model: 'seve', install: false }, { model: 'soyeuse', install: false }];
   w.stores[0].fiche.store.model = 'seve'; w.stores[0].fiche.store.site = { title: 'Mon texte SÈVE' };
   const { page, ctx, errors } = await open(browser, PHONE, w);
-  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Modèles de designer');
+  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Ma boutique');
+  await page.getByRole('button', { name: 'Voir plus de modèles' }).click(); await h1(page, 'Modèles de designer');
   await page.getByText('Les modèles achetés sont à vous').waitFor();
   assert.equal(await page.getByText('Modèle utilisé').count(), 1);
   assert.equal(await page.getByText('Acheté · il est à vous').count(), 2);
@@ -1216,11 +1217,11 @@ await test('from payment to a live site: the model bought is in the account at o
   assert.equal(w.stores.length, 1);
   const st = w.stores[0];
   assert.equal(st.slug, 'boutique-test'); assert.equal(st.published, false); assert.deepEqual(st.fiche.store, { name: 'Boutique Test', model: 'michou' });
-  await page.getByText('Modèle utilisé').waitFor();
-  assert.equal(await page.getByText('Acheté · il est à vous').count(), 1);
+  await h1(page, 'Ma boutique');
+  await page.getByText('Modèle MICHOU', { exact: true }).waitFor();
   await page.screenshot({ path: `${SHOTS}45-modele-achete.png` });
-  // « Modifier » carries the site's own id to the editor, which loads that site
-  const edit = page.getByRole('link', { name: 'Modifier mon site MICHOU' });
+  // « Modifier mon site » carries the site's own id to the editor, which loads that site
+  const edit = page.getByRole('link', { name: 'Modifier mon site' }).first();
   assert.equal(await edit.getAttribute('href'), `/admin/editeur/?b=${st.id}`);
   await edit.click();
   await page.getByText('Brouillon', { exact: true }).waitFor({ timeout: 30000 });
@@ -1253,15 +1254,15 @@ await test('a model bought for a store she already has is put on that store; a t
   await page.getByText('Paiement reçu. Le modèle SÈVE est à vous, il est dans votre compte.').waitFor({ timeout: 30000 });
   // her only model is the one in use (the server reads it the same way): nothing of her store is rewritten
   assert.equal(w.stores.length, 1, 'no second store is made'); assert.equal(w.stores[0].fiche.products.length, 3);
-  assert.equal(await page.getByRole('link', { name: 'Modifier mon site SÈVE' }).getAttribute('href'), `/admin/editeur/?b=${w.stores[0].id}`);
+  assert.equal(await page.getByRole('link', { name: 'Modifier mon site' }).first().getAttribute('href'), `/admin/editeur/?b=${w.stores[0].id}`);
   await noOverflow(page);
   await ctx.close();
   const w2 = world({ stores: [], orders: [] }); w2.models = [{ model: 'vernie', install: false }]; w2.taken = ['boutique-test'];
   const o = await open(browser, DESK, w2);
-  await o.page.goto(`${BASE}/admin/modeles/`); await h1(o.page, 'Modèles de designer');
-  // she paid some time ago and never had a store: opening her dashboard makes her site, once
-  await o.page.getByRole('link', { name: 'Modifier mon site VERNIE' }).waitFor();
-  await o.page.reload(); await o.page.getByRole('link', { name: 'Modifier mon site VERNIE' }).waitFor();
+  await o.page.goto(`${BASE}/admin/modeles/`);
+  // she paid some time ago and never had a store: opening her dashboard makes her site, once, and shows it
+  await o.page.getByText('Modèle VERNIE').waitFor(); await h1(o.page, 'Ma boutique');
+  await o.page.reload(); await o.page.getByText('Modèle VERNIE').waitFor();
   assert.equal(w2.stores.length, 1); assert.equal(w2.stores[0].slug, 'boutique-test-2'); assert.equal(w2.stores[0].fiche.store.model, 'vernie'); assert.equal(w2.stores[0].published, false);
   assert.deepEqual([...errors, ...o.errors], []); await o.ctx.close();
 });
@@ -2253,6 +2254,20 @@ await test('a model she already has: its page says « Modifier mon site » (her 
   // and inside the dashboard, the same
   await page.goto(`${BASE}/admin/modeles/apercu/?m=regard`);
   await page.getByRole('link', { name: 'Modifier mon site' }).waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('« Boutique » with a site: HER shop first (its picture, online or not, two actions, its settings); every model only under « Voir plus de modèles »', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Ma boutique');
+  await page.getByText('Modèle SÈVE', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: /^Choisir/ }).count(), 0, 'no model to choose on her shop');
+  await page.waitForFunction(() => [...document.querySelectorAll('main img')].every((i) => i.complete), null, { timeout: 30000 });
+  await page.screenshot({ path: `${SHOTS}119-ma-boutique.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Voir plus de modèles' }).click();
+  await h1(page, 'Modèles de designer');
+  await page.getByRole('button', { name: 'Ma boutique' }).click();
+  await h1(page, 'Ma boutique');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

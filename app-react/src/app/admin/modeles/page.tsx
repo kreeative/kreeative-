@@ -10,7 +10,8 @@ import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { money } from '@/lib/format';
 import { CUSTOM_FROM, MODELS, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
-import { createStore, saveFiche } from '@/lib/stores';
+import { createStore, saveFiche, storeName, storeUrl } from '@/lib/stores';
+import { Icon } from '@/components/ui/Icon';
 import styles from './modeles.module.css';
 
 type Way = 'self' | 'install' | 'custom';
@@ -28,6 +29,8 @@ export default function ModelsPage() {
   const [open, setOpen] = useState<Model | null>(null);
   const [message, setMessage] = useState<{ tone: 'ok' | 'info'; text: string; edit?: boolean } | null>(null);
   const [arriving, setArriving] = useState('');
+  // a seller who has her site sees HER shop here; all the models come under « Voir plus de modèles »
+  const [all, setAll] = useState(false);
   const now = useRef({ owned, store, current });
   now.current = { owned, store, current };
 
@@ -58,7 +61,8 @@ export default function ModelsPage() {
     const paid = q.get('modele'), m = modelBySlug(q.get('nom') ?? q.get('choisir') ?? '');
     if (paid === 'ok') { if (m) { setMessage({ tone: 'info', text: `Paiement reçu. Nous mettons le modèle ${m.name} dans votre compte…` }); setArriving(m.slug); } else setMessage({ tone: 'ok', text: 'Paiement reçu. Votre modèle est à vous.' }); }
     else if (paid === 'annule') setMessage({ tone: 'info', text: 'Paiement annulé. Rien n’a été prélevé.' });
-    else if (m) setOpen(m);
+    else if (m) { setOpen(m); setAll(true); }
+    if (q.has('tous')) setAll(true);
     if (paid || q.has('choisir')) window.history.replaceState(null, '', window.location.pathname);
   }, []);
 
@@ -71,13 +75,56 @@ export default function ModelsPage() {
     if (await write(withModel(store.fiche, m.slug, current))) setMessage({ tone: 'ok', text: `Votre boutique utilise maintenant le modèle ${m.name}.`, edit: true });
   }
 
+  const notices = (<>
+      {message ? <div className={styles.notice}><Notice tone={message.tone} action={message.edit ? <ButtonLink href={store ? `/admin/editeur/?b=${store.id}` : '/admin/editeur/'} icon="edit">Modifier mon site</ButtonLink> : undefined}>{message.text}</Notice></div> : null}
+      {problem ? <div className={styles.notice}><Notice tone="error">{problem === 'conflict' ? 'Votre boutique a été modifiée ailleurs. Rechargez la page, puis réessayez.' : 'Le modèle n’a pas pu être enregistré. Vérifiez votre connexion, puis réessayez.'}</Notice></div> : null}
+  </>);
+  const mineNow = current ? modelBySlug(current) : undefined;
+  if (store && mineNow && !all && !arriving) {
+    const others = MODELS.filter((m) => owned.includes(m.slug) && m.slug !== mineNow.slug);
+    const url = storeUrl(store, current);
+    return (
+      <>
+        <PageHead title="Ma boutique" sub={storeName(store)} />
+        {notices}
+        <section className={styles.mine} aria-label="Votre site">
+          <a className={styles.mineShot} href={`/admin/editeur/?b=${store.id}`} aria-label="Modifier mon site">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={modelThumb(mineNow.slug)} alt="" width={640} height={400} decoding="async" />
+          </a>
+          <div className={styles.mineBody}>
+            <p className={styles.mineState} data-on={store.published ? '' : undefined}><i aria-hidden="true" />{store.published ? 'En ligne' : 'Pas encore en ligne'}</p>
+            <p className={styles.mineName}>Modèle {mineNow.name}</p>
+            <p className={styles.kind}>{url.replace(/^https:\/\//, '')}</p>
+            <div className={styles.mineActs}>
+              <ButtonLink href={`/admin/editeur/?b=${store.id}`} icon="edit">Modifier mon site</ButtonLink>
+              <ButtonLink variant="secondary" href={url} target="_blank" rel="noopener" icon="eye">Voir ma boutique</ButtonLink>
+            </div>
+          </div>
+        </section>
+        <ul className={styles.mineLinks} aria-label="Réglages de la boutique">
+          {([['/admin/produits/', 'tag', 'Produits', 'Photos, prix, catégories'], ['/admin/branding/', 'brush', 'Branding', 'Logo, couleurs, boutons'], ['/admin/paiements/', 'wallet', 'Paiements', 'Wave, Stripe, mobile money'], ['/admin/domaine/', 'link', 'Adresse du site', 'Votre nom de domaine']] as const).map(([href, icon, title, sub]) => (
+            <li key={href}><a href={href}><span aria-hidden="true"><Icon name={icon} size={20} /></span><span><b>{title}</b><small>{sub}</small></span><Icon name="chevron" size={16} /></a></li>
+          ))}
+        </ul>
+        {others.length ? (
+          <section className={styles.mineOthers} aria-label="Vos autres modèles">
+            <h2>Vos autres modèles</h2>
+            <ul>{others.map((m) => <li key={m.slug}><span>{m.name}<small>{m.kind}</small></span><Button variant="secondary" busy={busy} onClick={() => void use(m)}>Utiliser</Button></li>)}</ul>
+          </section>
+        ) : null}
+        <button type="button" className={styles.more} onClick={() => { setAll(true); window.scrollTo(0, 0); }}><Icon name="template" size={18} />Voir plus de modèles<Icon name="chevron" size={16} /></button>
+      </>
+    );
+  }
+
   return (
     <>
+      {store && mineNow ? <button type="button" className={styles.backMine} onClick={() => { setAll(false); window.scrollTo(0, 0); }}><Icon name="back" size={16} />Ma boutique</button> : null}
       <PageHead title="Modèles de designer" sub={owned.length > 1
         ? 'Les modèles achetés sont à vous : passez de l’un à l’autre quand vous voulez, vos textes et vos photos sont gardés pour chacun.'
         : 'Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.'} />
-      {message ? <div className={styles.notice}><Notice tone={message.tone} action={message.edit ? <ButtonLink href="/admin/editeur/" icon="edit">Modifier mon site</ButtonLink> : undefined}>{message.text}</Notice></div> : null}
-      {problem ? <div className={styles.notice}><Notice tone="error">{problem === 'conflict' ? 'Votre boutique a été modifiée ailleurs. Rechargez la page, puis réessayez.' : 'Le modèle n’a pas pu être enregistré. Vérifiez votre connexion, puis réessayez.'}</Notice></div> : null}
+      {notices}
 
       <ul className={styles.grid}>
         {MODELS.map((m) => {

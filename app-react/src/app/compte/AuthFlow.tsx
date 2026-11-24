@@ -385,12 +385,6 @@ export function AuthFlow() {
             <h2>Tout votre commerce, au même endroit.</h2>
             <p className={styles.sideText}>Une boutique en ligne, les commandes WhatsApp, le paiement mobile money et la livraison par commune. Depuis votre téléphone.</p>
           </div>
-          {/* what her days look like with Jehre: three notifications floating gently */}
-          <div className={styles.toasts} aria-hidden="true">
-            <p><span><Icon name="bag" size={16} /></span><b>Nouvelle commande</b><small>Awa · 15 000 FCFA</small></p>
-            <p><span><Icon name="wallet" size={16} /></span><b>Paiement Wave reçu</b><small>Payé à l’avance</small></p>
-            <p><span><Icon name="store" size={16} /></span><b>Votre boutique est en ligne</b><small>awa.store.jehre.com</small></p>
-          </div>
           <ul className={`${styles.perks} c-perks`}>
             <li><span><Icon name="check" size={16} /></span>Gratuit pour démarrer, sans carte bancaire</li>
             <li><span><Icon name="check" size={16} /></span>Jehre ne garde jamais votre argent</li>
