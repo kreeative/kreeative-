@@ -1166,6 +1166,7 @@
       if (r.ok) {
         try { S.products = readFiche(r.fiche); S.status = 'ready'; remapSlots(r.fiche); } catch (e) { S.products = null; S.status = 'offline'; }
         try { drawSocial(r.fiche); } catch (e) { /* the page keeps its own */ }
+        try { brand(r.fiche); } catch (e) { /* the model's name stays */ }
         try { applySite(r.fiche); } catch (e) { /* the page keeps its own */ }
       } else S.status = r.code;
       try {
