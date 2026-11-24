@@ -137,7 +137,7 @@
         (stock && toInt(stock[p.id]) === 0);
       map[p.id] = {
         id: p.id, name: str(p.name).trim(), price: price === null || price < 0 ? null : price,
-        description: str(p.description).trim(), image: httpsImg(p.image) || (Array.isArray(p.images) ? httpsImg(p.images[0]) : ''), images: (Array.isArray(p.images) ? p.images : [p.image]).map(httpsImg).filter(Boolean).slice(0, 8), available: !off, badge: str(p.badge)
+        category: str(p.category).trim(), description: str(p.description).trim(), image: httpsImg(p.image) || (Array.isArray(p.images) ? httpsImg(p.images[0]) : ''), images: (Array.isArray(p.images) ? p.images : [p.image]).map(httpsImg).filter(Boolean).slice(0, 8), available: !off, badge: str(p.badge)
       };
     });
     return map;
@@ -340,6 +340,7 @@
         el.setAttribute('src', p.image);
       }
     });
+    try { cards(); } catch (e) { /* the cards keep the model's words */ }
     try { galleries(); } catch (e) { /* the page keeps its one photo */ }
     $$('[data-jeere-add]').filter(outsideLines).forEach(function (b) {
       var id = idOf(b, 'data-jeere-add');
@@ -454,6 +455,55 @@
   /* A product page (the product is the page itself, not a card in a list) whose product has several photos: under
    * the big photo, a row of small ones; touching one shows it big. Drawn with plain elements, in the page's own
    * look (no colour of ours), and removed when the product has one photo again. */
+  /* A card that shows ANOTHER product than the model's (she chose it for this case): what the card says about the
+   * model's product goes with it. Its label (« Best-seller », « Nouveau ») becomes her product's, or goes; its small
+   * line (« Gels douche », « 3 paquets · 18 pouces ») becomes her category, or goes; an old price or a « -19 % » goes.
+   * Its photo: her product's; else the model's photo of that product when it has a card on the page; else a plain
+   * light square (never the photo of another product). A card back on the model's product gets back all of it. */
+  var NO_PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800"><rect width="640" height="800" fill="#F2F2EF"/><g fill="none" stroke="#C9C9C2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><rect x="250" y="330" width="140" height="120" rx="22"/><circle cx="290" cy="372" r="12"/><path d="M262 440l42-42 30 30 18-18 36 36"/></g></svg>');
+  var LABELS = { best: 'Best-seller', new: 'Nouveau', promo: 'Promo' };
+  function keepOrig(el) {
+    if (!el.hasAttribute('data-jeere-o-text')) { el.setAttribute('data-jeere-o-text', el.textContent); el.setAttribute('data-jeere-o-display', el.style.display || ''); }
+  }
+  function backOrig(el) {
+    if (!el.hasAttribute('data-jeere-o-text')) return;
+    el.textContent = el.getAttribute('data-jeere-o-text'); el.style.display = el.getAttribute('data-jeere-o-display');
+  }
+  function cards() {
+    $$('[data-jeere-product]').filter(outsideLines).forEach(function (c) {
+      var id = c.getAttribute('data-jeere-product'), slot = c.getAttribute('data-jeere-slot-product') || id;
+      var p = S.products && S.products[id], moved = slot !== id;
+      var img = c.querySelector('img[data-jeere-photo]') || c.querySelector('img');
+      if (img && !img.hasAttribute('data-jeere-model-src')) img.setAttribute('data-jeere-model-src', img.getAttribute('src') || '');
+      var badges = $$('[class*="badge"], [class*="__tag"]', c).filter(function (e) { return !e.children.length; });
+      var lines = $$('[class*="__cat"], [class*="__detail"], [class*="__matiere"], [class*="__meta"]', c).filter(function (e) { return !e.querySelector('[data-jeere-price], [data-jeere-name]'); });
+      var olds = $$('[class*="__promo"], s', c);
+      badges.concat(lines, olds).forEach(keepOrig);
+      if (!p || !moved) {
+        badges.concat(lines, olds).forEach(backOrig);
+        // the model's own product (or hers with no photo of its own): the model's photo, whatever was shown before
+        img && img.removeAttribute('data-jeere-no-photo');
+        if (img && (!p || !p.image) && img.getAttribute('data-jeere-model-src') && img.getAttribute('src') !== img.getAttribute('data-jeere-model-src')) { img.removeAttribute('srcset'); img.setAttribute('src', img.getAttribute('data-jeere-model-src')); }
+        return;
+      }
+      var label = LABELS[p.badge] || '';
+      badges.forEach(function (e) {
+        if (!label) { e.style.display = 'none'; return; }
+        e.textContent = label; e.style.display = e.getAttribute('data-jeere-o-display');
+        e.className = e.className.replace(/(badge--)(best|new|promo)\b/, '$1' + p.badge);
+      });
+      if (c.hasAttribute('data-tags')) c.setAttribute('data-tags', p.badge || '');
+      lines.forEach(function (e) { if (p.category) { e.textContent = p.category; e.style.display = e.getAttribute('data-jeere-o-display'); } else e.style.display = 'none'; });
+      olds.forEach(function (e) { e.style.display = 'none'; });
+      if (img && p.image) img.removeAttribute('data-jeere-no-photo');
+      if (img && !p.image) {
+        var own = document.querySelector(attrSel('data-jeere-slot-product', id) + ' img[data-jeere-model-src]');
+        var src = own && own !== img ? own.getAttribute('data-jeere-model-src') : NO_PHOTO;
+        if (img.getAttribute('src') !== src) { img.removeAttribute('srcset'); img.removeAttribute('sizes'); img.setAttribute('src', src); }
+        img.setAttribute('data-jeere-no-photo', src === NO_PHOTO ? '1' : '');
+      }
+    });
+  }
   function galleries() {
     $$('[data-jeere-gallery]').forEach(function (g) { g.parentNode && g.parentNode.removeChild(g); });
     // the product of a product page: the page itself (MICHOU's <main>), or the first product of a page under /produits/
