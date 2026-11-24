@@ -39,6 +39,8 @@ export default function EditorPage() {
   const [focus, setFocus] = useState('');
   const [sel, setSel] = useState('');
   const [adding, setAdding] = useState(false);
+  const [tip, setTip] = useState(false);
+  useEffect(() => { try { setTip(window.localStorage.getItem('jehre-editor-tip') !== '1'); } catch { setTip(true); } }, []);
   const [device, setDevice] = useState<Device>('desktop');
   const [phone, setPhone] = useState(false);
   const [room, setRoom] = useState({ w: 900, h: 700 });
@@ -276,6 +278,12 @@ export default function EditorPage() {
         {leftOpen || phone ? (
         <aside className={styles.left} aria-label="Sections de la page">
           <h2 className={styles.title}>{path === '' ? 'Page d’accueil' : `Page ${pageName}`}</h2>
+          {tip ? (
+            <p className={styles.tip} role="note">
+              <span>Cliquez sur un texte ou une photo pour le changer. Vos produits : <Link href="/admin/produits/"><b>Produits</b></Link>.</span>
+              <button type="button" onClick={() => { setTip(false); try { window.localStorage.setItem('jehre-editor-tip', '1'); } catch { /* shown again next time */ } }} aria-label="Fermer cette aide"><Icon name="close" size={12} /></button>
+            </p>
+          ) : null}
           {sections.length > 5 ? <input className={styles.search} type="search" placeholder="Rechercher..." aria-label="Rechercher une section ou un texte" value={query} onChange={(e) => setQuery(e.target.value)} /> : null}
           {map ? (
             <ol className={styles.list}>
@@ -339,7 +347,6 @@ export default function EditorPage() {
               ) : null}
             </div>
           ) : null}
-          <p className={styles.hint}>Cliquez sur un texte ou une photo de votre site pour le changer. Vos produits se gèrent dans <Link href="/admin/produits/"><b>Produits</b></Link>.</p>
         </aside>
         ) : null}
 

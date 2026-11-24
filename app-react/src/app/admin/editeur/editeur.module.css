@@ -201,3 +201,10 @@ span.fold { cursor: default; }
 .hex input { flex: 1; min-width: 0; height: 28px; padding: 0; border: 0; background: none; outline: 0; font: 400 12px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--ink); box-shadow: none; }
 .link, .line { display: grid; gap: 8px; min-width: 0; }
 .line { padding-top: 10px; border-top: 1px solid var(--line); }
+
+/* the one-line help of the tree: a very small notice on top (white card, grey text), closed for good with × */
+.tip { display: flex; align-items: flex-start; gap: 6px; min-width: 0; margin: 0; padding: 6px 6px 6px 10px; border-radius: 10px; background: var(--white); box-shadow: 0 0 0 1px var(--line); color: var(--muted); font: 400 10.5px/14px var(--font); }
+.tip span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.tip a { color: var(--ink); text-decoration: none; }
+.tip button { flex: none; display: grid; place-items: center; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--faint); cursor: pointer; }
+.tip button:hover { background: var(--grey-1); color: var(--ink); }
