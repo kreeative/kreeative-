@@ -24,6 +24,22 @@ export const PLAN_FEATURES = [
 export const planOf = (id: string | null | undefined): Plan => PLANS.find((p) => p.id === id) ?? NO_PLAN;
 export const hasPlan = (id: string | null | undefined): boolean => PLANS.some((p) => p.id === id);
 
+/** The orders of the month count against the plan: EVERY order the store received this calendar month (WhatsApp,
+ *  on delivery, Wave or card), as the dashboard shows them. Nothing is blocked; she is told when to move up. */
+export async function monthOrders(storeId: string): Promise<number | null> {
+  const start = new Date(); start.setDate(1); start.setHours(0, 0, 0, 0);
+  const { count, error } = await supabase().from('orders').select('id', { count: 'exact', head: true }).eq('store_id', storeId).gte('created_at', start.toISOString());
+  return error ? null : count ?? 0;
+}
+/** Where she stands: the limit of her plan, and the smallest plan that holds this many orders. */
+export function usage(planId: string | null | undefined, n: number): { limit: number | null; level: 'ok' | 'near' | 'over'; next: Plan | null } {
+  const p = PLANS.find((x) => x.id === planId);
+  const limit = p ? p.orders : null;
+  const level = limit === null ? 'ok' : n > limit ? 'over' : n >= Math.ceil(limit * 0.8) ? 'near' : 'ok';
+  const next = PLANS.find((x) => x.orders === null || x.orders >= Math.max(n, (limit ?? 0) + 1)) ?? null;
+  return { limit, level, next };
+}
+
 export type Answer<T> = ({ ok: true } & T) | { ok: false; message: string; code?: string };
 
 async function call<T>(fn: 'billing' | 'domains', body: Record<string, unknown>, needsLogin = true): Promise<Answer<T>> {

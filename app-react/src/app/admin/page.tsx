@@ -1,6 +1,7 @@
 'use client';
 
-import { hasPlan } from '@/lib/billing';
+import { hasPlan, monthOrders, usage } from '@/lib/billing';
+import { useEffect as useMonthEffect, useState as useMonthState } from 'react';
 import { CARD_LABEL, cardState, cardStatus, type CardState } from '@/lib/card';
 import { CloudLoader } from '@/components/ui/CloudLoader';
 import Link from 'next/link';
@@ -84,6 +85,7 @@ export default function AdminHome() {
       <PageHead title={hello} sub={storeName(store)}
         action={<ButtonLink href={storeUrl(store, model)} target="_blank" rel="noopener" variant="secondary" icon="eye">Voir la boutique</ButtonLink>} />
 
+      <MonthBanner storeId={store.id} plan={store.plan} owner={store.role === 'owner'} />
       {store.role === 'owner' && !hasPlan(store.plan) ? <p className={styles.banner}><Icon name="sparkle" size={18} /><span>Votre boutique n’a pas encore de formule. <a href="/admin/abonnement/"><b>Choisir une formule</b></a></span></p> : null}
       {!store.published ? <p className={styles.banner}><Icon name="info" size={18} />Votre boutique n’est pas encore en ligne : vos clientes ne la voient pas.</p> : null}
 
@@ -146,3 +148,20 @@ export default function AdminHome() {
     </>
   );
 }
+
+/** The orders of the month against her plan: a word at 80 %, another past the limit (her buyers are never blocked). */
+function MonthBanner({ storeId, plan, owner }: { storeId: string; plan: string | null | undefined; owner: boolean }) {
+  const [n, setN] = useMonthState<number | null>(null);
+  useMonthEffect(() => { let on = true; void monthOrders(storeId).then((x) => { if (on) setN(x); }); return () => { on = false; }; }, [storeId]);
+  if (n === null || !hasPlan(plan)) return null;
+  const u = usage(plan, n);
+  if (u.level === 'ok' || u.limit === null) return null;
+  return (
+    <p className={styles.banner} data-tone={u.level}>
+      <Icon name="chart" size={18} />
+      <span>{u.level === 'over' ? `${n} commandes ce mois-ci, pour ${u.limit} dans votre formule. Vos commandes continuent d’arriver.` : `${n} commandes sur ${u.limit} ce mois-ci.`}
+        {owner && u.next ? <> <a href="/admin/abonnement/"><b>Passer à {u.next.name}</b></a></> : null}</span>
+    </p>
+  );
+}
+

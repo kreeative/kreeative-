@@ -6,7 +6,7 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
-import { PLANS, PLAN_FEATURES, hasPlan, openPortal, planOf, subscribe, syncPlans, type Plan } from '@/lib/billing';
+import { PLANS, PLAN_FEATURES, hasPlan, monthOrders, openPortal, planOf, subscribe, syncPlans, usage, type Plan } from '@/lib/billing';
 import { money } from '@/lib/format';
 import { storeName } from '@/lib/stores';
 import styles from './abonnement.module.css';
@@ -20,6 +20,9 @@ export default function PlanPage() {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState<{ tone: 'ok' | 'info'; text: string } | null>(null);
+  const [count, setCount] = useState<number | null>(null);
+  const sid = store?.id ?? '';
+  useEffect(() => { if (!sid) return; let on = true; void monthOrders(sid).then((x) => { if (on) setCount(x); }); return () => { on = false; }; }, [sid]);
 
   // back from Stripe: her plans are read from Stripe at once (no wait on the webhook), then the store is read again
   useEffect(() => {
@@ -57,6 +60,12 @@ export default function PlanPage() {
       {owner ? null : <div className={styles.notice}><Notice tone="info">Seule la propriétaire de cette boutique peut changer sa formule.</Notice></div>}
       {owner && !hasPlan(store.plan) ? <div className={styles.notice}><Notice tone="warn" title="Choisissez une formule">Votre boutique reste en ligne. Choisissez la formule qui vous convient.</Notice></div> : null}
 
+      {count !== null && hasPlan(store.plan) ? (() => { const u = usage(store.plan, count); const pct = u.limit ? Math.min(100, Math.round((count / u.limit) * 100)) : 0; return (
+        <section className={styles.usage} aria-label="Commandes du mois" data-level={u.level}>
+          <div><b>{u.limit === null ? `${count} commandes ce mois-ci` : `${count} / ${u.limit} commandes ce mois-ci`}</b><span>Toutes les commandes reçues par la boutique comptent, quel que soit le paiement.</span></div>
+          {u.limit !== null ? <i aria-hidden="true"><s style={{ width: `${pct}%` }} /></i> : null}
+          {u.level === 'over' && u.next ? <p>Vos commandes continuent d’arriver. La formule adaptée : <b>{u.next.name}</b>.</p> : null}
+        </section>); })() : null}
       <ul className={styles.plans}>
         {PLANS.map((p) => {
           const mine = p.id === current.id;
