@@ -108,7 +108,10 @@
 .findList a:hover, .findList button:hover { background: var(--grey-1); }
 .findList span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 820px) {
-  .topbar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); height: 56px; padding: 0 var(--sp-4); background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--glass-line); }
+  /* the bar at the top floats like the one at the bottom: a glass capsule away from the edges, the page passing under it */
+  .topbar { position: sticky; top: calc(8px + env(safe-area-inset-top)); z-index: 40; isolation: isolate; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); height: 58px; margin: calc(8px + env(safe-area-inset-top)) 12px 4px; padding: 0 8px 0 12px; border-radius: 22px;
+    border: 1px solid rgba(15, 23, 42, .08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 14px 34px -14px rgba(17, 17, 17, .28); }
+  .topbar::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: rgba(255, 255, 255, .86); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); }
   .topStore { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--ink); text-decoration: none; }
   .topStore select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; font-size: 16px; }
   .topMark { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--ink); color: var(--white); font: var(--w-title) var(--fs)/1 var(--font); }

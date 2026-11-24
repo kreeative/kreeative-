@@ -2119,6 +2119,23 @@ await test('Branding on a phone: one calm line per colour, one open at a time, r
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('the top bar on a phone floats like the bottom one: a glass capsule away from the edges, never over the first line of the page', async () => {
+  const w = world(); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/`);
+  const bar = page.locator('header').filter({ has: page.getByRole('link', { name: 'Mon compte' }) }).first();
+  await bar.waitFor();
+  const look = await bar.evaluate((n) => { const r = n.getBoundingClientRect(), c = getComputedStyle(n); return { left: Math.round(r.left), right: Math.round(innerWidth - r.right), top: Math.round(r.top), radius: c.borderTopLeftRadius, position: c.position }; });
+  assert.deepEqual(look, { left: 12, right: 12, top: 8, radius: '22px', position: 'sticky' });
+  const first = await page.locator('main h1, main p').first().evaluate((n) => n.getBoundingClientRect().top);
+  const barBottom = await bar.evaluate((n) => n.getBoundingClientRect().bottom);
+  assert.ok(first >= barBottom, `the first line is below the bar: ${first} / ${barBottom}`);
+  await page.screenshot({ path: `${SHOTS}108-barre-haut-flottante.png` });
+  await page.evaluate(() => window.scrollTo(0, 420)); await page.waitForTimeout(300);
+  assert.equal(Math.round(await bar.evaluate((n) => n.getBoundingClientRect().top)), 8, 'it stays, floating, while the page passes under it');
+  await page.screenshot({ path: `${SHOTS}109-barre-haut-defilement.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);
