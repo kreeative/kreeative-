@@ -2482,6 +2482,21 @@
     return s;
   }
 
+  // An example product of a niche, untouched (same name, price and description, no photo of hers): it is never
+  // published into a seller's store.
+  var SAMPLE_KEYS = null;
+  function sampleKey(name, price, description) { return String(name || '').trim() + '|' + Number(price) + '|' + String(description || '').trim(); }
+  function isSampleProduct(p) {
+    if (!isObj(p)) return false;
+    if (typeof p.image === 'string' && p.image) return false;
+    if (Array.isArray(p.images) && p.images.length) return false;
+    if (!SAMPLE_KEYS) {
+      SAMPLE_KEYS = {};
+      Object.keys(niches).forEach(function (k) { (niches[k].products || []).forEach(function (x) { SAMPLE_KEYS[sampleKey(x.name, x.price, x.description)] = true; }); });
+    }
+    return SAMPLE_KEYS[sampleKey(p.name, p.price, p.description)] === true;
+  }
+
   function defaultConfig(templateId, nicheId) {
     var nicheGiven = resolveNiche(nicheId);
     var t = resolveTemplate(templateId) || (nicheGiven ? niches[nicheGiven].template : 'plateau');
@@ -3118,7 +3133,8 @@
     assignIds(sections, 's');
 
     var products = [];
-    (Array.isArray(src.products) ? src.products : base.products).forEach(function (p) {
+    // a store without its own list of products starts EMPTY: the niche's examples are never written into her store
+    (Array.isArray(src.products) ? src.products : []).forEach(function (p) {
       if (!isObj(p)) return;
       var price = toMoney(p.price, curNow);
       products.push({
@@ -4221,6 +4237,7 @@
     sectionSettings: sectionSettings,
     validate: validate,
     normalizeConfig: normalizeConfig,
+    isSampleProduct: isSampleProduct,
     normalizeWhatsapp: normalizeWhatsapp,
     formatPrice: formatPrice,
     socialHandle: socialHandle,

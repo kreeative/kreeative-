@@ -1130,6 +1130,8 @@
     });
     // The niche's demo photos (products[].photo, settings.photo of hero and about) come from
     // defaultConfig and normalizeConfig keeps them; with an empty catalogue they are all null.
+    // a new store starts with no products: hers only, never the niche's examples
+    cfg.products = [];
     const out = d.normalizeConfig(cfg);
     if (out.theme && out.theme.intensity === undefined) out.theme.intensity = 'vivid'; // an older data.js drops the key
     return out;
