@@ -24,7 +24,7 @@ export const DESK_TOUR: TourStep[] = [
 export const PHONE_TOUR: TourStep[] = [
   { title: 'Bienvenue dans votre éditeur', text: 'Voici votre site, tel que vos clientes le verront. Tout se change ici, du bout du doigt. La visite dure une minute.' },
   { target: 'site', title: 'Touchez pour changer', text: 'Touchez un texte, une photo ou un bouton. Il s’encadre en bleu et ses outils apparaissent en bas : modifier, couleur, remplacer, cadrer, supprimer. Le rond noir ✓ termine.' },
-  { target: 'bar', title: 'Les outils du site', text: 'Sections : l’ordre et ce qui est masqué. Pages : les autres pages. Style : la police. Ajouter : remettre ce que vous avez supprimé.' },
+  { target: 'bar', title: 'Les outils du site', text: 'Sections : l’ordre et ce qui est masqué. Pages : les autres pages. Style : la police. Thème : votre marque et votre modèle. Ajouter : remettre ce que vous avez supprimé.' },
   { target: 'history', title: 'Une erreur ? Annulez', text: 'Ces deux flèches annulent et rétablissent vos derniers changements.' },
   { target: 'publish', title: 'Publier', text: 'Rien n’est en ligne tant que vous n’avez pas touché Publier. Vos produits se gèrent et se modifient dans le tableau de bord, onglet Produits.' },
 ];
@@ -58,12 +58,13 @@ export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void 
   // the card sits where there is room: beside a tall part, under or above a wide one, in the middle without a part
   let left = (vw - W) / 2, top: number | undefined, bottom: number | undefined;
   if (!hole) top = Math.max(16, vh / 2 - 110);
-  else if (hole.w > vw * 0.6) {      // most of the screen (the site): the card over its lower part
+  else if (hole.w > vw * 0.6 && hole.h > vh * 0.5) {      // most of the screen (the site): the card over its lower part
     left = Math.min(vw - W - 12, Math.max(12, hole.x + hole.w / 2 - W / 2)); bottom = Math.max(16, vh - (hole.y + hole.h) + 20);
   } else if (hole.x + hole.w + W + 28 <= vw && hole.h > 160) { left = hole.x + hole.w + 16; top = Math.min(vh - 240, Math.max(16, hole.y)); }
   else {
     left = Math.min(vw - W - 12, Math.max(12, hole.x + hole.w / 2 - W / 2));
-    if (hole.y + hole.h + 220 <= vh) top = hole.y + hole.h + 14; else bottom = Math.max(16, vh - hole.y + 14);
+    // never over the part it talks about: under it when it is high on the screen, above it when it is low (the bar of tools)
+    if (hole.y + hole.h / 2 < vh / 2 && hole.y + hole.h + 220 <= vh) top = hole.y + hole.h + 14; else bottom = Math.max(16, vh - hole.y + 14);
   }
   const last = at === steps.length - 1;
   return createPortal(

@@ -960,7 +960,13 @@ await test('editor: the first time, a guided visit shows how it works (computer 
     names.push(await t2.locator('h2').innerText());
     const card = await t2.locator('h2').locator('xpath=..').boundingBox();
     assert.ok(card.x >= 0 && card.y >= 0 && card.x + card.width <= 390 && card.y + card.height <= 844, `phone step ${i + 1}: the card is whole on the screen`);
+    // the card never hides what it talks about (except the site, which fills the screen)
+    if (i === 2 || i === 3 || i === 4) {
+      const hole = await o.page.locator('[class*="hole"]').boundingBox();
+      assert.ok(card.y + card.height <= hole.y + 1 || card.y >= hole.y + hole.height - 1, `phone step ${i + 1}: the card is beside its part, not over it`);
+    }
     if (i === 1) await o.page.screenshot({ path: `${SHOTS}66-visite-telephone.png` });
+    if (i === 2) await o.page.screenshot({ path: `${SHOTS}127-visite-telephone-outils.png` });
     await t2.getByRole('button', { name: i === 4 ? 'C’est parti' : 'Suivant' }).click();
   }
   assert.deepEqual(names, ['Bienvenue dans votre éditeur', 'Touchez pour changer', 'Les outils du site', 'Une erreur ? Annulez', 'Publier']);
