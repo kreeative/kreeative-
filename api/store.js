@@ -295,7 +295,9 @@ async function handler(req, res) {
     return;
   }
   // her own address (not jehre.com/b/…, which keeps the cart and the payment): the model she bought
-  if (!onJeere && !got.row.preview && !/^\/?(?:panier|paiement|confirmation|produits\/|pages\/)/.test(rest)) {
+  // (a product or a page of her site too: the model's own product page, her product in it; the old engine answers
+  // only when the model has no such page, and for the cart and the payment, which stay on Jehre's engine)
+  if (!onJeere && !got.row.preview && !/^\/?(?:panier|paiement|confirmation)(?:\/|$)/.test(rest)) {
     // the model bought by her account; the founder's own model stores (their address IS the model's name: seve,
     // soyeuse…) carry their model without a purchase, exactly as the editor shows them
     const model = (await storeModel(got.row.slug)) || (MODEL_NAMES[got.row.slug] ? got.row.slug : null);
