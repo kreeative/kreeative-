@@ -736,6 +736,20 @@
   function hexColor(v) { return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v); }
   // hidden means gone, in the editor as on the live site (the editor lists what is hidden, to bring it back)
   function hideEl(el, off, opacity, display) { el.style.opacity = opacity; el.style.display = off ? 'none' : display; }
+  /* A text often sits in a small row with a mark beside it (a ticked box, a bullet, an icon): hidden, the whole
+   * row goes, not the words alone. The row is the closest box that holds nothing else to read and no picture. */
+  function rowOf(el) {
+    var norm = function (n) { return (n.textContent || '').replace(/\s+/g, ' ').trim(); };
+    var t = norm(el), cur = el;
+    for (var i = 0; i < 3; i++) {
+      var p = cur.parentElement;
+      if (!p || p === document.body || /^(SECTION|HEADER|FOOTER|MAIN|NAV|UL|OL|FORM)$/.test(p.tagName)) break;
+      if (norm(p) !== t || p.querySelector('img, video, iframe, input, select, textarea')) break;
+      cur = p;
+      if (p.tagName === 'LI') break;
+    }
+    return cur;
+  }
   function lookText(el, o) {
     if (!isObj(o) && !el.hasAttribute('data-jeere-x')) return;
     var was = kept(el, 'data-jeere-x', ['fontSize', 'color', 'fontWeight', 'textAlign', 'fontFamily', 'opacity', 'display', 'borderRadius', 'background', 'border', 'padding']);
@@ -747,6 +761,11 @@
     el.style.textAlign = o.align === 'left' || o.align === 'center' || o.align === 'right' ? o.align : was[3];
     el.style.fontFamily = typeof o.font === 'string' && FONTS.hasOwnProperty(o.font) ? FONTS[o.font] : was[4];
     hideEl(el, o.hide === true, was[5], was[6]);
+    var row = rowOf(el);
+    if (row !== el) {
+      if (o.hide === true) { if (!row.hasAttribute('data-jeere-row')) row.setAttribute('data-jeere-row', row.style.display || ''); row.style.display = 'none'; }
+      else if (row.hasAttribute('data-jeere-row')) { row.style.display = row.getAttribute('data-jeere-row'); row.removeAttribute('data-jeere-row'); }
+    }
     if (el.tagName === 'A' || el.tagName === 'BUTTON') {
       var bare = false; try { bare = parseFloat(window.getComputedStyle(el).paddingLeft) < 6; } catch (e) { bare = false; }
       var fill = hexColor(o.fill) ? o.fill : '#111111', dark = parseInt(fill.slice(1, 3), 16) * 0.299 + parseInt(fill.slice(3, 5), 16) * 0.587 + parseInt(fill.slice(5, 7), 16) * 0.114 < 150;
