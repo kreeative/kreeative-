@@ -2217,6 +2217,8 @@ await test('a card given another product (SÈVE): its label, its small line and 
     return { name: c.querySelector('[data-jeere-name]')?.textContent.trim(), badge: vis(badge) ? badge.textContent.trim() : null, line: vis(line) ? line.textContent.trim() : null, photo: img.getAttribute('src').startsWith('data:image/svg') ? 'vide' : img.getAttribute('src').split('/').pop() };
   });
   const model = await read();
+  // her own product under the model's number (another name than the model's): her label, her category, no photo of the model's product
+  assert.deepEqual(model, { name: 'Beurre de karité brut', badge: 'Best-seller', line: 'Corps', photo: 'vide' });
   const tools = page.getByRole('navigation', { name: /^Outils : / });
   const choose = async (name) => {
     await card.locator('img').first().click({ force: true });
