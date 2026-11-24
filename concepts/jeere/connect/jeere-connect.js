@@ -622,7 +622,7 @@
     var all = sections(), base = pagePath();
     var items = keyed().map(function (x) {
       return { key: x.key, kind: x.kind, ref: x.ref || '', link: x.kind === 'i' && !!photoLink(x.el), label: label(x), text: x.kind === 't' || x.kind === 'c' ? words(x.el) : '', role: role(x), sec: secOf(x.el, all), src: x.kind === 'i' ? (x.el.currentSrc || x.el.src || '') : '',
-        tag: x.el.tagName.toLowerCase(), long: x.kind === 't' && (x.el.textContent || '').length > 70 };
+        tag: x.el.tagName.toLowerCase(), href: x.el.tagName === 'A' ? (x.el.getAttribute('data-jeere-k') || x.el.getAttribute('href') || '') : '', size: x.kind === 't' || x.kind === 'c' ? Math.round(parseFloat(window.getComputedStyle(x.el).fontSize) || 0) : 0, long: x.kind === 't' && (x.el.textContent || '').length > 70 };
     });
     var secs = all.map(function (el, n) { var nm = secName(el, n, all); return { n: n, key: base + '|h|' + n, name: nm[0], icon: nm[1], fixed: el.tagName === 'HEADER' || el.tagName === 'FOOTER' }; });
     try { window.parent.postMessage({ jeereMap: { page: base, title: document.title, items: items, sections: secs } }, parentOrigin); } catch (e) { /* not in the editor */ }
@@ -702,9 +702,93 @@
       }
     });
   }
+  /* Her look for ONE text (store.site.x[<key>] = { size, color, bold, align, font, hide }), the framing of ONE
+   * picture (store.site.f[<key>] = { fit, x, y, hide }) and where ONE link goes (store.site.k[<key>]). Inline
+   * styles over the model's own, which come back when she removes a value. Only safe values pass: bounded
+   * numbers, a #hex colour, names from short lists, an https / mailto / tel address. */
+  var FONTS = { serif: 'Georgia, "Times New Roman", serif', sans: 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif', mono: 'ui-monospace, Menlo, Consolas, monospace' };
+  function kept(el, attr, props) {
+    if (!el.hasAttribute(attr)) el.setAttribute(attr, JSON.stringify(props.map(function (k) { return el.style[k] || ''; })));
+    try { return JSON.parse(el.getAttribute(attr)) || []; } catch (e) { return []; }
+  }
+  function hexColor(v) { return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v); }
+  function hideEl(el, off, opacity, display) {
+    if (editing || preview) { el.style.opacity = off ? '.28' : opacity; el.style.display = display; }
+    else { el.style.opacity = opacity; el.style.display = off ? 'none' : display; }
+  }
+  function lookText(el, o) {
+    if (!isObj(o) && !el.hasAttribute('data-jeere-x')) return;
+    var was = kept(el, 'data-jeere-x', ['fontSize', 'color', 'fontWeight', 'textAlign', 'fontFamily', 'opacity', 'display']);
+    o = isObj(o) ? o : {};
+    var size = typeof o.size === 'number' && isFinite(o.size) && o.size >= 8 && o.size <= 160 ? Math.round(o.size) : null;
+    el.style.fontSize = size === null ? was[0] : size + 'px';
+    el.style.color = hexColor(o.color) ? o.color : was[1];
+    el.style.fontWeight = o.bold === true ? '700' : was[2];
+    el.style.textAlign = o.align === 'left' || o.align === 'center' || o.align === 'right' ? o.align : was[3];
+    el.style.fontFamily = typeof o.font === 'string' && FONTS.hasOwnProperty(o.font) ? FONTS[o.font] : was[4];
+    hideEl(el, o.hide === true, was[5], was[6]);
+  }
+  // the font chosen for the whole site (store.site.g.font) applies to every text that has none of its own
+  function withFont(o, font) {
+    if (!font || (isObj(o) && typeof o.font === 'string')) return o;
+    var out = { font: font }, k;
+    if (isObj(o)) for (k in o) if (Object.prototype.hasOwnProperty.call(o, k)) out[k] = o[k];
+    return out;
+  }
+  function frameImg(el, o) {
+    if (!isObj(o) && !el.hasAttribute('data-jeere-f')) return;
+    var was = kept(el, 'data-jeere-f', ['objectFit', 'objectPosition', 'opacity', 'display']);
+    o = isObj(o) ? o : {};
+    var pc = function (v) { return typeof v === 'number' && isFinite(v) && v >= 0 && v <= 100 ? Math.round(v) : null; };
+    var x = pc(o.x), y = pc(o.y);
+    el.style.objectFit = o.fit === 'cover' || o.fit === 'contain' ? o.fit : was[0];
+    el.style.objectPosition = x === null && y === null ? was[1] : (x === null ? 50 : x) + '% ' + (y === null ? 50 : y) + '%';
+    hideEl(el, o.hide === true, was[2], was[3]);
+  }
+  function linkTo(el, to) {
+    if (el.tagName !== 'A') return;
+    var ok = typeof to === 'string' && /^(https:\/\/[^\s"'<>]{3,500}|mailto:[^\s"'<>]{3,200}|tel:\+?[0-9 ]{4,20})$/.test(to);
+    if (!ok && !el.hasAttribute('data-jeere-k')) return;
+    if (!el.hasAttribute('data-jeere-k')) el.setAttribute('data-jeere-k', el.getAttribute('href') || '');
+    el.setAttribute('href', ok ? to : el.getAttribute('data-jeere-k'));
+  }
+  /* What she is working on stays framed in blue, with four small handles, until she picks something else. The
+   * frame is drawn over the page (it takes no room and catches no touch) and follows the page as it changes. */
+  var selEl = null, selBox = null;
+  function drawSel() {
+    if (!selBox) return;
+    if (!selEl || !document.documentElement.contains(selEl)) { selBox.style.display = 'none'; return; }
+    var r = selEl.getBoundingClientRect();
+    if (!r.width && !r.height) { selBox.style.display = 'none'; return; }
+    selBox.style.display = 'block';
+    selBox.style.left = Math.round(r.left + window.pageXOffset - 3) + 'px';
+    selBox.style.top = Math.round(r.top + window.pageYOffset - 3) + 'px';
+    selBox.style.width = Math.round(r.width + 6) + 'px';
+    selBox.style.height = Math.round(r.height + 6) + 'px';
+  }
+  function select(el) {
+    selEl = el || null;
+    if (!selBox) {
+      selBox = document.createElement('div');
+      selBox.setAttribute('data-jeere-sel', '');
+      selBox.setAttribute('style', 'position:absolute;z-index:2147483000;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:4px;pointer-events:none;display:none');
+      [['left', 'top'], ['right', 'top'], ['left', 'bottom'], ['right', 'bottom']].forEach(function (c) {
+        var h = document.createElement('i');
+        h.setAttribute('style', 'position:absolute;width:8px;height:8px;box-sizing:border-box;border:1.5px solid #3657FF;border-radius:2px;background:#fff;' + c[0] + ':-5px;' + c[1] + ':-5px');
+        selBox.appendChild(h);
+      });
+      document.body.appendChild(selBox);
+      window.addEventListener('resize', drawSel);
+      window.addEventListener('load', drawSel);
+      setInterval(drawSel, 400);      // pictures that arrive, a section that opens: the frame stays on its element
+    }
+    drawSel();
+  }
   function applySite(fiche) {
     var site = isObj(fiche.store) && isObj(fiche.store.site) ? fiche.store.site : {};
     var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {}, ll = isObj(site.l) ? site.l : {};
+    var xx = isObj(site.x) ? site.x : {}, ff = isObj(site.f) ? site.f : {}, kk = isObj(site.k) ? site.k : {};
+    var gfont = isObj(site.g) && typeof site.g.font === 'string' && FONTS.hasOwnProperty(site.g.font) ? site.g.font : '';
     try { applyCats(fiche); } catch (e) { /* the model's filters stay */ }
     try { applyLogo(fiche); } catch (e) { /* the model's name stays */ }
     // the sections she hides (in the editor they stay, greyed, so she can bring them back)
@@ -721,12 +805,14 @@
       if (x.kind === 'c') {
         if (!original[x.key]) original[x.key] = x.el.innerHTML;
         if (typeof cc[x.key] === 'string') x.el.textContent = cc[x.key]; else if (preview) x.el.innerHTML = original[x.key];
+        try { lookText(x.el, withFont(xx[x.key], gfont)); } catch (e) { /* the model's own look stays */ }
         return;
       }
       if (!original[x.key]) original[x.key] = x.kind === 't' ? x.el.innerHTML : { src: x.el.getAttribute('src'), srcset: x.el.getAttribute('srcset') };
       if (x.kind === 't') {
         if (typeof t[x.key] === 'string') x.el.textContent = t[x.key];
         else if (preview) x.el.innerHTML = original[x.key];
+        try { lookText(x.el, withFont(xx[x.key], gfont)); linkTo(x.el, kk[x.key]); } catch (e) { /* the model's own look stays */ }
       } else {
         var lk = photoLink(x.el), to = typeof ll[x.key.replace('|i|', '|l|')] === 'string' ? ll[x.key.replace('|i|', '|l|')] : '';
         if (lk) {
@@ -742,10 +828,12 @@
         var v = typeof im[x.key] === 'string' ? im[x.key] : '';
         if (v) { x.el.removeAttribute('srcset'); x.el.src = v; }
         else if (preview && original[x.key].src) { x.el.src = original[x.key].src; if (original[x.key].srcset) x.el.setAttribute('srcset', original[x.key].srcset); }
+        try { frameImg(x.el, ff[x.key]); } catch (e) { /* the model's own framing stays */ }
       }
     });
   }
   function pickOn() {
+    drawSel();
     if (editing) return;
     editing = true;
     var st = document.createElement('style');
@@ -770,10 +858,16 @@
     }, true);
     document.addEventListener('click', function (e) {
       var el = under(e);
-      if (!el) { var a = e.target && e.target.closest ? e.target.closest('a') : null; if (a) e.preventDefault(); return; }
+      if (!el) {
+        var a = e.target && e.target.closest ? e.target.closest('a') : null; if (a) e.preventDefault();
+        select(null);
+        try { window.parent.postMessage({ jeereNone: true }, parentOrigin || '*'); } catch (err) { /* not in the editor */ }
+        return;
+      }
       e.preventDefault(); e.stopPropagation();
       var x = keyed().filter(function (k) { return k.el === el; })[0];
       if (!x) return;
+      select(x.el);
       var big = x.el.getBoundingClientRect();
       try {
         window.parent.postMessage({ jeerePick: { key: x.key, kind: x.kind, ref: x.ref || '', sec: secOf(x.el, sections()), value: x.kind === 'i' ? (x.el.currentSrc || x.el.src) : (x.el.textContent || '').trim(),
@@ -812,6 +906,17 @@
           if (se) { try { se.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (er) { se.scrollIntoView(); } se.classList.add('jeere-hl'); setTimeout(function () { se.classList.remove('jeere-hl'); }, 1400); }
           return;
         }
+        if (isObj(e.data) && typeof e.data.jeereSelect === 'string') {
+          var want = e.data.jeereSelect, hit = null;
+          if (want) {
+            var one = keyed().filter(function (k) { return k.key === want; })[0];
+            if (one) hit = one.el;
+            else { var base1 = pagePath(); sections().forEach(function (el, n) { if (base1 + '|h|' + n === want) hit = el; }); }
+          }
+          if (hit && hit !== selEl && e.data.show) { try { hit.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (er) { hit.scrollIntoView(); } }
+          select(hit);
+          return;
+        }
         if (isObj(e.data) && typeof e.data.jeereFocus === 'string') {
           var f = keyed().filter(function (k) { return k.key === e.data.jeereFocus; })[0];
           if (f) { try { f.el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (er) { f.el.scrollIntoView(); } f.el.classList.add('jeere-hl'); setTimeout(function () { f.el.classList.remove('jeere-hl'); }, 1600); }
@@ -822,7 +927,7 @@
         parentOrigin = e.origin;
         inEditor = true;
         try { S.products = readFiche(e.data.fiche); S.status = 'ready'; remapSlots(e.data.fiche); drawSocial(e.data.fiche); if (prune()) saveCart(); bind(); render(); } catch (err) { /* the page keeps what it had */ }
-        try { brand(e.data.fiche); applySite(e.data.fiche); if (e.data.edit) pickOn(); sendMap(); } catch (err) { /* the page keeps what it had */ }
+        try { brand(e.data.fiche); applySite(e.data.fiche); if (e.data.edit) pickOn(); sendMap(); drawSel(); } catch (err) { /* the page keeps what it had */ }
         emit('jeere:update', { status: S.status, products: list() });
       });
       try { window.parent.postMessage({ jeereConnect: 'ready', store: slug }, '*'); } catch (e) { /* not framed by the editor */ }
