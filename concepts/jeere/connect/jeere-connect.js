@@ -470,6 +470,26 @@
    * Its photo: her product's; else the model's photo of that product when it has a card on the page; else a plain
    * light square (never the photo of another product). A card back on the model's product gets back all of it. */
   var NO_PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800"><rect width="640" height="800" fill="#F2F2EF"/><g fill="none" stroke="#C9C9C2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><rect x="250" y="330" width="140" height="120" rx="22"/><circle cx="290" cy="372" r="12"/><path d="M262 440l42-42 30 30 18-18 36 36"/></g></svg>');
+  /* « Plain »: on a seller's store, a photo of the model she has not replaced is a clean light frame of the same size
+     (in the editor it says where to put her photo); a product card with no product of hers is hidden on her shop.
+     The model's own demo (its gallery, the team's demo stores) keeps its photos. */
+  var PLAIN = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid slice"><rect width="1200" height="1200" fill="#D9D9D3"/></svg>');
+  var PLAIN_EDIT = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid slice"><rect width="1200" height="1200" fill="#E4E4DF"/><g transform="translate(600 560)"><circle r="54" fill="#FFFFFF" stroke="#D6D6D0" stroke-width="3"/><path d="M0 -20v40M-20 0h40" stroke="#6F6F68" stroke-width="5" stroke-linecap="round"/></g><text x="600" y="660" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="30" font-weight="500" fill="#6F6F68">Ajoutez votre photo</text></svg>');
+  function plainOn() { return !DEMO_STORES[inEditor ? (viewing || slug) : slug]; }
+  function plainSrc() { return inEditor ? PLAIN_EDIT : PLAIN; }
+  // a photo of the page that is a decoration of the model (a logo, an icon, an avatar) keeps its picture
+  function plainable(img) {
+    if (img.closest && img.closest('header, footer, [class*="logo"], [class*="avatar"], [class*="icon"]')) return false;
+    var r = img.getBoundingClientRect ? img.getBoundingClientRect() : null;
+    var w = (r && r.width) || img.naturalWidth || 0, h = (r && r.height) || img.naturalHeight || 0;
+    return !(w && w < 72) && !(h && h < 72);
+  }
+  function setPlain(img) {
+    var to = plainSrc();
+    if (img.getAttribute('src') !== to) { img.removeAttribute('srcset'); img.removeAttribute('sizes'); img.setAttribute('src', to); }
+    img.setAttribute('data-jeere-plain', '');
+    if (!img.style.objectFit) img.style.objectFit = 'cover';
+  }
   var LABELS = { best: 'Best-seller', new: 'Nouveau', promo: 'Promo' };
   function keepOrig(el) {
     if (!el.hasAttribute('data-jeere-o-text')) { el.setAttribute('data-jeere-o-text', el.textContent); el.setAttribute('data-jeere-o-display', el.style.display || ''); }
@@ -496,10 +516,20 @@
       var lines = $$('[class*="__cat"], [class*="__detail"], [class*="__matiere"], [class*="__meta"]', c).filter(function (e) { return !e.querySelector('[data-jeere-price], [data-jeere-name]'); });
       var olds = $$('[class*="__promo"], s', c);
       badges.concat(lines, olds).forEach(keepOrig);
+      // on her store, a case showing the model's demo product (none of hers in it): hidden on her shop, a plain
+      // frame in the editor (she chooses a product for it)
+      var demo = !p && plainOn() && !!S.products;
+      if (isCard(c)) {
+        if (demo && !inEditor) { if (!c.hasAttribute('data-jeere-plain-hid')) { c.setAttribute('data-jeere-plain-hid', c.style.display || ''); c.style.display = 'none'; } }
+        else if (c.hasAttribute('data-jeere-plain-hid')) { c.style.display = c.getAttribute('data-jeere-plain-hid'); c.removeAttribute('data-jeere-plain-hid'); }
+      }
+      if (demo && img) { setPlain(img); badges.concat(lines, olds).forEach(function (e) { e.style.display = 'none'; }); return; }
+      if (img && img.hasAttribute('data-jeere-plain')) img.removeAttribute('data-jeere-plain');
       if (!p || !moved) {
         badges.concat(lines, olds).forEach(backOrig);
         // the model's own product (or hers with no photo of its own): the model's photo, whatever was shown before
         img && img.removeAttribute('data-jeere-no-photo');
+        if (img && p && !p.image && plainOn()) { setPlain(img); return; }
         if (img && (!p || !p.image) && img.getAttribute('data-jeere-model-src') && img.getAttribute('src') !== img.getAttribute('data-jeere-model-src')) { img.removeAttribute('srcset'); img.setAttribute('src', img.getAttribute('data-jeere-model-src')); }
         return;
       }
@@ -515,7 +545,7 @@
       if (img && p.image) img.removeAttribute('data-jeere-no-photo');
       if (img && !p.image) {
         var own = document.querySelector(attrSel('data-jeere-slot-product', id) + ' img[data-jeere-model-src]');
-        var src = own && own !== img ? own.getAttribute('data-jeere-model-src') : NO_PHOTO;
+        var src = plainOn() ? plainSrc() : own && own !== img ? own.getAttribute('data-jeere-model-src') : NO_PHOTO;
         if (img.getAttribute('src') !== src) { img.removeAttribute('srcset'); img.removeAttribute('sizes'); img.setAttribute('src', src); }
         img.setAttribute('data-jeere-no-photo', src === NO_PHOTO ? '1' : '');
       }
@@ -1261,7 +1291,9 @@
           lk.setAttribute('href', href);
         }
         var v = typeof im[x.key] === 'string' ? im[x.key] : '';
-        if (v) { x.el.removeAttribute('srcset'); x.el.src = v; }
+        var inCard = x.el.hasAttribute('data-jeere-photo') && x.el.closest && x.el.closest('[data-jeere-product]');
+        if (v) { x.el.removeAttribute('srcset'); x.el.src = v; x.el.removeAttribute('data-jeere-plain'); }
+        else if (!inCard && plainOn() && plainable(x.el)) setPlain(x.el);
         // a product's photo comes from her product (render): the model's own picture is not put back over it
         else if (preview && original[x.key].src && !(x.el.hasAttribute('data-jeere-photo') && x.el.closest && x.el.closest('[data-jeere-product]'))) { x.el.src = original[x.key].src; if (original[x.key].srcset) x.el.setAttribute('srcset', original[x.key].srcset); }
         try { frameImg(x.el, ff[x.key]); } catch (e) { /* the model's own framing stays */ }
