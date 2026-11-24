@@ -16,6 +16,7 @@ import { editorSite, readSiteMap, sectionLook, sectionOrder, siteValue, withSect
 import { storeName, storeUrl, type Fiche } from '@/lib/stores';
 import { AddedInspector, ColorField, PhotoField, TextStyle } from './Extras';
 import { MobileEditor } from './MobileEditor';
+import { DESK_TOUR, PHONE_TOUR, TOUR_KEY, Tour } from './Tour';
 import { ADDED_KINDS, addedName, addedSections, hiddenItems, hiddenLabel, modelBySlug, withImageFrame, newAddedId, withAdded, withTextLook, type Added, type TextLook } from '@/lib/models';
 import styles from './editeur.module.css';
 
@@ -40,6 +41,10 @@ export default function EditorPage() {
   const [sel, setSel] = useState('');
   const [adding, setAdding] = useState(false);
   const [tip, setTip] = useState(false);
+  const [tour, setTour] = useState(false);
+  // the guided visit: by itself the first time on this device (or with ?visite=1), then from the « ? » of the bar
+  useEffect(() => { try { setTour(window.localStorage.getItem(TOUR_KEY) !== '1' || new URLSearchParams(window.location.search).get('visite') === '1'); } catch { setTour(true); } }, []);
+  const endTour = useCallback(() => { setTour(false); try { window.localStorage.setItem(TOUR_KEY, '1'); } catch { /* shown again next time */ } }, []);
   useEffect(() => { try { setTip(window.localStorage.getItem('jehre-editor-tip') !== '1'); } catch { setTip(true); } }, []);
   const [device, setDevice] = useState<Device>('desktop');
   const [phone, setPhone] = useState(false);
@@ -236,6 +241,7 @@ export default function EditorPage() {
   ) : null;
 
   const toasts = (<>
+      {tour && map ? <Tour steps={phone ? PHONE_TOUR : DESK_TOUR} onDone={endTour} /> : null}
       {problem === 'conflict' ? <Toast onDone={clear} ms={12000} action={<button type="button" onClick={() => void reload()}>Recharger</button>}>Votre boutique a changé entre-temps. Rien n’a été écrasé.</Toast> : null}
       {problem === 'network' ? <Toast onDone={clear} ms={8000}>Rien n’a été enregistré. Vérifiez votre connexion.</Toast> : null}
       {toast === 'live' && !problem ? <Toast onDone={() => setToast(null)} action={<a href={url} target="_blank" rel="noopener">Voir mon site</a>}>Votre site est en ligne · {url.replace(/^https:\/\//, '')}</Toast> : null}
@@ -244,7 +250,7 @@ export default function EditorPage() {
   if (phone) return (
     <MobileEditor published={store.published} pages={pages} path={path} goPage={goPage} canUndo={past.length > 0} canRedo={future.length > 0} undo={undo} redo={redo}
       busy={busy} dirty={dirty} save={(pub) => void save(pub)} site={site} frame={frame} map={map} sections={sections} draft={draft} change={change} moveSection={moveSection}
-      sel={sel} setSel={setSel} userId={account.userId} modelName={modelBySlug(modelSlug)?.name ?? model.name} booking={!!modelBySlug(modelSlug)?.rdv}>{toasts}</MobileEditor>
+      sel={sel} setSel={setSel} onHelp={() => setTour(true)} userId={account.userId} modelName={modelBySlug(modelSlug)?.name ?? model.name} booking={!!modelBySlug(modelSlug)?.rdv}>{toasts}</MobileEditor>
   );
 
   return (
@@ -260,23 +266,24 @@ export default function EditorPage() {
           {pages.length > 1 ? <Menu label="Page" options={pages.map((p) => ({ value: p.path, label: p.name }))} value={path} onChange={goPage} /> : <span className={styles.onePage}>{pageName}</span>}
         </div>
         <div className={styles.topRight}>
-          <div className={styles.devices} role="group" aria-label="Taille de l’aperçu" data-device={device}>
+          <div className={styles.devices} role="group" aria-label="Taille de l’aperçu" data-device={device} data-tour="devices">
             <span className={styles.devThumb} aria-hidden="true" />
             <button type="button" aria-pressed={wide} onClick={() => setDevice('desktop')} aria-label="Ordinateur"><Icon name="desktop" size={16} /><span>Ordinateur</span></button>
             <button type="button" aria-pressed={!wide} onClick={() => setDevice('phone')} aria-label="Téléphone"><Icon name="phone" size={16} /><span>Téléphone</span></button>
           </div>
-          <div className={styles.group}>
+          <div className={styles.group} data-tour="history">
             <button type="button" className={styles.icon} disabled={!past.length} onClick={undo} aria-label="Annuler"><Icon name="undo" size={18} /></button>
             <button type="button" className={styles.icon} disabled={!future.length} onClick={redo} aria-label="Rétablir"><Icon name="redo" size={18} /></button>
           </div>
           {store.published ? null : <Button className={styles.action} variant="secondary" disabled={!dirty || busy} onClick={() => void save(false)}>Enregistrer</Button>}
-          <Button className={styles.action} busy={busy} disabled={store.published && !dirty} onClick={() => void save(true)}>Publier</Button>
+          <button type="button" className={styles.icon} onClick={() => setTour(true)} aria-label="Revoir la visite de l’éditeur" title="Revoir la visite"><Icon name="info" size={18} /></button>
+          <span data-tour="publish" style={{ display: 'inline-flex' }}><Button className={styles.action} busy={busy} disabled={store.published && !dirty} onClick={() => void save(true)}>Publier</Button></span>
         </div>
       </header>
 
       <div className={styles.cols} data-open={(current || chosen) && !phone ? '' : undefined} data-left={leftOpen || phone ? '' : undefined} data-narrow={narrow ? '' : undefined}>
         {leftOpen || phone ? (
-        <aside className={styles.left} aria-label="Sections de la page">
+        <aside className={styles.left} aria-label="Sections de la page" data-tour="sections">
           <h2 className={styles.title}>{path === '' ? 'Page d’accueil' : `Page ${pageName}`}</h2>
           {sections.length > 5 ? <input className={styles.search} type="search" placeholder="Rechercher..." aria-label="Rechercher une section ou un texte" value={query} onChange={(e) => setQuery(e.target.value)} /> : null}
           {map ? (
@@ -338,7 +345,7 @@ export default function EditorPage() {
           ) : null}
           {map && !needle ? (
             <div className={styles.addBox}>
-              <button type="button" className={styles.add} aria-expanded={adding} aria-haspopup="menu" onClick={() => setAdding((v) => !v)}><Icon name="plus" size={14} /><span>Ajouter une section</span></button>
+              <button type="button" className={styles.add} data-tour="add" aria-expanded={adding} aria-haspopup="menu" onClick={() => setAdding((v) => !v)}><Icon name="plus" size={14} /><span>Ajouter une section</span></button>
               {adding ? (
                 <div className={styles.addMenu} role="menu" aria-label="Type de section">
                   {ADDED_KINDS.map((k) => <button key={k.type} type="button" role="menuitem" onClick={() => addSection(k.type)}>{k.name}</button>)}
@@ -350,13 +357,13 @@ export default function EditorPage() {
         ) : null}
 
         <div className={styles.stage} ref={stage} data-device={device} data-zoomed={zoom > 1 ? '' : undefined}>
-          <div className={styles.frameBox} style={{ width: Math.round(frameW * scale), height: Math.round(frameH) }} data-device={device}>
+          <div className={styles.frameBox} style={{ width: Math.round(frameW * scale), height: Math.round(frameH) }} data-device={device} data-tour="site">
             <iframe ref={frame} key={path} title="Votre site" src={site + path} width={frameW} height={Math.round(frameH / scale)} style={{ transform: `scale(${scale})` }} />
           </div>
         </div>
 
         {/* the one-line help: a small notice on top of the screen, over the site, closed for good with × */}
-        {tip && !phone ? (
+        {tip && !tour && !phone ? (
             <p className={styles.tip} role="note">
               <span>Cliquez sur un texte ou une photo pour le changer. Vos produits : <Link href="/admin/produits/"><b>Produits</b></Link>.</span>
               <button type="button" onClick={() => { setTip(false); try { window.localStorage.setItem('jehre-editor-tip', '1'); } catch { /* shown again next time */ } }} aria-label="Fermer cette aide"><Icon name="close" size={12} /></button>

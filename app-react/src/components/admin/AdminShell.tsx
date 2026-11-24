@@ -165,6 +165,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <ul className={styles.findList}>
             <li><a href="mailto:bonjour@jehre.com"><Icon name="mail" size={18} /><span>Écrire à l’équipe Jehre</span></a></li>
             <li><button type="button" onClick={() => { try { window.localStorage.removeItem('jehre-steps-hidden'); } catch { /* nothing kept */ } window.location.assign('/admin/'); }}><Icon name="check" size={18} /><span>Afficher les premiers pas</span></button></li>
+            <li><a href="/admin/editeur/?visite=1"><Icon name="edit" size={18} /><span>Revoir la visite de l’éditeur</span></a></li>
             <li><a href="/compte/"><Icon name="user" size={18} /><span>Mon compte</span></a></li>
           </ul>
         </Sheet>

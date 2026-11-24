@@ -31,6 +31,7 @@ export interface MobileEditorProps {
   change: (f: (d: Fiche) => Fiche, tag?: string) => void;
   moveSection: (n: number, to: number) => void;
   sel: string; setSel: (key: string) => void;
+  onHelp: () => void;
   userId: string;
   modelName: string;
   booking: boolean;
@@ -244,16 +245,17 @@ export function MobileEditor(p: MobileEditorProps) {
         <div className={styles.side}>
           <a className={styles.icon} href="/admin/" aria-label="Retour au tableau de bord"><Icon name="back" size={20} /></a>
           <button type="button" className={styles.icon} disabled={!p.canUndo} onClick={p.undo} aria-label="Annuler"><Icon name="undo" size={20} /></button>
-          <button type="button" className={styles.icon} disabled={!p.canRedo} onClick={p.redo} aria-label="Rétablir"><Icon name="redo" size={20} /></button>
+          <button type="button" className={styles.icon} disabled={!p.canRedo} onClick={p.redo} aria-label="Rétablir" data-tour="history"><Icon name="redo" size={20} /></button>
+          <button type="button" className={styles.icon} onClick={p.onHelp} aria-label="Revoir la visite de l’éditeur"><Icon name="info" size={20} /></button>
         </div>
         <div className={styles.side}>
           {p.pages.length > 1 ? <Menu label="Page" options={p.pages.map((x) => ({ value: x.path, label: x.name }))} value={p.path} onChange={p.goPage} /> : <span className={styles.onePage}>{pageName}</span>}
-          <Button className={styles.publish} busy={p.busy} disabled={p.published && !p.dirty} onClick={() => p.save(true)}>Publier</Button>
+          <span data-tour="publish" style={{ display: 'inline-flex' }}><Button className={styles.publish} busy={p.busy} disabled={p.published && !p.dirty} onClick={() => p.save(true)}>Publier</Button></span>
         </div>
       </header>
 
       <div className={styles.stage}>
-        <div className={styles.frame}><iframe ref={p.frame} key={p.path} title="Votre site" src={p.site + p.path} /></div>
+        <div className={styles.frame} data-tour="site"><iframe ref={p.frame} key={p.path} title="Votre site" src={p.site + p.path} /></div>
       </div>
 
       {drawer ? (
@@ -264,7 +266,7 @@ export function MobileEditor(p: MobileEditorProps) {
       ) : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
-      <nav className={styles.bar} aria-label={mode === 'site' ? 'Outils du site' : `Outils : ${what}`}>
+      <nav className={styles.bar} data-tour="bar" aria-label={mode === 'site' ? 'Outils du site' : `Outils : ${what}`}>
         <div className={styles.tools} key={mode + (item?.key ?? section?.key ?? '')} data-context={mode === 'site' ? undefined : ''}>
           {mode === 'services' ? <p className={styles.barNote}>Vos prestations se gèrent dans <a href="/admin/prestations/"><b>Prestations</b></a>.</p> : null}
           {tools.map((t) => (

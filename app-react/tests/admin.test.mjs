@@ -34,6 +34,8 @@ const orders = (sid) => [
 async function open(browser, viewport, world, { logged = true } = {}) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2 });
   if (logged) await ctx.addInitScript((s) => { window.localStorage.setItem('sb-aezchxfvzfoqlvzchqyk-auth-token', JSON.stringify(s)); }, session());
+  // the guided visit of the editor has its own test: elsewhere she has already seen it
+  if (!world.firstVisit) await ctx.addInitScript(() => { window.localStorage.setItem('jehre-editor-tour', '1'); });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -878,6 +880,48 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   assert.deepEqual(Object.values(saved.x), [{ btn: 'fill', round: true, fill: '#1E6FE0' }]);
   assert.deepEqual(Object.values(saved.s), [{ bg: '#FFE9F1' }]);
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor: the first time, a guided visit shows how it works (computer and phone); it can be skipped, and seen again from the « ? »', async () => {
+  const w = withModel(world({ firstVisit: true }), 'michou'); const { page, ctx, errors } = await open(browser, { width: 1440, height: 900 }, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const tour = page.getByRole('dialog', { name: /^Visite de l’éditeur/ });
+  await tour.waitFor({ timeout: 60000 });
+  const seen = [];
+  for (let i = 0; i < 7; i++) {
+    await page.waitForTimeout(350);
+    seen.push(await tour.locator('h2').innerText());
+    const card = await tour.locator('h2').locator('xpath=..').boundingBox();
+    assert.ok(card.x >= 0 && card.y >= 0 && card.x + card.width <= 1440 && card.y + card.height <= 900, `step ${i + 1}: the card is whole on the screen`);
+    if (i === 2) { const lp = await page.getByRole('complementary', { name: 'Sections de la page' }).boundingBox(); assert.ok(card.x >= lp.x + lp.width, 'the card is beside the panel it explains, not over it'); }
+    if (i === 2) await page.screenshot({ path: `${SHOTS}65-visite-ordinateur.png` });
+    await tour.getByRole('button', { name: i === 6 ? 'C’est parti' : 'Suivant' }).click();
+  }
+  assert.deepEqual(seen, ['Bienvenue dans votre éditeur', 'Cliquez pour changer', 'Les sections de la page', 'Ajouter une section', 'Ordinateur ou téléphone', 'Une erreur ? Annulez', 'Publier']);
+  await tour.waitFor({ state: 'detached' });
+  assert.equal(await page.evaluate(() => localStorage.getItem('jehre-editor-tour')), '1');
+  await page.reload();
+  await page.getByRole('complementary', { name: 'Sections de la page' }).getByRole('list').first().waitFor({ timeout: 60000 });
+  await page.waitForTimeout(500); assert.equal(await tour.count(), 0, 'seen once, it does not come back by itself');
+  await page.getByRole('button', { name: 'Revoir la visite de l’éditeur' }).click();
+  await tour.waitFor(); await tour.getByRole('button', { name: 'Passer la visite' }).click(); await tour.waitFor({ state: 'detached' });
+  assert.deepEqual(errors, []); await ctx.close();
+  // on a phone: its own words (toucher, the bar of tools), the card whole on the screen
+  const o = await open(browser, PHONE, withModel(world({ firstVisit: true }), 'michou'));
+  await o.page.goto(`${BASE}/admin/editeur/`);
+  const t2 = o.page.getByRole('dialog', { name: /^Visite de l’éditeur/ });
+  await t2.waitFor({ timeout: 60000 });
+  const names = [];
+  for (let i = 0; i < 5; i++) {
+    await o.page.waitForTimeout(350);
+    names.push(await t2.locator('h2').innerText());
+    const card = await t2.locator('h2').locator('xpath=..').boundingBox();
+    assert.ok(card.x >= 0 && card.y >= 0 && card.x + card.width <= 390 && card.y + card.height <= 844, `phone step ${i + 1}: the card is whole on the screen`);
+    if (i === 1) await o.page.screenshot({ path: `${SHOTS}66-visite-telephone.png` });
+    await t2.getByRole('button', { name: i === 4 ? 'C’est parti' : 'Suivant' }).click();
+  }
+  assert.deepEqual(names, ['Bienvenue dans votre éditeur', 'Touchez pour changer', 'Les outils du site', 'Une erreur ? Annulez', 'Publier']);
+  await noOverflow(o.page); assert.deepEqual(o.errors, []); await o.ctx.close();
 });
 
 await test('editor on a phone: a thin bar, her site on the whole screen, one bar of tools at the bottom that becomes the tools of what she touches', async () => {
