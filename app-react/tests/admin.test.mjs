@@ -1859,10 +1859,26 @@ await test('Branding: logo, colours and shape of the buttons for the whole site,
   const look = await btn.evaluate((n) => { const c = getComputedStyle(n); return [c.borderTopLeftRadius, c.backgroundColor]; });
   assert.deepEqual(look, ['0px', 'rgba(0, 0, 0, 0)'], 'the buttons of her site are square and outlined at once');
   await page.screenshot({ path: `${SHOTS}80-branding.png` });
+  // the fonts: the 33 of Jehre in five styles, for the titles and for the texts, applied to her whole site
+  // one compact field each: a menu drops down, by style, each name in its own font
+  await page.getByRole('region', { name: 'Polices' }).getByRole('button', { name: /^Titres/ }).click();
+  await page.getByRole('listbox', { name: 'Titres' }).getByRole('option', { name: 'Bodoni Moda' }).click();
+  assert.equal(await page.getByRole('listbox').count(), 0, 'the menu closes on a choice');
+  await page.getByRole('region', { name: 'Polices' }).getByRole('button', { name: /^Textes/ }).click();
+  const textList = page.getByRole('listbox', { name: 'Textes' });
+  assert.equal(await textList.getByRole('group', { name: 'Manuscrit' }).count(), 0, 'no handwritten font for paragraphs');
+  await page.waitForTimeout(400); await page.screenshot({ path: `${SHOTS}81-branding-polices-menu.png` });
+  await textList.getByRole('option', { name: 'DM Sans' }).click();
+  await page.waitForTimeout(500);
+  const fonts = await site.locator('body').evaluate(() => [getComputedStyle(document.querySelector('h1, h2')).fontFamily, getComputedStyle(document.querySelector('p')).fontFamily, document.getElementById('jeere-brand-fonts')?.getAttribute('href') ?? '']);
+  assert.match(fonts[0], /Bodoni Moda/); assert.match(fonts[1], /DM Sans/);
+  assert.match(fonts[2], /^https:\/\/fonts\.googleapis\.com\/css2\?family=Bodoni\+Moda:wght@[\d;]+&family=DM\+Sans:wght@[\d;]+&display=swap$/);
+  await page.getByRole('region', { name: 'Polices' }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${SHOTS}81-branding-polices.png` });
   await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
   await page.getByText(/C’est enregistré/).waitFor();
   const saved = w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').pop();
-  assert.deepEqual(saved.body.fiche.store.site.b, { shape: 'square', btnStyle: 'outline' });
+  assert.deepEqual(saved.body.fiche.store.site.b, { shape: 'square', btnStyle: 'outline', headFont: 'bodoni-moda', textFont: 'dm-sans' });
   assert.equal(JSON.stringify(saved.body.fiche.products), JSON.stringify(w.stores[0].fiche.products), 'her products travel untouched');
   // the menu and the editor lead there
   await page.goto(`${BASE}/admin/editeur/`);

@@ -1,0 +1,17 @@
+/* One compact field (the font written in itself, a chevron); its menu drops down under it, in light glass,
+   grouped by style, each name in its own font. */
+.field { position: relative; display: grid; gap: 6px; }
+.label { font: 500 var(--fs-sm)/1.3 var(--font); color: var(--ink); }
+.trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: var(--ctl); padding: 0 12px; border: 0; border-radius: var(--r-sm); background: var(--white); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink); font-size: 16px; text-align: left; cursor: pointer; }
+.trigger > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trigger:hover { box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .4); }
+.trigger[aria-expanded="true"] { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.trigger > svg { flex: none; color: var(--muted); }
+.menu { position: absolute; z-index: 40; left: 0; right: 0; top: calc(100% + 6px); max-height: 320px; overflow-y: auto; padding: 6px; border-radius: 14px; background: var(--white); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 18px 40px -18px rgba(17, 17, 17, .35); animation: drop .16s var(--ease) both; scrollbar-width: thin; }
+.group { margin: 8px 8px 2px; color: var(--muted); font: 500 11px/1.3 var(--font); letter-spacing: .04em; text-transform: uppercase; }
+.menu button { display: block; width: 100%; padding: 8px 10px; border: 0; border-radius: 8px; background: none; color: var(--ink); font-size: 16px; line-height: 1.2; text-align: left; cursor: pointer; }
+.menu button:hover { background: var(--grey-1); }
+.menu button[aria-selected="true"] { background: var(--ink); color: var(--white); }
+.menu .model { font: 500 13px/1.2 var(--font); }
+@keyframes drop { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .menu { animation: none; } }

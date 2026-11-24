@@ -6,6 +6,7 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { useSave } from '@/components/admin/useSave';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
+import { FontPicker, useSiteFonts } from '@/components/ui/FontPicker';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
 import { brandOf, editorSite, MODEL_COLORS, withBrand, type Brand } from '@/lib/models';
@@ -14,7 +15,7 @@ import type { Fiche } from '@/lib/stores';
 import { ColorField, PhotoField } from '../editeur/Extras';
 import styles from './branding.module.css';
 
-const SHAPES: [Brand['shape'] | undefined, string, string][] = [[undefined, 'Modèle', ''], ['square', 'Carré', '0px'], ['round', 'Arrondi', '10px'], ['pill', 'Pilule', '9999px']];
+const SHAPES: [Brand['shape'] | undefined, string, string][] = [['square', 'Carré', '0px'], ['round', 'Arrondi', '10px'], ['pill', 'Pilule', '9999px']];
 const STYLES: [Brand['btnStyle'] | undefined, string][] = [[undefined, 'Plein'], ['outline', 'Contour']];
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -26,6 +27,7 @@ export default function BrandingPage() {
   const { busy, problem, saved, write, clear } = useSave();
   const [draft, setDraft] = useState<Fiche | null>(null);
   const frame = useRef<HTMLIFrameElement>(null);
+  useSiteFonts();
   useEffect(() => { if (store) setDraft(store.fiche); }, [store?.id, store?.updated_at]);   // eslint-disable-line react-hooks/exhaustive-deps
   const site = useMemo(() => (store ? editorSite(store.slug, modelSlug) : null), [store?.slug, modelSlug]);   // eslint-disable-line react-hooks/exhaustive-deps
   const origin = site ? new URL(site.url).origin : '';
@@ -53,7 +55,7 @@ export default function BrandingPage() {
 
   return (
     <>
-      <PageHead title="Branding" sub="Votre logo, vos couleurs et vos boutons, pour tout votre site."
+      <PageHead title="Branding" sub="Votre logo, vos couleurs, vos polices et vos boutons, pour tout votre site."
         action={<Button busy={busy} disabled={!dirty} onClick={() => void write(draft)}>Enregistrer</Button>} />
       {saved ? <div className={styles.note}><Notice tone="ok">{store.published ? 'C’est enregistré : votre site en ligne a changé.' : 'C’est enregistré. Publiez votre site depuis l’éditeur.'}</Notice></div> : null}
       {problem ? <div className={styles.note}><Notice tone="error">{problem === 'conflict' ? 'Votre boutique a changé entre-temps. Rechargez la page.' : 'Rien n’a été enregistré. Vérifiez votre connexion.'}</Notice></div> : null}
@@ -74,6 +76,12 @@ export default function BrandingPage() {
             <ColorField key={`mu${store.id}`} label="Textes secondaires" value={b.muted ?? ''} onChange={(v) => set({ muted: v })} />
             <ColorField key={`ac${store.id}`} label="Accent (liens)" value={b.accent ?? ''} onChange={(v) => set({ accent: v })} />
           </section></ColorPalette>
+
+          <section className={styles.card} aria-label="Polices">
+            <h2><Icon name="edit" size={18} />Polices</h2>
+            <FontPicker label="Titres" value={b.headFont} onChange={(v) => set({ headFont: v })} />
+            <FontPicker label="Textes" value={b.textFont} textOnly onChange={(v) => set({ textFont: v })} />
+          </section>
 
           <section className={styles.card} aria-label="Boutons">
             <h2><Icon name="edit" size={18} />Boutons</h2>
