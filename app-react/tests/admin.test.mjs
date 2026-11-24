@@ -2177,6 +2177,46 @@ await test('a product with several photos: on its page, small photos under the b
   assert.deepEqual(errors.filter((e) => !/net::|Failed to load resource/.test(e)), []); await ctx.close();
 });
 
+await test('a card given another product (SÈVE): its label, its small line and its photo follow the product; back on the model’s, all of it comes back', async () => {
+  const w = withModel(world(), 'seve');
+  w.stores[0].fiche.products.push({ id: 'deo-bergamote', name: 'Déodorant Bergamote', price: 7000, category: 'Corps', description: '', badge: '', image: null, photo: null });
+  w.stores[0].fiche.products.push({ id: 'huile-ricin', name: 'Huile de ricin', price: 5000, category: 'Cheveux', description: '', badge: 'new', image: 'https://aezchxfvzfoqlvzchqyk.supabase.co/storage/v1/object/public/store-media/x/ricin.webp', photo: null });
+  const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-product][data-jeere-pickable]').first().waitFor({ state: 'attached', timeout: 60000 });
+  const card = site.locator('[data-jeere-slot-product="p1"], [data-jeere-product="p1"]').first();
+  await card.scrollIntoViewIfNeeded(); await page.waitForTimeout(900);
+  const read = () => card.evaluate((c) => {
+    const vis = (e) => !!e && getComputedStyle(e).display !== 'none';
+    const badge = c.querySelector('[class*="badge"]'), line = c.querySelector('[class*="__cat"]'), img = c.querySelector('img');
+    return { name: c.querySelector('[data-jeere-name]')?.textContent.trim(), badge: vis(badge) ? badge.textContent.trim() : null, line: vis(line) ? line.textContent.trim() : null, photo: img.getAttribute('src').startsWith('data:image/svg') ? 'vide' : img.getAttribute('src').split('/').pop() };
+  });
+  const model = await read();
+  const tools = page.getByRole('navigation', { name: /^Outils : / });
+  const choose = async (name) => {
+    await card.locator('img').first().click({ force: true });
+    await tools.getByRole('button', { name: 'Produit', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Produit de cette case' }).getByLabel('Produit').selectOption(name);
+    await page.getByRole('dialog', { name: 'Produit de cette case' }).getByRole('button', { name: 'Fermer' }).click();
+    await tools.getByRole('button', { name: 'Terminer' }).click();
+    await page.waitForTimeout(700);
+  };
+  // a product with no photo and no label: no label, her category, a plain square (never the photo of another product)
+  await choose('Déodorant Bergamote');
+  assert.deepEqual(await read(), { name: 'Déodorant Bergamote', badge: null, line: 'Corps', photo: 'vide' });
+  await page.screenshot({ path: `${SHOTS}113-carte-autre-produit.png` });
+  // a product with its photo and « Nouveau »
+  await choose('Huile de ricin');
+  assert.deepEqual(await read(), { name: 'Huile de ricin', badge: 'Nouveau', line: 'Cheveux', photo: 'ricin.webp' });
+  await page.screenshot({ path: `${SHOTS}114-carte-produit-photo.png` });
+  // back on the model's product: the card is exactly the model's again
+  await choose('Beurre de karité brut');   // her product with the case's own number: the model's card
+  const back = await read();
+  assert.deepEqual({ badge: back.badge, line: back.line, photo: back.photo }, { badge: model.badge, line: model.line, photo: model.photo });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);

@@ -275,7 +275,7 @@ export function MobileEditor(p: MobileEditorProps) {
     const none = 'Masquer cette case', keep = 'Produit du modèle', now = slots[item.ref] ?? item.ref, mine = products.find((x) => x.id === now);
     drawer = { title: 'Produit de cette case', body: <>
       <p className={styles.badge}><Icon name="tag" size={14} />Cette carte → {now === '-' ? 'masquée' : mine ? `Produit ${mine.name || mine.id}` : 'Produit du modèle'}</p>
-      <Select label="Produit" options={[...products.map((x) => x.name || x.id), ...(mine || now === '-' ? [] : [keep]), none]} value={now === '-' ? none : mine ? mine.name || mine.id : keep}
+      <Select label="Produit" options={[...products.map((x) => x.name || x.id), ...(products.some((x) => x.id === item.ref) ? [] : [keep]), none]} value={now === '-' ? none : mine ? mine.name || mine.id : keep}
         onChange={(e) => change((d) => withSlot(d, item.ref, e.target.value === none ? '-' : products.find((x) => (x.name || x.id) === e.target.value)?.id ?? item.ref))} />
       <p className={styles.hint}>Vos produits se gèrent et se modifient dans <a href={mine ? `/admin/produits/?produit=${encodeURIComponent(mine.id)}` : '/admin/produits/'}><b>Produits</b></a>.</p>
     </> };

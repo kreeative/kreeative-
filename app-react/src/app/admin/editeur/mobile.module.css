@@ -92,6 +92,9 @@
   background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 8px 20px -12px rgba(17, 17, 17, .3);
   color: var(--muted); font: 400 11px/14px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; animation: hintIn var(--dur-in) var(--ease); }
 .chip { color: var(--ink); font-weight: 500; }
+/* the hint says it once, then steps aside: it never stays over the top of her site */
+.hint0 { animation: hintIn var(--dur-in) var(--ease), hintOut .5s var(--ease) 4s forwards; }
+@keyframes hintOut { to { opacity: 0; visibility: hidden; } }
 @keyframes hintIn { from { opacity: 0; transform: translate(-50%, -4px); } }
 .badge { display: inline-flex; align-items: center; gap: 6px; justify-self: start; margin: 0; padding: 4px 10px; border-radius: 999px; background: var(--grey-1); color: var(--ink); font: 500 12px/16px var(--font); }
-@media (prefers-reduced-motion: reduce) { .hint0, .chip { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .chip { animation: none; } .hint0 { animation: hintOut 0s linear 4s forwards; } }

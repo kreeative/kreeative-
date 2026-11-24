@@ -577,7 +577,7 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
             const label = now === '-' ? none : mine ? mine.name || mine.id : keep;
             return (
               <div key={x.key} data-site-key={x.key}>
-                <Select label={`Case ${i + 1}`} options={[...names, ...(mine || now === '-' ? [] : [keep]), none]} value={label}
+                <Select label={`Case ${i + 1}`} options={[...names, ...(products.some((x) => x.id === x.ref) ? [] : [keep]), none]} value={label}
                   onChange={(e) => onSlot(x.ref, e.target.value === none ? '-' : products.find((p) => (p.name || p.id) === e.target.value)?.id ?? x.ref)} />
               </div>
             );
