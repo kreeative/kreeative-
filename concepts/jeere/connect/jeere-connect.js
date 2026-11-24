@@ -137,7 +137,7 @@
         (stock && toInt(stock[p.id]) === 0);
       map[p.id] = {
         id: p.id, name: str(p.name).trim(), price: price === null || price < 0 ? null : price,
-        description: str(p.description).trim(), image: httpsImg(p.image), available: !off, badge: str(p.badge)
+        description: str(p.description).trim(), image: httpsImg(p.image) || (Array.isArray(p.images) ? httpsImg(p.images[0]) : ''), images: (Array.isArray(p.images) ? p.images : [p.image]).map(httpsImg).filter(Boolean).slice(0, 8), available: !off, badge: str(p.badge)
       };
     });
     return map;
@@ -340,6 +340,7 @@
         el.setAttribute('src', p.image);
       }
     });
+    try { galleries(); } catch (e) { /* the page keeps its one photo */ }
     $$('[data-jeere-add]').filter(outsideLines).forEach(function (b) {
       var id = idOf(b, 'data-jeere-add');
       if (!id) return;
@@ -450,6 +451,43 @@
     $$('[data-jeere-social-fallback]').forEach(function (el) { el.hidden = !!nets.length; });
   }
 
+  /* A product page (the product is the page itself, not a card in a list) whose product has several photos: under
+   * the big photo, a row of small ones; touching one shows it big. Drawn with plain elements, in the page's own
+   * look (no colour of ours), and removed when the product has one photo again. */
+  function galleries() {
+    $$('[data-jeere-gallery]').forEach(function (g) { g.parentNode && g.parentNode.removeChild(g); });
+    // the product of a product page: the page itself (MICHOU's <main>), or the first product of a page under /produits/
+    var pages = $$('main[data-jeere-product], [data-jeere-product][data-jeere-page]');
+    if (!pages.length && /\/produits?\/[^/]+\/?$/.test(location.pathname)) { var first = document.querySelector('[data-jeere-product]'); if (first) pages = [first]; }
+    pages.forEach(function (page) {
+      var p = S.products && S.products[page.getAttribute('data-jeere-product')];
+      var big = page.querySelector('img[data-jeere-photo]');
+      if (!p || !big || !p.images || p.images.length < 2) return;
+      var row = document.createElement('div');
+      row.setAttribute('data-jeere-gallery', '');
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', 'Photos du produit');
+      row.setAttribute('style', 'display:flex;gap:8px;margin:12px 0 0;padding:2px 16px 4px;overflow-x:auto;scrollbar-width:none');
+      p.images.forEach(function (src, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', 'Photo ' + (i + 1) + ' sur ' + p.images.length);
+        b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+        b.setAttribute('style', 'flex:none;width:64px;height:64px;padding:0;border:0;border-radius:10px;overflow:hidden;background:transparent;cursor:pointer;opacity:' + (i === 0 ? '1' : '.6') + ';outline:' + (i === 0 ? '1.5px solid currentColor' : '0') + ';outline-offset:2px');
+        var im = document.createElement('img');
+        im.src = src; im.alt = ''; im.loading = 'lazy';
+        im.setAttribute('style', 'display:block;width:100%;height:100%;object-fit:cover');
+        b.appendChild(im);
+        b.addEventListener('click', function () {
+          big.removeAttribute('srcset'); big.removeAttribute('sizes'); big.setAttribute('src', src);
+          Array.prototype.forEach.call(row.children, function (o) { var on = o === b; o.setAttribute('aria-pressed', on ? 'true' : 'false'); o.style.opacity = on ? '1' : '.6'; o.style.outline = on ? '1.5px solid currentColor' : '0'; });
+        });
+        row.appendChild(b);
+      });
+      var holder = big.parentElement && big.parentElement !== page ? big.parentElement : big;
+      holder.parentNode.insertBefore(row, holder.nextSibling);
+    });
+  }
   function render() {
     var d = cartDetail();
     $$('[data-jeere-count]').forEach(function (el) { el.textContent = String(d.count); });
@@ -511,7 +549,7 @@
   var INLINE = { B: 1, I: 1, EM: 1, STRONG: 1, BR: 1, SMALL: 1, U: 1, SPAN: 1 };
   var original = {}, editing = false, parentOrigin = '';
   function pagePath() { var p = location.pathname.replace(/^\/concepts\/[a-z0-9-]+/, '').replace(/index\.html$/, ''); return p ? (p.charAt(p.length - 1) === '/' ? p : p + '/') : '/'; }
-  function skip(el) { return !!(el.closest && el.closest('[data-jeere-added], [data-jeere-note], label.paiement, [data-pay], .concept, .concept-bar, .avis__note-exemple, script, style, noscript, [data-jeere-lines], [data-jeere-price], [data-jeere-name], [data-jeere-count], [data-jeere-total], [data-jeere-services], [data-jeere-social], .jb, [hidden]')); }
+  function skip(el) { return !!(el.closest && el.closest('[data-jeere-added], [data-jeere-note], [data-jeere-gallery], label.paiement, [data-pay], .concept, .concept-bar, .avis__note-exemple, script, style, noscript, [data-jeere-lines], [data-jeere-price], [data-jeere-name], [data-jeere-count], [data-jeere-total], [data-jeere-services], [data-jeere-social], .jb, [hidden]')); }
   function editTexts() {
     return $$(TEXT_SEL).filter(function (el) {
       if (skip(el)) return false;
@@ -1157,7 +1195,8 @@
         }
         var v = typeof im[x.key] === 'string' ? im[x.key] : '';
         if (v) { x.el.removeAttribute('srcset'); x.el.src = v; }
-        else if (preview && original[x.key].src) { x.el.src = original[x.key].src; if (original[x.key].srcset) x.el.setAttribute('srcset', original[x.key].srcset); }
+        // a product's photo comes from her product (render): the model's own picture is not put back over it
+        else if (preview && original[x.key].src && !(x.el.hasAttribute('data-jeere-photo') && x.el.closest && x.el.closest('[data-jeere-product]'))) { x.el.src = original[x.key].src; if (original[x.key].srcset) x.el.setAttribute('srcset', original[x.key].srcset); }
         try { frameImg(x.el, ff[x.key]); } catch (e) { /* the model's own framing stays */ }
       }
     });
