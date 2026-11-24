@@ -497,7 +497,7 @@
   var INLINE = { B: 1, I: 1, EM: 1, STRONG: 1, BR: 1, SMALL: 1, U: 1, SPAN: 1 };
   var original = {}, editing = false, parentOrigin = '';
   function pagePath() { var p = location.pathname.replace(/^\/concepts\/[a-z0-9-]+/, '').replace(/index\.html$/, ''); return p ? (p.charAt(p.length - 1) === '/' ? p : p + '/') : '/'; }
-  function skip(el) { return !!(el.closest && el.closest('.concept, .concept-bar, .avis__note-exemple, script, style, noscript, [data-jeere-lines], [data-jeere-price], [data-jeere-name], [data-jeere-count], [data-jeere-total], [data-jeere-services], [data-jeere-social], .jb, [hidden]')); }
+  function skip(el) { return !!(el.closest && el.closest('[data-jeere-added], .concept, .concept-bar, .avis__note-exemple, script, style, noscript, [data-jeere-lines], [data-jeere-price], [data-jeere-name], [data-jeere-count], [data-jeere-total], [data-jeere-services], [data-jeere-social], .jb, [hidden]')); }
   function editTexts() {
     return $$(TEXT_SEL).filter(function (el) {
       if (skip(el)) return false;
@@ -718,7 +718,7 @@
   }
   function lookText(el, o) {
     if (!isObj(o) && !el.hasAttribute('data-jeere-x')) return;
-    var was = kept(el, 'data-jeere-x', ['fontSize', 'color', 'fontWeight', 'textAlign', 'fontFamily', 'opacity', 'display']);
+    var was = kept(el, 'data-jeere-x', ['fontSize', 'color', 'fontWeight', 'textAlign', 'fontFamily', 'opacity', 'display', 'borderRadius', 'background', 'border', 'padding']);
     o = isObj(o) ? o : {};
     var size = typeof o.size === 'number' && isFinite(o.size) && o.size >= 8 && o.size <= 160 ? Math.round(o.size) : null;
     el.style.fontSize = size === null ? was[0] : size + 'px';
@@ -727,6 +727,16 @@
     el.style.textAlign = o.align === 'left' || o.align === 'center' || o.align === 'right' ? o.align : was[3];
     el.style.fontFamily = typeof o.font === 'string' && FONTS.hasOwnProperty(o.font) ? FONTS[o.font] : was[4];
     hideEl(el, o.hide === true, was[5], was[6]);
+    if (el.tagName === 'A' || el.tagName === 'BUTTON') {
+      var bare = false; try { bare = parseFloat(window.getComputedStyle(el).paddingLeft) < 6; } catch (e) { bare = false; }
+      var fill = hexColor(o.fill) ? o.fill : '#111111', dark = parseInt(fill.slice(1, 3), 16) * 0.299 + parseInt(fill.slice(3, 5), 16) * 0.587 + parseInt(fill.slice(5, 7), 16) * 0.114 < 150;
+      el.style.borderRadius = o.round === true ? '999px' : was[7];
+      el.style.background = o.btn === 'fill' ? fill : o.btn === 'outline' ? 'transparent' : was[8];
+      el.style.border = o.btn === 'fill' ? '1.5px solid ' + fill : o.btn === 'outline' ? '1.5px solid currentColor' : was[9];
+      if (o.btn === 'fill' && !hexColor(o.color)) el.style.color = dark ? '#FFFFFF' : '#111111';
+      el.style.padding = (o.btn === 'fill' || o.btn === 'outline') && (bare || el.getAttribute('data-jeere-pad')) ? '12px 22px' : was[10];
+      if ((o.btn === 'fill' || o.btn === 'outline') && bare) el.setAttribute('data-jeere-pad', '1');
+    }
   }
   // the font chosen for the whole site (store.site.g.font) applies to every text that has none of its own
   function withFont(o, font) {
@@ -745,12 +755,110 @@
     el.style.objectPosition = x === null && y === null ? was[1] : (x === null ? 50 : x) + '% ' + (y === null ? 50 : y) + '%';
     hideEl(el, o.hide === true, was[2], was[3]);
   }
+  function siteBase() { var m = /^\/concepts\/[a-z0-9-]+\//.exec(location.pathname); return m ? m[0] : '/'; }
+  /* Where a link goes: « page:<path>[#part] » (a page of this site), « p:<id> » (one of her products), or an
+   * https / mailto / tel address. Anything else gives '' (the model's own link stays). */
+  function resolveLink(to) {
+    if (typeof to !== 'string') return '';
+    if (/^(https:\/\/[^\s"'<>]{3,500}|mailto:[^\s"'<>]{3,200}|tel:\+?[0-9 ]{4,20})$/.test(to)) return to;
+    if (/^page:[a-z0-9\-\/]{0,80}(#[a-z0-9\-]{1,80})?$/.test(to)) return siteBase() + to.slice(5);
+    if (/^p:[A-Za-z0-9_\-]{1,64}$/.test(to)) {
+      var pa = document.querySelector(attrSel('data-jeere-product', to.slice(2)) + ' a[href]:not([href^="#"])');
+      return pa ? pa.getAttribute('href') : '';
+    }
+    return '';
+  }
   function linkTo(el, to) {
     if (el.tagName !== 'A') return;
-    var ok = typeof to === 'string' && /^(https:\/\/[^\s"'<>]{3,500}|mailto:[^\s"'<>]{3,200}|tel:\+?[0-9 ]{4,20})$/.test(to);
-    if (!ok && !el.hasAttribute('data-jeere-k')) return;
+    var href = resolveLink(to);
+    if (!href && !el.hasAttribute('data-jeere-k')) return;
     if (!el.hasAttribute('data-jeere-k')) el.setAttribute('data-jeere-k', el.getAttribute('href') || '');
-    el.setAttribute('href', ok ? to : el.getAttribute('data-jeere-k'));
+    el.setAttribute('href', href || el.getAttribute('data-jeere-k'));
+  }
+  /* The sections SHE adds to a page (store.site.a[<page>] = [{ id, type, after, title, body, img, cta, href,
+   * items }]): a text, a text beside a picture, a banner, her products, reviews, questions. Drawn here with plain
+   * elements (never her text as code), placed after the model's section number `after`, in the model's own
+   * fonts. They are not the model's: they take no number, so every text of the model keeps its own. */
+  var addedKey = '';
+  function mk(tag, style, text) { var e = document.createElement(tag); if (style) e.setAttribute('style', style); if (text !== undefined && text !== null) e.textContent = String(text); return e; }
+  function buildAdded(a) {
+    var t = str(a.type), title = str(a.title).slice(0, 200), body = str(a.body).slice(0, 1200), img = httpsImg(a.img), items = Array.isArray(a.items) ? a.items.slice(0, 8) : [];
+    var sec = mk('section', 'box-sizing:border-box;width:100%;padding:72px 24px');
+    var wrap = mk('div', 'box-sizing:border-box;max-width:1080px;margin:0 auto');
+    sec.appendChild(wrap);
+    var h = function (center) { return title ? mk('h2', 'margin:0 0 16px;' + (center ? 'text-align:center' : ''), title) : null; };
+    var put = function (parent, node) { if (node) parent.appendChild(node); };
+    if (t === 'text') {
+      wrap.style.maxWidth = '720px'; wrap.style.textAlign = 'center';
+      put(wrap, h(true)); if (body) wrap.appendChild(mk('p', 'margin:0;white-space:pre-line;line-height:1.6', body));
+    } else if (t === 'image') {
+      var grid = mk('div', 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:40px;align-items:center');
+      var pic = mk('div', 'aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:rgba(17,17,17,.06)');
+      if (img) { var im = mk('img', 'display:block;width:100%;height:100%;object-fit:cover'); im.src = img; im.alt = ''; pic.appendChild(im); }
+      var side = mk('div', ''); put(side, h(false)); if (body) side.appendChild(mk('p', 'margin:0;white-space:pre-line;line-height:1.6', body));
+      grid.appendChild(pic); grid.appendChild(side); wrap.appendChild(grid);
+    } else if (t === 'banner') {
+      var box = mk('div', 'position:relative;display:grid;place-items:center;min-height:380px;padding:48px 24px;box-sizing:border-box;border-radius:18px;overflow:hidden;background:#111111;color:#FFFFFF;text-align:center');
+      if (img) { var bg = mk('img', 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.72'); bg.src = img; bg.alt = ''; box.appendChild(bg); }
+      var on = mk('div', 'position:relative;max-width:640px');
+      if (title) on.appendChild(mk('h2', 'margin:0 0 12px;color:#FFFFFF', title));
+      if (body) on.appendChild(mk('p', 'margin:0 0 20px;white-space:pre-line;line-height:1.6;color:#FFFFFF', body));
+      if (str(a.cta)) { var b = mk('a', 'display:inline-block;padding:12px 24px;border-radius:999px;background:#FFFFFF;color:#111111;text-decoration:none;font-weight:600', str(a.cta).slice(0, 60)); b.setAttribute('href', resolveLink(a.href) || '#'); on.appendChild(b); }
+      box.appendChild(on); wrap.appendChild(box);
+    } else if (t === 'products') {
+      put(wrap, h(false));
+      var pg = mk('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:20px');
+      list().slice(0, 8).forEach(function (p) {
+        if (!p) return;
+        var c = mk('div', ''), ph = mk('div', 'aspect-ratio:1;border-radius:12px;overflow:hidden;background:rgba(17,17,17,.06);margin-bottom:10px');
+        var src = httpsImg(p.image); if (src) { var pi = mk('img', 'display:block;width:100%;height:100%;object-fit:cover'); pi.src = src; pi.alt = ''; pi.loading = 'lazy'; ph.appendChild(pi); }
+        c.appendChild(ph); c.appendChild(mk('div', 'font-weight:600;line-height:1.3', p.name)); c.appendChild(mk('div', 'opacity:.7;margin-top:2px', fmt(p.price)));
+        pg.appendChild(c);
+      });
+      wrap.appendChild(pg);
+    } else if (t === 'reviews') {
+      put(wrap, h(true));
+      var rg = mk('div', 'display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px');
+      items.forEach(function (it) {
+        if (!isObj(it) || !str(it.b)) return;
+        var card = mk('blockquote', 'margin:0;padding:22px;border-radius:14px;border:1px solid rgba(17,17,17,.12);box-sizing:border-box');
+        card.appendChild(mk('p', 'margin:0 0 12px;white-space:pre-line;line-height:1.55', str(it.b).slice(0, 400)));
+        if (str(it.a)) card.appendChild(mk('b', '', str(it.a).slice(0, 60)));
+        rg.appendChild(card);
+      });
+      wrap.appendChild(rg);
+    } else if (t === 'faq') {
+      wrap.style.maxWidth = '760px'; put(wrap, h(false));
+      items.forEach(function (it) {
+        if (!isObj(it) || !str(it.a)) return;
+        var d = mk('details', 'padding:16px 0;border-top:1px solid rgba(17,17,17,.14)');
+        d.appendChild(mk('summary', 'cursor:pointer;font-weight:600', str(it.a).slice(0, 160)));
+        d.appendChild(mk('p', 'margin:10px 0 0;white-space:pre-line;line-height:1.6', str(it.b).slice(0, 800)));
+        wrap.appendChild(d);
+      });
+    } else return null;
+    return sec;
+  }
+  function drawAdded(listA, fiche) {
+    var key = JSON.stringify(listA || null) + '|' + JSON.stringify(Array.isArray(fiche.products) ? fiche.products : null) + '|' + cur;
+    if (key === addedKey) return;
+    addedKey = key;
+    var keepSel = selEl && selEl.getAttribute ? selEl.getAttribute('data-jeere-added') : null;
+    $$('[data-jeere-added]').forEach(function (n) { n.parentNode.removeChild(n); });
+    if (!Array.isArray(listA)) return;
+    var all = sections(), tail = {};
+    var lastBody = null; all.forEach(function (el) { if (el.tagName !== 'FOOTER') lastBody = el; });
+    listA.slice(0, 12).forEach(function (a) {
+      if (!isObj(a) || !/^[a-z0-9]{4,16}$/.test(str(a.id))) return;
+      var n = typeof a.after === 'number' && all[a.after] && all[a.after].tagName !== 'FOOTER' ? a.after : -1;
+      var anchor = tail[n] || (n >= 0 ? all[n] : lastBody);
+      var node = null; try { node = buildAdded(a); } catch (e) { node = null; }
+      if (!anchor || !anchor.parentNode || !node) return;
+      node.setAttribute('data-jeere-added', a.id);
+      anchor.parentNode.insertBefore(node, anchor.nextSibling);
+      tail[n] = node;
+      if (keepSel === a.id) selEl = node;
+    });
   }
   /* What she is working on stays framed in blue, with four small handles, until she picks something else. The
    * frame is drawn over the page (it takes no room and catches no touch) and follows the page as it changes. */
@@ -794,6 +902,7 @@
     var t = isObj(site.t) ? site.t : {}, im = isObj(site.i) ? site.i : {}, cc = isObj(site.c) ? site.c : {}, ll = isObj(site.l) ? site.l : {};
     var xx = isObj(site.x) ? site.x : {}, ff = isObj(site.f) ? site.f : {}, kk = isObj(site.k) ? site.k : {};
     var gfont = isObj(site.g) && typeof site.g.font === 'string' && FONTS.hasOwnProperty(site.g.font) ? site.g.font : '';
+    try { drawAdded(isObj(site.a) ? site.a[pagePath()] : null, fiche); } catch (e) { /* the page keeps the model's sections */ }
     try { applyCats(fiche); } catch (e) { /* the model's filters stay */ }
     try { applyLogo(fiche); } catch (e) { /* the model's name stays */ }
     // the sections she hides (in the editor they stay, greyed, so she can bring them back)
@@ -862,6 +971,12 @@
       hl = el; if (hl) hl.classList.add('jeere-hl');
     }, true);
     document.addEventListener('click', function (e) {
+      var mine = e.target && e.target.closest ? e.target.closest('[data-jeere-added]') : null;
+      if (mine) {
+        e.preventDefault(); e.stopPropagation(); select(mine);
+        try { window.parent.postMessage({ jeereAdded: mine.getAttribute('data-jeere-added') }, parentOrigin || '*'); } catch (err) { /* not in the editor */ }
+        return;
+      }
       var el = under(e);
       if (!el) {
         var a = e.target && e.target.closest ? e.target.closest('a') : null; if (a) e.preventDefault();
@@ -916,6 +1031,7 @@
           if (want) {
             var one = keyed().filter(function (k) { return k.key === want; })[0];
             if (one) hit = one.el;
+            else if (want.indexOf('a:') === 0) hit = document.querySelector(attrSel('data-jeere-added', want.slice(2)));
             else { var base1 = pagePath(); sections().forEach(function (el, n) { if (base1 + '|h|' + n === want) hit = el; }); }
           }
           if (hit && hit !== selEl && e.data.show) { try { hit.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (er) { hit.scrollIntoView(); } }
