@@ -296,7 +296,9 @@ async function handler(req, res) {
   }
   // her own address (not jehre.com/b/…, which keeps the cart and the payment): the model she bought
   if (!onJeere && !got.row.preview && !/^\/?(?:panier|paiement|confirmation|produits\/|pages\/)/.test(rest)) {
-    const model = await storeModel(got.row.slug);
+    // the model bought by her account; the founder's own model stores (their address IS the model's name: seve,
+    // soyeuse…) carry their model without a purchase, exactly as the editor shows them
+    const model = (await storeModel(got.row.slug)) || (MODEL_NAMES[got.row.slug] ? got.row.slug : null);
     if (model) {
       let page = null;
       try {
