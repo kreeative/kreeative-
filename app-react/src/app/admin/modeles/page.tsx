@@ -17,10 +17,10 @@ import styles from './modeles.module.css';
 type Way = 'self' | 'install' | 'custom';
 const NOTE: Record<Way, string> = {
   self: 'Payé une seule fois. L’abonnement de la boutique est à part.',
-  install: 'Rien à payer maintenant. Vous recevez votre devis sur WhatsApp : vous le signez, vous payez, puis vous envoyez vos photos et vos textes.',
+  install: 'Vous remplissez le formulaire, vous le lisez et le signez, puis vous payez. Ensuite, vous envoyez vos photos et vos textes.',
   custom: 'Rien à payer maintenant. On vous écrit sur WhatsApp pour fixer l’appel.',
 };
-const ACTION: Record<Way, string> = { self: 'Payer par carte', install: 'Recevoir mon devis', custom: 'Demander un appel' };
+const ACTION: Record<Way, string> = { self: 'Payer par carte', install: 'Remplir le formulaire', custom: 'Demander un appel' };
 
 /** The designer models: a site drawn for one trade, paid once. Same cards and same words as the current dashboard. */
 export default function ModelsPage() {
@@ -184,8 +184,9 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
       if (!r.ok) { setBusy(false); setError(r.message); }
       return;
     }
+    if (way === 'install') { window.location.assign(`/admin/modeles/installation/?m=${m.slug}`); return; }
     if (wa.replace(/\D/g, '').length < 8) { setWaError('Écrivez un numéro WhatsApp complet, avec l’indicatif.'); return; }
-    const quote = way === 'install';
+    const quote = false;
     setBusy(true);
     const r = await askTeam({
       firstName: firstName || shopName || 'Cliente Jehre', whatsapp: wa.trim(), link: shopName,
@@ -199,7 +200,7 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
 
   const options: { id: Way; title: string; price: string; text: string }[] = [
     { id: 'self', title: 'Je remplis moi-même', price: money(m.price), text: 'Vous ajoutez vous-même vos produits, vos prix et vos photos depuis votre tableau de bord.' },
-    { id: 'install', title: 'Jehre installe tout pour moi', price: `Dès ${money(m.price + installPrice(m))}`, text: 'Nous mettons tout en place : jusqu’à 10 produits et 2 séries de corrections. Au-delà, c’est sur devis. Répondez à 3 questions, vous recevez votre devis à signer.' },
+    { id: 'install', title: 'Jehre installe tout pour moi', price: `À partir de ${money(m.price + installPrice(m))}`, text: 'Nous mettons tout en place : jusqu’à 10 produits et 2 séries de corrections, 5 000 F par produit en plus. Un formulaire à remplir et à signer, puis vous payez.' },
     { id: 'custom', title: 'Un site 100 % sur mesure', price: `À partir de ${money(CUSTOM_FROM)}`, text: 'Vous ne voulez pas d’un modèle ? Le designer de Kreeative dessine un site unique, rien que pour vous. Un site complet comme The Ivory Sukundu : 500 000 FCFA. On en parle d’abord ensemble.' },
   ];
 
@@ -221,16 +222,7 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
               </label>
             ))}
           </div>
-          {way === 'install' ? (
-            <div className={styles.form}>
-              <Select label="Combien de produits ou prestations ?" options={['1 à 10', '11 à 30', '31 à 60', 'Plus de 60']} value={count} onChange={(e) => setCount(e.target.value)} />
-              <div className={styles.two}>
-                <Select label="Vos photos sont prêtes ?" options={['Oui', 'Pas encore']} value={photos} onChange={(e) => setPhotos(e.target.value)} />
-                <Select label="Vous avez un logo ?" options={['Oui', 'Non']} value={logo} onChange={(e) => setLogo(e.target.value)} />
-              </div>
-            </div>
-          ) : null}
-          {way !== 'self' ? (
+          {way === 'custom' ? (
             <div className={styles.form}>
               <Field label="Votre numéro WhatsApp" type="tel" inputMode="tel" maxLength={30} placeholder="+225 07 07 12 34 56" value={wa} onChange={(e) => setWa(e.target.value)} error={waError} />
               <TextArea label="Précisions" optional rows={3} maxLength={800} value={need} onChange={(e) => setNeed(e.target.value)} />

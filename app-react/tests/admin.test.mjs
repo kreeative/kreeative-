@@ -58,6 +58,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/rest/v1/rpc/my_models') { if (world.modelsLate > 0) { world.modelsLate--; return json(route, 200, []); } return json(route, 200, world.models ?? []); }
     if (p === '/rest/v1/rpc/my_stores') return json(route, 200, world.stores.map((x) => ({ id: x.id, slug: x.slug })));
     if (p === '/rest/v1/rpc/slug_available') return json(route, 200, { available: !(world.taken ?? []).includes(body.p_slug), reason: 'ok' });
+    if (p === '/rest/v1/install_requests') { if (method === 'POST') { const row = { ...body, id: 'cccccccc-0000-4000-8000-00000000000' + ((world.installs ??= []).length + 1) }; world.installs.push(row); return json(route, 201, [{ id: row.id }]); } return json(route, 200, world.installs ?? []); }
     if (p === '/functions/v1/billing') {
       if (body.action === 'sync') { if (world.planAfter) Object.assign(world.stores[0], world.planAfter, { updated_at: new Date().toISOString() }); return json(route, 200, { ok: true, applied: world.planAfter ? 1 : 0 }); }
       return json(route, 200, world.billing ?? { ok: false, message: 'Paiement simulé : rien n’est prélevé.' });
@@ -458,7 +459,7 @@ await test('models: the seven designer models, with their price, « Choisir » a
   const sheet = page.getByRole('dialog');
   await sheet.getByText('Comment voulez-vous l’installer ?').waitFor();
   const opts = (await sheet.getByRole('radiogroup').innerText()).replace(/\s/g, ' ');
-  for (const t of ['Je remplis moi-même', '50 000 FCFA', 'Jehre installe tout pour moi', 'Dès 150 000 FCFA', 'Un site 100 % sur mesure', 'À partir de 300 000 FCFA']) assert.ok(opts.includes(t), t);
+  for (const t of ['Je remplis moi-même', '50 000 FCFA', 'Jehre installe tout pour moi', 'À partir de 150 000 FCFA', 'Un site 100 % sur mesure', 'À partir de 300 000 FCFA']) assert.ok(opts.includes(t), t);
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${SHOTS}41-modele-choisir.png` });
   // she fills it herself: the card payment is asked from the server, for this model and this store
@@ -467,22 +468,11 @@ await test('models: the seven designer models, with their price, « Choisir » a
   const bill = w.calls.find((c) => c.path === '/functions/v1/billing');
   assert.equal(bill.body.action, 'model'); assert.equal(bill.body.model, 'michou'); assert.equal(bill.body.install, false);
   assert.equal(bill.body.storeId, w.stores[0].id); assert.equal(bill.body.shopName, 'Boutique Test'); assert.ok(bill.body.returnUrl.endsWith('/admin/modeles/'));
-  // the team installs it: three questions, no payment, a quote
+  // the team installs it: a form to fill and sign first (its own page), then the payment
   await sheet.getByText('Jehre installe tout pour moi').click();
-  await sheet.getByLabel('Combien de produits ou prestations ?').selectOption('11 à 30');
-  await sheet.getByLabel('Vous avez un logo ?').selectOption('Non');
-  assert.equal(await sheet.getByLabel('Votre numéro WhatsApp').inputValue(), '+2250707123456');
-  await sheet.getByLabel('Votre numéro WhatsApp').fill('07');
-  await sheet.getByRole('button', { name: 'Recevoir mon devis' }).click();
-  await sheet.getByText('Écrivez un numéro WhatsApp complet, avec l’indicatif.').waitFor();
-  assert.equal(w.calls.some((c) => c.path === '/functions/v1/appel'), false);
-  await sheet.getByLabel('Votre numéro WhatsApp').fill('+225 07 07 12 34 56');
-  await sheet.getByRole('button', { name: 'Recevoir mon devis' }).click();
-  await page.getByText('C’est noté. Vous recevez votre devis sur WhatsApp très vite.').waitFor();
-  const ask = w.calls.find((c) => c.path === '/functions/v1/appel');
-  assert.equal(ask.body.source, 'devis-installation'); assert.equal(ask.body.firstName, 'Kady'); assert.equal(ask.body.whatsapp, '+225 07 07 12 34 56');
-  assert.ok(ask.body.need.startsWith('DEVIS INSTALLATION. Modèle : MICHOU. Produits : 11 à 30. Photos prêtes : Oui. Logo : Non.'));
-  await page.getByRole('dialog').waitFor({ state: 'detached' });
+  await sheet.getByRole('button', { name: 'Remplir le formulaire' }).click();
+  await h1(page, 'Formulaire d’installation');
+  await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Modèles de designer');
   // ANSE: one price, the installation is part of it
   await page.getByRole('button', { name: 'Choisir le modèle ANSE' }).click();
   await page.getByRole('dialog').getByText('payé une seule fois, installation par notre équipe incluse.').waitFor();
@@ -2426,6 +2416,51 @@ await test('a model on her store: its demo photos are plain frames (« Ajoutez v
   assert.ok(n >= 3, `the demo photos are plain frames (${n})`);
   assert.match(await site.locator('img[data-jeere-plain]').first().getAttribute('src'), /Ajoutez%20votre%20photo/);
   await page.screenshot({ path: `${SHOTS}132-editeur-mode-neutre.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('installation by the team: a complete form, read to the end, accepted, signed with her legal name and her hand; the price follows her products (100 000 F for 10, 5 000 F each beyond); then Stripe', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/modeles/?tous=1`); await h1(page, 'Modèles de designer');
+  await page.locator('main ul > li').filter({ hasText: 'MICHOU' }).getByRole('button', { name: /^Choisir/ }).click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByText('Jehre installe tout pour moi').click();
+  await sheet.getByRole('button', { name: 'Remplir le formulaire' }).click();
+  await h1(page, 'Formulaire d’installation');
+  // signing is impossible before reading, and every field is asked
+  await page.getByRole('button', { name: /^Signer et payer/ }).click();
+  for (const t of ['Dites en quelques mots ce que vous vendez.', 'Lisez le formulaire jusqu’en bas.', 'Signez dans le cadre.']) await page.getByText(t).first().waitFor();
+  assert.equal(await page.getByRole('checkbox').isDisabled(), true, 'the box is ticked only once read');
+  await page.getByLabel('Ce que vous vendez').fill('Streetwear : t-shirts et casquettes');
+  await page.getByLabel('Nombre de produits à mettre en ligne').fill('14');
+  assert.match((await page.locator('main').innerText()).replace(/\s/g, ' '), /Installation · 14 produits 120 000 FCFA/);
+  assert.match((await page.locator('main').innerText()).replace(/\s/g, ' '), /Total, payé une seule fois 170 000 FCFA/);
+  const terms = page.getByLabel('Formulaire à lire');
+  assert.match(await terms.innerText(), /plus 4 produits à 5 000 F/);
+  assert.match(await terms.innerText(), /2 séries de corrections/);
+  await terms.evaluate((el) => { el.scrollTop = el.scrollHeight; el.dispatchEvent(new Event('scroll')); });
+  await page.getByRole('checkbox').check();
+  await page.getByLabel('Votre nom légal').fill('Awa KONÉ');
+  await page.getByRole('img', { name: 'Votre signature' }).scrollIntoViewIfNeeded();
+  const pad = await page.getByRole('img', { name: 'Votre signature' }).boundingBox();
+  assert.equal(await page.getByText('Lisez le formulaire jusqu’en bas.').count(), 0, 'the error goes once read');
+  await page.mouse.move(pad.x + 30, pad.y + 100); await page.mouse.down();
+  for (let i = 1; i <= 12; i++) await page.mouse.move(pad.x + 30 + i * 18, pad.y + 100 - Math.sin(i / 2) * 30);
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+  assert.equal(await page.getByText('Signez dans le cadre.').count(), 0, 'signed');
+  await page.evaluate(() => { window.getSelection()?.removeAllRanges(); window.scrollTo(0, 0); });
+  await page.screenshot({ path: `${SHOTS}134-formulaire-installation.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Signer et payer 170 000 FCFA' }).click();
+  await page.getByText('Paiement simulé : rien n’est prélevé.').waitFor();
+  const row = w.installs[0];
+  assert.equal(row.model, 'michou'); assert.equal(row.products_count, 14); assert.equal(row.install_price, 120000);
+  assert.equal(row.legal_name, 'Awa KONÉ'); assert.match(row.signature_png, /^data:image\/png;base64,/);
+  assert.match(row.terms_text, /Il décrit exactement le travail commandé/);
+  const bill = w.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'model');
+  assert.deepEqual([bill.body.model, bill.body.install, bill.body.installRequestId], ['michou', true, row.id]);
+  await page.setViewportSize(PHONE); await page.waitForTimeout(300); await noOverflow(page);
+  await page.screenshot({ path: `${SHOTS}135-formulaire-installation-telephone.png`, fullPage: true });
   assert.deepEqual(errors, []); await ctx.close();
 });
 

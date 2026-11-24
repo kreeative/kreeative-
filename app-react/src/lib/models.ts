@@ -16,13 +16,33 @@ export interface Model {
   rdv?: boolean;
 }
 
-export const INSTALL_PRICE = 50000;
+/** The installation by the team: 100 000 F for up to 10 products and 2 rounds of changes, 5 000 F per product
+ *  beyond. Sold only with the form filled and signed (public.install_requests); the server computes the price again. */
+export const INSTALL_PRICE = 100000;
+export const INSTALL_PRODUCTS = 10;
+export const INSTALL_EXTRA = 5000;
+export const installFor = (n: number): number => INSTALL_PRICE + Math.max(0, Math.round(n) - INSTALL_PRODUCTS) * INSTALL_EXTRA;
+export const INSTALL_TERMS_VERSION = 'installation-2026-11-24';
+const F = (n: number) => `${new Intl.NumberFormat('fr-FR').format(n).replace(/\u202f|\u00a0/g, ' ')} F`;
+/** What she signs, word for word (kept with her signature). */
+export function installTerms(m: Model, n: number): string {
+  const extra = Math.max(0, n - INSTALL_PRODUCTS);
+  return [
+    `Installation de ma boutique par l’équipe Jehre · modèle ${m.name}`,
+    `1. Prix. Modèle ${m.name} : ${F(m.price)}. Installation : ${F(installFor(n))}${extra ? ` (100 000 F pour 10 produits, plus ${extra} produit${extra > 1 ? 's' : ''} à 5 000 F)` : ' (jusqu’à 10 produits)'}. Total payé une seule fois : ${F(m.price + installFor(n))}.`,
+    `2. Ce qui est compris. Le modèle mis à mon nom, avec mon logo ; mes ${n} produit${n > 1 ? 's' : ''} déclaré${n > 1 ? 's' : ''} mis en ligne (photos, noms, prix, descriptions, tailles ou variantes) ; les réglages de ma boutique ; 2 séries de corrections après la remise du site.`,
+    '3. Ce que je fournis. Les photos de mes produits ; pour chaque produit, son nom, son prix, sa description et ses tailles ou variantes ; mon logo si j’en ai un. Le travail commence quand tout est reçu.',
+    `4. Ce qui n’est pas compris. Les produits au-delà des ${n} déclarés ; les corrections au-delà des 2 séries ; la prise de photos ; l’abonnement mensuel à la plateforme. Toute demande en dehors de ce formulaire fait l’objet d’un nouveau devis.`,
+    '5. Une série de corrections est une liste de changements envoyée en une seule fois.',
+    'J’ai lu ce formulaire. Il décrit exactement le travail commandé, et je l’accepte.',
+  ].join('\n');
+}
 export const CUSTOM_FROM = 300000;
 
 export const MODELS: Model[] = [
   { slug: 'seve', name: 'SÈVE', kind: 'Soins et cosmétiques', desc: 'Flacons sur fond crème, titres serif, filtres par catégorie.', price: 25000, was: 50000 },
   { slug: 'soyeuse', name: 'SOYEUSE', kind: 'Perruques et tissages', desc: 'Rose bonbon, logo à lettres ornées, mannequin en pied.', price: 25000, was: 50000 },
-  { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: 50000, was: 100000, install: 100000 },
+  { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: 50000, was: 100000 },
   { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: 300000, installIncluded: true },
   { slug: 'regard', name: 'REGARD', kind: 'Cils et sourcils · rendez-vous', desc: 'Vos clientes réservent en ligne : prestation, jour, heure, acompte.', price: 25000, was: 50000, rdv: true },
   { slug: 'vernie', name: 'VERNIE', kind: 'Ongles · rendez-vous', desc: 'Carte des prestations, demandes à confirmer, rappel la veille.', price: 25000, was: 50000, rdv: true },
@@ -82,14 +102,14 @@ export function withModel(fiche: Fiche, slug: string, from: string): Fiche {
 export type Outcome = { ok: true } | { ok: false; message: string };
 
 /** The card payment of a model: Stripe opens in this tab and brings her back to the models page. */
-export async function buyModel(slug: string, o: { storeId?: string; shopName?: string; sells?: string }): Promise<Outcome> {
+export async function buyModel(slug: string, o: { storeId?: string; shopName?: string; sells?: string; installRequestId?: string }): Promise<Outcome> {
   try {
     const { data } = await supabase().auth.getSession();
     const token = data.session?.access_token;
     if (!token) return { ok: false, message: 'Connectez-vous à votre compte Jehre pour payer.' };
     const r = await fetch(`${SUPABASE_URL}/functions/v1/billing`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'model', model: slug, install: false, storeId: o.storeId ?? '', shopName: o.shopName ?? '', sells: o.sells ?? '', returnUrl: window.location.origin + window.location.pathname }),
+      body: JSON.stringify({ action: 'model', model: slug, install: !!o.installRequestId, installRequestId: o.installRequestId ?? '', storeId: o.storeId ?? '', shopName: o.shopName ?? '', sells: o.sells ?? '', returnUrl: window.location.origin + (o.installRequestId ? '/admin/modeles/' : window.location.pathname) }),
     });
     const j = (await r.json().catch(() => null)) as { ok?: boolean; url?: string; message?: string } | null;
     if (j?.ok && j.url) { window.location.assign(j.url); return { ok: true }; }
