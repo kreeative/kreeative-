@@ -21,7 +21,7 @@
 .me { position: relative; margin-top: auto; }
 .meBtn { display: flex; align-items: center; gap: 8px; width: 100%; height: 44px; font: var(--w-ui) var(--fs)/var(--lh) var(--font); padding: 0 var(--sp-2); border: 0; border-radius: var(--r); background: none; cursor: pointer; text-align: left; }
 .meBtn:hover { background: var(--grey-1); }
-.avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--grey-2); font-weight: 500; font-size: var(--fs-sm); }
+.avatar { flex: none; display: block; width: 32px; height: 32px; border-radius: 50%; background: var(--grey-2); object-fit: cover; }
 .meName { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 .menu { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); display: grid; padding: 6px; border-radius: var(--r); background: var(--white); box-shadow: 0 0 0 1px var(--line), 0 12px 32px rgba(17, 17, 17, .14); }
 .menu a, .menu button { display: flex; align-items: center; gap: var(--sp-3); height: 40px; padding: 0 var(--sp-3); border: 0; border-radius: var(--r-sm); background: none; font: 500 var(--fs-sm)/1 var(--font); color: var(--ink); cursor: pointer; text-align: left; }

@@ -1,5 +1,6 @@
 'use client';
 
+import { avatarId, avatarSrc } from '@/lib/avatar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -98,7 +99,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
         <div className={styles.me} ref={me}>
           <button type="button" className={styles.meBtn} aria-expanded={menu && !leaving} aria-haspopup="menu" onClick={openAccount}>
-            <span className={styles.avatar} aria-hidden="true">{initial}</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className={styles.avatar} src={avatarSrc(avatarId(account.userId))} alt="" width={32} height={32} />
             <span className={styles.plus}><Icon name="menu" size={20} /><span>Plus</span></span>
             <span className={styles.meName}>{account.firstName || 'Mon compte'}</span>
             <span className={styles.chev}><Icon name="down" size={14} /></span>

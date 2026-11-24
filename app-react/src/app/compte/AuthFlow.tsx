@@ -11,6 +11,7 @@ import { clip, completeLogin, readAccount, rememberSource, saveStoreName, signOu
 import { mountDoodles } from '@/lib/doodles';
 import { COUNTRIES, launchOffer, type LaunchOffer } from '@/lib/launch';
 import { currentUser, maskEmail, normEmail, normPhone, sendCode, validEmail, verifyCode, type AuthFailure } from '@/lib/auth';
+import { AVATARS, avatarId, keepAvatar } from '@/lib/avatar';
 import styles from './auth.module.css';
 
 /* The seller's account, one screen at a time:
@@ -42,6 +43,8 @@ export function AuthFlow() {
   const [wait, setWait] = useState(0);
   const [codeKey, setCodeKey] = useState(0);
   const [account, setAccount] = useState<Account | null>(null);
+  const [face, setFace] = useState('');
+  useEffect(() => { if (account) setFace(avatarId(account.userId)); }, [account]);
   const title = useRef<HTMLHeadingElement>(null);
 
   const go = useCallback((next: Step) => { setErrors({}); setFailure(null); setStep(next); }, []);
@@ -280,6 +283,14 @@ export function AuthFlow() {
               <div className={styles.head}>
                 <h1 ref={title} tabIndex={-1}>{account.firstName ? `Bonjour ${account.firstName}` : 'Votre compte'}</h1>
                 <p>Votre compte est ouvert sur cet appareil.</p>
+              </div>
+              <div className={styles.faces} role="radiogroup" aria-label="Votre visage">
+                {AVATARS.map((f) => (
+                  <button key={f.id} type="button" role="radio" aria-checked={face === f.id} aria-label={`Visage ${f.id}`} onClick={() => { keepAvatar(f.id); setFace(f.id); }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={f.src} alt="" width={56} height={56} />
+                  </button>
+                ))}
               </div>
               <ButtonLink href={LINKS.dashboard} block icon="dashboard">Ouvrir mon tableau de bord</ButtonLink>
               <Button variant="quiet" block icon="logout" busy={busy} onClick={() => void logout()}>Se déconnecter</Button>

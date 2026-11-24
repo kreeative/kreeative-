@@ -97,3 +97,10 @@
 .choice { transition: box-shadow var(--dur) var(--ease), background-color var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .choice:active { transform: scale(.985); }
 @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } }
+
+/* her face: five hand-drawn faces, the one chosen ringed in ink */
+.faces { display: flex; flex-wrap: wrap; gap: 10px; }
+.faces button { padding: 0; width: 56px; height: 56px; border: 0; border-radius: 50%; background: none; cursor: pointer; box-shadow: 0 0 0 1px var(--line); transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.faces button:active { transform: scale(.97); }
+.faces button[aria-checked="true"] { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--ink); }
+.faces img { display: block; width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }

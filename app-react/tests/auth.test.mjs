@@ -149,6 +149,11 @@ await test('login: a wrong code is refused, the right one opens the account; log
   await page.keyboard.type('123456');                    // the first box has the focus again
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
   assert.doesNotMatch(await page.locator('main').innerText(), /Boutique Test|kady@exemple/, 'no list of her details: she may have several stores');
+  // her face: five drawn faces, one already hers; another one is kept on this device
+  const faces = page.getByRole('radiogroup', { name: 'Votre visage' }).getByRole('radio');
+  assert.equal(await faces.count(), 5); assert.equal(await page.getByRole('radio', { checked: true }).count(), 1);
+  await faces.nth(4).click();
+  assert.equal(await faces.nth(4).getAttribute('aria-checked'), 'true'); assert.equal(await page.evaluate(() => localStorage.getItem('jehre-avatar')), '5');
   await page.screenshot({ path: `${SHOTS}09-mon-compte.png` });
   await page.reload(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');   // the session is found again
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
