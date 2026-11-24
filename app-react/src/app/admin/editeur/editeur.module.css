@@ -224,3 +224,7 @@ span.fold { cursor: default; }
 .payNote a, .payNotePhone a { color: var(--ink); text-decoration: none; }
 .brandLink { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: var(--r-sm); color: var(--ink); font: 500 12px/1 var(--font); text-decoration: none; }
 .brandLink:hover { background: var(--grey-1); }
+
+/* a model's demo (its gallery, its demo viewer): its photos are only an example; on her store they become plain frames */
+.example { position: absolute; z-index: 2; left: 10px; top: 10px; display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(255, 255, 255, .82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); box-shadow: 0 0 0 1px rgba(17, 17, 17, .08), 0 4px 12px -6px rgba(17, 17, 17, .3); color: var(--ink); font: 500 11.5px/1 var(--font); pointer-events: none; }
+.frameBox { position: relative; }

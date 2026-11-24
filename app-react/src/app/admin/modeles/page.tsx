@@ -134,6 +134,7 @@ export default function ModelsPage() {
               <a className={styles.shot} href={modelPreview(m.slug)} aria-label={`Voir la démo du modèle ${m.name}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={modelThumb(m.slug)} alt="" width={640} height={400} loading="lazy" decoding="async" />
+                <span className={styles.example} aria-hidden="true">Exemple de mise en page</span>
               </a>
               <div className={styles.body}>
                 <p className={styles.name}>{m.name}</p>
@@ -207,6 +208,7 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
       <a className={styles.big} href={modelPreview(m.slug)} aria-label={`Voir la démo du modèle ${m.name}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={modelThumb(m.slug)} alt="" width={640} height={400} />
+        <span className={styles.example} aria-hidden="true">Exemple de mise en page</span>
       </a>
       <h2 className={styles.question}>Comment voulez-vous l’installer ?</h2>
       {m.installIncluded ? <p className={styles.lead}><strong>{money(m.price)}</strong>, payé une seule fois, installation par notre équipe incluse.</p> : (

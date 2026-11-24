@@ -424,6 +424,10 @@ await test('models: the seven designer models, with their price, « Choisir » a
   await page.getByText('Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.').waitFor();
   const cards = page.locator('main ul > li');
   assert.equal(await cards.count(), 7);
+  // the gallery shows each model as an example of layout (its photos become plain frames on her store)
+  assert.equal(await page.getByText('Exemple de mise en page', { exact: true }).count(), 7);
+  await page.waitForFunction(() => [...document.querySelectorAll('main ul > li img')].every((i) => i.complete), null, { timeout: 30000 });
+  await page.screenshot({ path: `${SHOTS}133-galerie-exemple.png` });
   const seen = await cards.evaluateAll((els) => els.map((li) => ({
     name: li.querySelector('p')?.textContent, kind: li.querySelectorAll('p')[1]?.textContent,
     price: li.querySelector('strong')?.textContent.replace(/\s/g, ' '), was: li.querySelector('s')?.textContent.replace(/\s/g, ' ') ?? '',
@@ -2409,6 +2413,19 @@ await test('sidebar: the page she is on is light glass with a thin rainbow edge,
   await page.waitForTimeout(300);
   const box = await page.locator('aside').boundingBox();
   await page.screenshot({ path: `${SHOTS}130-barre-onglet-actif.png`, clip: { x: box.x, y: box.y, width: box.width, height: Math.min(box.height, 620) } });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('a model on her store: its demo photos are plain frames (« Ajoutez votre photo » in the editor), its demo product cases are not her products', async () => {
+  const w = withModel(world(), 'michou'); w.stores[0].fiche.products = []; const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  await site.locator('[data-jeere-pickable]').first().waitFor({ timeout: 60000 });
+  await page.waitForTimeout(1500);
+  const n = await site.locator('img[data-jeere-plain]').count();
+  assert.ok(n >= 3, `the demo photos are plain frames (${n})`);
+  assert.match(await site.locator('img[data-jeere-plain]').first().getAttribute('src'), /Ajoutez%20votre%20photo/);
+  await page.screenshot({ path: `${SHOTS}132-editeur-mode-neutre.png` });
   assert.deepEqual(errors, []); await ctx.close();
 });
 

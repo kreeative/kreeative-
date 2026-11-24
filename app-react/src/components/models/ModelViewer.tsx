@@ -44,6 +44,7 @@ export function ModelViewer({ model: m, back, backLabel, action }: { model: Mode
       )}
       <div className={styles.pvStage} ref={stage}>
         <div className={styles.frameBox} style={full ? { width: '100%', height: '100%', borderRadius: 0 } : { width: Math.round(WIDTH[device] * scale), height: room.h }} data-device={device}>
+          <span className={styles.example} aria-hidden="true">Exemple de mise en page</span>
           <iframe title={`Modèle ${m.name}`} src={modelSite(m.slug)} width={full ? '100%' : WIDTH[device]} height={full ? '100%' : Math.round(room.h / scale)} style={full ? undefined : { transform: `scale(${scale})` }} />
         </div>
       </div>
