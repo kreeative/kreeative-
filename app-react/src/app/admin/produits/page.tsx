@@ -56,6 +56,14 @@ export default function ProductsPage() {
     if (p) { asked.current = true; setDraft(draftOf(p)); }
   }, [products, store]);   // eslint-disable-line react-hooks/exhaustive-deps
   const close = useCallback(() => { setDraft(null); setErrors({}); setProblem(''); setConfirmDelete(false); setPhotoError(''); }, []);
+  // another shop chosen: nothing of the previous one stays on screen (an open form, a search)
+  const storeId = store?.id ?? '';
+  const lastStore = useRef(storeId);
+  useEffect(() => {
+    if (lastStore.current === storeId) return;
+    lastStore.current = storeId;
+    close(); setQuery('');
+  }, [storeId, close]);
 
   if (!store) return (<><PageHead title="Produits" /><Empty icon="tag" title="Pas encore de boutique">Créez votre boutique pour y ajouter vos produits.</Empty></>);
   const canEdit = store.role === 'owner' || store.role === 'agency' || store.role === 'editor';
@@ -115,7 +123,7 @@ export default function ProductsPage() {
         action={canEdit ? <Button icon="plus" onClick={() => setDraft(draftOf())}>Ajouter un produit</Button> : null} />
 
       {products.length === 0
-        ? <Empty icon="tag" title="Aucun produit pour l’instant" action={canEdit ? <Button icon="plus" onClick={() => setDraft(draftOf())}>Ajouter un produit</Button> : null}>Ajoutez votre premier produit : son nom, son prix, sa catégorie.</Empty>
+        ? <Empty icon="tag" title="Aucun produit pour le moment" action={canEdit ? <Button icon="plus" onClick={() => setDraft(draftOf())}>Ajouter un produit</Button> : null}>Ajoutez votre premier produit : son nom, son prix, sa catégorie.</Empty>
         : <>
             {products.length > 6 ? <input className={styles.search} type="search" placeholder="Nom, catégorie" aria-label="Chercher un produit" value={query} onChange={(e) => setQuery(e.target.value)} /> : null}
             {shown.length === 0 ? <p className={styles.muted}>Aucun produit ne correspond.</p>

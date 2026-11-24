@@ -2372,6 +2372,24 @@ await test('editor: « Recadrer » a photo of her site, on a phone and on a comp
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('Produits: only the products of the shop she is on; another shop with none shows the empty state, never examples nor the products of the first', async () => {
+  const a = store(), b = { ...store(), id: 'bbbbbbbb-0000-4000-8000-000000000002', slug: 'rhorho', fiche: { version: 1, store: { name: 'rhorho', model: 'michou' } } };
+  const w = world({ stores: [a, b] }); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/produits/`);
+  await page.getByText('Beurre de karité brut').first().waitFor();
+  // she changes shop from the top bar, without reloading
+  await page.getByRole('combobox', { name: 'Boutique' }).first().selectOption({ label: 'rhorho' });
+  await page.getByText('Aucun produit pour le moment').waitFor();
+  for (const n of ['Beurre de karité brut', 'Savon noir au karité', 'Huile de coco vierge', 'Collier en perles de verre', 'Créoles torsadées dorées']) assert.equal(await page.getByText(n).count(), 0, `${n} is not shown on rhorho`);
+  await page.getByRole('button', { name: 'Ajouter un produit' }).first().waitFor();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}128-produits-rhorho-vide.png` });
+  assert.equal(w.calls.filter((c) => c.path === '/rest/v1/stores' && c.method === 'PATCH').length, 0, 'nothing written by just looking');
+  // and after a reload, still rhorho, still empty
+  await page.reload(); await page.getByText('Aucun produit pour le moment').waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);
