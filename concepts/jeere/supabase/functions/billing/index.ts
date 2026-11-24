@@ -47,21 +47,31 @@ const STUDIO: Record<string, { name: string; month: number; year: number }> = {
   agence: { name: 'Studio Agence', month: 79900, year: 54900 }
 };
 // Boutique plans (creer/data.js PLANS): per month, and per week where offered
+// The grid of 24 Nov 2026: per month only (no more weekly), Essentiel for 10 orders up to Entreprise unlimited
 const BOUTIQUE: Record<string, { name: string; month: number; week: number | null }> = {
-  essentiel: { name: 'Jehre Essentiel', month: 3500, week: 1000 },
-  pro: { name: 'Jehre Pro', month: 10000, week: null },
-  business: { name: 'Jehre Business', month: 25000, week: null }
+  essentiel: { name: 'Jehre Essentiel', month: 3500, week: null },
+  croissance: { name: 'Jehre Croissance', month: 7500, week: null },
+  pro: { name: 'Jehre Pro', month: 15000, week: null },
+  business: { name: 'Jehre Business', month: 30000, week: null },
+  entreprise: { name: 'Jehre Entreprise', month: 60000, week: null }
 };
 const FX = 600, MARGIN = 0.40, FIXED = 2000;
 const domainFcfa = (usd: number) => Math.ceil((usd * FX * (1 + MARGIN) + FIXED) / 500) * 500;
 const DAY = 86400000;
 // The designer models, paid once (FCFA). The same prices as on the cards of the home page and of the editor.
 // The installation by the team (her texts, photos, products and settings put in place, 2 rounds of changes): an option, paid once
-const INSTALL_PRICE = 50000;
-const MODELS: Record<string, { name: string; price: number; install?: number; installIncluded?: boolean }> = {
-  seve: { name: 'SÈVE', price: 25000 }, soyeuse: { name: 'SOYEUSE', price: 25000 }, michou: { name: 'MICHOU', price: 50000, install: 100000 },
-  anse: { name: 'ANSE', price: 300000, installIncluded: true }, regard: { name: 'REGARD', price: 25000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 }
+// 100 000 F for up to 10 products and 2 rounds of changes; 5 000 F per product beyond (decided 24 Nov 2026). Never
+// sold without the form filled AND signed by her (public.install_requests): the price is computed here from it.
+const INSTALL_BASE = 100000, INSTALL_PRODUCTS = 10, INSTALL_EXTRA = 5000;
+const installFor = (n: number) => INSTALL_BASE + Math.max(0, Math.round(Number(n) || 0) - INSTALL_PRODUCTS) * INSTALL_EXTRA;
+const MODELS: Record<string, { name: string; price: number; installIncluded?: boolean }> = {
+  seve: { name: 'SÈVE', price: 25000 }, soyeuse: { name: 'SOYEUSE', price: 25000 }, michou: { name: 'MICHOU', price: 50000 },
+  anse: { name: 'ANSE', price: 300000, installIncluded: true }, regard: { name: 'REGARD', price: 25000 }, vernie: { name: 'VERNIE', price: 25000 }, minuit: { name: 'MINUIT', price: 25000 },
+  // a booking site (REGARD, VERNIE, MINUIT) sells products with this option, bought for ONE store
+  'option-produits': { name: 'Option vente de produits', price: 25000 }
 };
+const RDV = ['regard', 'vernie', 'minuit'];
+const SHOP_OPTION = 'option-produits';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -292,21 +302,38 @@ async function recordModel(session: Obj) {
     session_id: str(session.id, 120), user_id: UUID.test(userId) ? userId : null, store_id: UUID.test(storeId) ? storeId : null, model: slug,
     amount: paid, email: str(cd.email, 120), phone: str(cd.phone, 30), shop_name: str(md.shop_name, 60), sells: str(md.sells, 120), install: md.install === '1'
   }) });
+  // the option alone: recorded above; a short word to the team, nothing else to do (the products open by themselves)
+  if (slug === SHOP_OPTION) { await teamMail('Option vente de produits payée', 'Boutique : ' + (str(md.shop_name, 60) || '?') + ' (' + storeId + ')\nPayé : ' + paid + ' FCFA (Stripe ' + str(session.id, 80) + ')'); return; }
+  if (md.shop === '1' && RDV.includes(slug)) await admin('model_purchases', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({
+    session_id: str(session.id, 110) + ':produits', user_id: UUID.test(userId) ? userId : null, store_id: UUID.test(storeId) ? storeId : null, model: SHOP_OPTION,
+    amount: MODELS[SHOP_OPTION].price, email: str(cd.email, 120), phone: str(cd.phone, 30), shop_name: str(md.shop_name, 60), sells: str(md.sells, 120), install: false
+  }) });
   const install = md.install === '1';
+  // the signed form: marked paid, and its content goes to the team and back to her
+  const rid = str(md.install_request, 40);
+  let form: Obj | null = null;
+  if (UUID.test(rid)) {
+    await admin('install_requests?id=eq.' + rid + '&paid_at=is.null', { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ paid_at: new Date().toISOString(), session_id: str(session.id, 120) }) });
+    form = (await rows('install_requests?select=*&id=eq.' + rid))[0] ?? null;
+  }
+  const formText = form ? '\n\nFORMULAIRE SIGNÉ (' + str(form.id, 40) + ')\nBoutique : ' + str(form.shop_name, 80) + '\nElle vend : ' + str(form.sells, 300) + '\nProduits : ' + Number(form.products_count) +
+    '\nPhotos prêtes : ' + (form.photos_ready ? 'oui' : 'pas encore') + '\nLogo : ' + (form.has_logo ? 'oui' : 'non') + '\nLiens : ' + (str(form.links, 500) || '-') + '\nWhatsApp : ' + str(form.whatsapp, 30) + '\nE-mail : ' + str(form.email, 160) +
+    '\nSouhaits : ' + (str(form.wishes, 1500) || '-') + '\nPrix installation : ' + Number(form.install_price) + ' FCFA\nSigné par : ' + str(form.legal_name, 120) + ' le ' + str(form.signed_at, 40) + '\n\nCE QU’ELLE A SIGNÉ :\n' + String(form.terms_text ?? '') : '';
+  const sigAttach = form && typeof form.signature_png === 'string' && form.signature_png.startsWith('data:image/png;base64,') ? [{ filename: 'signature.png', content: form.signature_png.slice('data:image/png;base64,'.length) }] : [];
   await teamMail('À FAIRE — modèle acheté' + (install ? ' AVEC INSTALLATION : ' : ' (sans installation) : ') + (m ? m.name : slug),
     'Modèle : ' + (m ? m.name : slug) + '\nPayé : ' + paid + ' FCFA (Stripe ' + str(session.id, 80) + ')\nCliente : ' + (str(cd.name, 80) || '?') + ' · ' + str(cd.email, 120) + ' · ' + str(cd.phone, 30) +
     '\nBoutique : ' + (str(md.shop_name, 60) || '?') + (storeId ? ' (' + storeId + ')' : ' (pas encore créée)') + '\nElle vend : ' + (str(md.sells, 120) || '?') +
     '\n\nÀ faire : ' + (install
       ? 'INSTALLATION COMPLÈTE. Lui demander son logo, ses photos, ses textes et ses prix, tout mettre en place, puis lui écrire. 2 séries de corrections incluses.'
-      : 'mettre sa boutique sur ce modèle avec son nom et son logo, puis lui écrire. Elle ajoute elle-même ses produits, ses prix et ses photos.'));
+      : 'mettre sa boutique sur ce modèle avec son nom et son logo, puis lui écrire. Elle ajoute elle-même ses produits, ses prix et ses photos.') + formText);
   const to = str(cd.email, 120);
   if (RESEND_KEY && to) await fetch('https://api.resend.com/emails', {
     method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: 'Jehre <bonjour@jehre.com>', to: [to], reply_to: 'contact@jehre.com', subject: 'Votre modèle ' + (m ? m.name : '') + ' est payé',
       text: 'Bonjour,\n\nMerci ! Votre paiement de ' + paid + ' FCFA pour le modèle ' + (m ? m.name : slug) + ' est bien reçu.\n\n' + (install
-        ? 'Vous avez choisi l’installation par notre équipe : répondez à cet e-mail avec votre logo, vos photos, vos textes et vos prix. Nous mettons tout en place et nous vous écrivons dès que votre boutique est prête. 2 séries de corrections sont incluses.'
+        ? 'Vous avez choisi l’installation par notre équipe : répondez à cet e-mail avec votre logo, vos photos, vos textes et vos prix. Nous mettons tout en place et nous vous écrivons dès que votre boutique est prête. 2 séries de corrections sont incluses.' + (form ? '\n\nVoici une copie du formulaire que vous avez signé (votre signature est jointe) :' + formText.replace(/^\n\nFORMULAIRE SIGNÉ \([^)]*\)/, '') : '')
         : 'Notre équipe met votre boutique sur ce modèle, avec votre nom et votre logo (envoyez-le en réponse à cet e-mail), et vous écrit dès que c’est fait. Vous ajoutez ensuite vos produits, vos prix et vos photos dans votre tableau de bord : ' + SITE + '/admin/') +
-        '\n\nUne question ? Répondez à cet e-mail.\n\nL’équipe Jehre' })
+        '\n\nUne question ? Répondez à cet e-mail.\n\nL’équipe Jehre', ...(sigAttach.length ? { attachments: sigAttach } : {}) })
   }).catch(() => null);
 }
 
@@ -433,7 +460,8 @@ Deno.serve(async (req: Request) => {
   // a designer model, paid once: { action: 'model', model, storeId?, shopName?, sells?, returnUrl }
   if (action === 'model') {
     const slug = str(b.model, 20).toLowerCase(), m = MODELS[slug];
-    if (!m) return fail(400, 'model', 'Ce modèle n’existe pas.');
+    if (!m || slug === SHOP_OPTION) return fail(400, 'model', 'Ce modèle n’existe pas.');
+    const shopOpt = b.shop === true && RDV.includes(slug);
     let storeId = str(b.storeId, 40);
     if (storeId) {
       const st = (await rows('stores?select=id,owner&id=eq.' + (UUID.test(storeId) ? storeId : '00000000-0000-0000-0000-000000000000')))[0];
@@ -442,18 +470,49 @@ Deno.serve(async (req: Request) => {
     const customer = await customerFor(user, name);
     const back = backUrl(b.returnUrl, SITE + '/admin/');
     const install = m.installIncluded === true || b.install === true;
+    // the installation is sold only with her signed form: its number of products sets the price
+    let req: Obj | null = null;
+    if (install && !m.installIncluded) {
+      const rid = str(b.installRequestId, 40);
+      req = UUID.test(rid) ? ((await rows('install_requests?select=id,user_id,model,products_count,paid_at&id=eq.' + rid))[0] ?? null) : null;
+      if (!req || req.user_id !== user.id || req.model !== slug || req.paid_at) return fail(400, 'install_form', 'Pour l’installation par notre équipe, remplissez et signez d’abord le formulaire : tableau de bord › Modèles › « Jehre installe tout pour moi ».');
+    }
+    const installAmount = req ? installFor(Number(req.products_count)) : 0;
     const items: Obj[] = [{ quantity: 1, price_data: { currency: 'xof', unit_amount: m.price, product_data: { name: 'Modèle ' + m.name + ' · boutique Jehre', description: m.installIncluded ? 'Payé une seule fois. Installation par notre équipe incluse.' : 'Payé une seule fois.' } } }];
-    if (install && !m.installIncluded) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: Number(m.install ?? INSTALL_PRICE), product_data: { name: 'Installation par l’équipe Jehre', description: 'Vos textes, vos photos, vos produits et vos réglages mis en place. 2 séries de corrections incluses.' } } });
+    if (shopOpt) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: MODELS[SHOP_OPTION].price, product_data: { name: 'Option vente de produits', description: 'Panier et paiement des produits sur votre site de réservation. Payée une seule fois.' } } });
+    if (req) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: installAmount, product_data: { name: 'Installation par l’équipe Jehre · ' + Number(req.products_count) + ' produit' + (Number(req.products_count) > 1 ? 's' : ''), description: 'Selon le formulaire signé : jusqu’à 10 produits et 2 séries de corrections, 5 000 F par produit en plus.' } } });
     const session = await stripe('POST', 'checkout/sessions', {
       mode: 'payment', locale: 'fr', client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
       line_items: items,
       phone_number_collection: { enabled: true }, allow_promotion_codes: true,
-      metadata: { kind: 'model', user_id: user.id, model: slug, store_id: storeId, shop_name: str(b.shopName, 60), sells: str(b.sells, 120), install: install ? '1' : '0' },
+      metadata: { kind: 'model', user_id: user.id, model: slug, store_id: storeId, shop_name: str(b.shopName, 60), sells: str(b.sells, 120), install: install ? '1' : '0', install_request: req ? String(req.id) : '', shop: shopOpt ? '1' : '0' },
       payment_intent_data: { description: 'Modèle ' + m.name, metadata: { kind: 'model', model: slug } },
       success_url: withParam(back, 'modele=ok&nom=' + slug), cancel_url: withParam(back, 'modele=annule')
     });
     if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
-    return json({ ok: true, url: session.data.url, price: m.price + (install && !m.installIncluded ? Number(m.install ?? INSTALL_PRICE) : 0), model: slug, install });
+    return json({ ok: true, url: session.data.url, price: m.price + installAmount + (shopOpt ? MODELS[SHOP_OPTION].price : 0), model: slug, install });
+  }
+
+  // the option alone, later, for one booking site of hers: { action: 'shop_option', storeId, returnUrl }
+  if (action === 'shop_option') {
+    const storeId = str(b.storeId, 40);
+    const st = UUID.test(storeId) ? (await rows('stores?select=id,owner,slug,fiche&id=eq.' + storeId))[0] : null;
+    if (!st || st.owner !== user.id) return fail(400, 'store', 'Cette boutique n’est pas à vous.');
+    const fm = isObj(st.fiche) && isObj((st.fiche as Obj).store) ? str(((st.fiche as Obj).store as Obj).model, 20) : '';
+    if (!RDV.includes(fm)) return fail(400, 'model', 'Cette option est pour les sites de réservation.');
+    if ((await rows('model_purchases?select=id&model=eq.' + SHOP_OPTION + '&store_id=eq.' + storeId + '&limit=1')).length) return fail(409, 'exists', 'Cette boutique vend déjà des produits.');
+    const customer = await customerFor(user, name);
+    const back = backUrl(b.returnUrl, SITE + '/admin/produits/');
+    const session = await stripe('POST', 'checkout/sessions', {
+      mode: 'payment', locale: 'fr', client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
+      line_items: [{ quantity: 1, price_data: { currency: 'xof', unit_amount: MODELS[SHOP_OPTION].price, product_data: { name: 'Option vente de produits', description: 'Panier et paiement des produits sur votre site de réservation. Payée une seule fois.' } } }],
+      phone_number_collection: { enabled: true },
+      metadata: { kind: 'model', user_id: user.id, model: SHOP_OPTION, store_id: storeId, shop_name: str(isObj(st.fiche) && isObj((st.fiche as Obj).store) ? ((st.fiche as Obj).store as Obj).name : '', 60), install: '0' },
+      payment_intent_data: { description: 'Option vente de produits', metadata: { kind: 'model', model: SHOP_OPTION } },
+      success_url: withParam(back, 'option=ok'), cancel_url: withParam(back, 'option=annule')
+    });
+    if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
+    return json({ ok: true, url: session.data.url, price: MODELS[SHOP_OPTION].price });
   }
 
   if (action === 'domain') {

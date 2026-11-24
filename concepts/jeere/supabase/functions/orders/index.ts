@@ -116,7 +116,7 @@ function vars(store: Obj, o: Order) {
     'livraison.commune': str(c.commune, 60) || '—', 'livraison.adresse': str(c.address, 200) || '—',
     'commande.numero': '#' + o.number,
     'commande.total': money(o.total, o.currency), 'commande.sous_total': money(o.subtotal, o.currency), 'commande.livraison': money(o.delivery_fee, o.currency),
-    'commande.articles': o.lines.map((l) => '• ' + l.qty + ' × ' + l.name + ' — ' + money(l.amount, o.currency)).join('\n'),
+    'commande.articles': o.lines.map((l) => '• ' + l.qty + ' × ' + l.name + ' — ' + money(l.amount, o.currency)).join('\n') + (Number((o as Obj).discount) > 0 ? '\n• Réduction' + ((o as Obj).promo_code ? ' ' + String((o as Obj).promo_code) : '') + ' — -' + money(Number((o as Obj).discount), o.currency) : '') + (Number((o as Obj).deposit) > 0 ? '\n\nAcompte à payer maintenant : ' + money(Number((o as Obj).deposit), o.currency) + '\nReste à payer à la livraison : ' + money(o.total - Number((o as Obj).deposit), o.currency) : ''),
     'commande.note': o.note || '—',
     'paiement': o.payment || 'à la livraison'
   } as Record<string, string>;
@@ -201,6 +201,23 @@ async function send(store: Obj, to: string, m: { subject: string; text: string; 
   return { ok: r.ok, reason: r.ok ? '' : 'resend_' + r.status };
 }
 
+/* ------------------------------------------------------------------ promo codes (public.store_promos) */
+const PICKUP = 'Retrait en boutique';
+// a code of this store, still valid for this sub-total: { discount } in the smallest unit, or why not
+async function promoFor(storeId: unknown, raw: unknown, subtotal: number, minor: number): Promise<{ ok: true; id: string; code: string; discount: number } | { ok: false; message: string }> {
+  const code = str(raw, 24).toUpperCase().replace(/[^A-Z0-9-]/g, '');
+  if (code.length < 3) return { ok: false, message: 'Ce code n’existe pas.' };
+  const p = (await rows('store_promos?select=*&store_id=eq.' + storeId + '&code=eq.' + encodeURIComponent(code)))[0];
+  if (!p || p.active !== true) return { ok: false, message: 'Ce code n’existe pas.' };
+  if (p.ends_at && Date.parse(String(p.ends_at)) < Date.now()) return { ok: false, message: 'Ce code a expiré.' };
+  if (p.max_uses && Number(p.uses) >= Number(p.max_uses)) return { ok: false, message: 'Ce code a déjà été utilisé autant de fois que prévu.' };
+  const min = Math.round(Number(p.min_total || 0) * minor);
+  if (subtotal < min) return { ok: false, message: 'Ce code demande un panier d’au moins ' + money(min) + '.' };
+  const v = Number(p.value) || 0;
+  const discount = Math.max(0, Math.min(subtotal, p.kind === 'percent' ? Math.round(subtotal * Math.min(100, v) / 100) : Math.round(v * minor)));
+  return { ok: true, id: String(p.id), code, discount };
+}
+
 /* ------------------------------------------------------------------ the order, recomputed from the fiche */
 function compute(fiche: Obj, cart: Obj, commune: string) {
   const currency = currencyOf(fiche);
@@ -225,6 +242,10 @@ function compute(fiche: Obj, cart: Obj, commune: string) {
     const z = zones.find((x) => x.name === commune);
     if (z) { fee = minor(z.fee, 1e7); zoneFound = true; }
   });
+  // « Retrait en boutique »: offered by the store (fiche.store.pickup.on), no delivery fee
+  const stf = isObj(fiche.store) ? fiche.store as Obj : {};
+  const pickupOn = isObj(stf.pickup) && (stf.pickup as Obj).on === true;
+  if (pickupOn && commune === PICKUP) { fee = 0; zoneFound = true; }
   const subtotal = lines.reduce((n, l) => n + l.amount, 0);
   // a store with delivery zones: the commune must be one of them (no free delivery by typing another name)
   return { lines, subtotal, fee, total: subtotal + fee, currency, minor: k, zoneMissing: hasZones && !zoneFound };
@@ -234,6 +255,7 @@ function compute(fiche: Obj, cart: Obj, commune: string) {
 const STATUSES = ['nouvelle', 'confirmee', 'preparee', 'expediee', 'livree', 'annulee'];
 const SAMPLE: Order = { number: 1001, customer: { name: 'Awa Koné', phone: '+225 07 07 12 34 56', email: 'awa@example.com', commune: 'Cocody', address: 'Riviera 2, près de la pharmacie' }, lines: [{ name: 'Beurre de karité brut', qty: 2, amount: 13000 }, { name: 'Savon noir', qty: 1, amount: 3000 }], subtotal: 16000, delivery_fee: 1500, total: 17500, payment: 'Wave', note: '' };
 
+const DEMO_SLUGS = ['seve', 'soyeuse', 'michou', 'anse', 'regard', 'vernie', 'minuit'];   // the designer models' demo stores: shown, never sold from
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json({ ok: false, code: 'method' }, 405);
@@ -247,6 +269,7 @@ Deno.serve(async (req: Request) => {
   if (action === 'place') {
     const slug = str(b.slug, 40).toLowerCase();
     if (!/^[a-z0-9-]{3,40}$/.test(slug)) return json({ ok: false, code: 'slug', message: 'Boutique introuvable.' }, 400);
+    if (DEMO_SLUGS.includes(slug)) return json({ ok: false, code: 'demo', message: 'Ceci est une boutique de démonstration : aucune commande n’est passée ici. Créez la vôtre sur jehre.com.' }, 403);
     const st = (await rows('stores?select=id,slug,owner,fiche,notifications,contact_email,published&published=is.true&slug=eq.' + slug))[0];
     if (!st) return json({ ok: false, code: 'store', message: 'Boutique introuvable ou pas encore en ligne.' }, 404);
     const c = isObj(b.customer) ? b.customer : {};
@@ -269,10 +292,28 @@ Deno.serve(async (req: Request) => {
     // the payment and the source are chosen from lists (a free text could read « Payé » to the seller)
     const PAYS = ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money', 'Paiement à la livraison', 'Carte bancaire'];
     const pay = str(b.payment, 40);
-    const order: Order & Obj = { number, customer, lines: o.lines, subtotal: o.subtotal, delivery_fee: o.fee, total: o.total, payment: PAYS.includes(pay) ? pay : '', note: str(b.note, 1000), currency: o.currency };
+    const RDV = ['regard', 'vernie', 'minuit'];
+    const fst = isObj(fiche.store) ? fiche.store as Obj : {};
+    if (RDV.includes(str(fst.model, 20))) {
+      const opt = await rows('model_purchases?select=id&model=eq.option-produits&store_id=eq.' + st.id + '&limit=1');
+      if (!opt.length) return json({ ok: false, code: 'products_off', message: 'Cette boutique ne vend pas encore de produits en ligne. Écrivez-lui sur WhatsApp.' }, 400);
+    }
+    let promo: { id: string; code: string; discount: number } | null = null;
+    if (b.promo) { const pr = await promoFor(st.id, b.promo, o.subtotal, o.minor); if (!pr.ok) return json({ ok: false, code: 'promo', message: pr.message }, 400); promo = pr; }
+    const discount = promo ? promo.discount : 0;
+    // a deposit (Paiements › Acompte): with mobile money, a part now, the rest on delivery
+    const dep = isObj(fst.deposit) ? fst.deposit as Obj : {};
+    const pct = dep.on === true ? int(dep.percent, 10, 90, 50) : 0;
+    const MOBILE = ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money'];
+    const deposit = pct && MOBILE.includes(pay) ? Math.round((o.total - discount) * pct / 100) : 0;
+    const order: Order & Obj = { number, customer, lines: o.lines, subtotal: o.subtotal, delivery_fee: o.fee, total: o.total - discount, payment: PAYS.includes(pay) ? pay : '', note: str(b.note, 1000), currency: o.currency, discount, promo_code: promo ? promo.code : null, deposit };
     const ins = await admin('orders', { method: 'POST', body: JSON.stringify({ store_id: st.id, ...order, source: b.source === 'site' ? 'site' : 'boutique' }) });
     if (!ins.ok) return json({ ok: false, code: 'server', message: 'La commande n’a pas pu être enregistrée.' }, 500);
     const saved = (await ins.json())[0] as Obj;
+    if (promo) { const cur = (await rows('store_promos?select=uses&id=eq.' + promo.id))[0]; await admin('store_promos?id=eq.' + promo.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ uses: Number(cur?.uses ?? 0) + 1 }) }); }
+    // her cart left earlier at the checkout is no longer abandoned
+    const dg = customer.phone.replace(/\D/g, '').slice(-8);
+    if (dg.length === 8) await admin('abandoned_carts?store_id=eq.' + st.id + '&recovered_at=is.null&phone=like.*' + dg, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ recovered_at: new Date().toISOString(), order_id: saved.id }) });
     // the e-mails: the client (if an address was given) and the shop
     const shop = await ownerEmail(st);
     const sent: Obj[] = [];
@@ -285,7 +326,35 @@ Deno.serve(async (req: Request) => {
     if (sent.length) await admin('orders?id=eq.' + saved.id, { method: 'PATCH', body: JSON.stringify({ emails: sent }) });
     await notify(st.id, 'Nouvelle commande n° ' + number, customer.name + ' · ' + money(o.total, o.currency) + (customer.commune ? ' · ' + customer.commune : '') + (order.payment ? ' · ' + order.payment : ''), '/admin/#commandes', 'order-' + st.id + '-' + number);
     const major = (n: number) => n / o.minor;
-    return json({ ok: true, number, orderId: saved.id, currency: o.currency, total: major(o.total), subtotal: major(o.subtotal), fee: major(o.fee), lines: o.lines.map((l) => ({ ...l, price: major(l.price), amount: major(l.amount) })), emails: sent.map((x) => ({ kind: x.kind, ok: x.ok })), emailsReady: !!RESEND_KEY });
+    return json({ ok: true, number, orderId: saved.id, currency: o.currency, total: major(o.total - discount), discount: major(discount), deposit: major(deposit), depositPercent: deposit ? pct : 0, subtotal: major(o.subtotal), fee: major(o.fee), lines: o.lines.map((l) => ({ ...l, price: major(l.price), amount: major(l.amount) })), emails: sent.map((x) => ({ kind: x.kind, ok: x.ok })), emailsReady: !!RESEND_KEY });
+  }
+
+  // a promo code typed at the checkout: { slug, code, cart, commune } → the discount, before ordering
+  if (action === 'promo' || action === 'draft') {
+    const slug = str(b.slug, 40).toLowerCase();
+    if (!/^[a-z0-9-]{3,40}$/.test(slug)) return json({ ok: false, message: 'Boutique introuvable.' }, 400);
+    if (DEMO_SLUGS.includes(slug)) return json({ ok: true, demo: true });
+    const st = (await rows('stores?select=id,slug,fiche&published=is.true&slug=eq.' + slug))[0];
+    if (!st) return json({ ok: false, message: 'Boutique introuvable.' }, 404);
+    const fiche = isObj(st.fiche) ? st.fiche : {};
+    const c0 = isObj(b.customer) ? b.customer : {};
+    const o = compute(fiche, isObj(b.cart) ? b.cart : {}, str(b.commune ?? c0.commune, 60));
+    if (action === 'promo') {
+      if (!o.lines.length) return json({ ok: false, message: 'Le panier est vide.' }, 400);
+      const pr = await promoFor(st.id, b.code, o.subtotal, o.minor);
+      if (!pr.ok) return json({ ok: false, message: pr.message });
+      return json({ ok: true, code: pr.code, discount: pr.discount / o.minor, subtotal: o.subtotal / o.minor, fee: o.fee / o.minor, total: (o.total - pr.discount) / o.minor, currency: o.currency });
+    }
+    // « draft »: the buyer typed her phone at the checkout; kept so the shop can call her back if she does not order
+    const phone = str(c0.phone, 30), digits = phone.replace(/\D/g, '');
+    if (digits.length < 8 || !o.lines.length) return json({ ok: true, kept: false });
+    const hour = new Date(Date.now() - 3600000).toISOString();
+    const recent = await rows('abandoned_carts?select=id,phone&store_id=eq.' + st.id + '&updated_at=gte.' + encodeURIComponent(hour) + '&limit=60');
+    const row = { name: str(c0.name, 80), phone, email: str(c0.email, 120).toLowerCase(), cart: o.lines.map((l) => ({ id: l.id, name: l.name, qty: l.qty, amount: l.amount })), total: o.total, currency: o.currency, updated_at: new Date().toISOString() };
+    const mine = recent.find((x) => String(x.phone ?? '').replace(/\D/g, '').slice(-8) === digits.slice(-8));
+    if (mine) await admin('abandoned_carts?id=eq.' + mine.id + '&recovered_at=is.null', { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(row) });
+    else if (recent.length < 50) await admin('abandoned_carts', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ store_id: st.id, ...row }) });
+    return json({ ok: true, kept: true });
   }
 
   // everything else: the store's managers
