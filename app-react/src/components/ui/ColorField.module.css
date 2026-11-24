@@ -1,15 +1,29 @@
 /* A colour field: rows of round swatches (model, base, recent) and a « + » that opens the picker below them */
-.control { display: grid; gap: 6px; min-width: 0; }
-.caption { font: 500 11.5px/16px var(--font); color: var(--muted); }
-.sub { margin-top: 2px; font: 500 10.5px/14px var(--font); color: var(--muted); }
-.swatches { display: flex; flex-wrap: wrap; gap: 4px; }
+/* A colour field: one calm line (the colour in use, its name, a chevron); touched, the choices unfold below it */
+.control { display: grid; min-width: 0; border-radius: 14px; transition: background-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+.control[data-open] { background: var(--glass-strong); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 10px 26px -20px rgba(17, 17, 17, .3); }
+.row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 10px; border: 0; border-radius: 14px; background: none; color: var(--ink); text-align: left; cursor: pointer; }
+.row:hover { background: var(--grey-1); }
+.control[data-open] .row:hover { background: none; }
+.row:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.row > svg { flex: none; color: var(--muted); transition: transform var(--dur) var(--ease); }
+.row[aria-expanded="true"] > svg { transform: rotate(180deg); }
+.dot { flex: none; width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .14); background: var(--white); }
+.dot[data-none] { background: linear-gradient(135deg, var(--white) 46%, var(--line-2) 46%, var(--line-2) 54%, var(--white) 54%); }
+.what { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.what b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 13px/18px var(--font); }
+.caption { font: 400 11.5px/16px var(--font); color: var(--muted); }
+.sub { font: 500 11px/16px var(--font); color: var(--muted); }
+.panel { display: grid; gap: 10px; padding: 2px 10px 12px; animation: in .18s var(--ease); }
+.swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .swatches button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink); cursor: pointer; transition: box-shadow var(--dur) var(--ease); }
 .swatches i { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .14); background: var(--white); }
 .swatches i[data-none] { background: linear-gradient(135deg, var(--white) 46%, var(--line-2) 46%, var(--line-2) 54%, var(--white) 54%); }
 .swatches button[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ink); }
 .swatches button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
-.more { box-shadow: inset 0 0 0 1px var(--line-2) !important; }
-.more[aria-expanded="true"] { background: var(--grey-1) !important; }
+.swatches .custom { display: inline-flex; width: auto; gap: 5px; height: 30px; margin-left: 4px; padding: 0 12px 0 9px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--line-2); font: 500 12px/1 var(--font); }
+.swatches .custom[aria-expanded="true"] { background: var(--grey-1); }
+.recent { display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
 
 /* the picker: a clear glass card, the colour field, the band of hues, before/after, the code, two clear actions */
 .picker { display: grid; gap: 10px; margin-top: 4px; padding: 12px; border-radius: 14px; background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 14px 34px -22px rgba(17, 17, 17, .35); animation: in .18s var(--ease); }

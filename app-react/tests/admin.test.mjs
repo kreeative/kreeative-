@@ -140,8 +140,14 @@ const bookingSettings = (services = []) => ({ enabled: true, timezone: 'Africa/A
   hours: [0, 1, 2, 3, 4, 5, 6].map((d) => ({ open: d !== 0, from: d === 6 ? '10:00' : '09:00', to: '18:00', breaks: [] })), services, addons: [], staff: [{ id: 'e1', name: 'Kady', role: '', photo: '', active: true, hours: null }], special: [] });
 const world = (over = {}) => { const s = store(); return { calls: [], uploads: [], conflict: false, profile: { id: USER.id, first_name: 'Kady', phone: '+2250707123456', store_name: 'Boutique Test', plan: 'gratuit', studio: null, created_at: '2026-11-01T10:00:00Z' }, stores: [s], orders: orders(s.id), ...over }; };
 /** a colour by its code, through the « + » picker of a colour field */
+/** a colour field is one line: touching it unfolds its choices */
+async function openColor(scope, label) {
+  const row = scope.getByRole('button', { name: new RegExp(`^${label} : `) });
+  if ((await row.getAttribute('aria-expanded')) !== 'true') await row.click();
+}
 async function pickColor(scope, label, hex) {
-  await scope.getByRole('group', { name: `${label} : couleurs de base` }).getByRole('button', { name: 'Autre couleur' }).click();
+  await openColor(scope, label);
+  await scope.getByRole('group', { name: `${label} : couleurs de base` }).getByRole('button', { name: 'Personnaliser' }).click();
   const pk = scope.getByRole('group', { name: `Choisir la couleur : ${label}` });
   await pk.getByLabel('Code couleur').fill(hex.replace('#', ''));
   await pk.getByRole('button', { name: 'Appliquer' }).click();
@@ -684,6 +690,7 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   await right.getByLabel('Espace au-dessus (px)').fill('120');
   await right.getByLabel('Espace en dessous (px)').fill('64');
   await right.getByRole('button', { name: 'Centre' }).click();
+  await openColor(right, 'Fond de la section');
   await right.getByRole('group', { name: 'Fond de la section : couleurs de base' }).getByRole('button', { name: 'Or' }).click();
   await right.getByLabel('Coins des images (px)').fill('24');
   await right.getByRole('switch', { name: 'Filet au-dessus de la section' }).click();
@@ -1025,7 +1032,9 @@ await test('editor, the scrolling band (MICHOU): one stable block, ONE text writ
   await page.screenshot({ path: `${SHOTS}69-bandeau-defilant.png` });
   // its colours and its speed
   await tools.getByRole('button', { name: 'Couleurs', exact: true }).click();
+  await openColor(page.getByRole('dialog'), 'Couleur du bandeau');
   await page.getByRole('dialog').getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button', { name: 'Rouge' }).click();
+  await openColor(page.getByRole('dialog'), 'Couleur du texte du bandeau');
   await page.getByRole('dialog').getByRole('group', { name: 'Couleur du texte du bandeau : couleurs de base' }).getByRole('button', { name: 'Blanc' }).click();
   const slow = await band.evaluate((b) => parseFloat(getComputedStyle(b.querySelector('.ruban__track')).animationDuration));
   await tools.getByRole('button', { name: 'Vitesse', exact: true }).click();
@@ -1102,6 +1111,7 @@ await test('editor on a phone: a thin bar, her site on the whole screen, one bar
   await page.waitForTimeout(300);
   assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.fontSize), `${before + 2}px`);
   await tools.getByRole('button', { name: 'Couleur', exact: true }).click();
+  await openColor(page.getByRole('dialog'), 'Couleur du texte');
   await page.getByRole('dialog').getByRole('group', { name: 'Couleur du texte : couleurs de base' }).getByRole('button', { name: 'Rouge' }).click();
   await page.waitForTimeout(300);
   assert.equal(await site.getByText('Bonjour Test').first().evaluate((n) => n.style.color), 'rgb(229, 57, 53)');
@@ -1829,12 +1839,16 @@ await test('colours: the model’s own and the base colours, a « + » that open
   const tools = page.getByRole('navigation', { name: /^Outils : / });
   await tools.getByRole('button', { name: 'Couleurs', exact: true }).click();
   const sheet = page.getByRole('dialog', { name: 'Couleurs du bandeau' });
+  // one calm line per colour, nothing unfolded at first
+  assert.equal(await sheet.locator('[role=group][aria-label$="couleurs de base"]').count(), 0, 'no wall of swatches');
+  await page.screenshot({ path: `${SHOTS}89-couleurs-lignes.png` });
+  await openColor(sheet, 'Couleur du bandeau');
   const own = sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs du modèle' });
   assert.ok(await own.getByRole('button', { name: 'Rouge soldes' }).count() === 1, 'MICHOU’s own red is offered first');
-  assert.deepEqual(await sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button').evaluateAll((b) => b.map((x) => x.getAttribute('aria-label'))), ['Blanc', 'Rouge', 'Bleu', 'Vert', 'Or', 'Autre couleur'], 'plain base colours (black is already MICHOU’s ink)');
+  assert.deepEqual(await sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button').evaluateAll((b) => b.map((x) => x.getAttribute('aria-label') ?? x.textContent)), ['Blanc', 'Rouge', 'Bleu', 'Vert', 'Or', 'Personnaliser'], 'plain base colours (black is already MICHOU’s ink)');
   assert.equal(await sheet.locator('input[type="color"]').count(), 0, 'no raw colour input of the browser');
   await page.screenshot({ path: `${SHOTS}90-couleurs-bandeau.png` });
-  await sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button', { name: 'Autre couleur' }).click();
+  await sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).getByRole('button', { name: 'Personnaliser' }).click();
   const picker = sheet.getByRole('group', { name: 'Choisir la couleur : Couleur du bandeau' });
   await picker.waitFor();
   // dragging in the field and along the band of hues changes the colour; its code can be typed
@@ -1850,6 +1864,8 @@ await test('colours: the model’s own and the base colours, a « + » that open
   const recent = sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs récentes' });
   assert.deepEqual(await recent.getByRole('button').evaluateAll((b) => b.map((x) => x.getAttribute('aria-label'))), ['#2E7D5B']);
   // the same recent colour is offered for the text too, one touch applies it
+  await openColor(sheet, 'Couleur du texte du bandeau');
+  assert.equal(await sheet.getByRole('group', { name: 'Couleur du bandeau : couleurs de base' }).count(), 0, 'opening one folds the other');
   await sheet.getByRole('group', { name: 'Couleur du texte du bandeau : couleurs récentes' }).getByRole('button', { name: '#2E7D5B' }).click();
   await page.waitForTimeout(300);
   assert.equal(await site.locator('.ruban').first().evaluate((b) => getComputedStyle(b).color), 'rgb(46, 125, 91)');
@@ -2075,6 +2091,31 @@ await test('a product card in the editor (SÈVE): which product of the catalogue
   assert.equal(await sheet.getByLabel('Nom du produit').inputValue(), 'Savon noir au karité');
   await page.screenshot({ path: `${SHOTS}103-produit-ouvert.png` });
   assert.equal(Object.values(w.stores[0].fiche.store.slots ?? {}).includes('p2'), true, 'the card’s product was saved');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('Branding on a phone: one calm line per colour, one open at a time, recent colours once, nothing hidden under the bottom bar', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.addInitScript(() => localStorage.setItem('jeere-recent-colors', JSON.stringify(['#A52A22'])));
+  await page.goto(`${BASE}/admin/branding/`);
+  const colours = page.getByRole('region', { name: 'Couleurs' });
+  await colours.waitFor();
+  assert.equal(await colours.locator('[role=group]').count(), 0, 'every colour folded at first');
+  await colours.scrollIntoViewIfNeeded(); await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}104-branding-couleurs-telephone.png` });
+  await openColor(colours, 'Boutons');
+  assert.equal(await colours.getByRole('group', { name: /couleurs récentes$/ }).count(), 1, 'recent colours shown once');
+  await colours.getByRole('group', { name: 'Boutons : couleurs récentes' }).getByRole('button', { name: '#A52A22' }).click();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}105-branding-boutons-ouvert.png` });
+  await openColor(colours, 'Fond du site');
+  assert.equal(await colours.locator('[role=group]').count(), 3, 'only the open one shows its choices');
+  // the last line of the page can be scrolled above the bottom bar
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(300);
+  const lastBottom = await page.locator('main').evaluate((m) => { const kids = m.querySelectorAll('section, iframe, p'); return kids[kids.length - 1].getBoundingClientRect().bottom; });
+  const barTop = await page.getByRole('navigation', { name: 'Tableau de bord' }).evaluate((n) => n.closest('aside').getBoundingClientRect().top);
+  assert.ok(lastBottom <= barTop + 1, `the end of the page clears the bar: ${lastBottom} / ${barTop}`);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

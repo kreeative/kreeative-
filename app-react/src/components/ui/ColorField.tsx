@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from 'react';
+import { createContext, useContext, useEffect, useId, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from 'react';
 import { Icon } from './Icon';
 import styles from './ColorField.module.css';
 
@@ -51,6 +51,12 @@ function toHsv(hex: string): HSV {
 function toHex({ h, s, v }: HSV): string {
   const f = (k: number) => { const x = (k + h / 60) % 6; return v - v * s * Math.max(0, Math.min(x, 4 - x, 1)); };
   return '#' + [f(5), f(3), f(1)].map((c) => Math.round(c * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+/** two colours the eye can hardly tell apart (a model's ink and the base black): only one is offered */
+function near(a: string, b: string): boolean {
+  if (!HEX.test(a) || !HEX.test(b)) return false;
+  const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16);
+  return Math.abs((x >> 16) - (y >> 16)) + Math.abs(((x >> 8) & 255) - ((y >> 8) & 255)) + Math.abs((x & 255) - (y & 255)) < 20;
 }
 const clamp = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -111,39 +117,57 @@ function Swatch({ v, name, on, pick }: { v: string; name: string; on: boolean; p
   return <button type="button" aria-pressed={on} onClick={pick} aria-label={name} title={name}><i style={v ? { background: v } : undefined} data-none={v ? undefined : ''} /></button>;
 }
 
-/** A colour of her site: « Modèle » (the model's own), the model's colours, the base colours, her recent colours,
- *  and « + » for any colour. A colour she makes with the picker or types is kept in her recent colours. */
+/** A colour of her site, as one calm line: its name, the colour in use, and a chevron. Touched, it unfolds (and the
+ *  other colour fields of the page fold): the model's colours, a few base colours, « Personnaliser » for any colour,
+ *  and her recent colours, once. A colour she makes with the picker is kept in her recent colours. */
 export function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string | undefined) => void }) {
   const model = useContext(Palette), recent = useRecent();
   const [open, setOpen] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const me = useId();
+  // one colour field open at a time on the page: opening one folds the others
+  useEffect(() => {
+    const other = (e: Event) => { if ((e as CustomEvent<string>).detail !== me) { setOpen(false); setPicking(false); } };
+    window.addEventListener('jeere-color-open', other);
+    return () => window.removeEventListener('jeere-color-open', other);
+  }, [me]);
+  const toggle = () => { const next = !open; setOpen(next); setPicking(false); if (next) window.dispatchEvent(new CustomEvent('jeere-color-open', { detail: me })); };
   const cur = up(value || '');
   const seen = new Set<string>();
-  const own = model.filter(([v]) => { const k = up(v); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 7);
-  const base = BASE_COLORS.filter(([v]) => !seen.has(up(v)));
-  const custom = cur && ![...own, ...base].some(([v]) => up(v) === cur) && !recent.includes(cur) ? cur : '';
+  const own = model.filter(([v]) => { const k = up(v); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 6);
+  const base = BASE_COLORS.filter(([v]) => !own.some(([o]) => near(o, v)));
+  const quick = new Set([...own, ...base].map(([v]) => up(v)));
+  const recents = recent.filter((v) => !quick.has(v)).slice(0, 6);
+  const name = !cur ? 'Couleur du modèle' : [...own, ...base].find(([v]) => up(v) === cur)?.[1] ?? cur;
   const pick = (v: string) => onChange(v || undefined);
   return (
-    <div className={styles.control}>
-      <span className={styles.caption}>{label}</span>
-      <div className={styles.swatches} role="group" aria-label={`${label} : couleurs du modèle`}>
-        <Swatch v="" name="Couleur du modèle" on={!cur} pick={() => pick('')} />
-        {own.map(([v, n]) => <Swatch key={v} v={v} name={n} on={cur === up(v)} pick={() => pick(up(v))} />)}
-      </div>
-      <span className={styles.sub}>Couleurs de base</span>
-      <div className={styles.swatches} role="group" aria-label={`${label} : couleurs de base`}>
-        {base.map(([v, n]) => <Swatch key={v} v={v} name={n} on={cur === up(v)} pick={() => pick(v)} />)}
-        {custom ? <Swatch v={custom} name={custom} on pick={() => pick(custom)} /> : null}
-        <button type="button" className={styles.more} aria-expanded={open} aria-label="Autre couleur" title="Autre couleur" onClick={() => setOpen((o) => !o)}><Icon name={open ? 'close' : 'plus'} size={14} /></button>
-      </div>
-      {recent.length ? (
-        <>
-          <span className={styles.sub}>Couleurs récentes</span>
-          <div className={styles.swatches} role="group" aria-label={`${label} : couleurs récentes`}>
-            {recent.map((v) => <Swatch key={v} v={v} name={v} on={cur === v} pick={() => pick(v)} />)}
+    <div className={styles.control} data-open={open ? '' : undefined}>
+      <button type="button" className={styles.row} aria-expanded={open} onClick={toggle} aria-label={`${label} : ${name}`}>
+        <i className={styles.dot} style={cur ? { background: cur } : undefined} data-none={cur ? undefined : ''} aria-hidden="true" />
+        <span className={styles.what}><span className={styles.caption}>{label}</span><b>{name}</b></span>
+        <Icon name="down" size={16} />
+      </button>
+      {open ? (
+        <div className={styles.panel}>
+          <div className={styles.swatches} role="group" aria-label={`${label} : couleurs du modèle`}>
+            <Swatch v="" name="Couleur du modèle" on={!cur} pick={() => pick('')} />
+            {own.map(([v, n]) => <Swatch key={v} v={v} name={n} on={cur === up(v)} pick={() => pick(up(v))} />)}
           </div>
-        </>
+          <div className={styles.swatches} role="group" aria-label={`${label} : couleurs de base`}>
+            {base.map(([v, n]) => <Swatch key={v} v={v} name={n} on={cur === up(v)} pick={() => pick(v)} />)}
+            <button type="button" className={styles.custom} aria-expanded={picking} onClick={() => setPicking((o) => !o)}><Icon name={picking ? 'close' : 'plus'} size={14} />Personnaliser</button>
+          </div>
+          {recents.length ? (
+            <div className={styles.recent}>
+              <span className={styles.sub}>Récentes</span>
+              <div className={styles.swatches} role="group" aria-label={`${label} : couleurs récentes`}>
+                {recents.map((v) => <Swatch key={v} v={v} name={v} on={cur === v} pick={() => pick(v)} />)}
+              </div>
+            </div>
+          ) : null}
+          {picking ? <ColorPicker start={cur} label={label} onCancel={() => setPicking(false)} onApply={(hex) => { rememberColor(hex); pick(hex); setPicking(false); }} /> : null}
+        </div>
       ) : null}
-      {open ? <ColorPicker start={cur} label={label} onCancel={() => setOpen(false)} onApply={(hex) => { rememberColor(hex); pick(hex); setOpen(false); }} /> : null}
     </div>
   );
 }

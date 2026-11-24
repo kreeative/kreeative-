@@ -1,8 +1,8 @@
 /* Branding: the settings on the left (glass cards), her site on the right with them applied; one column on a phone */
 .grid { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
 .panel { display: grid; gap: var(--sp-4); min-width: 0; }
-.card { display: grid; gap: 12px; padding: var(--sp-5); border-radius: var(--r-lg); background: var(--glass-strong); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 12px 30px -24px rgba(17, 17, 17, .3); }
-.card h2 { display: flex; align-items: center; gap: 8px; margin: 0; font: var(--w-title) var(--fs-lg)/var(--lh-lg) var(--font); }
+.card { display: grid; gap: 4px; padding: var(--sp-5); border-radius: var(--r-lg); background: var(--glass-strong); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 12px 30px -24px rgba(17, 17, 17, .3); }
+.card h2 { margin-bottom: 6px !important; padding: 0 10px; display: flex; align-items: center; gap: 8px; margin: 0; font: var(--w-title) var(--fs-lg)/var(--lh-lg) var(--font); }
 .caption { font: 500 11.5px/16px var(--font); color: var(--muted); }
 .segments { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; padding: 2px; border-radius: 10px; background: var(--grey-1); }
 .segments button { height: 32px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: var(--w-ui) var(--fs-sm)/1 var(--font); cursor: pointer; transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease); }
@@ -20,4 +20,4 @@
 .note { margin-bottom: var(--sp-4); }
 .preview { position: sticky; top: 16px; height: calc(100dvh - 120px); min-height: 520px; border-radius: 18px; overflow: hidden; background: var(--white); box-shadow: 0 0 0 1px var(--line), 0 18px 44px -24px rgba(17, 17, 17, .3); }
 .preview iframe { display: block; width: 100%; height: 100%; border: 0; }
-@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } .preview { position: static; height: 70dvh; min-height: 420px; } }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); padding-bottom: calc(24px + env(safe-area-inset-bottom)); } .card { padding: var(--sp-4) var(--sp-3); } .preview { position: static; height: 70dvh; min-height: 420px; } }
