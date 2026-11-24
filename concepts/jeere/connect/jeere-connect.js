@@ -257,7 +257,16 @@
   // the product she chose for it in the editor (store.slots), or is hidden ('-'). Done before bind(), and again each
   // time the editor sends a new fiche, so everything after works with the real product id (the cart too).
   var SLOT_ATTRS = ['product', 'name', 'desc', 'price', 'photo', 'add', 'inc', 'dec', 'remove'];
+  function plainName(t) { return String(t || '').replace(/\s+/g, ' ').trim().toLowerCase(); }
+  function keepModelNames() {
+    $$('[data-jeere-product]').forEach(function (c) {
+      if (c.hasAttribute('data-jeere-model-name')) return;
+      var n = c.querySelector('[data-jeere-name]');
+      c.setAttribute('data-jeere-model-name', n ? plainName(n.textContent) : '');
+    });
+  }
   function remapSlots(fiche) {
+    try { keepModelNames(); } catch (e) { /* the cases keep their model's words */ }
     var map = fiche && isObj(fiche.store) && isObj(fiche.store.slots) ? fiche.store.slots : {};
     try {
       var q = isObj(fiche.store) && isObj(fiche.store.site) && isObj(fiche.store.site.q) ? fiche.store.site.q : {}, base = pagePath(), own = {};
@@ -472,7 +481,15 @@
   function cards() {
     $$('[data-jeere-product]').filter(outsideLines).forEach(function (c) {
       var id = c.getAttribute('data-jeere-product'), slot = c.getAttribute('data-jeere-slot-product') || id;
-      var p = S.products && S.products[id], moved = slot !== id;
+      var p = S.products && S.products[id], was = c.getAttribute('data-jeere-model-name') || '';
+      var moved = slot !== id || !!(p && p.name && was && plainName(p.name) !== was);
+      // on a product page, the words around the name in its title (« Michou … Noir délavé ») are the model's
+      var nm = c.querySelector('[data-jeere-name]'), title = nm && nm.parentElement && /^H[1-3]$/.test(nm.parentElement.tagName) && nm.parentElement.children.length === 1 ? nm.parentElement : null;
+      if (title) Array.prototype.forEach.call(title.childNodes, function (t) {
+        if (t.nodeType !== 3) return;
+        if (!t.hasOwnProperty('jeereWas')) t.jeereWas = t.nodeValue;
+        t.nodeValue = moved && p ? '' : t.jeereWas;
+      });
       var img = c.querySelector('img[data-jeere-photo]') || c.querySelector('img');
       if (img && !img.hasAttribute('data-jeere-model-src')) img.setAttribute('data-jeere-model-src', img.getAttribute('src') || '');
       var badges = $$('[class*="badge"], [class*="__tag"]', c).filter(function (e) { return !e.children.length; });
