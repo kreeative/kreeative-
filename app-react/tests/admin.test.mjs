@@ -2223,6 +2223,22 @@ await test('a card given another product (SÈVE): its label, its small line and 
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+await test('a model she already has: its page says « Modifier mon site » (her site opens), never « Choisir ce modèle »; another model still offers it', async () => {
+  const w = withModel(world(), 'regard'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/modeles/regard/`);
+  const mine = page.getByRole('link', { name: 'Modifier mon site' });
+  await mine.waitFor();
+  assert.equal(await mine.getAttribute('href'), `/admin/editeur/?b=${w.stores[0].id}`);
+  assert.equal(await page.getByRole('link', { name: 'Choisir ce modèle' }).count(), 0);
+  await page.screenshot({ path: `${SHOTS}116-modele-deja-a-moi.png` });
+  await page.goto(`${BASE}/modeles/michou/`);
+  await page.getByRole('link', { name: 'Choisir ce modèle' }).waitFor();
+  // and inside the dashboard, the same
+  await page.goto(`${BASE}/admin/modeles/apercu/?m=regard`);
+  await page.getByRole('link', { name: 'Modifier mon site' }).waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);

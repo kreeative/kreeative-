@@ -61,6 +61,11 @@ export function currentModel(fiche: Fiche | undefined, owned: string[]): string 
   return owned.includes(want) ? want : owned[0] ?? '';
 }
 
+/** Her store that shows this model (a store named after the model, or one whose model it is), if she has one. */
+export function storeOfModel<T extends { id: string; slug: string; role?: string; fiche?: Fiche }>(stores: T[], owned: string[], slug: string): T | undefined {
+  return stores.find((s) => s.role === 'owner' && s.slug === slug) ?? stores.find((s) => currentModel(s.fiche, owned) === slug);
+}
+
 /** The same store in another model she owns. What she wrote for each model is kept aside (`siteBy`) and comes
  *  back when she returns to it, exactly as the current dashboard does. */
 export function withModel(fiche: Fiche, slug: string, from: string): Fiche {
