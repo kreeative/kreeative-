@@ -35,7 +35,7 @@ window.JEERE_EN = {
   'hero.title': 'Create your online store for free',
   'hero.lead': 'Jehre is the all-in-one platform to build, run and grow your business, online and in person. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, with prices in FCFA.',
   'hero.cardTitle': 'Reserve your free store',
-  'hero.cardSub': 'Over 10,000 F free for the first 10, first month free for everyone.',
+  'hero.cardSub': 'First month free on the Essentiel pack.',
   'hero.consent': 'By continuing, you agree to receive WhatsApp messages from Jehre.',
   'hero.phonePh': 'Your WhatsApp number',
   'hero.go': 'Continue',
@@ -319,10 +319,10 @@ window.JEERE_EN = {
   'faq.a7': 'We only use it to message you about Jehre. It is never sold or shared. To delete your sign-up, write to <a href="mailto:contact@jehre.com?subject=Jehre%20%C2%B7%20waitlist">contact@jehre.com</a>.',
 
   'join.eyebrow': 'Waitlist',
-  'join.title': 'Join the first 10 stores.',
-  'join.lead': 'We are opening Jehre in Abidjan with 50 pilot stores. We build yours with you, free for 3 months, in exchange for your feedback every week.',
+  'join.title': 'Join the first stores.',
+  'join.lead': 'We are opening Jehre in Abidjan with 50 pilot stores. We build yours with you, in exchange for your feedback every week.',
   'join.k1': 'Your store built with you',
-  'join.k2': '3 months free',
+  'join.k2': 'First month free',
   'join.k3': 'A direct line to the team on WhatsApp',
 
   'form.role': 'You are:',
