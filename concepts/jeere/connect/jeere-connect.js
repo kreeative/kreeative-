@@ -712,10 +712,8 @@
     try { return JSON.parse(el.getAttribute(attr)) || []; } catch (e) { return []; }
   }
   function hexColor(v) { return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v); }
-  function hideEl(el, off, opacity, display) {
-    if (editing || preview) { el.style.opacity = off ? '.28' : opacity; el.style.display = display; }
-    else { el.style.opacity = opacity; el.style.display = off ? 'none' : display; }
-  }
+  // hidden means gone, in the editor as on the live site (the editor lists what is hidden, to bring it back)
+  function hideEl(el, off, opacity, display) { el.style.opacity = opacity; el.style.display = off ? 'none' : display; }
   function lookText(el, o) {
     if (!isObj(o) && !el.hasAttribute('data-jeere-x')) return;
     var was = kept(el, 'data-jeere-x', ['fontSize', 'color', 'fontWeight', 'textAlign', 'fontFamily', 'opacity', 'display', 'borderRadius', 'background', 'border', 'padding']);
@@ -917,8 +915,7 @@
     try { styleSections(isObj(site.s) ? site.s : {}, base0); } catch (e) { /* the model's own look stays */ }
     sections().forEach(function (el, n) {
       var off = typeof hh[base0 + '|h|' + n] === 'string';
-      if (editing || preview) { el.style.opacity = off ? '.28' : ''; el.style.display = ''; }
-      else el.style.display = off ? 'none' : '';
+      el.style.opacity = ''; el.style.display = off ? 'none' : '';
     });
     keyed().forEach(function (x) {
       if (x.kind === 'p' || x.kind === 's') return;
@@ -971,6 +968,7 @@
     };
     var hl = null;
     document.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch') return;          // a finger does not hover: only what is chosen is framed
       var el = under(e);
       if (el === hl) return;
       if (hl) hl.classList.remove('jeere-hl');
