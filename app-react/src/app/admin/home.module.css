@@ -1,16 +1,16 @@
-/* The home of the dashboard: alive, on a light ground. A dark « today » card as on the current site, the first
+/* The home of the dashboard: alive, on a light ground. A white « today » card with a soft tint, the first
    steps with the logo's full rainbow, soft coloured glass chips on the figures, readable coloured statuses. */
 .date { margin: 0 0 2px; color: var(--muted); font: var(--w-ui) var(--fs-xs)/var(--lh-xs) var(--font); letter-spacing: .08em; text-transform: uppercase; }
 
-.today { position: relative; display: grid; gap: var(--sp-3); margin-bottom: var(--sp-4); padding: var(--sp-5); border-radius: var(--r-lg); background: #111111; color: #FFFFFF; overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), 0 18px 40px -24px rgba(17, 17, 17, .6); }
-.today::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 100% 0%, rgba(106, 76, 255, .34), transparent 55%), radial-gradient(90% 80% at 0% 100%, rgba(232, 70, 124, .22), transparent 60%); }
+.today { position: relative; display: grid; gap: var(--sp-3); margin-bottom: var(--sp-4); padding: var(--sp-5); border-radius: var(--r-lg); background: var(--white); color: var(--ink); overflow: hidden;
+  box-shadow: var(--glass-hi), 0 0 0 1px var(--line), 0 14px 30px -24px rgba(17, 17, 17, .3); }
+.today::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 100% 0%, rgba(106, 76, 255, .10), transparent 55%), radial-gradient(90% 80% at 0% 100%, rgba(232, 70, 124, .08), transparent 60%); }
 .todayMain { position: relative; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-width: 0; color: inherit; text-decoration: none; }
 .todayMain span { display: grid; gap: 2px; min-width: 0; }
-.todayMain small { color: rgba(255, 255, 255, .62); font: var(--w-ui) var(--fs-xs)/var(--lh-xs) var(--font); letter-spacing: .1em; text-transform: uppercase; }
+.todayMain small { color: var(--muted); font: var(--w-ui) var(--fs-xs)/var(--lh-xs) var(--font); letter-spacing: .1em; text-transform: uppercase; }
 .todayMain b { min-width: 0; font: var(--w-ui) var(--fs-lg)/var(--lh-lg) var(--font); overflow-wrap: anywhere; }
-.todayMain svg { flex: none; opacity: .7; }
-.todayBtn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--ctl); padding: 0 var(--ctl-pad); border-radius: var(--r); background: #FFFFFF; color: #111111; font: var(--w-ui) var(--fs)/var(--lh) var(--font); text-decoration: none; transition: transform var(--dur) var(--ease); }
+.todayMain svg { flex: none; color: var(--faint); }
+.todayBtn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--ctl); padding: 0 var(--ctl-pad); border-radius: var(--r); background: var(--ink); color: var(--white); font: var(--w-ui) var(--fs)/var(--lh) var(--font); text-decoration: none; transition: transform var(--dur) var(--ease); }
 .todayBtn:active { transform: scale(.97); }
 
 .steps { margin-bottom: var(--sp-4); border-radius: var(--r-lg); background: var(--white); box-shadow: var(--glass-hi), 0 0 0 1px var(--line); overflow: hidden; }
