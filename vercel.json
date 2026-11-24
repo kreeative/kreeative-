@@ -20,24 +20,30 @@
       "dest": "/api/catalogue?slug=$1"
     },
     {
-      "src": "^/admin-classique/?$",
+      "src": "^/admin-classique(/.*)?$",
       "has": [
         {
           "type": "host",
           "value": "(jehre\\.com|www\\.jehre\\.com)"
         }
       ],
-      "dest": "/concepts/jeere/admin/index.html"
+      "status": 308,
+      "headers": {
+        "Location": "/admin/"
+      }
     },
     {
-      "src": "^/admin-classique/(.+)$",
+      "src": "^/admin(/[^.]*)?$",
       "has": [
         {
           "type": "host",
-          "value": "(jehre\\.com|www\\.jehre\\.com)"
+          "value": "(jeere\\.kreeative\\.xyz|.+\\.store\\.jehre\\.com)"
         }
       ],
-      "dest": "/concepts/jeere/admin/$1"
+      "status": 308,
+      "headers": {
+        "Location": "https://jehre.com/admin/"
+      }
     },
     {
       "src": "^/_next/(.*)$",
