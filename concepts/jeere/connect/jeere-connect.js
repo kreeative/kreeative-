@@ -547,6 +547,26 @@
     if (typeof text === 'string') { ns.forEach(function (n, i) { n.nodeValue = i === 0 ? text + (/\s$/.test(was[0] || '') ? ' ' : '') : ''; }); }
     else ns.forEach(function (n, i) { if (typeof was[i] === 'string') n.nodeValue = was[i]; });
   }
+  /* A text with a line of its own inside (« Hauts » and, below, « t-shirts lourds et délavés » in a <small> shown as a
+   * block): two texts for her. The outer one keeps its number and edits only its own words; the inner lines are
+   * numbered apart (|w|), so no other text of the page changes number. */
+  function stacked(el) {
+    for (var i = 0; i < el.children.length; i++) {
+      var c = el.children[i];
+      if (c.tagName === 'BR' || !(c.textContent || '').trim()) continue;
+      var d = ''; try { var cs = window.getComputedStyle(c); d = cs.display; if (cs.position === 'absolute' || cs.position === 'fixed') return true; } catch (e) { d = ''; }
+      if (d && d !== 'inline' && d !== 'inline-block' && d !== 'contents' && d !== 'none') return true;
+    }
+    return false;
+  }
+  function stackedLines(whole) {
+    var out = [];
+    whole.forEach(function (el) {
+      if (!ownNodes(el).length || !stacked(el)) return;
+      for (var i = 0; i < el.children.length; i++) { var c = el.children[i]; if (c.tagName !== 'BR' && (c.textContent || '').trim()) out.push(c); }
+    });
+    return out;
+  }
   function editImgs() { return $$('img').filter(function (el) { return !skip(el); }); }
   // what she can change on this page, numbered in page order: texts (t), pictures (i), the category of a
   // service card (c); and what comes from elsewhere: a product card (p), the list of her services (s)
@@ -660,13 +680,14 @@
       else if (el.closest && el.closest(MARQ)) { var band = el.closest(MARQ); if (seenBands.indexOf(band) === -1) { seenBands.push(band); nt += bandCount(band); } }
       // what a product card says comes from the product (the dashboard), not from here; numbers kept
       else if (isCard(el.closest('[data-jeere-product]'))) nt++;
-      else out.push({ el: el, kind: 't', key: base + '|t|' + (nt++) });
+      else out.push({ el: el, kind: 't', key: base + '|t|' + (nt++), own: ownNodes(el).length > 0 && stacked(el) });
     });
     editImgs().forEach(function (el, n) { out.push({ el: el, kind: 'i', key: base + '|i|' + n }); });
     $$('[data-jeere-product]').forEach(function (el) { var slot = el.getAttribute('data-jeere-slot-product') || el.getAttribute('data-jeere-product'); if (!skip(el.parentElement || el)) out.push({ el: el, kind: 'p', key: base + '|p|' + slot, ref: slot }); });
     $$('[data-jeere-services]').forEach(function (el, n) { out.push({ el: el, kind: 's', key: base + '|s|' + n }); });
     marquees().forEach(function (el, n) { out.push({ el: el, kind: 'm', key: base + '|m|' + n }); });
     ownTexts().forEach(function (el, n) { out.push({ el: el, kind: 't', key: base + '|o|' + n, own: true }); });
+    stackedLines(editTexts()).forEach(function (el, n) { out.push({ el: el, kind: 't', key: base + '|w|' + n }); });
     return out;
   }
   // the sections of the page, in order: the header, each <section>, the footer (as in the simple editor's list)
