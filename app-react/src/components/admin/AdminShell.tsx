@@ -104,6 +104,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </Fragment>
             );
           })}
+          {/* on a phone, the fourth tab: her online store (her model, and from there the editor) */}
+          {(() => { const on = /^\/admin\/(modeles|editeur)(\/|$)/.test(path); return <Link href="/admin/modeles/" className={[styles.item, styles.tabOnly, on ? styles.on : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name="store" size={18} /><span>Boutique</span></Link>; })()}
         </nav>
 
         <div className={styles.me} ref={me}>

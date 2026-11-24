@@ -478,11 +478,11 @@ await test('phone: the floating bottom bar stays in place while the page scrolls
     await page.evaluate(() => { const d = document.createElement('div'); d.style.height = '2400px'; document.querySelector('main').appendChild(d); });
     const where = () => page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), width: Math.round(r.width), y: Math.round(window.scrollY), h: window.innerHeight }; });
     const start = await where();
-    assert.equal(start.bottom, 832, `${path}: the bar floats 12 px above the bottom edge`); assert.equal(start.left, 12); assert.equal(start.width, 366);
+    assert.equal(start.bottom, 834, `${path}: the bar floats 10 px above the bottom edge`); assert.equal(start.left, 12); assert.equal(start.width, 366);
     for (const dy of [300, 500, 700, -400, 900]) {
       await page.mouse.wheel(0, dy); await page.waitForTimeout(120);
       const now = await where();
-      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 832);
+      assert.equal(now.top, start.top, `${path}: the bar moved while scrolling`); assert.equal(now.bottom, 834);
     }
     const end = await where(); assert.ok(end.y > 1200, 'the page really scrolled');
     // nothing around the bar can detach it: no ancestor transforms, filters, clips or scrolls
@@ -1474,7 +1474,7 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   const o = await open(browser, PHONE, world());
   await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
   const bar = () => o.page.evaluate(() => { const r = document.querySelector('aside').getBoundingClientRect(); return [Math.round(r.left), Math.round(r.bottom), Math.round(r.width)]; });
-  assert.deepEqual(await bar(), [12, 832, 366]);
+  assert.deepEqual(await bar(), [12, 834, 366]);
   // pulled down with a finger, « Plus » follows it and closes; a short pull lets it come back
   const pull = (sel, dy) => o.page.evaluate(([q, d]) => {
     const el = document.querySelector(q), r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + 12;
@@ -1498,6 +1498,22 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await pull('[role="dialog"]', 180);
   await o.page.getByRole('dialog').waitFor({ state: 'detached' });
   await o.page.goto(`${BASE}/admin/`); await h1(o.page, 'Bonjour Kady');
+  // five tabs of exactly the same width, each an icon of 20 px over a word of 11 px; nothing is cut, even at 375 px
+  const tabs = () => o.page.evaluate(() => { const side = document.querySelector('aside'); const els = [...side.querySelectorAll('nav > a, nav + div > button')].filter((e) => getComputedStyle(e).display !== 'none'); return els.map((e) => { const r = e.getBoundingClientRect(), i = e.querySelector('svg').getBoundingClientRect(), t = [...e.querySelectorAll('span')].filter((x) => !x.children.length && x.textContent.trim() && getComputedStyle(x).display !== 'none').pop(); return [t.textContent.trim(), Math.round(r.width * 10) / 10, Math.round(i.width), getComputedStyle(t).fontSize, t.getBoundingClientRect().left, t.getBoundingClientRect().right]; }); });
+  const apart = (l) => l.every((x, i) => i === 0 || x[4] - l[i - 1][5] >= 6) && l[0][4] >= 16 && l[l.length - 1][5] <= innerW - 16;   // whole words, clear of each other and of the pill's edge
+  let innerW = 390;
+  let five = await tabs();
+  assert.deepEqual(five.map((x) => x[0]), ['Accueil', 'Commandes', 'Produits', 'Boutique', 'Plus']);
+  assert.equal(new Set(five.map((x) => x[1])).size, 1, `five equal widths: ${five.map((x) => x[1])}`);
+  assert.deepEqual(five.map((x) => x.slice(2, 4)), Array(5).fill([20, '11px'])); assert.ok(apart(five), JSON.stringify(five));
+  assert.deepEqual(await o.page.locator('aside').evaluate((n) => { const c = getComputedStyle(n), b = getComputedStyle(n, '::before'); return [Math.round(n.getBoundingClientRect().height), c.borderRadius, c.zIndex, b.backdropFilter || b.webkitBackdropFilter]; }), [62, '28px', '50', 'blur(18px) saturate(1.6)']);
+  assert.equal(await o.page.locator('aside a[aria-current="page"]').evaluate((a) => getComputedStyle(a).fontWeight), '600');
+  await o.page.screenshot({ path: `${SHOTS}45-barre-du-bas-5-onglets.png`, clip: { x: 0, y: 844 - 130, width: 390, height: 130 } });
+  await o.page.setViewportSize({ width: 375, height: 667 }); await o.page.waitForTimeout(200);
+  five = await tabs();
+  innerW = 375; assert.equal(new Set(five.map((x) => x[1])).size, 1); assert.ok(apart(five), `no word is cut or touches another at 375 px: ${JSON.stringify(five)}`);
+  await noOverflow(o.page);
+  await o.page.setViewportSize(PHONE); await o.page.waitForTimeout(200);
   // Échap closes it and gives the focus back; a touch outside closes it; the button itself closes it
   const me = o.page.getByRole('button', { name: /Plus/ });
   await me.click(); await o.page.getByRole('menu').waitFor();
@@ -1511,7 +1527,7 @@ await test('floating menu and motion: the menu closes on a choice, Échap and a 
   await o.page.getByRole('menuitem', { name: 'Paiements' }).click();
   const seen = [];
   for (let i = 0; i < 12; i++) { seen.push((await bar()).join()); await o.page.waitForTimeout(30); }      // while the page changes and fades in
-  assert.deepEqual([...new Set(seen)], ['12,832,366'], 'the bottom bar stayed where it is during the transition');
+  assert.deepEqual([...new Set(seen)], ['12,834,366'], 'the bottom bar stayed where it is during the transition');
   await h1(o.page, 'Paiements'); await o.page.getByRole('menu').waitFor({ state: 'detached' });
   await noOverflow(o.page);
   // a drawer leaves softly and is gone; opened while the page is still coming in, it is already in its place
