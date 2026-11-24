@@ -2113,13 +2113,19 @@ await test('a product card in the editor (SÈVE): which product of the catalogue
 });
 
 await test('Branding on a phone: one calm line per colour, one open at a time, recent colours once, nothing hidden under the bottom bar', async () => {
-  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, PHONE, w);
+  const w = withModel(world(), 'seve'); w.stores[0].fiche.store.logo = 'https://aezchxfvzfoqlvzchqyk.supabase.co/storage/v1/object/public/store-media/x/logo.webp'; const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.addInitScript(() => localStorage.setItem('jeere-recent-colors', JSON.stringify(['#A52A22'])));
   await page.goto(`${BASE}/admin/branding/`);
   const colours = page.getByRole('region', { name: 'Couleurs' });
   await colours.waitFor();
   assert.equal(await colours.locator('[role=group]').count(), 0, 'every colour folded at first');
   await colours.scrollIntoViewIfNeeded(); await page.waitForTimeout(300);
+  // her logo shown on light, on dark and in a button: all of it inside the card
+  const logoCard = page.getByRole('region', { name: 'Logo' });
+  await logoCard.getByLabel('Aperçu du logo').scrollIntoViewIfNeeded(); await page.waitForTimeout(300);
+  const inside = await logoCard.evaluate((c) => { const r = c.getBoundingClientRect(); return [...c.querySelectorAll('[aria-label="Aperçu du logo"] > span')].every((e) => { const b = e.getBoundingClientRect(); return b.left >= r.left - 0.5 && b.right <= r.right + 0.5; }); });
+  assert.equal(inside, true, 'the logo previews stay inside the card');
+  await page.screenshot({ path: `${SHOTS}115-branding-logo-telephone.png` });
   await page.screenshot({ path: `${SHOTS}104-branding-couleurs-telephone.png` });
   await openColor(colours, 'Boutons');
   assert.equal(await colours.getByRole('group', { name: /couleurs récentes$/ }).count(), 1, 'recent colours shown once');
