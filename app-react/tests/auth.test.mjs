@@ -76,22 +76,31 @@ await test('sign-up: an empty form says what is missing, and nothing is sent', a
   await page.goto(`${BASE}/compte/`); await page.waitForSelector('h1');
   assert.equal(await h1(page), 'Créez votre compte');
   await page.screenshot({ path: `${SHOTS}01-inscription-telephone.png`, fullPage: true });
-  await page.getByRole('button', { name: 'Recevoir mon code' }).click();
-  assert.equal(await page.locator('main [role="alert"]').count(), 3, 'first name, e-mail and consent');
+  await page.getByRole('button', { name: 'Créer mon compte' }).click();
+  assert.equal(await page.locator('main [role="alert"]').count(), 4, 'first name, e-mail, password and consent');
   assert.equal(w.calls.filter((c) => c.path === '/auth/v1/otp').length, 0);
   await page.screenshot({ path: `${SHOTS}02-inscription-erreurs.png`, fullPage: true });
   await noOverflow(page); assert.deepEqual(errors, []); await ctx.close();
 });
 
 await test('sign-up: code, store name, « Compte créé »; the profile and the local copy are written', async () => {
-  const w = newWorld(); const { page, ctx, errors } = await open(browser, PHONE, w);
+  const w = newWorld({ noPassword: true }); const { page, ctx, errors } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/compte/?ref=tiktok`); await page.waitForSelector('h1');
   await page.getByLabel('Votre prénom').fill('Kady');
   await page.getByLabel('Adresse e-mail').fill(' Kady@Exemple.com ');
   await page.getByLabel(/Numéro WhatsApp/).fill('07 07 12 34 56');
+  // her password, with every rule ticked as she types; the form refuses a weak one
+  const pass = page.getByLabel('Mot de passe', { exact: true });
+  await pass.fill('karite');
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
+  await page.getByRole('button', { name: 'Créer mon compte' }).click();
+  await page.getByText('Il manque encore un critère.').waitFor();
+  assert.equal(w.calls.filter((c) => c.path === '/auth/v1/otp').length, 0, 'nothing sent with a weak password');
+  await pass.fill('Karite#2026');
+  assert.equal(await page.locator('[aria-label="Votre mot de passe doit avoir"] li[data-ok]').count(), 5);
+  await page.screenshot({ path: `${SHOTS}01b-inscription-mot-de-passe.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Créer mon compte' }).click();
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Confirmez votre e-mail');
   const otp = w.calls.find((c) => c.path === '/auth/v1/otp');
   assert.equal(otp.body.email, 'kady@exemple.com'); assert.equal(otp.body.create_user, true);
   assert.deepEqual(otp.body.data, { first_name: 'Kady', source: 'tiktok' });
@@ -100,6 +109,7 @@ await test('sign-up: code, store name, « Compte créé »; the profile and the 
   await typeCode(page, '123456');                       // the sixth digit validates by itself
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Le nom de votre boutique');
   assert.equal(w.profile.first_name, 'Kady'); assert.equal(w.profile.phone, '+2250707123456');
+  assert.equal(w.password, 'Karite#2026', 'the password chosen at sign-up is given to her account once her e-mail is confirmed');
   await page.getByLabel('Nom de la boutique').fill('Boutique Test');
   assert.match(await page.locator('main').innerText(), /jehre\.com\/b\/boutique-test/);
   await page.screenshot({ path: `${SHOTS}04-boutique.png`, fullPage: true });
@@ -115,11 +125,11 @@ await test('sign-up: code, store name, « Compte créé »; the profile and the 
 });
 
 await test('sign-up: « Je ne veux pas de boutique » saves no name and goes to the dashboard', async () => {
-  const w = newWorld(); const { page, ctx } = await open(browser, PHONE, w);
+  const w = newWorld({ noPassword: true }); const { page, ctx } = await open(browser, PHONE, w);
   await page.goto(`${BASE}/compte/`); await page.waitForSelector('h1');
-  await page.getByLabel('Votre prénom').fill('Kady'); await page.getByLabel('Adresse e-mail').fill('kady@exemple.com'); await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Recevoir mon code' }).click();
-  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Entrez le code');
+  await page.getByLabel('Votre prénom').fill('Kady'); await page.getByLabel('Adresse e-mail').fill('kady@exemple.com'); await page.getByLabel('Mot de passe', { exact: true }).fill('Karite#2026'); await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: 'Créer mon compte' }).click();
+  await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Confirmez votre e-mail');
   await typeCode(page, '123456');
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Le nom de votre boutique');
   await page.getByRole('button', { name: 'Je ne veux pas de boutique' }).click();
@@ -197,13 +207,13 @@ await test('password: every account must have one. After the code she creates it
   await page.reload(); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Créez votre mot de passe');   // coming back does not skip it
   await page.getByLabel('Mot de passe', { exact: true }).fill('azerty');
   await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
-  await page.getByText('Au moins 8 caractères, avec des lettres et des chiffres.').first().waitFor();
+  await page.getByText('Il manque encore un critère.').first().waitFor();
   assert.equal(w.calls.filter((c) => c.path === '/auth/v1/user' && c.method === 'PUT').length, 0);
-  await page.getByLabel('Mot de passe', { exact: true }).fill('Karite2026ok');
+  await page.getByLabel('Mot de passe', { exact: true }).fill('Karite#2026');
   await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
   assert.equal(w.calls.find((c) => c.path === '/auth/v1/user' && c.method === 'PUT').body.data.has_password, true, 'the account is marked as having a password');
-  assert.equal(w.password, 'Karite2026ok');
+  assert.equal(w.password, 'Karite#2026');
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');
   // login with it: a wrong one is refused with a way out, the right one opens the account
@@ -213,10 +223,10 @@ await test('password: every account must have one. After the code she creates it
   await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
   await page.getByText('Adresse ou mot de passe incorrect.').waitFor();
   await page.screenshot({ path: `${SHOTS}08-mot-de-passe-refuse.png`, fullPage: true });
-  await page.getByLabel('Mot de passe', { exact: true }).fill('Karite2026ok');
+  await page.getByLabel('Mot de passe', { exact: true }).fill('Karite#2026');
   await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Bonjour Kady');
-  assert.equal(w.calls.some((c) => c.path === '/auth/v1/token' && c.body.password === 'Karite2026ok'), true);
+  assert.equal(w.calls.some((c) => c.path === '/auth/v1/token' && c.body.password === 'Karite#2026'), true);
   // forgotten: « Réinitialiser » sends her the link, nothing more to read
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Connectez-vous');

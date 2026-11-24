@@ -81,9 +81,17 @@ export async function verifyCode(email: string, token: string): Promise<AuthResu
   } catch (err) { return failure(err); }
 }
 
-/** A password as Jehre accepts it: 8 characters or more, with a letter and a digit. */
-export const PASSWORD_RULE = 'Au moins 8 caractères, avec des lettres et des chiffres.';
-export const validPassword = (v: string): boolean => v.length >= 8 && v.length <= 72 && /[A-Za-zÀ-ÿ]/.test(v) && /\d/.test(v);
+/** A password as Jehre accepts a new one: 8 characters or more, a capital, a small letter, a digit and a symbol.
+ *  Each rule is shown and ticked as she types (PasswordField); a password set before still opens her account. */
+export const PASSWORD_CHECKS: { id: string; label: string; test: (v: string) => boolean }[] = [
+  { id: 'len', label: '8 caractères', test: (v) => v.length >= 8 },
+  { id: 'up', label: 'Une majuscule', test: (v) => /[A-ZÀ-ÖØ-Þ]/.test(v) },
+  { id: 'low', label: 'Une minuscule', test: (v) => /[a-zß-öø-ÿ]/.test(v) },
+  { id: 'digit', label: 'Un chiffre', test: (v) => /\d/.test(v) },
+  { id: 'sym', label: 'Un symbole', test: (v) => /[^A-Za-zÀ-ÖØ-öø-ÿ0-9\s]/.test(v) },
+];
+export const PASSWORD_RULE = 'Il manque encore un critère.';
+export const validPassword = (v: string): boolean => v.length <= 72 && PASSWORD_CHECKS.every((c) => c.test(v));
 
 /** Login with the password she gave her account. */
 export async function signInPassword(email: string, password: string): Promise<AuthResult<{ user: User }>> {
