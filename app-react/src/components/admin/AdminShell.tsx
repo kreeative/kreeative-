@@ -12,6 +12,7 @@ import { signOut } from '@/lib/account';
 import { modelBySlug } from '@/lib/models';
 import { storeName, storeUrl } from '@/lib/stores';
 import { useAdmin } from './AdminContext';
+import { TISHE } from '@/lib/tishe';
 import styles from './AdminShell.module.css';
 
 interface NavItem { href: string; label: string; icon: IconName; group?: string; more?: boolean }
@@ -41,10 +42,27 @@ const SHOP: NavItem[] = [
   { href: '/admin/parametres/', label: 'Paramètres', icon: 'gear', more: true },
 ];
 
+// The Ivory Sukundu: its own pages (its data stays on its site, ../../lib/tishe.ts)
+// Accueil and Commandes are here; its other pages open in the classic dashboard (same session) until they move
+const TISHE_NAV: NavItem[] = [
+  { href: '/admin/', label: 'Accueil', icon: 'home' },
+  { href: '/admin/commandes/', label: 'Commandes', icon: 'receipt' },
+  { href: '/admin-classique/#produits', label: 'Produits', icon: 'tag' },
+  { href: '/admin-classique/#clients', label: 'Clients', icon: 'users', more: true },
+  { href: '/admin-classique/#promos', label: 'Codes promo', icon: 'sparkle', more: true },
+  { href: '/admin-classique/#boutique', label: 'Bandeau et soldes', icon: 'text', group: 'Boutique en ligne', more: true },
+  { href: '/admin-classique/#livraison', label: 'Livraison', icon: 'truck', more: true },
+];
+
 /** The frame of the dashboard: the store and the menu on the left (a bar at the bottom on a phone), the page on the right. */
 export function AdminShell({ children }: { children: ReactNode }) {
-  const { account, stores, store, selectStore, model } = useAdmin();
-  const NAV = useMemo(() => (modelBySlug(model)?.rdv ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP), [model]);
+  const { account, stores, store, selectStore, model, tishe } = useAdmin();
+  const NAV = useMemo(() => (tishe.on ? TISHE_NAV : modelBySlug(model)?.rdv ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP), [model, tishe.on]);
+  // the stores of the switcher: hers, then The Ivory Sukundu for the founder and its partners
+  const picks = [...stores.map((s) => ({ id: s.id, name: storeName(s) })), ...(tishe.allowed ? [{ id: 'ext:tishe', name: TISHE.name }] : [])];
+  const pickId = tishe.on ? 'ext:tishe' : store?.id ?? '';
+  const viewUrl = tishe.on ? TISHE.site : store ? storeUrl(store, model) : '';
+  const shownName = tishe.on ? TISHE.name : store ? storeName(store) : '';
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -84,16 +102,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <aside className={styles.side}>
         <Link className={styles.logo} href="/admin/" aria-label="Jehre, accueil du tableau de bord"><Logo height={38} rainbow /></Link>
 
-        {stores.length > 0 && store ? (
+        {picks.length > 0 && (store || tishe.on) ? (
           <div className={styles.store}>
             <label className={styles.storeLabel} htmlFor="store-pick">Boutique</label>
             <div className={styles.storePick}>
-              <select id="store-pick" value={store.id} onChange={(e) => selectStore(e.target.value)} disabled={stores.length < 2}>
-                {stores.map((s) => <option key={s.id} value={s.id}>{storeName(s)}</option>)}
+              <select id="store-pick" value={pickId} onChange={(e) => selectStore(e.target.value)} disabled={picks.length < 2}>
+                {picks.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
-              {stores.length > 1 ? <Icon name="down" size={14} /> : null}
+              {picks.length > 1 ? <Icon name="down" size={14} /> : null}
             </div>
-            <a className={styles.storeLink} href={storeUrl(store, model)} target="_blank" rel="noopener"><Icon name="eye" size={16} />Voir la boutique</a>
+            <a className={styles.storeLink} href={viewUrl} target="_blank" rel="noopener"><Icon name="eye" size={16} />Voir la boutique</a>
           </div>
         ) : null}
 
@@ -108,7 +126,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             );
           })}
           {/* on a phone, the fourth tab: her online store (her model, and from there the editor) */}
-          {(() => { const on = /^\/admin\/(modeles|editeur)(\/|$)/.test(path); return <Link href="/admin/modeles/" className={[styles.item, styles.tabOnly, on ? styles.on : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name="store" size={18} /><span>Boutique</span></Link>; })()}
+          {tishe.on ? null : (() => { const on = /^\/admin\/(modeles|editeur)(\/|$)/.test(path); return <Link href="/admin/modeles/" className={[styles.item, styles.tabOnly, on ? styles.on : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name="store" size={18} /><span>Boutique</span></Link>; })()}
         </nav>
 
         <div className={styles.me} ref={me}>
@@ -135,13 +153,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* on a phone: her store on top (and a way to change it), the search, the help, her account */}
       {/^\/admin\/(editeur|modeles\/apercu)\/?$/.test(path) ? null : (
         <header className={styles.topbar}>
-          {store ? (
+          {store || tishe.on ? (
             <label className={styles.topStore}>
-              <span className={styles.topMark} aria-hidden="true">{storeName(store).slice(0, 1).toUpperCase()}</span>
-              <span className={styles.topName}>{storeName(store)}</span>
-              {stores.length > 1 ? <Icon name="down" size={14} /> : null}
-              <select aria-label="Boutique" value={store.id} onChange={(e) => selectStore(e.target.value)} disabled={stores.length < 2}>
-                {stores.map((s) => <option key={s.id} value={s.id}>{storeName(s)}</option>)}
+              <span className={styles.topMark} aria-hidden="true">{shownName.slice(0, 1).toUpperCase()}</span>
+              <span className={styles.topName}>{shownName}</span>
+              {picks.length > 1 ? <Icon name="down" size={14} /> : null}
+              <select aria-label="Boutique" value={pickId} onChange={(e) => selectStore(e.target.value)} disabled={picks.length < 2}>
+                {picks.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </label>
           ) : <Link className={styles.topStore} href="/admin/" aria-label="Jehre, accueil du tableau de bord"><Logo height={28} rainbow /></Link>}

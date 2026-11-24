@@ -5,6 +5,7 @@ import { currentModel, modelBySlug, myModels } from '@/lib/models';
 import { completeLogin, readAccount, type Account } from '@/lib/account';
 import { currentUser, emailVerified, hasPassword } from '@/lib/auth';
 import { createStore, listStores, type Store } from '@/lib/stores';
+import { tisheAllowed, tisheEnter, tisheLeave, tisheOn, tisheRedeem } from '@/lib/tishe';
 
 /* What every page of the dashboard needs: who is logged in, her stores, the one she is looking at. A visitor
    without a session is sent to the account page and comes back here after logging in. */
@@ -20,6 +21,9 @@ interface AdminState {
   /** the designer models she paid for, and the one her current store uses ('' when none) */
   models: string[];
   model: string;
+  /** The Ivory Sukundu (her own site, with its own data and API): `allowed` for the founder and its partners,
+   *  `on` while it is the store in view (its pages replace the Jehre store's), `redeem` = an error of the e-mail link */
+  tishe: { allowed: boolean; on: boolean; redeemError: string };
 }
 
 const Ctx = createContext<AdminState | null>(null);
@@ -43,6 +47,9 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [models, setModels] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
+  const [tisheOk, setTisheOk] = useState<boolean | null>(null);
+  const [ext, setExt] = useState(false);
+  const [redeemError, setRedeemError] = useState('');
 
   const made = useRef(false);
   const load = useCallback(async () => {
@@ -63,6 +70,13 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
     owned = [...new Set([...owned, ...list.filter((s) => s.role === 'owner' && modelBySlug(s.slug)).map((s) => s.slug)])];
     let wanted: string | null = null;
     try { wanted = window.localStorage.getItem(CURRENT_KEY); } catch { /* storage blocked */ }
+    // « Gérer la boutique » (#boutique=tishe) and the link of the store's e-mail (#tishe=<token>) open it here
+    const h = window.location.hash;
+    const tk = /[#&]tishe=([A-Za-z0-9._-]+)/.exec(h);
+    if (/[#&]boutique=tishe\b/.test(h) || tk) { tisheEnter(); try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch { /* the hash stays */ } }
+    if (tk) await tisheRedeem(tk[1]!, user.id).catch((e: Error) => setRedeemError(e.message));
+    setExt(tisheOn());
+    setTisheOk(await tisheAllowed(user.id).catch(() => false));
     setAccount(acc);
     setStores(list);
     setModels(owned);
@@ -81,11 +95,16 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
       store,
       models,
       model: store && store.role === 'owner' && modelBySlug(store.slug) ? store.slug : currentModel(store?.fiche, models),
-      selectStore: (id) => { setCurrentId(id); try { window.localStorage.setItem(CURRENT_KEY, id); } catch { /* not kept */ } },
+      selectStore: (id) => {
+        if (id === 'ext:tishe') { tisheEnter(); setExt(true); return; }
+        tisheLeave(); setExt(false);
+        setCurrentId(id); try { window.localStorage.setItem(CURRENT_KEY, id); } catch { /* not kept */ }
+      },
+      tishe: { allowed: tisheOk === true, on: ext && tisheOk === true, redeemError },
       replaceStore: (next) => setStores((list) => list.map((s) => (s.id === next.id ? next : s))),
       reload: load,
     };
-  }, [account, stores, currentId, load, models]);
+  }, [account, stores, currentId, load, models, ext, tisheOk, redeemError]);
 
   if (!ready || !value) return <>{fallback}</>;
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

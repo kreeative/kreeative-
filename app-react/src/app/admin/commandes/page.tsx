@@ -1,6 +1,7 @@
 'use client';
 
 import { CloudLoader } from '@/components/ui/CloudLoader';
+import { TisheOrders } from '@/components/tishe/TisheOrders';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
@@ -21,7 +22,13 @@ const FILTERS: { id: Filter; label: string; match: (o: Order) => boolean }[] = [
   { id: 'terminees', label: 'Terminées', match: (o) => o.status === 'livree' || o.status === 'annulee' },
 ];
 
-export default function OrdersPage() {
+/** The Ivory Sukundu in view: its own page (its data stays on its site). */
+export default function OrdersPagePage() {
+  const { tishe } = useAdmin();
+  return tishe.on ? <TisheOrders /> : <OrdersPage />;
+}
+
+function OrdersPage() {
   const { store } = useAdmin();
   const { orders, setOrders } = useOrders(store?.id ?? null);
   const [filter, setFilter] = useState<Filter>('toutes');

@@ -45,6 +45,25 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   // Stripe's embedded forms: a stand-in that draws a recognisable block (no request leaves for Stripe)
   await ctx.route('https://connect-js.stripe.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: `window.StripeConnect = { init: (o) => ({ create: (name) => { const d = document.createElement('div'); d.setAttribute('data-stripe', name); d.textContent = 'Formulaire sécurisé Stripe : ' + name; d.style.cssText = 'padding:24px;border-radius:12px;background:#f6f6f6;font:500 14px Poppins'; d.setOnExit = (f) => { window.__stripeExit = f; }; return d; } }) };` }));
   await ctx.route('**/connect/jeere-connect.js', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' }, body: CONNECT }));
+  await ctx.route('https://www.theivorysukundu.com/api/admin', async (route) => {
+    const req = route.request();
+    if (req.method() === 'OPTIONS') return json(route, 204);
+    const b = JSON.parse(req.postData() ?? '{}'); const T = world.tishe;
+    (world.tisheCalls ??= []).push(b);
+    if (!T) return json(route, 404, { error: 'Not found' });
+    if (b.action === 'jeere') return T.noJehre ? json(route, 403, { error: 'No access' }) : json(route, 200, { token: 'tx-session', expiresAt: Date.now() + 864e5, email: 'hello@theivorysukundu.com' });
+    if (b.action === 'link') return json(route, 200, { ok: true });
+    if ((req.headers().authorization ?? '') !== 'Bearer tx-session') return json(route, 401, { error: 'Please sign in again.' });
+    if (b.action === 'overview') return json(route, 200, { stats: { todo: { toOrder: T.orders.filter((o) => o.status === 'new').length, awaitingTracking: T.orders.filter((o) => o.status === 'ordered').length } }, setup: { stripe: true, webhook: true, resend: true }, orders: T.orders });
+    if (b.action === 'legacyOrders') return json(route, 200, { orders: [] });
+    const o = T.orders.find((x) => x.id === b.id);
+    const full = () => ({ ...o, subtotal: o.total - 1500, shippingAmount: 1500, items: [{ title: 'Robe Kente', variant: 'M', quantity: 1, unitAmount: o.total - 1500, total: o.total - 1500 }], timeline: [{ title: 'Commande payée', at: o.createdAt }], paid: true });
+    if (b.action === 'order') return json(route, 200, { order: full(), supplierMessages: [{ name: 'Atelier Accra', message: 'Hello, please make 1 Kente dress size M.' }] });
+    if (b.action === 'update') { Object.assign(o, { status: b.tracking ? 'shipped' : b.status ?? o.status, supplierRef: b.supplierRef, carrier: b.carrier, trackingNumbers: b.tracking ? [b.tracking] : [] }); return json(route, 200, { order: full(), notified: !!(b.notify && b.tracking) }); }
+    if (b.action === 'refund') { Object.assign(o, { refunded: !b.amount, refundedAmount: b.amount ?? o.total }); return json(route, 200, { order: full(), notified: b.notify }); }
+    if (b.action === 'email') return json(route, 200, { ok: true });
+    return json(route, 400, { error: 'Unknown action' });
+  });
   await page.route('https://aezchxfvzfoqlvzchqyk.supabase.co/**', async (route) => {
     const req = route.request(), url = new URL(req.url()), method = req.method();
     if (method === 'OPTIONS') return json(route, 204);
@@ -55,6 +74,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
     if (p === '/auth/v1/logout') return json(route, 204);
     if (p === '/rest/v1/profiles') return method === 'GET' ? json(route, 200, (req.headers().accept ?? '').includes('vnd.pgrst.object') ? world.profile : [world.profile]) : json(route, 204);
     if (p === '/rest/v1/rpc/accept_store_invites') return json(route, 200, []);
+    if (p === '/functions/v1/sites-publish') return json(route, 200, { ok: true, editor: !!world.founder });
+    if (p === '/rest/v1/rpc/my_ext_stores') return json(route, 200, world.extStores ?? []);
     if (p === '/rest/v1/rpc/my_models') { if (world.modelsLate > 0) { world.modelsLate--; return json(route, 200, []); } return json(route, 200, world.models ?? []); }
     if (p === '/rest/v1/rpc/my_stores') return json(route, 200, world.stores.map((x) => ({ id: x.id, slug: x.slug })));
     if (p === '/rest/v1/rpc/slug_available') return json(route, 200, { available: !(world.taken ?? []).includes(body.p_slug), reason: 'ok' });
@@ -2705,6 +2726,68 @@ await test('editor, header (SÈVE): her name or her logo', async () => {
   await page.getByText(/Votre site est en ligne/).waitFor();
   assert.equal(w.stores[0].fiche.store.brand, 'text');
   assert.match(w.stores[0].fiche.store.logo, /^https:\/\//);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('The Ivory Sukundu in the new dashboard: in the switcher for the founder only; signed in with her Jehre account; Accueil (sales, chart, to do); Commandes; an order: supplier, tracking, refund, e-mail', async () => {
+  // another account does not see it
+  const o0 = await open(browser, DESK, world());
+  await o0.page.goto(`${BASE}/admin/`);
+  await o0.page.getByRole('heading', { name: /Bonjour/ }).waitFor();
+  assert.equal(await o0.page.locator('#store-pick option', { hasText: 'The Ivory Sukundu' }).count(), 0);
+  await o0.ctx.close();
+  // the founder: it is in the switcher, and opens with her Jehre account (no e-mail)
+  const now = Date.now(), d = (h) => new Date(now - h * 3600e3).toISOString();
+  const w = world({ founder: true, tishe: { orders: [
+    { id: 'cs_1', number: 1007, name: 'Ama K.', email: 'ama@exemple.com', status: 'new', total: 18500, currency: 'cad', createdAt: d(5), shipping: { city: 'Montréal', country: 'CA' } },
+    { id: 'cs_2', number: 1006, name: 'Kofi B.', email: 'kofi@exemple.com', status: 'ordered', total: 9900, currency: 'cad', createdAt: d(80), shipping: { city: 'Toronto', country: 'CA' } },
+    { id: 'cs_3', number: 1005, name: 'Esi D.', email: 'esi@exemple.com', status: 'delivered', total: 24000, currency: 'cad', createdAt: d(900), shipping: { city: 'Paris', country: 'FR' } },
+  ] } });
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  page.on('dialog', (dl) => dl.accept());
+  await page.goto(`${BASE}/admin/`);
+  await page.locator('#store-pick').selectOption('ext:tishe');
+  await page.getByRole('heading', { name: 'The Ivory Sukundu', level: 1 }).waitFor();
+  assert.ok(w.tisheCalls.some((c) => c.action === 'jeere' && c.accessToken), 'signed in with her Jehre session');
+  await page.getByText('À commander chez le fournisseur').waitFor();
+  await page.getByRole('link', { name: /#1007/ }).waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Voir la boutique' }).first().getAttribute('href'), 'https://www.theivorysukundu.com');
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SHOTS}170-tishe-accueil.png`, fullPage: true });
+  // Commandes: filtered from Accueil's figure, then an order in the side panel
+  await page.getByRole('link', { name: /À commander chez le fournisseur/ }).click();
+  await page.getByRole('heading', { name: 'Commandes', level: 1 }).waitFor();
+  assert.equal(await page.getByRole('group', { name: 'Filtrer les commandes' }).getByRole('button', { pressed: true }).innerText(), 'À commander · 1');
+  await page.getByRole('button', { name: /#1007/ }).click();
+  const sheet = page.getByRole('dialog', { name: 'Commande #1007' });
+  await sheet.getByText('Robe Kente').waitFor();
+  await sheet.getByText('Hello, please make 1 Kente dress size M.').waitFor();
+  await page.screenshot({ path: `${SHOTS}171-tishe-commande.png` });
+  // the supplier and the tracking: saved on the shop, the customer told
+  await sheet.getByLabel('Référence chez le fournisseur').fill('ACC-88');
+  await sheet.getByLabel('Transporteur').fill('DHL');
+  await sheet.getByLabel('Numéros de suivi').fill('JD0123');
+  await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+  await page.getByText('Enregistré. La cliente a reçu son numéro de suivi.').waitFor();
+  const up = w.tisheCalls.filter((c) => c.action === 'update').pop();
+  assert.deepEqual([up.id, up.supplierRef, up.carrier, up.tracking, up.notify], ['cs_1', 'ACC-88', 'DHL', 'JD0123', true]);
+  // a partial refund, after a confirmation
+  await sheet.getByRole('button', { name: 'Rembourser' }).first().click();
+  await sheet.getByLabel('Montant (CAD)').fill('20,00');
+  await sheet.getByRole('button', { name: 'Rembourser' }).last().click();
+  await page.getByText(/Remboursement fait/).waitFor();
+  assert.equal(w.tisheCalls.filter((c) => c.action === 'refund').pop().amount, 2000);
+  // an e-mail to the customer, from the shop
+  await sheet.getByRole('button', { name: 'Écrire à la cliente' }).click();
+  await sheet.getByLabel('Message', { exact: true }).fill('Votre robe part demain.');
+  await sheet.getByRole('button', { name: 'Envoyer depuis la boutique' }).click();
+  await page.getByText('E-mail envoyé.').waitFor();
+  assert.equal(w.tisheCalls.filter((c) => c.action === 'email').pop().to, 'ama@exemple.com');
+  // back to her Jehre store
+  await page.keyboard.press('Escape');
+  await page.locator('#store-pick').selectOption(w.stores[0].id);
+  await page.getByRole('heading', { name: 'Commandes', level: 1 }).waitFor();
+  await page.getByText('Mariam K.').first().waitFor();
   assert.deepEqual(errors, []); await ctx.close();
 });
 

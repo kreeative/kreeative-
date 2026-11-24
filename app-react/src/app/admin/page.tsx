@@ -1,6 +1,7 @@
 'use client';
 
 import { hasPlan, monthOrders, usage } from '@/lib/billing';
+import { TisheHome } from '@/components/tishe/TisheHome';
 import { useEffect as useMonthEffect, useState as useMonthState } from 'react';
 import { CARD_LABEL, cardState, cardStatus, type CardState } from '@/lib/card';
 import { CloudLoader } from '@/components/ui/CloudLoader';
@@ -22,7 +23,13 @@ const TONE: Record<string, string> = { nouvelle: 'new', confirmee: 'go', prepare
 const STEPS_KEY = 'jehre-steps-hidden';
 interface Step { id: string; title: string; href: string; action: string; done: boolean; state?: string; out?: boolean }
 
-export default function AdminHome() {
+/** The Ivory Sukundu in view: its own page (its data stays on its site). */
+export default function AdminHomePage() {
+  const { tishe } = useAdmin();
+  return tishe.on ? <TisheHome /> : <AdminHome />;
+}
+
+function AdminHome() {
   const { account, store, model } = useAdmin();
   const [stepsOff, setStepsOff] = useState(true);
   const [allSteps, setAllSteps] = useState(false);
