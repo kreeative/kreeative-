@@ -4,6 +4,7 @@ import { ColorField } from '@/components/ui/ColorField';
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode, type RefObject } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Field, Select, TextArea } from '@/components/ui/Field';
+import { NumberField } from '@/components/ui/NumberField';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { Menu } from '@/components/ui/Menu';
 import { useCropper } from '@/components/ui/useCropper';
@@ -50,7 +51,6 @@ const ALIGN: ['left' | 'center' | 'right' | undefined, string][] = [[undefined, 
 const SPOTS = [0, 50, 100];
 // the words under the icons stay short, so every tool is read whole; the full name is what a screen reader says
 const SHORT: Record<string, string> = { 'Modifier le texte': 'Modifier', 'Remplacer la photo': 'Remplacer', 'Ajuster / Cadre': 'Cadrer', Alignement: 'Aligner' };
-const px = (v: string, max: number): number | undefined => (v.trim() === '' ? undefined : Math.min(max, Number(v.replace(/\D/g, '')) || 0));
 
 export function MobileEditor(p: MobileEditorProps) {
   const { draft, map, sections, sel, setSel, change } = p;
@@ -200,7 +200,6 @@ export function MobileEditor(p: MobileEditorProps) {
     drawer = { title: 'Bandeau défilant', body: <>
       <TextArea label="Texte qui défile" rows={3} maxLength={600} value={b.text ?? item.text} autoFocus onChange={(e) => change((d) => withBand(d, item.key, { text: e.target.value.trim() ? e.target.value : undefined }), `m:${item.key}`)} />
       <p className={styles.hint}>Écrivez tout le texte une seule fois. Séparez vos messages par <b>•</b> : il défile en boucle.</p>
-      {b.text !== undefined ? <button type="button" className={styles.reset} onClick={() => change((d) => withBand(d, item.key, { text: undefined }))}>Remettre le texte du modèle</button> : null}
     </> };
   } else if (item && tool === 'bandLook') {
     const b = bandOf(draft, item.key);
@@ -214,7 +213,6 @@ export function MobileEditor(p: MobileEditorProps) {
     drawer = { title: item.role, body: <>
       {item.long ? <TextArea label="Texte" rows={3} maxLength={800} value={value} onChange={(e) => set(e.target.value)} autoFocus />
         : <Field label="Texte" maxLength={200} value={value} onChange={(e) => set(e.target.value)} autoFocus />}
-      {own !== undefined ? <button type="button" className={styles.reset} onClick={() => change((d) => withSiteEdit(d, kind, item.key, null))}>Remettre le texte du modèle</button> : null}
     </> };
   } else if (item && tool === 'link') {
     const own = siteValue(draft, 'k', item.key), value = own ?? '';
@@ -292,8 +290,8 @@ export function MobileEditor(p: MobileEditorProps) {
     const set = (patch: Parameters<typeof withSectionLook>[2], tag: string) => change((d) => withSectionLook(d, section.key, patch), `look:${section.key}:${tag}`);
     drawer = { title: 'Espaces', body: <>
       <div className={styles.pair}>
-        <Field label="Au-dessus (px)" inputMode="numeric" placeholder="Modèle" value={look.pt === undefined ? '' : String(look.pt)} onChange={(e) => set({ pt: px(e.target.value, 400) }, 'pt')} />
-        <Field label="En dessous (px)" inputMode="numeric" placeholder="Modèle" value={look.pb === undefined ? '' : String(look.pb)} onChange={(e) => set({ pb: px(e.target.value, 400) }, 'pb')} />
+        <NumberField label="Au-dessus" placeholder="Modèle" value={look.pt} min={0} max={400} step={4} onChange={(n) => set({ pt: n }, 'pt')} />
+        <NumberField label="En dessous" placeholder="Modèle" value={look.pb} min={0} max={400} step={4} onChange={(n) => set({ pb: n }, 'pb')} />
       </div>
       <span className={styles.caption} id="m-salign">Alignement des textes</span>
       <div className={styles.segments} role="group" aria-labelledby="m-salign">{ALIGN.map(([v, label]) => <button key={label} type="button" aria-pressed={look.align === v} onClick={() => set({ align: v }, 'align')}>{label}</button>)}</div>

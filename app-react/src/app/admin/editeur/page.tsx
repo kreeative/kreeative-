@@ -6,6 +6,7 @@ import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty } from '@/components/admin/AdminShell';
 import { useSave } from '@/components/admin/useSave';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { NumberField } from '@/components/ui/NumberField';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { useCropper } from '@/components/ui/useCropper';
@@ -293,7 +294,8 @@ export default function EditorPage() {
     <Inspector key={current.key} section={current} items={items} fiche={draft} userId={account.userId} focus={focus} pages={pages}
       onTextLook={(key, patch, tag) => change((d) => withTextLook(d, key, patch), `x:${key}:${tag}`)}
       onSource={(cat) => change((d) => withSectionSource(d, current.key, cat))}
-      onLogo={(v) => change((d) => { const st = { ...(d.store ?? {}) } as Record<string, unknown>; if (v) st.logo = v; else delete st.logo; return { ...d, store: st }; })}
+      onLogo={(v) => change((d) => { const st = { ...(d.store ?? {}) } as Record<string, unknown>; if (v) { st.logo = v; delete st.brand; } else delete st.logo; return { ...d, store: st }; })}
+      onBrand={(patch) => change((d) => { const st = { ...(d.store ?? {}) } as Record<string, unknown>; Object.entries(patch).forEach(([k, v]) => { if (v === undefined) delete st[k]; else st[k] = v; }); return { ...d, store: st }; }, `brand:${Object.keys(patch).join()}`)}
       onLook={(patch) => change((d) => withSectionLook(d, current.key, patch), `look:${current.key}:${Object.keys(patch).join()}`)}
       onEdit={(kind, key, value) => change((d) => withSiteEdit(d, kind, key, value), `${kind}:${key}`)} onSlot={(slot, value) => change((d) => withSlot(d, slot, value))} />
   ) : null;
@@ -488,11 +490,11 @@ export default function EditorPage() {
 
 /** What one section of the model holds, in two calm groups: its texts, then its pictures (and its product cases). */
 const ALIGN: [SectionLook['align'] | undefined, string][] = [[undefined, 'Modèle'], ['left', 'Gauche'], ['center', 'Centre'], ['right', 'Droite']];
-const px = (v: string, max: number): number | undefined => (v.trim() === '' ? undefined : Math.min(max, Number(v.replace(/\D/g, '')) || 0));
 
-function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot, onLook, onTextLook, onLogo, onSource }: {
+function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot, onLook, onTextLook, onLogo, onBrand, onSource }: {
   section: SiteSection; items: SiteItem[]; fiche: Fiche; userId: string; focus: string; pages: { path: string; name: string }[]; onLook: (patch: SectionLook) => void;
   onTextLook: (key: string, patch: TextLook, tag: string) => void; onLogo: (v: string | null) => void; onSource: (cat: string) => void;
+  onBrand: (patch: { brand?: 'text' | undefined }) => void;
   onEdit: (kind: 't' | 'i' | 'c' | 'k' | 'l', key: string, value: string | null) => void; onSlot: (slot: string, value: string) => void;
 }) {
   const products = Array.isArray(fiche.products) ? fiche.products : [];
@@ -515,6 +517,7 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
   return (
     <div className={styles.inspector}>
       <h3 className={styles.group3}>Contenu</h3>
+      {section.name === 'En-tête' ? <BrandPick fiche={fiche} logo={logo} userId={userId} onLogo={onLogo} onBrand={onBrand} /> : null}
       {!items.length ? <p className={styles.hint}>{section.fixed ? 'Votre nom et votre logo viennent de vos paramètres.' : 'Cette section n’a pas de texte ni de photo à changer.'}</p> : null}
       {texts.length ? (
         <section className={styles.block} aria-label="Textes">
@@ -523,25 +526,12 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
             const kind = x.kind === 'c' ? 'c' : 't';
             const own = siteValue(fiche, kind, x.key);
             const value = own ?? x.text;
-            const set = (v: string) => onEdit(kind, x.key, v.trim() ? v : null);
-            return (
-              <div key={x.key} className={styles.text} data-site-key={x.key}>
-                {x.long ? <TextArea label={x.role} rows={4} maxLength={800} value={value} onChange={(e) => set(e.target.value)} />
-                  : <Field label={x.role} maxLength={200} value={value} onChange={(e) => set(e.target.value)} />}
-                {own !== undefined ? <button type="button" className={styles.reset} onClick={() => onEdit(kind, x.key, null)}>Remettre le texte du modèle</button> : null}
-              </div>
-            );
+            return <TextRow key={x.key} siteKey={x.key} label={x.role} long={!!x.long} value={value} onChange={(v) => onEdit(kind, x.key, v.trim() ? v : null)} />;
           })}
           {textsShown.length < texts.length ? <button type="button" className={styles.more} onClick={() => setAllTexts(true)}>Afficher les {texts.length - textsShown.length} autres textes</button> : null}
         </section>
       ) : null}
       {onText ? <TextStyle item={onText} fiche={fiche} pages={pages} link={siteValue(fiche, 'k', onText.key) ?? ''} onLook={(patch, tag) => onTextLook(onText.key, patch, tag)} onLink={(v) => onEdit('k', onText.key, v)} /> : null}
-      {section.name === 'En-tête' ? (
-        <section className={styles.block} aria-label="Logo">
-          <h3>Logo</h3>
-          <PhotoField name="Votre logo" src={logo} own={!!logo} userId={userId} onChange={onLogo} logo />
-        </section>
-      ) : null}
       {images.length ? (
         <section className={styles.block} aria-label="Images">
           <h3>Images{images.length > 1 ? <span> · {images.length}</span> : null}</h3>
@@ -591,8 +581,8 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
       <h3 className={styles.group3}>Mise en page</h3>
       <section className={styles.block} aria-label="Mise en page">
         <div className={styles.pair}>
-          <Field label="Espace au-dessus (px)" inputMode="numeric" placeholder="Modèle" value={look.pt === undefined ? '' : String(look.pt)} onChange={(e) => onLook({ pt: px(e.target.value, 400) })} />
-          <Field label="Espace en dessous (px)" inputMode="numeric" placeholder="Modèle" value={look.pb === undefined ? '' : String(look.pb)} onChange={(e) => onLook({ pb: px(e.target.value, 400) })} />
+          <NumberField key={`pt${section.key}`} label="Espace au-dessus" placeholder="Modèle" value={look.pt} min={0} max={400} step={4} onChange={(n) => onLook({ pt: n })} />
+          <NumberField key={`pb${section.key}`} label="Espace en dessous" placeholder="Modèle" value={look.pb} min={0} max={400} step={4} onChange={(n) => onLook({ pb: n })} />
         </div>
         <div className={styles.control}>
           <span className={styles.caption} id="look-align">Alignement des textes</span>
@@ -606,7 +596,7 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
       <section className={styles.block} aria-label="Apparence">
         <ColorField key={section.key} label="Fond de la section" value={look.bg ?? ''} onChange={(v) => onLook({ bg: v })} />
         <div className={styles.pair}>
-          <Field label="Coins des images (px)" inputMode="numeric" placeholder="Modèle" value={look.radius === undefined ? '' : String(look.radius)} onChange={(e) => onLook({ radius: px(e.target.value, 200) })} />
+          <NumberField key={`r${section.key}`} label="Coins des images" placeholder="Modèle" value={look.radius} min={0} max={200} onChange={(n) => onLook({ radius: n })} />
           <div className={styles.control}>
             <span className={styles.caption}>Filet au-dessus</span>
             <button type="button" role="switch" aria-checked={look.line === true} aria-label="Filet au-dessus de la section" className={styles.toggle} onClick={() => onLook({ line: look.line ? undefined : true })} />
@@ -614,6 +604,41 @@ function Inspector({ section, items, fiche, userId, focus, pages, onEdit, onSlot
         </div>
         {Object.keys(look).length ? <button type="button" className={styles.reset} onClick={() => onLook({ pt: undefined, pb: undefined, align: undefined, bg: undefined, line: undefined, radius: undefined })}>Remettre l’apparence du modèle</button> : null}
       </section>
+    </div>
+  );
+}
+
+/** The top of her site: her name written in the model's letters, or her logo. A logo imported shows at once;
+ *  « Votre nom » keeps it aside (it comes back with « Votre logo »). */
+function BrandPick({ fiche, logo, userId, onLogo, onBrand }: { fiche: Fiche; logo: string; userId: string; onLogo: (v: string | null) => void; onBrand: (patch: { brand?: 'text' | undefined }) => void }) {
+  const st = (fiche.store ?? {}) as Record<string, unknown>;
+  const [want, setWant] = useState<'text' | 'logo'>(logo && st.brand !== 'text' ? 'logo' : 'text');
+  const pick = (v: 'text' | 'logo') => { setWant(v); if (v === 'text') onBrand({ brand: 'text' }); else if (logo) onBrand({ brand: undefined }); };
+  return (
+    <section className={styles.block} aria-label="Haut du site">
+      <h3>Haut du site</h3>
+      <div className={styles.segments} role="group" aria-label="Afficher en haut du site">
+        <button type="button" aria-pressed={want === 'text'} onClick={() => pick('text')}>Votre nom</button>
+        <button type="button" aria-pressed={want === 'logo'} onClick={() => pick('logo')}>Votre logo</button>
+      </div>
+      {want === 'text'
+        ? <p className={styles.hint}>Votre nom s’écrit avec les lettres du modèle. Pour le changer, touchez-le sur la page.</p>
+        : <PhotoField name="Votre logo" src={logo} own={!!logo} userId={userId} onChange={(v) => { onLogo(v); if (!v) setWant('text'); }} logo />}
+    </section>
+  );
+}
+
+/** One text of the section. She types freely: while the box has the focus it shows exactly what she types (an
+ *  emptied box does not jump back to the model's words); the page follows at once. Emptied and left, the model's
+ *  own text comes back. */
+function TextRow({ siteKey, label, long, value, onChange }: { siteKey: string; label: string; long: boolean; value: string; onChange: (v: string) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? value;
+  const type = (v: string) => { setDraft(v); onChange(v); };
+  return (
+    <div className={styles.text} data-site-key={siteKey}>
+      {long ? <TextArea label={label} rows={4} maxLength={800} value={shown} onFocus={() => setDraft(value)} onBlur={() => setDraft(null)} onChange={(e) => type(e.target.value)} />
+        : <Field label={label} maxLength={200} value={shown} onFocus={() => setDraft(value)} onBlur={() => setDraft(null)} onChange={(e) => type(e.target.value)} />}
     </div>
   );
 }
@@ -636,7 +661,7 @@ function MediaCard({ item, name, own, onChange, userId }: { item: SiteItem; name
         <b>{name}</b>
         <div className={styles.mediaActs}>
           <Button className={styles.small} variant="secondary" onClick={() => input.current?.click()} aria-label={`Remplacer : ${name}`}>Remplacer</Button>
-          {src ? <Button className={styles.small} variant="secondary" icon="crop" onClick={() => crop.openUrl(src)} aria-label={`Recadrer : ${name}`}>Recadrer</Button> : null}
+          {src ? <Button className={`${styles.small} ${styles.iconOnly}`} variant="secondary" icon="crop" onClick={() => crop.openUrl(src)} aria-label={`Recadrer : ${name}`} title="Recadrer">{''}</Button> : null}
           {own !== undefined ? <button type="button" className={styles.reset} onClick={() => onChange(null)} aria-label={`Remettre la photo du modèle : ${name}`}>Remettre</button> : null}
         </div>
       </div>

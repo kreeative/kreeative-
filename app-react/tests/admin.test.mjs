@@ -605,7 +605,7 @@ await test('editor: a bar, the sections, HER model in the middle, the inspector;
   assert.ok((await title.inputValue()).length > 0, 'the field starts with the model’s own text');
   await title.fill('Collection Test 2027');
   await site.getByText('Collection Test 2027').first().waitFor({ timeout: 15000 });
-  await right.getByRole('button', { name: 'Remettre le texte du modèle' }).waitFor();
+  assert.equal(await right.getByRole('button', { name: 'Remettre le texte du modèle' }).count(), 0, 'no « Remettre le texte du modèle » under the texts');
   assert.equal(await right.getByLabel('Titre', { exact: true }).inputValue(), 'Collection Harmattan', 'two lines of a title read as two words');
   // pictures: a clean card (miniature, plain name, « Remplacer »), never the model's own notes
   const media = right.getByRole('region', { name: 'Images' });
@@ -709,16 +709,16 @@ await test('editor, studio level: floating light panels, search, zoom, layout an
   await right.waitFor(); await page.waitForTimeout(400);      // it slides in
   assert.deepEqual(await right.evaluate(card), { x: 1440 - 12 - 300, top: 64, w: 300, gapBottom: 12, radius: '16px', bg: 'rgba(255, 255, 255, 0.78)', shadow: true });
   assert.deepEqual(await right.locator('h3').evaluateAll((els) => els.filter((e) => e.parentElement.tagName !== 'SECTION').map((e) => e.textContent)), ['Contenu', 'Mise en page', 'Apparence']);
-  assert.equal(Math.round((await right.getByLabel('Espace au-dessus (px)').boundingBox()).height), 32);
+  assert.equal(Math.round((await right.getByLabel('Espace au-dessus', { exact: true }).boundingBox()).height), 32);
   // layout and appearance: written in her store, drawn on the site at once, and undone in one click
   const sec = () => site.locator('body').evaluate(() => { const all = [...document.querySelectorAll('header, footer, section, .strip')].filter((el) => !el.closest('.concept, .concept-bar') && !(el.parentElement && el.parentElement.closest('header, footer, section, .strip'))); const el = all.find((x) => /nouveaut/i.test(x.textContent.slice(0, 200)) && x.tagName === 'SECTION'); const c = getComputedStyle(el); const img = el.querySelector('img'); return { pt: c.paddingTop, pb: c.paddingBottom, align: c.textAlign, bg: c.backgroundColor, line: c.borderTopWidth, radius: img ? getComputedStyle(img).borderTopLeftRadius : '' }; });
   const model = await sec();
-  await right.getByLabel('Espace au-dessus (px)').fill('120');
-  await right.getByLabel('Espace en dessous (px)').fill('64');
+  await right.getByLabel('Espace au-dessus', { exact: true }).fill('120');
+  await right.getByLabel('Espace en dessous', { exact: true }).fill('64');
   await right.getByRole('button', { name: 'Centre' }).click();
   await openColor(right, 'Fond de la section');
   await right.getByRole('group', { name: 'Fond de la section : couleurs de base' }).getByRole('button', { name: 'Or' }).click();
-  await right.getByLabel('Coins des images (px)').fill('24');
+  await right.getByLabel('Coins des images', { exact: true }).fill('24');
   await right.getByRole('switch', { name: 'Filet au-dessus de la section' }).click();
   await page.waitForFunction(() => true); await page.waitForTimeout(500);
   assert.deepEqual(await sec(), { pt: '120px', pb: '64px', align: 'center', bg: 'rgb(232, 185, 49)', line: '1px', radius: '24px' });
@@ -898,6 +898,12 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   // a button of the model: where it leads, its colour, its shape
   await left.getByRole('button', { name: 'Grande bannière', exact: true }).click();
   const right = page.getByRole('complementary', { name: 'Contenu : Grande bannière' });
+  // a title emptied stays empty while she types (it does not jump back to the model's words), and the site follows
+  const ttl = right.getByLabel('Titre', { exact: true });
+  await ttl.fill(''); await page.waitForTimeout(200);
+  assert.equal(await ttl.inputValue(), '');
+  await ttl.pressSequentially('Ornella'); await site.getByText('Ornella').first().waitFor({ timeout: 15000 });
+  assert.equal(await ttl.inputValue(), 'Ornella');
   const btn = site.locator('section a[data-jeere-pickable="t"]').first();
   await btn.click();
   const style = right.getByRole('region', { name: 'Style du texte choisi' });
@@ -905,10 +911,26 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   await style.getByLabel('Destination').selectOption('Lien externe');
   await style.getByLabel('Adresse').fill('https://exemple.com/promo');
   await style.getByRole('button', { name: 'Plein' }).click();
-  await style.getByRole('switch', { name: 'Bouton arrondi' }).click();
+  // two plain choices, the model's look already marked; no « Modèle », no switch
+  assert.equal(await style.getByRole('group', { name: 'Style', exact: true }).getByRole('button', { name: 'Modèle' }).count(), 0);
+  await style.getByRole('group', { name: 'Forme' }).getByRole('button', { name: 'Arrondi' }).click();
   await pickColor(style, 'Couleur du bouton', '#1E6FE0');
   await page.waitForTimeout(500);
   assert.deepEqual(await btn.evaluate((n) => [n.getAttribute('href'), n.style.borderRadius, n.style.backgroundColor, n.style.color]), ['https://exemple.com/promo', '999px', 'rgb(30, 111, 224)', 'rgb(255, 255, 255)']);
+  // its size: typed freely (no « (px) » in the label, « px » inside the box), and the ▲▼ arrows
+  const size = style.getByLabel('Taille', { exact: true });
+  await size.fill('20'); await page.waitForTimeout(300);
+  assert.equal(await btn.evaluate((n) => n.style.fontSize), '20px');
+  await style.getByRole('button', { name: 'Taille : plus' }).click(); await style.getByRole('button', { name: 'Taille : plus' }).click(); await page.waitForTimeout(300);
+  assert.equal(await size.inputValue(), '22');
+  assert.equal(await btn.evaluate((n) => n.style.fontSize), '22px');
+  await style.getByRole('button', { name: 'Taille : moins' }).click(); await page.waitForTimeout(300);
+  assert.equal(await btn.evaluate((n) => n.style.fontSize), '21px');
+  await size.fill('300'); await size.press('Enter'); await page.waitForTimeout(300);
+  assert.equal(await btn.evaluate((n) => n.style.fontSize), '300px');
+  await size.fill('18'); await size.press('Enter'); await page.waitForTimeout(300);
+  assert.equal(await btn.evaluate((n) => n.style.fontSize), '18px');
+  await page.screenshot({ path: `${SHOTS}62b-editeur-taille.png` });
   // the background of a section: the theme's colours and any other by its code
   await pickColor(right, 'Fond de la section', '#FFE9F1');
   await page.waitForTimeout(400);
@@ -917,6 +939,7 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   await left.getByRole('button', { name: 'En-tête', exact: true }).click();
   const head = page.getByRole('complementary', { name: 'Contenu : En-tête' });
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  await head.getByRole('group', { name: 'Afficher en haut du site' }).getByRole('button', { name: 'Votre logo' }).click();
   await head.getByLabel('Choisir une image : Votre logo').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: png });
   // a new logo opens the cropping window first
   await page.getByRole('dialog', { name: 'Recadrer le logo' }).getByRole('button', { name: 'Appliquer' }).click();
@@ -929,7 +952,7 @@ await test('editor, the real tools: add a section, duplicate and delete it, wher
   assert.deepEqual(saved.a['/'].map((x) => [x.type, x.title]), [['faq', 'Vos questions'], ['banner', 'Votre titre']]);
   assert.equal(saved.a['/'][1].href, 'page:boutique/');
   assert.deepEqual(Object.values(saved.k), ['https://exemple.com/promo']);
-  assert.deepEqual(Object.values(saved.x), [{ btn: 'fill', round: true, fill: '#1E6FE0' }]);
+  assert.deepEqual(Object.values(saved.x), [{ btn: 'fill', round: true, fill: '#1E6FE0', size: 18 }]);
   assert.deepEqual(Object.values(saved.s), [{ bg: '#FFE9F1' }]);
   assert.deepEqual(errors, []); await ctx.close();
 });
@@ -2627,6 +2650,41 @@ await test('wide settings pages: Paramètres, Paiements, Livraison, Associés, D
   await f.focus();
   const ring = await f.evaluate((el) => { const cs = getComputedStyle(el); return { outline: cs.outlineStyle, shadow: cs.boxShadow }; });
   assert.ok(ring.outline === 'none' || ring.shadow === 'none', `double contour : ${JSON.stringify(ring)}`);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('editor, header (SÈVE): her name or her logo', async () => {
+  const w = withModel(world(), 'seve'); const { page, ctx, errors } = await open(browser, { width: 1440, height: 900 }, w);
+  await page.goto(`${BASE}/admin/editeur/`);
+  const left = page.getByRole('complementary', { name: 'Sections de la page' });
+  await left.getByRole('button', { name: 'En-tête', exact: true }).click();
+  const right = page.getByRole('complementary', { name: 'Contenu : En-tête' });
+  await right.waitFor(); await page.waitForTimeout(1200);
+  const site = page.frameLocator('iframe[title="Votre site"]');
+  const before = await site.locator('body').evaluate(() => ({ imgs: [...document.querySelectorAll('img')].map((i) => i.getAttribute('src')), head: document.querySelector('header').innerText.replace(/\s+/g, ' ').trim() }));
+  const pick = right.getByRole('group', { name: 'Afficher en haut du site' });
+  assert.equal(await pick.getByRole('button', { name: 'Votre nom' }).getAttribute('aria-pressed'), 'true');
+  await pick.getByRole('button', { name: 'Votre logo' }).click();
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  await right.getByLabel('Choisir une image : Votre logo').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: png });
+  await page.getByRole('dialog', { name: 'Recadrer le logo' }).getByRole('button', { name: 'Appliquer' }).click();
+  await right.getByRole('button', { name: 'Remplacer : Votre logo' }).waitFor({ timeout: 15000 });
+  await site.locator('header [data-jeere-logo-img] img').waitFor();
+  await page.waitForTimeout(500);
+  // her logo is in the header; every other text and picture of the page stays where it was (nothing shifts)
+  const after = await site.locator('body').evaluate(() => ({ imgs: [...document.querySelectorAll('img')].filter((i) => !i.closest('[data-jeere-logo-img]')).map((i) => i.getAttribute('src')), head: document.querySelector('header').innerText.replace(/\s+/g, ' ').trim() }));
+  assert.deepEqual(after.imgs, before.imgs);
+  assert.equal(after.head, before.head.replace(/\s*sève\s*/, ' ').replace(/\s+/g, ' ').trim());
+  await page.screenshot({ path: `${SHOTS}161-entete-seve-logo.png` });
+  // « Votre nom »: the name comes back, the logo is kept aside
+  await pick.getByRole('button', { name: 'Votre nom' }).click();
+  await page.waitForTimeout(500);
+  assert.equal(await site.locator('header [data-jeere-logo-img]').count(), 0);
+  assert.equal(await site.locator('body').evaluate(() => document.querySelector('header').innerText.replace(/\s+/g, ' ').trim()), before.head);
+  await page.getByRole('button', { name: 'Publier' }).click();
+  await page.getByText(/Votre site est en ligne/).waitFor();
+  assert.equal(w.stores[0].fiche.store.brand, 'text');
+  assert.match(w.stores[0].fiche.store.logo, /^https:\/\//);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

@@ -176,7 +176,7 @@ export const MODEL_PAGES: Record<string, { path: string; name: string }[]> = {
 };
 
 /** One thing of the page: a text (t), a picture (i), a category (c), a product case (p), the list of services (s). */
-export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's' | 'm'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean; tag: string; href: string; size: number; link: boolean }
+export interface SiteItem { key: string; kind: 't' | 'i' | 'c' | 'p' | 's' | 'm'; ref: string; label: string; text: string; role: string; sec: number; src: string; long: boolean; tag: string; href: string; size: number; link: boolean; /** a button: filled (not see-through) and rounded, as drawn now */ fill?: boolean; round?: boolean }
 export interface SiteSection { n: number; key: string; name: string; fixed: boolean; demo?: boolean }
 export interface SiteMap { page: string; items: SiteItem[]; sections: SiteSection[] }
 export type SiteKind = 't' | 'i' | 'c' | 'h' | 'k' | 'l';

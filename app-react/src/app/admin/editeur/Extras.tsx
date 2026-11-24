@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { NumberField } from '@/components/ui/NumberField';
 import { Field, Select, TextArea } from '@/components/ui/Field';
 import { ColorField } from '@/components/ui/ColorField';
 import { Icon } from '@/components/ui/Icon';
@@ -64,7 +65,7 @@ export function PhotoField({ name, src, own, userId, onChange, logo = false }: {
         <b>{name}</b>
         <div className={styles.mediaActs}>
           <Button className={styles.small} variant="secondary" onClick={() => input.current?.click()} aria-label={`${src ? 'Remplacer' : 'Importer'} : ${name}`}>{src ? 'Remplacer' : 'Importer'}</Button>
-          {src ? <Button className={styles.small} variant="secondary" icon="crop" onClick={() => crop.openUrl(src)} aria-label={`Recadrer : ${name}`}>Recadrer</Button> : null}
+          {src ? <Button className={`${styles.small} ${styles.iconOnly}`} variant="secondary" icon="crop" onClick={() => crop.openUrl(src)} aria-label={`Recadrer : ${name}`} title="Recadrer">{''}</Button> : null}
           {own ? <button type="button" className={styles.reset} onClick={() => onChange(null)} aria-label={`Retirer : ${name}`}>Retirer</button> : null}
         </div>
       </div>
@@ -89,26 +90,27 @@ export function TextStyle({ item, fiche, pages, link, onLook, onLink }: {
       {item.tag === 'a' ? <LinkPicker key={item.key} value={link} fiche={fiche} pages={pages} onChange={onLink} /> : null}
       <ColorField key={`c${item.key}`} label="Couleur du texte" value={look.color ?? ''} onChange={(v) => onLook({ color: v }, 'color')} />
       <div className={styles.pair}>
-        <Field label={button ? 'Taille (px)' : 'Taille du titre (px)'} inputMode="numeric" value={String(size)} onChange={(e) => { const n = Number(e.target.value.replace(/\D/g, '')); onLook({ size: n >= 8 && n <= 160 ? n : undefined }, 'size'); }} />
+        <NumberField key={`s${item.key}`} label={button ? 'Taille' : 'Taille du titre'} value={look.size} shown={size} min={8} max={320} onChange={(n) => onLook({ size: n }, 'size')} />
         <div className={styles.control}>
           <span className={styles.caption}>Gras</span>
           <button type="button" role="switch" aria-checked={look.bold === true} aria-label="Texte en gras" className={styles.toggle} onClick={() => onLook({ bold: look.bold ? undefined : true }, 'bold')} />
         </div>
       </div>
       {button ? <>
+        {/* what the button looks like NOW (the model's own look until she changes it): two plain choices */}
         <div className={styles.control}>
-          <span className={styles.caption} id="btn-style">Style du bouton</span>
+          <span className={styles.caption} id="btn-style">Style</span>
           <div className={styles.segments} role="group" aria-labelledby="btn-style">
-            {([[undefined, 'Modèle'], ['fill', 'Plein'], ['outline', 'Contour']] as const).map(([v, l]) => <button key={l} type="button" aria-pressed={look.btn === v} onClick={() => onLook({ btn: v }, 'btn')}>{l}</button>)}
+            {([['fill', 'Plein'], ['outline', 'Contour']] as const).map(([v, l]) => <button key={l} type="button" aria-pressed={(look.btn ?? (item.fill ? 'fill' : 'outline')) === v} onClick={() => onLook({ btn: v }, 'btn')}>{l}</button>)}
           </div>
         </div>
-        <div className={styles.pair}>
-          <div className={styles.control}>
-            <span className={styles.caption}>Arrondi</span>
-            <button type="button" role="switch" aria-checked={look.round === true} aria-label="Bouton arrondi" className={styles.toggle} onClick={() => onLook({ round: look.round ? undefined : true }, 'round')} />
+        <div className={styles.control}>
+          <span className={styles.caption} id="btn-shape">Forme</span>
+          <div className={styles.segments} role="group" aria-labelledby="btn-shape">
+            {([[true, 'Arrondi'], [false, 'Carré']] as const).map(([v, l]) => <button key={l} type="button" aria-pressed={(look.round ?? !!item.round) === v} onClick={() => onLook({ round: v }, 'round')}>{l}</button>)}
           </div>
         </div>
-        {look.btn === 'fill' ? <ColorField key={`f${item.key}`} label="Couleur du bouton" value={look.fill ?? ''} onChange={(v) => onLook({ fill: v }, 'fill')} /> : null}
+        {(look.btn ?? (item.fill ? 'fill' : 'outline')) === 'fill' ? <ColorField key={`f${item.key}`} label="Couleur du bouton" value={look.fill ?? ''} onChange={(v) => onLook({ fill: v, btn: 'fill' }, 'fill')} /> : null}
       </> : null}
     </section>
   );
@@ -155,7 +157,6 @@ export function BandInspector({ item, fiche, onChange, focus }: { item: SiteItem
       <section className={styles.block} aria-label="Texte du bandeau">
         <TextArea label="Texte qui défile" rows={3} maxLength={600} value={b.text ?? item.text} autoFocus={focus} onChange={(e) => onChange({ text: e.target.value.trim() ? e.target.value : undefined }, 'text')} />
         <p className={styles.hint}>Écrivez tout le texte une seule fois. Séparez vos messages par <b>•</b> : il défile en boucle.</p>
-        {b.text !== undefined ? <button type="button" className={styles.reset} onClick={() => onChange({ text: undefined })}>Remettre le texte du modèle</button> : null}
       </section>
       <section className={styles.block} aria-label="Apparence du bandeau">
         <ColorField key={`bg${item.key}`} label="Couleur du bandeau" value={b.bg ?? ''} onChange={(v) => onChange({ bg: v })} />
