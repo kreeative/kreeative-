@@ -7,7 +7,7 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Notice } from '@/components/ui/Notice';
-import { PLANS, PLAN_FEATURES, hasPlan, monthOrders, openPortal, planOf, subscribe, syncPlans, usage, type Plan } from '@/lib/billing';
+import { PLANS, PLAN_FEATURES, cardNeed, hasPlan, monthOrders, openPortal, planOf, subscribe, syncPlans, usage, type Plan } from '@/lib/billing';
 import { money } from '@/lib/format';
 import { storeName } from '@/lib/stores';
 import styles from './abonnement.module.css';
@@ -68,6 +68,8 @@ export default function PlanPage() {
           {u.limit !== null ? <i aria-hidden="true"><s style={{ width: `${pct}%` }} /></i> : null}
           {u.level === 'over' && u.next ? <p>Vos commandes continuent d’arriver. La formule adaptée : <b>{u.next.name}</b>.</p> : null}
         </section>); })() : null}
+      {cardNeed(store) === 'trial' ? <Notice tone="info" title="1er mois offert">Choisis ta formule et ajoute ta carte : rien n’est prélevé avant le {store.plan_until ? new Date(store.plan_until).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'fin du mois offert'}.</Notice> : null}
+      {cardNeed(store) === 'offline' ? <Notice tone="info" title="Boutique hors ligne">Ton mois offert est terminé : choisis une formule pour remettre ta boutique en ligne.</Notice> : null}
       <ul className={styles.plans}>
         {PLANS.map((p) => {
           const mine = p.id === current.id;

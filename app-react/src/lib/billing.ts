@@ -59,8 +59,8 @@ async function call<T>(fn: 'billing' | 'domains', body: Record<string, unknown>,
 const here = () => window.location.origin + window.location.pathname;
 
 /** Opens Stripe for a plan of ONE store (or her payment space, when that store already has a subscription). */
-export async function subscribe(storeId: string, plan: string, period: 'mois' | 'semaine'): Promise<Answer<{ url: string }>> {
-  const r = await call<{ url: string }>('billing', { action: 'subscribe', kind: 'boutique', plan, period, storeId, currency: payCurrency(), returnUrl: here() });
+export async function subscribe(storeId: string, plan: string, period: 'mois' | 'semaine', back?: string): Promise<Answer<{ url: string }>> {
+  const r = await call<{ url: string }>('billing', { action: 'subscribe', kind: 'boutique', plan, period, storeId, currency: payCurrency(), returnUrl: back ? window.location.origin + back : here() });
   if (r.ok) window.location.assign(r.url);
   return r;
 }
@@ -101,4 +101,14 @@ export function dnsRecords(domain: string): DnsRecord[] {
   const out: DnsRecord[] = [{ type: 'A', name: '@', value: '76.76.21.21', host: apex }, { type: 'CNAME', name: 'www', value: 'cname.vercel-dns.com', host: `www.${apex}` }];
   if (domain !== apex && domain !== `www.${apex}`) out.push({ type: 'CNAME', name: domain.slice(0, -apex.length - 1), value: 'cname.vercel-dns.com', host: domain });
   return out;
+}
+
+/** The free month (after a model) asks for her card at once; once it ended without one, the store is offline.
+ *  'trial': card to add, nothing charged before plan_until · 'offline': no card at the end, store taken offline. */
+export function cardNeed(s: { role?: string; plan_promo?: string | null; plan_until?: string | null } | null | undefined): 'trial' | 'offline' | null {
+  if (!s || s.role !== 'owner') return null;
+  const p = s.plan_promo ?? '';
+  if ((p === 'essai' || p === 'lancement') && s.plan_until) return 'trial';
+  if (p.endsWith('-coupe')) return 'offline';
+  return null;
 }

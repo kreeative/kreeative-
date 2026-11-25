@@ -1,0 +1,8 @@
+/* The card step: one white card in the middle, the same words and buttons as the rest of the dashboard */
+.gate { width: min(460px, 100%); margin: clamp(24px, 8vh, 80px) auto; display: grid; justify-items: center; gap: var(--sp-4); padding: var(--sp-8) var(--sp-6); border-radius: 28px; background: var(--white); box-shadow: 0 0 0 1px var(--line), 0 24px 60px -40px rgba(17, 17, 17, .35); text-align: center; }
+.icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--grey-1); color: var(--ink); }
+.gate h1 { font: 600 var(--fs-h2)/1.2 var(--font); letter-spacing: -.01em; }
+.gate p { color: var(--muted); font-size: var(--fs); line-height: 1.6; }
+.gate p b { color: var(--ink); font-weight: 600; }
+.gate small { color: var(--muted); font-size: var(--fs-xs); }
+.gate > * { max-width: 100%; }

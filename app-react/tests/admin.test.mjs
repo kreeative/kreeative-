@@ -3115,6 +3115,44 @@ await test('atlas: the mail of @jehre.com is read here and answered from contact
   await o2.ctx.close();
 });
 
+await test('the free month asks for her card first (nothing charged before its end); without one at the end, the store is offline', async () => {
+  const until = new Date(Date.now() + 20 * 864e5).toISOString();
+  const w = world(); Object.assign(w.stores[0], { plan: 'essentiel', plan_until: until, plan_promo: 'essai' });
+  w.zone = { pay: 'cad', show: 'CAD', rate: 1 };
+  const { page, ctx, errors } = await open(browser, PHONE, w);
+  await page.goto(`${BASE}/admin/`);
+  await page.getByRole('heading', { name: 'Ajoute ta carte' }).waitFor();
+  await page.getByText(/Rien n’est prélevé avant\./).waitFor();
+  await page.getByText(/9\s\$\sCA par mois/).waitFor();
+  await noOverflow(page);
+  await page.screenshot({ path: `${SHOTS}193-carte-mois-offert.png` });
+  // the other pages wait too; the plans page stays open
+  await page.goto(`${BASE}/admin/produits/`);
+  await page.getByRole('heading', { name: 'Ajoute ta carte' }).waitFor();
+  await page.goto(`${BASE}/admin/abonnement/`);
+  await page.getByText(/rien n’est prélevé avant le/).waitFor();
+  await page.goto(`${BASE}/admin/`);
+  await page.getByRole('button', { name: 'Ajouter ma carte' }).click();
+  await page.waitForTimeout(400);
+  const sub = w.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'subscribe');
+  assert.equal(sub.body.plan, 'essentiel'); assert.equal(sub.body.currency, 'cad'); assert.match(sub.body.returnUrl, /\/admin\/abonnement\/$/);
+  assert.deepEqual(errors, []); await ctx.close();
+  // the month ended without a card: offline, and the same card brings it back
+  const w2 = world(); Object.assign(w2.stores[0], { plan: 'gratuit', plan_until: null, plan_promo: 'essai-coupe', published: false });
+  const o2 = await open(browser, DESK, w2);
+  await o2.page.goto(`${BASE}/admin/`);
+  await o2.page.getByRole('heading', { name: 'Ta boutique est hors ligne' }).waitFor();
+  await o2.page.screenshot({ path: `${SHOTS}194-carte-hors-ligne.png` });
+  assert.deepEqual(o2.errors, []); await o2.ctx.close();
+  // paid (« essai-fini »): the dashboard as usual
+  const w3 = world(); Object.assign(w3.stores[0], { plan: 'essentiel', plan_until: null, plan_promo: 'essai-fini' });
+  const o3 = await open(browser, DESK, w3);
+  await o3.page.goto(`${BASE}/admin/`);
+  await o3.page.getByRole('heading', { name: 'Bonjour Kady' }).or(o3.page.locator('h1').first()).waitFor();
+  assert.equal(await o3.page.getByRole('heading', { name: 'Ajoute ta carte' }).count(), 0);
+  await o3.ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);

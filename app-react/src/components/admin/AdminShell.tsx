@@ -1,6 +1,8 @@
 'use client';
 
 import { useSwipeDown } from '@/components/ui/useSwipeDown';
+import { CardGate } from '@/components/admin/CardGate';
+import { cardNeed } from '@/lib/billing';
 import Link from 'next/link';
 import { Sheet } from '@/components/ui/Sheet';
 import { useOrders } from '@/components/admin/useOrders';
@@ -67,6 +69,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const viewUrl = tishe.on ? TISHE.site : store ? storeUrl(store, model) : '';
   const shownName = tishe.on ? TISHE.name : store ? storeName(store) : '';
   const path = usePathname();
+  // the free month asks for her card first (the plans page stays open, to choose another plan)
+  const gate = !tishe.on && !/^\/admin\/abonnement\/?$/.test(path) ? cardNeed(store) : null;
   const [menu, setMenu] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const me = useRef<HTMLDivElement>(null);
@@ -197,7 +201,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
       {/* each page comes in with a soft fade. The editor and the model viewer cover the screen (position: fixed):
           they are not wrapped in anything that moves */}
-      <main className={styles.main}>{/^\/admin\/(editeur|modeles\/apercu)\/?$/.test(path) ? children : <div key={path} className={styles.page}>{children}</div>}</main>
+      <main className={styles.main}>{gate ? <div className={styles.page}><CardGate need={gate} /></div> : /^\/admin\/(editeur|modeles\/apercu)\/?$/.test(path) ? children : <div key={path} className={styles.page}>{children}</div>}</main>
     </div>
   );
 }
