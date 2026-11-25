@@ -482,7 +482,7 @@
     }
   }
   /* What one account must never leave to the next one on a shared device */
-  var WORKSPACE = ['jeere-studio-config', 'jeere-admin', 'jeere-publish', 'jeere-studio-versions', 'jeere-studio-versions-saves', 'jeere-projects', 'jeere-studio-open',
+  var WORKSPACE = ['jeere-studio-config', 'jeere-admin', 'jeere-publish', 'jeere-studio-versions', 'jeere-studio-versions-saves', 'jeere-projects', 'jeere-projects-handed', 'jeere-studio-open',
     'jeere-studio-ui', 'jeere-studio-config-previous', 'jeere-media-map'];
   function clearPrivate() {
     ['jeere-tishe-auth', 'jeere-ext', 'jeere-projects-notice'].forEach(lsDel);
