@@ -613,14 +613,16 @@ html:not(.js) .cv__play { display: none; }
 .plan__orders b { font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
 .plan--pick .plan__orders { border-top-color: var(--line-light); }
 .plan__fee { margin-top: 12px; }
-.plan__studio { margin-top: 10px; font-size: 14px; color: var(--muted); }
+.plan__studio, .plan__extra { margin-top: 10px; font-size: 14px; color: var(--muted); }
 .plan__studio--both { color: var(--ink); font-weight: 600; }
-.plan--pick .plan__studio { color: var(--muted-light); }
+.plan--pick .plan__studio, .plan--pick .plan__extra { color: var(--muted-light); }
 .plan__fee span { display: inline-block; padding: 5px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-deep); font-weight: 500; font-size: 14px; }
 .plan--pick .plan__fee span { background: color-mix(in srgb, var(--accent-light) 18%, transparent); color: var(--accent-light); }
 .plan__for { margin-top: 14px; color: var(--muted); font-size: 15px; }
 @media (min-width: 700px) { .plans { grid-template-columns: 1fr 1fr; row-gap: 24px; } .plan--pick { margin-top: 0; } }
-@media (min-width: 1100px) { .plans { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 700px) and (max-width: 1099px) { .plans > .plan:last-child { grid-column: 1 / -1; } }
+@media (min-width: 1100px) { .plans { grid-template-columns: repeat(5, 1fr); gap: 12px; } .plan { padding: 24px 18px; } .plan__price b { font-size: 32px; } .plan__price span { display: block; margin-top: 6px; } }
+.plan__price span, .plan__flag { white-space: nowrap; }
 
 /* The Studio's plans (#studio, « Abonnements Studio »), on black. The monthly / yearly toggle swaps
    [data-sp-m] / [data-sp-y] through the section's data-period (site.js); yearly without JS. */
