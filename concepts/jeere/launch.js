@@ -31,7 +31,7 @@
       // 3 months of Essentiel at 3 500 F = 10 500 F: « plus de 10 000 F » is true
       bar.querySelector('.promo__t').textContent = o.active
         ? (en() ? 'Win over 10,000 F · first ' + o.spots + ' sign-ups' : 'Gagne plus de 10' + NB + '000' + NB + 'F · ' + o.spots + ' premières inscrites')
-        : (en() ? first + ' on the Essentiel pack' : first + ' sur le pack Essentiel');
+        : (en() ? first + ' with a template' : first + ' avec un modèle');
       bar.querySelector('.promo__go').textContent = en() ? 'Find out more →' : 'En savoir plus →';
       bar.hidden = false;
     }
@@ -42,7 +42,7 @@
       var left = Number(o.left) || 0;
       var t1 = o.active
         ? (en() ? 'Win over 10,000 F: ' + o.months + ' months of Essentiel free.' : 'Gagne plus de 10' + NB + '000' + NB + 'F' + NB + ': ' + o.months + NB + 'mois de pack Essentiel offerts.')
-        : (en() ? 'Get your ' + first.toLowerCase() + ' on the Essentiel pack.' : 'Obtiens ton ' + first + ' sur le pack Essentiel.');
+        : (en() ? 'Get your ' + first.toLowerCase() + ' with a template.' : 'Obtiens ton ' + first + ' avec un modèle.');
       var t0 = o.active ? (en() ? 'For the first ' + o.spots + '. Then, 1st month free.' : 'Pour les ' + o.spots + ' premières. Ensuite, 1er mois offert.') : (en() ? 'Everything included.' : 'Tout est inclus.');
       var t2 = !o.active ? '' : (left <= 20 ? (en() ? 'Only ' + left + ' left' : 'Plus que ' + left + ' place' + (left > 1 ? 's' : '')) : (en() ? 'Sign up fast, before the spots run out' : 'Inscris-toi vite avant que les places finissent'));
       box.innerHTML = '<p class="launch__t"><b></b> <span></span></p>' + (t2 ? '<span class="launch__n"></span>' : '');
