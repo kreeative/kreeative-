@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { approxNote, useZone, zprice } from '@/lib/zone';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
@@ -16,6 +17,7 @@ const until = (iso: string | null | undefined) => (iso ? new Intl.DateTimeFormat
 
 /** The plan of ONE store (a subscription is for a store, not for the account), paid by card at Stripe. */
 export default function PlanPage() {
+  const z = useZone();
   const { store, reload } = useAdmin();
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -73,7 +75,7 @@ export default function PlanPage() {
             <li key={p.id} className={styles.plan} data-mine={mine ? '' : undefined}>
               <div className={styles.head}><h2>{p.name}</h2>{mine ? <span className={styles.chip}>Votre formule</span> : null}</div>
               <p className={styles.for}>{p.forWho}</p>
-              <p className={styles.price}><b>{money(p.month)}</b><span> / mois</span></p>
+              <p className={styles.price}><b>{zprice(z, p.month, p.cad)}</b><span> / mois</span></p>
               <ul className={styles.facts}>
                 <li><Icon name="check" size={16} />{p.orders === null ? 'Commandes illimitées' : `Jusqu’à ${p.orders} commandes par mois`}</li>
                 <li><Icon name="check" size={16} />{p.fee ? `${p.fee}${NB}% par vente en ligne` : 'Aucune commission Jehre'}</li>
@@ -88,6 +90,7 @@ export default function PlanPage() {
           );
         })}
       </ul>
+      {approxNote(z) ? <p className={styles.note}>{approxNote(z)}</p> : null}
 
       <section className={styles.all}>
         <h2>Dans toutes les formules</h2>

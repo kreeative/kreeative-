@@ -9,7 +9,8 @@ import { Field, Select, TextArea, Check } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { money } from '@/lib/format';
-import { CUSTOM_FROM, MODELS, SHOP_OPTION_PRICE, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
+import { approxNote, useZone, zprice } from '@/lib/zone';
+import { CUSTOM_FROM, INSTALL_CAD, INSTALL_EXTRA, INSTALL_EXTRA_CAD, MODELS, SHOP_OPTION_CAD, SHOP_OPTION_PRICE, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
 import { createStore, saveFiche, storeName, storeUrl } from '@/lib/stores';
 import { Icon } from '@/components/ui/Icon';
 import styles from './modeles.module.css';
@@ -24,6 +25,7 @@ const ACTION: Record<Way, string> = { self: 'Payer par carte', install: 'Remplir
 
 /** The designer models: a site drawn for one trade, paid once. Same cards and same words as the current dashboard. */
 export default function ModelsPage() {
+  const z = useZone();
   const { account, store, reload, models: owned, model: current } = useAdmin();
   const { busy, problem, write } = useSave();
   const [open, setOpen] = useState<Model | null>(null);
@@ -143,7 +145,7 @@ export default function ModelsPage() {
               <div className={styles.body}>
                 <p className={styles.name}>{m.name}</p>
                 <p className={styles.kind}>{m.kind}</p>
-                <p className={styles.price}><strong>{money(m.price)}</strong>{m.was ? <> <s>{money(m.was)}</s></> : null}</p>
+                <p className={styles.price}><strong>{zprice(z, m.price, m.cad)}</strong>{m.was ? <> <s>{zprice(z, m.was, m.wasCad ?? m.cad * 2)}</s></> : null}</p>
                 <div className={styles.acts}>
                   {current === m.slug ? <ButtonLink href={store ? `/admin/editeur/?b=${store.id}` : '/admin/editeur/'} icon="edit" aria-label={`Modifier mon site ${m.name}`}>Modifier</ButtonLink>
                     : mine ? <Button busy={busy} onClick={() => void use(m)}>Utiliser ce modèle</Button>
@@ -169,6 +171,7 @@ export default function ModelsPage() {
 function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, shopName, sells }: {
   model: Model; onClose: () => void; onAsked: (text: string) => void; firstName: string; phone: string; email: string; storeId: string; shopName: string; sells: string;
 }) {
+  const z = useZone();
   const [way, setWay] = useState<Way>('self');
   // a booking site: selling products too is an option (+25 000 F)
   const [shop, setShop] = useState(false);
@@ -205,9 +208,9 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
   }
 
   const options: { id: Way; title: string; price: string; text: string }[] = [
-    { id: 'self', title: 'Je remplis moi-même', price: m.rdv ? `À partir de ${money(m.price)}` : money(m.price), text: 'Vous ajoutez vous-même vos produits, vos prix et vos photos depuis votre tableau de bord.' },
-    { id: 'install', title: 'Jehre installe tout pour moi', price: `À partir de ${money(m.price + installPrice(m))}`, text: 'Nous mettons tout en place : jusqu’à 10 produits et 2 séries de corrections, 5 000 F par produit en plus. Un formulaire à remplir et à signer, puis vous payez.' },
-    { id: 'custom', title: 'Un site 100 % sur mesure', price: `À partir de ${money(CUSTOM_FROM)}`, text: 'Vous ne voulez pas d’un modèle ? Le designer de Kreeative dessine un site unique, rien que pour vous. Un site complet comme The Ivory Sukundu : 500 000 FCFA. On en parle d’abord ensemble.' },
+    { id: 'self', title: 'Je remplis moi-même', price: m.rdv ? `À partir de ${zprice(z, m.price, m.cad)}` : zprice(z, m.price, m.cad), text: 'Vous ajoutez vous-même vos produits, vos prix et vos photos depuis votre tableau de bord.' },
+    { id: 'install', title: 'Jehre installe tout pour moi', price: `À partir de ${zprice(z, m.price + installPrice(m), m.cad + INSTALL_CAD)}`, text: `Nous mettons tout en place : jusqu’à 10 produits et 2 séries de corrections, ${zprice(z, INSTALL_EXTRA, INSTALL_EXTRA_CAD)} par produit en plus. Un formulaire à remplir et à signer, puis vous payez.` },
+    { id: 'custom', title: 'Un site 100 % sur mesure', price: `À partir de ${zprice(z, CUSTOM_FROM, 72999)}`, text: 'Vous ne voulez pas d’un modèle ? Le designer de Kreeative dessine un site unique, rien que pour vous. Un site complet comme The Ivory Sukundu : 500 000 FCFA. On en parle d’abord ensemble.' },
   ];
 
   return (
@@ -218,7 +221,7 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
         <span className={styles.example} aria-hidden="true">Exemple de mise en page</span>
       </a>
       <h2 className={styles.question}>Comment voulez-vous l’installer ?</h2>
-      {m.installIncluded ? <p className={styles.lead}><strong>{money(m.price)}</strong>, payé une seule fois, installation par notre équipe incluse.</p> : (
+      {m.installIncluded ? <p className={styles.lead}><strong>{zprice(z, m.price, m.cad)}</strong>, payé une seule fois, installation par notre équipe incluse.</p> : (
         <>
           <div className={styles.opts} role="radiogroup" aria-label="Qui installe votre boutique">
             {options.map((o) => (
@@ -234,8 +237,8 @@ function Choose({ model: m, onClose, onAsked, firstName, phone, email, storeId, 
               <TextArea label="Précisions" optional rows={3} maxLength={800} value={need} onChange={(e) => setNeed(e.target.value)} />
             </div>
           ) : null}
-          {m.rdv && way === 'self' ? <Check checked={shop} onChange={(e) => setShop(e.target.checked)}>Vendre aussi des produits sur mon site (+{money(SHOP_OPTION_PRICE)})</Check> : null}
-          <p className={styles.small}>{NOTE[way]}{m.rdv && way === 'self' ? ` Total : ${money(m.price + (shop ? SHOP_OPTION_PRICE : 0))}.` : ''}</p>
+          {m.rdv && way === 'self' ? <Check checked={shop} onChange={(e) => setShop(e.target.checked)}>Vendre aussi des produits sur mon site (+{zprice(z, SHOP_OPTION_PRICE, SHOP_OPTION_CAD)})</Check> : null}
+          <p className={styles.small}>{NOTE[way]}{m.rdv && way === 'self' ? ` Total : ${zprice(z, m.price + (shop ? SHOP_OPTION_PRICE : 0), m.cad + (shop ? SHOP_OPTION_CAD : 0))}.` : ''}{approxNote(z) ? ` ${approxNote(z)}` : ''}</p>
         </>
       )}
       {error ? <Notice tone="error">{error}</Notice> : null}

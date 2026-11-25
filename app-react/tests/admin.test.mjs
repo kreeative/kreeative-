@@ -44,6 +44,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   const json = (route, status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*', 'access-control-expose-headers': '*' }, body: body === undefined ? '' : JSON.stringify(body) });
   // Stripe's embedded forms: a stand-in that draws a recognisable block (no request leaves for Stripe)
   await ctx.route('https://connect-js.stripe.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: `window.StripeConnect = { init: (o) => ({ create: (name) => { const d = document.createElement('div'); d.setAttribute('data-stripe', name); d.textContent = 'Formulaire sécurisé Stripe : ' + name; d.style.cssText = 'padding:24px;border-radius:12px;background:#f6f6f6;font:500 14px Poppins'; d.setOnExit = (f) => { window.__stripeExit = f; }; return d; } }) };` }));
+  // her country's money (jehre.com/api/geo): without it, the franc CFA
+  if (world.zone) await ctx.route('**/api/geo', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(world.zone) }));
   await ctx.route('**/connect/jeere-connect.js', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' }, body: CONNECT }));
   await ctx.route('https://www.theivorysukundu.com/api/admin', async (route) => {
     const req = route.request();
@@ -2554,7 +2556,7 @@ await test('installation by the team: a complete form, read to the end, accepted
   assert.match((await page.locator('main').innerText()).replace(/\s/g, ' '), /Installation · 14 produits 120 000 FCFA/);
   assert.match((await page.locator('main').innerText()).replace(/\s/g, ' '), /Total, payé une seule fois 170 000 FCFA/);
   const terms = page.getByLabel('Formulaire à lire');
-  assert.match(await terms.innerText(), /plus 4 produits à 5 000 F/);
+  assert.match(await terms.innerText(), /plus 4 produits à 5\s000\sFCFA/);
   assert.match(await terms.innerText(), /2 séries de corrections/);
   await terms.evaluate((el) => { el.scrollTop = el.scrollHeight; el.dispatchEvent(new Event('scroll')); });
   await page.getByRole('checkbox').check();
@@ -2999,6 +3001,47 @@ await test('atlas: read-only sees, but cannot act; on a phone nothing overflows'
   assert.equal(await page.getByLabel('Formule de Awa Beauté').count(), 0);
   await noOverflow(page);
   await page.screenshot({ path: `${SHOTS}185-atlas-phone.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('prices in her money: in Canada $ CA and charged in CAD; in the United States about the same in $ US', async () => {
+  const w = world({ zone: { pay: 'cad', show: 'CAD', rate: 1 } });
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/abonnement/`);
+  await page.getByText('19 $ CA').first().waitFor();
+  await page.getByText('149 $ CA').first().waitFor();
+  assert.equal(await page.getByText('7 500 FCFA').count(), 0);
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}190-zone-cad-abonnement.png` });
+  await page.getByRole('button', { name: 'Choisir Croissance au mois' }).click();
+  await page.waitForFunction(() => true);
+  await page.waitForTimeout(400);
+  const sub = w.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'subscribe');
+  assert.equal(sub.body.currency, 'cad');
+  await page.goto(`${BASE}/admin/modeles/`);
+  await page.getByText('59,99 $ CA').first().waitFor();
+  await page.getByText('119,99 $ CA').first().waitFor();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}191-zone-cad-modeles.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+  const w2 = world({ zone: { pay: 'cad', show: 'USD', rate: 0.74 } });
+  const o2 = await open(browser, PHONE, w2);
+  await o2.page.goto(`${BASE}/admin/abonnement/`);
+  await o2.page.getByText('≈ 14 $ US').first().waitFor();
+  await o2.page.getByText(/Montants approximatifs/).waitFor();
+  await noOverflow(o2.page);
+  await o2.page.screenshot({ path: `${SHOTS}192-zone-usd-abonnement.png` });
+  assert.deepEqual(o2.errors, []); await o2.ctx.close();
+});
+
+await test('in the franc CFA zones, nothing changes: FCFA prices, charged in FCFA', async () => {
+  const w = world({ zone: { pay: 'xof', show: 'XOF', rate: 1 } });
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/admin/abonnement/`);
+  await page.getByText('7 500 FCFA').first().waitFor();
+  await page.getByRole('button', { name: 'Choisir Croissance au mois' }).click();
+  await page.waitForTimeout(400);
+  assert.equal(w.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'subscribe').body.currency, 'xof');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

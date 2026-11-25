@@ -60,3 +60,4 @@
 .usage i { display: block; height: 6px; border-radius: 6px; background: var(--grey-1); overflow: hidden; }
 .usage s { display: block; height: 100%; border-radius: 6px; background: var(--ink); }
 .usage[data-level='over'] s { background: var(--rainbow); }
+.note { margin: calc(var(--sp-2) * -1) 0 var(--sp-4); color: var(--muted); font-size: var(--fs-sm); }

@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     const [us, stores, buys, susp, profs] = await Promise.all([
       users(),
       rows('stores?select=id,owner,slug,published,plan,plan_until,plan_promo,created_at,custom_domain,fiche->store->>name&order=created_at.desc&limit=5000'),
-      rows('model_purchases?select=user_id,store_id,model,amount,created_at,install,installed_at&order=created_at.desc&limit=5000'),
+      rows('model_purchases?select=user_id,store_id,model,amount,currency,created_at,install,installed_at&order=created_at.desc&limit=5000'),
       rows<{ user_id: string }>('atlas_suspended?select=user_id'),
       rows<{ id: string; first_name: string | null; phone: string | null; source: string | null }>('profiles?select=id,first_name,phone,source&limit=10000'),
     ]);
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         id: u.id, email: u.email, firstName: str(prof.get(String(u.id))?.first_name ?? meta.first_name, 60), phone: prof.get(String(u.id))?.phone ?? '', source: prof.get(String(u.id))?.source ?? '', createdAt: u.created_at, lastSignIn: u.last_sign_in_at, verified: !!u.email_confirmed_at,
         suspended: off.has(String(u.id)) || (typeof u.banned_until === 'string' && Date.parse(u.banned_until) > Date.now()),
         stores: stores.filter((s) => s.owner === u.id).map((s) => ({ id: s.id, slug: s.slug, createdAt: s.created_at, name: s.name || s.slug, published: !!s.published, plan: s.plan || 'gratuit', promo: !!s.plan_promo, until: s.plan_until, domain: s.custom_domain })),
-        purchases: buys.filter((p) => p.user_id === u.id).map((p) => ({ model: p.model, amount: p.amount, at: p.created_at, install: !!p.install, installedAt: p.installed_at ?? null })),
+        purchases: buys.filter((p) => p.user_id === u.id).map((p) => ({ model: p.model, amount: p.amount, currency: p.currency || 'xof', at: p.created_at, install: !!p.install, installedAt: p.installed_at ?? null })),
       };
     });
     return json({ ok: true, accounts });

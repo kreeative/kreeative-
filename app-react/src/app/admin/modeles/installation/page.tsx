@@ -8,7 +8,8 @@ import { Check, Field, Select, TextArea } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Notice';
 import { SignaturePad } from '@/components/ui/SignaturePad';
 import { money } from '@/lib/format';
-import { INSTALL_PRODUCTS, INSTALL_TERMS_VERSION, buyModel, installFor, installTerms, modelBySlug, type Model } from '@/lib/models';
+import { INSTALL_EXTRA, INSTALL_EXTRA_CAD, INSTALL_PRODUCTS, INSTALL_TERMS_VERSION, buyModel, installCad, installFor, installTerms, modelBySlug, type Model } from '@/lib/models';
+import { approxNote, chargedPrice, useZone, zprice } from '@/lib/zone';
 import { storeName } from '@/lib/stores';
 import { supabase } from '@/lib/supabase';
 import styles from './installation.module.css';
@@ -18,6 +19,7 @@ import styles from './installation.module.css';
    hand. What she signed is kept word for word (public.install_requests); the server prices the installation from
    it and refuses an installation without it. */
 export default function InstallationPage() {
+  const z = useZone();
   const { account, store } = useAdmin();
   const [model, setModel] = useState<Model | null | undefined>(undefined);
   useEffect(() => { setModel(modelBySlug(new URLSearchParams(window.location.search).get('m') ?? '') ?? null); }, []);
@@ -63,7 +65,9 @@ export default function InstallationPage() {
   if (model.installIncluded) return <><PageHead title="Installation" /><Empty icon="template" title={`L’installation est comprise avec ${model.name}`} action={<ButtonLink href="/admin/modeles/">Retour aux modèles</ButtonLink>}>Rien à remplir ici : notre équipe vous écrit après votre achat.</Empty></>;
 
   const n = Math.max(1, Math.min(500, Math.round(Number(count.replace(/\D/g, '')) || 0)));
-  const install = installFor(n), total = model.price + install, text = installTerms(model, n);
+  const cad = z.pay === 'cad';
+  const install = cad ? installCad(n) : installFor(n), modelPrice = cad ? model.cad : model.price, total = modelPrice + install, text = installTerms(model, n, z);
+  const show = (xof: number, c: number) => zprice(z, xof, c);
 
   async function submit() {
     if (!model || busy) return;
@@ -83,7 +87,7 @@ export default function InstallationPage() {
     const { data, error } = await supabase().from('install_requests').insert({
       store_id: store?.id ?? null, model: model.slug, shop_name: shop.trim().slice(0, 80), sells: sells.trim().slice(0, 300), products_count: n,
       photos_ready: photos === 'Oui', has_logo: logo === 'Oui', links: links.trim().slice(0, 500), whatsapp: wa.trim().slice(0, 30), email: email.trim().slice(0, 160),
-      wishes: wishes.trim().slice(0, 1500), install_price: install, model_price: model.price, terms_version: INSTALL_TERMS_VERSION, terms_text: text,
+      wishes: wishes.trim().slice(0, 1500), install_price: install, model_price: modelPrice, currency: z.pay, terms_version: INSTALL_TERMS_VERSION, terms_text: text,
       legal_name: legal.trim().slice(0, 120), signature_png: sig, user_agent: navigator.userAgent.slice(0, 400),
     }).select('id');
     const id = (data as { id: string }[] | null)?.[0]?.id;
@@ -103,7 +107,7 @@ export default function InstallationPage() {
             <TextArea label="Ce que vous vendez" rows={2} maxLength={300} value={sells} onChange={(e) => { setSells(e.target.value); ok('sells'); }} />
             {errors.sells ? <p className={styles.err} role="alert">{errors.sells}</p> : null}
             <Field label="Nombre de produits à mettre en ligne" inputMode="numeric" maxLength={3} value={count} onChange={(e) => { setCount(e.target.value.replace(/\D/g, '')); ok('count'); }} error={errors.count}
-              hint={`${INSTALL_PRODUCTS} produits compris. 5 000 F par produit en plus.`} />
+              hint={`${INSTALL_PRODUCTS} produits compris. ${show(INSTALL_EXTRA, INSTALL_EXTRA_CAD)} par produit en plus.`} />
             <div className={styles.two}>
               <Select label="Vos photos sont prêtes ?" options={['Oui', 'Pas encore']} value={photos} onChange={(e) => setPhotos(e.target.value)} />
               <Select label="Vous avez un logo ?" options={['Oui', 'Non']} value={logo} onChange={(e) => setLogo(e.target.value)} />
@@ -130,16 +134,16 @@ export default function InstallationPage() {
           <section className={styles.card} aria-label="Signature">
             <h2>3. Signez</h2>
             <div className={styles.total}>
-              <div><span>Modèle {model.name}</span><b>{money(model.price)}</b></div>
-              <div><span>Installation · {n} produit{n > 1 ? 's' : ''}</span><b>{money(install)}</b></div>
-              <div className={styles.sum}><span>Total, payé une seule fois</span><b>{money(total)}</b></div>
+              <div><span>Modèle {model.name}</span><b>{show(model.price, model.cad)}</b></div>
+              <div><span>Installation · {n} produit{n > 1 ? 's' : ''}</span><b>{show(installFor(n), installCad(n))}</b></div>
+              <div className={styles.sum}><span>Total, payé une seule fois</span><b>{show(model.price + installFor(n), model.cad + installCad(n))}</b></div>{approxNote(z) ? <p className={styles.small}>{approxNote(z)}</p> : null}
             </div>
             <Check checked={agree} disabled={!read} onChange={(e) => { setAgree(e.target.checked); ok('agree'); }} error={errors.agree}>J’ai lu ce formulaire. Il décrit exactement le travail commandé, et je l’accepte.</Check>
             <Field label="Votre nom légal" autoComplete="name" maxLength={120} placeholder="Prénom NOM" value={legal} onChange={(e) => { setLegal(e.target.value); ok('legal'); }} error={errors.legal} />
             <SignaturePad label="Votre signature" error={errors.sig} onChange={(v) => { setSig(v); if (v) ok('sig'); }} />
             <p className={styles.small}>Signé le {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date())}. Vous recevez une copie par e-mail après le paiement.</p>
             {problem ? <Notice tone="error">{problem}</Notice> : null}
-            <Button block busy={busy} onClick={() => void submit()}>Signer et payer {money(total)}</Button>
+            <Button block busy={busy} onClick={() => void submit()}>Signer et payer {cad ? chargedPrice(z, 0, total) : show(total, total)}</Button>
           </section>
         </div>
       </div>

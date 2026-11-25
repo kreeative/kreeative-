@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
+import { useZone, zprice } from '@/lib/zone';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
@@ -13,6 +14,7 @@ import styles from '../abonnement/abonnement.module.css';
 
 /** The address of a store: the free one, a domain she already owns (connected here), or one bought here by card. */
 export default function DomainPage() {
+  const z = useZone();
   const { store, model, reload } = useAdmin();
   const [own, setOwn] = useState('');
   const [busy, setBusy] = useState('');
@@ -145,7 +147,7 @@ export default function DomainPage() {
                   <ul className={styles.offers}>
                     {offers.map((d) => (
                       <li key={d.domain} data-taken={d.available && d.purchaseFcfa ? undefined : ''}>
-                        <span><b>{d.domain}</b><small>{d.available && d.purchaseFcfa ? `${money(d.purchaseFcfa)} la première année${d.renewalFcfa ? `, puis ${money(d.renewalFcfa)} par an` : ''}` : 'Déjà pris'}</small></span>
+                        <span><b>{d.domain}</b><small>{d.available && d.purchaseFcfa ? `${zprice(z, d.purchaseFcfa, d.purchaseCad ?? 0)} la première année${d.renewalFcfa ? `, puis ${zprice(z, d.renewalFcfa, d.renewalCad ?? 0)} par an` : ''}` : 'Déjà pris'}</small></span>
                         {d.available && d.purchaseFcfa ? <Button busy={busy === d.domain} disabled={!!busy} onClick={() => void buy(d)} aria-label={`Acheter ${d.domain}`}>Acheter</Button> : <span />}
                       </li>
                     ))}

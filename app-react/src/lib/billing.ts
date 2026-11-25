@@ -1,21 +1,22 @@
 import { SUPABASE_KEY, SUPABASE_URL, supabase } from './supabase';
+import { payCurrency } from './zone';
 
 /* Subscriptions and domain names. Every payment goes through Stripe, opened by the `billing` function (the only
    place that knows the prices and the Stripe key); a domain is connected by the `domains` function (the only place
    that can add a name to Jehre's hosting). The browser never sees a key and never sets a price. */
 
-export interface Plan { id: string; name: string; month: number; week: number | null; orders: number | null; fee: number; forWho: string; recommended?: boolean; live?: boolean }
+export interface Plan { id: string; name: string; month: number; /** outside the franc CFA zones, Canadian dollar cents (billing's CAD_PLAN) */ cad: number; week: number | null; orders: number | null; fee: number; forWho: string; recommended?: boolean; live?: boolean }
 /** The store plans (the grid of 24 Nov 2026), per month. The server (`billing`) charges its own copy of these prices.
  *  « En direct » comes from the 3rd plan up (Pro). There is no free plan any more. */
 export const PLANS: Plan[] = [
-  { id: 'essentiel', name: 'Essentiel', month: 3500, week: null, orders: 10, fee: 1, forWho: 'Pour vos premières ventes' },
-  { id: 'croissance', name: 'Croissance', month: 7500, week: null, orders: 30, fee: 0, forWho: 'Pour les vendeurs actifs sur les réseaux', recommended: true },
-  { id: 'pro', name: 'Pro', month: 15000, week: null, orders: 80, fee: 0, forWho: 'Pour les marques qui grandissent', live: true },
-  { id: 'business', name: 'Business', month: 30000, week: null, orders: 200, fee: 0, forWho: 'Pour les boutiques installées', live: true },
-  { id: 'entreprise', name: 'Entreprise', month: 60000, week: null, orders: null, fee: 0, forWho: 'Pour les grandes boutiques', live: true },
+  { id: 'essentiel', name: 'Essentiel', month: 3500, cad: 900, week: null, orders: 10, fee: 1, forWho: 'Pour vos premières ventes' },
+  { id: 'croissance', name: 'Croissance', month: 7500, cad: 1900, week: null, orders: 30, fee: 0, forWho: 'Pour les vendeurs actifs sur les réseaux', recommended: true },
+  { id: 'pro', name: 'Pro', month: 15000, cad: 3900, week: null, orders: 80, fee: 0, forWho: 'Pour les marques qui grandissent', live: true },
+  { id: 'business', name: 'Business', month: 30000, cad: 7500, week: null, orders: 200, fee: 0, forWho: 'Pour les boutiques installées', live: true },
+  { id: 'entreprise', name: 'Entreprise', month: 60000, cad: 14900, week: null, orders: null, fee: 0, forWho: 'Pour les grandes boutiques', live: true },
 ];
 /** A store with no plan yet (the old free plan, 'gratuit' in the base): she must choose one. */
-export const NO_PLAN: Plan = { id: 'gratuit', name: 'Aucune formule', month: 0, week: null, orders: 0, fee: 0, forWho: '' };
+export const NO_PLAN: Plan = { id: 'gratuit', name: 'Aucune formule', month: 0, cad: 0, week: null, orders: 0, fee: 0, forWho: '' };
 export const PLAN_FEATURES = [
   'Toutes les fonctions : boutique, paiements, commandes WhatsApp, livraison, codes promo, avis clients',
   'Une vraie personne qui vous répond sur WhatsApp, en français',
@@ -59,7 +60,7 @@ const here = () => window.location.origin + window.location.pathname;
 
 /** Opens Stripe for a plan of ONE store (or her payment space, when that store already has a subscription). */
 export async function subscribe(storeId: string, plan: string, period: 'mois' | 'semaine'): Promise<Answer<{ url: string }>> {
-  const r = await call<{ url: string }>('billing', { action: 'subscribe', kind: 'boutique', plan, period, storeId, returnUrl: here() });
+  const r = await call<{ url: string }>('billing', { action: 'subscribe', kind: 'boutique', plan, period, storeId, currency: payCurrency(), returnUrl: here() });
   if (r.ok) window.location.assign(r.url);
   return r;
 }
@@ -73,13 +74,13 @@ export async function openPortal(): Promise<Answer<{ url: string }>> {
 export const syncPlans = () => call<{ applied: number }>('billing', { action: 'sync' });
 /** Opens Stripe to buy a domain name for one year; once paid, the server buys it and connects it to the store. */
 export async function buyDomain(domain: string, storeId: string): Promise<Answer<{ url: string }>> {
-  const r = await call<{ url: string }>('billing', { action: 'domain', domain, storeId, returnUrl: here() });
+  const r = await call<{ url: string }>('billing', { action: 'domain', domain, storeId, currency: payCurrency(), returnUrl: here() });
   if (r.ok) window.location.assign(r.url);
   return r;
 }
 
 /* ---------------------------------------------------------------- domain names */
-export interface DomainOffer { domain: string; available: boolean; purchaseFcfa: number | null; renewalFcfa: number | null }
+export interface DomainOffer { domain: string; available: boolean; purchaseFcfa: number | null; renewalFcfa: number | null; purchaseCad?: number | null; renewalCad?: number | null }
 export interface DnsRecord { type: string; name: string; value: string; host: string }
 export interface DomainState { domain: string; status: string; records: DnsRecord[]; configured: boolean; message?: string }
 export const DOMAIN_STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'err' | 'info' }> = {

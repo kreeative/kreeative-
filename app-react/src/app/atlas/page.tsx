@@ -146,6 +146,13 @@ const others = (list: AtlasAccount[], me: string) => list.filter((a) => a.email.
 const paid = (s: AtlasStore) => s.plan !== 'gratuit' && !s.promo;
 const offered = (s: AtlasStore) => s.plan !== 'gratuit' && s.promo;
 
+/** Sums by money: « 50 000 FCFA · 59,99 $ CA ». */
+const sums = (list: { amount: number; currency?: string }[]) => {
+  const by: Record<string, number> = {};
+  list.forEach((p) => { const c = (p.currency || 'xof').toUpperCase(); by[c] = (by[c] ?? 0) + (Number(p.amount) || 0); });
+  return Object.entries(by).map(([c, n]) => money(n, c)).join(' · ') || money(0, 'XOF');
+};
+
 function Overview({ me }: { me: string }) {
   const { data: all, error, reload } = useAtlas<AtlasAccount[]>('accounts', (j) => (j.accounts as AtlasAccount[]) ?? []);
   if (!all) return <Loading error={error} retry={reload} />;
@@ -166,9 +173,9 @@ function Overview({ me }: { me: string }) {
     ['Inscrits', num(all.length), `+${since(24)} en 24${NB}h · +${since(168)} en 7${NB}j`],
     ['E-mail confirmé', num(all.filter((a) => a.verified).length), ''],
     ['Boutiques', num(stores.length), `${stores.filter((s) => s.published).length} en ligne`],
-    ['Formules payées', num(pay.length), `${money(mrr, 'XOF')} / mois`],
+    ['Formules payées', num(pay.length), `≈${NB}${money(mrr, 'XOF')} / mois`],
     ['En offre de lancement', num(off.length), 'gratuit pour l’instant'],
-    ['Modèles vendus', num(buys.length), money(buys.reduce((n, b) => n + (Number(b.amount) || 0), 0), 'XOF')],
+    ['Modèles vendus', num(buys.length), sums(buys)],
     ['Installations à faire', num(todo.length), ''],
     ['Comptes suspendus', num(all.filter((a) => a.suspended).length), ''],
   ];
@@ -253,7 +260,7 @@ function Accounts({ role, me, onToast }: { role: AtlasRole; me: string; onToast:
                         onChange={(e) => { const p = PLAN_CHOICES.find((x) => x.name === e.target.value)?.id; if (p) void act(s.id, 'plan', { storeId: s.id, plan: p }, `Formule de ${s.name} : ${e.target.value}.`); }} /> : <span className={styles.pill}>{planOf(s.plan).name}</span>}
                     </div>
                   )) : <p className={styles.muted}>Pas de boutique.</p>}
-                  {a.purchases.length ? <p className={styles.muted}>Achats : {a.purchases.map((p) => `${p.model} (${money(p.amount, 'XOF')}, ${day(p.at)})`).join(' · ')}</p> : null}
+                  {a.purchases.length ? <p className={styles.muted}>Achats : {a.purchases.map((p) => `${p.model} (${money(p.amount, p.currency || 'XOF')}, ${day(p.at)})`).join(' · ')}</p> : null}
                   <div className={styles.acts}>
                     {can(role, 'support') ? <Button variant="secondary" icon="lock" busy={busy === `r${a.id}`} onClick={() => void act(`r${a.id}`, 'reset', { email: a.email }, `Lien de mot de passe envoyé à ${a.email}.`)}>Envoyer un lien de mot de passe</Button> : null}
                     {can(role, 'admin') && a.email.toLowerCase() !== me ? (a.suspended
@@ -304,7 +311,7 @@ function Purchases() {
       <h1 className={styles.h1}>Achats <span className={styles.count}>{all.length}</span></h1>
       <div className={styles.kpis}>
         <div className={styles.kpi}><span>Modèles vendus</span><b>{num(all.length)}</b><small>{NB}</small></div>
-        <div className={styles.kpi}><span>Encaissé</span><b>{money(all.reduce((n, p) => n + (Number(p.amount) || 0), 0), 'XOF')}</b><small>{NB}</small></div>
+        <div className={styles.kpi}><span>Encaissé</span><b>{sums(all)}</b><small>{NB}</small></div>
         <div className={styles.kpi}><span>Avec installation</span><b>{num(all.filter((p) => p.install).length)}</b><small>{NB}</small></div>
       </div>
       <section className={styles.card}>
@@ -312,7 +319,7 @@ function Purchases() {
           <li key={i} className={styles.store}>
             <span><b>{p.model.toUpperCase()}</b><small>{p.a.firstName ? `${p.a.firstName} · ` : ''}{p.a.email}{p.a.phone ? ` · ${p.a.phone}` : ''} · {day(p.at)}</small></span>
             <span className={styles.pill} data-tone={!p.install ? undefined : p.installedAt ? 'ok' : 'warn'}>{!p.install ? 'elle remplit elle-même' : p.installedAt ? `installée le ${day(p.installedAt)}` : 'installation à faire'}</span>
-            <b className={styles.amount}>{money(p.amount, 'XOF')}</b>
+            <b className={styles.amount}>{money(p.amount, p.currency || 'XOF')}</b>
           </li>
         ))}</ul>
         {!all.length ? <p className={styles.muted}>Aucun achat pour l’instant.</p> : null}
