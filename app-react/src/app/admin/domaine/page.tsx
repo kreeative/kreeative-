@@ -7,7 +7,7 @@ import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Notice } from '@/components/ui/Notice';
-import { DOMAIN_STATUS, attachDomain, buyDomain, detachDomain, dnsRecords, searchDomains, verifyDomain, type DnsRecord, type DomainOffer } from '@/lib/billing';
+import { DOMAIN_STATUS, attachDomain, domainCad, buyDomain, detachDomain, dnsRecords, searchDomains, verifyDomain, type DnsRecord, type DomainOffer } from '@/lib/billing';
 import { money } from '@/lib/format';
 import shared from '../admin.module.css';
 import styles from '../abonnement/abonnement.module.css';
@@ -147,7 +147,7 @@ export default function DomainPage() {
                   <ul className={styles.offers}>
                     {offers.map((d) => (
                       <li key={d.domain} data-taken={d.available && d.purchaseFcfa ? undefined : ''}>
-                        <span><b>{d.domain}</b><small>{d.available && d.purchaseFcfa ? `${zprice(z, d.purchaseFcfa, d.purchaseCad ?? 0)} la première année${d.renewalFcfa ? `, puis ${zprice(z, d.renewalFcfa, d.renewalCad ?? 0)} par an` : ''}` : 'Déjà pris'}</small></span>
+                        <span><b>{d.domain}</b><small>{d.available && d.purchaseFcfa ? `${zprice(z, d.purchaseFcfa, domainCad(d.purchaseCad, d.purchaseUsd))} la première année${d.renewalFcfa ? `, puis ${zprice(z, d.renewalFcfa, domainCad(d.renewalCad, d.renewalUsd))} par an` : ''}` : 'Déjà pris'}</small></span>
                         {d.available && d.purchaseFcfa ? <Button busy={busy === d.domain} disabled={!!busy} onClick={() => void buy(d)} aria-label={`Acheter ${d.domain}`}>Acheter</Button> : <span />}
                       </li>
                     ))}

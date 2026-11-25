@@ -80,7 +80,9 @@ export async function buyDomain(domain: string, storeId: string): Promise<Answer
 }
 
 /* ---------------------------------------------------------------- domain names */
-export interface DomainOffer { domain: string; available: boolean; purchaseFcfa: number | null; renewalFcfa: number | null; purchaseCad?: number | null; renewalCad?: number | null }
+export interface DomainOffer { domain: string; available: boolean; purchaseFcfa: number | null; renewalFcfa: number | null; purchaseUsd?: number | null; renewalUsd?: number | null; purchaseCad?: number | null; renewalCad?: number | null }
+/** A domain in Canadian dollar cents, ending in ,99: the server's figure, else the same formula from Vercel's price in $ US. */
+export const domainCad = (cad: number | null | undefined, usd: number | null | undefined): number => (cad && cad > 0 ? cad : usd && usd > 0 ? Math.ceil(usd * 1.4 * 1.4 + 5) * 100 - 1 : 0);
 export interface DnsRecord { type: string; name: string; value: string; host: string }
 export interface DomainState { domain: string; status: string; records: DnsRecord[]; configured: boolean; message?: string }
 export const DOMAIN_STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'err' | 'info' }> = {
