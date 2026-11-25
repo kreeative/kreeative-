@@ -1,14 +1,4 @@
 {
- "hero": {
-  "file": "hero.webp",
-  "size": [
-   1400,
-   1960
-  ],
-  "alt": "Femme de profil, longue queue de tresses, sur fond jaune or",
-  "by": "Jessica Felicio",
-  "page": "https://unsplash.com/photos/woman-profile-with-braided-ponytail-QS9ZX5UnS14"
- },
  "locks": {
   "file": "locks.webp",
   "size": [
@@ -48,36 +38,6 @@
   "alt": "Femme aux longues faux locks, chemise blanche",
   "by": "Jabari Timothy",
   "page": "https://unsplash.com/photos/a-woman-sitting-on-the-ground-wearing-a-white-shirt-xDgL1iT2kQY"
- },
- "mains": {
-  "file": "mains.webp",
-  "size": [
-   1200,
-   1500
-  ],
-  "alt": "Mains qui tressent une natte, raies nettes",
-  "by": "Mohamed B.",
-  "page": "https://unsplash.com/photos/hands-braiding-dark-hair-with-red-nails-WgMOZWSi2g8"
- },
- "raies": {
-  "file": "raies.webp",
-  "size": [
-   1400,
-   933
-  ],
-  "alt": "Tresses sans nœud vues de près : des raies nettes",
-  "by": "Alex Robinson",
-  "page": "https://unsplash.com/photos/black-and-gray-round-ornament-3IhcN94zWwk"
- },
- "salon": {
-  "file": "salon.webp",
-  "size": [
-   1400,
-   933
-  ],
-  "alt": "Une coiffeuse tresse des nattes collées, en noir et blanc",
-  "by": "Tosan Dudun",
-  "page": "https://unsplash.com/photos/two-women-braiding-hair-in-a-salon-C__JUIT_76E"
  },
  "lyse": {
   "file": "lyse.webp",

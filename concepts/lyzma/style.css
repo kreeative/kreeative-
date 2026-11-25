@@ -33,7 +33,7 @@ button { font: inherit; }
 body { font-size: 15.5px; }
 .concept { background: var(--ink); color: #fff8ef; font-family: var(--body); }
 .script { font-family: var(--script); font-weight: 700; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; color: var(--rasp); }
-.h1, .h2, .h3, .hero__title { font-family: var(--title); font-weight: 600; letter-spacing: -.02em; line-height: 1.04; }
+.h1, .h2, .h3 { font-family: var(--title); font-weight: 600; letter-spacing: -.02em; line-height: 1.04; }
 .h1 { font-size: clamp(34px, 5.2vw, 60px); }
 .h2 { font-size: clamp(28px, 3.8vw, 46px); text-wrap: balance; }
 .h3 { font-size: 20px; }
@@ -55,14 +55,11 @@ main { overflow-x: clip; }
 .strip { display: flex; justify-content: space-between; gap: 14px; padding: 8px var(--pad); background: var(--rasp); color: #fff8ef; font-family: var(--title); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
 .concept { background: var(--ink); }
 
-/* the hero, after REGARD: one wide rounded photo, the name cut by its bottom edge, then a line and the button */
+/* the hero: her logo, in white, alone on a plain bordeaux */
 .hero { padding: 10px 10px 0; display: grid; justify-items: center; text-align: center; }
-.hero__media { position: relative; width: 100%; height: clamp(380px, 46vw, 620px); border-radius: clamp(20px, 2.6vw, 34px); overflow: hidden; background: linear-gradient(90deg, #deb063, #d6a95c); }
-/* the portrait stands whole on the right, its edges melted into the same mustard */
-.hero__media img { position: absolute; top: -3%; right: clamp(-30px, 5vw, 110px); width: auto; height: 124%; max-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 82%, transparent); mask-image: linear-gradient(90deg, transparent, #000 20%, #000 82%, transparent); }
-.hero__rings { position: absolute; left: -7%; top: -30%; width: clamp(240px, 40vw, 560px); aspect-ratio: 1; border-radius: 50%; background: repeating-radial-gradient(circle, transparent 0 22px, rgba(122, 22, 40, .45) 22px 30px); pointer-events: none; }
-.hero__by { position: absolute; left: 0; right: 0; bottom: clamp(84px, 16.5vw, 236px); font-family: var(--script); font-weight: 700; font-size: clamp(24px, 3vw, 40px); line-height: 1; color: var(--rasp); }
-.hero__title { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; font-size: clamp(120px, 25vw, 360px); line-height: .7; letter-spacing: -.04em; text-transform: uppercase; color: #fff8ef; transform: translateY(13%); }
+.hero__media { display: grid; place-items: center; width: 100%; height: clamp(340px, 44vw, 600px); border-radius: clamp(20px, 2.6vw, 34px); background: var(--rasp); }
+.hero__logo { margin: 0; width: min(74%, 760px); }
+.hero__logo img { display: block; width: 100%; height: auto; }
 .hero__lead { max-width: 34ch; margin-top: 22px; color: var(--muted); font-size: 16.5px; }
 .hero__btn { margin-top: 18px; }
 
@@ -70,11 +67,8 @@ main { overflow-x: clip; }
 .artist__card { display: grid; gap: 26px; padding: clamp(20px, 4vw, 46px); border: 1.5px solid var(--rasp); background: var(--blush); border-radius: clamp(22px, 3vw, 34px); align-items: center; }
 .artist__txt { display: grid; gap: 12px; justify-items: start; }
 .artist__txt p:not(.script) { max-width: 42ch; color: var(--muted); }
-.artist__imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.artist__imgs span { display: block; border-radius: var(--r); overflow: hidden; aspect-ratio: 3 / 4; }
-.artist__imgs span + span { border-radius: 999px 999px var(--r) var(--r); }
-.artist__imgs img { width: 100%; height: 100%; object-fit: cover; }
-.artist__imgs span + span img { object-position: 50% 20%; }
+.artist__img { border-radius: var(--r); overflow: hidden; aspect-ratio: 1; max-width: 460px; width: 100%; justify-self: center; }
+.artist__img img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
 @media (min-width: 900px) { .artist__card { grid-template-columns: 1.05fr .95fr; gap: 50px; } }
 
 .spec .h2 { margin-bottom: clamp(22px, 3vw, 34px); }
