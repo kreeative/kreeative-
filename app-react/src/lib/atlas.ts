@@ -25,7 +25,7 @@ export async function atlas<T = Record<string, unknown>>(action: string, body: R
 }
 
 export interface AtlasStore { id: string; slug: string; createdAt?: string; name: string; published: boolean; plan: string; promo: boolean; until?: string | null; domain?: string | null }
-export interface AtlasAccount { id: string; email: string; firstName: string; phone?: string; source?: string; createdAt: string; lastSignIn?: string | null; verified: boolean; suspended: boolean; stores: AtlasStore[]; purchases: { model: string; amount: number; currency?: string; at: string; install: boolean; installedAt?: string | null }[] }
+export interface AtlasAccount { id: string; email: string; firstName: string; phone?: string; source?: string; createdAt: string; lastSignIn?: string | null; verified: boolean; suspended: boolean; stores: AtlasStore[]; purchases: { model: string; amount: number; currency?: string; method?: 'carte' | 'interac'; at: string; install: boolean; installedAt?: string | null }[] }
 export interface AtlasOverview { accounts: number; newWeek: number; verified: number; stores: number; published: number; paying: number; byPlan: Record<string, number>; suspended: number; purchases: number; purchasesAmount: number }
 export interface AtlasAdmin { email: string; role: AtlasRole; added_by?: string; added_at: string }
 export interface AtlasLog { at: string; actor: string; action: string; target?: string; detail?: Record<string, unknown> }

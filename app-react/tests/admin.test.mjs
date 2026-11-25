@@ -100,7 +100,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       if (!A || A.state === 'denied') return json(route, 403, { ok: false, code: 'denied', message: 'Cet espace est réservé à l’équipe Jehre.' });
       if (A.state === 'code') return json(route, 403, { ok: false, code: 'code', message: 'Confirmez avec le code reçu par e-mail.', email: USER.email });
       const RK = { fondatrice: 4, admin: 3, support: 2, lecture: 1 };
-      const need = { suspend: 'admin', plan: 'admin', reset: 'support', admin_set: 'fondatrice' }[body.action];
+      const need = { suspend: 'admin', plan: 'admin', interac: 'admin', reset: 'support', admin_set: 'fondatrice' }[body.action];
       if (need && RK[A.role] < RK[need]) return json(route, 403, { ok: false, code: 'role', message: 'Votre rôle ne permet pas cette action.' });
       if (body.action === 'me') return json(route, 200, { ok: true, role: A.role, email: USER.email });
       if (body.action === 'overview') return json(route, 200, { ok: true, accounts: A.accounts.length, newWeek: 1, verified: 2, stores: 2, published: 1, paying: 1, byPlan: { croissance: 1 }, suspended: A.accounts.filter((a) => a.suspended).length, purchases: 1, purchasesAmount: 25000 });
@@ -108,6 +108,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       if (body.action === 'suspend') { const a = A.accounts.find((x) => x.id === body.userId); a.suspended = body.on; a.stores.forEach((st) => { st.published = !body.on; }); return json(route, 200, { ok: true }); }
       if (body.action === 'plan') { A.accounts.flatMap((a) => a.stores).find((x) => x.id === body.storeId).plan = body.plan; return json(route, 200, { ok: true }); }
       if (body.action === 'reset') return json(route, 200, { ok: true });
+      if (body.action === 'interac') { (A.interac ??= []).push(body); A.accounts.find((x) => x.id === body.userId).purchases.push({ model: body.model, amount: Math.round(body.amount * 100), currency: 'cad', method: 'interac', at: new Date().toISOString(), install: false }); return json(route, 200, { ok: true }); }
       if (body.action === 'admins') return json(route, 200, { ok: true, admins: A.admins });
       if (body.action === 'admin_set') { A.admins = A.admins.filter((x) => x.email !== body.email); if (body.role) A.admins.push({ email: body.email, role: body.role, added_by: USER.email, added_at: new Date().toISOString() }); return json(route, 200, { ok: true }); }
       if (body.action === 'log') return json(route, 200, { ok: true, log: [{ at: new Date().toISOString(), actor: USER.email, action: 'suspendre', target: 'awa@exemple.com', detail: {} }] });
@@ -3043,6 +3044,33 @@ await test('in the franc CFA zones, nothing changes: FCFA prices, charged in FCF
   await page.waitForTimeout(400);
   assert.equal(w.calls.find((c) => c.path === '/functions/v1/billing' && c.body.action === 'subscribe').body.currency, 'xof');
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+await test('atlas: a model paid by Interac is written by hand and opens for her', async () => {
+  const w = atlasWorld('fondatrice');
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/atlas/`);
+  await page.getByRole('heading', { name: 'Vue d’ensemble' }).waitFor();
+  await page.getByRole('button', { name: 'Comptes', exact: true }).click();
+  await page.getByRole('button', { name: /fanta@exemple\.com/ }).click();
+  await page.getByRole('button', { name: 'Enregistrer un paiement Interac' }).click();
+  await page.getByLabel('Ce qu’elle a payé').selectOption('SOYEUSE');
+  assert.equal(await page.getByLabel('Montant reçu ($ CA)').inputValue(), '59,99');
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}186-atlas-interac.png` });
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('button', { name: 'Enregistrer le paiement' }).click();
+  await page.getByText('Paiement Interac enregistré : SOYEUSE est ouvert pour fanta@exemple.com.').waitFor();
+  assert.deepEqual(w.atlas.interac[0], { action: 'interac', userId: 'u2', model: 'soyeuse', amount: 59.99, storeId: 's2' });
+  await page.getByText(/soyeuse \(59,99\s\$\sCA par Interac/).waitFor();
+  assert.deepEqual(errors, []); await ctx.close();
+  const o2 = await open(browser, DESK, atlasWorld('support'));
+  await o2.page.goto(`${BASE}/atlas/`);
+  await o2.page.getByRole('button', { name: 'Comptes', exact: true }).click();
+  await o2.page.getByRole('button', { name: /fanta@exemple\.com/ }).click();
+  await o2.page.getByRole('button', { name: 'Envoyer un lien de mot de passe' }).waitFor();
+  assert.equal(await o2.page.getByRole('button', { name: 'Enregistrer un paiement Interac' }).count(), 0);
+  await o2.ctx.close();
 });
 
 await browser.close();

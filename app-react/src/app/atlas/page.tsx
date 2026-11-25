@@ -14,6 +14,7 @@ import { atlas, can, ROLE_LABEL, ROLE_TEXT, type AtlasStore, type AtlasAccount, 
 import { maskEmail, sendCode, verifyCode } from '@/lib/auth';
 import { money } from '@/lib/format';
 import { planOf, PLANS } from '@/lib/billing';
+import { MODELS, SHOP_OPTION, SHOP_OPTION_CAD } from '@/lib/models';
 import styles from './atlas.module.css';
 
 type Tab = 'vue' | 'comptes' | 'boutiques' | 'achats' | 'direct' | 'admins' | 'journal';
@@ -217,6 +218,7 @@ function Accounts({ role, me, onToast }: { role: AtlasRole; me: string; onToast:
   const [f, setF] = useState<'tous' | 'boutique' | 'payant' | 'suspendus'>('tous');
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState('');
+  const [interac, setInterac] = useState<string | null>(null);
   const list = useMemo(() => (data ?? []).filter((a) => {
     const t = `${a.email} ${a.firstName} ${a.stores.map((s) => `${s.slug} ${s.name}`).join(' ')}`.toLowerCase();
     if (q.trim() && !t.includes(q.trim().toLowerCase())) return false;
@@ -260,8 +262,10 @@ function Accounts({ role, me, onToast }: { role: AtlasRole; me: string; onToast:
                         onChange={(e) => { const p = PLAN_CHOICES.find((x) => x.name === e.target.value)?.id; if (p) void act(s.id, 'plan', { storeId: s.id, plan: p }, `Formule de ${s.name} : ${e.target.value}.`); }} /> : <span className={styles.pill}>{planOf(s.plan).name}</span>}
                     </div>
                   )) : <p className={styles.muted}>Pas de boutique.</p>}
-                  {a.purchases.length ? <p className={styles.muted}>Achats : {a.purchases.map((p) => `${p.model} (${money(p.amount, p.currency || 'XOF')}, ${day(p.at)})`).join(' · ')}</p> : null}
+                  {a.purchases.length ? <p className={styles.muted}>Achats : {a.purchases.map((p) => `${p.model} (${money(p.amount, p.currency || 'XOF')}${p.method === 'interac' ? ' par Interac' : ''}, ${day(p.at)})`).join(' · ')}</p> : null}
+                  {interac === a.id ? <InteracForm account={a} onToast={onToast} onDone={() => { setInterac(null); reload(); }} /> : null}
                   <div className={styles.acts}>
+                    {can(role, 'admin') && interac !== a.id ? <Button variant="secondary" icon="wallet" onClick={() => setInterac(a.id)}>Enregistrer un paiement Interac</Button> : null}
                     {can(role, 'support') ? <Button variant="secondary" icon="lock" busy={busy === `r${a.id}`} onClick={() => void act(`r${a.id}`, 'reset', { email: a.email }, `Lien de mot de passe envoyé à ${a.email}.`)}>Envoyer un lien de mot de passe</Button> : null}
                     {can(role, 'admin') && a.email.toLowerCase() !== me ? (a.suspended
                       ? <Button variant="secondary" icon="check" busy={busy === `s${a.id}`} onClick={() => void act(`s${a.id}`, 'suspend', { userId: a.id, on: false }, 'Compte réactivé : ses boutiques sont de nouveau en ligne.')}>Réactiver le compte</Button>
@@ -275,6 +279,43 @@ function Accounts({ role, me, onToast }: { role: AtlasRole; me: string; onToast:
         {!list.length ? <p className={styles.muted}>Aucun compte ici.</p> : null}
       </section>
     </>
+  );
+}
+
+/** A model paid by Interac (Canadian dollars): written like a card purchase, so the model opens for her. */
+const PAYABLE = [...MODELS.map((m) => ({ slug: m.slug, name: m.name, cad: m.cad })), { slug: SHOP_OPTION, name: 'Option vente de produits', cad: SHOP_OPTION_CAD }];
+const dollars = (cents: number) => (cents / 100).toFixed(2).replace('.', ',');
+function InteracForm({ account: a, onToast, onDone }: { account: AtlasAccount; onToast: (m: string) => void; onDone: () => void }) {
+  const [slug, setSlug] = useState(PAYABLE[0]!.slug);
+  const [amount, setAmount] = useState(dollars(PAYABLE[0]!.cad));
+  const [storeId, setStoreId] = useState(a.stores[0]?.id ?? '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const item = PAYABLE.find((x) => x.slug === slug) ?? PAYABLE[0]!;
+  async function save() {
+    const n = Number(amount.replace(/\s/g, '').replace(',', '.'));
+    if (!(n >= 1 && n <= 5000)) { setError('Le montant reçu, en dollars canadiens (par exemple 59,99).'); return; }
+    if (!window.confirm(`Enregistrer ${dollars(Math.round(n * 100))} $ CA reçus par Interac pour ${item.name}, au compte ${a.email} ? Le modèle s’ouvre tout de suite.`)) return;
+    setBusy(true); setError('');
+    const r = await atlas('interac', { userId: a.id, model: slug, amount: n, storeId });
+    setBusy(false);
+    if (!r.ok) { setError(r.message); return; }
+    onToast(`Paiement Interac enregistré : ${item.name} est ouvert pour ${a.email}.`);
+    onDone();
+  }
+  return (
+    <div className={styles.interac} role="group" aria-label="Paiement Interac">
+      <div className={styles.interacRow}>
+        <Select label="Ce qu’elle a payé" options={PAYABLE.map((x) => x.name)} value={item.name} onChange={(e) => { const x = PAYABLE.find((y) => y.name === e.target.value); if (x) { setSlug(x.slug); setAmount(dollars(x.cad)); } }} />
+        <Field label="Montant reçu ($ CA)" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        {a.stores.length > 1 ? <Select label="Pour la boutique" options={a.stores.map((s) => s.name)} value={a.stores.find((s) => s.id === storeId)?.name ?? a.stores[0]!.name} onChange={(e) => setStoreId(a.stores.find((s) => s.name === e.target.value)?.id ?? '')} /> : null}
+      </div>
+      {error ? <Notice tone="error">{error}</Notice> : null}
+      <div className={styles.acts}>
+        <Button icon="check" busy={busy} onClick={() => void save()}>Enregistrer le paiement</Button>
+        <Button variant="quiet" onClick={onDone}>Annuler</Button>
+      </div>
+    </div>
   );
 }
 
@@ -317,7 +358,7 @@ function Purchases() {
       <section className={styles.card}>
         <ul className={styles.rows}>{all.map((p, i) => (
           <li key={i} className={styles.store}>
-            <span><b>{p.model.toUpperCase()}</b><small>{p.a.firstName ? `${p.a.firstName} · ` : ''}{p.a.email}{p.a.phone ? ` · ${p.a.phone}` : ''} · {day(p.at)}</small></span>
+            <span><b>{p.model.toUpperCase()}</b><small>{p.a.firstName ? `${p.a.firstName} · ` : ''}{p.a.email}{p.a.phone ? ` · ${p.a.phone}` : ''} · {day(p.at)}{p.method === 'interac' ? ' · Interac' : ''}</small></span>
             <span className={styles.pill} data-tone={!p.install ? undefined : p.installedAt ? 'ok' : 'warn'}>{!p.install ? 'elle remplit elle-même' : p.installedAt ? `installée le ${day(p.installedAt)}` : 'installation à faire'}</span>
             <b className={styles.amount}>{money(p.amount, p.currency || 'XOF')}</b>
           </li>

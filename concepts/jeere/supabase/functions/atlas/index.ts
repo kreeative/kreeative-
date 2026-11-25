@@ -11,6 +11,8 @@
 //   { action: 'accounts' }                          → every account, its stores, its purchases, suspended or not
 //   { action: 'suspend', userId, on }               → admin+ · the account cannot sign in; its stores go offline (back with it)
 //   { action: 'plan', storeId, plan }               → admin+
+//   { action: 'interac', userId, model, amount, storeId? } → admin+ · a model paid by Interac (in $ CA): written like a card
+//                                                     purchase (the model opens, and the first month comes with it)
 //   { action: 'reset', email }                      → support+ · the « choose a new password » e-mail
 //   { action: 'admins' } / { action: 'admin_set', email, role | null } → list (all) / change (fondatrice)
 //   { action: 'log' }                               → the last 300 actions
@@ -24,6 +26,7 @@ const ROLES = ['fondatrice', 'admin', 'support', 'lecture'] as const;
 type Role = typeof ROLES[number];
 const RANK: Record<Role, number> = { fondatrice: 4, admin: 3, support: 2, lecture: 1 };
 const PLANS = ['gratuit', 'essentiel', 'croissance', 'pro', 'business', 'entreprise'];
+const MODELS = ['seve', 'soyeuse', 'michou', 'anse', 'regard', 'vernie', 'minuit', 'option-produits'];
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
@@ -83,7 +86,7 @@ Deno.serve(async (req) => {
     const [us, stores, buys, susp, profs] = await Promise.all([
       users(),
       rows('stores?select=id,owner,slug,published,plan,plan_until,plan_promo,created_at,custom_domain,fiche->store->>name&order=created_at.desc&limit=5000'),
-      rows('model_purchases?select=user_id,store_id,model,amount,currency,created_at,install,installed_at&order=created_at.desc&limit=5000'),
+      rows('model_purchases?select=user_id,store_id,model,amount,currency,session_id,created_at,install,installed_at&order=created_at.desc&limit=5000'),
       rows<{ user_id: string }>('atlas_suspended?select=user_id'),
       rows<{ id: string; first_name: string | null; phone: string | null; source: string | null }>('profiles?select=id,first_name,phone,source&limit=10000'),
     ]);
@@ -104,7 +107,7 @@ Deno.serve(async (req) => {
         id: u.id, email: u.email, firstName: str(prof.get(String(u.id))?.first_name ?? meta.first_name, 60), phone: prof.get(String(u.id))?.phone ?? '', source: prof.get(String(u.id))?.source ?? '', createdAt: u.created_at, lastSignIn: u.last_sign_in_at, verified: !!u.email_confirmed_at,
         suspended: off.has(String(u.id)) || (typeof u.banned_until === 'string' && Date.parse(u.banned_until) > Date.now()),
         stores: stores.filter((s) => s.owner === u.id).map((s) => ({ id: s.id, slug: s.slug, createdAt: s.created_at, name: s.name || s.slug, published: !!s.published, plan: s.plan || 'gratuit', promo: !!s.plan_promo, until: s.plan_until, domain: s.custom_domain })),
-        purchases: buys.filter((p) => p.user_id === u.id).map((p) => ({ model: p.model, amount: p.amount, currency: p.currency || 'xof', at: p.created_at, install: !!p.install, installedAt: p.installed_at ?? null })),
+        purchases: buys.filter((p) => p.user_id === u.id).map((p) => ({ model: p.model, amount: p.amount, currency: p.currency || 'xof', method: String(p.session_id ?? '').startsWith('interac:') ? 'interac' : 'carte', at: p.created_at, install: !!p.install, installedAt: p.installed_at ?? null })),
       };
     });
     return json({ ok: true, accounts });
@@ -134,6 +137,29 @@ Deno.serve(async (req) => {
       await svc('/rest/v1/atlas_suspended?user_id=eq.' + id, { method: 'DELETE' });
       await log(email, 'réactiver', String(target.email ?? id), { stores: s?.stores.length ?? 0 });
     }
+    return json({ ok: true });
+  }
+
+  if (action === 'interac') {
+    if (!need('admin')) return no();
+    const id = str(b.userId, 40), model = str(b.model, 20).toLowerCase();
+    const cents = Math.round(Number(b.amount) * 100);
+    if (!UUID.test(id)) return json({ ok: false, message: 'Compte introuvable.' }, 400);
+    if (!MODELS.includes(model)) return json({ ok: false, message: 'Choisissez un modèle.' }, 400);
+    if (!(cents >= 100 && cents <= 500000)) return json({ ok: false, message: 'Le montant reçu, en dollars canadiens (par exemple 59,99).' }, 400);
+    const ur2 = await svc('/auth/v1/admin/users/' + id);
+    if (!ur2.ok) return json({ ok: false, message: 'Compte introuvable.' }, 404);
+    const target = await ur2.json() as { email?: string };
+    const mine = await rows<{ id: string; slug: string; name: string }>('stores?select=id,slug,fiche->store->>name&owner=eq.' + id + '&order=created_at.asc');
+    const want = str(b.storeId, 40);
+    const st = mine.find((x) => x.id === want) ?? mine[0] ?? null;
+    if (model === 'option-produits' && !st) return json({ ok: false, message: 'L’option se prend pour une boutique : ce compte n’en a pas.' }, 400);
+    const r = await svc('/rest/v1/model_purchases', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({
+      session_id: 'interac:' + crypto.randomUUID(), user_id: id, store_id: st ? st.id : null, model, amount: cents, currency: 'cad',
+      email: str(target.email, 120), shop_name: st ? str(st.name || st.slug, 60) : '', install: model === 'anse'
+    }) });
+    if (!r.ok) return json({ ok: false, message: 'Le paiement n’a pas pu être enregistré. Réessayez.' }, 500);
+    await log(email, 'paiement Interac', String(target.email ?? id), { modèle: model, montant: (cents / 100).toFixed(2) + ' $ CA', boutique: st ? st.slug : '' });
     return json({ ok: true });
   }
 
