@@ -8,6 +8,8 @@
 //   the table public.jeere_mail_forwarded lets each message through once.
 // Secrets: RESEND_API_KEY (already set, sends), RESEND_FULL_KEY (a Resend key with full access, reads the
 // received message), optionally MAIL_FORWARD_TO.
+// Other domains received by the same Resend account (theivorysukundu.com…) go where public.mail_routes says,
+// one row per domain (domain → forward_to); a domain without a row is left alone.
 // Deployed with verify_jwt = false.
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? 'https://aezchxfvzfoqlvzchqyk.supabase.co';
@@ -59,8 +61,19 @@ Deno.serve(async (req: Request) => {
   const r = await resend('/emails/receiving/' + id);
   if (!r.ok) return json({ ok: false, code: 'read', status: r.status }, r.status === 404 ? 404 : 502);
   const mail = await r.json() as Obj;
-  const to = (Array.isArray(mail.to) ? mail.to : []).map((t) => who(t).email).filter((e) => e.endsWith('@' + DOMAIN));
-  if (!to.length) return json({ ok: true, skipped: 'recipient' });
+  const all = (Array.isArray(mail.to) ? mail.to : []).map((t) => who(t).email).filter(Boolean);
+  let to = all.filter((e) => e.endsWith('@' + DOMAIN));
+  let dest = FORWARD_TO;
+  if (!to.length) {
+    // another domain of the account: its own mailbox (public.mail_routes)
+    const doms = [...new Set(all.map((e) => e.split('@')[1] ?? ''))].filter((d) => /^[a-z0-9.-]+$/.test(d));
+    const routes = doms.length ? await fetch(SUPABASE_URL + '/rest/v1/mail_routes?select=domain,forward_to&domain=in.(' + doms.join(',') + ')', { headers: { apikey: SECRET, Authorization: 'Bearer ' + SECRET } })
+      .then((x) => (x.ok ? x.json() : [])).catch(() => []) as { domain: string; forward_to: string }[] : [];
+    const route = routes.find((x) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x.forward_to));
+    if (!route) return json({ ok: true, skipped: 'recipient' });
+    to = all.filter((e) => e.endsWith('@' + route.domain));
+    dest = route.forward_to;
+  }
   if (!(await first(id))) return json({ ok: true, skipped: 'done' });
 
   const from = who(mail.from);
@@ -83,8 +96,8 @@ Deno.serve(async (req: Request) => {
   const send = (withFiles: boolean) => resend('/emails', {
     method: 'POST',
     body: JSON.stringify({
-      from: '"' + (from.name || from.email || 'Message').replace(/[<>"\\\r\n]/g, '').slice(0, 70) + ' (via Jehre)" <' + (to[0] || FALLBACK_FROM) + '>',
-      to: [FORWARD_TO], reply_to: from.email || undefined, subject, text, html,
+      from: '"' + (from.name || from.email || 'Message').replace(/[<>"\\\r\n]/g, '').slice(0, 70) + (dest === FORWARD_TO ? ' (via Jehre)' : '') + '" <' + (to[0] || FALLBACK_FROM) + '>',
+      to: [dest], reply_to: from.email || undefined, subject, text, html,
       attachments: withFiles && attachments.length ? attachments : undefined
     })
   });
