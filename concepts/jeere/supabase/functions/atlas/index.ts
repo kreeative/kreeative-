@@ -17,6 +17,8 @@
 //   { action: 'admins' } / { action: 'admin_set', email, role | null } → list (all) / change (fondatrice)
 //   { action: 'log' }                               → the last 300 actions
 //   { action: 'live' }                              → who is on jehre.com now, today, this week
+//   { action: 'mail_list', after? } / { action: 'mail_get', id } → support+ · the mail received on @jehre.com (Resend)
+//   { action: 'mail_send', from, to, subject, text, html, inReplyTo? } → support+ · from bonjour@ or contact@jehre.com
 
 const URL_ = Deno.env.get('SUPABASE_URL')!;
 const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -26,6 +28,12 @@ const ROLES = ['fondatrice', 'admin', 'support', 'lecture'] as const;
 type Role = typeof ROLES[number];
 const RANK: Record<Role, number> = { fondatrice: 4, admin: 3, support: 2, lecture: 1 };
 const PLANS = ['gratuit', 'essentiel', 'croissance', 'pro', 'business', 'entreprise'];
+// the mail of @jehre.com: received by Resend (read with a full-access key), sent with the sending key
+const RESEND_SEND = Deno.env.get('RESEND_API_KEY') ?? '';
+const RESEND_READ = Deno.env.get('RESEND_FULL_KEY') || RESEND_SEND;
+const resend = (key: string, path: string, init: RequestInit = {}) => fetch('https://api.resend.com' + path, { ...init, headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', ...(init.headers ?? {}) } });
+const SENDERS: Record<string, string> = { bonjour: 'Jehre <bonjour@jehre.com>', contact: 'Jehre <contact@jehre.com>' };
+const MAIL_RE = /^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/;
 const MODELS = ['seve', 'soyeuse', 'michou', 'anse', 'regard', 'vernie', 'minuit', 'option-produits'];
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
@@ -160,6 +168,55 @@ Deno.serve(async (req) => {
     }) });
     if (!r.ok) return json({ ok: false, message: 'Le paiement n’a pas pu être enregistré. Réessayez.' }, 500);
     await log(email, 'paiement Interac', String(target.email ?? id), { modèle: model, montant: (cents / 100).toFixed(2) + ' $ CA', boutique: st ? st.slug : '' });
+    return json({ ok: true });
+  }
+
+  if (action === 'mail_list') {
+    if (!need('support')) return no();
+    const after = str(b.after, 80);
+    const r = await resend(RESEND_READ, '/emails/receiving?limit=50' + (after ? '&after=' + encodeURIComponent(after) : ''));
+    if (!r.ok) return json({ ok: false, message: 'Les courriels n’ont pas pu être lus. Réessayez dans un instant.' }, 502);
+    const j = await r.json() as { data?: Obj[]; has_more?: boolean };
+    const list = (j.data ?? []).map((m) => ({ id: str(m.id, 80), from: str(m.from, 300), to: (Array.isArray(m.to) ? m.to : [m.to]).map((x) => str(x, 200)).filter(Boolean), subject: str(m.subject, 300), at: str(m.created_at, 40) }));
+    const ids = list.map((m) => m.id).filter((x) => /^[\w-]+$/.test(x));
+    const read = ids.length ? new Set((await rows<{ id: string }>('atlas_mail_read?select=id&id=in.(' + ids.join(',') + ')')).map((x) => x.id)) : new Set<string>();
+    return json({ ok: true, mails: list.map((m) => ({ ...m, read: read.has(m.id) })), more: j.has_more === true });
+  }
+
+  if (action === 'mail_get') {
+    if (!need('support')) return no();
+    const id = str(b.id, 80);
+    if (!/^[\w-]+$/.test(id)) return json({ ok: false, message: 'Courriel introuvable.' }, 400);
+    const r = await resend(RESEND_READ, '/emails/receiving/' + id);
+    if (!r.ok) return json({ ok: false, message: 'Ce courriel n’a pas pu être ouvert.' }, 502);
+    const m = await r.json() as Obj;
+    const a = await resend(RESEND_READ, '/emails/receiving/' + id + '/attachments');
+    const files = a.ok ? (((await a.json()) as { data?: Obj[] }).data ?? []).map((x) => ({ name: str(x.filename, 200) || 'pièce jointe', url: str(x.download_url, 2000), size: Number(x.size) || 0 })).filter((x) => x.url) : [];
+    await svc('/rest/v1/atlas_mail_read', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({ id, by: email }) });
+    const hd = isObj(m.headers) ? m.headers as Obj : {};
+    return json({ ok: true, mail: {
+      id, from: str(m.from, 300), to: (Array.isArray(m.to) ? m.to : [m.to]).map((x) => str(x, 200)).filter(Boolean), cc: (Array.isArray(m.cc) ? m.cc : []).map((x) => str(x, 200)).filter(Boolean),
+      replyTo: (Array.isArray(m.reply_to) ? m.reply_to : [m.reply_to]).map((x) => str(x, 200)).filter(Boolean), subject: str(m.subject, 300), at: str(m.created_at, 40),
+      text: typeof m.text === 'string' ? m.text.slice(0, 200000) : '', html: typeof m.html === 'string' ? m.html.slice(0, 500000) : '',
+      messageId: str(m.message_id, 300) || str(hd['message-id'], 300), files,
+    } });
+  }
+
+  if (action === 'mail_send') {
+    if (!need('support')) return no();
+    const from = SENDERS[str(b.from, 20)];
+    const to = str(b.to, 200).replace(/^.*<([^<>]+)>\s*$/, '$1').trim().toLowerCase();
+    const subject = str(b.subject, 300), text = typeof b.text === 'string' ? b.text.slice(0, 50000) : '', html = typeof b.html === 'string' ? b.html.slice(0, 200000) : '';
+    if (!from) return json({ ok: false, message: 'Choisissez bonjour@ ou contact@jehre.com.' }, 400);
+    if (!MAIL_RE.test(to)) return json({ ok: false, message: 'L’adresse du destinataire n’est pas valide.' }, 400);
+    if (!subject || !text.trim()) return json({ ok: false, message: 'Un objet et un message.' }, 400);
+    const ref = str(b.inReplyTo, 300);
+    const r = await resend(RESEND_SEND, '/emails', { method: 'POST', body: JSON.stringify({
+      from, to: [to], subject, text, ...(html ? { html } : {}), reply_to: [from.replace(/^.*<|>$/g, '')],
+      ...(ref ? { headers: { 'In-Reply-To': ref, References: ref } } : {}),
+    }) });
+    if (!r.ok) return json({ ok: false, message: 'Le courriel n’est pas parti. Réessayez.' }, 502);
+    await log(email, 'courriel envoyé', to, { de: from.replace(/^.*<|>$/g, ''), objet: subject });
     return json({ ok: true });
   }
 
