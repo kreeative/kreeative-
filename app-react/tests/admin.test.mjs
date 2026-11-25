@@ -44,8 +44,8 @@ async function open(browser, viewport, world, { logged = true } = {}) {
   const json = (route, status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*', 'access-control-expose-headers': '*' }, body: body === undefined ? '' : JSON.stringify(body) });
   // Stripe's embedded forms: a stand-in that draws a recognisable block (no request leaves for Stripe)
   await ctx.route('https://connect-js.stripe.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', body: `window.StripeConnect = { init: (o) => ({ create: (name) => { const d = document.createElement('div'); d.setAttribute('data-stripe', name); d.textContent = 'Formulaire sécurisé Stripe : ' + name; d.style.cssText = 'padding:24px;border-radius:12px;background:#f6f6f6;font:500 14px Poppins'; d.setOnExit = (f) => { window.__stripeExit = f; }; return d; } }) };` }));
-  // her country's money (jehre.com/api/geo): without it, the franc CFA
-  if (world.zone) await ctx.route('**/api/geo', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(world.zone) }));
+  // her country's money (jehre.com/api/geo): the franc CFA unless the test says otherwise (never the real one)
+  await ctx.route('**/api/geo', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(world.zone ?? { pay: 'xof', show: 'XOF', rate: 1 }) }));
   await ctx.route('**/connect/jeere-connect.js', (route) => route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' }, body: CONNECT }));
   await ctx.route('https://www.theivorysukundu.com/api/admin', async (route) => {
     const req = route.request();
