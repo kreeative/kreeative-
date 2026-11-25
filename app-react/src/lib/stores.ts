@@ -1,4 +1,5 @@
 import demoPhotos from './demoPhotos.json';
+import { CLIENT_SITES } from './models';
 import { supabase } from './supabase';
 
 /* The seller's stores, products and orders, read from and written to the database (the server is the truth:
@@ -118,9 +119,10 @@ export async function listStores(userId: string): Promise<Store[]> {
 }
 
 export const storeName = (s: Store): string => (typeof s.fiche?.store?.name === 'string' && s.fiche.store.name.trim()) || s.slug;
-/** Where the public sees the store: her own domain once verified; a designer model lives at <name>.store.jehre.com
- *  (the model's site with her store in it), a store without a model at jehre.com/b/<name>. */
-export const storeUrl = (s: Store, model = ''): string => (s.custom_domain && s.domain_status === 'verified' ? `https://${s.custom_domain}` : model ? `https://${s.slug}.store.jehre.com` : `https://jehre.com/b/${s.slug}`);
+/** Where the public sees the store: her own domain once verified; a site drawn for her alone (CLIENT_SITES) at its
+ *  own address; a designer model at <name>.store.jehre.com (the model's site with her store in it), a store without a
+ *  model at jehre.com/b/<name>. */
+export const storeUrl = (s: Store, model = ''): string => (s.custom_domain && s.domain_status === 'verified' ? `https://${s.custom_domain}` : CLIENT_SITES[s.slug]?.url ?? (model ? `https://${s.slug}.store.jehre.com` : `https://jehre.com/b/${s.slug}`));
 export const productsOf = (s: Store): Product[] => (Array.isArray(s.fiche?.products) ? s.fiche.products : []);
 
 export type SaveResult = { ok: true; store: Store } | { ok: false; conflict: boolean };

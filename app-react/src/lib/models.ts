@@ -234,6 +234,7 @@ export function readSiteMap(data: unknown): SiteMap | null {
 export const CLIENT_SITES: Record<string, { name: string; url: string }> = {
   'joshua-cooker': { name: 'Joshua Cooker', url: 'https://kreeative.xyz/concepts/joshua-cooker/' },
   'sonia-luxury-hair': { name: 'Sonia Luxury Hair', url: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' },
+  lyzma: { name: 'La dame aux perles', url: 'https://kreeative.xyz/concepts/lyzma/' },
 };
 
 /** What the editor opens for a store: the client's own site, else the model in use; null when she has neither.
