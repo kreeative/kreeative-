@@ -27,6 +27,9 @@ Ces règles valent pour chaque session. Elles passent avant toute habitude par d
 ## Secrets et courriels
 - Les clés et jetons sont ajoutés par la propriétaire dans Supabase. Ne jamais en demander dans la conversation.
 - Un courriel à une cliente ou à un prospect part d'une adresse Jehre (bonjour@ ou contact@jehre.com), jamais d'une boîte personnelle, et seulement après accord.
+- Toujours montrer l'aperçu du courriel (capture, tel qu'il arrivera) avant de l'envoyer.
+- Tous ses courriels et toutes ses communications : police **Poppins**, et en haut une bande arc-en-ciel **en dégradé** (image `img/brand/email-rainbow.png`, pas de blocs de couleurs).
+- Courriel à un prospect : elle se présente comme **web & graphic designer** (et fondatrice de Jehre), et son **portfolio PDF** est joint (Resend : `create-file-upload`, puis la pièce jointe par `fileId`).
 
 ## Design : règles générales
 - Thème **clair** uniquement, partout (fond blanc ou gris très clair, encre noire). Pas de thème sombre, pas de bouton pour y passer, pas de noir et or.
