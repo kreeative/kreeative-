@@ -71,6 +71,20 @@ const MODELS: Record<string, { name: string; price: number; installIncluded?: bo
   'option-produits': { name: 'Option vente de produits', price: 25000 }
 };
 const RDV = ['regard', 'vernie', 'minuit'];
+// Outside the franc CFA zones, everything is charged in Canadian dollars (the currency of Jehre's Stripe account, so no
+// conversion on her side), with Stripe's Adaptive Pricing: the buyer sees and pays in her own money and pays the
+// conversion. Cents. Decided 25 Nov 2026: plans 9 / 19 / 39 / 75 / 149 $ CA; one-time prices in ,99.
+const CAD_PLAN: Record<string, number> = { essentiel: 900, croissance: 1900, pro: 3900, business: 7500, entreprise: 14900 };
+const CAD_MODEL: Record<string, number> = { seve: 5999, soyeuse: 5999, michou: 11999, anse: 72999, regard: 5999, vernie: 5999, minuit: 5999, 'option-produits': 5999 };
+const CAD_INSTALL = 24999, CAD_INSTALL_EXTRA = 1199, USD_CAD = 1.40;
+const installCad = (n: number) => CAD_INSTALL + Math.max(0, Math.round(Number(n) || 0) - INSTALL_PRODUCTS) * CAD_INSTALL_EXTRA;
+// a domain: the Vercel price in dollars, with the same margin, in Canadian dollars ending in ,99
+const domainCad = (usd: number) => Math.ceil(usd * USD_CAD * (1 + MARGIN) + 5) * 100 - 1;
+type Cur = 'xof' | 'cad';
+const curOf = (v: unknown): Cur => (v === 'cad' ? 'cad' : 'xof');
+const modelPrice = (slug: string, cur: Cur) => (cur === 'cad' ? CAD_MODEL[slug] : MODELS[slug].price);
+// an amount for a person: « 25000 FCFA » or « 59.99 CAD »
+const shown = (amount: number, cur: string) => (String(cur).toLowerCase() === 'xof' ? Math.round(amount) + ' FCFA' : (amount / 100).toFixed(2) + ' ' + String(cur).toUpperCase());
 const SHOP_OPTION = 'option-produits';
 
 const CORS = {
@@ -125,6 +139,11 @@ async function stripe(method: string, path: string, body?: Obj): Promise<{ ok: b
   let data: Obj = {};
   try { data = await r.json(); } catch { /* empty */ }
   return { ok: r.ok, status: r.status, data };
+}
+async function checkout(body: Obj, cur: Cur) {
+  const r = await stripe('POST', 'checkout/sessions', { ...body, adaptive_pricing: { enabled: cur === 'cad' } });
+  if (r.ok || !/adaptive/i.test(stripeError(r.data))) return r;
+  return stripe('POST', 'checkout/sessions', body);
 }
 const stripeError = (d: Obj) => (isObj(d.error) ? str(d.error.message, 300) : '') || 'Stripe a refusé la demande.';
 
@@ -270,9 +289,9 @@ async function buyDomain(session: Obj) {
     address1: str(ad.line1, 100) || 'N/A', city: str(ad.city, 60) || 'Abidjan', state: str(ad.state, 60) || str(ad.city, 60) || 'Abidjan',
     zip: str(ad.postal_code, 20) || '00000', country: (str(ad.country, 2) || 'CI').toUpperCase()
   };
-  const paidFcfa = Math.round(Number(session.amount_total) || 0);
+  const paidFcfa = Math.round(Number(session.amount_total) || 0), paidCur = str(session.currency, 3) || 'xof';
   const report = (ok: boolean, why: string) => teamMail((ok ? 'Domaine acheté : ' : 'À FAIRE — domaine payé mais pas acheté : ') + domain,
-    'Domaine : ' + domain + '\nPayé : ' + paidFcfa + ' FCFA (Stripe ' + str(session.id, 80) + ')\nPrix Vercel attendu : ' + expected + ' USD\nTitulaire : ' + full + ' · ' + contact.email + ' · ' + contact.phone + '\n' + why);
+    'Domaine : ' + domain + '\nPayé : ' + shown(paidFcfa, paidCur) + ' (Stripe ' + str(session.id, 80) + ')\nPrix Vercel attendu : ' + expected + ' USD\nTitulaire : ' + full + ' · ' + contact.email + ' · ' + contact.phone + '\n' + why);
   if (!VERCEL_TOKEN || !DOMAIN_RE.test(domain) || PROTECTED.test(domain)) { await report(false, 'Vercel pas configuré ou domaine refusé : achetez-le à la main, puis reliez-le dans Gérer › Domaine.'); return; }
   const quote = await vercel('/v1/registrar/domains/' + encodeURIComponent(domain) + '/price?years=1');
   const price = Number(quote.body?.purchasePrice);
@@ -296,17 +315,17 @@ async function recordModel(session: Obj) {
   const md = isObj(session.metadata) ? session.metadata : {};
   const slug = str(md.model, 20), m = MODELS[slug];
   const cd = isObj(session.customer_details) ? session.customer_details as Obj : {};
-  const paid = Math.round(Number(session.amount_total) || 0);
+  const paid = Math.round(Number(session.amount_total) || 0), cur = curOf(str(session.currency, 3).toLowerCase());
   const userId = str(md.user_id, 40), storeId = str(md.store_id, 40);
   await admin('model_purchases', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({
     session_id: str(session.id, 120), user_id: UUID.test(userId) ? userId : null, store_id: UUID.test(storeId) ? storeId : null, model: slug,
-    amount: paid, email: str(cd.email, 120), phone: str(cd.phone, 30), shop_name: str(md.shop_name, 60), sells: str(md.sells, 120), install: md.install === '1'
+    amount: paid, currency: cur, email: str(cd.email, 120), phone: str(cd.phone, 30), shop_name: str(md.shop_name, 60), sells: str(md.sells, 120), install: md.install === '1'
   }) });
   // the option alone: recorded above; a short word to the team, nothing else to do (the products open by themselves)
-  if (slug === SHOP_OPTION) { await teamMail('Option vente de produits payée', 'Boutique : ' + (str(md.shop_name, 60) || '?') + ' (' + storeId + ')\nPayé : ' + paid + ' FCFA (Stripe ' + str(session.id, 80) + ')'); return; }
+  if (slug === SHOP_OPTION) { await teamMail('Option vente de produits payée', 'Boutique : ' + (str(md.shop_name, 60) || '?') + ' (' + storeId + ')\nPayé : ' + shown(paid, cur) + ' (Stripe ' + str(session.id, 80) + ')'); return; }
   if (md.shop === '1' && RDV.includes(slug)) await admin('model_purchases', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({
     session_id: str(session.id, 110) + ':produits', user_id: UUID.test(userId) ? userId : null, store_id: UUID.test(storeId) ? storeId : null, model: SHOP_OPTION,
-    amount: MODELS[SHOP_OPTION].price, email: str(cd.email, 120), phone: str(cd.phone, 30), shop_name: str(md.shop_name, 60), sells: str(md.sells, 120), install: false
+    amount: modelPrice(SHOP_OPTION, cur), currency: cur, email: str(cd.email, 120), phone: str(cd.phone, 30), shop_name: str(md.shop_name, 60), sells: str(md.sells, 120), install: false
   }) });
   const install = md.install === '1';
   // the signed form: marked paid, and its content goes to the team and back to her
@@ -318,10 +337,10 @@ async function recordModel(session: Obj) {
   }
   const formText = form ? '\n\nFORMULAIRE SIGNÉ (' + str(form.id, 40) + ')\nBoutique : ' + str(form.shop_name, 80) + '\nElle vend : ' + str(form.sells, 300) + '\nProduits : ' + Number(form.products_count) +
     '\nPhotos prêtes : ' + (form.photos_ready ? 'oui' : 'pas encore') + '\nLogo : ' + (form.has_logo ? 'oui' : 'non') + '\nLiens : ' + (str(form.links, 500) || '-') + '\nWhatsApp : ' + str(form.whatsapp, 30) + '\nE-mail : ' + str(form.email, 160) +
-    '\nSouhaits : ' + (str(form.wishes, 1500) || '-') + '\nPrix installation : ' + Number(form.install_price) + ' FCFA\nSigné par : ' + str(form.legal_name, 120) + ' le ' + str(form.signed_at, 40) + '\n\nCE QU’ELLE A SIGNÉ :\n' + String(form.terms_text ?? '') : '';
+    '\nSouhaits : ' + (str(form.wishes, 1500) || '-') + '\nPrix installation : ' + shown(Number(form.install_price) || 0, str(form.currency, 3) || 'xof') + '\nSigné par : ' + str(form.legal_name, 120) + ' le ' + str(form.signed_at, 40) + '\n\nCE QU’ELLE A SIGNÉ :\n' + String(form.terms_text ?? '') : '';
   const sigAttach = form && typeof form.signature_png === 'string' && form.signature_png.startsWith('data:image/png;base64,') ? [{ filename: 'signature.png', content: form.signature_png.slice('data:image/png;base64,'.length) }] : [];
   await teamMail('À FAIRE — modèle acheté' + (install ? ' AVEC INSTALLATION : ' : ' (sans installation) : ') + (m ? m.name : slug),
-    'Modèle : ' + (m ? m.name : slug) + '\nPayé : ' + paid + ' FCFA (Stripe ' + str(session.id, 80) + ')\nCliente : ' + (str(cd.name, 80) || '?') + ' · ' + str(cd.email, 120) + ' · ' + str(cd.phone, 30) +
+    'Modèle : ' + (m ? m.name : slug) + '\nPayé : ' + shown(paid, cur) + ' (Stripe ' + str(session.id, 80) + ')\nCliente : ' + (str(cd.name, 80) || '?') + ' · ' + str(cd.email, 120) + ' · ' + str(cd.phone, 30) +
     '\nBoutique : ' + (str(md.shop_name, 60) || '?') + (storeId ? ' (' + storeId + ')' : ' (pas encore créée)') + '\nElle vend : ' + (str(md.sells, 120) || '?') +
     '\n\nÀ faire : ' + (install
       ? 'INSTALLATION COMPLÈTE. Lui demander son logo, ses photos, ses textes et ses prix, tout mettre en place, puis lui écrire. 2 séries de corrections incluses.'
@@ -330,7 +349,7 @@ async function recordModel(session: Obj) {
   if (RESEND_KEY && to) await fetch('https://api.resend.com/emails', {
     method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: 'Jehre <bonjour@jehre.com>', to: [to], reply_to: 'contact@jehre.com', subject: 'Votre modèle ' + (m ? m.name : '') + ' est payé',
-      text: 'Bonjour,\n\nMerci ! Votre paiement de ' + paid + ' FCFA pour le modèle ' + (m ? m.name : slug) + ' est bien reçu.\n\n' + (install
+      text: 'Bonjour,\n\nMerci ! Votre paiement de ' + shown(paid, cur) + ' pour le modèle ' + (m ? m.name : slug) + ' est bien reçu.\n\n' + (install
         ? 'Vous avez choisi l’installation par notre équipe : répondez à cet e-mail avec votre logo, vos photos, vos textes et vos prix. Nous mettons tout en place et nous vous écrivons dès que votre boutique est prête. 2 séries de corrections sont incluses.' + (form ? '\n\nVoici une copie du formulaire que vous avez signé (votre signature est jointe) :' + formText.replace(/^\n\nFORMULAIRE SIGNÉ \([^)]*\)/, '') : '')
         : 'Notre équipe met votre boutique sur ce modèle, avec votre nom et votre logo (envoyez-le en réponse à cet e-mail), et vous écrit dès que c’est fait. Vous ajoutez ensuite vos produits, vos prix et vos photos dans votre tableau de bord : ' + SITE + '/admin/') +
         '\n\nUne question ? Répondez à cet e-mail.\n\nL’équipe Jehre', ...(sigAttach.length ? { attachments: sigAttach } : {}) })
@@ -368,7 +387,7 @@ Deno.serve(async (req: Request) => {
   try { const x = await req.json(); if (isObj(x)) b = x; } catch { /* empty */ }
   const action = String(b.action ?? '');
 
-  if (action === 'prices') return json({ ok: true, configured: !!STRIPE_KEY, studio: STUDIO, boutique: BOUTIQUE, domains: { fx: FX, margin: MARGIN, fixed: FIXED } });
+  if (action === 'prices') return json({ ok: true, configured: !!STRIPE_KEY, studio: STUDIO, boutique: BOUTIQUE, cad: { boutique: CAD_PLAN, models: CAD_MODEL, install: CAD_INSTALL, installExtra: CAD_INSTALL_EXTRA }, domains: { fx: FX, margin: MARGIN, fixed: FIXED } });
   if (!STRIPE_KEY) return fail(503, 'not_configured', NOT_CONFIGURED);
   const user = await userOf(req);
   if (!user) return fail(401, 'login', 'Connectez-vous à votre compte Jehre pour payer.');
@@ -422,8 +441,8 @@ Deno.serve(async (req: Request) => {
     } else {
       const p = BOUTIQUE[plan];
       if (!p) return fail(400, 'plan', 'Choisissez une formule boutique payante.');
-      period = b.period === 'semaine' && p.week ? 'semaine' : 'mois';
-      amount = period === 'semaine' ? p.week as number : p.month;
+      period = b.period === 'semaine' && p.week && curOf(b.currency) === 'xof' ? 'semaine' : 'mois';
+      amount = curOf(b.currency) === 'cad' && CAD_PLAN[plan] ? CAD_PLAN[plan] : period === 'semaine' ? p.week as number : p.month;
       interval = period === 'semaine' ? 'week' : 'month';
       label = p.name + ' · ' + storeName + (period === 'semaine' ? ' · à la semaine' : ' · au mois');
     }
@@ -437,16 +456,17 @@ Deno.serve(async (req: Request) => {
       const portal = await stripe('POST', 'billing_portal/sessions', { customer, return_url: back });
       return portal.ok ? json({ ok: true, url: portal.data.url, portal: true, message: kind === 'boutique' ? 'Cette boutique a déjà un abonnement : changez de formule depuis votre espace de paiement.' : 'Vous avez déjà un abonnement : changez de formule depuis votre espace de paiement.' }) : fail(409, 'exists', 'Vous avez déjà un abonnement ' + (kind === 'studio' ? 'Studio' : 'boutique') + '.');
     }
-    const meta: Obj = { user_id: user.id, kind, plan, period, ...(kind === 'boutique' ? { store_id: storeId } : {}) };
-    const session = await stripe('POST', 'checkout/sessions', {
+    const cur: Cur = kind === 'boutique' && curOf(b.currency) === 'cad' && CAD_PLAN[plan] ? 'cad' : 'xof';
+    const meta: Obj = { user_id: user.id, kind, plan, period, currency: cur, ...(kind === 'boutique' ? { store_id: storeId } : {}) };
+    const session = await checkout({
       mode: 'subscription', customer, locale: 'fr', client_reference_id: user.id,
-      line_items: [{ quantity: 1, price_data: { currency: 'xof', unit_amount: amount, recurring: { interval }, product_data: { name: label } } }],
+      line_items: [{ quantity: 1, price_data: { currency: cur, unit_amount: amount, recurring: { interval }, product_data: { name: label } } }],
       subscription_data: { metadata: meta, description: label },
       metadata: meta, allow_promotion_codes: true,
       success_url: withParam(back, 'abonnement=ok'), cancel_url: withParam(back, 'abonnement=annule')
-    });
+    }, cur);
     if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
-    return json({ ok: true, url: session.data.url, amount, label });
+    return json({ ok: true, url: session.data.url, amount, currency: cur, label });
   }
 
   if (action === 'portal') {
@@ -477,20 +497,21 @@ Deno.serve(async (req: Request) => {
       req = UUID.test(rid) ? ((await rows('install_requests?select=id,user_id,model,products_count,paid_at&id=eq.' + rid))[0] ?? null) : null;
       if (!req || req.user_id !== user.id || req.model !== slug || req.paid_at) return fail(400, 'install_form', 'Pour l’installation par notre équipe, remplissez et signez d’abord le formulaire : tableau de bord › Modèles › « Jehre installe tout pour moi ».');
     }
-    const installAmount = req ? installFor(Number(req.products_count)) : 0;
-    const items: Obj[] = [{ quantity: 1, price_data: { currency: 'xof', unit_amount: m.price, product_data: { name: 'Modèle ' + m.name + ' · boutique Jehre', description: m.installIncluded ? 'Payé une seule fois. Installation par notre équipe incluse.' : 'Payé une seule fois.' } } }];
-    if (shopOpt) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: MODELS[SHOP_OPTION].price, product_data: { name: 'Option vente de produits', description: 'Panier et paiement des produits sur votre site de réservation. Payée une seule fois.' } } });
-    if (req) items.push({ quantity: 1, price_data: { currency: 'xof', unit_amount: installAmount, product_data: { name: 'Installation par l’équipe Jehre · ' + Number(req.products_count) + ' produit' + (Number(req.products_count) > 1 ? 's' : ''), description: 'Selon le formulaire signé : jusqu’à 10 produits et 2 séries de corrections, 5 000 F par produit en plus.' } } });
-    const session = await stripe('POST', 'checkout/sessions', {
+    const cur = curOf(b.currency);
+    const installAmount = req ? (cur === 'cad' ? installCad(Number(req.products_count)) : installFor(Number(req.products_count))) : 0;
+    const items: Obj[] = [{ quantity: 1, price_data: { currency: cur, unit_amount: modelPrice(slug, cur), product_data: { name: 'Modèle ' + m.name + ' · boutique Jehre', description: m.installIncluded ? 'Payé une seule fois. Installation par notre équipe incluse.' : 'Payé une seule fois.' } } }];
+    if (shopOpt) items.push({ quantity: 1, price_data: { currency: cur, unit_amount: modelPrice(SHOP_OPTION, cur), product_data: { name: 'Option vente de produits', description: 'Panier et paiement des produits sur votre site de réservation. Payée une seule fois.' } } });
+    if (req) items.push({ quantity: 1, price_data: { currency: cur, unit_amount: installAmount, product_data: { name: 'Installation par l’équipe Jehre · ' + Number(req.products_count) + ' produit' + (Number(req.products_count) > 1 ? 's' : ''), description: 'Selon le formulaire signé : jusqu’à 10 produits et 2 séries de corrections, 5 000 F par produit en plus.' } } });
+    const session = await checkout({
       mode: 'payment', locale: 'fr', client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
       line_items: items,
       phone_number_collection: { enabled: true }, allow_promotion_codes: true,
-      metadata: { kind: 'model', user_id: user.id, model: slug, store_id: storeId, shop_name: str(b.shopName, 60), sells: str(b.sells, 120), install: install ? '1' : '0', install_request: req ? String(req.id) : '', shop: shopOpt ? '1' : '0' },
+      metadata: { kind: 'model', user_id: user.id, model: slug, store_id: storeId, shop_name: str(b.shopName, 60), sells: str(b.sells, 120), install: install ? '1' : '0', install_request: req ? String(req.id) : '', shop: shopOpt ? '1' : '0', currency: cur },
       payment_intent_data: { description: 'Modèle ' + m.name, metadata: { kind: 'model', model: slug } },
       success_url: withParam(back, 'modele=ok&nom=' + slug), cancel_url: withParam(back, 'modele=annule')
-    });
+    }, cur);
     if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
-    return json({ ok: true, url: session.data.url, price: m.price + installAmount + (shopOpt ? MODELS[SHOP_OPTION].price : 0), model: slug, install });
+    return json({ ok: true, url: session.data.url, price: modelPrice(slug, cur) + installAmount + (shopOpt ? modelPrice(SHOP_OPTION, cur) : 0), currency: cur, model: slug, install });
   }
 
   // the option alone, later, for one booking site of hers: { action: 'shop_option', storeId, returnUrl }
@@ -503,16 +524,17 @@ Deno.serve(async (req: Request) => {
     if ((await rows('model_purchases?select=id&model=eq.' + SHOP_OPTION + '&store_id=eq.' + storeId + '&limit=1')).length) return fail(409, 'exists', 'Cette boutique vend déjà des produits.');
     const customer = await customerFor(user, name);
     const back = backUrl(b.returnUrl, SITE + '/admin/produits/');
-    const session = await stripe('POST', 'checkout/sessions', {
+    const cur = curOf(b.currency);
+    const session = await checkout({
       mode: 'payment', locale: 'fr', client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
-      line_items: [{ quantity: 1, price_data: { currency: 'xof', unit_amount: MODELS[SHOP_OPTION].price, product_data: { name: 'Option vente de produits', description: 'Panier et paiement des produits sur votre site de réservation. Payée une seule fois.' } } }],
+      line_items: [{ quantity: 1, price_data: { currency: cur, unit_amount: modelPrice(SHOP_OPTION, cur), product_data: { name: 'Option vente de produits', description: 'Panier et paiement des produits sur votre site de réservation. Payée une seule fois.' } } }],
       phone_number_collection: { enabled: true },
-      metadata: { kind: 'model', user_id: user.id, model: SHOP_OPTION, store_id: storeId, shop_name: str(isObj(st.fiche) && isObj((st.fiche as Obj).store) ? ((st.fiche as Obj).store as Obj).name : '', 60), install: '0' },
+      metadata: { kind: 'model', user_id: user.id, model: SHOP_OPTION, store_id: storeId, shop_name: str(isObj(st.fiche) && isObj((st.fiche as Obj).store) ? ((st.fiche as Obj).store as Obj).name : '', 60), install: '0', currency: cur },
       payment_intent_data: { description: 'Option vente de produits', metadata: { kind: 'model', model: SHOP_OPTION } },
       success_url: withParam(back, 'option=ok'), cancel_url: withParam(back, 'option=annule')
-    });
+    }, cur);
     if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
-    return json({ ok: true, url: session.data.url, price: MODELS[SHOP_OPTION].price });
+    return json({ ok: true, url: session.data.url, price: modelPrice(SHOP_OPTION, cur), currency: cur });
   }
 
   if (action === 'domain') {
@@ -527,20 +549,21 @@ Deno.serve(async (req: Request) => {
     const q = await domainQuote(domain);
     if (!q.available) return fail(409, 'taken', domain + ' n’est plus disponible. Essayez une autre extension.');
     if (!isFinite(q.usd) || q.usd <= 0 || q.usd > 300) return fail(502, 'price', 'Pas de prix pour ce domaine pour l’instant. Réessayez plus tard.');
-    const price = domainFcfa(q.usd);
+    const cur = curOf(b.currency);
+    const price = cur === 'cad' ? domainCad(q.usd) : domainFcfa(q.usd);
     const customer = await customerFor(user, name);
     const back = backUrl(b.returnUrl, SITE + '/admin/');
-    const session = await stripe('POST', 'checkout/sessions', {
+    const session = await checkout({
       mode: 'payment', locale: 'fr', client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
-      line_items: [{ quantity: 1, price_data: { currency: 'xof', unit_amount: price, product_data: { name: 'Nom de domaine ' + domain + ' (1 an)' } } }],
+      line_items: [{ quantity: 1, price_data: { currency: cur, unit_amount: price, product_data: { name: 'Nom de domaine ' + domain + ' (1 an)' } } }],
       billing_address_collection: 'required', phone_number_collection: { enabled: true },
       ...(customer ? { customer_update: { address: 'auto', name: 'auto' } } : {}),
-      metadata: { kind: 'domain', user_id: user.id, domain, usd: String(q.usd), store_id: storeId },
+      metadata: { kind: 'domain', user_id: user.id, domain, usd: String(q.usd), store_id: storeId, currency: cur },
       payment_intent_data: { description: 'Domaine ' + domain + ' · 1 an', metadata: { kind: 'domain', domain } },
       success_url: withParam(back, 'domaine=ok&nom=' + encodeURIComponent(domain)), cancel_url: withParam(back, 'domaine=annule')
-    });
+    }, cur);
     if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
-    return json({ ok: true, url: session.data.url, price, domain });
+    return json({ ok: true, url: session.data.url, price, currency: cur, domain });
   }
 
   return fail(400, 'action', 'Action inconnue.');

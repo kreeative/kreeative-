@@ -115,7 +115,7 @@ window.JEERE_EN = {
   'vs.else': 'Elsewhere',
   'vs.s1t': 'Subscriptions in dollars, plus an extra fee if you don’t use their payment system.',
   'vs.s1h': 'One clear price, in FCFA',
-  'vs.s1u': 'Monthly subscription in FCFA, from 3,500 FCFA. One fee, shown upfront: 1% on Essential, 0% from Growth up.',
+  'vs.s1u': 'Monthly subscription in your own money: CFA franc, dollar or euro. One fee, shown upfront: 1% on Essential, 0% from Growth up.',
   'vs.s2t': 'Basic features are sold as paid apps, every month.',
   'vs.s2h': 'Everything included',
   'vs.s2u': 'Delivery by commune, cash on delivery, discount codes, customer reviews and WhatsApp orders come with every plan.',

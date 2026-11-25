@@ -107,6 +107,7 @@
     heroPlaceholder();
     setRole(currentRole());
     if (lastDone) showDone(lastDone.dup, lastDone.name, true);
+    document.dispatchEvent(new CustomEvent('jehre-lang'));
   }
 
   $$('.lang button').forEach(function (b) {

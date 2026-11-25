@@ -55,6 +55,12 @@ function fcfa(usd: number): number {
   if (!isFinite(usd) || usd <= 0) return 0;
   return Math.ceil((usd * FX * (1 + MARGIN) + FIXED) / 500) * 500;
 }
+// Outside the franc CFA zones, in Canadian dollars (cents), ending in ,99: the same formula as billing's domainCad
+const USD_CAD = 1.40;
+function cad(usd: number): number {
+  if (!isFinite(usd) || usd <= 0) return 0;
+  return Math.ceil(usd * USD_CAD * (1 + MARGIN) + 5) * 100 - 1;
+}
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -283,7 +289,7 @@ async function search(b: Record<string, unknown>) {
     ok: true, configured: true, label,
     results: domains.map((d) => {
       const p = price[d] ?? {};
-      return { domain: d, available: avail[d] === true, years: p.years ?? 1, purchaseUsd: p.purchasePrice ?? null, renewalUsd: p.renewalPrice ?? null, purchaseFcfa: fcfa(p.purchasePrice), renewalFcfa: fcfa(p.renewalPrice) };
+      return { domain: d, available: avail[d] === true, years: p.years ?? 1, purchaseUsd: p.purchasePrice ?? null, renewalUsd: p.renewalPrice ?? null, purchaseFcfa: fcfa(p.purchasePrice), renewalFcfa: fcfa(p.renewalPrice), purchaseCad: cad(p.purchasePrice), renewalCad: cad(p.renewalPrice) };
     })
   });
 }
