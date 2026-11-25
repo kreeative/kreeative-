@@ -41,10 +41,10 @@ const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 const PUBLISHABLE_STRIPE = (Deno.env.get('STRIPE_PUBLISHABLE_KEY') ?? '').trim();
 const FEE_PCT = Math.max(0, Math.min(20, Number(Deno.env.get('JEERE_CARD_FEE_PCT') ?? '2') || 0));
 // Jehre's commission by the STORE's plan (stores.plan, written by the server):
-// the plan's own rate (creer/data.js PLANS), never more than FEE_PCT. Gratuit 2 %, Essentiel 1 %, Pro and Business 0 %.
+// the plan's own rate (creer/data.js PLANS), never more than FEE_PCT. Gratuit 2 %, Essentiel 1 %, Croissance, Pro, Business and Entreprise 0 % (the grid of 24 Nov 2026).
 // The order's currency for Stripe (« xof », « cad », « usd », « eur »); amounts are already in its smallest unit
 const curOf = (o: Obj | undefined) => { const c = String((o && o.currency) ?? 'XOF').toLowerCase(); return ['xof', 'cad', 'usd', 'eur'].includes(c) ? c : 'xof'; };
-const PLAN_FEE: Record<string, number> = { gratuit: 2, essentiel: 1, pro: 0, business: 0 };
+const PLAN_FEE: Record<string, number> = { gratuit: 2, essentiel: 1, croissance: 0, pro: 0, business: 0, entreprise: 0 };
 // one subscription = one store: the plan is the store's (stores.plan, written by `billing` and the launch offer)
 function feeFor(store: Obj): number {
   const plan = String(store.plan ?? 'gratuit');
