@@ -521,3 +521,68 @@ FR.update({
     'What’s next slide: opening the first 50 shops, free for 3 months, in exchange for honest feedback.':
         'Page la suite : ouvrir les 50 premières boutiques, offertes pendant 3 mois, en échange de retours honnêtes.',
 })
+
+# ---- P-06 portfolio document (Nov 2026)
+FR.update({
+    'Portfolio · 2026': 'Portfolio · 2026',
+    'Anne-Kelly “Kee” Kouyaté. Product &amp; brand <em>designer.</em>': 'Anne-Kelly « Kee » Kouyaté. Designer produit et de <em>marque.</em>',
+    'I design the whole thing, then I build it and ship it.': 'Je conçois tout, puis je le construis et je le mets en ligne.',
+    'About': 'À propos',
+    'Designing since <em>2019.</em>': 'Je conçois depuis <em>2019.</em>',
+    'First graphic design and content, then brand identities, and since 2024 under my own studio, Kreeative. I also code, so my designs do not stop at the mockup.':
+        'D’abord du graphisme et du contenu, puis des identités de marque, et depuis 2024 avec mon propre studio, Kreeative. Je code aussi : mes designs ne s’arrêtent pas à la maquette.',
+    'Product design': 'Design produit', 'User flows': 'Parcours utilisateurs', 'Prototyping': 'Prototypage',
+    'Brand identity': 'Identité de marque', 'Packaging': 'Packaging', 'Web design': 'Web design',
+    'HTML, CSS &amp; JavaScript': 'HTML, CSS et JavaScript', 'Figma · Illustrator · Photoshop': 'Figma · Illustrator · Photoshop',
+    'Product · Jehre': 'Produit · Jehre',
+    'An online store for African <em>merchants.</em>': 'Une boutique en ligne pour les commerçants <em>africains.</em>',
+    'Founder and product designer. Seven store templates, a seller dashboard, payments by mobile money and card, delivery by neighbourhood.':
+        'Fondatrice et designer produit. Sept modèles de boutique, un tableau de bord vendeur, le paiement par mobile money et par carte, la livraison par commune.',
+    '<strong>Storefront</strong>': '<strong>La boutique</strong>', '<strong>Seller dashboard</strong>': '<strong>Le tableau de bord</strong>',
+    'Product · Rich &amp; Friends': 'Produit · Rich &amp; Friends',
+    'Small groups of friends keep each other accountable: one question a day, and a board where the group sees it land.':
+        'Des petits groupes d’amis qui se tiennent à leurs objectifs : une question par jour, et un tableau où le groupe voit les progrès.',
+    'E-commerce · client': 'E-commerce · cliente',
+    'The Ivory Sukundu: quiet luxury, on a <em>phone.</em>': 'The Ivory Sukundu : le luxe discret, sur <em>téléphone.</em>',
+    'Hair extensions are bought on trust and on a number. A length guide and a 60-second quiz answer the questions customers kept asking. Live since July 2026.':
+        'Les extensions s’achètent sur la confiance et sur un chiffre. Un guide des longueurs et un quiz de 60 secondes répondent aux questions des clientes. En ligne depuis juillet 2026.',
+    '<strong>The quiz</strong>': '<strong>Le quiz</strong>', '<strong>The Circle</strong>': '<strong>Le Cercle</strong>',
+    'Product · Kreeator Academy': 'Produit · Kreeator Academy',
+    'A course platform, built <em>end to end.</em>': 'Une plateforme de cours, construite de <em>A à Z.</em>',
+    'Accounts, lessons, quizzes, a final exam and a certificate, on Supabase and Stripe.': 'Comptes, leçons, quiz, un examen final et un certificat, sur Supabase et Stripe.',
+    'Brand identity · The Bakery': 'Identité de marque · The Bakery',
+    'Make pastry fun, bold and impossible to <em>resist.</em>': 'Rendre la pâtisserie fun, audacieuse et <em>irrésistible.</em>',
+    'Wordmark, B monogram, hot-pink palette, packaging and pattern, then the website and ordering app from the same system.':
+        'Logo, monogramme B, palette rose vif, packaging et motif, puis le site et l’appli de commande construits sur le même système.',
+    'Brand identity · Lyzma Industries': 'Identité de marque · Lyzma Industries',
+    'A hand-lettered identity for a jewellery <em>brand.</em>': 'Une identité écrite à la main pour une marque de <em>bijoux.</em>',
+    'Handcrafted, African-inspired jewellery. A lettered wordmark, concentric circles from textile and beadwork, one warm gold.':
+        'Des bijoux faits main, inspirés de l’Afrique. Un logo écrit à la main, des cercles concentriques venus du textile et des perles, un seul or chaud.',
+    'Brand identity · GloryWalk &amp; Gogiya': 'Identité de marque · GloryWalk et Gogiya',
+    'Streetwear, and a Korean <em>barbecue.</em>': 'Du streetwear, et un barbecue <em>coréen.</em>',
+    'GloryWalk: a gold graffiti wordmark and a W monogram for a Christian streetwear brand. Gogiya: a wordmark and website for a Korean barbecue restaurant.':
+        'GloryWalk : un logo doré style graffiti et un monogramme W pour une marque de streetwear chrétienne. Gogiya : un logo et un site pour un restaurant de barbecue coréen.',
+    'Contact': 'Contact',
+    'Let’s build something <em>together.</em>': 'Construisons quelque chose <em>ensemble.</em>',
+    'Deep brown cover: “Anne-Kelly “Kee” Kouyaté. Product & brand designer. I design the whole thing, then I build it and ship it.”, above the kreeative.xyz home page.':
+        'Couverture brun foncé : « Anne-Kelly « Kee » Kouyaté. Designer produit et de marque. Je conçois tout, puis je le construis et je le mets en ligne. », au-dessus de la page d’accueil de kreeative.xyz.',
+    'About page: designing since 2019, with a card listing skills: product design, user flows, prototyping, brand identity, packaging, web design, HTML CSS and JavaScript, Figma, Illustrator and Photoshop.':
+        'Page À propos : je conçois depuis 2019, avec une carte des compétences : design produit, parcours, prototypage, identité de marque, packaging, web design, HTML CSS et JavaScript, Figma, Illustrator et Photoshop.',
+    'Jehre: two real screens on phones, a merchant storefront and the seller dashboard listing products with prices.':
+        'Jehre : deux vrais écrans sur téléphone, une boutique et le tableau de bord vendeur avec les produits et leurs prix.',
+    'Rich & Friends: three phones showing the app, daily goals, the home calendar and the group board.':
+        'Rich & Friends : trois téléphones montrent l’appli, les objectifs du jour, le calendrier et le tableau du groupe.',
+    'The Ivory Sukundu: two real screens on phones, the 60-second quiz and the loyalty circle.':
+        'The Ivory Sukundu : deux vrais écrans sur téléphone, le quiz de 60 secondes et le cercle de fidélité.',
+    'Kreeator Academy: the course platform home page on desktop.': 'Kreeator Academy : la page d’accueil de la plateforme de cours sur ordinateur.',
+    'The Bakery: the wordmark on chocolate chip cookies, and the identity on a row of pink pastry boxes.':
+        'The Bakery : le logo sur des cookies aux pépites de chocolat, et l’identité sur une rangée de boîtes à pâtisserie roses.',
+    'Lyzma Industries: shopping bags in gold, white and navy, with tags and round stickers.':
+        'Lyzma Industries : des sacs dorés, blancs et marine, avec des étiquettes et des stickers ronds.',
+    'GloryWalk wordmark on a black denim pocket, beside the Gogiya restaurant identity.':
+        'Le logo GloryWalk sur une poche en denim noir, à côté de l’identité du restaurant Gogiya.',
+    'Contact page on pink: kreeative.xyz, partnerships@kreeative.xyz, cal.com/kreeative/quick-chat and LinkedIn.':
+        'Page contact sur fond rose : kreeative.xyz, partnerships@kreeative.xyz, cal.com/kreeative/quick-chat et LinkedIn.',
+})
+FR.update({'A web app people want to <em>open every day.</em>': 'Une appli web qu’on a envie d’ouvrir <em>chaque jour.</em>',
+           'linkedin.com/in/annekellykouyate': 'linkedin.com/in/annekellykouyate'})

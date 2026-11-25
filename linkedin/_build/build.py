@@ -957,11 +957,51 @@ def m3_10():
     d.write()
 
 
+def p_06():
+    """Portfolio as a LinkedIn document (PDF), for the featured section or a document post."""
+    d = Doc('P-06', 'portfolio-2026', 'CAROUSEL', 'Profile, featured section', 'Portfolio · 2026', depth=2)
+    A, S = d.A, d.S
+    card = lambda src, pos='50% 50%', fit='cover': f'<div class="card" style="width:100%;height:100%;overflow:hidden;padding:0"><img class="photo" src="{src}" alt="" style="width:100%;height:100%;object-fit:{fit};object-position:{pos}"></div>'
+    d.hook('Portfolio · 2026', 'Anne-Kelly “Kee” Kouyaté. Product &amp; brand <em>designer.</em>', 'I design the whole thing, then I build it and ship it.',
+           visual=f'<div class="card" style="padding:12px;width:100%"><img src="{S}img/portfolio-v2-desktop.png" alt="" style="width:100%;border-radius:14px;display:block"></div>',
+           alt='Deep brown cover: “Anne-Kelly “Kee” Kouyaté. Product & brand designer. I design the whole thing, then I build it and ship it.”, above the kreeative.xyz home page.')
+    skills = ['Product design', 'User flows', 'Prototyping', 'Brand identity', 'Packaging', 'Web design', 'HTML, CSS &amp; JavaScript', 'Figma · Illustrator · Photoshop']
+    d.slide('About', 'Designing since <em>2019.</em>', 'First graphic design and content, then brand identities, and since 2024 under my own studio, Kreeative. I also code, so my designs do not stop at the mockup.',
+            visual='<div class="card" style="padding:40px 44px;width:100%"><ul class="list">' + ''.join(f'<li>{x}</li>' for x in skills) + '</ul></div>',
+            alt='About page: designing since 2019, with a card listing skills: product design, user flows, prototyping, brand identity, packaging, web design, HTML CSS and JavaScript, Figma, Illustrator and Photoshop.')
+    d.slide('Product · Jehre', 'An online store for African <em>merchants.</em>', 'Founder and product designer. Seven store templates, a seller dashboard, payments by mobile money and card, delivery by neighbourhood.',
+            visual=f'<div style="display:flex;gap:34px">{shot(S + "img/jeere/storefront.webp", 300, "Storefront")}{shot(S + "img/jeere/produits.webp", 300, "Seller dashboard")}</div>', size='t-2',
+            alt='Jehre: two real screens on phones, a merchant storefront and the seller dashboard listing products with prices.')
+    d.slide('Product · Rich &amp; Friends', 'A web app people want to <em>open every day.</em>', 'Small groups of friends keep each other accountable: one question a day, and a board where the group sees it land.',
+            visual=card(A + 'img/sites/site-rich-app-1440.webp'), size='t-2',
+            alt='Rich & Friends: three phones showing the app, daily goals, the home calendar and the group board.')
+    d.slide('E-commerce · client', 'The Ivory Sukundu: quiet luxury, on a <em>phone.</em>', 'Hair extensions are bought on trust and on a number. A length guide and a 60-second quiz answer the questions customers kept asking. Live since July 2026.',
+            visual=f'<div style="display:flex;gap:34px">{shot(S + "img/sukundu/quiz.webp", 300, "The quiz")}{shot(S + "img/sukundu/circle.webp", 300, "The Circle")}</div>', size='t-2',
+            alt='The Ivory Sukundu: two real screens on phones, the 60-second quiz and the loyalty circle.')
+    d.slide('Product · Kreeator Academy', 'A course platform, built <em>end to end.</em>', 'Accounts, lessons, quizzes, a final exam and a certificate, on Supabase and Stripe.',
+            visual=f'<div class="card" style="padding:12px;width:100%"><img src="{A}img/sites/site-academy-desktop-1440.webp" alt="" style="width:100%;border-radius:14px;display:block"></div>', size='t-2',
+            alt='Kreeator Academy: the course platform home page on desktop.')
+    d.slide('Brand identity · The Bakery', 'Make pastry fun, bold and impossible to <em>resist.</em>', 'Wordmark, B monogram, hot-pink palette, packaging and pattern, then the website and ordering app from the same system.',
+            visual=f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;height:100%">{card(A + "img/project-bakery-1000.webp", "40% 50%")}{card(A + "img/case-bakery-2-1000.webp")}</div>', size='t-2',
+            alt='The Bakery: the wordmark on chocolate chip cookies, and the identity on a row of pink pastry boxes.')
+    d.slide('Brand identity · Lyzma Industries', 'A hand-lettered identity for a jewellery <em>brand.</em>', 'Handcrafted, African-inspired jewellery. A lettered wordmark, concentric circles from textile and beadwork, one warm gold.',
+            visual=card(A + 'img/case-lyzma-1-1000.webp'), size='t-2',
+            alt='Lyzma Industries: shopping bags in gold, white and navy, with tags and round stickers.')
+    d.slide('Brand identity · GloryWalk &amp; Gogiya', 'Streetwear, and a Korean <em>barbecue.</em>', 'GloryWalk: a gold graffiti wordmark and a W monogram for a Christian streetwear brand. Gogiya: a wordmark and website for a Korean barbecue restaurant.',
+            visual=f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;height:100%">{card(A + "img/project-glorywalk-1000.webp")}{card(A + "img/case-gogiya-1-1000.webp")}</div>', size='t-2',
+            alt='GloryWalk wordmark on a black denim pocket, beside the Gogiya restaurant identity.')
+    d.slide('Contact', 'Let’s build something <em>together.</em>', '',
+            visual='<div class="card" style="padding:44px 48px;width:100%"><ul class="list"><li>kreeative.xyz</li><li>partnerships@kreeative.xyz</li><li>cal.com/kreeative/quick-chat</li><li>linkedin.com/in/annekellykouyate</li></ul></div>',
+            theme='pink', alt='Contact page on pink: kreeative.xyz, partnerships@kreeative.xyz, cal.com/kreeative/quick-chat and LinkedIn.')
+    d.write()
+
+
 # =================================================================== run
 build_profile()
 m1_02(); m1_04(); m1_06(); m1_07(); m1_09(); m1_11(); m1_12(); m1_14()
 m2_02(); m2_03(); m2_05(); m2_07(); m2_09(); m2_11()
 m3_02(); m3_03(); m3_05(); m3_08(); m3_09(); m3_10()
+p_06()
 JOBS.insert(0, dict(id='P-01', src='profile/P-01_banner/source.html', out='profile/P-01_banner/P-01_banner.png', w=1584, h=396, kind='png', pages=1))
 json.dump(JOBS, open(os.path.join(HERE, 'jobs.json'), 'w'), indent=1)
 print(len(JOBS), 'jobs')

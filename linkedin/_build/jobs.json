@@ -225,6 +225,15 @@
   "pages": 1
  },
  {
+  "id": "P-06",
+  "src": "profile/P-06_portfolio-2026/source.html",
+  "out": "profile/P-06_portfolio-2026/P-06_portfolio-2026.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 10
+ },
+ {
   "id": "P-01-FR",
   "src": "profile/P-01_banner/source_fr.html",
   "out": "profile/P-01_banner/P-01_banner_FR.png",
@@ -448,5 +457,14 @@
   "h": 1350,
   "kind": "png",
   "pages": 1
+ },
+ {
+  "id": "P-06-FR",
+  "src": "profile/P-06_portfolio-2026/source_fr.html",
+  "out": "profile/P-06_portfolio-2026/P-06_portfolio-2026_FR.pdf",
+  "w": 1080,
+  "h": 1350,
+  "kind": "pdf",
+  "pages": 10
  }
 ]
