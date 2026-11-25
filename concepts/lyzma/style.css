@@ -1,8 +1,8 @@
-/* LA DAME AUX PERLES (Lyzma) — natural hair, by appointment (Edmundston). Her flyer's palette: bordeaux and gold on
-   cream paper (the colours of her logo), cocoa ink; her logo in bordeaux; a grotesque with character for the titles. */
-:root { --bg: #fcf3ea; --ink: #3a1c16; --muted: #7a605a; --line: rgba(58, 28, 22, .16); --soft: #fff8ef; --gold: #e8a21c; --gold-2: #f4c04c; --orange: #7a1628; --brick: #7a1628;
-  --rasp: #7a1628; --rasp-deep: #4e0d19; --blush: #f6e6e2;
-  --accent: #7a1628; --on-accent: #fff8ef; --title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; --script: 'Caveat', 'Bradley Hand', cursive; --body: 'Manrope', system-ui, sans-serif;
+/* LA DAME AUX PERLES (Lyzma) — natural hair, by appointment (Edmundston). Her flyer's palette: a pop red and bright gold on pure
+   white (she wants bright, happy colours); her logo in red, or in white on the red; a grotesque with character for the titles. */
+:root { --bg: #ffffff; --ink: #141414; --muted: #555555; --line: rgba(20, 20, 20, .14); --soft: #ffffff; --gold: #ffb400; --gold-2: #ffc83d; --orange: #e60023; --brick: #e60023;
+  --rasp: #e60023; --rasp-deep: #c4001d; --blush: #fff0f2;
+  --accent: #e60023; --on-accent: #ffffff; --title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; --script: 'Caveat', 'Bradley Hand', cursive; --body: 'Manrope', system-ui, sans-serif;
   --pill: 999px; --r: 22px; --max: 1140px; --pad: clamp(18px, 4vw, 44px); }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -31,7 +31,7 @@ button { font: inherit; }
 .jb-off .btn { margin-top: 6px; }
 
 body { font-size: 15.5px; }
-.concept { background: var(--ink); color: #fff8ef; font-family: var(--body); }
+.concept { background: var(--ink); color: #ffffff; font-family: var(--body); }
 .script { font-family: var(--script); font-weight: 700; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; color: var(--rasp); }
 .h1, .h2, .h3 { font-family: var(--title); font-weight: 600; letter-spacing: -.02em; line-height: 1.04; }
 .h1 { font-size: clamp(34px, 5.2vw, 60px); }
@@ -42,7 +42,7 @@ body { font-size: 15.5px; }
 .btn .i { width: 18px; height: 18px; }
 .rings { color: var(--gold); }
 
-.nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px var(--pad); background: rgba(252, 243, 234, .92); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px var(--pad); background: rgba(255, 255, 255, .94); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .logo { display: block; }
 .logo img { display: block; height: 46px; width: auto; }
 .nav__links { display: none; gap: 30px; font-weight: 600; font-size: 14.5px; }
@@ -52,8 +52,9 @@ body { font-size: 15.5px; }
 
 main { overflow-x: clip; }
 .center { text-align: center; }
-.strip { display: flex; justify-content: space-between; gap: 14px; padding: 8px var(--pad); background: var(--rasp); color: #fff8ef; font-family: var(--title); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
-.concept { background: var(--ink); }
+.strip { display: flex; justify-content: space-between; gap: 14px; padding: 8px var(--pad); background: var(--rasp); color: #ffffff; font-family: var(--title); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.concept { background: #ffffff; color: var(--ink); border-bottom: 1px solid var(--line); }
+.concept a { color: var(--rasp); }
 
 /* the hero: her logo, in white, alone on a plain bordeaux */
 .hero { padding: 10px 10px 0; display: grid; justify-items: center; text-align: center; }
@@ -78,7 +79,7 @@ main { overflow-x: clip; }
 .spec__img img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
 .spec__card:hover .spec__img img { transform: scale(1.04); }
 .spec__pill { margin-top: -19px; position: relative; padding: 8px 18px; border-radius: var(--pill); background: var(--bg); border: 1.5px solid var(--ink); font-family: var(--title); font-weight: 600; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; transition: background-color .2s, color .2s; }
-.spec__card:hover .spec__pill { background: var(--rasp); border-color: var(--rasp); color: #fff8ef; }
+.spec__card:hover .spec__pill { background: var(--rasp); border-color: var(--rasp); color: #ffffff; }
 .spec__sub { margin-top: 8px; font-size: 13px; color: var(--muted); }
 .spec__from { margin-top: 6px; font-family: var(--title); font-weight: 600; font-size: 15px; color: var(--rasp); }
 @media (min-width: 900px) { .spec__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } }
@@ -94,7 +95,7 @@ main { overflow-x: clip; }
 .jb-menu__name { font-weight: 700; }
 .jb-menu__price { font-family: var(--title); font-weight: 600; font-size: 18px; }
 .jb-menu__book { border: 1.5px solid var(--ink); font-size: 12.5px; font-weight: 700; transition: background-color .2s, color .2s; }
-.jb-menu__book:hover { background: var(--rasp); border-color: var(--rasp); color: #fff8ef; }
+.jb-menu__book:hover { background: var(--rasp); border-color: var(--rasp); color: #ffffff; }
 
 .duo { display: grid; gap: 34px; }
 .duo__col { display: grid; gap: 16px; align-content: start; }
@@ -111,19 +112,19 @@ main { overflow-x: clip; }
 .pol__item { display: grid; gap: 4px; align-content: start; }
 .pol__item h3 { font-family: var(--title); font-weight: 600; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; }
 .pol__item p { color: var(--muted); font-size: 14.5px; }
-.pol__prep { margin-top: 26px; max-width: 860px; width: 100%; justify-self: center; padding: 14px 18px; border-radius: 14px; background: #fdeccf; font-size: 14px; }
+.pol__prep { margin-top: 26px; max-width: 860px; width: 100%; justify-self: center; padding: 14px 18px; border-radius: 14px; background: #fff4d1; font-size: 14px; }
 @media (min-width: 700px) { .pol__grid { grid-template-columns: 1fr 1fr; } }
 
-.cta__in { position: relative; overflow: hidden; display: grid; gap: 22px; justify-items: center; text-align: center; padding: clamp(46px, 8vw, 96px) 22px; border-radius: clamp(22px, 3vw, 34px); background: var(--rasp); color: #fff8ef; }
+.cta__in { position: relative; overflow: hidden; display: grid; gap: 22px; justify-items: center; text-align: center; padding: clamp(46px, 8vw, 96px) 22px; border-radius: clamp(22px, 3vw, 34px); background: var(--rasp); color: #ffffff; }
 .cta__in::before, .cta__in::after { content: ""; position: absolute; width: clamp(180px, 26vw, 340px); aspect-ratio: 1; border-radius: 50%; background: repeating-radial-gradient(circle, var(--gold) 0 10px, transparent 10px 24px); opacity: .9; }
 .cta__in::before { left: -8%; bottom: -46%; }
 .cta__in::after { right: -8%; top: -46%; }
 .cta__title { position: relative; z-index: 1; font-family: var(--title); font-weight: 600; font-size: clamp(30px, 5.4vw, 66px); line-height: 1; letter-spacing: -.02em; text-transform: uppercase; max-width: 14em; text-wrap: balance; }
 .cta__btn { position: relative; z-index: 1; background: var(--gold); border-color: var(--gold); color: var(--ink); }
-.cta__btn:hover { background: #fff8ef; border-color: #fff8ef; color: var(--ink); }
+.cta__btn:hover { background: #ffffff; border-color: #ffffff; color: var(--ink); }
 
 .page .script { margin-bottom: 4px; }
-.foot { margin-top: clamp(70px, 10vw, 130px); padding: 52px var(--pad) 40px; background: var(--rasp-deep); color: #fff8ef; }
+.foot { margin-top: clamp(70px, 10vw, 130px); padding: 52px var(--pad) 40px; background: var(--rasp-deep); color: #ffffff; }
 .foot__in { max-width: var(--max); margin: 0 auto; display: grid; gap: 22px; justify-items: center; text-align: center; }
 .foot__logo img { height: clamp(90px, 12vw, 124px); }
 .foot__soc { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 20px; font-weight: 700; font-size: 14px; }
@@ -135,10 +136,10 @@ main { overflow-x: clip; }
 .foot__note a { text-decoration: underline; text-underline-offset: 2px; }
 
 /* the booking steps, in Lyzma's look */
-.jb { --jb-accent: #7a1628; --jb-on-accent: #fff8ef; --jb-soft: #f6e6e2; --jb-line: rgba(58, 28, 22, .2); --jb-muted: #7a605a; --jb-radius: 18px; --jb-title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; }
+.jb { --jb-accent: #e60023; --jb-on-accent: #ffffff; --jb-soft: #fff0f2; --jb-line: rgba(20, 20, 20, .18); --jb-muted: #555555; --jb-radius: 18px; --jb-title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; }
 .jb-title { font-weight: 600; letter-spacing: -.02em; }
-.jb-option, .jb-recap, .jb-card { background: #fffdf8; }
-.jb-option.is-on, .jb-acc.is-open { background: #f6e6e2; }
+.jb-option, .jb-recap, .jb-card { background: #ffffff; }
+.jb-option.is-on, .jb-acc.is-open { background: #fff0f2; }
 .jb-option__price, .jb-recap__total dd, .jb-acc__facts dd { font-family: var(--title); }
 .jb-time.is-on, .jb-cal__day.is-on { background: var(--rasp); border-color: var(--rasp); color: #fff; }
 .jb-steps__item.is-current .jb-steps__n, .jb-steps__item.is-done .jb-steps__n { background: var(--gold); border-color: var(--gold); color: var(--ink); }
