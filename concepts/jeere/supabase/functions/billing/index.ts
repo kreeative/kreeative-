@@ -236,7 +236,8 @@ async function applySubscription(sub: Obj) {
     if (!st || st.owner !== userId) return;
     const patch = (p: Obj) => admin('stores?id=eq.' + storeId, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(p) });
     // paid: the launch offer's end date no longer applies
-    if (live) await patch({ plan, plan_until: null, plan_promo: st.plan_promo ? String(st.plan_promo).replace(/-fini$/, '') + '-fini' : null });
+    // a store taken offline at the end of its free month (« …-coupe ») comes back online with the card
+    if (live) await patch({ plan, plan_until: null, plan_promo: st.plan_promo ? String(st.plan_promo).replace(/-(fini|coupe)$/, '') + '-fini' : null, ...(/-coupe$/.test(String(st.plan_promo ?? '')) ? { published: true } : {}) });
     else if (st.plan === plan && !st.plan_promo?.toString().match(/^(lancement|essai)$/)) await patch({ plan: 'gratuit' });
     return;
   }
@@ -425,10 +426,15 @@ Deno.serve(async (req: Request) => {
     // a boutique plan is bought for ONE store of hers
     const storeId = str(b.storeId, 40);
     let storeName = '';
+    // the free month (after a model): her card now, nothing charged before its end (Stripe trial up to plan_until)
+    let trialEnd = 0;
     if (kind === 'boutique') {
-      const st = UUID.test(storeId) ? (await rows('stores?select=id,owner,slug,fiche&id=eq.' + storeId))[0] : null;
+      const st = UUID.test(storeId) ? (await rows('stores?select=id,owner,slug,fiche,plan_until,plan_promo&id=eq.' + storeId))[0] : null;
       if (!st || st.owner !== user.id) return fail(400, 'store', 'Choisissez la boutique à abonner : un abonnement vaut pour une boutique.');
       storeName = str(isObj(st.fiche) && isObj((st.fiche as Obj).store) ? ((st.fiche as Obj).store as Obj).name : '', 40) || String(st.slug);
+      const until = Date.parse(String(st.plan_until ?? ''));
+      // Stripe wants a trial end at least 48 hours ahead; closer than that, the plan simply starts now
+      if ((st.plan_promo === 'essai' || st.plan_promo === 'lancement') && until - Date.now() > 49 * 3600e3) trialEnd = Math.floor(until / 1000);
     }
     let amount = 0, interval = 'month', label = '', period = '';
     if (kind === 'studio') {
@@ -461,12 +467,13 @@ Deno.serve(async (req: Request) => {
     const session = await checkout({
       mode: 'subscription', customer, locale: 'fr', client_reference_id: user.id,
       line_items: [{ quantity: 1, price_data: { currency: cur, unit_amount: amount, recurring: { interval }, product_data: { name: label } } }],
-      subscription_data: { metadata: meta, description: label },
+      subscription_data: { metadata: meta, description: label, ...(trialEnd ? { trial_end: trialEnd } : {}) },
+      ...(trialEnd ? { payment_method_collection: 'always' } : {}),
       metadata: meta, allow_promotion_codes: true,
       success_url: withParam(back, 'abonnement=ok'), cancel_url: withParam(back, 'abonnement=annule')
     }, cur);
     if (!session.ok) return fail(502, 'stripe', stripeError(session.data));
-    return json({ ok: true, url: session.data.url, amount, currency: cur, label });
+    return json({ ok: true, url: session.data.url, amount, currency: cur, label, trial: !!trialEnd });
   }
 
   if (action === 'portal') {
