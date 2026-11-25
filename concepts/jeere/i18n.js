@@ -34,7 +34,7 @@ window.JEERE_EN = {
 
   'hero.title': 'Create your online store',
   'hero.lead': 'Jehre is the all-in-one platform to build, run and grow your business, online and in person. Get paid by Wave, Orange Money, MTN MoMo or cash on delivery, with prices in FCFA.',
-  'hero.cardSub': 'First month free on the Essentiel pack.',
+  'hero.cardSub': 'First month free with a template.',
   'hero.consent': 'By continuing, you agree to receive WhatsApp messages from Jehre.',
   'hero.phonePh': 'Your WhatsApp number',
   'hero.go': 'Continue',
