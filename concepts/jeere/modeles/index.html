@@ -29,35 +29,64 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/rainbow.css">
   <style>
+    /* the same viewer as inside the dashboard (app-react ModelViewer): a quiet bar on light grey, then the designer's
+       real site in a frame with its outline, « Exemple de mise en page » in its corner */
     *, *::before, *::after { box-sizing: border-box; }
     html, body { height: 100%; }
-    body { margin: 0; display: flex; flex-direction: column; background: #F5F5F3; color: #111111; font: 400 15px/1.4 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); background: #F5F5F3; color: #111111; font: 400 14px/1.4 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; }
+    body[data-full] { grid-template-rows: minmax(0, 1fr); background: #FFFFFF; }
     a { color: inherit; text-decoration: none; }
-    .mv-bar { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 16px; padding-top: calc(10px + env(safe-area-inset-top)); background: #FFFFFF; border-bottom: 1px solid rgba(17, 17, 17, .12); }
-    .mv-logo { flex: none; display: inline-flex; }
-    .mv-logo svg { height: 30px; width: auto; display: block; }
-    .mv-name { flex: 1; min-width: 0; display: grid; }
-    .mv-name b { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mv-name span { color: #5E5E5E; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mv-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px; border-radius: 12px; font-weight: 600; font-size: 14px; white-space: nowrap; }
-    .mv-all { color: #3D3D3D; font-weight: 500; }
-    .mv-all:hover { background: #F5F5F3; }
-    .mv-frame { flex: 1; min-height: 0; width: 100%; border: 0; background: #FFFFFF; }
-    @media (max-width: 560px) { .mv-all { display: none; } .mv-bar { padding-left: 12px; padding-right: 12px; gap: 10px; } .mv-btn { padding: 0 12px; } }
+    .mv-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; width: min(1280px, 100%); margin: 0 auto; padding: 12px 16px 8px; padding-top: calc(12px + env(safe-area-inset-top)); }
+    .mv-bar > :first-child { justify-self: start; }
+    .mv-bar > :last-child { justify-self: end; }
+    body[data-full] .mv-bar { display: none; }
+    .mv-sizes { display: flex; gap: 4px; }
+    .mv-icon { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: none; color: #111111; cursor: pointer; transition: background-color .18s ease, transform .18s ease; }
+    .mv-icon:hover { background: #EBEBE8; }
+    .mv-icon:active { transform: scale(.94); }
+    .mv-icon[aria-pressed="true"] { background: #FFFFFF; box-shadow: 0 0 0 1px rgba(17, 17, 17, .12); }
+    .mv-icon svg { width: 18px; height: 18px; display: block; }
+    .mv-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 16px; border-radius: 12px; background: #FFFFFF; color: #111111; box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .22); font: 500 14px/1 'Poppins', system-ui, sans-serif; white-space: nowrap; transition: background-color .18s ease; }
+    .mv-btn:hover { background: #F5F5F3; }
+    .mv-stage { min-width: 0; min-height: 0; width: min(1280px, 100%); margin: 0 auto; padding: 8px 16px 0; display: grid; place-items: start center; overflow: hidden; }
+    body[data-full] .mv-stage { width: 100%; padding: 0; }
+    .mv-box { position: relative; overflow: hidden; background: #FFFFFF; border-radius: 18px 18px 0 0; box-shadow: 0 0 0 1px rgba(17, 17, 17, .12), 0 18px 48px -24px rgba(17, 17, 17, .28); transition: width .28s ease, border-radius .28s ease; }
+    .mv-box[data-device="phone"] { border-radius: 28px; box-shadow: 0 0 0 1px rgba(17, 17, 17, .12), 0 24px 60px -24px rgba(17, 17, 17, .35); }
+    body[data-full] .mv-box { width: 100% !important; height: 100% !important; border-radius: 0; box-shadow: none; }
+    .mv-box iframe { display: block; border: 0; background: #FFFFFF; transform-origin: 0 0; }
+    body[data-full] .mv-box iframe { width: 100% !important; height: 100% !important; transform: none !important; }
+    .mv-example { position: absolute; z-index: 2; left: 10px; top: 10px; display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(255, 255, 255, .82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); box-shadow: 0 0 0 1px rgba(17, 17, 17, .08), 0 4px 12px -6px rgba(17, 17, 17, .3); color: #111111; font: 500 11.5px/1 'Poppins', system-ui, sans-serif; pointer-events: none; }
+    .mv-leave { position: fixed; z-index: 3; top: 12px; right: 12px; display: none; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: #FFFFFF; color: #111111; box-shadow: 0 0 0 1px rgba(17, 17, 17, .12), 0 6px 18px rgba(17, 17, 17, .16); cursor: pointer; }
+    .mv-leave svg { width: 18px; height: 18px; display: block; }
+    body[data-full] .mv-leave { display: grid; }
+    @media (max-width: 820px) {
+      .mv-bar { padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top)); }
+      .mv-stage { padding: 8px 12px 0; }
+      .mv-box[data-device="phone"] { border-radius: 20px 20px 0 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .mv-box { transition: none; } }
+    .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   </style>
 </head>
 <body>
+  <h1 class="vh" id="mv-title">Modèle</h1>
   <header class="mv-bar">
-    <a class="mv-logo" href="/admin/" aria-label="Jehre, tableau de bord">
-      <svg viewBox="0 0 600 446" role="img" aria-label="Jehre"><use href="#cloud"/></svg>
-    </a>
-    <p class="mv-name" style="margin:0"><b id="mv-title">Modèle</b><span id="mv-kind"></span></p>
-    <a class="mv-btn mv-all" href="/admin/#boutique">Tous les modèles</a>
-    <a class="mv-btn jr-rainbow" id="mv-choose" href="/admin/#boutique">Choisir ce modèle</a>
+    <a class="mv-icon" id="mv-back" href="/admin/#boutique" aria-label="Retour aux modèles"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><path d="M19 12H5M11 6l-6 6 6 6"/></g></svg></a>
+    <div class="mv-sizes" role="group" id="mv-sizes" aria-label="Modèle">
+      <button type="button" class="mv-icon" data-device="desktop" aria-pressed="true" aria-label="Ordinateur"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><path d="M2.5 10C2.5 5.12 4.88 3.5 12 3.5C19.12 3.5 21.5 5.12 21.5 10C21.5 14.88 19.12 16.5 12 16.5C4.88 16.5 2.5 14.88 2.5 10Z"/><path d="M12 16.5V20M8 20.5h8"/></g></svg></button>
+      <button type="button" class="mv-icon" data-device="phone" aria-pressed="false" aria-label="Téléphone"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><path d="M6 12C6 4.88 7.5 2.5 12 2.5C16.5 2.5 18 4.88 18 12C18 19.12 16.5 21.5 12 21.5C7.5 21.5 6 19.12 6 12Z"/><path d="M11 18.5h2"/></g></svg></button>
+      <button type="button" class="mv-icon" id="mv-full" aria-label="Plein écran"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></g></svg></button>
+    </div>
+    <a class="mv-btn" id="mv-choose" href="/admin/#boutique">Choisir ce modèle</a>
   </header>
-  <iframe class="mv-frame" id="mv-frame" title="Aperçu du modèle"></iframe>
+  <button type="button" class="mv-leave" id="mv-leave" aria-label="Quitter le plein écran"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><path d="M19 11h-6V5"/><path d="M13 11l7-7"/><path d="M5 13h6v6"/><path d="M11 13l-7 7"/></g></svg></button>
+  <div class="mv-stage" id="mv-stage">
+    <div class="mv-box" id="mv-box" data-device="desktop">
+      <span class="mv-example" aria-hidden="true">Exemple de mise en page</span>
+      <iframe id="mv-frame" title="Aperçu du modèle"></iframe>
+    </div>
+  </div>
 
   <script src="/creer/models.js"></script>
   <script>
@@ -70,7 +99,7 @@
       var name = (m && m.name) || slug.toUpperCase();
       document.title = 'Modèle ' + name + ' · Jehre';
       document.getElementById('mv-title').textContent = 'Modèle ' + name;
-      if (m && m.kind) document.getElementById('mv-kind').textContent = m.kind;
+      document.getElementById('mv-sizes').setAttribute('aria-label', 'Modèle ' + name + (m && m.kind ? ' · ' + m.kind : ''));
       // choosing it needs her account: the dashboard when she is in, else the account page (which brings her back)
       document.getElementById('mv-choose').href = open ? '/admin/#boutique/modele/' + slug : '/compte/?suite=modele&m=' + slug + (window.JEHRE_KNOWN ? '#connexion' : '#inscription');
       // a model she already has (bought, or her own store under the model's name): no « Choisir », her site instead
@@ -88,16 +117,37 @@
           b.href = '/admin/#boutique';
         });
       })();
-      if (!open) { document.querySelector('.mv-all').href = '/#modeles'; document.querySelector('.mv-logo').href = '/'; document.querySelector('.mv-logo').setAttribute('aria-label', 'Jehre, accueil'); }
-      document.getElementById('mv-frame').src = '/modeles/voir/' + slug + '/';
-      // the logo, the same drawing as everywhere (taken from the account page's sprite)
-      fetch('/compte/index.html').then(function (r) { return r.text(); }).then(function (t) {
-        var s = /<symbol id="cloud"[\s\S]*?<\/symbol>/.exec(t);
-        if (!s) return;
-        var d = document.createElement('div');
-        d.innerHTML = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + s[0] + '</svg>';
-        document.body.insertBefore(d.firstChild, document.body.firstChild);
-      }).catch(function () { /* the bar works without the mark */ });
+      if (!open) { var back = document.getElementById('mv-back'); back.href = '/#modeles'; back.setAttribute('aria-label', 'Retour à l’accueil de Jehre'); }
+      var frame = document.getElementById('mv-frame');
+      frame.title = 'Modèle ' + name;
+      frame.src = '/modeles/voir/' + slug + '/';
+
+      // the sizes: the site at its real width (1280 or 390), scaled down to fit, as in the dashboard
+      var WIDTH = { desktop: 1280, phone: 390 };
+      var box = document.getElementById('mv-box'), stage = document.getElementById('mv-stage');
+      var device = window.matchMedia('(max-width: 820px)').matches ? 'phone' : 'desktop';
+      function fit() {
+        if (document.body.hasAttribute('data-full')) return;
+        var c = getComputedStyle(stage);
+        var w = Math.max(240, stage.clientWidth - parseFloat(c.paddingLeft) - parseFloat(c.paddingRight));
+        var h = Math.max(320, stage.clientHeight - parseFloat(c.paddingTop));
+        var scale = Math.min(1, w / WIDTH[device]);
+        box.dataset.device = device;
+        box.style.width = Math.round(WIDTH[device] * scale) + 'px';
+        box.style.height = h + 'px';
+        frame.width = WIDTH[device];
+        frame.height = Math.round(h / scale);
+        frame.style.width = WIDTH[device] + 'px';
+        frame.style.height = Math.round(h / scale) + 'px';
+        frame.style.transform = 'scale(' + scale + ')';
+        document.querySelectorAll('[data-device]').forEach(function (x) { if (x.tagName === 'BUTTON') x.setAttribute('aria-pressed', String(x.dataset.device === device)); });
+      }
+      document.querySelectorAll('button[data-device]').forEach(function (x) { x.addEventListener('click', function () { device = x.dataset.device; fit(); }); });
+      document.getElementById('mv-full').addEventListener('click', function () { document.body.setAttribute('data-full', ''); });
+      document.getElementById('mv-leave').addEventListener('click', function () { document.body.removeAttribute('data-full'); fit(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.body.hasAttribute('data-full')) { document.body.removeAttribute('data-full'); fit(); } });
+      if (window.ResizeObserver) new ResizeObserver(fit).observe(stage); else window.addEventListener('resize', fit);
+      fit();
     })();
   </script>
 </body>
