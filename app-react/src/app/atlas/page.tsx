@@ -230,6 +230,17 @@ function Accounts({ role, me, onToast }: { role: AtlasRole; me: string; onToast:
     return true;
   }), [data, q, f]);
   if (!data) return <Loading error={error} retry={reload} />;
+  // Her dashboard as she sees it, in a new tab of its own (src/lib/mirror.ts): read only; an admin may switch editing on there
+  async function mirror(a: AtlasAccount) {
+    const w = window.open('about:blank', '_blank');
+    setBusy(`m${a.id}`);
+    const r = await atlas<{ tokenHash: string; email: string; name: string; canEdit: boolean }>('mirror', { userId: a.id });
+    setBusy('');
+    if (!r.ok) { w?.close(); onToast(r.message); return; }
+    const h = new URLSearchParams({ miroir: r.tokenHash, m: r.email, n: r.name || a.firstName || '', e: r.canEdit ? '1' : '0' });
+    const url = `${window.location.origin}/admin/#${h.toString()}`;
+    if (w) { w.opener = null; w.location.href = url; } else window.location.href = url;
+  }
   async function act(key: string, action: string, body: Record<string, unknown>, ok: string) {
     setBusy(key);
     const r = await atlas(action, body);
@@ -267,6 +278,7 @@ function Accounts({ role, me, onToast }: { role: AtlasRole; me: string; onToast:
                   {a.purchases.length ? <p className={styles.muted}>Achats : {a.purchases.map((p) => `${p.model} (${money(p.amount, p.currency || 'XOF')}${p.method === 'interac' ? ' par Interac' : ''}, ${day(p.at)})`).join(' · ')}</p> : null}
                   {interac === a.id ? <InteracForm account={a} onToast={onToast} onDone={() => { setInterac(null); reload(); }} /> : null}
                   <div className={styles.acts}>
+                    {can(role, 'support') && a.email.toLowerCase() !== me && !a.suspended ? <Button variant="secondary" icon="eye" busy={busy === `m${a.id}`} onClick={() => void mirror(a)}>Voir son compte</Button> : null}
                     {can(role, 'admin') && interac !== a.id ? <Button variant="secondary" icon="wallet" onClick={() => setInterac(a.id)}>Enregistrer un paiement Interac</Button> : null}
                     {can(role, 'support') ? <Button variant="secondary" icon="lock" busy={busy === `r${a.id}`} onClick={() => void act(`r${a.id}`, 'reset', { email: a.email }, `Lien de mot de passe envoyé à ${a.email}.`)}>Envoyer un lien de mot de passe</Button> : null}
                     {can(role, 'admin') && a.email.toLowerCase() !== me ? (a.suspended

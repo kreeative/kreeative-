@@ -13,7 +13,7 @@ import { useOrders } from '@/components/admin/useOrders';
 import { ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { money, plural, when } from '@/lib/format';
-import { modelBySlug } from '@/lib/models';
+import { modelBySlug, isBooking } from '@/lib/models';
 import { productsOf, statusLabel, storeName, storeUrl, zonesOf } from '@/lib/stores';
 import styles from './admin.module.css';
 import iphoneFrame from './iphone-18-pro-silver.webp';
@@ -64,7 +64,7 @@ function AdminHome() {
   // « Premiers pas »: every step ticks itself from what is really set in her store; each one opens where it is done
   const st = (store.fiche.store ?? {}) as Record<string, unknown>;
   const pay = (st.pay ?? {}) as Record<string, unknown>;
-  const booking = !!modelBySlug(model)?.rdv;
+  const booking = isBooking(store.slug, model);
   const site = (st.site ?? {}) as Record<string, Record<string, unknown> | undefined>;
   const cats = new Set(products.map((p) => String(p.category ?? '').trim()).filter(Boolean));
   const linked = Object.keys(site.q ?? {}).length > 0 || Object.values({ ...(site.k ?? {}), ...(site.l ?? {}) }).some((v) => typeof v === 'string' && (v.startsWith('c:') || v.includes('#')));

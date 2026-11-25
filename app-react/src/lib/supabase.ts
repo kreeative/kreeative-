@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { installMirror } from './mirror';
 
 /* The same Supabase project as the current site, with its publishable key (safe in a browser: the rules of each
    table decide what a visitor may read). The session is kept where supabase-js already keeps it for the current
@@ -10,6 +11,8 @@ let client: SupabaseClient | null = null;
 
 export function supabase(): SupabaseClient {
   if (!client) {
+    // a tab Atlas opened on a client's account keeps her session apart and writes nothing (./mirror.ts)
+    installMirror(SUPABASE_URL);
     client = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
     });

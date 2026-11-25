@@ -7,7 +7,7 @@ import { useAdmin } from '@/components/admin/AdminContext';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { useOrders } from '@/components/admin/useOrders';
 import { Icon } from '@/components/ui/Icon';
-import { modelBySlug } from '@/lib/models';
+import { modelBySlug, isBooking } from '@/lib/models';
 import { BookingClients } from './BookingClients';
 import { money, plural, waLink, when } from '@/lib/format';
 import styles from '../admin.module.css';
@@ -42,7 +42,7 @@ function ClientsPage() {
   }, [orders]);
 
   // a booking store: her clients come from her appointments
-  if (store && modelBySlug(model)?.rdv) return <BookingClients storeId={store.id} />;
+  if (store && isBooking(store.slug, model)) return <BookingClients storeId={store.id} />;
   if (!store) return (<><PageHead title="Clients" /><Empty icon="users" title="Pas encore de boutique">Vos clientes apparaîtront ici après leurs premières commandes.</Empty></>);
 
   return (

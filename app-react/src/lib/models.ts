@@ -231,11 +231,15 @@ export function readSiteMap(data: unknown): SiteMap | null {
 }
 
 /** Sites drawn for one client (not a model on sale): edited the same way, found by the store's own address. */
-export const CLIENT_SITES: Record<string, { name: string; url: string }> = {
+/** `rdv`: a booking business (appointments and services in the dashboard, like REGARD, VERNIE, MINUIT). */
+export const CLIENT_SITES: Record<string, { name: string; url: string; rdv?: boolean }> = {
   'joshua-cooker': { name: 'Joshua Cooker', url: 'https://kreeative.xyz/concepts/joshua-cooker/' },
   'sonia-luxury-hair': { name: 'Sonia Luxury Hair', url: 'https://kreeative.xyz/concepts/sonia-luxury-hair/' },
-  lyzma: { name: 'La dame aux perles', url: 'https://kreeative.xyz/concepts/lyzma/' },
+  lyzma: { name: 'La dame aux perles', url: 'https://kreeative.xyz/concepts/lyzma/', rdv: true },
 };
+
+/** A booking business: its model takes appointments, or the site drawn for this store does. */
+export const isBooking = (storeSlug: string | undefined, model: string): boolean => !!modelBySlug(model)?.rdv || !!(storeSlug && CLIENT_SITES[storeSlug]?.rdv);
 
 /** What the editor opens for a store: the client's own site, else the model in use; null when she has neither.
  *  `key` is the name the site answers to in the conversation with the editor. */

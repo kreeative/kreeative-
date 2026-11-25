@@ -1,0 +1,18 @@
+/* The mirror's bar: a small white card at the top of the screen, above everything, that never moves the page.
+   Editing switched on: the card turns to the attention colour. */
+.bar { position: fixed; z-index: 95; top: calc(8px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-3);
+  max-width: calc(100vw - 16px); padding: 6px 6px 6px 14px; border-radius: var(--r-pill); background: var(--white); color: var(--ink); font-size: var(--fs-sm); line-height: var(--lh-xs);
+  box-shadow: 0 0 0 1px var(--line), 0 10px 28px rgba(17, 17, 17, .16); }
+.bar[data-edit] { background: var(--warn-bg); color: var(--warn-ink); }
+.who { display: grid; min-width: 0; }
+.who b { font-weight: var(--w-title); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who small { font-size: var(--fs-xs); color: var(--muted); }
+.bar[data-edit] .who small { color: var(--warn-ink); }
+.btn { flex: none; height: 30px; padding: 0 12px; border: 0; border-radius: var(--r-pill); background: var(--grey-1); color: var(--ink); font: var(--w-ui) var(--fs-sm)/1 var(--font); cursor: pointer; }
+.btn:hover { background: var(--grey-2); }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.who small { white-space: nowrap; }
+/* a phone: above the bar of the menu, so the top of the dashboard (her store, the account) stays visible */
+@media (max-width: 699px) {
+  .bar { top: auto; bottom: calc(96px + env(safe-area-inset-bottom)); }
+}

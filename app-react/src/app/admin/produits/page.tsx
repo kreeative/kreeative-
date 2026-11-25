@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, ty
 import { TisheProducts } from '@/components/tishe/TisheProducts';
 import { useAdmin } from '@/components/admin/AdminContext';
 import { zprice, useZone } from '@/lib/zone';
-import { SHOP_OPTION_CAD, SHOP_OPTION_PRICE, buyShopOption, modelBySlug, shopOptionStores } from '@/lib/models';
+import { SHOP_OPTION_CAD, SHOP_OPTION_PRICE, buyShopOption, modelBySlug, shopOptionStores, isBooking } from '@/lib/models';
 import { Empty, PageHead } from '@/components/admin/AdminShell';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
@@ -41,7 +41,7 @@ function ProductsPage() {
   const z = useZone();
   const { account, store, replaceStore, reload, model } = useAdmin();
   // a booking site sells products only with the option (+25 000 F), bought for this store
-  const booking = !!modelBySlug(model)?.rdv;
+  const booking = isBooking(store?.slug, model);
   const [optionOk, setOptionOk] = useState<boolean | null>(null);
   const [optBusy, setOptBusy] = useState(false);
   const [optError, setOptError] = useState('');

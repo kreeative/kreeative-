@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon, Logo, type IconName } from '@/components/ui/Icon';
 import { signOut } from '@/lib/account';
-import { modelBySlug } from '@/lib/models';
+import { modelBySlug, isBooking } from '@/lib/models';
 import { storeName, storeUrl } from '@/lib/stores';
 import { useAdmin } from './AdminContext';
 import { TISHE } from '@/lib/tishe';
@@ -67,7 +67,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const { account, stores, store, selectStore, model, tishe } = useAdmin();
   const [founder, setFounder] = useState(false);
   useEffect(() => { let on = true; void sitesEditor(account.userId).then((x) => { if (on) setFounder(x); }); return () => { on = false; }; }, [account.userId]);
-  const NAV = useMemo(() => { const base = tishe.on ? TISHE_NAV : modelBySlug(model)?.rdv ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP; return founder ? [...base, MY_SITES] : base; }, [model, tishe.on, founder]);
+  const NAV = useMemo(() => { const base = tishe.on ? TISHE_NAV : isBooking(store?.slug, model) ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP; return founder ? [...base, MY_SITES] : base; }, [model, store?.slug, tishe.on, founder]);
   // the stores of the switcher: hers, then The Ivory Sukundu for the founder and its partners
   const picks = [...stores.map((s) => ({ id: s.id, name: storeName(s) })), ...(tishe.allowed ? [{ id: 'ext:tishe', name: TISHE.name }] : [])];
   const pickId = tishe.on ? 'ext:tishe' : store?.id ?? '';

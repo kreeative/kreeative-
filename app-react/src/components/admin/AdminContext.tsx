@@ -6,6 +6,9 @@ import { completeLogin, readAccount, type Account } from '@/lib/account';
 import { currentUser, emailVerified, hasPassword } from '@/lib/auth';
 import { createStore, listStores, type Store } from '@/lib/stores';
 import { tisheAllowed, tisheEnter, tisheLeave, tisheOn, tisheRedeem } from '@/lib/tishe';
+import { endMirror } from '@/lib/mirror';
+import { mirrorSignIn } from '@/lib/mirrorSession';
+import { MirrorBar } from './MirrorBar';
 
 /* What every page of the dashboard needs: who is logged in, her stores, the one she is looking at. A visitor
    without a session is sent to the account page and comes back here after logging in. */
@@ -53,10 +56,14 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
 
   const made = useRef(false);
   const load = useCallback(async () => {
+    // a tab Atlas opened on a client's account: her session, kept apart, read only (../../lib/mirror.ts)
+    const mirror = await mirrorSignIn();
+    if (mirror === false) { window.alert('Ce lien de miroir a expiré. Rouvrez le compte depuis Atlas.'); endMirror(); return; }
     const user = await currentUser();
     if (!user) { window.location.replace(loginUrl()); return; }
-    // every account has a verified e-mail and a password: the account page asks for what is missing
-    if (!emailVerified(user) || !hasPassword(user)) { window.location.replace('/compte/'); return; }
+    // every account has a verified e-mail and a password: the account page asks for what is missing (not in a mirror:
+    // the page is hers to see as it is)
+    if (!mirror && (!emailVerified(user) || !hasPassword(user))) { window.location.replace('/compte/'); return; }
     const acc = await completeLogin(user).catch(() => readAccount());
     if (!acc) { window.location.replace(loginUrl()); return; }
     let [list, owned] = await Promise.all([listStores(user.id), myModels()]);
@@ -106,6 +113,6 @@ export function AdminProvider({ children, fallback }: { children: ReactNode; fal
     };
   }, [account, stores, currentId, load, models, ext, tisheOk, redeemError]);
 
-  if (!ready || !value) return <>{fallback}</>;
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  if (!ready || !value) return <><MirrorBar />{fallback}</>;
+  return <Ctx.Provider value={value}><MirrorBar />{children}</Ctx.Provider>;
 }
