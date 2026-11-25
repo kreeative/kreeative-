@@ -48,6 +48,7 @@
   var REG = 'jeere-projects';
   var SLOT = 'jeere-project:';
   var NOTICE = 'jeere-projects-notice';
+  var HANDED = 'jeere-projects-handed';   // the handed stores already opened once on this device
   var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   var ROLES = ['owner', 'agency', 'editor'];
   var STATUSES = ['proposition', 'en_cours', 'livre'];
@@ -283,6 +284,20 @@
     } else if (!reg.current && reg.list.length && !lsGet(K_CONFIG)) {
       // a new device: open her most recent project
       chain = switchTo(reg.list[0].id, { noStash: true });
+    } else {
+      // a store handed to her (she owns it now, an agency made it) while she looks at a trial store of this
+      // browser only: the handed store opens, once; the trial store stays in her list
+      var cur = get(reg.current, reg);
+      var seen = parse(lsGet(HANDED));
+      seen = Array.isArray(seen) ? seen : [];
+      var handed = (!cur || !cur.remote) && reg.list.filter(function (e) {
+        return e.remote && e.role === 'owner' && (e.handoff === 'entretien' || e.handoff === 'remis') && seen.indexOf(e.id) < 0;
+      })[0];
+      if (handed) {
+        seen.push(handed.id);
+        lsSet(HANDED, JSON.stringify(seen.slice(-20)));
+        chain = switchTo(handed.id, { noStash: !reg.current });
+      }
     }
     return chain.then(function () {
       var now = ensure();
