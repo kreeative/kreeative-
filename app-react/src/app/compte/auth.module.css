@@ -107,3 +107,9 @@
 @keyframes halo { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .page::before { animation: none; } }
 
+
+/* on a phone and a tablet: the top bar floats (light glass, like the dashboard's), and the form gets room above it */
+@media (max-width: 959px) {
+  .top { position: sticky; top: calc(10px + env(safe-area-inset-top)); z-index: 20; margin: 10px 12px 0; padding: 10px 14px 10px 18px; border-bottom: 0; border-radius: 22px; background: rgba(255, 255, 255, .86); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); box-shadow: var(--glass-hi), 0 0 0 1px var(--glass-line), 0 12px 32px -14px rgba(17, 17, 17, .22); }
+  .main { padding-top: clamp(40px, 8vh, 88px); }
+}
