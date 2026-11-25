@@ -2,7 +2,7 @@
    white (she wants bright, happy colours); her logo in red, or in white on the red; a grotesque with character for the titles. */
 :root { --bg: #ffffff; --ink: #141414; --muted: #555555; --line: rgba(20, 20, 20, .14); --soft: #ffffff; --gold: #ffb400; --gold-2: #ffc83d; --orange: #e60023; --brick: #e60023;
   --rasp: #e60023; --rasp-deep: #c4001d; --blush: #fff0f2;
-  --accent: #e60023; --on-accent: #ffffff; --title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; --script: 'Caveat', 'Bradley Hand', cursive; --body: 'Manrope', system-ui, sans-serif;
+  --accent: #e60023; --on-accent: #ffffff; --title: 'Manrope', system-ui, sans-serif; --script: 'Caveat', 'Bradley Hand', cursive; --body: 'Manrope', system-ui, sans-serif;
   --pill: 999px; --r: 22px; --max: 1140px; --pad: clamp(18px, 4vw, 44px); }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -33,7 +33,8 @@ button { font: inherit; }
 body { font-size: 15.5px; }
 .concept { background: var(--ink); color: #ffffff; font-family: var(--body); }
 .script { font-family: var(--script); font-weight: 700; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; color: var(--rasp); }
-.h1, .h2, .h3 { font-family: var(--title); font-weight: 600; letter-spacing: -.02em; line-height: 1.04; }
+.h1, .h2, .h3 { font-family: var(--title); font-weight: 800; letter-spacing: -.025em; line-height: 1.08; }
+.h1, .h2 { color: var(--rasp); }
 .h1 { font-size: clamp(34px, 5.2vw, 60px); }
 .h2 { font-size: clamp(28px, 3.8vw, 46px); text-wrap: balance; }
 .h3 { font-size: 20px; }
@@ -136,7 +137,7 @@ main { overflow-x: clip; }
 .foot__note a { text-decoration: underline; text-underline-offset: 2px; }
 
 /* the booking steps, in Lyzma's look */
-.jb { --jb-accent: #e60023; --jb-on-accent: #ffffff; --jb-soft: #fff0f2; --jb-line: rgba(20, 20, 20, .18); --jb-muted: #555555; --jb-radius: 18px; --jb-title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; }
+.jb { --jb-accent: #e60023; --jb-on-accent: #ffffff; --jb-soft: #fff0f2; --jb-line: rgba(20, 20, 20, .18); --jb-muted: #555555; --jb-radius: 18px; --jb-title: 'Manrope', system-ui, sans-serif; }
 .jb-title { font-weight: 600; letter-spacing: -.02em; }
 .jb-option, .jb-recap, .jb-card { background: #ffffff; }
 .jb-option.is-on, .jb-acc.is-open { background: #fff0f2; }
