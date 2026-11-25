@@ -144,3 +144,19 @@ const USD = new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'USD' 
 export const cents = (n: number | undefined, cur?: string): string => (cur && cur.toUpperCase() === 'USD' ? USD : CAD).format((Number(n) || 0) / 100);
 export const dollars = (n: number): string => CAD.format(Number(n) || 0);
 export const tisheImg = (u: string | undefined): string => { const s = String(u || ''); return s.startsWith('/') ? TISHE.site + s : s; };
+
+/** The founder (sites-publish « whoami »: her e-mail is an editor of the sites): her websites and the Studio's
+ *  « Mes sites » are hers. Asked once per tab, with the same key as tisheAllowed. */
+export async function sitesEditor(userId: string): Promise<boolean> {
+  if (!userId) return false;
+  try { const c = window.sessionStorage.getItem('jeere-sites-editor'); if (c === `1:${userId}`) return true; if (c === `0:${userId}`) return false; } catch { /* asked below */ }
+  const { data } = await supabase().auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return false;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/sites-publish`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` }, body: JSON.stringify({ action: 'whoami' }) });
+    const yes = !!((await r.json()) as { editor?: boolean })?.editor;
+    try { window.sessionStorage.setItem('jeere-sites-editor', `${yes ? 1 : 0}:${userId}`); } catch { /* asked again next time */ }
+    return yes;
+  } catch { return false; }
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useSwipeDown } from '@/components/ui/useSwipeDown';
+import { sitesEditor } from '@/lib/tishe';
 import { CardGate } from '@/components/admin/CardGate';
 import { cardNeed } from '@/lib/billing';
 import Link from 'next/link';
@@ -17,7 +18,9 @@ import { useAdmin } from './AdminContext';
 import { TISHE } from '@/lib/tishe';
 import styles from './AdminShell.module.css';
 
-interface NavItem { href: string; label: string; icon: IconName; group?: string; more?: boolean }
+interface NavItem { href: string; label: string; icon: IconName; group?: string; more?: boolean; /** a page outside this app (a plain link) */ ext?: boolean }
+// the founder's own websites (kreeative.xyz, Aïssa Kee, client sites), edited in the Studio: for her only
+const MY_SITES: NavItem = { href: '/studio/mes-sites/', label: 'Mes sites', icon: 'pages', group: 'Kreeative', more: true, ext: true };
 // a booking model (REGARD, VERNIE, MINUIT): appointments and services come first, as orders and products do for a shop
 const RDV: NavItem[] = [
   { href: '/admin/', label: 'Accueil', icon: 'home' },
@@ -62,7 +65,9 @@ const TISHE_NAV: NavItem[] = [
 /** The frame of the dashboard: the store and the menu on the left (a bar at the bottom on a phone), the page on the right. */
 export function AdminShell({ children }: { children: ReactNode }) {
   const { account, stores, store, selectStore, model, tishe } = useAdmin();
-  const NAV = useMemo(() => (tishe.on ? TISHE_NAV : modelBySlug(model)?.rdv ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP), [model, tishe.on]);
+  const [founder, setFounder] = useState(false);
+  useEffect(() => { let on = true; void sitesEditor(account.userId).then((x) => { if (on) setFounder(x); }); return () => { on = false; }; }, [account.userId]);
+  const NAV = useMemo(() => { const base = tishe.on ? TISHE_NAV : modelBySlug(model)?.rdv ? [...RDV, ...SHOP.slice(1).map((n) => ({ ...n, more: true }))] : SHOP; return founder ? [...base, MY_SITES] : base; }, [model, tishe.on, founder]);
   // the stores of the switcher: hers, then The Ivory Sukundu for the founder and its partners
   const picks = [...stores.map((s) => ({ id: s.id, name: storeName(s) })), ...(tishe.allowed ? [{ id: 'ext:tishe', name: TISHE.name }] : [])];
   const pickId = tishe.on ? 'ext:tishe' : store?.id ?? '';
@@ -128,7 +133,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             return (
               <Fragment key={n.href}>
                 {n.group ? <p className={styles.group}>{n.group}</p> : null}
-                <Link href={n.href} className={[styles.item, on ? styles.on : '', n.more ? styles.more : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name={n.icon} size={18} /><span>{n.label}</span></Link>
+                {n.ext ? <a href={n.href} className={[styles.item, n.more ? styles.more : ''].join(' ')}><Icon name={n.icon} size={18} /><span>{n.label}</span></a>
+                  : <Link href={n.href} className={[styles.item, on ? styles.on : '', n.more ? styles.more : ''].join(' ')} aria-current={on ? 'page' : undefined}><Icon name={n.icon} size={18} /><span>{n.label}</span></Link>}
               </Fragment>
             );
           })}
@@ -147,7 +153,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <div className={styles.menuScrim} data-leaving={leaving || undefined} onClick={closeMenu} aria-hidden="true" />
             <div className={styles.menu} ref={sheet} role="menu" data-leaving={leaving || undefined} onClick={(e) => { if ((e.target as Element).closest('a, button')) closeMenu(); }}>
               <span className={styles.menuHandle} aria-hidden="true" />
-              {NAV.filter((n) => n.more).map((n) => <Link key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</Link>)}
+              {NAV.filter((n) => n.more).map((n) => (n.ext ? <a key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</a> : <Link key={n.href} role="menuitem" href={n.href} className={styles.moreItem}><Icon name={n.icon} size={18} />{n.label}</Link>))}
               <a role="menuitem" href="/compte/"><Icon name="user" size={18} />Mon compte</a>
               <button role="menuitem" type="button" onClick={() => void logout()}><Icon name="logout" size={18} />Se déconnecter</button>
             </div>

@@ -3153,6 +3153,22 @@ await test('the free month asks for her card first (nothing charged before its e
   await o3.ctx.close();
 });
 
+await test('her own websites (Kreeative, Aïssa Kee…): « Mes sites » opens the Studio, for the founder only', async () => {
+  const { page, ctx, errors } = await open(browser, DESK, world({ founder: true }));
+  await page.goto(`${BASE}/admin/`);
+  const link = page.getByRole('link', { name: 'Mes sites' });
+  await link.waitFor();
+  assert.equal(await link.getAttribute('href'), '/studio/mes-sites/');
+  await page.screenshot({ path: `${SHOTS}195-mes-sites-lien.png` });
+  assert.deepEqual(errors, []); await ctx.close();
+  const o2 = await open(browser, DESK, world());
+  await o2.page.goto(`${BASE}/admin/`);
+  await o2.page.getByRole('link', { name: 'Commandes' }).first().waitFor();
+  await o2.page.waitForTimeout(800);
+  assert.equal(await o2.page.getByRole('link', { name: 'Mes sites' }).count(), 0);
+  await o2.ctx.close();
+});
+
 await browser.close();
 const failed = results.filter((r) => r[0] !== 'ok').length;
 console.log(`\n${results.length - failed} / ${results.length} tests passés`);
