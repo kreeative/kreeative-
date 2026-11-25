@@ -6,6 +6,10 @@
       "dest": "/api/visit"
     },
     {
+      "src": "^/api/geo$",
+      "dest": "/api/geo"
+    },
+    {
       "src": "^/catalogue\\.csv$",
       "has": [
         {
