@@ -1,8 +1,8 @@
-/* LA DAME AUX PERLES (Lyzma) — natural hair, by appointment (Edmundston). Her flyer's palette: raspberry, mango gold,
-   cream paper, cocoa ink; the gold ringed mark with her name in a hand script; a grotesque with character for the titles. */
-:root { --bg: #fcf3ea; --ink: #3a1c16; --muted: #7a605a; --line: rgba(58, 28, 22, .16); --soft: #fff8ef; --gold: #e8a21c; --gold-2: #f4c04c; --orange: #c2305a; --brick: #c2305a;
-  --rasp: #c2305a; --rasp-deep: #8f1f42; --blush: #fbe3e6;
-  --accent: #c2305a; --on-accent: #fff8ef; --title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; --script: 'Caveat', 'Bradley Hand', cursive; --body: 'Manrope', system-ui, sans-serif;
+/* LA DAME AUX PERLES (Lyzma) — natural hair, by appointment (Edmundston). Her flyer's palette: bordeaux and gold on
+   cream paper (the colours of her logo), cocoa ink; her logo in bordeaux; a grotesque with character for the titles. */
+:root { --bg: #fcf3ea; --ink: #3a1c16; --muted: #7a605a; --line: rgba(58, 28, 22, .16); --soft: #fff8ef; --gold: #e8a21c; --gold-2: #f4c04c; --orange: #7a1628; --brick: #7a1628;
+  --rasp: #7a1628; --rasp-deep: #4e0d19; --blush: #f6e6e2;
+  --accent: #7a1628; --on-accent: #fff8ef; --title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; --script: 'Caveat', 'Bradley Hand', cursive; --body: 'Manrope', system-ui, sans-serif;
   --pill: 999px; --r: 22px; --max: 1140px; --pad: clamp(18px, 4vw, 44px); }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -43,14 +43,12 @@ body { font-size: 15.5px; }
 .rings { color: var(--gold); }
 
 .nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px var(--pad); background: rgba(252, 243, 234, .92); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-.logo { display: inline-flex; align-items: center; gap: 8px; }
-.mark { display: block; flex: none; }
-.mark img { display: block; height: 52px; width: auto; }
-.mark__t { font-family: var(--script); font-weight: 700; font-size: 25px; line-height: .9; color: var(--rasp); white-space: nowrap; }
+.logo { display: block; }
+.logo img { display: block; height: 46px; width: auto; }
 .nav__links { display: none; gap: 30px; font-weight: 600; font-size: 14.5px; }
+@media (min-width: 860px) { .nav__links { display: flex; } .logo img { height: 58px; } }
 .nav__links a:hover { color: var(--rasp); }
 .nav__book { min-height: 44px; padding: 8px 22px; }
-@media (min-width: 860px) { .nav__links { display: flex; } .mark img { height: 60px; } .mark__t { font-size: 30px; } }
 
 main { overflow-x: clip; }
 .center { text-align: center; }
@@ -62,7 +60,7 @@ main { overflow-x: clip; }
 .hero__media { position: relative; width: 100%; height: clamp(380px, 46vw, 620px); border-radius: clamp(20px, 2.6vw, 34px); overflow: hidden; background: linear-gradient(90deg, #deb063, #d6a95c); }
 /* the portrait stands whole on the right, its edges melted into the same mustard */
 .hero__media img { position: absolute; top: -3%; right: clamp(-30px, 5vw, 110px); width: auto; height: 124%; max-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 82%, transparent); mask-image: linear-gradient(90deg, transparent, #000 20%, #000 82%, transparent); }
-.hero__rings { position: absolute; left: -7%; top: -30%; width: clamp(240px, 40vw, 560px); aspect-ratio: 1; border-radius: 50%; background: repeating-radial-gradient(circle, transparent 0 22px, rgba(194, 48, 90, .5) 22px 30px); pointer-events: none; }
+.hero__rings { position: absolute; left: -7%; top: -30%; width: clamp(240px, 40vw, 560px); aspect-ratio: 1; border-radius: 50%; background: repeating-radial-gradient(circle, transparent 0 22px, rgba(122, 22, 40, .45) 22px 30px); pointer-events: none; }
 .hero__by { position: absolute; left: 0; right: 0; bottom: clamp(84px, 16.5vw, 236px); font-family: var(--script); font-weight: 700; font-size: clamp(24px, 3vw, 40px); line-height: 1; color: var(--rasp); }
 .hero__title { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; font-size: clamp(120px, 25vw, 360px); line-height: .7; letter-spacing: -.04em; text-transform: uppercase; color: #fff8ef; transform: translateY(13%); }
 .hero__lead { max-width: 34ch; margin-top: 22px; color: var(--muted); font-size: 16.5px; }
@@ -94,7 +92,7 @@ main { overflow-x: clip; }
 .menu { display: grid; gap: 26px; align-items: start; }
 .menu__head { display: grid; gap: 10px; justify-items: start; }
 .menu__head p { color: var(--muted); font-size: 14.5px; max-width: 30ch; }
-.menu__mark { width: 46px; height: auto; margin-top: 8px; }
+.menu__mark { width: 58px; height: auto; margin-top: 8px; }
 @media (min-width: 900px) { .menu { grid-template-columns: .5fr 1.5fr; gap: 50px; } .menu__head { position: sticky; top: 110px; } }
 .jb-menu__cat { font-family: var(--title); font-weight: 600; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; margin: 30px 0 2px; color: var(--brick); }
 .jb-menu__group:first-child .jb-menu__cat { margin-top: 0; }
@@ -133,8 +131,7 @@ main { overflow-x: clip; }
 .page .script { margin-bottom: 4px; }
 .foot { margin-top: clamp(70px, 10vw, 130px); padding: 52px var(--pad) 40px; background: var(--rasp-deep); color: #fff8ef; }
 .foot__in { max-width: var(--max); margin: 0 auto; display: grid; gap: 22px; justify-items: center; text-align: center; }
-.foot__logo .mark img { height: clamp(96px, 14vw, 132px); }
-.foot__logo .mark__t { color: #fff8ef; font-size: clamp(38px, 6vw, 56px); }
+.foot__logo img { height: clamp(90px, 12vw, 124px); }
 .foot__soc { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 20px; font-weight: 700; font-size: 14px; }
 .foot__soc a:hover { color: var(--gold-2); }
 .foot__soc span { color: var(--gold-2); }
@@ -144,10 +141,10 @@ main { overflow-x: clip; }
 .foot__note a { text-decoration: underline; text-underline-offset: 2px; }
 
 /* the booking steps, in Lyzma's look */
-.jb { --jb-accent: #c2305a; --jb-on-accent: #fff8ef; --jb-soft: #fbe3e6; --jb-line: rgba(58, 28, 22, .2); --jb-muted: #7a605a; --jb-radius: 18px; --jb-title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; }
+.jb { --jb-accent: #7a1628; --jb-on-accent: #fff8ef; --jb-soft: #f6e6e2; --jb-line: rgba(58, 28, 22, .2); --jb-muted: #7a605a; --jb-radius: 18px; --jb-title: 'Bricolage Grotesque', 'Arial Narrow', sans-serif; }
 .jb-title { font-weight: 600; letter-spacing: -.02em; }
 .jb-option, .jb-recap, .jb-card { background: #fffdf8; }
-.jb-option.is-on, .jb-acc.is-open { background: #fbe3e6; }
+.jb-option.is-on, .jb-acc.is-open { background: #f6e6e2; }
 .jb-option__price, .jb-recap__total dd, .jb-acc__facts dd { font-family: var(--title); }
 .jb-time.is-on, .jb-cal__day.is-on { background: var(--rasp); border-color: var(--rasp); color: #fff; }
 .jb-steps__item.is-current .jb-steps__n, .jb-steps__item.is-done .jb-steps__n { background: var(--gold); border-color: var(--gold); color: var(--ink); }

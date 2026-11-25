@@ -6,7 +6,7 @@ Construit sur le modèle de réservation de Jehre : `connect/jeere-booking.js` a
 - `index.html` l'accueil · `reserver/` la prise de rendez-vous · `rendez-vous/` gérer un rendez-vous · `mentions-legales/`
 - Prestations, durées, prix (en dollars canadiens), horaires, acompte et conditions : dans Jehre › Rendez-vous,
   boutique « lyzma ». Le site les lit en direct ; le HTML n'en garde qu'une copie de secours.
-- `img/` : sa marque (les anneaux dorés, découpés du visuel de marque), son portrait et des photos Unsplash (licence libre,
+- `img/` : son logo « la dame au perle » (bordeaux, et crème pour le pied de page), son portrait et des photos Unsplash (licence libre,
   crédits dans `img/credits.json` et sur la page des mentions), à remplacer par les photos de ses coiffures.
 
 Aperçu : prestations, prix et photos sont une première proposition, à valider avec elle.
