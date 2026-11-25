@@ -301,7 +301,7 @@
   function isCard(c) { return !!(c && c.parentElement && c.parentElement.querySelectorAll(':scope > [data-jeere-product]').length > 1); }
   // On a seller's own store (not the model's demo), what a card says of the DEMO product goes: the old price, the
   // « -19 % », « noir délavé · xs à xl ». Its label (Nouveau…) follows her product's own.
-  var DEMO_STORES = { michou: 1, seve: 1, soyeuse: 1, anse: 1 };
+  var DEMO_STORES = { michou: 1, seve: 1, soyeuse: 1, anse: 1, regard: 1, vernie: 1, minuit: 1 };
   var BADGE_FR = { 'new': 'Nouveau', best: 'Best-seller', promo: 'Promo' };
   function cleanCards() {
     if (DEMO_STORES[slug] && !inEditor) return;
