@@ -100,7 +100,7 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       if (!A || A.state === 'denied') return json(route, 403, { ok: false, code: 'denied', message: 'Cet espace est réservé à l’équipe Jehre.' });
       if (A.state === 'code') return json(route, 403, { ok: false, code: 'code', message: 'Confirmez avec le code reçu par e-mail.', email: USER.email });
       const RK = { fondatrice: 4, admin: 3, support: 2, lecture: 1 };
-      const need = { suspend: 'admin', plan: 'admin', interac: 'admin', reset: 'support', admin_set: 'fondatrice' }[body.action];
+      const need = { suspend: 'admin', plan: 'admin', interac: 'admin', reset: 'support', mail_list: 'support', mail_get: 'support', mail_send: 'support', admin_set: 'fondatrice' }[body.action];
       if (need && RK[A.role] < RK[need]) return json(route, 403, { ok: false, code: 'role', message: 'Votre rôle ne permet pas cette action.' });
       if (body.action === 'me') return json(route, 200, { ok: true, role: A.role, email: USER.email });
       if (body.action === 'overview') return json(route, 200, { ok: true, accounts: A.accounts.length, newWeek: 1, verified: 2, stores: 2, published: 1, paying: 1, byPlan: { croissance: 1 }, suspended: A.accounts.filter((a) => a.suspended).length, purchases: 1, purchasesAmount: 25000 });
@@ -108,6 +108,11 @@ async function open(browser, viewport, world, { logged = true } = {}) {
       if (body.action === 'suspend') { const a = A.accounts.find((x) => x.id === body.userId); a.suspended = body.on; a.stores.forEach((st) => { st.published = !body.on; }); return json(route, 200, { ok: true }); }
       if (body.action === 'plan') { A.accounts.flatMap((a) => a.stores).find((x) => x.id === body.storeId).plan = body.plan; return json(route, 200, { ok: true }); }
       if (body.action === 'reset') return json(route, 200, { ok: true });
+      if (body.action === 'mail_list') return json(route, 200, { ok: true, more: false, mails: [
+        { id: 'm1', from: 'Awa Koné <awa@exemple.com>', to: ['contact@jehre.com'], subject: 'Question sur ma boutique', at: new Date().toISOString(), read: false },
+        { id: 'm2', from: 'Interac <catch@payments.interac.ca>', to: ['bonjour@jehre.com'], subject: 'Autodeposit', at: ago(30), read: true }] });
+      if (body.action === 'mail_get') return json(route, 200, { ok: true, mail: { id: body.id, from: 'Awa Koné <awa@exemple.com>', to: ['contact@jehre.com'], cc: [], replyTo: [], subject: 'Question sur ma boutique', at: new Date().toISOString(), text: 'Bonjour, comment ajouter un produit ?', html: '<p>Bonjour, comment <b>ajouter un produit</b> ?</p>', messageId: '<abc@mail>', files: [{ name: 'capture.png', url: 'https://example.com/capture.png', size: 20480 }] } });
+      if (body.action === 'mail_send') { (A.sent ??= []).push(body); return json(route, 200, { ok: true }); }
       if (body.action === 'interac') { (A.interac ??= []).push(body); A.accounts.find((x) => x.id === body.userId).purchases.push({ model: body.model, amount: Math.round(body.amount * 100), currency: 'cad', method: 'interac', at: new Date().toISOString(), install: false }); return json(route, 200, { ok: true }); }
       if (body.action === 'admins') return json(route, 200, { ok: true, admins: A.admins });
       if (body.action === 'admin_set') { A.admins = A.admins.filter((x) => x.email !== body.email); if (body.role) A.admins.push({ email: body.email, role: body.role, added_by: USER.email, added_at: new Date().toISOString() }); return json(route, 200, { ok: true }); }
@@ -3070,6 +3075,43 @@ await test('atlas: a model paid by Interac is written by hand and opens for her'
   await o2.page.getByRole('button', { name: /fanta@exemple\.com/ }).click();
   await o2.page.getByRole('button', { name: 'Envoyer un lien de mot de passe' }).waitFor();
   assert.equal(await o2.page.getByRole('button', { name: 'Enregistrer un paiement Interac' }).count(), 0);
+  await o2.ctx.close();
+});
+
+await test('atlas: the mail of @jehre.com is read here and answered from contact@, seen before it leaves', async () => {
+  const w = atlasWorld('support');
+  const { page, ctx, errors } = await open(browser, DESK, w);
+  await page.goto(`${BASE}/atlas/`);
+  await page.getByRole('button', { name: 'Courriels', exact: true }).click();
+  await page.getByText('1 non lus').waitFor();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}187-atlas-courriels.png` });
+  await page.getByRole('button', { name: /Question sur ma boutique/ }).click();
+  await page.getByRole('heading', { name: 'Question sur ma boutique' }).waitFor();
+  assert.match(await page.frameLocator('iframe[title="Contenu du courriel"]').locator('body').innerText(), /ajouter un produit/);
+  await page.getByRole('link', { name: /capture\.png/ }).waitFor();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${SHOTS}188-atlas-courriel.png` });
+  await page.getByRole('button', { name: 'Répondre' }).click();
+  assert.equal(await page.getByLabel('De', { exact: true }).inputValue(), 'contact@jehre.com');
+  assert.equal(await page.getByLabel('À', { exact: true }).inputValue(), 'awa@exemple.com');
+  assert.equal(await page.getByLabel('Objet').inputValue(), 'Re: Question sur ma boutique');
+  await page.getByLabel('Message').fill('Bonjour Awa,\n\nDans Produits, touchez « Ajouter ».\n\nL’équipe Jehre');
+  await page.getByRole('button', { name: 'Voir avant d’envoyer' }).click();
+  assert.match(await page.frameLocator('iframe[title="Aperçu du courriel"]').locator('body').innerText(), /touchez « Ajouter »/);
+  await page.screenshot({ path: `${SHOTS}189-atlas-courriel-apercu.png` });
+  assert.equal((w.atlas.sent ?? []).length, 0, 'nothing leaves before « Envoyer »');
+  await page.getByRole('button', { name: 'Envoyer', exact: true }).click();
+  await page.getByText('Courriel envoyé à awa@exemple.com.').waitFor();
+  const sent = w.atlas.sent[0];
+  assert.equal(sent.from, 'contact'); assert.equal(sent.to, 'awa@exemple.com'); assert.equal(sent.inReplyTo, '<abc@mail>');
+  assert.match(sent.html, /touchez « Ajouter »/);
+  // the test's own start-up scripts also run in the sandboxed mail frames (no storage there): not the page's errors
+  assert.deepEqual(errors.filter((e) => !/sandboxed/.test(e)), []); await ctx.close();
+  const o2 = await open(browser, DESK, atlasWorld('lecture'));
+  await o2.page.goto(`${BASE}/atlas/`);
+  await o2.page.getByRole('heading', { name: 'Vue d’ensemble' }).waitFor();
+  assert.equal(await o2.page.getByRole('button', { name: 'Courriels', exact: true }).count(), 0);
   await o2.ctx.close();
 });
 

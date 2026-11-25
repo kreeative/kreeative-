@@ -16,9 +16,10 @@ import { money } from '@/lib/format';
 import { planOf, PLANS } from '@/lib/billing';
 import { MODELS, SHOP_OPTION, SHOP_OPTION_CAD } from '@/lib/models';
 import styles from './atlas.module.css';
+import { MailTab } from './Mail';
 
-type Tab = 'vue' | 'comptes' | 'boutiques' | 'achats' | 'direct' | 'admins' | 'journal';
-const TABS: [Tab, string][] = [['vue', 'Vue d’ensemble'], ['comptes', 'Comptes'], ['boutiques', 'Boutiques'], ['achats', 'Achats'], ['direct', 'En direct'], ['admins', 'Administrateurs'], ['journal', 'Journal']];
+type Tab = 'vue' | 'comptes' | 'boutiques' | 'achats' | 'courriels' | 'direct' | 'admins' | 'journal';
+const TABS: [Tab, string][] = [['vue', 'Vue d’ensemble'], ['comptes', 'Comptes'], ['boutiques', 'Boutiques'], ['achats', 'Achats'], ['courriels', 'Courriels'], ['direct', 'En direct'], ['admins', 'Administrateurs'], ['journal', 'Journal']];
 const ROLES: AtlasRole[] = ['fondatrice', 'admin', 'support', 'lecture'];
 const PLAN_CHOICES = [{ id: 'gratuit', name: 'Aucune formule' }, ...PLANS.map((p) => ({ id: p.id, name: p.name }))];
 const day = (v?: string | null) => { const d = v ? new Date(v) : null; return d && !isNaN(+d) ? d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; };
@@ -100,7 +101,7 @@ function CodeStep({ email, onDone }: { email: string; onDone: () => void }) {
 function Space({ role, email }: { role: AtlasRole; email: string }) {
   const [tab, setTab] = useState<Tab>('vue');
   const [toast, setToast] = useState('');
-  const shown = TABS.filter(([t]) => t !== 'admins' || can(role, 'support'));
+  const shown = TABS.filter(([t]) => (t !== 'admins' && t !== 'courriels') || can(role, 'support'));
   return (
     <div className={styles.app}>
       <header className={styles.top}>
@@ -117,6 +118,7 @@ function Space({ role, email }: { role: AtlasRole; email: string }) {
         {tab === 'achats' ? <Purchases /> : null}
         {tab === 'direct' ? <Live /> : null}
         {tab === 'admins' ? <Admins role={role} me={email} onToast={setToast} /> : null}
+        {tab === 'courriels' ? <MailTab onToast={setToast} /> : null}
         {tab === 'journal' ? <Journal /> : null}
       </main>
       {toast ? <Toast onDone={() => setToast('')}>{toast}</Toast> : null}
