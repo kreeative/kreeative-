@@ -503,26 +503,28 @@ html:not(.js) .cv__play { display: none; }
 .custom__head { max-width: 640px; }
 .custom__title { font: 400 clamp(24px, 3.6vw, 32px)/1.15 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
 .custom__head .lead { margin-top: 10px; }
-.custom__grid { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 18px; }
-.custom__card { display: grid; border-radius: 22px; overflow: hidden; background: var(--paper); border: 1px solid rgba(17, 17, 17, .08); }
-.custom__shot { display: block; aspect-ratio: 16 / 10; background: var(--grey-2); }
-.custom__shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
-.custom__body { padding: 18px 18px 20px; }
-.custom__name { font: 600 17px/1.2 var(--f-text); }
-.custom__name span { margin-left: 8px; font-weight: 400; font-size: 13px; color: var(--muted); }
-.custom__desc { margin-top: 6px; font-size: 14.5px; color: var(--muted); }
-.custom__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
-.custom__price span { white-space: nowrap; }
-.custom__price s { font-size: 14px; color: var(--muted); text-decoration-thickness: 1.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* the cards, the same as the dashboard's Modèles page: the picture (an example layout), the name, the trade, the
+   price, then « Choisir » and « Voir la démo » side by side */
+.custom__grid { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr)); gap: 20px; }
+@media (min-width: 1240px) { .custom__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.custom__card { display: flex; flex-direction: column; min-width: 0; border-radius: 20px; overflow: hidden; background: rgba(255, 255, 255, .72); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 0 0 1px rgba(17, 17, 17, .08), 0 18px 40px -34px rgba(17, 17, 17, .28); transition: transform .2s ease, box-shadow .2s ease; }
+@media (hover: hover) { .custom__card:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 0 0 1px rgba(17, 17, 17, .08), 0 20px 40px -22px rgba(17, 17, 17, .3); } }
+.custom__shot { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: #F5F5F3; }
+.custom__shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform .5s ease; }
+@media (hover: hover) { .custom__card:hover .custom__shot img { transform: scale(1.02); } }
+.custom__example { position: absolute; z-index: 2; left: 10px; top: 10px; display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(255, 255, 255, .82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); box-shadow: 0 0 0 1px rgba(17, 17, 17, .08), 0 4px 12px -6px rgba(17, 17, 17, .3); color: var(--ink); font: 500 11.5px/1 var(--f-text); pointer-events: none; }
+.custom__body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; padding: 14px 16px 16px; }
+.custom__name { font: 600 15px/1.3 var(--f-text); text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.custom__kind { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.custom__price { margin-top: 6px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.custom__price b { font-weight: 600; color: var(--ink); }
+.custom__price s { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .custom__price s .vh { text-decoration: none; }
-.custom__promo { padding: 2px 8px; border-radius: 999px; background: var(--ink); color: #fff; font: 600 12px/1.5 var(--f-text); font-style: normal; white-space: nowrap; }
-.custom__price b { font: 600 18px/1.2 var(--f-text); color: var(--ink); font-variant-numeric: tabular-nums; }
-.custom__actions { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
-.custom__actions .btn { min-height: 42px; padding: 0 16px; font-size: 14px; }
-.custom__demo { font-size: 14px; text-decoration: none; font-weight: 600; color: var(--ink); }
-@media (min-width: 640px) { .custom__grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1000px) { .custom__grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } .custom__body { padding: 16px; } }
-@media (min-width: 1240px) { .custom__grid { grid-template-columns: repeat(4, 1fr); } }
+.custom__price > span { color: var(--muted); font-size: 13px; }
+.custom__actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; align-items: center; }
+.custom__actions .btn { flex: 1 1 0; min-width: 0; min-height: 40px; height: 40px; padding: 0 10px; font-size: 13px; border-radius: 12px; white-space: nowrap; }
+.btn--line { background: #fff; color: var(--ink); border-color: transparent; box-shadow: inset 0 0 0 1px rgba(17, 17, 17, .22); }
+.btn--line:hover { background: #F5F5F3; }
 
 /* Mini stores in the template preview */
 .mini { padding-top: 34px; animation: fade .35s ease; }
