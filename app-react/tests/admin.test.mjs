@@ -1673,7 +1673,7 @@ await test('subscription: the plan of this store, the five plans with their pric
   await page.getByText('Boutique Test · formule Essentiel').waitFor();
   const plans = await page.locator('main > div > ul > li').evaluateAll((els) => els.map((li) => [li.querySelector('h2').textContent, li.querySelector('p b').textContent.replace(/\s/g, ' '), [...li.querySelectorAll('button')].map((b) => b.textContent)]));
   assert.deepEqual(plans, [['Essentiel', '3 500 FCFA', []], ['Croissance', '7 500 FCFA', ['Choisir Croissance']], ['Pro', '15 000 FCFA', ['Choisir Pro']], ['Business', '30 000 FCFA', ['Choisir Business']], ['Entreprise', '60 000 FCFA', ['Choisir Entreprise']]]);
-  assert.ok((await page.locator('main').innerText()).includes('Jusqu’à 10 commandes par mois'), 'Essentiel: 10 orders');
+  assert.ok((await page.locator('main').innerText()).includes('Jusqu’à 50 commandes par mois'), 'Essentiel: 50 orders');
   assert.equal(await page.getByText('Gratuit', { exact: true }).count(), 0);
   assert.equal(await page.getByText('Votre formule').count(), 1);
   await page.screenshot({ path: `${SHOTS}80-abonnement.png`, fullPage: true });
@@ -2650,18 +2650,18 @@ await test('promo codes, abandoned carts, pickup in the shop, WhatsApp button, t
 });
 
 await test('the orders of the month count against the plan: every order received; a word near and past the limit, never a block', async () => {
-  const w = world(); w.monthOrders = 12; const { page, ctx, errors } = await open(browser, DESK, w);
+  const w = world(); w.monthOrders = 60; const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/`);
-  await page.getByText('12 commandes ce mois-ci, pour 10 dans votre formule. Vos commandes continuent d’arriver.').waitFor();
+  await page.getByText('60 commandes ce mois-ci, pour 50 dans votre formule. Vos commandes continuent d’arriver.').waitFor();
   await page.getByRole('link', { name: 'Passer à Croissance' }).waitFor();
   await page.goto(`${BASE}/admin/abonnement/`); await h1(page, 'Abonnement');
-  await page.getByText('12 / 10 commandes ce mois-ci').waitFor();
+  await page.getByText('60 / 50 commandes ce mois-ci').waitFor();
   await page.getByText('Toutes les commandes reçues par la boutique comptent, quel que soit le paiement.').waitFor();
   await page.screenshot({ path: `${SHOTS}141-commandes-du-mois.png` });
-  w.monthOrders = 8; await page.goto(`${BASE}/admin/`);
-  await page.getByText('8 commandes sur 10 ce mois-ci.').waitFor();
-  w.monthOrders = 3; await page.goto(`${BASE}/admin/`); await page.waitForTimeout(1200);
-  assert.equal(await page.getByText(/commandes sur 10 ce mois-ci/).count(), 0, 'nothing said while far from the limit');
+  w.monthOrders = 42; await page.goto(`${BASE}/admin/`);
+  await page.getByText('42 commandes sur 50 ce mois-ci.').waitFor();
+  w.monthOrders = 10; await page.goto(`${BASE}/admin/`); await page.waitForTimeout(1200);
+  assert.equal(await page.getByText(/commandes sur 50 ce mois-ci/).count(), 0, 'nothing said while far from the limit');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

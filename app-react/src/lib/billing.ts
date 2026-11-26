@@ -9,10 +9,10 @@ export interface Plan { id: string; name: string; month: number; /** outside the
 /** The store plans (the grid of 24 Nov 2026), per month. The server (`billing`) charges its own copy of these prices.
  *  « En direct » comes from the 3rd plan up (Pro). There is no free plan any more. */
 export const PLANS: Plan[] = [
-  { id: 'essentiel', name: 'Essentiel', month: 3500, cad: 900, week: null, orders: 10, fee: 1, forWho: 'Pour vos premières ventes' },
-  { id: 'croissance', name: 'Croissance', month: 7500, cad: 1900, week: null, orders: 30, fee: 0, forWho: 'Pour les vendeurs actifs sur les réseaux', recommended: true },
-  { id: 'pro', name: 'Pro', month: 15000, cad: 3900, week: null, orders: 80, fee: 0, forWho: 'Pour les marques qui grandissent', live: true },
-  { id: 'business', name: 'Business', month: 30000, cad: 7500, week: null, orders: 200, fee: 0, forWho: 'Pour les boutiques installées', live: true },
+  { id: 'essentiel', name: 'Essentiel', month: 3500, cad: 900, week: null, orders: 50, fee: 1, forWho: 'Pour vos premières ventes' },
+  { id: 'croissance', name: 'Croissance', month: 7500, cad: 1900, week: null, orders: 100, fee: 0, forWho: 'Pour les vendeurs actifs sur les réseaux', recommended: true },
+  { id: 'pro', name: 'Pro', month: 15000, cad: 3900, week: null, orders: 250, fee: 0, forWho: 'Pour les marques qui grandissent', live: true },
+  { id: 'business', name: 'Business', month: 30000, cad: 7500, week: null, orders: 600, fee: 0, forWho: 'Pour les boutiques installées', live: true },
   { id: 'entreprise', name: 'Entreprise', month: 60000, cad: 14900, week: null, orders: null, fee: 0, forWho: 'Pour les grandes boutiques', live: true },
 ];
 /** A store with no plan yet (the old free plan, 'gratuit' in the base): she must choose one. */
