@@ -14,6 +14,8 @@
 //   { action: 'interac', userId, model, amount, storeId? } → admin+ · a model paid by Interac (in $ CA): written like a card
 //                                                     purchase (the model opens, and the first month comes with it)
 //   { action: 'reset', email }                      → support+ · the « choose a new password » e-mail
+//   { action: 'mirror', userId }                    → support+ · a one-time sign-in to see her dashboard as she does
+//                                                     (canEdit: admin+, still off until switched on in the mirror tab)
 //   { action: 'admins' } / { action: 'admin_set', email, role | null } → list (all) / change (fondatrice)
 //   { action: 'log' }                               → the last 300 actions
 //   { action: 'live' }                              → who is on jehre.com now, today, this week
@@ -240,6 +242,32 @@ Deno.serve(async (req) => {
     if (!r.ok) return json({ ok: false, message: 'Le lien n’a pas pu être envoyé. Réessayez dans une minute.' }, 500);
     await log(email, 'lien mot de passe', to);
     return json({ ok: true });
+  }
+
+  // The mirror: her dashboard exactly as she sees it, opened in a tab of its own (app-react/src/lib/mirror.ts). The answer
+  // is a one-time sign-in for her account (a magic link's token, never e-mailed); the tab keeps that session apart from
+  // the admin's own and lets nothing be written unless `canEdit` (admin+) and the admin switched editing on there.
+  // An account of the Atlas team is never mirrored: its session would open Atlas with that member's role.
+  if (action === 'mirror') {
+    if (!need('support')) return no();
+    const uid = str(b.userId, 40);
+    if (!UUID.test(uid)) return json({ ok: false, message: 'Compte inconnu.' }, 400);
+    const ur2 = await svc('/auth/v1/admin/users/' + uid);
+    if (!ur2.ok) return json({ ok: false, message: 'Compte introuvable.' }, 404);
+    const target = await ur2.json() as Obj;
+    const to = String(target.email ?? '').toLowerCase();
+    if (!to) return json({ ok: false, message: 'Ce compte n’a pas d’adresse e-mail : il ne peut pas être ouvert ici.' }, 409);
+    if (to === email) return json({ ok: false, message: 'C’est votre propre compte.' }, 400);
+    if ((await rows('jehre_admins?select=email&email=eq.' + encodeURIComponent(to))).length) return json({ ok: false, message: 'Un compte de l’équipe Atlas ne s’ouvre pas en miroir.' }, 403);
+    if (target.banned_until && Date.parse(String(target.banned_until)) > Date.now()) return json({ ok: false, message: 'Ce compte est suspendu : réactivez-le pour l’ouvrir.' }, 409);
+    const gl = await svc('/auth/v1/admin/generate_link', { method: 'POST', body: JSON.stringify({ type: 'magiclink', email: to }) });
+    const g = gl.ok ? await gl.json() as Obj : null;
+    const tokenHash = String((g && (g.hashed_token ?? (isObj(g.properties) ? g.properties.hashed_token : ''))) || '');
+    if (!tokenHash) return json({ ok: false, message: 'Le compte n’a pas pu s’ouvrir. Réessayez.' }, 500);
+    const canEdit = need('admin');
+    await log(email, 'miroir', to, { userId: uid, canEdit });
+    const meta = isObj(target.user_metadata) ? target.user_metadata : {};
+    return json({ ok: true, tokenHash, email: to, name: str(meta.first_name, 40), canEdit });
   }
 
   if (action === 'admins') return json({ ok: true, admins: await rows('jehre_admins?select=email,role,added_by,added_at&order=added_at.asc') });

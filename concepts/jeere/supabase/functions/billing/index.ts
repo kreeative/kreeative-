@@ -47,7 +47,7 @@ const STUDIO: Record<string, { name: string; month: number; year: number }> = {
   agence: { name: 'Studio Agence', month: 79900, year: 54900 }
 };
 // Boutique plans (creer/data.js PLANS): per month, and per week where offered
-// The grid of 24 Nov 2026: per month only (no more weekly), Essentiel for 10 orders up to Entreprise unlimited
+// The grid of 24 Nov 2026: per month only (no more weekly), Essentiel for 50 orders up to Entreprise unlimited
 const BOUTIQUE: Record<string, { name: string; month: number; week: number | null }> = {
   essentiel: { name: 'Jehre Essentiel', month: 3500, week: null },
   croissance: { name: 'Jehre Croissance', month: 7500, week: null },
