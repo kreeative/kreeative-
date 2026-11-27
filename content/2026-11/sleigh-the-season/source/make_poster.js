@@ -2,6 +2,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const OUT = process.argv[2] || '.';
+const PAPER = 'data:image/webp;base64,' + fs.readFileSync(__dirname + '/paper-ticket.webp').toString('base64');
 const RIB = 'data:image/webp;base64,' + fs.readFileSync(__dirname + '/ribbon-band.webp').toString('base64');
 const page = (W, H, c) => `<!doctype html><html><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
@@ -11,11 +12,13 @@ const page = (W, H, c) => `<!doctype html><html><head><meta charset="utf-8">
 html,body{width:${W}px;height:${H}px;overflow:hidden}
 body{background:radial-gradient(120% 90% at 50% 40%,var(--bg) 0%,var(--bg2) 100%);position:relative;font-family:Outfit,sans-serif;color:var(--ink)}
 .snow{position:absolute;inset:0}
-.card{overflow:hidden;position:absolute;left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;background:var(--card);border-radius:30px;box-shadow:0 18px 40px rgba(0,0,0,.28);display:flex}
+.card{overflow:hidden;background:var(--card) url(${PAPER}) center/cover no-repeat !important;position:absolute;left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;background:var(--card);border-radius:30px;box-shadow:0 18px 40px rgba(0,0,0,.28);display:flex}
 .notch{position:absolute;left:${c.stub-26}px;width:52px;height:52px;border-radius:50%;background:var(--bg)}
 .notch.t{top:-26px;background:${c.notchTop}}.notch.b{bottom:-26px;background:${c.notchBot}}
 .perf{position:absolute;left:${c.stub-1.5}px;top:40px;bottom:40px;border-left:3px dashed var(--perf)}
 .rib{position:absolute;left:${c.rx}px;top:${c.ry}px;width:${c.rw}px;mix-blend-mode:multiply;pointer-events:none;z-index:2}
+.card::after{content:'';position:absolute;inset:0;border-radius:30px;box-shadow:inset 0 0 60px rgba(120,90,40,.10);pointer-events:none}
+.main,.stub,.perf{mix-blend-mode:multiply}
 .stub{padding-top:${c.stubTop}px;width:${c.stub}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
 .stub .d{font:500 30px/1 'DM Mono';letter-spacing:.08em;color:var(--red)}
 .stub .n{font:400 ${c.num}px/1 'DM Serif Display';color:var(--ink);margin:8px 0 4px}
