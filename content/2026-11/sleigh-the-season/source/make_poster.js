@@ -75,10 +75,9 @@ h1 em{color:var(--red);font-style:italic;letter-spacing:-.03em}
 <div class="wrap"><div class="card">
  <span class="crease"></span>
  <img class="logo" src="${LOGO}" alt="African Student Association logo">
- <div class="date"><span class="d">THU</span><span class="n">3</span><span class="d">DEC</span></div>
  <div class="main">
   <h1>Sleigh the<br><em>Season</em></h1>
-  <p class="when" aria-hidden="true">&nbsp;<br>&nbsp;<br>&nbsp;</p><!-- left empty on purpose: the date lives on the stub; location and time to be written in later -->
+  <p class="when">Thursday, December 3</p>
   <div class="theme"><p class="l">The theme</p><p class="t">The Gift<br>of Giving</p></div>
  </div>
 </div><div class="ribclip"><img class="rib" src="${RIB}" alt=""></div></div>
@@ -87,9 +86,9 @@ h1 em{color:var(--red);font-style:italic;letter-spacing:-.03em}
 </body></html>`;
 
 const post  = {x:40,y:118,w:1000,h:1172,stub:230,rx:-17,ry:24,rw:1280,logo:170,logoTop:150,dateTop:700,dsz:32,num:210,
-  padTop:344,padLeft:62,ksz:26,h1:156,wsz:30,lsz:23,theme:74,gap2:44,gap3:60,preTop:52,btnTop:1318,sdw:620,sdh:84,bsz:48,snow:snow(1080,1440,80,7)};
+  padTop:344,padLeft:62,ksz:26,h1:156,wsz:34,lsz:23,theme:74,gap2:46,gap3:70,preTop:52,btnTop:1318,sdw:620,sdh:84,bsz:48,snow:snow(1080,1440,80,7)};
 const story = {x:90,y:330,w:900,h:1040,stub:220,rx:-15,ry:24,rw:1150,logo:160,logoTop:150,dateTop:640,dsz:30,num:200,
-  padTop:318,padLeft:60,ksz:24,h1:136,wsz:27,lsz:22,theme:68,gap2:36,gap3:50,preTop:262,btnTop:1404,sdw:580,sdh:80,bsz:46,snow:snow(1080,1920,130,11)};
+  padTop:318,padLeft:60,ksz:24,h1:136,wsz:30,lsz:22,theme:68,gap2:38,gap3:60,preTop:262,btnTop:1404,sdw:580,sdh:80,bsz:46,snow:snow(1080,1920,130,11)};
 
 (async()=>{
  const b = await chromium.launch();
@@ -103,7 +102,7 @@ const story = {x:90,y:330,w:900,h:1040,stub:220,rx:-15,ry:24,rw:1150,logo:160,lo
    const ink=el=>{const cs=getComputedStyle(el);cv.font=`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;const m=cv.measureText(el.textContent);
      const s=document.createElement('span');s.style.cssText='display:inline-block;width:0;height:0;vertical-align:baseline';el.appendChild(s);const base=s.getBoundingClientRect().top;s.remove();
      return {top:base-m.actualBoundingBoxAscent,bot:base+m.actualBoundingBoxDescent}};
-   const [a,n,d]=document.querySelectorAll('.date>span');
+   const [a,n,d]=document.querySelectorAll('.date>span'); if(!a) return 'no stub date';
    let A=ink(a),N=ink(n);n.style.marginTop=(G-(N.top-A.bot))+'px';
    N=ink(n);let D=ink(d);d.style.marginTop=(G-(D.top-N.bot))+'px';
    A=ink(a);N=ink(n);D=ink(d);return [Math.round(N.top-A.bot),Math.round(D.top-N.bot)];
