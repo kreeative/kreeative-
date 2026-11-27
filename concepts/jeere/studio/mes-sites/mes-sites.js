@@ -126,7 +126,7 @@
     { id: 'keewal-meere', kind: 'site', title: 'Keewal Meere', label: 'En ligne · keewaomeere.vercel.app', live: 'https://keewaomeere.vercel.app/' },
     { id: 'the-bakery', kind: 'site', title: 'The Bakery', label: 'En ligne · the-bakery-concept.vercel.app', live: 'https://the-bakery-concept.vercel.app/' },
     { id: 'cameleon', kind: 'site', title: 'Caméléon', label: 'En ligne · cameleon-concept.vercel.app', live: 'https://cameleon-concept.vercel.app/' },
-    { id: 'guillemot', kind: 'site', title: 'Guillemot', label: 'En ligne · guillemot.vercel.app', live: 'https://guillemot.vercel.app/' },
+    { id: 'guillemot', kind: 'site', title: 'Guillemot', label: 'En ligne · jehre.com/modeles/guillemot', live: 'https://jehre.com/modeles/guillemot/' },
     { id: 'tabouret', kind: 'site', title: 'Tabouret', label: 'En ligne · tabouret.vercel.app', live: 'https://tabouret.vercel.app/' }
   ];
   function siteCards() {
