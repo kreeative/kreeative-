@@ -212,6 +212,19 @@
       "dest": "/concepts/jeere/modeles/index.html"
     },
     {
+      "src": "^/modeles/voir/guillemot/(.*)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "(jeere\\.kreeative\\.xyz|jehre\\.com)"
+        }
+      ],
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow"
+      },
+      "dest": "https://guillemot.vercel.app/$1"
+    },
+    {
       "src": "^/modeles/voir/(anse|seve|soyeuse|michou|regard|vernie|minuit)/(.*)$",
       "has": [
         {
