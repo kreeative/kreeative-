@@ -18,6 +18,8 @@ export interface Model {
   installIncluded?: boolean;
   /** a booking site (appointments), not a shop */
   rdv?: boolean;
+  /** shown in a metal outline: gold for the premium sites, silver for the favourites */
+  tier?: 'gold' | 'silver';
 }
 
 /** The installation by the team: 100 000 F for up to 10 products and 2 rounds of changes, 5 000 F per product
@@ -50,9 +52,9 @@ export const CUSTOM_FROM = 300000;
 export const MODELS: Model[] = [
   { slug: 'seve', name: 'SÈVE', kind: 'Soins et cosmétiques', desc: 'Flacons sur fond crème, titres serif, filtres par catégorie.', price: 25000, was: 50000, cad: 5999, wasCad: 11999 },
   { slug: 'soyeuse', name: 'SOYEUSE', kind: 'Perruques et tissages', desc: 'Rose bonbon, logo à lettres ornées, mannequin en pied.', price: 25000, was: 50000, cad: 5999, wasCad: 11999 },
-  { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: 50000, was: 100000, cad: 11999, wasCad: 23999 },
-  { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: 300000, installIncluded: true, cad: 72999 },
-  { slug: 'regard', name: 'REGARD', kind: 'Cils et sourcils · rendez-vous', desc: 'Vos clientes réservent en ligne : prestation, jour, heure, acompte.', price: 25000, was: 50000, cad: 5999, wasCad: 11999, rdv: true },
+  { slug: 'michou', name: 'MICHOU', kind: 'Streetwear', desc: 'Police machine à écrire, grandes photos, choix de taille sur la carte.', price: 50000, was: 100000, cad: 11999, wasCad: 23999, tier: 'silver' },
+  { slug: 'anse', name: 'ANSE', kind: 'Maroquinerie', desc: 'Chaque sac dans son cadre pastel, les anses qui s’en échappent.', price: 300000, installIncluded: true, cad: 72999, tier: 'gold' },
+  { slug: 'regard', name: 'REGARD', kind: 'Cils et sourcils · rendez-vous', desc: 'Vos clientes réservent en ligne : prestation, jour, heure, acompte.', price: 25000, was: 50000, cad: 5999, wasCad: 11999, rdv: true, tier: 'silver' },
   { slug: 'vernie', name: 'VERNIE', kind: 'Ongles · rendez-vous', desc: 'Carte des prestations, demandes à confirmer, rappel la veille.', price: 25000, was: 50000, cad: 5999, wasCad: 11999, rdv: true },
   { slug: 'minuit', name: 'MINUIT', kind: 'Cils et ongles · rendez-vous', desc: 'Noir et champagne, tarifs, conditions, offre du mois.', price: 25000, was: 50000, cad: 5999, wasCad: 11999, rdv: true },
 ];
@@ -71,6 +73,10 @@ export const MODEL_COLORS: Record<string, [string, string][]> = {
 export const modelBySlug = (slug: string): Model | undefined => MODELS.find((m) => m.slug === slug);
 export const installPrice = (m: Model): number => m.install ?? INSTALL_PRICE;
 /** The picture of a model (640 × 400) and its real demo, both served by the live site. */
+/** A premium site made to measure, shown with the models: its demo (inside Jehre) and « Choisir » writes to us.
+ *  Not sold here: the team builds it. */
+export const CUSTOM_SITES = [{ slug: 'guillemot', name: 'GUILLEMOT', kind: 'Restaurant gastronomique', price: 300000, cad: 72999, demo: 'https://jehre.com/modeles/guillemot/', ask: 'mailto:bonjour@jehre.com?subject=Mod%C3%A8le%20GUILLEMOT' }] as const;
+
 export const modelThumb = (slug: string): string => `https://jehre.com/studio/sites/thumbs/concepts--${slug}.webp`;
 export const modelDemo = (slug: string): string => `https://jehre.com/modeles/${slug}/`;
 /** A model seen inside Jehre, by a seller who is logged in (as a theme is previewed inside Shopify or Framer). */

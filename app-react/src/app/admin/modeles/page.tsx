@@ -10,7 +10,7 @@ import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
 import { money } from '@/lib/format';
 import { approxNote, useZone, zprice } from '@/lib/zone';
-import { CUSTOM_FROM, INSTALL_CAD, INSTALL_EXTRA, INSTALL_EXTRA_CAD, MODELS, SHOP_OPTION_CAD, SHOP_OPTION_PRICE, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
+import { CUSTOM_FROM, CUSTOM_SITES, INSTALL_CAD, INSTALL_EXTRA, INSTALL_EXTRA_CAD, MODELS, SHOP_OPTION_CAD, SHOP_OPTION_PRICE, askTeam, buyModel, installPrice, modelBySlug, modelPreview, modelThumb, withModel, type Model } from '@/lib/models';
 import { createStore, saveFiche, storeName, storeUrl } from '@/lib/stores';
 import { Icon } from '@/components/ui/Icon';
 import styles from './modeles.module.css';
@@ -136,7 +136,7 @@ export default function ModelsPage() {
         {MODELS.map((m) => {
           const mine = owned.includes(m.slug);
           return (
-            <li key={m.slug} className={styles.card}>
+            <li key={m.slug} className={styles.card} data-tier={m.tier}>
               <a className={styles.shot} href={modelPreview(m.slug)} aria-label={`Voir la démo du modèle ${m.name}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={modelThumb(m.slug)} alt="" width={640} height={400} loading="lazy" decoding="async" />
@@ -145,7 +145,7 @@ export default function ModelsPage() {
               <div className={styles.body}>
                 <p className={styles.name}>{m.name}</p>
                 <p className={styles.kind}>{m.kind}</p>
-                <p className={styles.price}><strong>{zprice(z, m.price, m.cad)}</strong>{m.was ? <> <s>{zprice(z, m.was, m.wasCad ?? m.cad * 2)}</s></> : null}</p>
+                <p className={styles.price}>{m.installIncluded ? <span>À partir de </span> : null}<strong>{zprice(z, m.price, m.cad)}</strong>{m.was ? <> <s>{zprice(z, m.was, m.wasCad ?? m.cad * 2)}</s></> : null}</p>
                 <div className={styles.acts}>
                   {current === m.slug ? <ButtonLink href={store ? `/admin/editeur/?b=${store.id}` : '/admin/editeur/'} icon="edit" aria-label={`Modifier mon site ${m.name}`}>Modifier</ButtonLink>
                     : mine ? <Button busy={busy} onClick={() => void use(m)}>Utiliser ce modèle</Button>
@@ -157,6 +157,24 @@ export default function ModelsPage() {
             </li>
           );
         })}
+        {CUSTOM_SITES.map((c) => (
+          <li key={c.slug} className={styles.card} data-tier="gold">
+            <a className={styles.shot} href={c.demo} aria-label={`Voir la démo du site ${c.name}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={modelThumb(c.slug)} alt="" width={640} height={400} loading="lazy" decoding="async" />
+              <span className={styles.example} aria-hidden="true">Exemple de mise en page</span>
+            </a>
+            <div className={styles.body}>
+              <p className={styles.name}>{c.name}</p>
+              <p className={styles.kind}>{c.kind}</p>
+              <p className={styles.price}><span>À partir de </span><strong>{zprice(z, c.price, c.cad)}</strong></p>
+              <div className={styles.acts}>
+                <ButtonLink href={c.ask} aria-label={`Choisir le site ${c.name}`}>Choisir</ButtonLink>
+                <ButtonLink variant="secondary" href={c.demo}>Voir la démo</ButtonLink>
+              </div>
+            </div>
+          </li>
+        ))}
       </ul>
 
       {open ? <Choose key={open.slug} model={open} onClose={close} firstName={account.firstName} phone={account.phone} email={account.email ?? ''}

@@ -99,3 +99,10 @@
   .mineLinks li:nth-child(n + 3) { border-top: 1px solid var(--glass-line); }
   .mineLinks li:nth-child(even) { border-left: 1px solid var(--glass-line); }
 }
+
+/* premium sites in gold (ANSE, GUILLEMOT), the favourites in silver (MICHOU, REGARD): a thin metal outline, as on
+   the home page of jehre.com */
+.card[data-tier] { border: 3px solid transparent; }
+.card[data-tier="gold"] { background: linear-gradient(#fff, #fff) padding-box, linear-gradient(135deg, #F3DD9B 0%, #C99A3E 28%, #FFF1C4 52%, #B9862F 76%, #E9CB7A 100%) border-box; box-shadow: 0 18px 40px -30px rgba(150, 110, 30, .45); }
+.card[data-tier="silver"] { background: linear-gradient(#fff, #fff) padding-box, linear-gradient(135deg, #D7DBDF 0%, #8C939B 28%, #F2F4F6 52%, #757D86 76%, #C3C8CD 100%) border-box; box-shadow: 0 18px 40px -30px rgba(80, 90, 100, .4); }
+.price > span { color: var(--muted); font-size: 13px; }

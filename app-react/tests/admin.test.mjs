@@ -502,14 +502,15 @@ await test('the product panel opens full page and comes back; on a phone it is a
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-await test('models: the seven designer models, with their price, « Choisir » and the real demo', async () => {
+await test('models: the seven designer models and the GUILLEMOT premium site, with their price, « Choisir » and the real demo; gold and silver outlines', async () => {
   const w = world(); const { page, ctx, errors } = await open(browser, DESK, w);
   await page.goto(`${BASE}/admin/modeles/`); await h1(page, 'Modèles de designer');
   await page.getByText('Un site dessiné pour votre métier, payé une seule fois. Vous le remplissez vous-même, ou notre équipe l’installe pour vous.').waitFor();
   const cards = page.locator('main ul > li');
-  assert.equal(await cards.count(), 7);
+  assert.equal(await cards.count(), 8);
   // the gallery shows each model as an example of layout (its photos become plain frames on her store)
-  assert.equal(await page.getByText('Exemple de mise en page', { exact: true }).count(), 7);
+  assert.equal(await page.getByText('Exemple de mise en page', { exact: true }).count(), 8);
+  assert.deepEqual(await cards.evaluateAll((els) => els.map((li) => li.getAttribute('data-tier') ?? '')), ['', '', 'silver', 'gold', 'silver', '', '', 'gold'], 'ANSE and GUILLEMOT in gold, MICHOU and REGARD in silver');
   await page.waitForFunction(() => [...document.querySelectorAll('main ul > li img')].every((i) => i.complete), null, { timeout: 30000 });
   await page.screenshot({ path: `${SHOTS}133-galerie-exemple.png` });
   const seen = await cards.evaluateAll((els) => els.map((li) => ({
@@ -522,7 +523,9 @@ await test('models: the seven designer models, with their price, « Choisir » a
     ['SÈVE', 'Soins et cosmétiques', '25 000 FCFA', '50 000 FCFA'], ['SOYEUSE', 'Perruques et tissages', '25 000 FCFA', '50 000 FCFA'],
     ['MICHOU', 'Streetwear', '50 000 FCFA', '100 000 FCFA'], ['ANSE', 'Maroquinerie', '300 000 FCFA', ''],
     ['REGARD', 'Cils et sourcils · rendez-vous', '25 000 FCFA', '50 000 FCFA'], ['VERNIE', 'Ongles · rendez-vous', '25 000 FCFA', '50 000 FCFA'],
-    ['MINUIT', 'Cils et ongles · rendez-vous', '25 000 FCFA', '50 000 FCFA']]);
+    ['MINUIT', 'Cils et ongles · rendez-vous', '25 000 FCFA', '50 000 FCFA'], ['GUILLEMOT', 'Restaurant gastronomique', '300 000 FCFA', '']]);
+  assert.match(await cards.nth(3).innerText(), /À partir de\s+300\s000\sFCFA/);
+  assert.deepEqual(seen[7].demo.slice(0, 2), ['https://jehre.com/modeles/guillemot/|null', 'mailto:bonjour@jehre.com?subject=Mod%C3%A8le%20GUILLEMOT|null']);
   for (const [i, slug] of ['seve', 'soyeuse', 'michou', 'anse', 'regard', 'vernie', 'minuit'].entries()) {
     assert.equal(seen[i].img, `https://jehre.com/studio/sites/thumbs/concepts--${slug}.webp`);
     assert.deepEqual(seen[i].demo, [`/admin/modeles/apercu/?m=${slug}|null`, `/admin/modeles/apercu/?m=${slug}|null`], 'the picture and « Voir la démo » open the model INSIDE Jehre, not a public page');
