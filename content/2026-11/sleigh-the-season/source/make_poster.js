@@ -78,7 +78,7 @@ h1 em{color:var(--red);font-style:italic;letter-spacing:-.03em}
  <div class="date"><span class="d">THU</span><span class="n">3</span><span class="d">DEC</span></div>
  <div class="main">
   <h1>Sleigh the<br><em>Season</em></h1>
-  <p class="when">Thursday, Dec 3<br>Location and time<br>to be announced</p>
+  <p class="when" aria-hidden="true">&nbsp;<br>&nbsp;<br>&nbsp;</p><!-- left empty on purpose: the date lives on the stub; location and time to be written in later -->
   <div class="theme"><p class="l">The theme</p><p class="t">The Gift<br>of Giving</p></div>
  </div>
 </div><div class="ribclip"><img class="rib" src="${RIB}" alt=""></div></div>
