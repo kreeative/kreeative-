@@ -186,6 +186,8 @@ window.JEERE_EN = {
   'custom.michou.k': 'Streetwear',
   'custom.michou.d': 'Dark editorial, cards on light grey, size picker.',
   'custom.anse.k': 'Leather goods',
+  'custom.guillemot.k': 'Fine dining restaurant',
+  'custom.from': 'From',
   'custom.anse.d': 'Each bag in its pastel frame, the handles breaking out of it.',
   'custom.regard.k': 'Lashes & brows · appointments',
   'custom.regard.d': 'Your clients book online: service, day, time, deposit.',

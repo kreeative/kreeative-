@@ -189,7 +189,7 @@
       "dest": "/api/sitemap"
     },
     {
-      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit)$",
+      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit|guillemot)$",
       "has": [
         {
           "type": "host",
@@ -202,7 +202,7 @@
       }
     },
     {
-      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit)/$",
+      "src": "^/modeles/(anse|seve|soyeuse|michou|regard|vernie|minuit|guillemot)/$",
       "has": [
         {
           "type": "host",

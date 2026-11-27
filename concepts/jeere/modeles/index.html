@@ -13,7 +13,7 @@
        served at /modeles/<modèle>/ by vercel.json). -->
   <script>
     (function () {
-      var m = /\/modeles\/(anse|seve|soyeuse|michou|regard|vernie|minuit)\//.exec(location.pathname);
+      var m = /\/modeles\/(anse|seve|soyeuse|michou|regard|vernie|minuit|guillemot)\//.exec(location.pathname);
       window.JEHRE_MODEL = m ? m[1] : '';
       var acc = null;
       try { acc = JSON.parse(localStorage.getItem('jeere-account') || 'null'); } catch (e) { acc = null; }
@@ -96,14 +96,17 @@
       var open = !!window.JEHRE_OPEN;
       var M = window.JeereModels, m = null;
       try { m = M && M.bySlug ? M.bySlug(slug) : null; } catch (e) { m = null; }
+      // GUILLEMOT: a premium site made to measure (not a self-serve model yet): its demo, and « Choisir » writes to us
+      var custom = slug === 'guillemot';
+      if (custom) m = { name: 'GUILLEMOT', kind: 'Restaurant gastronomique' };
       var name = (m && m.name) || slug.toUpperCase();
       document.title = 'Modèle ' + name + ' · Jehre';
       document.getElementById('mv-title').textContent = 'Modèle ' + name;
       document.getElementById('mv-sizes').setAttribute('aria-label', 'Modèle ' + name + (m && m.kind ? ' · ' + m.kind : ''));
       // choosing it needs her account: the dashboard when she is in, else the account page (which brings her back)
-      document.getElementById('mv-choose').href = open ? '/admin/#boutique/modele/' + slug : '/compte/?suite=modele&m=' + slug + (window.JEHRE_KNOWN ? '#connexion' : '#inscription');
+      document.getElementById('mv-choose').href = custom ? 'mailto:bonjour@jehre.com?subject=Mod%C3%A8le%20GUILLEMOT' : open ? '/admin/#boutique/modele/' + slug : '/compte/?suite=modele&m=' + slug + (window.JEHRE_KNOWN ? '#connexion' : '#inscription');
       // a model she already has (bought, or her own store under the model's name): no « Choisir », her site instead
-      (function mine() {
+      if (!custom) (function mine() {
         var tok = null;
         try { var t = JSON.parse(localStorage.getItem('sb-aezchxfvzfoqlvzchqyk-auth-token') || 'null'); tok = t && (t.access_token || (t.currentSession && t.currentSession.access_token)); } catch (e) { tok = null; }
         if (!tok) return;
@@ -120,7 +123,7 @@
       if (!open) { var back = document.getElementById('mv-back'); back.href = '/#modeles'; back.setAttribute('aria-label', 'Retour à l’accueil de Jehre'); }
       var frame = document.getElementById('mv-frame');
       frame.title = 'Modèle ' + name;
-      frame.src = '/modeles/voir/' + slug + '/';
+      frame.src = custom ? 'https://guillemot.vercel.app/' : '/modeles/voir/' + slug + '/';
 
       // the sizes: the site at its real width (1280 or 390), scaled down to fit, as in the dashboard
       var WIDTH = { desktop: 1280, phone: 390 };
