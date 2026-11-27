@@ -2,6 +2,19 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "^/(.*)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "jeere\\.kreeative\\.xyz"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "https://jehre.com/$1"
+      }
+    },
+    {
       "src": "^/api/visit$",
       "dest": "/api/visit"
     },
