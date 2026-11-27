@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const OUT = process.argv[2] || '.';
 const b64 = (f, t) => `data:${t};base64,` + fs.readFileSync(__dirname + '/' + f).toString('base64');
-const PAPER = b64('paper-ticket.webp', 'image/webp'), RIB = b64('ribbon-alpha.webp', 'image/webp'), LOGO = b64('asa-logo.png', 'image/png');
+const PAPER = b64('paper-ticket.webp', 'image/webp'), RIB = b64('ribbon-alpha.webp', 'image/webp'), LOGO = b64('asa-logo.png', 'image/png'), BAND = b64('band-alpha.webp', 'image/webp');
 
 // The ticket's shape: rounded card with the two notches and the perforation holes punched out, edges slightly torn.
 function cardMask(w, h, stub, band) {
@@ -39,13 +39,17 @@ body{background:radial-gradient(120% 90% at 50% 40%,var(--bg) 0%,var(--bg2) 100%
 .date .n{font:400 ${c.num}px/1 'DM Serif Display';color:var(--ink);filter:url(#ink)}
 .main{position:absolute;left:${c.stub}px;right:0;top:0;padding:${c.padTop}px 50px 0 ${c.padLeft}px;mix-blend-mode:multiply}
 .k{font:400 ${c.ksz}px/1.2 'DM Mono';letter-spacing:.14em;text-transform:uppercase;color:var(--muted);filter:url(#print)}
-h1{font:400 ${c.h1}px/.97 'DM Serif Display';letter-spacing:-.035em;margin-top:${c.gap1}px;filter:url(#ink)}
+h1{font:400 ${c.h1}px/.97 'DM Serif Display';letter-spacing:-.035em;filter:url(#ink)}
 h1 em{color:var(--red);font-style:italic;letter-spacing:-.03em}
 .when{font:400 ${c.wsz}px/1.55 'DM Mono';margin-top:${c.gap2}px;filter:url(#print)}
 .theme{margin-top:${c.gap3}px;padding-left:28px;border-left:5px solid var(--gold)}
 .theme .l{font:600 ${c.lsz}px/1 Outfit;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);filter:url(#print)}
 .theme .t{font:italic 400 ${c.theme}px/1.05 'DM Serif Display';letter-spacing:-.02em;margin-top:14px;filter:url(#ink)}
-.btn{position:absolute;left:50%;top:${c.btnTop}px;transform:translateX(-50%);background:var(--red);color:#fff;font:600 ${c.bsz}px/1 Outfit;letter-spacing:.01em;padding:${c.bpad}px ${c.bpad*1.6}px;border-radius:999px;box-shadow:0 8px 18px rgba(0,0,0,.28);white-space:nowrap}
+.presents{position:absolute;left:0;right:0;top:${c.preTop}px;text-align:center;font:400 ${c.ksz}px/1 'DM Mono';letter-spacing:.16em;text-transform:uppercase;color:#efe6d2}
+.presents em{font:italic 400 ${c.ksz*1.45}px/1 'DM Serif Display';letter-spacing:0;text-transform:none;color:#d9b45f;margin-left:.35em}
+.sdwrap{position:absolute;left:50%;top:${c.btnTop}px;transform:translateX(-50%);filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+.sdate{width:${c.sdw}px;height:${c.sdh}px;background:url(${BAND}) center ${-c.sdh*40/260}px/auto ${c.sdh*320/260}px repeat-x;clip-path:polygon(0 0,100% 0,calc(100% - ${c.sdh*.32}px) 50%,100% 100%,0 100%,${c.sdh*.32}px 50%);display:flex;align-items:center;justify-content:center}
+.sdate span{font:italic 400 ${c.bsz}px/1 'DM Serif Display';color:#fff6e6;letter-spacing:.01em;text-shadow:0 1px 1px rgba(80,0,10,.45);margin-top:-2px}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
  <filter id="ink" x="-4%" y="-10%" width="108%" height="120%" color-interpolation-filters="sRGB">
@@ -73,23 +77,23 @@ h1 em{color:var(--red);font-style:italic;letter-spacing:-.03em}
  <img class="logo" src="${LOGO}" alt="African Student Association logo">
  <div class="date"><span class="d">THU</span><span class="n">3</span><span class="d">DEC</span></div>
  <div class="main">
-  <p class="k">African Student Association</p>
   <h1>Sleigh the<br><em>Season</em></h1>
   <p class="when">Thursday, Dec 3<br>Location and time<br>to be announced</p>
   <div class="theme"><p class="l">The theme</p><p class="t">The Gift<br>of Giving</p></div>
  </div>
 </div><div class="ribclip"><img class="rib" src="${RIB}" alt=""></div></div>
-<span class="btn">Save the date</span>
+<p class="presents">African Student Association<em>presents</em></p>
+<div class="sdwrap"><div class="sdate"><span>Save the date</span></div></div>
 </body></html>`;
 
-const post  = {x:40,y:40,w:1000,h:1130,stub:230,rx:-17,ry:24,rw:1280,logo:170,logoTop:150,dateTop:640,dsz:32,num:210,
-  padTop:330,padLeft:62,ksz:26,h1:152,wsz:29,lsz:23,theme:70,gap1:24,gap2:34,gap3:46,btnTop:1196,bsz:34,bpad:24,snow:snow(1080,1350,70,7)};
-const story = {x:90,y:250,w:900,h:1130,stub:220,rx:-15,ry:24,rw:1150,logo:160,logoTop:150,dateTop:690,dsz:30,num:200,
-  padTop:306,padLeft:60,ksz:25,h1:136,wsz:27,lsz:22,theme:66,gap1:24,gap2:30,gap3:44,btnTop:1418,bsz:32,bpad:22,snow:snow(1080,1920,130,11)};
+const post  = {x:40,y:118,w:1000,h:1172,stub:230,rx:-17,ry:24,rw:1280,logo:170,logoTop:150,dateTop:700,dsz:32,num:210,
+  padTop:344,padLeft:62,ksz:26,h1:156,wsz:30,lsz:23,theme:74,gap2:44,gap3:60,preTop:52,btnTop:1318,sdw:620,sdh:84,bsz:48,snow:snow(1080,1440,80,7)};
+const story = {x:90,y:330,w:900,h:1040,stub:220,rx:-15,ry:24,rw:1150,logo:160,logoTop:150,dateTop:640,dsz:30,num:200,
+  padTop:318,padLeft:60,ksz:24,h1:136,wsz:27,lsz:22,theme:68,gap2:36,gap3:50,preTop:262,btnTop:1404,sdw:580,sdh:80,bsz:46,snow:snow(1080,1920,130,11)};
 
 (async()=>{
  const b = await chromium.launch();
- for (const [name,W,H,c] of [['post',1080,1350,post],['story',1080,1920,story]]) {
+ for (const [name,W,H,c] of [['post',1080,1440,post],['story',1080,1920,story]]) {
   const p = await b.newPage({viewport:{width:W,height:H},deviceScaleFactor:2});
   const html = page(W,H,c); fs.writeFileSync(`${name}.html`, html);
   await p.setContent(html,{waitUntil:'networkidle'}); await p.evaluate(()=>document.fonts.ready);
@@ -106,7 +110,7 @@ const story = {x:90,y:250,w:900,h:1130,stub:220,rx:-15,ry:24,rw:1150,logo:160,lo
   }, 34);
   const qa = await p.evaluate(()=>{const card=document.querySelector('.card').getBoundingClientRect();const out=[];
    for(const el of document.querySelectorAll('.main *, .date *')){const r=el.getBoundingClientRect();if(r.right>card.right-30||r.bottom>card.bottom-30)out.push(el.className||el.tagName)}
-   const btn=document.querySelector('.btn').getBoundingClientRect();const h1=document.querySelector('h1');
+   const btn=document.querySelector('.sdwrap').getBoundingClientRect();const h1=document.querySelector('h1');
    return {overflow:out,cardBottom:card.bottom,btn:[Math.round(btn.top),Math.round(btn.bottom)],h1fits:h1.scrollWidth<=h1.clientWidth,mainBottom:Math.round(document.querySelector('.theme').getBoundingClientRect().bottom)}});
   console.log(name, 'gaps', gaps, JSON.stringify(qa));
   await p.screenshot({path:`${OUT}/sleigh-the-season-${name}.png`});
