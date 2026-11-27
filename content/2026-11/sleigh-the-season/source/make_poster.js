@@ -42,7 +42,7 @@ body{background:radial-gradient(120% 90% at 50% 40%,var(--bg) 0%,var(--bg2) 100%
 h1{font:400 ${c.h1}px/.97 'DM Serif Display';letter-spacing:-.035em;filter:url(#ink)}
 h1 em{color:var(--red);font-style:italic;letter-spacing:-.03em}
 .when{font:400 ${c.wsz}px/1.55 'DM Mono';margin-top:${c.gap2}px;filter:url(#print)}
-.theme{margin-top:${c.gap3}px;padding-left:28px;border-left:5px solid var(--gold)}
+.theme{margin-top:${c.gap3}px}
 .theme .l{font:600 ${c.lsz}px/1 Outfit;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);filter:url(#print)}
 .theme .t{font:italic 400 ${c.theme}px/1.05 'DM Serif Display';letter-spacing:-.02em;margin-top:14px;filter:url(#ink)}
 .presents{position:absolute;left:0;right:0;top:${c.preTop}px;text-align:center;font:400 ${c.ksz}px/1 'DM Mono';letter-spacing:.16em;text-transform:uppercase;color:#efe6d2}
