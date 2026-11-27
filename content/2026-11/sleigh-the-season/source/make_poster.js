@@ -35,7 +35,7 @@ h1 em{color:var(--red);font-style:italic}
  <img class="rib" src="${RIB}" alt=""><span class="notch t"></span><span class="notch b"></span><span class="perf"></span>
  <div class="stub"><span class="d">THU</span><span class="n">3</span><span class="d">DEC</span></div>
  <div class="main">
-  <p class="k">Socials · Group event</p>
+  <p class="k">African Student Association</p>
   <h1>Sleigh the<br><em>Season</em></h1>
   <p class="when">Thursday, Dec 3<br>Location and time<br>to be announced</p>
   <div class="theme"><p class="l">The theme</p><p class="t">The Gift<br>of Giving</p></div>
