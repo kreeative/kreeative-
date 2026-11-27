@@ -4,6 +4,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const OUT = process.argv[2] || '.';
 const b64 = (f, t) => `data:${t};base64,` + fs.readFileSync(__dirname + '/' + f).toString('base64');
+const SCALE = +(process.env.SCALE || 2);
 const PAPER = b64('paper-ticket.webp', 'image/webp'), RIB = b64('ribbon-alpha.webp', 'image/webp'), LOGO = b64('asa-logo.png', 'image/png'), BAND = b64('band-alpha.webp', 'image/webp');
 
 // The ticket's shape: rounded card with the two notches and the perforation holes punched out, edges slightly torn.
@@ -93,7 +94,7 @@ const story = {x:90,y:330,w:900,h:1040,stub:220,rx:-15,ry:24,rw:1150,logo:160,lo
 (async()=>{
  const b = await chromium.launch();
  for (const [name,W,H,c] of [['post',1080,1440,post],['story',1080,1920,story]]) {
-  const p = await b.newPage({viewport:{width:W,height:H},deviceScaleFactor:2});
+  const p = await b.newPage({viewport:{width:W,height:H},deviceScaleFactor:SCALE});
   const html = page(W,H,c); fs.writeFileSync(`${name}.html`, html);
   await p.setContent(html,{waitUntil:'networkidle'}); await p.evaluate(()=>document.fonts.ready);
   // Equal visual gaps in the stub: THU -> 3 and 3 -> DEC, measured on the letters' ink, not their line boxes.
@@ -112,7 +113,7 @@ const story = {x:90,y:330,w:900,h:1040,stub:220,rx:-15,ry:24,rw:1150,logo:160,lo
    const btn=document.querySelector('.sdwrap').getBoundingClientRect();const h1=document.querySelector('h1');
    return {overflow:out,cardBottom:card.bottom,btn:[Math.round(btn.top),Math.round(btn.bottom)],h1fits:h1.scrollWidth<=h1.clientWidth,mainBottom:Math.round(document.querySelector('.theme').getBoundingClientRect().bottom)}});
   console.log(name, 'gaps', gaps, JSON.stringify(qa));
-  await p.screenshot({path:`${OUT}/sleigh-the-season-${name}.png`});
+  await p.screenshot({path:`${OUT}/sleigh-the-season-${name}${SCALE>2?'-4k':''}.png`});
  }
  await b.close();
 })();
