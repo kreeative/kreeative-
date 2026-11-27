@@ -124,8 +124,10 @@ export async function saveStoreName(account: Account, name: string): Promise<{ o
   return { ok: true, account: next };
 }
 
+/** Logs out THIS device only: her phone stays logged in when she logs out on her computer, and the other way round
+ *  (supabase-js logs out every device by default). */
 export async function signOut(): Promise<void> {
-  try { await supabase().auth.signOut(); } catch { /* the local session goes anyway */ }
+  try { await supabase().auth.signOut({ scope: 'local' }); } catch { /* the local session goes anyway */ }
   const acc = readAccount();
   if (acc) lsSet(ACCOUNT_KEY, JSON.stringify({ ...acc, loggedIn: false }));
   lsDel(SYNC_KEY);
